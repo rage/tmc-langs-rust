@@ -133,11 +133,12 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
 </pre><pre class="rust"><code><span class="doccomment">//! File locking utilities on Unix platforms.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::FileError</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::file_util</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">fd_lock</span>::{<span class="ident">FdLock</span>, <span class="ident">FdLockGuard</span>};
+<span class="kw">use</span> <span class="ident">fd_lock</span>::{<span class="ident">RwLock</span>, <span class="ident">RwLockWriteGuard</span>};
 <span class="kw">use</span> <span class="ident">std::fs::File</span>;
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 
@@ -145,7 +146,7 @@
 <span class="doccomment">/// from multiple instances of tmc-langs.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileLock</span> {
     <span class="ident">path</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">fd_lock</span>: <span class="ident">FdLock</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
+    <span class="ident">fd_lock</span>: <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FileLock</span> {
@@ -153,19 +154,19 @@
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">open_file</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
             <span class="ident">path</span>,
-            <span class="ident">fd_lock</span>: <span class="ident">FdLock::new</span>(<span class="ident">file</span>),
+            <span class="ident">fd_lock</span>: <span class="ident">RwLock::new</span>(<span class="ident">file</span>),
         })
     }
 
     <span class="doccomment">/// Blocks until the lock can be acquired.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FileLockGuard</span>, <span class="ident">FileError</span><span class="op">&gt;</span> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;locking {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
+        <span class="macro">log::trace!</span>(<span class="string">&quot;locking {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>;
         <span class="kw">let</span> <span class="ident">fd_lock</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">fd_lock</span>;
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">fd_lock</span>
-            .<span class="ident">lock</span>()
+            .<span class="ident">write</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="macro">log::debug!</span>(<span class="string">&quot;locked {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
+        <span class="macro">log::trace!</span>(<span class="string">&quot;locked {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
         <span class="prelude-val">Ok</span>(<span class="ident">FileLockGuard</span> {
             <span class="ident">path</span>,
             <span class="ident">_guard</span>: <span class="ident">guard</span>,
@@ -177,16 +178,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileLockGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Path</span>,
-    <span class="ident">_guard</span>: <span class="ident">FdLockGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">File</span><span class="op">&gt;</span>,
+    <span class="ident">_guard</span>: <span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">File</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">FileLockGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;unlocking {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
+        <span class="macro">log::trace!</span>(<span class="string">&quot;unlocking {}&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">display</span>());
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;

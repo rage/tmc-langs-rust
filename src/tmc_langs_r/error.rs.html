@@ -31,6 +31,16 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error type for the R plugin</span>
 
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
@@ -42,6 +52,16 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize file {0} into JSON&quot;</span>)]</span>
     <span class="ident">JsonDeserialize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">serde_json::Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(
+        <span class="string">&quot;Failed to locate test results at {path}
+    stdout: {stdout}
+    stderr: {stderr}&quot;</span>
+    )]</span>
+    <span class="ident">MissingTestResults</span> {
+        <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+        <span class="ident">stdout</span>: <span class="ident">String</span>,
+        <span class="ident">stderr</span>: <span class="ident">String</span>,
+    },
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
     <span class="ident">FileError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileError</span>),
@@ -57,9 +77,9 @@
 }
 
 <span class="comment">// conversion from plugin error to a tmc result</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RError</span> {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="self">self</span>)))
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">from</span>: <span class="ident">RError</span>) -&gt; <span class="self">Self</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">TmcError::Plugin</span>(<span class="ident">Box::new</span>(<span class="ident">from</span>)))
     }
 }
 </code></pre></div>

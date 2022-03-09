@@ -1,0 +1,367 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;neon-runtime-0.10.0&#x2F;src&#x2F;napi&#x2F;async_work.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_work.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Rust wrappers for Node-API simple asynchronous operations</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Unlike `napi_async_work` which threads a single mutable pointer to a data</span>
+<span class="doccomment">//! struct to both the `execute` and `complete` callbacks, the wrapper follows</span>
+<span class="doccomment">//! a more idiomatic Rust ownership pattern by passing the output of `execute`</span>
+<span class="doccomment">//! into the input of `complete`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! https://nodejs.org/api/n-api.html#n_api_simple_asynchronous_operations</span>
+
+<span class="kw">use</span> <span class="ident">std::ffi::c_void</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use</span> <span class="ident">std::panic</span>::{<span class="ident">catch_unwind</span>, <span class="ident">resume_unwind</span>, <span class="ident">AssertUnwindSafe</span>};
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
+<span class="kw">use</span> <span class="ident">std::thread</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::no_panic::FailureBoundary</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::raw::Env</span>;
+
+<span class="kw">const</span> <span class="ident">BOUNDARY</span>: <span class="ident">FailureBoundary</span> <span class="op">=</span> <span class="ident">FailureBoundary</span> {
+    <span class="ident">both</span>: <span class="string">&quot;A panic and exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+    <span class="ident">exception</span>: <span class="string">&quot;An exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+    <span class="ident">panic</span>: <span class="string">&quot;A panic occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+};
+
+<span class="kw">type</span> <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="ident">input</span>: <span class="ident">I</span>) -&gt; <span class="ident">O</span>;
+<span class="kw">type</span> <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">output</span>: <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">D</span>);
+
+<span class="doccomment">/// Schedule work to execute on the libuv thread pool</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Safety</span>
+<span class="doccomment">/// * `env` must be a valid `napi_env` for the current thread</span>
+<span class="doccomment">/// * The `thread::Result::Err` must only be used for resuming unwind if</span>
+<span class="doccomment">///   `execute` is not unwind safe</span>
+<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">schedule</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(
+    <span class="ident">env</span>: <span class="ident">Env</span>,
+    <span class="ident">input</span>: <span class="ident">I</span>,
+    <span class="ident">execute</span>: <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
+    <span class="ident">complete</span>: <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>,
+    <span class="ident">data</span>: <span class="ident">D</span>,
+) <span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">O</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">D</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Data</span> {
+        <span class="ident">state</span>: <span class="ident">State::Input</span>(<span class="ident">input</span>),
+        <span class="ident">execute</span>,
+        <span class="ident">complete</span>,
+        <span class="ident">data</span>,
+        <span class="comment">// Work is initialized as a null pointer, but set by `create_async_work`</span>
+        <span class="comment">// `data` must not be used until this value has been set.</span>
+        <span class="ident">work</span>: <span class="ident">ptr::null_mut</span>(),
+    });
+
+    <span class="comment">// Store a pointer to `work` before ownership is transferred to `Box::into_raw`</span>
+    <span class="kw">let</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">work</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
+
+    <span class="comment">// Create the `async_work`</span>
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">napi::create_async_work</span>(
+            <span class="ident">env</span>,
+            <span class="ident">ptr::null_mut</span>(),
+            <span class="ident"><span class="kw">super</span>::string</span>(<span class="ident">env</span>, <span class="string">&quot;neon_async_work&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">call_execute</span>::<span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">call_complete</span>::<span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>),
+            <span class="ident">Box::into_raw</span>(<span class="ident">data</span>).<span class="ident">cast</span>(),
+            <span class="ident">work</span>,
+        ),
+        <span class="ident">napi::Status::Ok</span>,
+    );
+
+    <span class="comment">// Queue the work</span>
+    <span class="kw">match</span> <span class="ident">napi::queue_async_work</span>(<span class="ident">env</span>, <span class="kw-2">*</span><span class="ident">work</span>) {
+        <span class="ident">napi::Status::Ok</span> =&gt; {}
+        <span class="ident">status</span> =&gt; {
+            <span class="comment">// If queueing failed, delete the work to prevent a leak</span>
+            <span class="ident">napi::delete_async_work</span>(<span class="ident">env</span>, <span class="kw-2">*</span><span class="ident">work</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+        }
+    }
+}
+
+<span class="doccomment">/// A pointer to data is passed to the `execute` and `complete` callbacks</span>
+<span class="kw">struct</span> <span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span> {
+    <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
+    <span class="ident">execute</span>: <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
+    <span class="ident">complete</span>: <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>,
+    <span class="ident">data</span>: <span class="ident">D</span>,
+    <span class="ident">work</span>: <span class="ident">napi::AsyncWork</span>,
+}
+
+<span class="doccomment">/// State of the task that is transitioned by `execute` and `complete`</span>
+<span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Initial data input passed to `execute`</span>
+    <span class="ident">Input</span>(<span class="ident">I</span>),
+    <span class="doccomment">/// Transient state while `execute` is running</span>
+    <span class="ident">Executing</span>,
+    <span class="doccomment">/// Return data of `execute` passed to `complete`</span>
+    <span class="ident">Output</span>(<span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Return the input if `State::Input`, replacing with `State::Executing`</span>
+    <span class="kw">fn</span> <span class="ident">take_execute_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Executing</span>) {
+            <span class="ident"><span class="self">Self</span>::Input</span>(<span class="ident">input</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">input</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Return the output if `State::Output`, replacing with `State::Executing`</span>
+    <span class="kw">fn</span> <span class="ident">into_output</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Output</span>(<span class="ident">output</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">output</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// Callback executed on the libuv thread pool</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Safety</span>
+<span class="doccomment">/// * `Env` should not be used because it could attempt to call JavaScript</span>
+<span class="doccomment">/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`</span>
+<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call_execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="ident">Env</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
+    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">data</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+
+    <span class="comment">// This is unwind safe because unwinding will resume on the other side</span>
+    <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="comment">// `unwrap` is ok because `call_execute` should be called exactly once</span>
+        <span class="comment">// after initialization</span>
+        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">state</span>.<span class="ident">take_execute_input</span>().<span class="ident">unwrap</span>();
+
+        (<span class="ident">data</span>.<span class="ident">execute</span>)(<span class="ident">input</span>)
+    }));
+
+    <span class="ident">data</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Output</span>(<span class="ident">output</span>);
+}
+
+<span class="doccomment">/// Callback executed on the JavaScript main thread</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Safety</span>
+<span class="doccomment">/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`</span>
+<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call_complete</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">status</span>: <span class="ident">napi::Status</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
+    <span class="kw">let</span> <span class="ident">Data</span> {
+        <span class="ident">state</span>,
+        <span class="ident">complete</span>,
+        <span class="ident">data</span>,
+        <span class="ident">work</span>,
+        ..
+    } <span class="op">=</span> <span class="kw-2">*</span><span class="ident">Box</span>::<span class="op">&lt;</span><span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from_raw</span>(<span class="ident">data</span>.<span class="ident">cast</span>());
+
+    <span class="ident">napi::delete_async_work</span>(<span class="ident">env</span>, <span class="ident">work</span>);
+
+    <span class="ident">BOUNDARY</span>.<span class="ident">catch_failure</span>(<span class="ident">env</span>, <span class="prelude-val">None</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">env</span><span class="op">|</span> {
+        <span class="comment">// `unwrap` is okay because `call_complete` should be called exactly once</span>
+        <span class="comment">// if and only if `call_execute` has completed successfully</span>
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">into_output</span>().<span class="ident">unwrap</span>();
+
+        <span class="comment">// The event looped has stopped if we do not have an Env</span>
+        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span> <span class="ident">env</span> {
+            <span class="ident">env</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// Resume panicking if necessary</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">panic</span>) <span class="op">=</span> <span class="ident">output</span> {
+                <span class="ident">resume_unwind</span>(<span class="ident">panic</span>);
+            }
+
+            <span class="kw">return</span> <span class="ident">ptr::null_mut</span>();
+        };
+
+        <span class="kw">match</span> <span class="ident">status</span> {
+            <span class="ident">napi::Status::Ok</span> =&gt; <span class="ident">complete</span>(<span class="ident">env</span>, <span class="ident">output</span>, <span class="ident">data</span>),
+            <span class="ident">napi::Status::Cancelled</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>),
+        }
+
+        <span class="ident">ptr::null_mut</span>()
+    });
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</body></html>

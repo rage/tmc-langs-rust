@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.20.2&#x2F;src&#x2F;unistd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;nix-0.23.1&#x2F;src&#x2F;unistd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -2829,6 +2829,171 @@
 <span id="2827">2827</span>
 <span id="2828">2828</span>
 <span id="2829">2829</span>
+<span id="2830">2830</span>
+<span id="2831">2831</span>
+<span id="2832">2832</span>
+<span id="2833">2833</span>
+<span id="2834">2834</span>
+<span id="2835">2835</span>
+<span id="2836">2836</span>
+<span id="2837">2837</span>
+<span id="2838">2838</span>
+<span id="2839">2839</span>
+<span id="2840">2840</span>
+<span id="2841">2841</span>
+<span id="2842">2842</span>
+<span id="2843">2843</span>
+<span id="2844">2844</span>
+<span id="2845">2845</span>
+<span id="2846">2846</span>
+<span id="2847">2847</span>
+<span id="2848">2848</span>
+<span id="2849">2849</span>
+<span id="2850">2850</span>
+<span id="2851">2851</span>
+<span id="2852">2852</span>
+<span id="2853">2853</span>
+<span id="2854">2854</span>
+<span id="2855">2855</span>
+<span id="2856">2856</span>
+<span id="2857">2857</span>
+<span id="2858">2858</span>
+<span id="2859">2859</span>
+<span id="2860">2860</span>
+<span id="2861">2861</span>
+<span id="2862">2862</span>
+<span id="2863">2863</span>
+<span id="2864">2864</span>
+<span id="2865">2865</span>
+<span id="2866">2866</span>
+<span id="2867">2867</span>
+<span id="2868">2868</span>
+<span id="2869">2869</span>
+<span id="2870">2870</span>
+<span id="2871">2871</span>
+<span id="2872">2872</span>
+<span id="2873">2873</span>
+<span id="2874">2874</span>
+<span id="2875">2875</span>
+<span id="2876">2876</span>
+<span id="2877">2877</span>
+<span id="2878">2878</span>
+<span id="2879">2879</span>
+<span id="2880">2880</span>
+<span id="2881">2881</span>
+<span id="2882">2882</span>
+<span id="2883">2883</span>
+<span id="2884">2884</span>
+<span id="2885">2885</span>
+<span id="2886">2886</span>
+<span id="2887">2887</span>
+<span id="2888">2888</span>
+<span id="2889">2889</span>
+<span id="2890">2890</span>
+<span id="2891">2891</span>
+<span id="2892">2892</span>
+<span id="2893">2893</span>
+<span id="2894">2894</span>
+<span id="2895">2895</span>
+<span id="2896">2896</span>
+<span id="2897">2897</span>
+<span id="2898">2898</span>
+<span id="2899">2899</span>
+<span id="2900">2900</span>
+<span id="2901">2901</span>
+<span id="2902">2902</span>
+<span id="2903">2903</span>
+<span id="2904">2904</span>
+<span id="2905">2905</span>
+<span id="2906">2906</span>
+<span id="2907">2907</span>
+<span id="2908">2908</span>
+<span id="2909">2909</span>
+<span id="2910">2910</span>
+<span id="2911">2911</span>
+<span id="2912">2912</span>
+<span id="2913">2913</span>
+<span id="2914">2914</span>
+<span id="2915">2915</span>
+<span id="2916">2916</span>
+<span id="2917">2917</span>
+<span id="2918">2918</span>
+<span id="2919">2919</span>
+<span id="2920">2920</span>
+<span id="2921">2921</span>
+<span id="2922">2922</span>
+<span id="2923">2923</span>
+<span id="2924">2924</span>
+<span id="2925">2925</span>
+<span id="2926">2926</span>
+<span id="2927">2927</span>
+<span id="2928">2928</span>
+<span id="2929">2929</span>
+<span id="2930">2930</span>
+<span id="2931">2931</span>
+<span id="2932">2932</span>
+<span id="2933">2933</span>
+<span id="2934">2934</span>
+<span id="2935">2935</span>
+<span id="2936">2936</span>
+<span id="2937">2937</span>
+<span id="2938">2938</span>
+<span id="2939">2939</span>
+<span id="2940">2940</span>
+<span id="2941">2941</span>
+<span id="2942">2942</span>
+<span id="2943">2943</span>
+<span id="2944">2944</span>
+<span id="2945">2945</span>
+<span id="2946">2946</span>
+<span id="2947">2947</span>
+<span id="2948">2948</span>
+<span id="2949">2949</span>
+<span id="2950">2950</span>
+<span id="2951">2951</span>
+<span id="2952">2952</span>
+<span id="2953">2953</span>
+<span id="2954">2954</span>
+<span id="2955">2955</span>
+<span id="2956">2956</span>
+<span id="2957">2957</span>
+<span id="2958">2958</span>
+<span id="2959">2959</span>
+<span id="2960">2960</span>
+<span id="2961">2961</span>
+<span id="2962">2962</span>
+<span id="2963">2963</span>
+<span id="2964">2964</span>
+<span id="2965">2965</span>
+<span id="2966">2966</span>
+<span id="2967">2967</span>
+<span id="2968">2968</span>
+<span id="2969">2969</span>
+<span id="2970">2970</span>
+<span id="2971">2971</span>
+<span id="2972">2972</span>
+<span id="2973">2973</span>
+<span id="2974">2974</span>
+<span id="2975">2975</span>
+<span id="2976">2976</span>
+<span id="2977">2977</span>
+<span id="2978">2978</span>
+<span id="2979">2979</span>
+<span id="2980">2980</span>
+<span id="2981">2981</span>
+<span id="2982">2982</span>
+<span id="2983">2983</span>
+<span id="2984">2984</span>
+<span id="2985">2985</span>
+<span id="2986">2986</span>
+<span id="2987">2987</span>
+<span id="2988">2988</span>
+<span id="2989">2989</span>
+<span id="2990">2990</span>
+<span id="2991">2991</span>
+<span id="2992">2992</span>
+<span id="2993">2993</span>
+<span id="2994">2994</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Safe wrappers around functions found in libc &quot;unistd.h&quot; header</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
@@ -2860,6 +3025,9 @@
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::setres</span>::<span class="kw-2">*</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::getres</span>::<span class="kw-2">*</span>;
+
 <span class="doccomment">/// User identifier</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Newtype pattern around `uid_t` (which is just alias). It prevents bugs caused by accidentally</span>
@@ -2869,7 +3037,7 @@
 
 <span class="kw">impl</span> <span class="ident">Uid</span> {
     <span class="doccomment">/// Creates `Uid` from raw `uid_t`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">uid</span>: <span class="ident">uid_t</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">uid</span>: <span class="ident">uid_t</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Uid</span>(<span class="ident">uid</span>)
     }
 
@@ -2884,12 +3052,12 @@
     }
 
     <span class="doccomment">/// Returns true if the `Uid` represents privileged user - root. (If it equals zero.)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_root</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span> <span class="op">==</span> <span class="ident">ROOT</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_root</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="number">0</span> <span class="op">==</span> <span class="ident">ROOT</span>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// Get the raw `uid_t` wrapped by `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">uid_t</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">uid_t</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -2918,7 +3086,7 @@
 
 <span class="kw">impl</span> <span class="ident">Gid</span> {
     <span class="doccomment">/// Creates `Gid` from raw `gid_t`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">gid</span>: <span class="ident">gid_t</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">gid</span>: <span class="ident">gid_t</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Gid</span>(<span class="ident">gid</span>)
     }
 
@@ -2933,7 +3101,7 @@
     }
 
     <span class="doccomment">/// Get the raw `gid_t` wrapped by `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">gid_t</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">gid_t</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -2959,7 +3127,7 @@
 
 <span class="kw">impl</span> <span class="ident">Pid</span> {
     <span class="doccomment">/// Creates `Pid` from raw `pid_t`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">pid</span>: <span class="ident">pid_t</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">pid</span>: <span class="ident">pid_t</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Pid</span>(<span class="ident">pid</span>)
     }
 
@@ -2974,7 +3142,7 @@
     }
 
     <span class="doccomment">/// Get the raw `pid_t` wrapped by `self`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">pid_t</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">pid_t</span> {
         <span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -3008,10 +3176,7 @@
     <span class="doccomment">/// Return `true` if this is the child process of the `fork()`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_child</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ForkResult::Child</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>
-        }
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident">ForkResult::Child</span>)
     }
 
     <span class="doccomment">/// Returns `true` if this is the parent process of the `fork()`</span>
@@ -3022,20 +3187,25 @@
 }
 
 <span class="doccomment">/// Create a new child process duplicating the parent process ([see</span>
-<span class="doccomment">/// fork(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html)).</span>
+<span class="doccomment">/// fork(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fork.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// After calling the fork system call (successfully) two processes will</span>
 <span class="doccomment">/// be created that are identical with the exception of their pid and the</span>
 <span class="doccomment">/// return value of this function.  As an example:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use nix::unistd::{fork, ForkResult};</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use nix::{sys::wait::waitpid,unistd::{fork, ForkResult, write}};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// match unsafe{fork()} {</span>
 <span class="doccomment">///    Ok(ForkResult::Parent { child, .. }) =&gt; {</span>
 <span class="doccomment">///        println!(&quot;Continuing execution in parent process, new child has pid: {}&quot;, child);</span>
+<span class="doccomment">///        waitpid(child, None).unwrap();</span>
 <span class="doccomment">///    }</span>
-<span class="doccomment">///    Ok(ForkResult::Child) =&gt; println!(&quot;I&#39;m a new child process&quot;),</span>
+<span class="doccomment">///    Ok(ForkResult::Child) =&gt; {</span>
+<span class="doccomment">///        // Unsafe to use `println!` (or `unwrap`) here. See Safety.</span>
+<span class="doccomment">///        write(libc::STDOUT_FILENO, &quot;I&#39;m a new child process\n&quot;.as_bytes()).ok();</span>
+<span class="doccomment">///        unsafe { libc::_exit(0) };</span>
+<span class="doccomment">///    }</span>
 <span class="doccomment">///    Err(_) =&gt; println!(&quot;Fork failed&quot;),</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
@@ -3059,7 +3229,7 @@
 <span class="doccomment">/// Those functions are only a small subset of your operating system&#39;s API, so</span>
 <span class="doccomment">/// special care must be taken to only invoke code you can control and audit.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [async-signal-safe]: http://man7.org/linux/man-pages/man7/signal-safety.7.html</span>
+<span class="doccomment">/// [async-signal-safe]: https://man7.org/linux/man-pages/man7/signal-safety.7.html</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fork</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ForkResult</span><span class="op">&gt;</span> {
     <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ForkResult</span>::<span class="kw-2">*</span>;
@@ -3072,7 +3242,7 @@
 }
 
 <span class="doccomment">/// Get the pid of this process (see</span>
-<span class="doccomment">/// [getpid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpid.html)).</span>
+<span class="doccomment">/// [getpid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpid.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Since you are running code, there is always a pid to return, so there</span>
 <span class="doccomment">/// is no error case that needs to be handled.</span>
@@ -3082,7 +3252,7 @@
 }
 
 <span class="doccomment">/// Get the pid of this processes&#39; parent (see</span>
-<span class="doccomment">/// [getpid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getppid.html)).</span>
+<span class="doccomment">/// [getpid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getppid.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// There is always a parent pid to return, so there is no error case that needs</span>
 <span class="doccomment">/// to be handled.</span>
@@ -3092,7 +3262,7 @@
 }
 
 <span class="doccomment">/// Set a process group ID (see</span>
-<span class="doccomment">/// [setpgid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/setpgid.html)).</span>
+<span class="doccomment">/// [setpgid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setpgid.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Set the process group id (PGID) of a particular process.  If a pid of zero</span>
 <span class="doccomment">/// is specified, then the pid of the calling process is used.  Process groups</span>
@@ -3112,14 +3282,14 @@
 }
 
 <span class="doccomment">/// Create new session and set process group id (see</span>
-<span class="doccomment">/// [setsid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsid.html)).</span>
+<span class="doccomment">/// [setsid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsid.html)).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setsid</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Pid</span><span class="op">&gt;</span> {
     <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> { <span class="ident">libc::setsid</span>() }).<span class="ident">map</span>(<span class="ident">Pid</span>)
 }
 
 <span class="doccomment">/// Get the process group ID of a session leader</span>
-<span class="doccomment">/// [getsid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getsid.html).</span>
+<span class="doccomment">/// [getsid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getsid.html).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Obtain the process group ID of the process that is the session leader of the process specified</span>
 <span class="doccomment">/// by pid. If pid is zero, it specifies the calling process.</span>
@@ -3132,7 +3302,7 @@
 
 
 <span class="doccomment">/// Get the terminal foreground process group (see</span>
-<span class="doccomment">/// [tcgetpgrp(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetpgrp.html)).</span>
+<span class="doccomment">/// [tcgetpgrp(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetpgrp.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Get the group process id (GPID) of the foreground process group on the</span>
 <span class="doccomment">/// terminal associated to file descriptor (FD).</span>
@@ -3142,7 +3312,7 @@
     <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="ident">Pid</span>)
 }
 <span class="doccomment">/// Set the terminal foreground process group (see</span>
-<span class="doccomment">/// [tcgetpgrp(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsetpgrp.html)).</span>
+<span class="doccomment">/// [tcgetpgrp(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsetpgrp.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Get the group process id (PGID) to the foreground process group on the</span>
 <span class="doccomment">/// terminal associated to file descriptor (FD).</span>
@@ -3154,7 +3324,7 @@
 
 
 <span class="doccomment">/// Get the group id of the calling process (see</span>
-<span class="doccomment">///[getpgrp(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpgrp.html)).</span>
+<span class="doccomment">///[getpgrp(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpgrp.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Get the process group id (PGID) of the calling process.</span>
 <span class="doccomment">/// According to the man page it is always successful.</span>
@@ -3164,7 +3334,7 @@
 }
 
 <span class="doccomment">/// Get the caller&#39;s thread ID (see</span>
-<span class="doccomment">/// [gettid(2)](http://man7.org/linux/man-pages/man2/gettid.2.html).</span>
+<span class="doccomment">/// [gettid(2)](https://man7.org/linux/man-pages/man2/gettid.2.html).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function is only available on Linux based systems.  In a single</span>
 <span class="doccomment">/// threaded process, the main thread will have the same ID as the process.  In</span>
@@ -3180,7 +3350,7 @@
 }
 
 <span class="doccomment">/// Create a copy of the specified file descriptor (see</span>
-<span class="doccomment">/// [dup(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html)).</span>
+<span class="doccomment">/// [dup(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The new file descriptor will be have a new index but refer to the same</span>
 <span class="doccomment">/// resource as the old file descriptor and the old and new file descriptors may</span>
@@ -3197,7 +3367,7 @@
 }
 
 <span class="doccomment">/// Create a copy of the specified file descriptor using the specified fd (see</span>
-<span class="doccomment">/// [dup(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html)).</span>
+<span class="doccomment">/// [dup(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/dup.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function behaves similar to `dup()` except that it will try to use the</span>
 <span class="doccomment">/// specified fd instead of allocating a new one.  See the man pages for more</span>
@@ -3210,7 +3380,7 @@
 }
 
 <span class="doccomment">/// Create a new copy of the specified file descriptor using the specified fd</span>
-<span class="doccomment">/// and flags (see [dup(2)](http://man7.org/linux/man-pages/man2/dup.2.html)).</span>
+<span class="doccomment">/// and flags (see [dup(2)](https://man7.org/linux/man-pages/man2/dup.2.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function behaves similar to `dup2()` but allows for flags to be</span>
 <span class="doccomment">/// specified.</span>
@@ -3221,7 +3391,7 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">dup3_polyfill</span>(<span class="ident">oldfd</span>: <span class="ident">RawFd</span>, <span class="ident">newfd</span>: <span class="ident">RawFd</span>, <span class="ident">flags</span>: <span class="ident">OFlag</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RawFd</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">oldfd</span> <span class="op">==</span> <span class="ident">newfd</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::EINVAL</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>);
     }
 
     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="ident">dup2</span>(<span class="ident">oldfd</span>, <span class="ident">newfd</span>)<span class="question-mark">?</span>;
@@ -3237,7 +3407,7 @@
 }
 
 <span class="doccomment">/// Change the current working directory of the calling process (see</span>
-<span class="doccomment">/// [chdir(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/chdir.html)).</span>
+<span class="doccomment">/// [chdir(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/chdir.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function may fail in a number of different scenarios.  See the man</span>
 <span class="doccomment">/// pages for additional details on possible failure cases.</span>
@@ -3252,7 +3422,7 @@
 
 <span class="doccomment">/// Change the current working directory of the process to the one</span>
 <span class="doccomment">/// given as an open file descriptor (see</span>
-<span class="doccomment">/// [fchdir(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fchdir.html)).</span>
+<span class="doccomment">/// [fchdir(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fchdir.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function may fail in a number of different scenarios.  See the man</span>
 <span class="doccomment">/// pages for additional details on possible failure cases.</span>
@@ -3264,7 +3434,7 @@
     <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="ident">drop</span>)
 }
 
-<span class="doccomment">/// Creates new directory `path` with access rights `mode`.  (see [mkdir(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/mkdir.html))</span>
+<span class="doccomment">/// Creates new directory `path` with access rights `mode`.  (see [mkdir(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkdir.html))</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Errors</span>
 <span class="doccomment">///</span>
@@ -3281,15 +3451,13 @@
 <span class="doccomment">/// use nix::sys::stat;</span>
 <span class="doccomment">/// use tempfile::tempdir;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let tmp_dir1 = tempdir().unwrap();</span>
-<span class="doccomment">///     let tmp_dir2 = tmp_dir1.path().join(&quot;new_dir&quot;);</span>
+<span class="doccomment">/// let tmp_dir1 = tempdir().unwrap();</span>
+<span class="doccomment">/// let tmp_dir2 = tmp_dir1.path().join(&quot;new_dir&quot;);</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     // create new directory and give read, write and execute rights to the owner</span>
-<span class="doccomment">///     match unistd::mkdir(&amp;tmp_dir2, stat::Mode::S_IRWXU) {</span>
-<span class="doccomment">///        Ok(_) =&gt; println!(&quot;created {:?}&quot;, tmp_dir2),</span>
-<span class="doccomment">///        Err(err) =&gt; println!(&quot;Error creating directory: {}&quot;, err),</span>
-<span class="doccomment">///     }</span>
+<span class="doccomment">/// // create new directory and give read, write and execute rights to the owner</span>
+<span class="doccomment">/// match unistd::mkdir(&amp;tmp_dir2, stat::Mode::S_IRWXU) {</span>
+<span class="doccomment">///    Ok(_) =&gt; println!(&quot;created {:?}&quot;, tmp_dir2),</span>
+<span class="doccomment">///    Err(err) =&gt; println!(&quot;Error creating directory: {}&quot;, err),</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3312,7 +3480,7 @@
 <span class="doccomment">/// - the path name is too long (longer than `PATH_MAX`, usually 4096 on linux, 1024 on OS X)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For a full list consult</span>
-<span class="doccomment">/// [posix specification](http://pubs.opengroup.org/onlinepubs/9699919799/functions/mkfifo.html)</span>
+<span class="doccomment">/// [posix specification](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkfifo.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -3321,15 +3489,13 @@
 <span class="doccomment">/// use nix::sys::stat;</span>
 <span class="doccomment">/// use tempfile::tempdir;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let tmp_dir = tempdir().unwrap();</span>
-<span class="doccomment">///     let fifo_path = tmp_dir.path().join(&quot;foo.pipe&quot;);</span>
+<span class="doccomment">/// let tmp_dir = tempdir().unwrap();</span>
+<span class="doccomment">/// let fifo_path = tmp_dir.path().join(&quot;foo.pipe&quot;);</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     // create new fifo and give read, write and execute rights to the owner</span>
-<span class="doccomment">///     match unistd::mkfifo(&amp;fifo_path, stat::Mode::S_IRWXU) {</span>
-<span class="doccomment">///        Ok(_) =&gt; println!(&quot;created {:?}&quot;, fifo_path),</span>
-<span class="doccomment">///        Err(err) =&gt; println!(&quot;Error creating fifo: {}&quot;, err),</span>
-<span class="doccomment">///     }</span>
+<span class="doccomment">/// // create new fifo and give read, write and execute rights to the owner</span>
+<span class="doccomment">/// match unistd::mkfifo(&amp;fifo_path, stat::Mode::S_IRWXU) {</span>
+<span class="doccomment">///    Ok(_) =&gt; println!(&quot;created {:?}&quot;, fifo_path),</span>
+<span class="doccomment">///    Err(err) =&gt; println!(&quot;Error creating fifo: {}&quot;, err),</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3350,7 +3516,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [mkfifoat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/mkfifoat.html).</span>
+<span class="doccomment">/// [mkfifoat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkfifoat.html).</span>
 <span class="comment">// mkfifoat is not implemented in OSX or android</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
@@ -3372,7 +3538,7 @@
 <span class="doccomment">/// If `dirfd` is `None`, then `path2` is relative to the current working</span>
 <span class="doccomment">/// directory. This is identical to `libc::symlink(path1, path2)`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [symlinkat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/symlinkat.html).</span>
+<span class="doccomment">/// See also [symlinkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlinkat.html).</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symlinkat</span><span class="op">&lt;</span><span class="ident">P1</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span>, <span class="ident">P2</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(
     <span class="ident">path1</span>: <span class="kw-2">&amp;</span><span class="ident">P1</span>,
@@ -3399,7 +3565,7 @@
     <span class="kw">use</span> <span class="ident">std::cmp::min</span>;
 
     <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">limit</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::ERANGE</span>))
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::ERANGE</span>)
     }
 
     <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">buf</span>.<span class="ident">capacity</span>() <span class="op">*</span> <span class="number">2</span>, <span class="ident">limit</span>);
@@ -3418,11 +3584,9 @@
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// use nix::unistd;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     // assume that we are allowed to get current directory</span>
-<span class="doccomment">///     let dir = unistd::getcwd().unwrap();</span>
-<span class="doccomment">///     println!(&quot;The current directory is {:?}&quot;, dir);</span>
-<span class="doccomment">/// }</span>
+<span class="doccomment">/// // assume that we are allowed to get current directory</span>
+<span class="doccomment">/// let dir = unistd::getcwd().unwrap();</span>
+<span class="doccomment">/// println!(&quot;The current directory is {:?}&quot;, dir);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getcwd</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
@@ -3444,9 +3608,9 @@
                 <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">Errno::last</span>();
                 <span class="comment">// ERANGE means buffer was too small to store directory name</span>
                 <span class="kw">if</span> <span class="ident">error</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Errno::ERANGE</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">error</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>);
                 }
-            }
+           }
 
             <span class="comment">// Trigger the internal buffer resizing logic.</span>
             <span class="ident">reserve_double_buffer_size</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>, <span class="ident">PATH_MAX</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
@@ -3455,6 +3619,8 @@
 }
 
 <span class="doccomment">/// Computes the raw UID and GID values to pass to a `*chown` call.</span>
+<span class="comment">// The cast is not unnecessary on all platforms.</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_cast</span>)]</span>
 <span class="kw">fn</span> <span class="ident">chown_raw_ids</span>(<span class="ident">owner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Uid</span><span class="op">&gt;</span>, <span class="ident">group</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Gid</span><span class="op">&gt;</span>) -&gt; (<span class="ident">libc::uid_t</span>, <span class="ident">libc::gid_t</span>) {
     <span class="comment">// According to the POSIX specification, -1 is used to indicate that owner and group</span>
     <span class="comment">// are not to be changed.  Since uid_t and gid_t are unsigned types, we have to wrap</span>
@@ -3468,7 +3634,7 @@
 
 <span class="doccomment">/// Change the ownership of the file at `path` to be owned by the specified</span>
 <span class="doccomment">/// `owner` (user) and `group` (see</span>
-<span class="doccomment">/// [chown(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html)).</span>
+<span class="doccomment">/// [chown(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/chown.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The owner/group for the provided path name will not be modified if `None` is</span>
 <span class="doccomment">/// provided for that argument.  Ownership change will be attempted for the path</span>
@@ -3524,7 +3690,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [fchownat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fchownat.html).</span>
+<span class="doccomment">/// [fchownat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fchownat.html).</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fchownat</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(
     <span class="ident">dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RawFd</span><span class="op">&gt;</span>,
@@ -3553,7 +3719,7 @@
 }
 
 <span class="doccomment">/// Replace the current process image with a new one (see</span>
-<span class="doccomment">/// [exec(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
+<span class="doccomment">/// [exec(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the `::nix::unistd::execve` system call for additional details.  `execv`</span>
 <span class="doccomment">/// performs the same action but does not allow for customization of the</span>
@@ -3566,12 +3732,12 @@
         <span class="ident">libc::execv</span>(<span class="ident">path</span>.<span class="ident">as_ptr</span>(), <span class="ident">args_p</span>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 
 <span class="doccomment">/// Replace the current process image with a new one (see</span>
-<span class="doccomment">/// [execve(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
+<span class="doccomment">/// [execve(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The execve system call allows for another process to be &quot;called&quot; which will</span>
 <span class="doccomment">/// replace the current process image.  That is, this process becomes the new</span>
@@ -3591,12 +3757,12 @@
         <span class="ident">libc::execve</span>(<span class="ident">path</span>.<span class="ident">as_ptr</span>(), <span class="ident">args_p</span>.<span class="ident">as_ptr</span>(), <span class="ident">env_p</span>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 <span class="doccomment">/// Replace the current process image with a new one and replicate shell `PATH`</span>
 <span class="doccomment">/// searching behavior (see</span>
-<span class="doccomment">/// [exec(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
+<span class="doccomment">/// [exec(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See `::nix::unistd::execve` for additional details.  `execvp` behaves the</span>
 <span class="doccomment">/// same as execv except that it will examine the `PATH` environment variables</span>
@@ -3611,12 +3777,12 @@
         <span class="ident">libc::execvp</span>(<span class="ident">filename</span>.<span class="ident">as_ptr</span>(), <span class="ident">args_p</span>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 <span class="doccomment">/// Replace the current process image with a new one and replicate shell `PATH`</span>
 <span class="doccomment">/// searching behavior (see</span>
-<span class="doccomment">/// [`execvpe(3)`](http://man7.org/linux/man-pages/man3/exec.3.html)).</span>
+<span class="doccomment">/// [`execvpe(3)`](https://man7.org/linux/man-pages/man3/exec.3.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This functions like a combination of `execvp(2)` and `execve(2)` to pass an</span>
 <span class="doccomment">/// environment and have a search path. See these two for additional</span>
@@ -3632,11 +3798,11 @@
         <span class="ident">libc::execvpe</span>(<span class="ident">filename</span>.<span class="ident">as_ptr</span>(), <span class="ident">args_p</span>.<span class="ident">as_ptr</span>(), <span class="ident">env_p</span>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 <span class="doccomment">/// Replace the current process image with a new one (see</span>
-<span class="doccomment">/// [fexecve(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fexecve.html)).</span>
+<span class="doccomment">/// [fexecve(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fexecve.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The `fexecve` function allows for another process to be &quot;called&quot; which will</span>
 <span class="doccomment">/// replace the current process image.  That is, this process becomes the new</span>
@@ -3660,11 +3826,11 @@
         <span class="ident">libc::fexecve</span>(<span class="ident">fd</span>, <span class="ident">args_p</span>.<span class="ident">as_ptr</span>(), <span class="ident">env_p</span>.<span class="ident">as_ptr</span>())
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 <span class="doccomment">/// Execute program relative to a directory file descriptor (see</span>
-<span class="doccomment">/// [execveat(2)](http://man7.org/linux/man-pages/man2/execveat.2.html)).</span>
+<span class="doccomment">/// [execveat(2)](https://man7.org/linux/man-pages/man2/execveat.2.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The `execveat` function allows for another process to be &quot;called&quot; which will</span>
 <span class="doccomment">/// replace the current process image.  That is, this process becomes the new</span>
@@ -3685,11 +3851,11 @@
                       <span class="ident">args_p</span>.<span class="ident">as_ptr</span>(), <span class="ident">env_p</span>.<span class="ident">as_ptr</span>(), <span class="ident">flags</span>);
     };
 
-    <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+    <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
 }
 
 <span class="doccomment">/// Daemonize this process by detaching from the controlling terminal (see</span>
-<span class="doccomment">/// [daemon(3)](http://man7.org/linux/man-pages/man3/daemon.3.html)).</span>
+<span class="doccomment">/// [daemon(3)](https://man7.org/linux/man-pages/man3/daemon.3.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// When a process is launched it is typically associated with a parent and it,</span>
 <span class="doccomment">/// in turn, by its controlling terminal/process.  In order for a process to run</span>
@@ -3716,16 +3882,18 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">daemon</span>(<span class="ident">nochdir</span>: <span class="ident">bool</span>, <span class="ident">noclose</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::daemon</span>(<span class="ident">nochdir</span> <span class="kw">as</span> <span class="ident">c_int</span>, <span class="ident">noclose</span> <span class="kw">as</span> <span class="ident">c_int</span>) };
     <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="ident">drop</span>)
 }
 
 <span class="doccomment">/// Set the system host name (see</span>
-<span class="doccomment">/// [sethostname(2)](http://man7.org/linux/man-pages/man2/gethostname.2.html)).</span>
+<span class="doccomment">/// [sethostname(2)](https://man7.org/linux/man-pages/man2/gethostname.2.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Given a name, attempt to update the system host name to the given string.</span>
 <span class="doccomment">/// On some systems, the host name is limited to as few as 64 bytes.  An error</span>
@@ -3737,8 +3905,10 @@
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, ))]</span> {
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>, ))]</span> {
             <span class="kw">type</span> <span class="ident">sethostname_len_t</span> <span class="op">=</span> <span class="ident">c_int</span>;
         } <span class="kw">else</span> {
             <span class="kw">type</span> <span class="ident">sethostname_len_t</span> <span class="op">=</span> <span class="ident">size_t</span>;
@@ -3753,7 +3923,7 @@
 
 <span class="doccomment">/// Get the host name and store it in the provided buffer, returning a pointer</span>
 <span class="doccomment">/// the `CStr` in that buffer on success (see</span>
-<span class="doccomment">/// [gethostname(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)).</span>
+<span class="doccomment">/// [gethostname(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/gethostname.html)).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This function call attempts to get the host name for the running system and</span>
 <span class="doccomment">/// store it in a provided buffer.  The buffer will be populated with bytes up</span>
@@ -3788,7 +3958,7 @@
 <span class="doccomment">/// `std::fs::File`.  Explicitly closing them with this method too can result in</span>
 <span class="doccomment">/// a double-close condition, which can cause confusing `EBADF` errors in</span>
 <span class="doccomment">/// seemingly unrelated code.  Caveat programmer.  See also</span>
-<span class="doccomment">/// [close(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/close.html).</span>
+<span class="doccomment">/// [close(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/close.html).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -3796,20 +3966,16 @@
 <span class="doccomment">/// use std::os::unix::io::AsRawFd;</span>
 <span class="doccomment">/// use nix::unistd::close;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let f = tempfile::tempfile().unwrap();</span>
-<span class="doccomment">///     close(f.as_raw_fd()).unwrap();   // Bad!  f will also close on drop!</span>
-<span class="doccomment">/// }</span>
+<span class="doccomment">/// let f = tempfile::tempfile().unwrap();</span>
+<span class="doccomment">/// close(f.as_raw_fd()).unwrap();   // Bad!  f will also close on drop!</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// use std::os::unix::io::IntoRawFd;</span>
 <span class="doccomment">/// use nix::unistd::close;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let f = tempfile::tempfile().unwrap();</span>
-<span class="doccomment">///     close(f.into_raw_fd()).unwrap(); // Good.  into_raw_fd consumes f</span>
-<span class="doccomment">/// }</span>
+<span class="doccomment">/// let f = tempfile::tempfile().unwrap();</span>
+<span class="doccomment">/// close(f.into_raw_fd()).unwrap(); // Good.  into_raw_fd consumes f</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::close</span>(<span class="ident">fd</span>) };
@@ -3818,7 +3984,7 @@
 
 <span class="doccomment">/// Read from a raw file descriptor.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [read(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html)</span>
+<span class="doccomment">/// See also [read(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/read.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::read</span>(<span class="ident">fd</span>, <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>) };
 
@@ -3827,7 +3993,7 @@
 
 <span class="doccomment">/// Write to a raw file descriptor.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [write(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html)</span>
+<span class="doccomment">/// See also [write(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/write.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::write</span>(<span class="ident">fd</span>, <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">c_void</span>, <span class="ident">buf</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">size_t</span>) };
 
@@ -3850,20 +4016,28 @@
     <span class="doccomment">/// Specify an offset relative to the next location in the file greater than or</span>
     <span class="doccomment">/// equal to offset that contains some data. If offset points to</span>
     <span class="doccomment">/// some data, then the file offset is set to offset.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="ident">SeekData</span> <span class="op">=</span> <span class="ident">libc::SEEK_DATA</span>,
     <span class="doccomment">/// Specify an offset relative to the next hole in the file greater than</span>
     <span class="doccomment">/// or equal to offset. If offset points into the middle of a hole, then</span>
     <span class="doccomment">/// the file offset should be set to offset. If there is no hole past offset,</span>
     <span class="doccomment">/// then the file offset should be adjusted to the end of the file (i.e., there</span>
     <span class="doccomment">/// is an implicit hole at the end of any file).</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="ident">SeekHole</span> <span class="op">=</span> <span class="ident">libc::SEEK_HOLE</span>
 }
 
 <span class="doccomment">/// Move the read/write file offset.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [lseek(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/lseek.html)</span>
+<span class="doccomment">/// See also [lseek(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/lseek.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lseek</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">offset</span>: <span class="ident">off_t</span>, <span class="ident">whence</span>: <span class="ident">Whence</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">off_t</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::lseek</span>(<span class="ident">fd</span>, <span class="ident">offset</span>, <span class="ident">whence</span> <span class="kw">as</span> <span class="ident">i32</span>) };
 
@@ -3879,14 +4053,14 @@
 
 <span class="doccomment">/// Create an interprocess channel.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [pipe(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pipe.html)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RawFd</span>, <span class="ident">RawFd</span>)<span class="op">&gt;</span> {
+<span class="doccomment">/// See also [pipe(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pipe.html)</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe</span>() -&gt; <span class="ident">std::result::Result</span><span class="op">&lt;</span>(<span class="ident">RawFd</span>, <span class="ident">RawFd</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fds</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span>[<span class="ident">c_int</span>; <span class="number">2</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
 
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::pipe</span>(<span class="ident">fds</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_int</span>);
 
-        <span class="ident">Errno::result</span>(<span class="ident">res</span>)<span class="question-mark">?</span>;
+        <span class="ident">Error::result</span>(<span class="ident">res</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((<span class="ident">fds</span>.<span class="ident">assume_init</span>()[<span class="number">0</span>], <span class="ident">fds</span>.<span class="ident">assume_init</span>()[<span class="number">1</span>]))
     }
@@ -3897,20 +4071,22 @@
 <span class="doccomment">/// The following flags are supported, and will be set atomically as the pipe is</span>
 <span class="doccomment">/// created:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// `O_CLOEXEC`:    Set the close-on-exec flag for the new file descriptors.  </span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;`O_DIRECT`: Create a pipe that performs I/O in \&quot;packet\&quot; mode.  &quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;`O_NOSIGPIPE`: Return `EPIPE` instead of raising `SIGPIPE`.  &quot;</span>)]</span>
-<span class="doccomment">/// `O_NONBLOCK`:   Set the non-blocking flag for the ends of the pipe.</span>
+<span class="doccomment">/// - `O_CLOEXEC`:    Set the close-on-exec flag for the new file descriptors.</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;- `O_DIRECT`: Create a pipe that performs I/O in \&quot;packet\&quot; mode.&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;- `O_NOSIGPIPE`: Return `EPIPE` instead of raising `SIGPIPE`.&quot;</span>)]</span>
+<span class="doccomment">/// - `O_NONBLOCK`:   Set the non-blocking flag for the ends of the pipe.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [pipe(2)](http://man7.org/linux/man-pages/man2/pipe.2.html)</span>
+<span class="doccomment">/// See also [pipe(2)](https://man7.org/linux/man-pages/man2/pipe.2.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe2</span>(<span class="ident">flags</span>: <span class="ident">OFlag</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">RawFd</span>, <span class="ident">RawFd</span>)<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fds</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit</span>::<span class="op">&lt;</span>[<span class="ident">c_int</span>; <span class="number">2</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
 
@@ -3926,7 +4102,7 @@
 <span class="doccomment">/// Truncate a file to a specified length</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also</span>
-<span class="doccomment">/// [truncate(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/truncate.html)</span>
+<span class="doccomment">/// [truncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/truncate.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">truncate</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">len</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
@@ -3941,7 +4117,7 @@
 <span class="doccomment">/// Truncate a file to a specified length</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also</span>
-<span class="doccomment">/// [ftruncate(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html)</span>
+<span class="doccomment">/// [ftruncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ftruncate</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>, <span class="ident">len</span>: <span class="ident">off_t</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> { <span class="ident">libc::ftruncate</span>(<span class="ident">fd</span>, <span class="ident">len</span>) }).<span class="ident">map</span>(<span class="ident">drop</span>)
 }
@@ -3955,9 +4131,9 @@
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="ident">Errno::last</span>() {
                 <span class="ident">Errno::ENOTTY</span> =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
-                <span class="ident">err</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">err</span>)),
+                <span class="ident">err</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">err</span>),
             }
-        }
+       }
     }
 }
 
@@ -3980,7 +4156,7 @@
 <span class="doccomment">/// process. If either `oldpath` or `newpath` is absolute, then `dirfd` is ignored.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
-<span class="doccomment">/// See also [linkat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/linkat.html)</span>
+<span class="doccomment">/// See also [linkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/linkat.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span> <span class="comment">// RedoxFS does not support symlinks yet</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">linkat</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(
     <span class="ident">olddirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RawFd</span><span class="op">&gt;</span>,
@@ -4016,7 +4192,7 @@
 
 <span class="doccomment">/// Remove a directory entry</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [unlink(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/unlink.html)</span>
+<span class="doccomment">/// See also [unlink(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlink.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlink</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
         <span class="kw">unsafe</span> {
@@ -4042,7 +4218,7 @@
 <span class="doccomment">/// is performed.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
-<span class="doccomment">/// See also [unlinkat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/unlinkat.html)</span>
+<span class="doccomment">/// See also [unlinkat(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlinkat.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlinkat</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(
     <span class="ident">dirfd</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RawFd</span><span class="op">&gt;</span>,
@@ -4075,7 +4251,7 @@
 
 <span class="doccomment">/// Commit filesystem caches to disk</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [sync(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/sync.html)</span>
+<span class="doccomment">/// See also [sync(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/sync.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
@@ -4089,7 +4265,7 @@
 
 <span class="doccomment">/// Synchronize changes to a file</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [fsync(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fsync.html)</span>
+<span class="doccomment">/// See also [fsync(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fsync.html)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fsync</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fsync</span>(<span class="ident">fd</span>) };
@@ -4100,12 +4276,14 @@
 <span class="doccomment">/// Synchronize the data of a file</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also</span>
-<span class="doccomment">/// [fdatasync(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fdatasync.html)</span>
+<span class="doccomment">/// [fdatasync(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fdatasync.html)</span>
 <span class="comment">// `fdatasync(2) is in POSIX, but in libc it is only defined in `libc::notbsd`.</span>
 <span class="comment">// TODO: exclude only Apple systems after https://github.com/rust-lang/libc/pull/211</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
           <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
-          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span>
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fdatasync</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::fdatasync</span>(<span class="ident">fd</span>) };
@@ -4115,7 +4293,7 @@
 
 <span class="doccomment">/// Get a real user ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [getuid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getuid.html)</span>
+<span class="doccomment">/// See also [getuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getuid.html)</span>
 <span class="comment">// POSIX requires that getuid is always successful, so no need to check return</span>
 <span class="comment">// value or errno.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4125,7 +4303,7 @@
 
 <span class="doccomment">/// Get the effective user ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [geteuid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/geteuid.html)</span>
+<span class="doccomment">/// See also [geteuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/geteuid.html)</span>
 <span class="comment">// POSIX requires that geteuid is always successful, so no need to check return</span>
 <span class="comment">// value or errno.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4135,7 +4313,7 @@
 
 <span class="doccomment">/// Get the real group ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [getgid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getgid.html)</span>
+<span class="doccomment">/// See also [getgid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getgid.html)</span>
 <span class="comment">// POSIX requires that getgid is always successful, so no need to check return</span>
 <span class="comment">// value or errno.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4145,7 +4323,7 @@
 
 <span class="doccomment">/// Get the effective group ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [getegid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getegid.html)</span>
+<span class="doccomment">/// See also [getegid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getegid.html)</span>
 <span class="comment">// POSIX requires that getegid is always successful, so no need to check return</span>
 <span class="comment">// value or errno.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4155,7 +4333,7 @@
 
 <span class="doccomment">/// Set the effective user ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [seteuid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/seteuid.html)</span>
+<span class="doccomment">/// See also [seteuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/seteuid.html)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seteuid</span>(<span class="ident">euid</span>: <span class="ident">Uid</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::seteuid</span>(<span class="ident">euid</span>.<span class="ident">into</span>()) };
@@ -4165,7 +4343,7 @@
 
 <span class="doccomment">/// Set the effective group ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [setegid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/setegid.html)</span>
+<span class="doccomment">/// See also [setegid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setegid.html)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setegid</span>(<span class="ident">egid</span>: <span class="ident">Gid</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setegid</span>(<span class="ident">egid</span>.<span class="ident">into</span>()) };
@@ -4175,7 +4353,7 @@
 
 <span class="doccomment">/// Set the user ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [setuid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/setuid.html)</span>
+<span class="doccomment">/// See also [setuid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setuid.html)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setuid</span>(<span class="ident">uid</span>: <span class="ident">Uid</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setuid</span>(<span class="ident">uid</span>.<span class="ident">into</span>()) };
@@ -4185,7 +4363,7 @@
 
 <span class="doccomment">/// Set the group ID</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [setgid(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/setgid.html)</span>
+<span class="doccomment">/// See also [setgid(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/setgid.html)</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setgid</span>(<span class="ident">gid</span>: <span class="ident">Gid</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setgid</span>(<span class="ident">gid</span>.<span class="ident">into</span>()) };
@@ -4197,7 +4375,7 @@
 <span class="doccomment">/// On both success and failure, this call returns the previous filesystem user</span>
 <span class="doccomment">/// ID of the caller.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [setfsuid(2)](http://man7.org/linux/man-pages/man2/setfsuid.2.html)</span>
+<span class="doccomment">/// See also [setfsuid(2)](https://man7.org/linux/man-pages/man2/setfsuid.2.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setfsuid</span>(<span class="ident">uid</span>: <span class="ident">Uid</span>) -&gt; <span class="ident">Uid</span> {
     <span class="kw">let</span> <span class="ident">prev_fsuid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setfsuid</span>(<span class="ident">uid</span>.<span class="ident">into</span>()) };
@@ -4208,7 +4386,7 @@
 <span class="doccomment">/// On both success and failure, this call returns the previous filesystem group</span>
 <span class="doccomment">/// ID of the caller.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [setfsgid(2)](http://man7.org/linux/man-pages/man2/setfsgid.2.html)</span>
+<span class="doccomment">/// See also [setfsgid(2)](https://man7.org/linux/man-pages/man2/setfsgid.2.html)</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setfsgid</span>(<span class="ident">gid</span>: <span class="ident">Gid</span>) -&gt; <span class="ident">Gid</span> {
     <span class="kw">let</span> <span class="ident">prev_fsgid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setfsgid</span>(<span class="ident">gid</span>.<span class="ident">into</span>()) };
@@ -4217,7 +4395,7 @@
 
 <span class="doccomment">/// Get the list of supplementary group IDs of the calling process.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [Further reading](http://pubs.opengroup.org/onlinepubs/009695399/functions/getgroups.html)</span>
+<span class="doccomment">/// [Further reading](https://pubs.opengroup.org/onlinepubs/009695399/functions/getgroups.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Note:** This function is not available for Apple platforms. On those</span>
 <span class="doccomment">/// platforms, checking group membership should be achieved via communication</span>
@@ -4234,6 +4412,14 @@
 
     <span class="comment">// Next, get the number of groups so we can size our Vec</span>
     <span class="kw">let</span> <span class="ident">ngroups</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getgroups</span>(<span class="number">0</span>, <span class="ident">ptr::null_mut</span>()) };
+
+    <span class="comment">// If there are no supplementary groups, return early.</span>
+    <span class="comment">// This prevents a potential buffer over-read if the number of groups</span>
+    <span class="comment">// increases from zero before the next call. It would return the total</span>
+    <span class="comment">// number of groups beyond the capacity of the buffer.</span>
+    <span class="kw">if</span> <span class="ident">ngroups</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec::new</span>());
+    }
 
     <span class="comment">// Now actually get the groups. We try multiple times in case the number of</span>
     <span class="comment">// groups has changed since the first call to getgroups() and the buffer is</span>
@@ -4252,11 +4438,11 @@
                 <span class="kw">unsafe</span> { <span class="ident">groups</span>.<span class="ident">set_len</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">usize</span>) };
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">groups</span>);
             },
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::EINVAL</span>)) =&gt; {
+            <span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>) =&gt; {
                 <span class="comment">// EINVAL indicates that the buffer size was too</span>
                 <span class="comment">// small, resize it up to ngroups_max as limit.</span>
                 <span class="ident">reserve_double_buffer_size</span>(<span class="kw-2">&amp;mut</span> <span class="ident">groups</span>, <span class="ident">ngroups_max</span>)
-                    .<span class="ident">or</span>(<span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::EINVAL</span>)))<span class="question-mark">?</span>;
+                    .<span class="ident">or</span>(<span class="prelude-val">Err</span>(<span class="ident">Errno::EINVAL</span>))<span class="question-mark">?</span>;
             },
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>)
         }
@@ -4265,7 +4451,7 @@
 
 <span class="doccomment">/// Set the list of supplementary group IDs for the calling process.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [Further reading](http://man7.org/linux/man-pages/man2/getgroups.2.html)</span>
+<span class="doccomment">/// [Further reading](https://man7.org/linux/man-pages/man2/getgroups.2.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Note:** This function is not available for Apple platforms. On those</span>
 <span class="doccomment">/// platforms, group membership management should be achieved via communication</span>
@@ -4299,9 +4485,11 @@
     <span class="macro">cfg_if!</span> {
         <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
                      <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span> {
             <span class="kw">type</span> <span class="ident">setgroups_ngroups_t</span> <span class="op">=</span> <span class="ident">c_int</span>;
         } <span class="kw">else</span> {
@@ -4323,7 +4511,7 @@
 <span class="doccomment">/// Gets the group IDs of all groups that `user` is a member of. The additional</span>
 <span class="doccomment">/// group `group` is also added to the list.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [Further reading](http://man7.org/linux/man-pages/man3/getgrouplist.3.html)</span>
+<span class="doccomment">/// [Further reading](https://man7.org/linux/man-pages/man3/getgrouplist.3.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Note:** This function is not available for Apple platforms. On those</span>
 <span class="doccomment">/// platforms, checking group membership should be achieved via communication</span>
@@ -4338,7 +4526,10 @@
 <span class="doccomment">/// and `setgroups()`. Additionally, while some implementations will return a</span>
 <span class="doccomment">/// partial list of groups when `NGROUPS_MAX` is exceeded, this implementation</span>
 <span class="doccomment">/// will only ever return the complete list or else an error.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getgrouplist</span>(<span class="ident">user</span>: <span class="kw-2">&amp;</span><span class="ident">CStr</span>, <span class="ident">group</span>: <span class="ident">Gid</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Gid</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">ngroups_max</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">sysconf</span>(<span class="ident">SysconfVar::NGROUPS_MAX</span>) {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">n</span>)) =&gt; <span class="ident">n</span> <span class="kw">as</span> <span class="ident">c_int</span>,
@@ -4373,7 +4564,7 @@
             <span class="comment">// groups as possible, but Linux manpages do not mention this</span>
             <span class="comment">// behavior.</span>
             <span class="ident">reserve_double_buffer_size</span>(<span class="kw-2">&amp;mut</span> <span class="ident">groups</span>, <span class="ident">ngroups_max</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_argument</span>()))<span class="question-mark">?</span>;
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Errno::EINVAL</span>)<span class="question-mark">?</span>;
         }
     }
 }
@@ -4384,7 +4575,7 @@
 <span class="doccomment">/// that `user` is a member of. The additional group `group` is also added to</span>
 <span class="doccomment">/// the list.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [Further reading](http://man7.org/linux/man-pages/man3/initgroups.3.html)</span>
+<span class="doccomment">/// [Further reading](https://man7.org/linux/man-pages/man3/initgroups.3.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// **Note:** This function is not available for Apple platforms. On those</span>
 <span class="doccomment">/// platforms, group membership management should be achieved via communication</span>
@@ -4433,7 +4624,7 @@
 
 <span class="doccomment">/// Suspend the thread until a signal is received.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [pause(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pause.html).</span>
+<span class="doccomment">/// See also [pause(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pause.html).</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pause</span>() {
@@ -4478,17 +4669,18 @@
     <span class="doccomment">//! extern fn signal_handler(_: nix::libc::c_int) { }</span>
     <span class="doccomment">//! let sa = SigAction::new(</span>
     <span class="doccomment">//!     SigHandler::Handler(signal_handler),</span>
-    <span class="doccomment">//!     SaFlags::empty(),</span>
+    <span class="doccomment">//!     SaFlags::SA_RESTART,</span>
     <span class="doccomment">//!     SigSet::empty()</span>
     <span class="doccomment">//! );</span>
     <span class="doccomment">//! unsafe {</span>
     <span class="doccomment">//!     sigaction(Signal::SIGALRM, &amp;sa);</span>
     <span class="doccomment">//! }</span>
     <span class="doccomment">//!</span>
+    <span class="doccomment">//! let start = Instant::now();</span>
+    <span class="doccomment">//!</span>
     <span class="doccomment">//! // Set an alarm for 1 second from now.</span>
     <span class="doccomment">//! alarm::set(1);</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let start = Instant::now();</span>
     <span class="doccomment">//! // Pause the process until the alarm signal is received.</span>
     <span class="doccomment">//! let mut sigset = SigSet::empty();</span>
     <span class="doccomment">//! sigset.add(Signal::SIGALRM);</span>
@@ -4499,7 +4691,7 @@
     <span class="doccomment">//!</span>
     <span class="doccomment">//! # References</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! See also [alarm(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/alarm.html).</span>
+    <span class="doccomment">//! See also [alarm(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/alarm.html).</span>
 
     <span class="doccomment">/// Schedule an alarm signal.</span>
     <span class="doccomment">///</span>
@@ -4529,7 +4721,7 @@
 
 <span class="doccomment">/// Suspend execution for an interval of time</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [sleep(2)](http://pubs.opengroup.org/onlinepubs/009695399/functions/sleep.html#tag_03_705_05)</span>
+<span class="doccomment">/// See also [sleep(2)](https://pubs.opengroup.org/onlinepubs/009695399/functions/sleep.html#tag_03_705_05)</span>
 <span class="comment">// Per POSIX, does not fail</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sleep</span>(<span class="ident">seconds</span>: <span class="ident">c_uint</span>) -&gt; <span class="ident">c_uint</span> {
@@ -4569,7 +4761,7 @@
 <span class="doccomment">/// Err is returned either if no temporary filename could be created or the template doesn&#39;t</span>
 <span class="doccomment">/// end with XXXXXX</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See also [mkstemp(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/mkstemp.html)</span>
+<span class="doccomment">/// See also [mkstemp(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/mkstemp.html)</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -4600,7 +4792,7 @@
 <span class="doccomment">/// Variable names for `pathconf`</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Nix uses the same naming convention for these variables as the</span>
-<span class="doccomment">/// [getconf(1)](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/getconf.html) utility.</span>
+<span class="doccomment">/// [getconf(1)](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/getconf.html) utility.</span>
 <span class="doccomment">/// That is, `PathconfVar` variables have the same name as the abstract</span>
 <span class="doccomment">/// variables  shown in the `pathconf(2)` man page.  Usually, it&#39;s the same as</span>
 <span class="doccomment">/// the C variable name without the leading `_PC_`.</span>
@@ -4610,11 +4802,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - [pathconf(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html)</span>
-<span class="doccomment">/// - [limits.h](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html)</span>
-<span class="doccomment">/// - [unistd.h](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/unistd.h.html)</span>
+<span class="doccomment">/// - [pathconf(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html)</span>
+<span class="doccomment">/// - [limits.h](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html)</span>
+<span class="doccomment">/// - [unistd.h](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/unistd.h.html)</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PathconfVar</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
@@ -4640,8 +4833,9 @@
     <span class="doccomment">/// Maximum number of bytes that is guaranteed to be atomic when writing to</span>
     <span class="doccomment">/// a pipe.</span>
     <span class="ident">PIPE_BUF</span> <span class="op">=</span> <span class="ident">libc::_PC_PIPE_BUF</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Symbolic links can be created.</span>
     <span class="ident">POSIX2_SYMLINKS</span> <span class="op">=</span> <span class="ident">libc::_PC_2_SYMLINKS</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
@@ -4667,8 +4861,8 @@
     <span class="doccomment">///  Recommended file transfer buffer alignment.</span>
     <span class="ident">POSIX_REC_XFER_ALIGN</span> <span class="op">=</span> <span class="ident">libc::_PC_REC_XFER_ALIGN</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Maximum number of bytes in a symbolic link.</span>
     <span class="ident">SYMLINK_MAX</span> <span class="op">=</span> <span class="ident">libc::_PC_SYMLINK_MAX</span>,
     <span class="doccomment">/// The use of `chown` and `fchown` is restricted to a process with</span>
@@ -4682,18 +4876,20 @@
     <span class="doccomment">/// disable terminal special character handling.</span>
     <span class="ident">_POSIX_VDISABLE</span> <span class="op">=</span> <span class="ident">libc::_PC_VDISABLE</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Asynchronous input or output operations may be performed for the</span>
     <span class="doccomment">/// associated file.</span>
     <span class="ident">_POSIX_ASYNC_IO</span> <span class="op">=</span> <span class="ident">libc::_PC_ASYNC_IO</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Prioritized input or output operations may be performed for the</span>
     <span class="doccomment">/// associated file.</span>
     <span class="ident">_POSIX_PRIO_IO</span> <span class="op">=</span> <span class="ident">libc::_PC_PRIO_IO</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Synchronized input or output operations may be performed for the</span>
     <span class="doccomment">/// associated file.</span>
     <span class="ident">_POSIX_SYNC_IO</span> <span class="op">=</span> <span class="ident">libc::_PC_SYNC_IO</span>,
@@ -4703,7 +4899,7 @@
 }
 
 <span class="doccomment">/// Like `pathconf`, but works with file descriptors instead of paths (see</span>
-<span class="doccomment">/// [fpathconf(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html))</span>
+<span class="doccomment">/// [fpathconf(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html))</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Parameters</span>
 <span class="doccomment">///</span>
@@ -4727,7 +4923,7 @@
         <span class="kw">if</span> <span class="ident">errno::errno</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+            <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
         }
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">raw</span>))
@@ -4735,12 +4931,12 @@
 }
 
 <span class="doccomment">/// Get path-dependent configurable system variables (see</span>
-<span class="doccomment">/// [pathconf(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html))</span>
+<span class="doccomment">/// [pathconf(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html))</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the value of a path-dependent configurable system variable.  Most</span>
 <span class="doccomment">/// supported variables also have associated compile-time constants, but POSIX</span>
 <span class="doccomment">/// allows their values to change at runtime.  There are generally two types of</span>
-<span class="doccomment">/// `pathconf` variables: options and limits.  See [pathconf(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html) for more details.</span>
+<span class="doccomment">/// `pathconf` variables: options and limits.  See [pathconf(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pathconf.html) for more details.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Parameters</span>
 <span class="doccomment">///</span>
@@ -4766,7 +4962,7 @@
         <span class="kw">if</span> <span class="ident">errno::errno</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+            <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
         }
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">raw</span>))
@@ -4776,7 +4972,7 @@
 <span class="doccomment">/// Variable names for `sysconf`</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Nix uses the same naming convention for these variables as the</span>
-<span class="doccomment">/// [getconf(1)](http://pubs.opengroup.org/onlinepubs/9699919799/utilities/getconf.html) utility.</span>
+<span class="doccomment">/// [getconf(1)](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/getconf.html) utility.</span>
 <span class="doccomment">/// That is, `SysconfVar` variables have the same name as the abstract variables</span>
 <span class="doccomment">/// shown in the `sysconf(3)` man page.  Usually, it&#39;s the same as the C</span>
 <span class="doccomment">/// variable name without the leading `_SC_`.</span>
@@ -4786,11 +4982,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # References</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - [sysconf(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/sysconf.html)</span>
-<span class="doccomment">/// - [unistd.h](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/unistd.h.html)</span>
-<span class="doccomment">/// - [limits.h](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html)</span>
+<span class="doccomment">/// - [sysconf(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/sysconf.html)</span>
+<span class="doccomment">/// - [unistd.h](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/unistd.h.html)</span>
+<span class="doccomment">/// - [limits.h](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/limits.h.html)</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SysconfVar</span> {
     <span class="doccomment">/// Maximum number of I/O operations in a single list I/O call supported by</span>
     <span class="doccomment">/// the implementation.</span>
@@ -4838,9 +5035,9 @@
     <span class="doccomment">/// the expr utility.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="ident">EXPR_NEST_MAX</span> <span class="op">=</span> <span class="ident">libc::_SC_EXPR_NEST_MAX</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// Maximum length of a host name (not including the terminating null) as</span>
     <span class="doccomment">/// returned from the `gethostname` function</span>
     <span class="ident">HOST_NAME_MAX</span> <span class="op">=</span> <span class="ident">libc::_SC_HOST_NAME_MAX</span>,
@@ -4877,29 +5074,30 @@
               <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the Advisory Information option.</span>
     <span class="ident">_POSIX_ADVISORY_INFO</span> <span class="op">=</span> <span class="ident">libc::_SC_ADVISORY_INFO</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports barriers.</span>
     <span class="ident">_POSIX_BARRIERS</span> <span class="op">=</span> <span class="ident">libc::_SC_BARRIERS</span>,
     <span class="doccomment">/// The implementation supports asynchronous input and output.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="ident">_POSIX_ASYNCHRONOUS_IO</span> <span class="op">=</span> <span class="ident">libc::_SC_ASYNCHRONOUS_IO</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports clock selection.</span>
     <span class="ident">_POSIX_CLOCK_SELECTION</span> <span class="op">=</span> <span class="ident">libc::_SC_CLOCK_SELECTION</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the Process CPU-Time Clocks option.</span>
     <span class="ident">_POSIX_CPUTIME</span> <span class="op">=</span> <span class="ident">libc::_SC_CPUTIME</span>,
     <span class="doccomment">/// The implementation supports the File Synchronization option.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="ident">_POSIX_FSYNC</span> <span class="op">=</span> <span class="ident">libc::_SC_FSYNC</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the IPv6 option.</span>
     <span class="ident">_POSIX_IPV6</span> <span class="op">=</span> <span class="ident">libc::_SC_IPV6</span>,
     <span class="doccomment">/// The implementation supports job control.</span>
@@ -4924,20 +5122,21 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="ident">_POSIX_MONOTONIC_CLOCK</span> <span class="op">=</span> <span class="ident">libc::_SC_MONOTONIC_CLOCK</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>,
-              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the Prioritized Input and Output option.</span>
     <span class="ident">_POSIX_PRIORITIZED_IO</span> <span class="op">=</span> <span class="ident">libc::_SC_PRIORITIZED_IO</span>,
     <span class="doccomment">/// The implementation supports the Process Scheduling option.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span>
     <span class="ident">_POSIX_PRIORITY_SCHEDULING</span> <span class="op">=</span> <span class="ident">libc::_SC_PRIORITY_SCHEDULING</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the Raw Sockets option.</span>
     <span class="ident">_POSIX_RAW_SOCKETS</span> <span class="op">=</span> <span class="ident">libc::_SC_RAW_SOCKETS</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports read-write locks.</span>
     <span class="ident">_POSIX_READER_WRITER_LOCKS</span> <span class="op">=</span> <span class="ident">libc::_SC_READER_WRITER_LOCKS</span>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>,
@@ -4945,9 +5144,9 @@
               <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports realtime signals.</span>
     <span class="ident">_POSIX_REALTIME_SIGNALS</span> <span class="op">=</span> <span class="ident">libc::_SC_REALTIME_SIGNALS</span>,
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>,
-              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;freebsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
+              <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;netbsd&quot;</span>, <span class="ident">target_os</span><span class="op">=</span><span class="string">&quot;openbsd&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
     <span class="doccomment">/// The implementation supports the Regular Expression Handling option.</span>
     <span class="ident">_POSIX_REGEXP</span> <span class="op">=</span> <span class="ident">libc::_SC_REGEXP</span>,
     <span class="doccomment">/// Each process has a saved set-user-ID and a saved set-group-ID.</span>
@@ -5239,7 +5438,7 @@
 }
 
 <span class="doccomment">/// Get configurable system variables (see</span>
-<span class="doccomment">/// [sysconf(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/sysconf.html))</span>
+<span class="doccomment">/// [sysconf(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/sysconf.html))</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returns the value of a configurable system variable.  Most supported</span>
 <span class="doccomment">/// variables also have associated compile-time constants, but POSIX</span>
@@ -5263,7 +5462,7 @@
         <span class="kw">if</span> <span class="ident">errno::errno</span>() <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()))
+            <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>())
         }
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">raw</span>))
@@ -5297,7 +5496,7 @@
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Uid</span>, <span class="ident">Gid</span>};
 
     <span class="doccomment">/// Sets the real, effective, and saved uid.</span>
-    <span class="doccomment">/// ([see setresuid(2)](http://man7.org/linux/man-pages/man2/setresuid.2.html))</span>
+    <span class="doccomment">/// ([see setresuid(2)](https://man7.org/linux/man-pages/man2/setresuid.2.html))</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `ruid`: real user id</span>
     <span class="doccomment">/// * `euid`: effective user id</span>
@@ -5313,7 +5512,7 @@
     }
 
     <span class="doccomment">/// Sets the real, effective, and saved gid.</span>
-    <span class="doccomment">/// ([see setresuid(2)](http://man7.org/linux/man-pages/man2/setresuid.2.html))</span>
+    <span class="doccomment">/// ([see setresuid(2)](https://man7.org/linux/man-pages/man2/setresuid.2.html))</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `rgid`: real group id</span>
     <span class="doccomment">/// * `egid`: effective group id</span>
@@ -5326,6 +5525,67 @@
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::setresgid</span>(<span class="ident">rgid</span>.<span class="ident">into</span>(), <span class="ident">egid</span>.<span class="ident">into</span>(), <span class="ident">sgid</span>.<span class="ident">into</span>()) };
 
         <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="ident">drop</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+<span class="kw">mod</span> <span class="ident">getres</span> {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Result</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errno::Errno</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Uid</span>, <span class="ident">Gid</span>};
+
+    <span class="doccomment">/// Real, effective and saved user IDs.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResUid</span> {
+        <span class="kw">pub</span> <span class="ident">real</span>: <span class="ident">Uid</span>,
+        <span class="kw">pub</span> <span class="ident">effective</span>: <span class="ident">Uid</span>,
+        <span class="kw">pub</span> <span class="ident">saved</span>: <span class="ident">Uid</span>
+    }
+
+    <span class="doccomment">/// Real, effective and saved group IDs.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResGid</span> {
+        <span class="kw">pub</span> <span class="ident">real</span>: <span class="ident">Gid</span>,
+        <span class="kw">pub</span> <span class="ident">effective</span>: <span class="ident">Gid</span>,
+        <span class="kw">pub</span> <span class="ident">saved</span>: <span class="ident">Gid</span>
+    }
+
+    <span class="doccomment">/// Gets the real, effective, and saved user IDs.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ([see getresuid(2)](http://man7.org/linux/man-pages/man2/getresuid.2.html))</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #Returns</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - `Ok((Uid, Uid, Uid))`: tuple of real, effective and saved uids on success.</span>
+    <span class="doccomment">/// - `Err(x)`: libc error code on failure.</span>
+    <span class="doccomment">///</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getresuid</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ResUid</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ruid</span> <span class="op">=</span> <span class="ident">libc::uid_t::max_value</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">euid</span> <span class="op">=</span> <span class="ident">libc::uid_t::max_value</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suid</span> <span class="op">=</span> <span class="ident">libc::uid_t::max_value</span>();
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getresuid</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ruid</span>, <span class="kw-2">&amp;mut</span> <span class="ident">euid</span>, <span class="kw-2">&amp;mut</span> <span class="ident">suid</span>) };
+
+        <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ResUid</span>{ <span class="ident">real</span>: <span class="ident">Uid</span>(<span class="ident">ruid</span>), <span class="ident">effective</span>: <span class="ident">Uid</span>(<span class="ident">euid</span>), <span class="ident">saved</span>: <span class="ident">Uid</span>(<span class="ident">suid</span>) })
+    }
+
+    <span class="doccomment">/// Gets the real, effective, and saved group IDs.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ([see getresgid(2)](http://man7.org/linux/man-pages/man2/getresgid.2.html))</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// #Returns</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - `Ok((Gid, Gid, Gid))`: tuple of real, effective and saved gids on success.</span>
+    <span class="doccomment">/// - `Err(x)`: libc error code on failure.</span>
+    <span class="doccomment">///</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getresgid</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ResGid</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rgid</span> <span class="op">=</span> <span class="ident">libc::gid_t::max_value</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">egid</span> <span class="op">=</span> <span class="ident">libc::gid_t::max_value</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sgid</span> <span class="op">=</span> <span class="ident">libc::gid_t::max_value</span>();
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::getresgid</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rgid</span>, <span class="kw-2">&amp;mut</span> <span class="ident">egid</span>, <span class="kw-2">&amp;mut</span> <span class="ident">sgid</span>) };
+
+        <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ResGid</span> { <span class="ident">real</span>: <span class="ident">Gid</span>(<span class="ident">rgid</span>), <span class="ident">effective</span>: <span class="ident">Gid</span>(<span class="ident">egid</span>), <span class="ident">saved</span>: <span class="ident">Gid</span>(<span class="ident">sgid</span>) } )
     }
 }
 
@@ -5344,7 +5604,7 @@
 }
 
 <span class="doccomment">/// Checks the file named by `path` for accessibility according to the flags given by `amode`</span>
-<span class="doccomment">/// See [access(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/access.html)</span>
+<span class="doccomment">/// See [access(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/access.html)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">access</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">NixPath</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">amode</span>: <span class="ident">AccessFlags</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
         <span class="kw">unsafe</span> {
@@ -5372,23 +5632,32 @@
     <span class="doccomment">/// Group ID</span>
     <span class="kw">pub</span> <span class="ident">gid</span>: <span class="ident">Gid</span>,
     <span class="doccomment">/// User information</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="ident">gecos</span>: <span class="ident">CString</span>,
     <span class="doccomment">/// Home directory</span>
     <span class="kw">pub</span> <span class="ident">dir</span>: <span class="ident">PathBuf</span>,
     <span class="doccomment">/// Path to shell</span>
     <span class="kw">pub</span> <span class="ident">shell</span>: <span class="ident">PathBuf</span>,
     <span class="doccomment">/// Login class</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="ident">class</span>: <span class="ident">CString</span>,
     <span class="doccomment">/// Last password change</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="ident">change</span>: <span class="ident">libc::time_t</span>,
     <span class="doccomment">/// Expiration time of account</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                  <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="ident">expire</span>: <span class="ident">libc::time_t</span>
 }
 
@@ -5399,22 +5668,83 @@
             <span class="ident">User</span> {
                 <span class="ident">name</span>: <span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_name</span>).<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>(),
                 <span class="ident">passwd</span>: <span class="ident">CString::new</span>(<span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_passwd</span>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)))]</span>
                 <span class="ident">gecos</span>: <span class="ident">CString::new</span>(<span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_gecos</span>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>(),
                 <span class="ident">dir</span>: <span class="ident">PathBuf::from</span>(<span class="ident">OsStr::from_bytes</span>(<span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_dir</span>).<span class="ident">to_bytes</span>())),
                 <span class="ident">shell</span>: <span class="ident">PathBuf::from</span>(<span class="ident">OsStr::from_bytes</span>(<span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_shell</span>).<span class="ident">to_bytes</span>())),
                 <span class="ident">uid</span>: <span class="ident">Uid::from_raw</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_uid</span>),
                 <span class="ident">gid</span>: <span class="ident">Gid::from_raw</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_gid</span>),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
                 <span class="ident">class</span>: <span class="ident">CString::new</span>(<span class="ident">CStr::from_ptr</span>((<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_class</span>).<span class="ident">to_bytes</span>()).<span class="ident">unwrap</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
                 <span class="ident">change</span>: (<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_change</span>,
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
-                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                              <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
                 <span class="ident">expire</span>: (<span class="kw-2">*</span><span class="ident">pw</span>).<span class="ident">pw_expire</span>
             }
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>))]</span> <span class="comment">// RedoxFS does not support passwd</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">User</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">libc::passwd</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="ident">User</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">CString::new</span>(<span class="ident">u</span>.<span class="ident">name</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">into_raw</span>(),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">CString::new</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+        };
+        <span class="kw">let</span> <span class="ident">dir</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">u</span>.<span class="ident">dir</span>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">CString::new</span>(<span class="ident">s</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">CString::new</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+        };
+        <span class="kw">let</span> <span class="ident">shell</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">u</span>.<span class="ident">shell</span>.<span class="ident">into_os_string</span>().<span class="ident">into_string</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">CString::new</span>(<span class="ident">s</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">CString::new</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+        };
+        <span class="self">Self</span> {
+            <span class="ident">pw_name</span>: <span class="ident">name</span>,
+            <span class="ident">pw_passwd</span>: <span class="ident">u</span>.<span class="ident">passwd</span>.<span class="ident">into_raw</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)))]</span>
+            <span class="ident">pw_gecos</span>: <span class="ident">u</span>.<span class="ident">gecos</span>.<span class="ident">into_raw</span>(),
+            <span class="ident">pw_dir</span>: <span class="ident">dir</span>,
+            <span class="ident">pw_shell</span>: <span class="ident">shell</span>,
+            <span class="ident">pw_uid</span>: <span class="ident">u</span>.<span class="ident">uid</span>.<span class="number">0</span>,
+            <span class="ident">pw_gid</span>: <span class="ident">u</span>.<span class="ident">gid</span>.<span class="number">0</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
+            <span class="ident">pw_class</span>: <span class="ident">u</span>.<span class="ident">class</span>.<span class="ident">into_raw</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
+            <span class="ident">pw_change</span>: <span class="ident">u</span>.<span class="ident">change</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                          <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
+            <span class="ident">pw_expire</span>: <span class="ident">u</span>.<span class="ident">expire</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)]</span>
+            <span class="ident">pw_age</span>: <span class="ident">CString::new</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>)]</span>
+            <span class="ident">pw_comment</span>: <span class="ident">CString::new</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into_raw</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>))]</span>
+            <span class="ident">pw_fields</span>: <span class="number">0</span>,
         }
     }
 }
@@ -5428,10 +5758,10 @@
               <span class="ident">libc::size_t</span>,
               <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::passwd</span>) -&gt; <span class="ident">libc::c_int</span>
     {
-        <span class="kw">let</span> <span class="ident">buflimit</span> <span class="op">=</span> <span class="number">16384</span>;
+        <span class="kw">let</span> <span class="ident">buflimit</span> <span class="op">=</span> <span class="number">1048576</span>;
         <span class="kw">let</span> <span class="ident">bufsize</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">sysconf</span>(<span class="ident">SysconfVar::GETPW_R_SIZE_MAX</span>) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">n</span>)) =&gt; <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">buflimit</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">16384</span>,
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cbuf</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">bufsize</span>);
@@ -5451,7 +5781,7 @@
                 <span class="comment">// Trigger the internal buffer resizing logic.</span>
                 <span class="ident">reserve_double_buffer_size</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cbuf</span>, <span class="ident">buflimit</span>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
             }
         }
     }
@@ -5459,7 +5789,7 @@
     <span class="doccomment">/// Get a user by UID.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, this function calls</span>
-    <span class="doccomment">/// [getpwuid_r(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
+    <span class="doccomment">/// [getpwuid_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -5478,7 +5808,7 @@
     <span class="doccomment">/// Get a user by name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, this function calls</span>
-    <span class="doccomment">/// [getpwnam_r(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
+    <span class="doccomment">/// [getpwnam_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -5549,10 +5879,10 @@
               <span class="ident">libc::size_t</span>,
               <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::group</span>) -&gt; <span class="ident">libc::c_int</span>
     {
-        <span class="kw">let</span> <span class="ident">buflimit</span> <span class="op">=</span> <span class="number">16384</span>;
+        <span class="kw">let</span> <span class="ident">buflimit</span> <span class="op">=</span> <span class="number">1048576</span>;
         <span class="kw">let</span> <span class="ident">bufsize</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">sysconf</span>(<span class="ident">SysconfVar::GETGR_R_SIZE_MAX</span>) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">n</span>)) =&gt; <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>,
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">buflimit</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="number">16384</span>,
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cbuf</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">bufsize</span>);
@@ -5572,7 +5902,7 @@
                 <span class="comment">// Trigger the internal buffer resizing logic.</span>
                 <span class="ident">reserve_double_buffer_size</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cbuf</span>, <span class="ident">buflimit</span>)<span class="question-mark">?</span>;
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::last</span>()));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
             }
         }
     }
@@ -5580,7 +5910,7 @@
     <span class="doccomment">/// Get a group by GID.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, this function calls</span>
-    <span class="doccomment">/// [getgrgid_r(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
+    <span class="doccomment">/// [getgrgid_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -5601,7 +5931,7 @@
     <span class="doccomment">/// Get a group by name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Internally, this function calls</span>
-    <span class="doccomment">/// [getgrnam_r(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
+    <span class="doccomment">/// [getgrnam_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -5622,7 +5952,7 @@
 }
 
 <span class="doccomment">/// Get the name of the terminal device that is open on file descriptor fd</span>
-<span class="doccomment">/// (see [`ttyname(3)`](http://man7.org/linux/man-pages/man3/ttyname.3.html)).</span>
+<span class="doccomment">/// (see [`ttyname(3)`](https://man7.org/linux/man-pages/man3/ttyname.3.html)).</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;fuchsia&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ttyname</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span> {
     <span class="kw">const</span> <span class="ident">PATH_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">libc::PATH_MAX</span> <span class="kw">as</span> <span class="ident">usize</span>;
@@ -5631,7 +5961,7 @@
 
     <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::ttyname_r</span>(<span class="ident">fd</span>, <span class="ident">c_buf</span>, <span class="ident">buf</span>.<span class="ident">len</span>()) };
     <span class="kw">if</span> <span class="ident">ret</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Sys</span>(<span class="ident">Errno::from_i32</span>(<span class="ident">ret</span>)));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::from_i32</span>(<span class="ident">ret</span>));
     }
 
     <span class="kw">let</span> <span class="ident">nul</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\0&#39;</span>).<span class="ident">unwrap</span>();

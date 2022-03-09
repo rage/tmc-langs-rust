@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["info","Get information describing a JavaScript `TypedArray`"]],"struct":[["TypedArrayInfo","Information describing a JavaScript `TypedArray`"]]});

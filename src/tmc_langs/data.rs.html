@@ -201,19 +201,32 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Various data types.</span>
 
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">FmtResult</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">path::PathBuf</span>};
-<span class="kw">use</span> <span class="ident">tmc_client</span>::{<span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>};
+<span class="kw">use</span> <span class="ident">tmc_client::response</span>::{<span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">LangsError</span>, <span class="ident">ParamError</span>};
 
 <span class="doccomment">/// Exercise inside the projects directory.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalExercise</span> {
     <span class="kw">pub</span> <span class="ident">exercise_slug</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">exercise_path</span>: <span class="ident">PathBuf</span>,
@@ -349,12 +362,15 @@
 }
 
 <span class="doccomment">/// Output formats for an archive.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OutputFormat</span> {
     <span class="ident">Tar</span>,
     <span class="ident">Zip</span>,
     <span class="ident">TarZstd</span>,
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadResult</span> {
     <span class="ident">Success</span> {
         <span class="ident">downloaded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,
@@ -367,28 +383,29 @@
     },
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadTarget</span> {
-    <span class="ident">Template</span> {
-        <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
-        <span class="ident">checksum</span>: <span class="ident">String</span>,
-    },
-    <span class="ident">Submission</span> {
-        <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
-        <span class="ident">submission_id</span>: <span class="ident">usize</span>,
-        <span class="ident">checksum</span>: <span class="ident">String</span>,
-    },
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadTarget</span> {
+    <span class="kw">pub</span> <span class="ident">target</span>: <span class="ident">ExerciseDownload</span>,
+    <span class="kw">pub</span> <span class="ident">checksum</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">kind</span>: <span class="ident">DownloadTargetKind</span>,
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DownloadTargetKind</span> {
+    <span class="ident">Template</span>,
+    <span class="ident">Submission</span> { <span class="ident">submission_id</span>: <span class="ident">u32</span> },
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExerciseDownload</span> {
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span> <span class="ident">course_slug</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">exercise_slug</span>: <span class="ident">String</span>,
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CombinedCourseData</span> {
     <span class="kw">pub</span> <span class="ident">details</span>: <span class="ident">CourseDetails</span>,
     <span class="kw">pub</span> <span class="ident">exercises</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CourseExercise</span><span class="op">&gt;</span>,
@@ -396,6 +413,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DownloadOrUpdateCourseExercisesResult</span> {
     <span class="kw">pub</span> <span class="ident">downloaded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">skipped</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExerciseDownload</span><span class="op">&gt;</span>,

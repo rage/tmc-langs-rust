@@ -316,6 +316,14 @@
 <span id="314">314</span>
 <span id="315">315</span>
 <span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains a struct that models the .tmcproject.yml file.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TmcError</span>;
@@ -328,9 +336,13 @@
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
+
 <span class="doccomment">/// Extra data from a `.tmcproject.yml` file.</span>
 <span class="comment">// NOTE: when adding fields, remember to update the merge function as well</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TmcProjectYml</span> {
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Vec::is_empty&quot;</span>)]</span>
@@ -348,8 +360,9 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">tests_timeout_ms</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 
-    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;no-tests&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">ts</span>(<span class="ident">skip</span>))]</span>
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">default</span>)]</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip_serializing_if</span> <span class="op">=</span> <span class="string">&quot;Option::is_none&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">no_tests</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NoTests</span><span class="op">&gt;</span>,
 
@@ -428,7 +441,7 @@
         <span class="kw">let</span> <span class="ident">config_path</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::path_in_dir</span>(<span class="ident">dir</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::create_file_lock</span>(<span class="kw-2">&amp;</span><span class="ident">config_path</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">file</span>
-            .<span class="ident">lock</span>()
+            .<span class="ident">write</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">config_path</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="ident">serde_yaml::to_writer</span>(<span class="ident">guard</span>.<span class="ident">deref</span>(), <span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -438,10 +451,11 @@
 <span class="doccomment">/// Minimum Python version requirement.</span>
 <span class="doccomment">/// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Serialize</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PythonVer</span> {
-    <span class="kw">pub</span> <span class="ident">major</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">minor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">patch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">major</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">minor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">patch</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Deserializes a major.minor?.patch? version into a PythonVer.</span>
@@ -465,19 +479,19 @@
             {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>);
                 <span class="kw">let</span> <span class="ident">major</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">major</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">major</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">major</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
                 <span class="kw">let</span> <span class="ident">minor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">minor</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">minor</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">minor</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
                 <span class="kw">let</span> <span class="ident">patch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">patch</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
-                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">patch</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">patch</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">Error::custom</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(<span class="ident">parsed</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -496,6 +510,7 @@
 
 <span class="doccomment">/// Contents of the no-tests field.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">from</span> <span class="op">=</span> <span class="string">&quot;NoTestsWrapper&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoTests</span> {
     <span class="kw">pub</span> <span class="ident">flag</span>: <span class="ident">bool</span>,
@@ -547,6 +562,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 

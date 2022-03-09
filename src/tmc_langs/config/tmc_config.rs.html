@@ -187,23 +187,43 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Handles the CLI&#39;s configuration file.</span>
 
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
 <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
 <span class="kw">use</span> <span class="ident">toml</span>::{<span class="ident">value::Table</span>, <span class="ident">Value</span>};
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
+
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::LangsError</span>;
 
 <span class="doccomment">/// The main configuration file. A separate one is used for each client.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TmcConfig</span> {
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">alias</span> <span class="op">=</span> <span class="string">&quot;projects-dir&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">projects_dir</span>: <span class="ident">PathBuf</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">flatten</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">ts</span>(<span class="ident">skip</span>))]</span>
     <span class="kw">pub</span> <span class="ident">table</span>: <span class="ident">Table</span>,
 }
 
@@ -254,7 +274,7 @@
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">file_util::create_file_lock</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">lock</span>
-            .<span class="ident">lock</span>()
+            .<span class="ident">write</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">toml</span> <span class="op">=</span> <span class="ident">toml::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
@@ -276,7 +296,7 @@
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">lock</span>) =&gt; {
                 <span class="comment">// found config file, lock and read</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">lock</span>
-                    .<span class="ident">lock</span>()
+                    .<span class="ident">write</span>()
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                 <span class="kw">let</span> <span class="ident">_bytes</span> <span class="op">=</span> <span class="ident">guard</span>
@@ -287,12 +307,12 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">config</span>) =&gt; <span class="ident">config</span>, <span class="comment">// successfully read and deserialized the config</span>
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="macro">log::error!</span>(
-                            <span class="string">&quot;Failed to deserialize config at {} due to {e}, resetting&quot;</span>,
-                            <span class="ident">path</span>.<span class="ident">display</span>()
+                            <span class="string">&quot;Failed to deserialize config at {} due to {}, resetting&quot;</span>,
+                            <span class="ident">path</span>.<span class="ident">display</span>(),
+                            <span class="ident">e</span>
                         );
-                        <span class="ident">drop</span>(<span class="ident">guard</span>);
-                        <span class="ident">drop</span>(<span class="ident">lock</span>);
-                        <span class="ident"><span class="self">Self</span>::init_at</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>
+                        <span class="ident">drop</span>(<span class="ident">guard</span>); <span class="comment">// unlock file before recreating it</span>
+                        <span class="ident"><span class="self">Self</span>::init_at</span>(<span class="ident">client_name</span>, <span class="ident">path</span>)<span class="question-mark">?</span>
                     }
                 }
             }
@@ -304,7 +324,7 @@
                     <span class="ident">e</span>
                 );
                 <span class="comment">// todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds</span>
-                <span class="ident"><span class="self">Self</span>::init_at</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">path</span>)<span class="question-mark">?</span>
+                <span class="ident"><span class="self">Self</span>::init_at</span>(<span class="ident">client_name</span>, <span class="ident">path</span>)<span class="question-mark">?</span>
             }
         };
 
@@ -312,6 +332,16 @@
             <span class="ident">file_util::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">projects_dir</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">config</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_default_projects_dir</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">LangsError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">data_dir</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env::var</span>(<span class="string">&quot;TMC_LANGS_DEFAULT_PROJECTS_DIR&quot;</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">PathBuf::from</span>(<span class="ident">v</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">dirs::data_local_dir</span>()
+                .<span class="ident">ok_or</span>(<span class="ident">LangsError::NoLocalDataDir</span>)<span class="question-mark">?</span>
+                .<span class="ident">join</span>(<span class="string">&quot;tmc&quot;</span>),
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">data_dir</span>)
     }
 
     <span class="comment">// initializes the default configuration file at the given path</span>
@@ -322,13 +352,11 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">file_util::create_file_lock</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">lock</span>
-            .<span class="ident">lock</span>()
+            .<span class="ident">write</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FdLock</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">default_project_dir</span> <span class="op">=</span> <span class="ident">dirs::data_local_dir</span>()
-            .<span class="ident">ok_or</span>(<span class="ident">LangsError::NoLocalDataDir</span>)<span class="question-mark">?</span>
-            .<span class="ident">join</span>(<span class="string">&quot;tmc&quot;</span>)
-            .<span class="ident">join</span>(<span class="ident"><span class="self">Self</span>::get_client_stub</span>(<span class="ident">client_name</span>));
+        <span class="kw">let</span> <span class="ident">default_project_dir</span> <span class="op">=</span>
+            <span class="ident"><span class="self">Self</span>::get_default_projects_dir</span>()<span class="question-mark">?</span>.<span class="ident">join</span>(<span class="ident"><span class="self">Self</span>::get_client_stub</span>(<span class="ident">client_name</span>));
         <span class="ident">file_util::create_dir_all</span>(<span class="kw-2">&amp;</span><span class="ident">default_project_dir</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">TmcConfig</span> {
