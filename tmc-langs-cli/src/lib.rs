@@ -366,7 +366,7 @@ fn run_app(matches: Opt) -> Result<()> {
             for value in &tmc_param {
                 let params: Vec<_> = value.split('=').collect();
                 if params.len() != 2 {
-                    app::Opt::into_app()
+                    app::Opt::command()
                         .error(
                             ErrorKind::ValueValidation,
                             "tmc-param values should contain a single '=' as a delimiter.",

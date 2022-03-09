@@ -5,6 +5,7 @@
 use crate::error::Error as LibError;
 use crate::error::Result as LibResult;
 use neon::prelude::*;
+use neon::types::buffer::TypedArray;
 use serde::de::Visitor;
 use serde::de::{
     DeserializeOwned, DeserializeSeed, EnumAccess, MapAccess, SeqAccess, Unexpected, VariantAccess,
@@ -104,10 +105,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x>
                     len
                 )));
             }
-            let key = prop_names
-                .get(self.cx, 0)?
-                .downcast::<JsString, _>(self.cx)
-                .or_throw(self.cx)?;
+            let key: Handle<JsString> = prop_names.get(self.cx, 0)?;
             let enum_value = val.get(self.cx, key)?;
             let key = key.value(self.cx);
             visitor.visit_enum(JsEnumAccess::new(self.cx, key, Some(enum_value)))
@@ -125,7 +123,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x>
             .input
             .downcast::<JsBuffer, _>(self.cx)
             .or_throw(self.cx)?;
-        let copy = self.cx.borrow(&buff, |buff| Vec::from(buff.as_slice()));
+        let copy = buff.as_slice(self.cx).to_vec();
         visitor.visit_bytes(&copy)
     }
 
@@ -137,7 +135,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x>
             .input
             .downcast::<JsBuffer, _>(self.cx)
             .or_throw(self.cx)?;
-        let copy = self.cx.borrow(&buff, |buff| Vec::from(buff.as_slice()));
+        let copy = buff.as_slice(self.cx).to_vec();
         visitor.visit_byte_buf(copy)
     }
 
@@ -246,7 +244,7 @@ impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
         if self.idx >= self.len {
             return Err(LibError::ArrayIndexOutOfBounds(self.len, self.idx));
         }
-        let prop_name = self.prop_names.get(self.cx, self.idx)?;
+        let prop_name: Handle<JsString> = self.prop_names.get(self.cx, self.idx)?;
         let value = self.input.get(self.cx, prop_name)?;
 
         self.idx += 1;

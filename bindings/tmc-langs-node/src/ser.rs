@@ -5,6 +5,7 @@
 use crate::error::Error;
 use crate::error::Result as LibResult;
 use neon::prelude::*;
+use neon::types::buffer::TypedArray;
 use serde::ser::{self, Serialize};
 use std::marker::PhantomData;
 
@@ -152,9 +153,8 @@ where
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        let mut buff = JsBuffer::new(self.cx, v.len() as u32)?;
-        self.cx
-            .borrow_mut(&mut buff, |buff| buff.as_mut_slice().clone_from_slice(v));
+        let mut buff = JsBuffer::new(self.cx, v.len())?;
+        buff.as_mut_slice(self.cx).clone_from_slice(v);
         Ok(buff.upcast())
     }
 

@@ -1,7 +1,7 @@
 //! Create clap app
 
 use anyhow::Context;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
@@ -18,7 +18,8 @@ use tmc_langs::{
     version,
     author,
     about,
-    setting = AppSettings::SubcommandRequiredElseHelp,
+    subcommand_required(true),
+    arg_required_else_help(true)
 )]
 pub struct Opt {
     /// Pretty-prints all output
@@ -225,7 +226,7 @@ pub enum Command {
 
 /// Various commands that communicate with the TMC server
 #[derive(Parser)]
-#[clap(setting = AppSettings::SubcommandRequiredElseHelp)]
+#[clap(subcommand_required(true), arg_required_else_help(true))]
 pub enum Core {
     /// Checks for updates to any exercises that exist locally.
     #[clap(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
@@ -484,7 +485,7 @@ pub enum Core {
 
 /// Configure the CLI
 #[derive(Parser)]
-#[clap(setting = AppSettings::SubcommandRequiredElseHelp)]
+#[clap(subcommand_required(true), arg_required_else_help(true))]
 pub enum Settings {
     /// Retrieves a value from the settings
     Get {
