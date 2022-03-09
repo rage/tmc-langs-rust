@@ -49,7 +49,7 @@ pub fn prepare_submission(
         // if defined, extract and use as the base
         unzip_with_filter(
             &plugin,
-            &stub_zip_path,
+            stub_zip_path,
             |path| {
                 path.components().any(|c| {
                     c.as_os_str()
