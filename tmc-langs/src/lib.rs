@@ -29,8 +29,8 @@ pub use tmc_client::{
     request::FeedbackAnswer,
     response::{
         Course, CourseData, CourseDetails, CourseExercise, Exercise, ExerciseDetails,
-        ExercisePoint, ExerciseSubmission, NewSubmission, Organization, Review, Submission,
-        SubmissionFeedbackKind, SubmissionFeedbackQuestion, SubmissionFeedbackResponse,
+        ExercisePoint, ExerciseSubmission, ExercisesDetails, NewSubmission, Organization, Review,
+        Submission, SubmissionFeedbackKind, SubmissionFeedbackQuestion, SubmissionFeedbackResponse,
         SubmissionFinished, SubmissionStatus, TestCase,
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
@@ -42,7 +42,7 @@ pub use tmc_langs_framework::{
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
-    notification_reporter,
+    notification_reporter, progress_reporter,
 };
 
 use crate::data::DownloadTarget;
@@ -62,7 +62,6 @@ use std::{
 use std::{collections::HashMap, ffi::OsStr};
 use tmc_langs_framework::TmcError;
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
-use tmc_langs_util::progress_reporter;
 use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
