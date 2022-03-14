@@ -170,7 +170,7 @@ pub struct Exercise {
     pub all_review_points_given: bool,
     pub memory_limit: Option<u32>,
     pub runtime_params: Vec<String>,
-    pub valgrind_strategy: String,
+    pub valgrind_strategy: Option<String>,
     pub code_review_requests_enabled: bool,
     pub run_tests_locally_action_enabled: bool,
     /// Typically null.
