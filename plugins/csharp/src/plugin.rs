@@ -358,8 +358,7 @@ impl LanguagePlugin for CSharpPlugin {
             |points| {
                 points
                     .into_iter()
-                    .map(|p| p.split_whitespace())
-                    .flatten()
+                    .flat_map(|p| p.split_whitespace())
                     .collect()
             },
         )(i)

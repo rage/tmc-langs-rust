@@ -593,8 +593,7 @@ pub fn update_exercises(
     let exercise_ids = projects_config
         .courses
         .iter_mut()
-        .map(|c| &mut c.1.exercises)
-        .flatten()
+        .flat_map(|c| &mut c.1.exercises)
         .map(|e| e.1.id)
         .collect::<Vec<_>>();
 

@@ -94,8 +94,7 @@ impl ProjectsConfig {
     pub fn get_all_exercises(&self) -> impl Iterator<Item = &ProjectsDirExercise> {
         self.courses
             .iter()
-            .map(|c| &c.1.exercises)
-            .flatten()
+            .flat_map(|c| &c.1.exercises)
             .map(|e| e.1)
     }
 

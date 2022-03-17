@@ -276,8 +276,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             |points| {
                 points
                     .into_iter()
-                    .map(|p| p.split_whitespace())
-                    .flatten()
+                    .flat_map(|p| p.split_whitespace())
                     .collect()
             },
         )(i)

@@ -187,7 +187,7 @@ fn initialize_new_cache_clone(
             file_util::copy(old_clone_path, new_course_root)?;
 
             let run_git = |args: &[&str]| {
-                TmcCommand::piped("git".to_string())
+                TmcCommand::piped("git")
                     .with(|e| e.cwd(new_clone_path).args(args))
                     .output_with_timeout_checked(Duration::from_secs(60 * 2))
             };
@@ -215,7 +215,7 @@ fn initialize_new_cache_clone(
     log::info!("could not copy from previous cache, cloning");
 
     // clone_repository
-    TmcCommand::piped("git".to_string())
+    TmcCommand::piped("git")
         .with(|e| {
             e.args(&["clone", "-q", "-b"])
                 .arg(course_git_branch)
@@ -304,7 +304,7 @@ fn get_exercises(
                 "processing points and checksum for {}",
                 exercise_dir.display()
             );
-            let name = exercise_dir.to_string_lossy().replace("/", "-");
+            let name = exercise_dir.to_string_lossy().replace('/', "-");
             let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = super::get_available_points(&exercise_path)?;

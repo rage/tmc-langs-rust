@@ -467,8 +467,7 @@ impl LanguagePlugin for Python3Plugin {
             |points| {
                 points
                     .into_iter()
-                    .map(|p| p.split_whitespace())
-                    .flatten()
+                    .flat_map(|p| p.split_whitespace())
                     .collect()
             },
         )(i)
