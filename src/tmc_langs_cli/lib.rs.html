@@ -1153,6 +1153,8 @@
 <span id="1151">1151</span>
 <span id="1152">1152</span>
 <span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
 
 <span class="doccomment">//! CLI client for TMC</span>
@@ -1161,9 +1163,9 @@
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">output</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">DownloadsFailedError</span>, <span class="ident">InvalidTokenError</span>, <span class="ident">SandboxTestError</span>};
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::output</span>::{
-    <span class="ident">DataKind</span>, <span class="ident">Kind</span>, <span class="ident">OutputData</span>, <span class="ident">OutputKind</span>, <span class="ident">OutputResult</span>, <span class="ident">Status</span>, <span class="ident">StatusUpdateData</span>,
+<span class="kw">use</span> <span class="self">self</span>::{
+    <span class="ident">error</span>::{<span class="ident">DownloadsFailedError</span>, <span class="ident">InvalidTokenError</span>, <span class="ident">SandboxTestError</span>},
+    <span class="ident">output</span>::{<span class="ident">DataKind</span>, <span class="ident">Kind</span>, <span class="ident">OutputData</span>, <span class="ident">OutputKind</span>, <span class="ident">OutputResult</span>, <span class="ident">Status</span>, <span class="ident">StatusUpdateData</span>},
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::app</span>::{<span class="ident">Locale</span>, <span class="ident">Opt</span>};
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">Context</span>, <span class="prelude-ty">Result</span>};
@@ -1171,18 +1173,20 @@
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ErrorKind</span>, <span class="ident">IntoApp</span>, <span class="ident">Parser</span>};
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">serde_json::Value</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::env</span>;
-<span class="kw">use</span> <span class="ident">std::fs::File</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections::HashMap</span>,
+    <span class="ident">env</span>,
+    <span class="ident">fs::File</span>,
+    <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>, <span class="ident">Write</span>},
+    <span class="ident">ops::Deref</span>,
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+};
 <span class="kw">use</span> <span class="ident">tmc_langs</span>::{
     <span class="ident">file_util</span>, <span class="ident">notification_reporter</span>, <span class="ident">ClientError</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">CommandError</span>, <span class="ident">Credentials</span>,
     <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">DownloadResult</span>, <span class="ident">FeedbackAnswer</span>, <span class="ident">Language</span>,
     <span class="ident">StyleValidationResult</span>, <span class="ident">TmcClient</span>, <span class="ident">TmcConfig</span>, <span class="ident">UpdatedExercise</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util::progress_reporter</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">deserialize</span>, <span class="ident">progress_reporter</span>};
 
 <span class="comment">// wraps the run_inner function that actually does the work and handles any panics that occur</span>
 <span class="comment">// any langs library should never panic by itself, but other libraries used may in some rare circumstances</span>
@@ -2167,9 +2171,9 @@
         <span class="ident">Settings::Set</span> { <span class="ident">key</span>, <span class="ident">json</span>, <span class="ident">base64</span> } =&gt; {
             <span class="kw">let</span> <span class="ident">json</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">base64</span> {
                 <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">base64::decode</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
-                <span class="ident">serde_json::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
+                <span class="ident">deserialize::json_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
             } <span class="kw">else</span> {
-                <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
+                <span class="ident">deserialize::json_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>
             };
             <span class="ident">tmc_langs::set_setting</span>(<span class="ident">client_name</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>;
             <span class="ident">OutputKind::finished</span>(<span class="string">&quot;set setting&quot;</span>)

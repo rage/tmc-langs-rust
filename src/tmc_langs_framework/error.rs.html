@@ -73,18 +73,12 @@
 <span id="71">71</span>
 <span id="72">72</span>
 <span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
 </pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">use</span> <span class="ident">nom::error::VerboseError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serde_yaml::Error</span> <span class="kw">as</span> <span class="ident">YamlError</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">path::PathBuf</span>, <span class="ident">time::Duration</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">subprocess</span>::{<span class="ident">ExitStatus</span>, <span class="ident">PopenError</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_util::FileError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">walkdir::Error</span> <span class="kw">as</span> <span class="ident">WalkDirError</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zip::result::ZipError</span>;
-
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">FileError</span>, <span class="ident">YamlError</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zip::result::ZipError</span>;
 
 <span class="comment">// todo: make util error type and move variants there</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
@@ -107,6 +101,8 @@
     <span class="ident">NoProjectDirInZip</span>,
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Found project dir in zip, but its path contained invalid UTF-8: {0}&quot;</span>)]</span>
     <span class="ident">ProjectDirInvalidUtf8</span>(<span class="ident">PathBuf</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize YAML from file at {0}&quot;</span>)]</span>
+    <span class="ident">YamlDeserialize</span>(<span class="ident">PathBuf</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">YamlError</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Error in plugin&quot;</span>)]</span>
     <span class="ident">Plugin</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>),
@@ -116,11 +112,11 @@
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;File IO error&quot;</span>)]</span>
     <span class="ident">FileError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">FileError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">YamlDeserialization</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">YamlError</span>),
+    <span class="ident">Yaml</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">serde_yaml::Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
     <span class="ident">ZipError</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">ZipError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="ident">transparent</span>)]</span>
-    <span class="ident">WalkDir</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">WalkDirError</span>),
+    <span class="ident">WalkDir</span>(<span class="attribute">#[<span class="ident">from</span>]</span> <span class="ident">walkdir::Error</span>),
 }
 
 <span class="comment">// == Collection of errors likely to be useful in multiple plugins which can be special cased without needing a plugin&#39;s specific error type ==</span>

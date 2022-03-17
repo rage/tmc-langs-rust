@@ -555,6 +555,14 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Java Maven plugin.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -563,10 +571,12 @@
 };
 <span class="kw">use</span> <span class="ident">flate2::read::GzDecoder</span>;
 <span class="kw">use</span> <span class="ident">j4rs::Jvm</span>;
-<span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
-<span class="kw">use</span> <span class="ident">std::io::Cursor</span>;
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">ffi::OsString</span>,
+    <span class="ident">io::Cursor</span>,
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+    <span class="ident">time::Duration</span>,
+};
 <span class="kw">use</span> <span class="ident">tar::Archive</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">nom</span>::{<span class="ident">error::VerboseError</span>, <span class="ident">IResult</span>},
@@ -805,12 +815,17 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>::{<span class="ident">TestCase</span>, <span class="ident">TestCaseStatus</span>};
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::{
+        <span class="kw">super</span>::{<span class="ident">TestCase</span>, <span class="ident">TestCaseStatus</span>},
+        <span class="kw-2">*</span>,
+    };
     <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-    <span class="kw">use</span> <span class="ident">std::fs</span>;
-    <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::{
+        <span class="ident">fs</span>,
+        <span class="ident">sync</span>::{<span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>},
+    };
     <span class="kw">use</span> <span class="ident">tmc_langs_framework::StyleValidationStrategy</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_util::deserialize</span>;
     <span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
 
     <span class="kw">static</span> <span class="ident">MAVEN_LOCK</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Mutex::new</span>(()));
@@ -1091,7 +1106,8 @@
             .<span class="ident">create_run_result_file</span>(<span class="ident">test_path</span>, <span class="prelude-val">None</span>, <span class="ident">compile_result</span>)
             .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">test_result</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TestCase</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">fs::read_to_string</span>(<span class="ident">test_run</span>.<span class="ident">test_results</span>).<span class="ident">unwrap</span>()).<span class="ident">unwrap</span>();
+            <span class="ident">deserialize::json_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">fs::read_to_string</span>(<span class="ident">test_run</span>.<span class="ident">test_results</span>).<span class="ident">unwrap</span>())
+                .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">test_case</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">test_result</span>[<span class="number">0</span>];
 
         <span class="macro">assert_eq!</span>(<span class="ident">test_case</span>.<span class="ident">class_name</span>, <span class="string">&quot;fi.helsinki.cs.maventest.AppTest&quot;</span>);

@@ -614,7 +614,6 @@
 <span id="612">612</span>
 <span id="613">613</span>
 <span id="614">614</span>
-<span id="615">615</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains types which model the JSON responses from tmc-server</span>
 
 <span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">DateTime</span>, <span class="ident">FixedOffset</span>};
@@ -625,11 +624,9 @@
     <span class="ident">de</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>},
     <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>, <span class="ident">Serializer</span>,
 };
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_plugins::StyleValidationResult</span>;
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
 
@@ -787,7 +784,7 @@
     <span class="kw">pub</span> <span class="ident">all_review_points_given</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">memory_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">runtime_params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">valgrind_strategy</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">valgrind_strategy</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">code_review_requests_enabled</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span> <span class="ident">run_tests_locally_action_enabled</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// Typically null.</span>
@@ -1154,6 +1151,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">tmc_langs_util::deserialize</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
@@ -1194,7 +1192,7 @@
                 }
             }
         );
-        <span class="macro">assert!</span>(<span class="ident">serde_json::from_value</span>::<span class="op">&lt;</span><span class="ident">CourseDetails</span><span class="op">&gt;</span>(<span class="ident">details</span>).<span class="ident">is_ok</span>());
+        <span class="macro">assert!</span>(<span class="ident">deserialize::json_from_value</span>::<span class="op">&lt;</span><span class="ident">CourseDetails</span><span class="op">&gt;</span>(<span class="ident">details</span>).<span class="ident">is_ok</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1202,14 +1200,14 @@
         <span class="ident">init</span>();
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="macro">serde_json::json!</span>(<span class="string">&quot;text&quot;</span>);
-        <span class="kw">let</span> <span class="ident">text</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">text</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">text</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">deserialize::json_from_value</span>(<span class="ident">text</span>).<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SubmissionFeedbackKind::Text</span> <span class="op">=</span> <span class="ident">text</span> {
         } <span class="kw">else</span> {
             <span class="macro">panic!</span>(<span class="string">&quot;wrong type&quot;</span>)
         }
 
         <span class="kw">let</span> <span class="ident">intrange</span> <span class="op">=</span> <span class="macro">serde_json::json!</span>(<span class="string">&quot;intrange[1..5]&quot;</span>);
-        <span class="kw">let</span> <span class="ident">intrange</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">serde_json::from_value</span>(<span class="ident">intrange</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">intrange</span>: <span class="ident">SubmissionFeedbackKind</span> <span class="op">=</span> <span class="ident">deserialize::json_from_value</span>(<span class="ident">intrange</span>).<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SubmissionFeedbackKind::IntRange</span> { <span class="ident">lower</span>: <span class="number">1</span>, <span class="ident">upper</span>: <span class="number">5</span> } <span class="op">=</span> <span class="ident">intrange</span> {
         } <span class="kw">else</span> {
             <span class="macro">panic!</span>(<span class="string">&quot;wrong type&quot;</span>)

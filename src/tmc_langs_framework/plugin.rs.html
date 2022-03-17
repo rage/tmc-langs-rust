@@ -1050,22 +1050,28 @@
 <span id="1048">1048</span>
 <span id="1049">1049</span>
 <span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains LanguagePlugin.</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">isolang::Language</span>;
-
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::domain</span>::{
-    <span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">StyleValidationResult</span>,
-    <span class="ident">TestResult</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">domain</span>::{
+        <span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">StyleValidationResult</span>,
+        <span class="ident">TestResult</span>,
+    },
+    <span class="ident">error::TmcError</span>,
+    <span class="ident">policy::StudentFilePolicy</span>,
+    <span class="ident">TmcProjectYml</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::TmcError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::policy::StudentFilePolicy</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TmcProjectYml</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">isolang::Language</span>;
 <span class="kw">use</span> <span class="ident">nom</span>::{<span class="ident">branch</span>, <span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">combinator</span>, <span class="ident">error::VerboseError</span>, <span class="ident">multi</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>};
-<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="ident">Seek</span>};
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections::HashSet</span>,
+    <span class="ident">io</span>::{<span class="ident">Read</span>, <span class="ident">Seek</span>},
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+    <span class="ident">time::Duration</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_util::file_util</span>;
 <span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
 <span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;

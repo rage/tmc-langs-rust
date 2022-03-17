@@ -821,14 +821,11 @@
 <span id="819">819</span>
 <span id="820">820</span>
 <span id="821">821</span>
-<span id="822">822</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the TmcClient struct for communicating with the TMC server.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">api_v8</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::api_v8</span>::{<span class="ident">PasteData</span>, <span class="ident">ReviewData</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::ClientError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::request</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::response</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::ClientError</span>, <span class="ident">request</span>::<span class="kw-2">*</span>, <span class="ident">response</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">oauth2</span>::{
     <span class="ident">basic::BasicClient</span>, <span class="ident">AuthUrl</span>, <span class="ident">ClientId</span>, <span class="ident">ClientSecret</span>, <span class="ident">ResourceOwnerPassword</span>,
     <span class="ident">ResourceOwnerUsername</span>, <span class="ident">TokenUrl</span>,
@@ -836,15 +833,17 @@
 <span class="kw">use</span> <span class="ident">reqwest</span>::{<span class="ident">blocking::Client</span>, <span class="ident">Url</span>};
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">std::thread</span>;
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">io::Cursor</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io::Write</span>, <span class="ident">u32</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections::HashMap</span>,
+    <span class="ident">io</span>::{<span class="ident">Cursor</span>, <span class="ident">Write</span>},
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+    <span class="ident">sync::Arc</span>,
+    <span class="ident">thread</span>,
+    <span class="ident">time::Duration</span>,
+    <span class="ident">u32</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_plugins::Language</span>;
 <span class="kw">use</span> <span class="ident">tmc_langs_util::progress_reporter</span>;
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
 
@@ -1444,12 +1443,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicBool</span>;
-
     <span class="comment">// many of TmcClient&#39;s functions simply call already tested functions from api_v8 and don&#39;t need testing</span>
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">mockito::Matcher</span>;
     <span class="kw">use</span> <span class="ident">oauth2</span>::{<span class="ident">basic::BasicTokenType</span>, <span class="ident">AccessToken</span>, <span class="ident">EmptyExtraTokenFields</span>};
+    <span class="kw">use</span> <span class="ident">std::sync::atomic::AtomicBool</span>;
 
     <span class="comment">// sets up mock-authenticated TmcClient and logging</span>
     <span class="kw">fn</span> <span class="ident">init</span>() {

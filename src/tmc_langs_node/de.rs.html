@@ -379,21 +379,13 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-</pre><pre class="rust"><code><span class="doccomment">//!</span>
-<span class="doccomment">//! Deserialize a `JsValue` into a Rust data structure</span>
-<span class="doccomment">//!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Deserialize a `JsValue` into a Rust data structure</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span> <span class="kw">as</span> <span class="ident">LibError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Result</span> <span class="kw">as</span> <span class="ident">LibResult</span>;
-<span class="kw">use</span> <span class="ident">neon::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">neon::types::buffer::TypedArray</span>;
-<span class="kw">use</span> <span class="ident">serde::de::Visitor</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LibError</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">LibResult</span>};
+<span class="kw">use</span> <span class="ident">neon</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">types::buffer::TypedArray</span>};
 <span class="kw">use</span> <span class="ident">serde::de</span>::{
     <span class="ident">DeserializeOwned</span>, <span class="ident">DeserializeSeed</span>, <span class="ident">EnumAccess</span>, <span class="ident">MapAccess</span>, <span class="ident">SeqAccess</span>, <span class="ident">Unexpected</span>, <span class="ident">VariantAccess</span>,
+    <span class="ident">Visitor</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_value</span><span class="op">&lt;</span><span class="lifetime">&#39;j</span>, <span class="ident">C</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>, <span class="ident">value</span>: <span class="ident">Handle</span><span class="op">&lt;</span><span class="lifetime">&#39;j</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>) -&gt; <span class="ident">LibResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>

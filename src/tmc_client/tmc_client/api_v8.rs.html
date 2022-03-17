@@ -2530,26 +2530,23 @@
 <span id="2528">2528</span>
 <span id="2529">2529</span>
 <span id="2530">2530</span>
-<span id="2531">2531</span>
-<span id="2532">2532</span>
-<span id="2533">2533</span>
-<span id="2534">2534</span>
-<span id="2535">2535</span>
-<span id="2536">2536</span>
-<span id="2537">2537</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">request</span>::<span class="kw-2">*</span>, <span class="ident">response</span>::<span class="kw-2">*</span>, <span class="ident">ClientError</span>, <span class="ident">TmcClient</span>};
 <span class="kw">use</span> <span class="ident">http::Method</span>;
 <span class="kw">use</span> <span class="ident">oauth2::TokenResponse</span>;
-<span class="kw">use</span> <span class="ident">reqwest::blocking::multipart::Form</span>;
-<span class="kw">use</span> <span class="ident">reqwest::blocking::multipart::Part</span>;
-<span class="kw">use</span> <span class="ident">reqwest::blocking</span>::{<span class="ident">RequestBuilder</span>, <span class="ident">Response</span>};
+<span class="kw">use</span> <span class="ident">reqwest::blocking</span>::{
+    <span class="ident">multipart</span>::{<span class="ident">Form</span>, <span class="ident">Part</span>},
+    <span class="ident">RequestBuilder</span>, <span class="ident">Response</span>,
+};
 <span class="kw">use</span> <span class="ident">serde::de::DeserializeOwned</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
-<span class="kw">use</span> <span class="ident">std::io::Write</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">time::SystemTime</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections::HashMap</span>,
+    <span class="ident">io</span>::{<span class="ident">Read</span>, <span class="ident">Write</span>},
+    <span class="ident">time::SystemTime</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_plugins::Language</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util::deserialize</span>;
 <span class="kw">use</span> <span class="ident">url::Url</span>;
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PasteData</span> {
@@ -2620,6 +2617,15 @@
     }
 }
 
+<span class="kw">fn</span> <span class="ident">assert_success_json</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">DeserializeOwned</span><span class="op">&gt;</span>(<span class="ident">res</span>: <span class="ident">Response</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">Url</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="ident">url</span>)<span class="question-mark">?</span>
+        .<span class="ident">bytes</span>()
+        .<span class="ident">map_err</span>(<span class="ident">ClientError::HttpReadResponse</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">deserialize::json_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>)
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
+}
+
 <span class="doccomment">/// Converts a list of feedback answers to the format expected by the TMC server.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_feedback_form</span>(<span class="ident">feedback</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FeedbackAnswer</span><span class="op">&gt;</span>) -&gt; <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
@@ -2657,10 +2663,7 @@
         .<span class="ident">send</span>()
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">res</span>
-        .<span class="ident">json</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
 }
 
@@ -2675,10 +2678,7 @@
         .<span class="ident">send</span>()
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::GET</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">res</span>
-        .<span class="ident">json</span>()
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
 }
 
@@ -2734,11 +2734,8 @@
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
-            .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
     }
 
     <span class="doccomment">/// post /api/v8/users/basic_info_by_emails</span>
@@ -2756,11 +2753,8 @@
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
-            .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
     }
 }
 
@@ -3470,11 +3464,8 @@
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
-            .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
     }
 
     <span class="doccomment">/// get /api/v8/core/org/{organization_slug}/courses</span>
@@ -3525,11 +3516,8 @@
             .<span class="ident">send</span>()
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::ConnectionError</span>(<span class="ident">Method::POST</span>, <span class="ident">url</span>.<span class="ident">clone</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">assert_success</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">res</span>
-            .<span class="ident">json</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">ClientError::HttpJsonResponse</span>(<span class="ident">url</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">assert_success_json</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span><span class="ident">url</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">json</span>)
     }
 
     <span class="doccomment">/// post /api/v8/core/submissions/{submission_id}/reviews</span>
@@ -3567,11 +3555,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Cursor</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
-
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::TmcClient</span>;
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident"><span class="kw">super</span>::TmcClient</span>, <span class="kw-2">*</span>};
     <span class="kw">use</span> <span class="ident">mockito</span>::{<span class="ident">Matcher</span>, <span class="ident">Mock</span>};
+    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Cursor</span>, <span class="ident">Seek</span>, <span class="ident">SeekFrom</span>};
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;

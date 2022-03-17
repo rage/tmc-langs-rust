@@ -781,8 +781,6 @@
 <span id="779">779</span>
 <span id="780">780</span>
 <span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Functions for processing submissions.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::LangsError</span>;
@@ -791,12 +789,11 @@
 <span class="kw">use</span> <span class="ident">serde_json::Value</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fs::File</span>,
-    <span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>},
-    <span class="ident">io</span>::{<span class="ident">BufWriter</span>, <span class="ident">Write</span>},
+    <span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>},
     <span class="ident">path::Path</span>,
 };
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">MetaString</span>, <span class="ident">MetaSyntaxParser</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">FileError</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">deserialize</span>, <span class="ident">file_util</span>, <span class="ident">FileError</span>};
 <span class="kw">use</span> <span class="ident">walkdir</span>::{<span class="ident">DirEntry</span>, <span class="ident">WalkDir</span>};
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
@@ -923,7 +920,8 @@
             <span class="string">&quot;ipynb&quot;</span> =&gt; {
                 <span class="comment">// process each cell in the notebook</span>
                 <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">entry</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">json</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(<span class="ident">file</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">json</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(<span class="ident">file</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::DeserializeJson</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">cells</span> <span class="op">=</span> <span class="ident">json</span>
                     .<span class="ident">get_mut</span>(<span class="string">&quot;cells&quot;</span>)
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> <span class="ident">cs</span>.<span class="ident">as_array_mut</span>())
@@ -1097,9 +1095,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::io::Write</span>;
-    <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::Write</span>, <span class="ident">path::PathBuf</span>};
     <span class="kw">use</span> <span class="ident">tmc_langs_framework::TmcProjectYml</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
@@ -1530,7 +1526,7 @@ etc etc&quot;</span>
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;hidden.ipynb&quot;</span>).<span class="ident">exists</span>());
 
-        <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">serde_json::Value</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(
+        <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">serde_json::Value</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(
             <span class="ident">file_util::open_file</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;notebook.ipynb&quot;</span>)).<span class="ident">unwrap</span>(),
         )
         .<span class="ident">unwrap</span>();

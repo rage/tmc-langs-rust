@@ -53,11 +53,13 @@
 <span id="51">51</span>
 <span id="52">52</span>
 <span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The client error type.</span>
 
 <span class="kw">use</span> <span class="ident">reqwest</span>::{<span class="ident">Method</span>, <span class="ident">StatusCode</span>};
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
-<span class="kw">use</span> <span class="ident">tmc_langs_util::FileError</span>;
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">FileError</span>, <span class="ident">JsonError</span>};
 <span class="kw">use</span> <span class="ident">url::Url</span>;
 
 <span class="kw">type</span> <span class="ident">TokenError</span> <span class="op">=</span> <span class="ident">oauth2::RequestTokenError</span><span class="op">&lt;</span>
@@ -83,8 +85,10 @@
     <span class="ident">UrlParse</span>(<span class="ident">String</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">url::ParseError</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to write response&quot;</span>)]</span>
     <span class="ident">HttpWriteResponse</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">reqwest::Error</span>),
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to read response&quot;</span>)]</span>
+    <span class="ident">HttpReadResponse</span>(<span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">reqwest::Error</span>),
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Failed to deserialize response from {0} as JSON&quot;</span>)]</span>
-    <span class="ident">HttpJsonResponse</span>(<span class="ident">Url</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">reqwest::Error</span>),
+    <span class="ident">HttpJsonResponse</span>(<span class="ident">Url</span>, <span class="attribute">#[<span class="ident">source</span>]</span> <span class="ident">JsonError</span>),
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Already authenticated&quot;</span>)]</span>
     <span class="ident">AlreadyAuthenticated</span>,

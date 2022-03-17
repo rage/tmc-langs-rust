@@ -551,19 +551,19 @@
 <span id="549">549</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the LanguagePlugin implementation for R.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::RError</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::r_run_result::RRunResult</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::RStudentFilePolicy</span>;
-<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
-<span class="kw">use</span> <span class="ident">std::fs</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Read</span>, <span class="ident">Seek</span>};
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">error::RError</span>, <span class="ident">r_run_result::RRunResult</span>, <span class="ident">RStudentFilePolicy</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">collections::HashMap</span>,
+    <span class="ident">fs</span>,
+    <span class="ident">io</span>::{<span class="ident">Read</span>, <span class="ident">Seek</span>},
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+    <span class="ident">time::Duration</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
     <span class="ident">nom</span>::{<span class="ident">branch</span>, <span class="ident">bytes</span>, <span class="ident">character</span>, <span class="ident">error::VerboseError</span>, <span class="ident">sequence</span>, <span class="ident">IResult</span>},
-    <span class="ident">LanguagePlugin</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>, {<span class="ident">ExerciseDesc</span>, <span class="ident">RunResult</span>, <span class="ident">TestDesc</span>},
+    <span class="ident">ExerciseDesc</span>, <span class="ident">LanguagePlugin</span>, <span class="ident">RunResult</span>, <span class="ident">TestDesc</span>, <span class="ident">TmcCommand</span>, <span class="ident">TmcError</span>,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">file_util</span>, <span class="ident">parse_util</span>};
+<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">deserialize</span>, <span class="ident">file_util</span>, <span class="ident">parse_util</span>};
 <span class="kw">use</span> <span class="ident">zip::ZipArchive</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
@@ -595,7 +595,7 @@
         <span class="comment">// parse exercise desc</span>
         <span class="kw">let</span> <span class="ident">points_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="string">&quot;.available_points.json&quot;</span>);
         <span class="kw">let</span> <span class="ident">json_file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="kw-2">&amp;</span><span class="ident">points_path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">test_descs</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(<span class="ident">json_file</span>)
+        <span class="kw">let</span> <span class="ident">test_descs</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(<span class="ident">json_file</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">RError::JsonDeserialize</span>(<span class="ident">points_path</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">test_descs</span> <span class="op">=</span> <span class="ident">test_descs</span>
             .<span class="ident">into_iter</span>()
@@ -650,7 +650,7 @@
             .<span class="ident">into</span>());
         }
         <span class="kw">let</span> <span class="ident">json_file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="kw-2">&amp;</span><span class="ident">results_path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">run_result</span>: <span class="ident">RRunResult</span> <span class="op">=</span> <span class="ident">serde_json::from_reader</span>(<span class="ident">json_file</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">run_result</span>: <span class="ident">RRunResult</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(<span class="ident">json_file</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">results_path</span>) {
                 <span class="macro">log::error!</span>(<span class="string">&quot;Failed to deserialize json {}&quot;</span>, <span class="ident">s</span>);
             }

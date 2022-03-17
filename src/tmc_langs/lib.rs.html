@@ -1525,9 +1525,6 @@
 <span id="1523">1523</span>
 <span id="1524">1524</span>
 <span id="1525">1525</span>
-<span id="1526">1526</span>
-<span id="1527">1527</span>
-<span id="1528">1528</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
 
 <span class="doccomment">//! The main tmc-langs library. Provides a convenient API to all of the functionality provided by the tmc-langs project.</span>
@@ -1539,66 +1536,65 @@
 <span class="kw">mod</span> <span class="ident">submission_packaging</span>;
 <span class="kw">mod</span> <span class="ident">submission_processing</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::config</span>::{
-    <span class="ident">list_local_course_exercises</span>, <span class="ident">migrate_exercise</span>, <span class="ident">move_projects_dir</span>, <span class="ident">ConfigValue</span>, <span class="ident">CourseConfig</span>,
-    <span class="ident">Credentials</span>, <span class="ident">ProjectsConfig</span>, <span class="ident">ProjectsDirExercise</span>, <span class="ident">TmcConfig</span>,
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data::DownloadTarget</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">config</span>::{
+        <span class="ident">list_local_course_exercises</span>, <span class="ident">migrate_exercise</span>, <span class="ident">move_projects_dir</span>, <span class="ident">ConfigValue</span>,
+        <span class="ident">CourseConfig</span>, <span class="ident">Credentials</span>, <span class="ident">ProjectsConfig</span>, <span class="ident">ProjectsDirExercise</span>, <span class="ident">TmcConfig</span>,
+    },
+    <span class="ident">course_refresher</span>::{<span class="ident">refresh_course</span>, <span class="ident">RefreshData</span>, <span class="ident">RefreshExercise</span>},
+    <span class="ident">data</span>::{
+        <span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">DownloadResult</span>,
+        <span class="ident">ExerciseDownload</span>, <span class="ident">LocalExercise</span>, <span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>,
+    },
+    <span class="ident">error</span>::{<span class="ident">LangsError</span>, <span class="ident">ParamError</span>},
+    <span class="ident">submission_packaging::prepare_submission</span>,
+    <span class="ident">submission_processing::prepare_solution</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::course_refresher</span>::{<span class="ident">refresh_course</span>, <span class="ident">RefreshData</span>, <span class="ident">RefreshExercise</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data</span>::{
-    <span class="ident">CombinedCourseData</span>, <span class="ident">DownloadOrUpdateCourseExercisesResult</span>, <span class="ident">DownloadResult</span>, <span class="ident">ExerciseDownload</span>,
-    <span class="ident">LocalExercise</span>, <span class="ident">OutputFormat</span>, <span class="ident">TmcParams</span>,
-};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">LangsError</span>, <span class="ident">ParamError</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::submission_packaging::prepare_submission</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::submission_processing::prepare_solution</span>;
 <span class="kw">use</span> <span class="ident">data::DownloadTargetKind</span>;
 <span class="kw">use</span> <span class="ident">hmac</span>::{<span class="ident">Hmac</span>, <span class="ident">Mac</span>};
-<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
-<span class="kw">use</span> <span class="ident">sha2::Sha256</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_client</span>::{
-    <span class="ident">request::FeedbackAnswer</span>,
-    <span class="ident">response</span>::{
-        <span class="ident">Course</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">Exercise</span>, <span class="ident">ExerciseDetails</span>,
-        <span class="ident">ExercisePoint</span>, <span class="ident">ExerciseSubmission</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>, <span class="ident">Submission</span>,
-        <span class="ident">SubmissionFeedbackKind</span>, <span class="ident">SubmissionFeedbackQuestion</span>, <span class="ident">SubmissionFeedbackResponse</span>,
-        <span class="ident">SubmissionFinished</span>, <span class="ident">SubmissionStatus</span>, <span class="ident">TestCase</span>,
-    },
-    <span class="ident">ClientError</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">TmcClient</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
-};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
-    <span class="ident">CommandError</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>,
-    <span class="ident">PythonVer</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">StyleValidationError</span>, <span class="ident">StyleValidationResult</span>,
-    <span class="ident">StyleValidationStrategy</span>, <span class="ident">TestDesc</span>, <span class="ident">TestResult</span>, <span class="ident">TmcProjectYml</span>,
-};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{
-    <span class="ident">file_util</span>::{<span class="self">self</span>, <span class="ident">FileLockGuard</span>},
-    <span class="ident">notification_reporter</span>,
-};
-
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data::DownloadTarget</span>;
 <span class="comment">// use heim::disk;</span>
 <span class="kw">use</span> <span class="ident">jwt::SignWithKey</span>;
 <span class="kw">use</span> <span class="ident">oauth2</span>::{
     <span class="ident">basic::BasicTokenType</span>, <span class="ident">AccessToken</span>, <span class="ident">EmptyExtraTokenFields</span>, <span class="ident">Scope</span>, <span class="ident">StandardTokenResponse</span>,
 };
 <span class="kw">use</span> <span class="ident">schemars::JsonSchema</span>;
+<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
+<span class="kw">use</span> <span class="ident">sha2::Sha256</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">collections::BTreeMap</span>,
+    <span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>},
     <span class="ident">convert::TryFrom</span>,
+    <span class="ident">ffi::OsStr</span>,
     <span class="ident">io::Cursor</span>,
     <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
     <span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>},
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">ffi::OsStr</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_client</span>::{
+    <span class="ident">request::FeedbackAnswer</span>,
+    <span class="ident">response</span>::{
+        <span class="ident">Course</span>, <span class="ident">CourseData</span>, <span class="ident">CourseDetails</span>, <span class="ident">CourseExercise</span>, <span class="ident">Exercise</span>, <span class="ident">ExerciseDetails</span>,
+        <span class="ident">ExercisePoint</span>, <span class="ident">ExerciseSubmission</span>, <span class="ident">ExercisesDetails</span>, <span class="ident">NewSubmission</span>, <span class="ident">Organization</span>, <span class="ident">Review</span>,
+        <span class="ident">Submission</span>, <span class="ident">SubmissionFeedbackKind</span>, <span class="ident">SubmissionFeedbackQuestion</span>, <span class="ident">SubmissionFeedbackResponse</span>,
+        <span class="ident">SubmissionFinished</span>, <span class="ident">SubmissionStatus</span>, <span class="ident">TestCase</span>,
+    },
+    <span class="ident">ClientError</span>, <span class="ident">ClientUpdateData</span>, <span class="ident">TmcClient</span>, <span class="ident">Token</span>, <span class="ident">UpdateResult</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_framework::TmcError</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{
+    <span class="ident">CommandError</span>, <span class="ident">ExerciseDesc</span>, <span class="ident">ExercisePackagingConfiguration</span>, <span class="ident">Language</span>, <span class="ident">LanguagePlugin</span>,
+    <span class="ident">PythonVer</span>, <span class="ident">RunResult</span>, <span class="ident">RunStatus</span>, <span class="ident">StyleValidationError</span>, <span class="ident">StyleValidationResult</span>,
+    <span class="ident">StyleValidationStrategy</span>, <span class="ident">TestDesc</span>, <span class="ident">TestResult</span>, <span class="ident">TmcProjectYml</span>,
+};
 <span class="kw">use</span> <span class="ident">tmc_langs_plugins</span>::{<span class="ident">get_language_plugin</span>, <span class="ident">tmc_zip</span>, <span class="ident">AntPlugin</span>, <span class="ident">PluginType</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_util::progress_reporter</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{
+    <span class="ident">file_util</span>::{<span class="self">self</span>, <span class="ident">FileLockGuard</span>},
+    <span class="ident">notification_reporter</span>, <span class="ident">progress_reporter</span>,
+};
 <span class="kw">use</span> <span class="ident">toml::Value</span> <span class="kw">as</span> <span class="ident">TomlValue</span>;
-<span class="kw">use</span> <span class="ident">url::Url</span>;
-<span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
+<span class="kw">use</span> <span class="ident">url::Url</span>;
+<span class="kw">use</span> <span class="ident">walkdir::WalkDir</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>, <span class="ident">JsonSchema</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>, <span class="ident">derive</span>(<span class="ident">TS</span>))]</span>
@@ -2124,8 +2120,7 @@
     <span class="kw">let</span> <span class="ident">exercise_ids</span> <span class="op">=</span> <span class="ident">projects_config</span>
         .<span class="ident">courses</span>
         .<span class="ident">iter_mut</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <span class="ident">c</span>.<span class="number">1</span>.<span class="ident">exercises</span>)
-        .<span class="ident">flatten</span>()
+        .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <span class="ident">c</span>.<span class="number">1</span>.<span class="ident">exercises</span>)
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="number">1</span>.<span class="ident">id</span>)
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
@@ -2512,10 +2507,9 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std::io::Write</span>;
     <span class="kw">use</span> <span class="ident">tmc_client::response::ExercisesDetails</span>;
-
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">fn</span> <span class="ident">init</span>() {
         <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
