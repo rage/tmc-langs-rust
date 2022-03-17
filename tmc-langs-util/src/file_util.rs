@@ -2,10 +2,12 @@
 
 use crate::error::FileError;
 use fd_lock::RwLock;
-use std::fs::{self, File, ReadDir};
-use std::io::{Read, Write};
-use std::ops::{Deref, DerefMut};
-use std::path::Path;
+use std::{
+    fs::{self, File, ReadDir},
+    io::{Read, Write},
+    ops::{Deref, DerefMut},
+    path::Path,
+};
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 

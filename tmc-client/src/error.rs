@@ -2,7 +2,7 @@
 
 use reqwest::{Method, StatusCode};
 use thiserror::Error;
-use tmc_langs_util::FileError;
+use tmc_langs_util::{FileError, JsonError};
 use url::Url;
 
 type TokenError = oauth2::RequestTokenError<
@@ -28,8 +28,10 @@ pub enum ClientError {
     UrlParse(String, #[source] url::ParseError),
     #[error("Failed to write response")]
     HttpWriteResponse(#[source] reqwest::Error),
+    #[error("Failed to read response")]
+    HttpReadResponse(#[source] reqwest::Error),
     #[error("Failed to deserialize response from {0} as JSON")]
-    HttpJsonResponse(Url, #[source] reqwest::Error),
+    HttpJsonResponse(Url, #[source] JsonError),
 
     #[error("Already authenticated")]
     AlreadyAuthenticated,

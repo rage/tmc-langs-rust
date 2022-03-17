@@ -1,17 +1,19 @@
 //! Submission packaging.
 
-use crate::data::{OutputFormat, TmcParams};
-use crate::error::LangsError;
+use crate::{
+    data::{OutputFormat, TmcParams},
+    error::LangsError,
+};
 use once_cell::sync::Lazy;
-use std::io::{Cursor, Write};
-use std::path::Path;
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::{
+    io::{Cursor, Write},
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
 use tmc_langs_plugins::Plugin;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
-use zip::ZipArchive;
-use zip::{write::FileOptions, ZipWriter};
+use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -259,8 +261,7 @@ fn unzip_with_filter<F: Fn(&Path) -> bool>(
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use std::fs;
-    use std::path::PathBuf;
+    use std::{fs, path::PathBuf};
     use tempfile::TempDir;
     use walkdir::WalkDir;
 

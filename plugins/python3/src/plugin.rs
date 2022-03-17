@@ -1,25 +1,27 @@
 //! Contains the Python3Plugin struct
 
-use crate::error::PythonError;
-use crate::policy::Python3StudentFilePolicy;
-use crate::python_test_result::PythonTestResult;
+use crate::{
+    error::PythonError, policy::Python3StudentFilePolicy, python_test_result::PythonTestResult,
+};
 use hmac::{Hmac, Mac};
 use once_cell::sync::Lazy;
 use rand::Rng;
 use sha2::Sha256;
-use std::collections::{HashMap, HashSet};
-use std::env;
-use std::ffi::OsStr;
-use std::io::{BufReader, Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    ffi::OsStr,
+    io::{BufReader, Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
     TmcCommand, TmcError, TmcProjectYml,
 };
 use tmc_langs_util::{
-    file_util,
+    deserialize, file_util,
     notification_reporter::{self, Notification},
     parse_util,
 };
@@ -170,8 +172,9 @@ impl Python3Plugin {
         let mut test_descs = vec![];
         let file = file_util::open_file(&available_points_json)?;
         // TODO: deserialize directly into Vec<TestDesc>?
-        let json: HashMap<String, Vec<String>> = serde_json::from_reader(BufReader::new(file))
-            .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))?;
+        let json: HashMap<String, Vec<String>> =
+            deserialize::json_from_reader(BufReader::new(file))
+                .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))?;
         for (key, value) in json {
             test_descs.push(TestDesc::new(key, value));
         }
@@ -196,7 +199,7 @@ impl Python3Plugin {
                 .map_err(|_| PythonError::InvalidHmac)?;
         }
 
-        let test_results: Vec<PythonTestResult> = serde_json::from_str(&results)
+        let test_results: Vec<PythonTestResult> = deserialize::json_from_str(&results)
             .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))?;
 
         let mut status = RunStatus::Passed;

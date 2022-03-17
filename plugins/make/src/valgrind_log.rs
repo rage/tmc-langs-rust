@@ -3,9 +3,11 @@
 use crate::error::MakeError;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::collections::HashMap;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::{
+    collections::HashMap,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 use tmc_langs_util::{file_util, FileError};
 
 #[derive(Debug)]

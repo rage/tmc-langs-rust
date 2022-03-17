@@ -1,13 +1,13 @@
 //! Contains functions for zipping and unzipping projects.
 
-pub use zip::result::ZipError;
-
-use std::io::{Cursor, Read, Seek, Write};
-use std::path::Path;
-use std::path::PathBuf;
+use std::{
+    io::{Cursor, Read, Seek, Write},
+    path::{Path, PathBuf},
+};
 use tmc_langs_framework::{StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
+pub use zip::result::ZipError;
 use zip::{write::FileOptions, ZipArchive, ZipWriter};
 
 /// Zips the given directory, only including student files according to the given policy.
@@ -184,8 +184,10 @@ fn contains_tmcnosubmit(entry: &DirEntry) -> bool {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use std::collections::HashSet;
-    use std::fs::{self, *};
+    use std::{
+        collections::HashSet,
+        fs::{self, *},
+    };
     use tempfile::tempdir;
     use tmc_langs_framework::EverythingIsStudentFilePolicy;
 

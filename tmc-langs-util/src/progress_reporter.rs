@@ -2,8 +2,7 @@
 
 use once_cell::sync::OnceCell;
 use serde::Serialize;
-use std::time::Instant;
-use std::{ops::DerefMut, sync::RwLock};
+use std::{ops::DerefMut, sync::RwLock, time::Instant};
 use type_map::concurrent::TypeMap;
 
 /// The format for all status updates. May contain some data.

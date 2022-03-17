@@ -7,6 +7,4 @@ mod error;
 mod plugin;
 mod policy;
 
-pub use self::error::CSharpError;
-pub use self::plugin::CSharpPlugin;
-pub use self::policy::CSharpStudentFilePolicy;
+pub use self::{error::CSharpError, plugin::CSharpPlugin, policy::CSharpStudentFilePolicy};

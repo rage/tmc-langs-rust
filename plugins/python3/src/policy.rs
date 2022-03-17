@@ -1,7 +1,6 @@
 //! Contains the Python3 student file policy
 
-use std::ffi::OsStr;
-use std::path::Path;
+use std::{ffi::OsStr, path::Path};
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct Python3StudentFilePolicy {

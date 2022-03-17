@@ -1,13 +1,9 @@
 pub use nom::error::VerboseError;
-pub use serde_yaml::Error as YamlError;
+use std::{path::PathBuf, time::Duration};
 pub use subprocess::{ExitStatus, PopenError};
-pub use tmc_langs_util::FileError;
-pub use walkdir::Error as WalkDirError;
-pub use zip::result::ZipError;
-
-use std::path::PathBuf;
-use std::time::Duration;
 use thiserror::Error;
+pub use tmc_langs_util::{FileError, YamlError};
+pub use zip::result::ZipError;
 
 // todo: make util error type and move variants there
 #[derive(Error, Debug)]
@@ -30,6 +26,8 @@ pub enum TmcError {
     NoProjectDirInZip,
     #[error("Found project dir in zip, but its path contained invalid UTF-8: {0}")]
     ProjectDirInvalidUtf8(PathBuf),
+    #[error("Failed to deserialize YAML from file at {0}")]
+    YamlDeserialize(PathBuf, #[source] YamlError),
 
     #[error("Error in plugin")]
     Plugin(#[from] Box<dyn std::error::Error + 'static + Send + Sync>),
@@ -39,11 +37,11 @@ pub enum TmcError {
     #[error("File IO error")]
     FileError(#[from] FileError),
     #[error(transparent)]
-    YamlDeserialization(#[from] YamlError),
+    Yaml(#[from] serde_yaml::Error),
     #[error(transparent)]
     ZipError(#[from] ZipError),
     #[error(transparent)]
-    WalkDir(#[from] WalkDirError),
+    WalkDir(#[from] walkdir::Error),
 }
 
 // == Collection of errors likely to be useful in multiple plugins which can be special cased without needing a plugin's specific error type ==

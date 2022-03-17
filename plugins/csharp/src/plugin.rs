@@ -1,19 +1,20 @@
 //! An implementation of LanguagePlugin for C#.
 
-use crate::policy::CSharpStudentFilePolicy;
-use crate::{cs_test_result::CSTestResult, CSharpError};
-use std::collections::{HashMap, HashSet};
-use std::env;
-use std::ffi::{OsStr, OsString};
-use std::io::{BufReader, Cursor, Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use crate::{cs_test_result::CSTestResult, policy::CSharpStudentFilePolicy, CSharpError};
+use std::{
+    collections::{HashMap, HashSet},
+    env,
+    ffi::{OsStr, OsString},
+    io::{BufReader, Cursor, Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
 };
-use tmc_langs_util::{file_util, parse_util, FileError};
+use tmc_langs_util::{deserialize, file_util, parse_util, FileError};
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
@@ -108,7 +109,7 @@ impl CSharpPlugin {
     ) -> Result<(RunStatus, Vec<TestResult>), CSharpError> {
         log::debug!("parsing C# test results");
         let test_results = file_util::open_file(test_results_path)?;
-        let test_results: Vec<CSTestResult> = serde_json::from_reader(test_results)
+        let test_results: Vec<CSTestResult> = deserialize::json_from_reader(test_results)
             .map_err(|e| CSharpError::ParseTestResults(test_results_path.to_path_buf(), e))?;
 
         let mut status = RunStatus::Passed;
@@ -194,7 +195,7 @@ impl LanguagePlugin for CSharpPlugin {
         // parse result file
         let exercise_desc_json = file_util::open_file(&exercise_desc_json_path)?;
         let json: HashMap<String, Vec<String>> =
-            serde_json::from_reader(BufReader::new(exercise_desc_json))
+            deserialize::json_from_reader(BufReader::new(exercise_desc_json))
                 .map_err(|e| CSharpError::ParseExerciseDesc(exercise_desc_json_path, e))?;
 
         let mut tests = vec![];

@@ -2,10 +2,8 @@
 //! Serialize a Rust data structure into a `JsValue`
 //!
 
-use crate::error::Error;
-use crate::error::Result as LibResult;
-use neon::prelude::*;
-use neon::types::buffer::TypedArray;
+use crate::error::{Error, Result as LibResult};
+use neon::{prelude::*, types::buffer::TypedArray};
 use serde::ser::{self, Serialize};
 use std::marker::PhantomData;
 

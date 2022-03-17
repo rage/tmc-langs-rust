@@ -1,6 +1,5 @@
 use serde::{de, ser};
-use std::convert::From;
-use std::fmt::Display;
+use std::{convert::From, fmt::Display};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

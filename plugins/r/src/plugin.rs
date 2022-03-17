@@ -1,18 +1,18 @@
 //! Contains the LanguagePlugin implementation for R.
 
-use crate::error::RError;
-use crate::r_run_result::RRunResult;
-use crate::RStudentFilePolicy;
-use std::collections::HashMap;
-use std::fs;
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use crate::{error::RError, r_run_result::RRunResult, RStudentFilePolicy};
+use std::{
+    collections::HashMap,
+    fs,
+    io::{Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{branch, bytes, character, error::VerboseError, sequence, IResult},
-    LanguagePlugin, TmcCommand, TmcError, {ExerciseDesc, RunResult, TestDesc},
+    ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
 };
-use tmc_langs_util::{file_util, parse_util};
+use tmc_langs_util::{deserialize, file_util, parse_util};
 use zip::ZipArchive;
 
 #[derive(Default)]
@@ -44,7 +44,7 @@ impl LanguagePlugin for RPlugin {
         // parse exercise desc
         let points_path = path.join(".available_points.json");
         let json_file = file_util::open_file(&points_path)?;
-        let test_descs: HashMap<String, Vec<String>> = serde_json::from_reader(json_file)
+        let test_descs: HashMap<String, Vec<String>> = deserialize::json_from_reader(json_file)
             .map_err(|e| RError::JsonDeserialize(points_path, e))?;
         let test_descs = test_descs
             .into_iter()
@@ -99,7 +99,7 @@ impl LanguagePlugin for RPlugin {
             .into());
         }
         let json_file = file_util::open_file(&results_path)?;
-        let run_result: RRunResult = serde_json::from_reader(json_file).map_err(|e| {
+        let run_result: RRunResult = deserialize::json_from_reader(json_file).map_err(|e| {
             if let Ok(s) = fs::read_to_string(&results_path) {
                 log::error!("Failed to deserialize json {}", s);
             }

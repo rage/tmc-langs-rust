@@ -1,10 +1,13 @@
 //! Custom wrapper for Command that supports timeouts and contains custom error handling.
 
 use crate::{error::CommandError, TmcError};
-use std::io::Read;
-use std::time::Duration;
-use std::{ffi::OsStr, thread::JoinHandle};
-use std::{fs::File, io::Write};
+use std::{
+    ffi::OsStr,
+    fs::File,
+    io::{Read, Write},
+    thread::JoinHandle,
+    time::Duration,
+};
 pub use subprocess::ExitStatus;
 use subprocess::{Exec, PopenError, Redirection};
 

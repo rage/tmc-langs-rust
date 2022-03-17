@@ -1,10 +1,8 @@
 //! File locking utilities on Unix platforms.
 
-use crate::error::FileError;
-use crate::file_util::*;
+use crate::{error::FileError, file_util::*};
 use fd_lock::{RwLock, RwLockWriteGuard};
-use std::fs::File;
-use std::path::PathBuf;
+use std::{fs::File, path::PathBuf};
 
 /// Wrapper for fd_lock::FdLock. Used to lock files/directories to prevent concurrent access
 /// from multiple instances of tmc-langs.
@@ -55,8 +53,7 @@ impl Drop for FileLockGuard<'_> {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use std::sync::Arc;
-    use std::sync::Mutex;
+    use std::sync::{Arc, Mutex};
     use tempfile::NamedTempFile;
 
     fn init() {

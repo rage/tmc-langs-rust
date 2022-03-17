@@ -1,19 +1,22 @@
 //! Contains LanguagePlugin.
 
-pub use isolang::Language;
-
-use crate::domain::{
-    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
-    TestResult,
+use crate::{
+    domain::{
+        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
+        TestResult,
+    },
+    error::TmcError,
+    policy::StudentFilePolicy,
+    TmcProjectYml,
 };
-use crate::error::TmcError;
-use crate::policy::StudentFilePolicy;
-use crate::TmcProjectYml;
+pub use isolang::Language;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
-use std::collections::HashSet;
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    collections::HashSet,
+    io::{Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
 use zip::ZipArchive;

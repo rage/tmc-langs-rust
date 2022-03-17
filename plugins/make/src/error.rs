@@ -1,7 +1,6 @@
 //! Error type for the make plugin.
 
-use std::num::ParseIntError;
-use std::path::PathBuf;
+use std::{num::ParseIntError, path::PathBuf};
 use thiserror::Error;
 use tmc_langs_framework::{ExitStatus, TmcError};
 use tmc_langs_util::FileError;

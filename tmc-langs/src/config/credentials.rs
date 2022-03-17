@@ -2,9 +2,8 @@
 
 use crate::{LangsError, Token};
 use serde::{Deserialize, Serialize};
-use std::ops::Deref;
-use std::path::PathBuf;
-use tmc_langs_util::{file_util, FileError};
+use std::{ops::Deref, path::PathBuf};
+use tmc_langs_util::{deserialize, file_util, FileError};
 
 /// Credentials for authenticating with tmc-server.
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,7 +35,7 @@ impl Credentials {
             .write()
             .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
 
-        match serde_json::from_reader(guard.deref()) {
+        match deserialize::json_from_reader(guard.deref()) {
             Ok(token) => Ok(Some(Credentials {
                 path: credentials_path,
                 token,

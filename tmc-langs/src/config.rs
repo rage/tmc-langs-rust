@@ -4,13 +4,17 @@ mod credentials;
 mod projects_config;
 mod tmc_config;
 
-pub use self::credentials::Credentials;
-pub use self::projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise};
-pub use self::tmc_config::{ConfigValue, TmcConfig};
+pub use self::{
+    credentials::Credentials,
+    projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise},
+    tmc_config::{ConfigValue, TmcConfig},
+};
 use crate::{data::LocalExercise, error::LangsError};
-
-use std::path::{Path, PathBuf};
-use std::{collections::BTreeMap, env};
+use std::{
+    collections::BTreeMap,
+    env,
+    path::{Path, PathBuf},
+};
 use tmc_langs_util::{file_util, FileError};
 
 // base directory for a given plugin's settings files
@@ -140,9 +144,8 @@ pub fn move_projects_dir(
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use toml::value::Table;
-
     use super::*;
+    use toml::value::Table;
 
     fn init() {
         use log::*;
