@@ -3,14 +3,14 @@
 //! Windows directories can't be locked with fd-lock, so a different solution is needed.
 //! Currently, regular files are locked with fd-lock, but for directories a .tmc.lock file is created.
 
-use crate::error::FileError;
-use crate::file_util::*;
+use crate::{error::FileError, file_util::*};
 use fd_lock::{RwLock, RwLockWriteGuard};
-use std::os::windows::fs::OpenOptionsExt;
-use std::path::PathBuf;
-use std::{borrow::Cow, io::ErrorKind};
 use std::{
+    borrow::Cow,
     fs::OpenOptions,
+    io::ErrorKind,
+    os::windows::fs::OpenOptionsExt,
+    path::PathBuf,
     time::{Duration, Instant},
 };
 use winapi::um::{
@@ -135,8 +135,7 @@ impl Drop for FileLockGuard<'_> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::sync::Arc;
-    use std::sync::Mutex;
+    use std::sync::{Arc, Mutex};
     use tempfile::NamedTempFile;
 
     fn init() {

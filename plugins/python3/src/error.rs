@@ -3,14 +3,14 @@
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::TmcError;
-use tmc_langs_util::FileError;
+use tmc_langs_util::{FileError, JsonError};
 
 #[derive(Debug, Error)]
 pub enum PythonError {
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("Failed to deserialize file at {0} to JSON")]
-    Deserialize(PathBuf, #[source] serde_json::Error),
+    Deserialize(PathBuf, #[source] JsonError),
     #[error("Unexpected output when trying to print Python version: {0}")]
     VersionPrintError(String),
     #[error("Failed to parse Python version from {0}")]

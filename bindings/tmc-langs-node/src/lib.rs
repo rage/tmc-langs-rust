@@ -918,9 +918,8 @@ ts_rs::export! {
 
 #[cfg(test)]
 mod test {
-    use std::{env, process::Command};
-
     use once_cell::sync::OnceCell;
+    use std::{env, process::Command};
     use tmc_server_mock::mockito::{server_address, Mock};
 
     static MOCKS: OnceCell<Vec<Mock>> = OnceCell::new();

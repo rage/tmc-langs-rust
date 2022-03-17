@@ -6,9 +6,9 @@ mod app;
 mod error;
 mod output;
 
-use self::error::{DownloadsFailedError, InvalidTokenError, SandboxTestError};
-use self::output::{
-    DataKind, Kind, OutputData, OutputKind, OutputResult, Status, StatusUpdateData,
+use self::{
+    error::{DownloadsFailedError, InvalidTokenError, SandboxTestError},
+    output::{DataKind, Kind, OutputData, OutputKind, OutputResult, Status, StatusUpdateData},
 };
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
@@ -16,18 +16,20 @@ use app::{Command, Core, OutputFormatWrapper, Settings};
 use clap::{ErrorKind, IntoApp, Parser};
 use serde::Serialize;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::env;
-use std::fs::File;
-use std::io::{self, Cursor, Read, Write};
-use std::ops::Deref;
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashMap,
+    env,
+    fs::File,
+    io::{self, Cursor, Read, Write},
+    ops::Deref,
+    path::{Path, PathBuf},
+};
 use tmc_langs::{
     file_util, notification_reporter, ClientError, ClientUpdateData, CommandError, Credentials,
     DownloadOrUpdateCourseExercisesResult, DownloadResult, FeedbackAnswer, Language,
     StyleValidationResult, TmcClient, TmcConfig, UpdatedExercise,
 };
-use tmc_langs_util::progress_reporter;
+use tmc_langs_util::{deserialize, progress_reporter};
 
 // wraps the run_inner function that actually does the work and handles any panics that occur
 // any langs library should never panic by itself, but other libraries used may in some rare circumstances
@@ -1012,9 +1014,9 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<OutputKind> {
         Settings::Set { key, json, base64 } => {
             let json: Value = if base64 {
                 let json = base64::decode(&json)?;
-                serde_json::from_slice(&json)?
+                deserialize::json_from_slice(&json)?
             } else {
-                serde_json::from_str(&json)?
+                deserialize::json_from_str(&json)?
             };
             tmc_langs::set_setting(client_name, &key, &json)?;
             OutputKind::finished("set setting")

@@ -7,5 +7,4 @@ mod plugin;
 mod policy;
 mod r_run_result;
 
-pub use self::plugin::RPlugin;
-pub use self::policy::RStudentFilePolicy;
+pub use self::{plugin::RPlugin, policy::RStudentFilePolicy};

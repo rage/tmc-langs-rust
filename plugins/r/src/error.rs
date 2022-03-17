@@ -3,12 +3,12 @@
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs_framework::TmcError;
-use tmc_langs_util::FileError;
+use tmc_langs_util::{FileError, JsonError};
 
 #[derive(Debug, Error)]
 pub enum RError {
     #[error("Failed to deserialize file {0} into JSON")]
-    JsonDeserialize(PathBuf, #[source] serde_json::Error),
+    JsonDeserialize(PathBuf, #[source] JsonError),
     #[error(
         "Failed to locate test results at {path}
     stdout: {stdout}

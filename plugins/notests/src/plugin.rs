@@ -1,10 +1,12 @@
 //! The language plugin for no-tests projects.
 
 use crate::NoTestsStudentFilePolicy;
-use std::collections::HashMap;
-use std::io::{Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    collections::HashMap,
+    io::{Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{self, error::VerboseError, IResult},
     ExerciseDesc, LanguagePlugin, RunResult, RunStatus, StudentFilePolicy, TestDesc, TestResult,

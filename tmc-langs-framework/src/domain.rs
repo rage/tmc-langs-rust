@@ -2,9 +2,10 @@
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
-
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 #[cfg(feature = "ts")]
 use ts_rs::TS;
 

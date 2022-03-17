@@ -134,7 +134,7 @@ export interface Exercise {
   all_review_points_given: boolean;
   memory_limit: number | null;
   runtime_params: Array<string>;
-  valgrind_strategy: string;
+  valgrind_strategy: string | null;
   code_review_requests_enabled: boolean;
   run_tests_locally_action_enabled: boolean;
   latest_submission_url: string | null;

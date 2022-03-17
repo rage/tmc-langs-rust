@@ -9,22 +9,39 @@ mod error;
 mod submission_packaging;
 mod submission_processing;
 
-pub use crate::config::{
-    list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue, CourseConfig,
-    Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+use crate::data::DownloadTarget;
+pub use crate::{
+    config::{
+        list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue,
+        CourseConfig, Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+    },
+    course_refresher::{refresh_course, RefreshData, RefreshExercise},
+    data::{
+        CombinedCourseData, DownloadOrUpdateCourseExercisesResult, DownloadResult,
+        ExerciseDownload, LocalExercise, OutputFormat, TmcParams,
+    },
+    error::{LangsError, ParamError},
+    submission_packaging::prepare_submission,
+    submission_processing::prepare_solution,
 };
-pub use crate::course_refresher::{refresh_course, RefreshData, RefreshExercise};
-pub use crate::data::{
-    CombinedCourseData, DownloadOrUpdateCourseExercisesResult, DownloadResult, ExerciseDownload,
-    LocalExercise, OutputFormat, TmcParams,
-};
-pub use crate::error::{LangsError, ParamError};
-pub use crate::submission_packaging::prepare_submission;
-pub use crate::submission_processing::prepare_solution;
 use data::DownloadTargetKind;
 use hmac::{Hmac, Mac};
+// use heim::disk;
+use jwt::SignWithKey;
+use oauth2::{
+    basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
+};
+use schemars::JsonSchema;
 use serde::Serialize;
 use sha2::Sha256;
+use std::{
+    collections::{BTreeMap, HashMap},
+    convert::TryFrom,
+    ffi::OsStr,
+    io::Cursor,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+};
 pub use tmc_client::{
     request::FeedbackAnswer,
     response::{
@@ -35,39 +52,22 @@ pub use tmc_client::{
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
+use tmc_langs_framework::TmcError;
 pub use tmc_langs_framework::{
     CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
     PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
+use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
 };
-
-use crate::data::DownloadTarget;
-// use heim::disk;
-use jwt::SignWithKey;
-use oauth2::{
-    basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
-};
-use schemars::JsonSchema;
-use std::{
-    collections::BTreeMap,
-    convert::TryFrom,
-    io::Cursor,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
-};
-use std::{collections::HashMap, ffi::OsStr};
-use tmc_langs_framework::TmcError;
-use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
 use toml::Value as TomlValue;
-use url::Url;
-use walkdir::WalkDir;
-
 #[cfg(feature = "ts")]
 use ts_rs::TS;
+use url::Url;
+use walkdir::WalkDir;
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts", derive(TS))]
@@ -981,10 +981,9 @@ fn extract_project_overwrite(
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
+    use super::*;
     use std::io::Write;
     use tmc_client::response::ExercisesDetails;
-
-    use super::*;
 
     fn init() {
         use log::*;

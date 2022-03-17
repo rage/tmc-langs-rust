@@ -2,9 +2,7 @@
 pub mod api_v8;
 
 use self::api_v8::{PasteData, ReviewData};
-use crate::error::ClientError;
-use crate::request::*;
-use crate::response::*;
+use crate::{error::ClientError, request::*, response::*};
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
@@ -12,15 +10,17 @@ use oauth2::{
 use reqwest::{blocking::Client, Url};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
-use std::{collections::HashMap, io::Cursor};
-use std::{io::Write, u32};
+use std::{
+    collections::HashMap,
+    io::{Cursor, Write},
+    path::{Path, PathBuf},
+    sync::Arc,
+    thread,
+    time::Duration,
+    u32,
+};
 use tmc_langs_plugins::Language;
 use tmc_langs_util::progress_reporter;
-
 #[cfg(feature = "ts")]
 use ts_rs::TS;
 
@@ -620,12 +620,11 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use std::sync::atomic::AtomicBool;
-
     // many of TmcClient's functions simply call already tested functions from api_v8 and don't need testing
     use super::*;
     use mockito::Matcher;
     use oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
+    use std::sync::atomic::AtomicBool;
 
     // sets up mock-authenticated TmcClient and logging
     fn init() {

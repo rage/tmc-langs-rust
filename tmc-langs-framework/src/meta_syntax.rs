@@ -231,9 +231,8 @@ impl<E, I: Iterator<Item = Result<String, E>>> Iterator for MetaSyntaxParser<I> 
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use std::convert::Infallible;
-
     use super::*;
+    use std::convert::Infallible;
 
     fn init() {
         use log::*;

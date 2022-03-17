@@ -1,15 +1,16 @@
 //! Various data types.
 
+use crate::error::{LangsError, ParamError};
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter, Result as FmtResult},
+    path::PathBuf,
+};
 use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
-
 #[cfg(feature = "ts")]
 use ts_rs::TS;
-
-use crate::error::{LangsError, ParamError};
 
 /// Exercise inside the projects directory.
 #[derive(Debug, Serialize, JsonSchema)]

@@ -6,10 +6,12 @@ use crate::{
 };
 use flate2::read::GzDecoder;
 use j4rs::Jvm;
-use std::ffi::OsString;
-use std::io::Cursor;
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    ffi::OsString,
+    io::Cursor,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tar::Archive;
 use tmc_langs_framework::{
     nom::{error::VerboseError, IResult},
@@ -248,12 +250,17 @@ impl JavaPlugin for MavenPlugin {
 #[allow(clippy::unwrap_used)]
 mod test {
 
-    use super::super::{TestCase, TestCaseStatus};
-    use super::*;
+    use super::{
+        super::{TestCase, TestCaseStatus},
+        *,
+    };
     use once_cell::sync::Lazy;
-    use std::fs;
-    use std::sync::{Mutex, MutexGuard};
+    use std::{
+        fs,
+        sync::{Mutex, MutexGuard},
+    };
     use tmc_langs_framework::StyleValidationStrategy;
+    use tmc_langs_util::deserialize;
     use zip::ZipArchive;
 
     static MAVEN_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
@@ -534,7 +541,8 @@ mod test {
             .create_run_result_file(test_path, None, compile_result)
             .unwrap();
         let test_result: Vec<TestCase> =
-            serde_json::from_str(&fs::read_to_string(test_run.test_results).unwrap()).unwrap();
+            deserialize::json_from_str(&fs::read_to_string(test_run.test_results).unwrap())
+                .unwrap();
         let test_case = &test_result[0];
 
         assert_eq!(test_case.class_name, "fi.helsinki.cs.maventest.AppTest");

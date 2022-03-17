@@ -4,16 +4,17 @@ use crate::{error::LangsError, progress_reporter};
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    io::Write,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{TmcCommand, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
-use tmc_langs_util::file_util;
-use walkdir::WalkDir;
-
+use tmc_langs_util::{deserialize, file_util};
 #[cfg(feature = "ts")]
 use ts_rs::TS;
+use walkdir::WalkDir;
 
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
@@ -278,8 +279,9 @@ fn get_course_options(course_clone_path: &Path, course_name: &str) -> Result<Map
 
     let options_file = course_clone_path.join("course_options.yml");
     if options_file.exists() {
-        let file = file_util::open_file(options_file)?;
-        let course_options: Mapping = serde_yaml::from_reader(file)?;
+        let file = file_util::open_file(&options_file)?;
+        let course_options: Mapping = deserialize::yaml_from_reader(file)
+            .map_err(|e| LangsError::DeserializeYaml(options_file, e))?;
         Ok(course_options)
     } else {
         Ok(Mapping::new())
@@ -480,11 +482,10 @@ fn finish_stage(message: impl Into<String>) {
 #[cfg(unix)] // not used on windows
 #[allow(clippy::unwrap_used)]
 mod test {
-    use std::io::Read;
-
     use super::*;
     use crate::find_exercise_directories;
     use serde_yaml::Value;
+    use std::io::Read;
     use tempfile::tempdir;
 
     fn init() {

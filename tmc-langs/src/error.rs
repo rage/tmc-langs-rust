@@ -1,11 +1,11 @@
 //! Contains the main error type for tmc-langs.
 
+#[cfg(unix)]
+use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
 use tmc_client::ClientError;
-
-#[cfg(unix)]
-use crate::course_refresher::ModeBits;
+use tmc_langs_util::{JsonError, TomlError, YamlError};
 
 /// Main error type of the library.
 #[derive(Error, Debug)]
@@ -33,7 +33,11 @@ pub enum LangsError {
     #[error("Failed to parse file {0}")]
     SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error("Failed to deserialize credentials file at {0}. The file has been removed, please try again")]
-    DeserializeCredentials(PathBuf, #[source] serde_json::Error),
+    DeserializeCredentials(PathBuf, #[source] JsonError),
+    #[error("Failed to deserialize JSON from file at {0}")]
+    DeserializeJson(PathBuf, #[source] JsonError),
+    #[error("Failed to deserialize YAML from file at {0}")]
+    DeserializeYaml(PathBuf, #[source] YamlError),
     #[error("No local data directory found")]
     NoLocalDataDir,
     #[error("No config directory found")]
@@ -107,7 +111,7 @@ pub enum LangsError {
     #[error(transparent)]
     TomlSerialize(#[from] toml::ser::Error),
     #[error(transparent)]
-    TomlDeserialize(#[from] toml::de::Error),
+    TomlDeserialize(#[from] TomlError),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error(transparent)]

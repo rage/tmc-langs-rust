@@ -16,9 +16,10 @@ pub mod request;
 pub mod response;
 mod tmc_client;
 
-pub use self::error::ClientError;
-pub use self::tmc_client::{api_v8, ClientUpdateData, TmcClient, Token, UpdateResult};
-
+pub use self::{
+    error::ClientError,
+    tmc_client::{api_v8, ClientUpdateData, TmcClient, Token, UpdateResult},
+};
 // these types are part of tmc-client's API and thus re-exported
 pub use oauth2;
 pub use tmc_langs_plugins::Language;

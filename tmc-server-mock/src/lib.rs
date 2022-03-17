@@ -1,7 +1,6 @@
 //! This library can be used to easily set up a mock tmc-server for testing.
 
 pub use mockito;
-
 use mockito::{mock, Matcher::*, Mock};
 use serde_json::json;
 

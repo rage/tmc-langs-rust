@@ -1,9 +1,7 @@
 //! Contains StudentFilePolicy.
 
-use crate::TmcError;
-use crate::TmcProjectYml;
-use std::ffi::OsStr;
-use std::path::Path;
+use crate::{TmcError, TmcProjectYml};
+use std::{ffi::OsStr, path::Path};
 
 /// Specifies which files are student files. A single StudentFilePolicy is only valid for a single project as it uses a config file to determine its output.
 ///

@@ -33,6 +33,7 @@ impl CSTestResult {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+    use tmc_langs_util::deserialize;
 
     #[test]
     fn deserializes() {
@@ -46,6 +47,6 @@ mod test {
 }
 "#;
 
-        let _cstr: CSTestResult = serde_json::from_str(s).unwrap();
+        let _cstr: CSTestResult = deserialize::json_from_str(s).unwrap();
     }
 }

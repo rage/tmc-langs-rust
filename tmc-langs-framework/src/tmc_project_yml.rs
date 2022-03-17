@@ -5,11 +5,12 @@ use serde::{
     de::{Error, Visitor},
     Deserialize, Deserializer, Serialize,
 };
-use std::fmt;
-use std::ops::Deref;
-use std::path::{Path, PathBuf};
-use tmc_langs_util::{file_util, FileError};
-
+use std::{
+    fmt,
+    ops::Deref,
+    path::{Path, PathBuf},
+};
+use tmc_langs_util::{deserialize, file_util, FileError};
 #[cfg(feature = "ts")]
 use ts_rs::TS;
 
@@ -77,7 +78,8 @@ impl TmcProjectYml {
         }
         log::debug!("reading .tmcproject.yml from {}", config_path.display());
         let file = file_util::open_file(&config_path)?;
-        let config = serde_yaml::from_reader(file)?;
+        let config = deserialize::yaml_from_reader(file)
+            .map_err(|e| TmcError::YamlDeserialize(config_path, e))?;
         log::trace!("read {:#?}", config);
         Ok(Some(config))
     }
@@ -256,7 +258,7 @@ mod test {
     - notests
 "#;
 
-        let cfg: TmcProjectYml = serde_yaml::from_str(no_tests_yml).unwrap();
+        let cfg: TmcProjectYml = deserialize::yaml_from_str(no_tests_yml).unwrap();
         let no_tests = cfg.no_tests.unwrap();
         assert!(no_tests.flag);
         assert_eq!(no_tests.points, &["1", "notests"]);
@@ -266,22 +268,22 @@ mod test {
     fn deserialize_python_ver() {
         init();
 
-        let python_ver: PythonVer = serde_yaml::from_str("1.2.3").unwrap();
+        let python_ver: PythonVer = deserialize::yaml_from_str("1.2.3").unwrap();
         assert_eq!(python_ver.major, Some(1));
         assert_eq!(python_ver.minor, Some(2));
         assert_eq!(python_ver.patch, Some(3));
 
-        let python_ver: PythonVer = serde_yaml::from_str("1.2").unwrap();
+        let python_ver: PythonVer = deserialize::yaml_from_str("1.2").unwrap();
         assert_eq!(python_ver.major, Some(1));
         assert_eq!(python_ver.minor, Some(2));
         assert_eq!(python_ver.patch, None);
 
-        let python_ver: PythonVer = serde_yaml::from_str("1").unwrap();
+        let python_ver: PythonVer = deserialize::yaml_from_str("1").unwrap();
         assert_eq!(python_ver.major, Some(1));
         assert_eq!(python_ver.minor, None);
         assert_eq!(python_ver.patch, None);
 
-        assert!(serde_yaml::from_str::<PythonVer>("asd").is_err())
+        assert!(deserialize::yaml_from_str::<PythonVer>("asd").is_err())
     }
 
     #[test]

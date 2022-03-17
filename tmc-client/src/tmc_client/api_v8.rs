@@ -3,14 +3,18 @@
 use crate::{request::*, response::*, ClientError, TmcClient};
 use http::Method;
 use oauth2::TokenResponse;
-use reqwest::blocking::multipart::Form;
-use reqwest::blocking::multipart::Part;
-use reqwest::blocking::{RequestBuilder, Response};
+use reqwest::blocking::{
+    multipart::{Form, Part},
+    RequestBuilder, Response,
+};
 use serde::de::DeserializeOwned;
-use std::io::Read;
-use std::io::Write;
-use std::{collections::HashMap, time::SystemTime};
+use std::{
+    collections::HashMap,
+    io::{Read, Write},
+    time::SystemTime,
+};
 use tmc_langs_plugins::Language;
+use tmc_langs_util::deserialize;
 use url::Url;
 
 pub enum PasteData {
@@ -81,6 +85,15 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
     }
 }
 
+fn assert_success_json<T: DeserializeOwned>(res: Response, url: &Url) -> Result<T, ClientError> {
+    let res = assert_success(res, url)?
+        .bytes()
+        .map_err(ClientError::HttpReadResponse)?;
+    let json = deserialize::json_from_slice(&res)
+        .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
+    Ok(json)
+}
+
 /// Converts a list of feedback answers to the format expected by the TMC server.
 pub fn prepare_feedback_form(feedback: Vec<FeedbackAnswer>) -> HashMap<String, String> {
     let mut form = HashMap::new();
@@ -118,10 +131,7 @@ pub fn get_json<T: DeserializeOwned>(
         .send()
         .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
-    let res = assert_success(res, &url)?;
-    let json = res
-        .json()
-        .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+    let json = assert_success_json(res, &url)?;
     Ok(json)
 }
 
@@ -136,10 +146,7 @@ pub fn post_form<T: DeserializeOwned>(
         .send()
         .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
-    let res = assert_success(res, &url)?;
-    let json = res
-        .json()
-        .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
+    let json = assert_success_json(res, &url)?;
     Ok(json)
 }
 
@@ -195,11 +202,8 @@ pub mod user {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let res = assert_success(res, &url)?;
-        let res = res
-            .json()
-            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-        Ok(res)
+        let json = assert_success_json(res, &url)?;
+        Ok(json)
     }
 
     /// post /api/v8/users/basic_info_by_emails
@@ -217,11 +221,8 @@ pub mod user {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let res = assert_success(res, &url)?;
-        let res = res
-            .json()
-            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-        Ok(res)
+        let json = assert_success_json(res, &url)?;
+        Ok(json)
     }
 }
 
@@ -931,11 +932,8 @@ pub mod core {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let res = assert_success(res, &url)?;
-        let res = res
-            .json()
-            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-        Ok(res)
+        let json = assert_success_json(res, &url)?;
+        Ok(json)
     }
 
     /// get /api/v8/core/org/{organization_slug}/courses
@@ -986,11 +984,8 @@ pub mod core {
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
-        let res = assert_success(res, &url)?;
-        let res = res
-            .json()
-            .map_err(|e| ClientError::HttpJsonResponse(url, e))?;
-        Ok(res)
+        let json = assert_success_json(res, &url)?;
+        Ok(json)
     }
 
     /// post /api/v8/core/submissions/{submission_id}/reviews
@@ -1028,11 +1023,9 @@ pub mod core {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use std::io::{Cursor, Seek, SeekFrom};
-
-    use super::super::TmcClient;
-    use super::*;
+    use super::{super::TmcClient, *};
     use mockito::{Matcher, Mock};
+    use std::io::{Cursor, Seek, SeekFrom};
 
     fn init() {
         use log::*;

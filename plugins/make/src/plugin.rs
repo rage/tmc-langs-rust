@@ -1,15 +1,16 @@
 //! Contains the main plugin struct.
 
-use crate::check_log::CheckLog;
-use crate::error::MakeError;
-use crate::policy::MakeStudentFilePolicy;
-use crate::valgrind_log::ValgrindLog;
+use crate::{
+    check_log::CheckLog, error::MakeError, policy::MakeStudentFilePolicy, valgrind_log::ValgrindLog,
+};
 use once_cell::sync::Lazy;
 use regex::Regex;
-use std::collections::HashMap;
-use std::io::{self, BufRead, BufReader, Read, Seek};
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    collections::HashMap,
+    io::{self, BufRead, BufReader, Read, Seek},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus, TestDesc,

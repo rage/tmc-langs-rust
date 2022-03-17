@@ -9,16 +9,13 @@ mod java_plugin;
 mod maven_plugin;
 mod maven_policy;
 
-pub use self::ant_plugin::AntPlugin;
-pub use self::ant_policy::AntStudentFilePolicy;
-pub use self::error::JavaError;
-pub use self::maven_plugin::MavenPlugin;
-pub use self::maven_policy::MavenStudentFilePolicy;
-
+pub use self::{
+    ant_plugin::AntPlugin, ant_policy::AntStudentFilePolicy, error::JavaError,
+    maven_plugin::MavenPlugin, maven_policy::MavenStudentFilePolicy,
+};
 use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
 use serde::Deserialize;
-use std::fmt::Display;
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 use tmc_langs_framework::ExitStatus;
 use tmc_langs_util::file_util;
 

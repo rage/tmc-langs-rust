@@ -7,6 +7,4 @@ mod plugin;
 mod policy;
 mod python_test_result;
 
-pub use self::error::PythonError;
-pub use self::plugin::Python3Plugin;
-pub use self::policy::Python3StudentFilePolicy;
+pub use self::{error::PythonError, plugin::Python3Plugin, policy::Python3StudentFilePolicy};

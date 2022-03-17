@@ -5,10 +5,12 @@ use crate::{
     SEPARATOR,
 };
 use j4rs::Jvm;
-use std::env;
-use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    env,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{error::VerboseError, IResult},
     ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
@@ -272,6 +274,7 @@ mod test {
     use super::*;
     use std::fs;
     use tmc_langs_framework::StyleValidationStrategy;
+    use tmc_langs_util::deserialize;
     use zip::ZipArchive;
 
     fn init() {
@@ -451,7 +454,7 @@ mod test {
         // assert!(test_run.stdout.is_empty());
         // assert!(test_run.stderr.is_empty());
         let res = fs::read_to_string(test_run.test_results).unwrap();
-        let test_cases: Vec<super::super::TestCase> = serde_json::from_str(&res).unwrap();
+        let test_cases: Vec<super::super::TestCase> = deserialize::json_from_str(&res).unwrap();
 
         let test_case = &test_cases[0];
         assert_eq!(test_case.class_name, "ArithTest");

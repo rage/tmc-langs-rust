@@ -10,16 +10,16 @@ mod plugin;
 mod policy;
 mod tmc_project_yml;
 
-pub use self::command::{ExitStatus, Output, TmcCommand};
-pub use self::domain::{
-    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
-    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult,
+pub use self::{
+    command::{ExitStatus, Output, TmcCommand},
+    domain::{
+        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
+        StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult,
+    },
+    error::{CommandError, PopenError, TmcError},
+    meta_syntax::{MetaString, MetaSyntaxParser},
+    plugin::{Language, LanguagePlugin},
+    policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy, StudentFilePolicy},
+    tmc_project_yml::{PythonVer, TmcProjectYml},
 };
-pub use self::error::{CommandError, PopenError, TmcError};
-pub use self::meta_syntax::{MetaString, MetaSyntaxParser};
-pub use self::plugin::{Language, LanguagePlugin};
-pub use self::policy::{
-    EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy, StudentFilePolicy,
-};
-pub use self::tmc_project_yml::{PythonVer, TmcProjectYml};
 pub use nom;

@@ -2,17 +2,19 @@
 
 use crate::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
 use j4rs::{InvocationArg, Jvm};
-use std::collections::HashMap;
-use std::convert::TryFrom;
-use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
-use std::time::Duration;
+use std::{
+    collections::HashMap,
+    convert::TryFrom,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
     TestResult, TmcCommand,
 };
-use tmc_langs_util::{file_util, parse_util};
+use tmc_langs_util::{deserialize, file_util, parse_util};
 use walkdir::WalkDir;
 
 pub(crate) trait JavaPlugin: LanguagePlugin {
@@ -53,7 +55,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     /// Parses test results.
     fn parse_test_result(&self, results: &TestRun) -> Result<RunResult, JavaError> {
         let result_file = file_util::open_file(&results.test_results)?;
-        let test_case_records: Vec<TestCase> = serde_json::from_reader(&result_file)?;
+        let test_case_records: Vec<TestCase> = deserialize::json_from_reader(&result_file)?;
 
         let mut test_results: Vec<TestResult> = vec![];
         let mut status = RunStatus::Passed;
@@ -285,9 +287,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use crate::SEPARATOR;
-
     use super::*;
+    use crate::SEPARATOR;
     use tmc_langs_framework::{nom, TmcError};
 
     fn init() {

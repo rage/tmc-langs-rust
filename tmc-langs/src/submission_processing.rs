@@ -6,12 +6,11 @@ use regex::Regex;
 use serde_json::Value;
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
-    io::{BufWriter, Write},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
 };
 use tmc_langs_framework::{MetaString, MetaSyntaxParser};
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::{deserialize, file_util, FileError};
 use walkdir::{DirEntry, WalkDir};
 
 #[allow(clippy::unwrap_used)]
@@ -138,7 +137,8 @@ fn process_file(
             "ipynb" => {
                 // process each cell in the notebook
                 let file = file_util::open_file(entry.path())?;
-                let mut json: Value = serde_json::from_reader(file)?;
+                let mut json: Value = deserialize::json_from_reader(file)
+                    .map_err(|e| LangsError::DeserializeJson(entry.path().to_path_buf(), e))?;
                 let cells = json
                     .get_mut("cells")
                     .and_then(|cs| cs.as_array_mut())
@@ -312,9 +312,7 @@ where
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use std::fs::File;
-    use std::io::Write;
-    use std::path::PathBuf;
+    use std::{fs::File, io::Write, path::PathBuf};
     use tmc_langs_framework::TmcProjectYml;
 
     fn init() {
@@ -745,7 +743,7 @@ etc etc"
 
         assert!(!temp_target.path().join("hidden.ipynb").exists());
 
-        let val: serde_json::Value = serde_json::from_reader(
+        let val: serde_json::Value = deserialize::json_from_reader(
             file_util::open_file(temp_target.path().join("notebook.ipynb")).unwrap(),
         )
         .unwrap();

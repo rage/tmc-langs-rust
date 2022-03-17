@@ -8,11 +8,9 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::fmt;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 use thiserror::Error;
 use tmc_langs_plugins::StyleValidationResult;
-
 #[cfg(feature = "ts")]
 use ts_rs::TS;
 
@@ -537,6 +535,7 @@ pub struct Review {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+    use tmc_langs_util::deserialize;
 
     fn init() {
         use log::*;
@@ -577,7 +576,7 @@ mod test {
                 }
             }
         );
-        assert!(serde_json::from_value::<CourseDetails>(details).is_ok());
+        assert!(deserialize::json_from_value::<CourseDetails>(details).is_ok());
     }
 
     #[test]
@@ -585,14 +584,14 @@ mod test {
         init();
 
         let text = serde_json::json!("text");
-        let text: SubmissionFeedbackKind = serde_json::from_value(text).unwrap();
+        let text: SubmissionFeedbackKind = deserialize::json_from_value(text).unwrap();
         if let SubmissionFeedbackKind::Text = text {
         } else {
             panic!("wrong type")
         }
 
         let intrange = serde_json::json!("intrange[1..5]");
-        let intrange: SubmissionFeedbackKind = serde_json::from_value(intrange).unwrap();
+        let intrange: SubmissionFeedbackKind = deserialize::json_from_value(intrange).unwrap();
         if let SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 } = intrange {
         } else {
             panic!("wrong type")

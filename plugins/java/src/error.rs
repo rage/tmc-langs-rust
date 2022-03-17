@@ -1,10 +1,9 @@
 //! Java error type
 
-use std::io;
-use std::path::PathBuf;
+use std::{io, path::PathBuf};
 use thiserror::Error;
 use tmc_langs_framework::TmcError;
-use tmc_langs_util::FileError;
+use tmc_langs_util::{FileError, JsonError};
 
 #[derive(Error, Debug)]
 pub enum JavaError {
@@ -34,7 +33,7 @@ pub enum JavaError {
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error("JSON error")]
-    Json(#[from] serde_json::Error),
+    Json(#[from] JsonError),
     #[error("File IO error")]
     FileError(#[from] FileError),
     #[error("Error")]

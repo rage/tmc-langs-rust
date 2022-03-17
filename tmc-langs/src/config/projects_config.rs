@@ -2,9 +2,11 @@
 
 use crate::LangsError;
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap};
-use std::path::{Path, PathBuf};
-use tmc_langs_util::{file_util, FileError};
+use std::{
+    collections::{BTreeMap, HashMap},
+    path::{Path, PathBuf},
+};
+use tmc_langs_util::{deserialize, file_util, FileError};
 use walkdir::WalkDir;
 
 #[derive(Debug)]
@@ -25,8 +27,8 @@ impl ProjectsConfig {
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
                     LangsError::FileError(FileError::NoFileName(file.path().to_path_buf()))
                 })?;
-                let bytes = file_util::read_file(course_config_path)?;
-                let course_config: CourseConfig = toml::from_slice(&bytes)?;
+                let file = file_util::read_file_to_string(&course_config_path)?;
+                let course_config: CourseConfig = deserialize::toml_from_str(&file)?;
 
                 course_configs.insert(course_dir_name.to_string(), course_config);
             } else {
@@ -216,7 +218,7 @@ id = 5432
 checksum = "bcde2345"
 "#;
 
-        let _course_config: CourseConfig = toml::from_str(s).unwrap();
+        let _course_config: CourseConfig = deserialize::toml_from_str(s).unwrap();
     }
 
     #[test]

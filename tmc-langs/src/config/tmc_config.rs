@@ -1,17 +1,17 @@
 //! Handles the CLI's configuration file.
 
+use crate::error::LangsError;
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
-use std::env;
-use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use tmc_langs_util::{file_util, FileError};
+use std::{
+    borrow::Cow,
+    env,
+    io::{Read, Write},
+    path::{Path, PathBuf},
+};
+use tmc_langs_util::{deserialize, file_util, FileError};
 use toml::{value::Table, Value};
-
 #[cfg(feature = "ts")]
 use ts_rs::TS;
-
-use crate::error::LangsError;
 
 /// The main configuration file. A separate one is used for each client.
 #[derive(Debug, Serialize, Deserialize)]
@@ -95,11 +95,11 @@ impl TmcConfig {
                 let mut guard = lock
                     .write()
                     .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
-                let mut buf = vec![];
+                let mut buf = String::new();
                 let _bytes = guard
-                    .read_to_end(&mut buf)
+                    .read_to_string(&mut buf)
                     .map_err(|e| FileError::FileRead(path.to_path_buf(), e))?;
-                match toml::from_slice(&buf) {
+                match deserialize::toml_from_str(&buf) {
                     // successfully read file, try to deserialize
                     Ok(config) => config, // successfully read and deserialized the config
                     Err(e) => {
