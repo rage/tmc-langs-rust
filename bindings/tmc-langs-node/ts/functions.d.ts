@@ -7,7 +7,7 @@ export class Token {
 }
 
 export function initLogging(): null;
-export function setEnv(key: string, value: string);
+export function setEnv(key: string, value: string): null;
 
 export function checkstyle(
   exercisePath: string,
