@@ -25,11 +25,11 @@ export function listLocalCourseExercises(
   clientName: string,
   courseSlug: string
 ): Array<types.LocalExercise>;
-export function prepareSolutions(
+export function prepareSolution(
   exercisePath: string,
   outputPath: string
 ): void;
-export function prepareStubs(exercisePath: string, outputPath: string): void;
+export function prepareStub(exercisePath: string, outputPath: string): void;
 export function prepareSubmission(
   outputFormat: types.OutputFormat,
   clonePath: string,

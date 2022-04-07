@@ -124,7 +124,7 @@ pub enum Command {
 
     /// Processes the exercise files in exercise-path, removing all code marked as stubs
     #[clap(long_about = SCHEMA_NULL)]
-    PrepareSolutions {
+    PrepareSolution {
         /// Path to the directory where the exercise resides.
         #[clap(long)]
         exercise_path: PathBuf,
@@ -135,7 +135,7 @@ pub enum Command {
 
     /// Processes the exercise files in exercise-path, removing all code marked as solutions
     #[clap(long_about = SCHEMA_NULL)]
-    PrepareStubs {
+    PrepareStub {
         /// Path to the directory where the exercise resides.
         #[clap(long)]
         exercise_path: PathBuf,

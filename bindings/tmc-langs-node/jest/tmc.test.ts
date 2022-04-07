@@ -193,7 +193,7 @@ test("prepares solutions", async () => {
   const dir = await mockExercise();
   const temp = await tempdir();
   expect(fs.existsSync([temp, "src"].join("/"))).toBeFalsy();
-  tmc.prepareSolutions(dir, temp);
+  tmc.prepareSolution(dir, temp);
   expect(fs.existsSync([temp, "src"].join("/"))).toBeTruthy();
 });
 
@@ -203,7 +203,7 @@ test("prepares stubs", async () => {
   const dir = await mockExercise();
   const temp = await tempdir();
   expect(fs.existsSync([temp, "src"].join("/"))).toBeFalsy();
-  tmc.prepareStubs(dir, temp);
+  tmc.prepareStub(dir, temp);
   expect(fs.existsSync([temp, "src"].join("/"))).toBeTruthy();
 });
 

@@ -147,7 +147,7 @@ fn list_local_course_exercises(mut cx: FunctionContext) -> JsResult<JsValue> {
     convert_res(&mut cx, res)
 }
 
-fn prepare_solutions(mut cx: FunctionContext) -> JsResult<JsValue> {
+fn prepare_solution(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, exercise_path: PathBuf, output_path: PathBuf);
     lock!(cx, exercise_path);
 
@@ -155,7 +155,7 @@ fn prepare_solutions(mut cx: FunctionContext) -> JsResult<JsValue> {
     convert_res(&mut cx, res)
 }
 
-fn prepare_stubs(mut cx: FunctionContext) -> JsResult<JsValue> {
+fn prepare_stub(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, exercise_path: PathBuf, output_path: PathBuf);
     lock!(cx, exercise_path);
 
@@ -802,8 +802,8 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
         get_exercise_packaging_configuration,
     )?;
     cx.export_function("listLocalCourseExercises", list_local_course_exercises)?;
-    cx.export_function("prepareSolutions", prepare_solutions)?;
-    cx.export_function("prepareStubs", prepare_stubs)?;
+    cx.export_function("prepareSolution", prepare_solution)?;
+    cx.export_function("prepareStub", prepare_stub)?;
     cx.export_function("prepareSubmission", prepare_submission)?;
     cx.export_function("refreshCourse", refresh_course)?;
     cx.export_function("runTests", run_tests)?;

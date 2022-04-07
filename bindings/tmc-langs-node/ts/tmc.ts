@@ -64,12 +64,12 @@ export class Tmc {
     return tmc.listLocalCourseExercises(this.clientName, courseSlug);
   }
 
-  prepareSolutions(exercisePath: string, outputPath: string): void {
-    return tmc.prepareSolutions(exercisePath, outputPath);
+  prepareSolution(exercisePath: string, outputPath: string): void {
+    return tmc.prepareSolution(exercisePath, outputPath);
   }
 
-  prepareStubs(exercisePath: string, outputPath: string): void {
-    return tmc.prepareStubs(exercisePath, outputPath);
+  prepareStub(exercisePath: string, outputPath: string): void {
+    return tmc.prepareStub(exercisePath, outputPath);
   }
 
   prepareSubmission(

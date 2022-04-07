@@ -318,7 +318,7 @@ fn run_app(matches: Opt) -> Result<()> {
             )
         }
 
-        Command::PrepareSolutions {
+        Command::PrepareSolution {
             exercise_path,
             output_path,
         } => {
@@ -336,7 +336,7 @@ fn run_app(matches: Opt) -> Result<()> {
             ))
         }
 
-        Command::PrepareStubs {
+        Command::PrepareStub {
             exercise_path,
             output_path,
         } => {
