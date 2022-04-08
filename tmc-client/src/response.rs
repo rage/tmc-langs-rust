@@ -127,6 +127,8 @@ struct CourseDetailsInner {
 /// get /api/v8/core/courses/{course_id}
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts", derive(TS))]
+// we never take these structs as inputs from TS so it's ok to ignore from
+#[cfg_attr(feature = "ts", ts(ignore_serde_attr = "from"))]
 #[serde(from = "CourseDetailsWrapper")]
 pub struct CourseDetails {
     #[serde(flatten)]

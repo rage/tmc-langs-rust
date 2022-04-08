@@ -187,6 +187,8 @@ impl<'de> Deserialize<'de> for PythonVer {
 /// Contents of the no-tests field.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[cfg_attr(feature = "ts", derive(TS))]
+// we never take these structs as inputs from TS so it's ok to ignore from
+#[cfg_attr(feature = "ts", ts(ignore_serde_attr = "from"))]
 #[serde(from = "NoTestsWrapper")]
 pub struct NoTests {
     pub flag: bool,
