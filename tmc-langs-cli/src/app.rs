@@ -5,11 +5,11 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, CourseData, CourseDetails, CourseExercise,
+    CombinedCourseData, Compression, CourseData, CourseDetails, CourseExercise,
     DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
-    ExercisePackagingConfiguration, Language, LocalExercise, NewSubmission, Organization,
-    OutputFormat, Review, RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse,
-    SubmissionFinished, UpdateResult, UpdatedExercise,
+    ExercisePackagingConfiguration, Language, LocalExercise, NewSubmission, Organization, Review,
+    RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+    UpdateResult, UpdatedExercise,
 };
 // use tmc_langs_util::task_executor::RefreshData;
 
@@ -59,29 +59,41 @@ pub enum Command {
         exercise_path: PathBuf,
     },
 
-    /// Compresses the target exercise into a ZIP. Only includes student files using the student file policy of the exercise's plugin
+    /// Compresses the target exercise. Only includes student files using the student file policy of the exercise's plugin
     #[clap(long_about = SCHEMA_NULL)]
     CompressProject {
         /// Path to the directory where the exercise resides.
         #[clap(long)]
         exercise_path: PathBuf,
-        /// Path to the output ZIP archive. Overwritten if it already exists.
+        /// Path to the output archive. Overwritten if it already exists.
         #[clap(long)]
         output_path: PathBuf,
+        /// Compression algorithm to use.
+        #[clap(long, default_value_t = Compression::Zip)]
+        compression: Compression,
+        /// If set, simply compresses the target directory with all of its files.
+        #[clap(long)]
+        naive: bool,
     },
 
     #[clap(subcommand)]
     Core(Core),
 
-    /// Extracts an exercise from a ZIP archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files
+    /// Extracts an exercise from an archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files
     #[clap(long_about = SCHEMA_NULL)]
     ExtractProject {
-        /// Path to the ZIP archive.
+        /// Path to the archive.
         #[clap(long)]
         archive_path: PathBuf,
         /// Path to the directory where the archive will be extracted.
         #[clap(long)]
         output_path: PathBuf,
+        /// Compression algorithm used for the archive.
+        #[clap(long, default_value_t = Compression::Zip)]
+        compression: Compression,
+        /// If set, simply extracts the target directory with all of its files.
+        #[clap(long)]
+        naive: bool,
     },
 
     /// Parses @Points notations from an exercise's exercise files and returns the point names found
@@ -144,29 +156,36 @@ pub enum Command {
         output_path: PathBuf,
     },
 
-    /// Takes a submission ZIP archive and turns it into an archive with reset test files, and tmc-params, ready for further processing
+    /// Takes a submission archive and turns it into an archive with reset test files, and tmc-params, ready for further processing
     #[clap(long_about = SCHEMA_NULL)]
     PrepareSubmission {
         /// The output format of the submission archive. Defaults to tar.
-        #[clap(long, default_value = "tar")]
-        output_format: OutputFormatWrapper,
+        #[clap(long, default_value_t = Compression::Tar)]
+        output_format: Compression,
         /// Path to exercise's clone path, where the unmodified test files will be copied from.
         #[clap(long)]
         clone_path: PathBuf,
         /// Path to the resulting archive. Overwritten if it already exists.
         #[clap(long)]
         output_path: PathBuf,
-        /// If given, the tests will be copied from this stub ZIP instead, effectively ignoring hidden tests.
-        #[clap(long)]
-        stub_zip_path: Option<PathBuf>,
-        /// Path to the submission ZIP archive.
+        /// If given, the tests will be copied from this stub instead, effectively ignoring hidden tests.
+        // alias for backwards compatibility
+        #[clap(long, alias = "stub_zip_path")]
+        stub_archive_path: Option<PathBuf>,
+        /// Compression algorithm used for the stub archive.
+        #[clap(long, default_value_t = Compression::Zip)]
+        stub_compression: Compression,
+        /// Path to the submission archive.
         #[clap(long)]
         submission_path: PathBuf,
+        /// Compression algorithm used for the submission.
+        #[clap(long, default_value_t = Compression::Zip)]
+        submission_compression: Compression,
         /// A key-value pair in the form key=value to be written into .tmcparams. If multiple pairs with the same key are given, the values are collected into an array.
         #[clap(long)]
         tmc_param: Vec<String>,
-        #[clap(long)]
         /// If given, the contents in the resulting archive will be nested inside a directory with this name.
+        #[clap(long)]
         top_level_dir_name: Option<String>,
     },
 
@@ -546,22 +565,6 @@ impl FromStr for Locale {
             .or_else(|| Language::from_639_3(s))
             .with_context(|| format!("Invalid locale: {}", s))?;
         Ok(Locale(locale))
-    }
-}
-
-pub struct OutputFormatWrapper(pub OutputFormat);
-
-impl FromStr for OutputFormatWrapper {
-    type Err = anyhow::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let format = match s {
-            "tar" => OutputFormat::Tar,
-            "zip" => OutputFormat::Zip,
-            "zstd" => OutputFormat::TarZstd,
-            _ => anyhow::bail!("invalid format"),
-        };
-        Ok(OutputFormatWrapper(format))
     }
 }
 

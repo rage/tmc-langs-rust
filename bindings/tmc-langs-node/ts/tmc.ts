@@ -73,7 +73,7 @@ export class Tmc {
   }
 
   prepareSubmission(
-    outputFormat: types.OutputFormat,
+    outputFormat: types.Compression,
     clonePath: string,
     outputPath: string,
     stubZipPath: string | null,

@@ -12,7 +12,7 @@ use self::{
 };
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
-use app::{Command, Core, OutputFormatWrapper, Settings};
+use app::{Command, Core, Settings};
 use clap::{ErrorKind, IntoApp, Parser};
 use serde::Serialize;
 use serde_json::Value;
@@ -217,9 +217,11 @@ fn run_app(matches: Opt) -> Result<()> {
         Command::CompressProject {
             exercise_path,
             output_path,
+            compression,
+            naive,
         } => {
             file_util::lock!(exercise_path);
-            tmc_langs::compress_project_to(&exercise_path, &output_path)?;
+            tmc_langs::compress_project_to(&exercise_path, &output_path, compression)?;
             OutputKind::finished(format!(
                 "compressed project from {} to {}",
                 exercise_path.display(),
@@ -236,6 +238,8 @@ fn run_app(matches: Opt) -> Result<()> {
         Command::ExtractProject {
             archive_path,
             output_path,
+            compression,
+            naive,
         } => {
             let mut archive = file_util::open_file_lock(&archive_path)?;
             let mut guard = archive.write()?;
@@ -356,10 +360,12 @@ fn run_app(matches: Opt) -> Result<()> {
 
         Command::PrepareSubmission {
             clone_path,
-            output_format: OutputFormatWrapper(output_format),
+            output_format,
             output_path,
-            stub_zip_path,
+            stub_archive_path,
+            stub_compression,
             submission_path,
+            submission_compression,
             tmc_param,
             top_level_dir_name,
         } => {
@@ -400,7 +406,7 @@ fn run_app(matches: Opt) -> Result<()> {
                 top_level_dir_name,
                 tmc_params,
                 &clone_path,
-                stub_zip_path.as_deref(),
+                stub_archive_path.as_deref(),
                 output_format,
             )?;
             OutputKind::finished(format!(

@@ -150,15 +150,6 @@ impl Display for ShellString {
     }
 }
 
-/// Output formats for an archive.
-#[derive(Debug)]
-#[cfg_attr(feature = "ts", derive(TS))]
-pub enum OutputFormat {
-    Tar,
-    Zip,
-    TarZstd,
-}
-
 #[derive(Debug)]
 pub enum DownloadResult {
     Success {

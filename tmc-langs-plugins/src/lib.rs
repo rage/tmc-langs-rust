@@ -9,11 +9,11 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_csharp::CSharpPlugin;
+use tmc_langs_framework::{Compression, LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_framework::{
     ExerciseDesc, ExercisePackagingConfiguration, Language, NothingIsStudentFilePolicy, RunResult,
     StudentFilePolicy, StyleValidationResult, StyleValidationStrategy,
 };
-use tmc_langs_framework::{LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
 pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
@@ -48,6 +48,14 @@ pub fn extract_project_overwrite(
 ) -> Result<(), PluginError> {
     tmc_zip::unzip(compressed_project, target_location)?;
     Ok(())
+}
+
+pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>, PluginError> {
+    match compression {
+        Compression::Zip => compress_project_to_zip(path),
+        Compression::Tar => todo!(),
+        Compression::TarZstd => todo!(),
+    }
 }
 
 /// See `LanguagePlugin::compress_project`.

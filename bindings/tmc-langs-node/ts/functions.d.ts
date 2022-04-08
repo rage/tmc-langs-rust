@@ -31,7 +31,7 @@ export function prepareSolution(
 ): void;
 export function prepareStub(exercisePath: string, outputPath: string): void;
 export function prepareSubmission(
-  outputFormat: types.OutputFormat,
+  outputFormat: types.Compression,
   clonePath: string,
   outputPath: string,
   stubZipPath: string | null,

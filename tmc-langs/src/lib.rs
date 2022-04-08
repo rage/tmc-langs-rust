@@ -9,7 +9,7 @@ mod error;
 mod submission_packaging;
 mod submission_processing;
 
-use crate::data::DownloadTarget;
+use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
         list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue,
@@ -18,13 +18,12 @@ pub use crate::{
     course_refresher::{refresh_course, RefreshData, RefreshExercise},
     data::{
         CombinedCourseData, DownloadOrUpdateCourseExercisesResult, DownloadResult,
-        ExerciseDownload, LocalExercise, OutputFormat, TmcParams,
+        ExerciseDownload, LocalExercise, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::prepare_submission,
     submission_processing::prepare_solution,
 };
-use data::DownloadTargetKind;
 use hmac::{Hmac, Mac};
 // use heim::disk;
 use jwt::SignWithKey;
@@ -54,8 +53,8 @@ pub use tmc_client::{
 };
 use tmc_langs_framework::TmcError;
 pub use tmc_langs_framework::{
-    CommandError, ExerciseDesc, ExercisePackagingConfiguration, Language, LanguagePlugin,
-    PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
+    CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
+    LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
 use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
@@ -739,10 +738,23 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 }
 
 /// Compresses the exercise to the target path.
-pub fn compress_project_to(source: &Path, target: &Path) -> Result<(), LangsError> {
-    log::debug!("compressing {} to {}", source.display(), target.display());
+pub fn compress_project_to(
+    source: &Path,
+    target: &Path,
+    compression: Compression,
+) -> Result<(), LangsError> {
+    log::debug!(
+        "compressing {} to {} ({})",
+        source.display(),
+        target.display(),
+        compression
+    );
 
-    let data = tmc_langs_plugins::compress_project_to_zip(source)?;
+    let data = match compression {
+        Compression::Zip => tmc_langs_plugins::compress_project_to_zip(source)?,
+        Compression::Tar => todo!(),
+        Compression::TarZstd => todo!(),
+    };
 
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;

@@ -13,8 +13,8 @@ use std::{
 };
 use thiserror::Error;
 use tmc_langs::{
-    file_util, ClientError, Credentials, DownloadOrUpdateCourseExercisesResult, FeedbackAnswer,
-    LangsError, Language, NewSubmission, OutputFormat, SubmissionFinished, TmcClient, TmcConfig,
+    file_util, ClientError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult,
+    FeedbackAnswer, LangsError, Language, NewSubmission, SubmissionFinished, TmcClient, TmcConfig,
 };
 
 #[derive(Debug, Error)]
@@ -96,10 +96,15 @@ fn clean(mut cx: FunctionContext) -> JsResult<JsValue> {
 }
 
 fn compress_project(mut cx: FunctionContext) -> JsResult<JsValue> {
-    parse_args!(cx, exercise_path: PathBuf, output_path: PathBuf);
+    parse_args!(
+        cx,
+        exercise_path: PathBuf,
+        output_path: PathBuf,
+        compression: Compression
+    );
     lock!(cx, exercise_path);
 
-    let res = tmc_langs::compress_project_to(&exercise_path, &output_path);
+    let res = tmc_langs::compress_project_to(&exercise_path, &output_path, compression);
     convert_res(&mut cx, res)
 }
 
@@ -188,10 +193,10 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
                 .expect("invalid key-value pair");
         }
     }
-    let output_format = match output_format.as_str() {
-        "Tar" => OutputFormat::Tar,
-        "Zip" => OutputFormat::Zip,
-        "TarZstd" => OutputFormat::TarZstd,
+    let compression = match output_format.as_str() {
+        "Tar" => Compression::Tar,
+        "Zip" => Compression::Zip,
+        "TarZstd" => Compression::TarZstd,
         _ => panic!("unrecognized output format"),
     };
 
@@ -202,7 +207,7 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
         tmc_params,
         &clone_path,
         stub_zip_path.as_deref(),
-        output_format,
+        compression,
     );
     convert_res(&mut cx, res)
 }

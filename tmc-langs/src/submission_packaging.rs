@@ -1,9 +1,6 @@
 //! Submission packaging.
 
-use crate::{
-    data::{OutputFormat, TmcParams},
-    error::LangsError,
-};
+use crate::{data::TmcParams, error::LangsError, Compression};
 use once_cell::sync::Lazy;
 use std::{
     io::{Cursor, Write},
@@ -27,7 +24,7 @@ pub fn prepare_submission(
     tmc_params: TmcParams,
     stub_clone_path: &Path,
     stub_zip_path: Option<&Path>,
-    output_format: OutputFormat,
+    output_format: Compression,
 ) -> Result<(), LangsError> {
     // workaround for unknown issues when prepare_submission is ran multiple times in parallel
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
@@ -161,7 +158,7 @@ pub fn prepare_submission(
     };
     let archive_file = file_util::create_file(target_path)?;
     match output_format {
-        OutputFormat::Tar => {
+        Compression::Tar => {
             let mut archive = tar::Builder::new(archive_file);
             log::debug!(
                 "appending \"{}\" at \"{}\"",
@@ -172,7 +169,7 @@ pub fn prepare_submission(
                 .append_dir_all(prefix, &extract_dest_path)
                 .map_err(|e| LangsError::TarAppend(extract_dest_path, e))?;
         }
-        OutputFormat::Zip => {
+        Compression::Zip => {
             let mut archive = ZipWriter::new(archive_file);
             for entry in WalkDir::new(&extract_dest_path).into_iter().skip(1) {
                 let entry = entry?;
@@ -204,7 +201,7 @@ pub fn prepare_submission(
             }
             archive.finish()?;
         }
-        OutputFormat::TarZstd => {
+        Compression::TarZstd => {
             let buf = Cursor::new(vec![]);
             let mut archive = tar::Builder::new(buf);
             log::debug!(
@@ -299,7 +296,7 @@ mod test {
             tmc_params,
             Path::new(clone),
             None,
-            OutputFormat::Tar,
+            Compression::Tar,
         )
         .unwrap();
         assert!(output_archive.exists());
@@ -396,7 +393,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            OutputFormat::Tar,
+            Compression::Tar,
         )
         .unwrap();
         assert!(output.exists());
@@ -431,7 +428,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            OutputFormat::TarZstd,
+            Compression::TarZstd,
         )
         .unwrap();
         assert!(output.exists());
@@ -465,7 +462,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            OutputFormat::Zip,
+            Compression::Zip,
         )
         .unwrap();
         assert!(output.exists());
@@ -492,7 +489,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
-            OutputFormat::Zip,
+            Compression::Zip,
         )
         .unwrap();
         assert!(output.exists());
@@ -522,7 +519,7 @@ mod test {
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             Some(Path::new("tests/data/MavenStub.zip")),
-            OutputFormat::Tar,
+            Compression::Tar,
         )
         .unwrap();
         assert!(output_arch.exists());

@@ -13,7 +13,7 @@ fn main() {
         // listLocalCourseExercises
         tmc_langs::LocalExercise,
         // prepareSubmission
-        tmc_langs::OutputFormat,
+        tmc_langs::Compression,
         // refreshCourse
         tmc_langs::RefreshData,
         tmc_langs::RefreshExercise,
