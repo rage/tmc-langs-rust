@@ -1,4 +1,4 @@
-import types from "./generated";
+import types, { Compression } from "./generated";
 
 export class Token {
   access_token: string;
@@ -14,7 +14,7 @@ export function checkstyle(
   locale: string
 ): types.StyleValidationResult | null;
 export function clean(exercisePath: string): void;
-export function compressProject(exercisePath: string, outputPath: string): void;
+export function compressProject(exercisePath: string, outputPath: string, compression: Compression): void;
 export function extractProject(archivePath: string, outputPath: string): void;
 export function fastAvailablePoints(exercisePath: string): Array<string>;
 export function findExercises(exercisePath: string): Array<string>;

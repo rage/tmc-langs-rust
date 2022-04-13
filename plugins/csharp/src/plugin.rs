@@ -6,15 +6,16 @@ use std::{
     env,
     ffi::{OsStr, OsString},
     io::{BufReader, Cursor, Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
+    Archive, CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
 };
-use tmc_langs_util::{deserialize, file_util, parse_util, FileError};
+use tmc_langs_util::{deserialize, file_util, parse_util, path_util, FileError};
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
@@ -130,13 +131,14 @@ impl CSharpPlugin {
     }
 }
 
+/// Project directory:
+/// Contains a src directory which contains a .csproj file (which may be inside a subdirectory).
 impl LanguagePlugin for CSharpPlugin {
     const PLUGIN_NAME: &'static str = "csharp";
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = CSharpStudentFilePolicy;
 
-    /// Checks the directories in src for csproj files, up to 2 subdirectories deep.
     fn is_exercise_type_correct(path: &Path) -> bool {
         WalkDir::new(path.join("src"))
             .max_depth(2)
@@ -145,32 +147,40 @@ impl LanguagePlugin for CSharpPlugin {
             .any(|e| e.path().extension() == Some(&OsString::from("csproj")))
     }
 
-    /// Finds any directory X which contains a X/src/*/*.csproj file.
-    /// Ignores everything in a __MACOSX directory.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            let file = zip_archive.by_index(i)?;
-            let file_path = Path::new(file.name());
+        let mut iter = archive.iter()?;
+        let project_dir = loop {
+            let next = iter.with_next(|entry| {
+                let file_path = entry.path()?;
 
-            if file_path.extension() == Some(OsStr::new("csproj")) {
-                // check parent of parent of the csproj file for src
-                if let Some(csproj_parent) = file_path.parent().and_then(Path::parent) {
-                    if csproj_parent.file_name() == Some(OsStr::new("src")) {
-                        // get parent of src
-                        if let Some(src_parent) = csproj_parent.parent() {
-                            // skip if any part of the path is __MACOSX
-                            if file_path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                                continue;
+                if entry.is_file()
+                    && file_path.extension() == Some(OsStr::new("csproj"))
+                    && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
+                {
+                    if let Some(parent) = file_path.parent() {
+                        if let Some(src_parent) = path_util::get_parent_of(parent, "src") {
+                            return Ok(Break(Some(src_parent)));
+                        }
+                        if let Some(parent) = parent.parent() {
+                            if let Some(src_parent) = path_util::get_parent_of(parent, "src") {
+                                return Ok(Break(Some(src_parent)));
                             }
-                            return Ok(src_parent.to_path_buf());
                         }
                     }
                 }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
             }
+        };
+        match project_dir {
+            Some(project_dir) => Ok(project_dir),
+            None => Err(TmcError::NoProjectDirInArchive),
         }
-        Err(TmcError::NoProjectDirInZip)
     }
 
     /// Runs --generate-points-file and parses the generated .tmc_available_points.json.
@@ -524,8 +534,8 @@ mod test {
         let temp = TempDir::new().unwrap();
         file_to(&temp, "dir1/dir2/dir3/src/dir4/sample.csproj", "");
         let bytes = dir_to_zip(&temp);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = CSharpPlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("dir1/dir2/dir3"))
     }
 
@@ -534,12 +544,12 @@ mod test {
         init();
 
         let temp = TempDir::new().unwrap();
-        file_to(&temp, "dir1/dir2/dir3/src/directly in src.csproj", "");
+        file_to(&temp, "dir1/dir2/dir3/not src/directly in src.csproj", "");
         file_to(&temp, "dir1/dir2/dir3/src/__MACOSX/under macosx.csproj", "");
         file_to(&temp, "dir1/__MACOSX/dir3/src/dir/under macosx.csproj", "");
         let bytes = dir_to_zip(&temp);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = CSharpPlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = CSharpPlugin::find_project_dir_in_archive(&mut zip);
         assert!(dir.is_err())
     }
 

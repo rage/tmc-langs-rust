@@ -750,12 +750,7 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = match compression {
-        Compression::Zip => tmc_langs_plugins::compress_project_to_zip(source)?,
-        Compression::Tar => todo!(),
-        Compression::TarZstd => todo!(),
-    };
-
+    let data = tmc_langs_plugins::compress_project_to_zip(source)?;
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;
     }

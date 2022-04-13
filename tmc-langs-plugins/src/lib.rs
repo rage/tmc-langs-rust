@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_csharp::CSharpPlugin;
-use tmc_langs_framework::{Compression, LanguagePlugin, TmcError, TmcProjectYml};
+use tmc_langs_framework::{Archive, Compression, LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_framework::{
     ExerciseDesc, ExercisePackagingConfiguration, Language, NothingIsStudentFilePolicy, RunResult,
     StudentFilePolicy, StyleValidationResult, StyleValidationStrategy,
@@ -19,7 +19,6 @@ pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
 pub use tmc_langs_python3::Python3Plugin;
 pub use tmc_langs_r::RPlugin;
-use zip::ZipArchive;
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
@@ -104,7 +103,7 @@ pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
     pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
     pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}
     pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
-    pub fn find_project_dir_in_zip<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<PathBuf, TmcError> {}
+    pub fn find_project_dir_in_archive<R: Read + Seek>(archive: &mut Archive<R>) -> Result<PathBuf, TmcError> {}
 )]
 pub enum Plugin {
     CSharp(CSharpPlugin),

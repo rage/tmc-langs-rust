@@ -7,19 +7,19 @@ use crate::{
     },
     error::TmcError,
     policy::StudentFilePolicy,
-    TmcProjectYml,
+    Archive, TmcProjectYml,
 };
 pub use isolang::Language;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
 use std::{
     collections::HashSet,
     io::{Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
-use zip::ZipArchive;
 
 /// The trait that each language plug-in must implement.
 ///
@@ -103,10 +103,10 @@ pub trait LanguagePlugin {
     ) -> Result<(), TmcError> {
         log::debug!("Unzipping to {}", target_location.display());
 
-        let mut zip_archive = ZipArchive::new(compressed_project)?;
+        let mut zip_archive = Archive::zip(compressed_project)?;
 
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
+        let project_dir = Self::find_project_dir_in_archive(&mut zip_archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
         // extract config file if any
@@ -114,7 +114,7 @@ pub trait LanguagePlugin {
         let tmc_project_yml_path_s = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = zip_archive.by_name(tmc_project_yml_path_s) {
+        if let Ok(mut file) = zip_archive.by_path(tmc_project_yml_path_s) {
             let target_path = target_location.join(".tmcproject.yml");
             file_util::read_to_file(&mut file, target_path)?;
         }
@@ -123,44 +123,51 @@ pub trait LanguagePlugin {
         // used to clean non-student files not in the zip later
         let mut files_from_zip = HashSet::new();
 
-        for i in 0..zip_archive.len() {
-            let mut file = zip_archive.by_index(i)?;
-            if file.name() == tmc_project_yml_path_s {
-                // already extracted
-                continue;
-            }
-            let file_path = PathBuf::from(file.name());
-
-            let relative = match file_path.strip_prefix(&project_dir) {
-                Ok(relative) => relative,
-                _ => {
-                    log::trace!("skip {}, not in project dir", file.name());
-                    continue;
+        let mut iter = zip_archive.iter()?;
+        loop {
+            let next = iter.with_next::<(), _>(|mut file| {
+                let file_path = file.path()?;
+                if file_path == Path::new(tmc_project_yml_path_s) {
+                    // already extracted
+                    return Ok(Continue(()));
                 }
-            };
-            let path_in_target = target_location.join(&relative);
-            log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
-            files_from_zip.insert(path_in_target.clone());
-
-            if !path_in_target.exists() {
-                // just extract
-                if file.is_dir() {
-                    file_util::create_dir_all(path_in_target)?;
-                } else {
-                    file_util::read_to_file(&mut file, path_in_target)?;
-                }
-            } else if !policy.is_student_file(&path_in_target, target_location)?
-                || policy.is_updating_forced(relative)?
-            {
-                // not student file, or forced update
-                if file.is_file() {
-                    // remove old if dir
-                    if path_in_target.is_dir() {
-                        file_util::remove_dir_all(&path_in_target)?;
+                let relative = match file_path.strip_prefix(&project_dir) {
+                    Ok(relative) => relative,
+                    _ => {
+                        log::trace!("skip {}, not in project dir", file_path.display());
+                        return Ok(Continue(()));
                     }
-                    file_util::read_to_file(&mut file, path_in_target)?;
+                };
+                let path_in_target = target_location.join(&relative);
+                log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+
+                files_from_zip.insert(path_in_target.clone());
+
+                if !path_in_target.exists() {
+                    // just extract
+                    if file.is_dir() {
+                        file_util::create_dir_all(path_in_target)?;
+                    } else {
+                        file_util::read_to_file(&mut file, path_in_target)?;
+                    }
+                } else if !policy.is_student_file(&path_in_target, target_location)?
+                    || policy.is_updating_forced(relative)?
+                {
+                    // not student file, or forced update
+                    if file.is_file() {
+                        // remove old if dir
+                        if path_in_target.is_dir() {
+                            file_util::remove_dir_all(&path_in_target)?;
+                        }
+                        file_util::read_to_file(&mut file, path_in_target)?;
+                    }
                 }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(_) => break,
             }
         }
 
@@ -206,10 +213,10 @@ pub trait LanguagePlugin {
     ) -> Result<(), TmcError> {
         log::debug!("Extracting student files to {}", target_location.display());
 
-        let mut zip_archive = ZipArchive::new(compressed_project)?;
+        let mut zip_archive = Archive::zip(compressed_project)?;
 
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_zip(&mut zip_archive)?;
+        let project_dir = Self::find_project_dir_in_archive(&mut zip_archive)?;
         log::debug!("Project directory in archive: {}", project_dir.display());
 
         // extract config file if any
@@ -217,39 +224,45 @@ pub trait LanguagePlugin {
         let tmc_project_yml_path = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = zip_archive.by_name(tmc_project_yml_path) {
+        if let Ok(mut file) = zip_archive.by_path(tmc_project_yml_path) {
             let target_path = target_location.join(".tmcproject.yml");
             file_util::read_to_file(&mut file, target_path)?;
         }
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
-        for i in 0..zip_archive.len() {
-            let mut file = zip_archive.by_index(i)?;
-
-            // get the path where the file should be extracted
-            let file_path = PathBuf::from(file.name());
-            let relative = match file_path.strip_prefix(&project_dir) {
-                Ok(relative) => relative,
-                _ => {
-                    log::trace!("skip {}, not in project dir", file.name());
-                    continue;
-                }
-            };
-            let path_in_target = target_location.join(&relative);
-            log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
-
-            if policy.would_be_student_file(&path_in_target, target_location)? {
-                if file.is_file() {
-                    // for files, everything should be removed out of the way
-                    file_util::remove_all(&path_in_target)?;
-                    file_util::read_to_file(&mut file, &path_in_target)?;
-                } else {
-                    // for directories, we should keep existing directories but delete files at the same path
-                    if path_in_target.is_file() {
-                        file_util::remove_file(&path_in_target)?;
+        let mut iter = zip_archive.iter()?;
+        loop {
+            let next = iter.with_next::<(), _>(|mut file| {
+                // get the path where the file should be extracted
+                let file_path = file.path()?;
+                let relative = match file_path.strip_prefix(&project_dir) {
+                    Ok(relative) => relative,
+                    _ => {
+                        log::trace!("skip {}, not in project dir", file_path.display());
+                        return Ok(Continue(()));
                     }
-                    file_util::create_dir_all(&path_in_target)?;
+                };
+                let path_in_target = target_location.join(&relative);
+                log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+
+                if policy.would_be_student_file(&path_in_target, target_location)? {
+                    if file.is_file() {
+                        // for files, everything should be removed out of the way
+                        file_util::remove_all(&path_in_target)?;
+                        file_util::read_to_file(&mut file, &path_in_target)?;
+                    } else {
+                        // for directories, we should keep existing directories but delete files at the same path
+                        if path_in_target.is_file() {
+                            file_util::remove_file(&path_in_target)?;
+                        }
+                        file_util::create_dir_all(&path_in_target)?;
+                    }
                 }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(_) => break,
             }
         }
 
@@ -258,35 +271,18 @@ pub trait LanguagePlugin {
 
     /// Searches the zip for a valid project directory.
     /// Note that the returned path may not actually have an entry in the zip.
-    /// The default implementation tries to find a directory that contains a "src" directory,
-    /// which may be sufficient for some languages.
-    /// Ignores everything in a __MACOSX directory.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
-    ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for src
-            let file = zip_archive.by_index(i)?;
-            let file_path = Path::new(file.name());
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError>;
 
-            // todo: do in one pass somehow
-            if file_path.components().any(|c| c.as_os_str() == "src") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "src")
-                    .collect();
-
-                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                    continue;
-                }
-                return Ok(path);
-            }
-        }
-        Err(TmcError::NoProjectDirInZip)
+    /// Tells if there's a valid exercise in this archive.
+    /// Unlike `is_exercise_type_correct`, searches the entire archive.
+    fn is_archive_type_correct<R: Read + Seek>(archive: &mut Archive<R>) -> bool {
+        Self::find_project_dir_in_archive(archive).is_ok()
     }
 
-    /// Tells if there's a valid exercise in this path.
+    /// Tells if there's a valid exercise in this path. Delegates to `find_project_dir_in_archive` by default.
+    /// Unlike `is_archive_type_correct`, only checks the root directory.
     fn is_exercise_type_correct(path: &Path) -> bool;
 
     /// Returns configuration which is used to package submission on tmc-server.
@@ -436,6 +432,7 @@ mod test {
     use super::*;
     use nom::character;
     use std::io::Write;
+    use tmc_langs_util::path_util;
     use zip::ZipWriter;
 
     fn init() {
@@ -542,6 +539,31 @@ mod test {
                 test_results: vec![],
                 logs: std::collections::HashMap::new(),
             })
+        }
+
+        fn find_project_dir_in_archive<R: Read + Seek>(
+            archive: &mut Archive<R>,
+        ) -> Result<PathBuf, TmcError> {
+            let mut iter = archive.iter()?;
+            let project_dir = loop {
+                let next = iter.with_next(|file| {
+                    let file_path = file.path()?;
+
+                    if let Some(parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                        return Ok(Break(Some(parent)));
+                    }
+                    Ok(Continue(()))
+                });
+                match next? {
+                    Continue(_) => continue,
+                    Break(project_dir) => break project_dir,
+                }
+            };
+
+            match project_dir {
+                Some(project_dir) => Ok(project_dir),
+                None => Err(TmcError::NoProjectDirInArchive),
+            }
         }
 
         fn is_exercise_type_correct(_path: &Path) -> bool {
@@ -711,8 +733,8 @@ def f():
         file_to(&temp, "dir1/dir2/dir3/src/file", "");
         let zip = dir_to_zip(&temp);
 
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
-        let dir = MockPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        let dir = MockPlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("dir1").join("dir2").join("dir3"));
     }
 
@@ -725,8 +747,8 @@ def f():
         file_to(&temp, "dir1/__MACOSX/dir2/dir3/src/file", "");
         let zip = dir_to_zip(&temp);
 
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
-        let dir = MockPlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        let dir = MockPlugin::find_project_dir_in_archive(&mut zip);
         assert!(dir.is_err());
     }
 

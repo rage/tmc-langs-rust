@@ -8,16 +8,18 @@ use flate2::read::GzDecoder;
 use j4rs::Jvm;
 use std::{
     ffi::OsString,
-    io::Cursor,
+    io::{Cursor, Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
-use tar::Archive;
+use tar::Archive as Tar;
 use tmc_langs_framework::{
     nom::{error::VerboseError, IResult},
-    ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
+    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
+    TmcError,
 };
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, path_util};
 
 const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.8.1-bin.tar.gz");
 const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base directory in the maven archive
@@ -78,7 +80,7 @@ impl MavenPlugin {
 
             log::debug!("extracting bundled tar");
             let tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
-            let mut tar = Archive::new(tar);
+            let mut tar = Tar::new(tar);
             tar.unpack(&tmc_path)
                 .map_err(|e| JavaError::JarWrite(tmc_path.clone(), e))?;
 
@@ -94,6 +96,8 @@ impl MavenPlugin {
     }
 }
 
+/// Project directory:
+/// Contains pom.xml file
 impl LanguagePlugin for MavenPlugin {
     const PLUGIN_NAME: &'static str = "apache-maven";
     const LINE_COMMENT: &'static str = "//";
@@ -123,6 +127,34 @@ impl LanguagePlugin for MavenPlugin {
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path, timeout)?)
+    }
+
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        let mut iter = archive.iter()?;
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                if file.is_file() {
+                    // check for pom.xml
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "pom.xml") {
+                        return Ok(Break(Some(parent)));
+                    }
+                }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
+            }
+        };
+
+        match project_dir {
+            Some(project_dir) => Ok(project_dir),
+            None => Err(TmcError::NoProjectDirInArchive),
+        }
     }
 
     /// Checks if the directory has a pom.xml file.
@@ -259,9 +291,8 @@ mod test {
         fs,
         sync::{Mutex, MutexGuard},
     };
-    use tmc_langs_framework::StyleValidationStrategy;
+    use tmc_langs_framework::{Archive, StyleValidationStrategy};
     use tmc_langs_util::deserialize;
-    use zip::ZipArchive;
 
     static MAVEN_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -483,11 +514,11 @@ mod test {
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        dir_to(&temp_dir, "Outer/Inner/maven-exercise/src");
+        file_to(&temp_dir, "Outer/Inner/maven-exercise/pom.xml", "pom!");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/maven-exercise"));
     }
 
@@ -499,8 +530,8 @@ mod test {
         dir_to(&temp_dir, "Outer/Inner/maven-exercise/srcb");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = MavenPlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MavenPlugin::find_project_dir_in_archive(&mut zip);
         assert!(dir.is_err());
     }
 

@@ -8,16 +8,16 @@ use regex::Regex;
 use std::{
     collections::HashMap,
     io::{self, BufRead, BufReader, Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus, TestDesc,
-    TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus,
+    TestDesc, TmcCommand, TmcError, TmcProjectYml,
 };
-use tmc_langs_util::{file_util, FileError};
-use zip::ZipArchive;
+use tmc_langs_util::{file_util, path_util, FileError};
 
 #[derive(Default)]
 pub struct MakePlugin {}
@@ -119,6 +119,8 @@ impl MakePlugin {
     }
 }
 
+/// Project directory:
+/// Contains a src directory and a Makefile file
 impl LanguagePlugin for MakePlugin {
     const PLUGIN_NAME: &'static str = "make";
     const LINE_COMMENT: &'static str = "//";
@@ -279,35 +281,48 @@ impl LanguagePlugin for MakePlugin {
         Ok(run_result)
     }
 
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for src
-            let file = zip_archive.by_index(i)?;
-            let file_path = PathBuf::from(file.name());
-            drop(file);
+        let mut iter = archive.iter()?;
 
-            // todo: do in one pass somehow
-            if file_path.components().any(|c| c.as_os_str() == "src") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "src")
-                    .collect();
+        let mut makefile_parents = vec![];
+        let mut src_parents = vec![];
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                let file_path = file.path()?;
 
-                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                    continue;
-                }
-                // found src not in __MACOSX, check for Makefile
-                if let Some(makefile_path) = path.join("Makefile").to_str() {
-                    if zip_archive.by_name(makefile_path).is_ok() {
-                        return Ok(path);
+                if file.is_file() {
+                    // check for Makefile
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "Makefile") {
+                        if src_parents.contains(&parent) {
+                            return Ok(Break(Some(parent)));
+                        } else {
+                            makefile_parents.push(parent);
+                        }
+                    }
+                } else if file.is_dir() {
+                    // check for src
+                    if let Some(parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                        if makefile_parents.contains(&parent) {
+                            return Ok(Break(Some(parent)));
+                        } else {
+                            src_parents.push(parent);
+                        }
                     }
                 }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
             }
+        };
+        if let Some(project_dir) = project_dir {
+            Ok(project_dir)
+        } else {
+            Err(TmcError::NoProjectDirInArchive)
         }
-        Err(TmcError::NoProjectDirInZip)
     }
 
     /// Checks if the directory has a src dir and a Makefile file in it.
@@ -387,7 +402,6 @@ impl LanguagePlugin for MakePlugin {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use zip::ZipArchive;
 
     fn init() {
         use log::*;
@@ -585,8 +599,8 @@ test [invalid] point6
         file_to(&temp_dir, "Outer/Inner/make_project/Makefile", "");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = MakePlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MakePlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/make_project"));
     }
 
@@ -599,8 +613,8 @@ test [invalid] point6
         file_to(&temp_dir, "Outer/Inner/make_project/Makefil", "");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = MakePlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = MakePlugin::find_project_dir_in_archive(&mut zip);
         assert!(dir.is_err());
     }
 

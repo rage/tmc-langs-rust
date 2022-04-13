@@ -162,7 +162,7 @@ fn find_project_dir<R: Read + Seek>(zip_archive: &mut ZipArchive<R>) -> Result<P
     if let Some(lowest_ipynb_dir) = lowest_ipynb_dir {
         Ok(lowest_ipynb_dir)
     } else {
-        Err(TmcError::NoProjectDirInZip)
+        Err(TmcError::NoProjectDirInArchive)
     }
 }
 

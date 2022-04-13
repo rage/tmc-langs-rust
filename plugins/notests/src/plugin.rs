@@ -4,15 +4,16 @@ use crate::NoTestsStudentFilePolicy;
 use std::{
     collections::HashMap,
     io::{Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{self, error::VerboseError, IResult},
-    ExerciseDesc, LanguagePlugin, RunResult, RunStatus, StudentFilePolicy, TestDesc, TestResult,
-    TmcError,
+    Archive, ExerciseDesc, LanguagePlugin, RunResult, RunStatus, StudentFilePolicy, TestDesc,
+    TestResult, TmcError, TmcProjectYml,
 };
-use zip::ZipArchive;
+use tmc_langs_util::{deserialize, path_util};
 
 #[derive(Default)]
 pub struct NoTestsPlugin {}
@@ -33,6 +34,8 @@ impl NoTestsPlugin {
     }
 }
 
+/// Project directory:
+/// Contains a .tmcproject.yml file that has `no-tests` set to `true`.
 impl LanguagePlugin for NoTestsPlugin {
     const PLUGIN_NAME: &'static str = "No-Tests";
     const LINE_COMMENT: &'static str = "//";
@@ -68,7 +71,6 @@ impl LanguagePlugin for NoTestsPlugin {
         })
     }
 
-    /// Checks the no-tests field of in path/.tmcproject.yml, if any.
     fn is_exercise_type_correct(path: &Path) -> bool {
         Self::StudentFilePolicy::new(path)
             .ok()
@@ -79,10 +81,42 @@ impl LanguagePlugin for NoTestsPlugin {
             .unwrap_or(false)
     }
 
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        _zip_archive: &mut ZipArchive<R>,
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
-        Ok(PathBuf::from(""))
+        let mut iter = archive.iter()?;
+
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                if file.is_file() {
+                    // check for .tmcproject.yml
+                    if let Some(parent) = path_util::get_parent_of(&file_path, ".tmcproject.yml") {
+                        let tmc_project_yml: TmcProjectYml = deserialize::yaml_from_reader(file)
+                            .map_err(|e| TmcError::YamlDeserialize(file_path, e))?;
+                        // check no-tests
+                        if tmc_project_yml
+                            .no_tests
+                            .map(|nt| nt.flag)
+                            .unwrap_or_default()
+                        {
+                            return Ok(Break(Some(parent)));
+                        }
+                    }
+                }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
+            }
+        };
+        if let Some(project_dir) = project_dir {
+            Ok(project_dir)
+        } else {
+            Err(TmcError::NoProjectDirInArchive)
+        }
     }
 
     fn clean(&self, _path: &Path) -> Result<(), TmcError> {

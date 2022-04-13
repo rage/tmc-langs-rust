@@ -12,6 +12,12 @@ pub enum TmcError {
     ZipRead(PathBuf, #[source] std::io::Error),
     #[error("Failed to write file at {0} to zip archive")]
     ZipWrite(PathBuf, #[source] std::io::Error),
+    #[error("Invalid name {0} in zip")]
+    ZipName(String),
+    #[error("Failed to read tar archive")]
+    TarRead(#[source] std::io::Error),
+    #[error("Failed to read zstd archive")]
+    ZstdRead(#[source] std::io::Error),
 
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
@@ -22,8 +28,8 @@ pub enum TmcError {
     #[error("Error while parsing available points from {0}")]
     PointParse(PathBuf, #[source] VerboseError<String>),
 
-    #[error("No project directory found in archive during unzip")]
-    NoProjectDirInZip,
+    #[error("No project directory found in archive")]
+    NoProjectDirInArchive,
     #[error("Found project dir in zip, but its path contained invalid UTF-8: {0}")]
     ProjectDirInvalidUtf8(PathBuf),
     #[error("Failed to deserialize YAML from file at {0}")]

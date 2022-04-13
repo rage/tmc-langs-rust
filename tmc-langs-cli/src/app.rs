@@ -170,7 +170,7 @@ pub enum Command {
         output_path: PathBuf,
         /// If given, the tests will be copied from this stub instead, effectively ignoring hidden tests.
         // alias for backwards compatibility
-        #[clap(long, alias = "stub_zip_path")]
+        #[clap(long, alias = "stub-zip-path")]
         stub_archive_path: Option<PathBuf>,
         /// Compression algorithm used for the stub archive.
         #[clap(long, default_value_t = Compression::Zip)]
@@ -698,7 +698,7 @@ mod base_test {
     #[test]
     fn prepare_solutions() {
         get_matches(&[
-            "prepare-solutions",
+            "prepare-solution",
             "--exercise-path",
             "path",
             "--output-path",
@@ -709,7 +709,7 @@ mod base_test {
     #[test]
     fn prepare_stubs() {
         get_matches(&[
-            "prepare-stubs",
+            "prepare-stub",
             "--exercise-path",
             "path",
             "--output-path",

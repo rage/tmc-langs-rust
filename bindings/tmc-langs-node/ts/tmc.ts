@@ -1,5 +1,5 @@
 import tmc, { Token } from "./functions";
-import types from "./generated";
+import types, { Compression } from "./generated";
 
 export { types, Token };
 
@@ -38,8 +38,8 @@ export class Tmc {
     return tmc.clean(exercisePath);
   }
 
-  compressProject(exercisePath: string, outputPath: string): void {
-    return tmc.compressProject(exercisePath, outputPath);
+  compressProject(exercisePath: string, outputPath: string, compression: Compression): void {
+    return tmc.compressProject(exercisePath, outputPath, compression);
   }
 
   extractProject(archivePath: string, outputPath: string): void {

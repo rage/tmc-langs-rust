@@ -5,15 +5,15 @@ use std::{
     collections::HashMap,
     fs,
     io::{Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{branch, bytes, character, error::VerboseError, sequence, IResult},
-    ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
+    Archive, ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
 };
-use tmc_langs_util::{deserialize, file_util, parse_util};
-use zip::ZipArchive;
+use tmc_langs_util::{deserialize, file_util, parse_util, path_util};
 
 #[derive(Default)]
 pub struct RPlugin {}
@@ -24,6 +24,8 @@ impl RPlugin {
     }
 }
 
+/// Project directory:
+/// Contains an R directory.
 impl LanguagePlugin for RPlugin {
     const PLUGIN_NAME: &'static str = "r";
     const LINE_COMMENT: &'static str = "#";
@@ -115,31 +117,29 @@ impl LanguagePlugin for RPlugin {
         path.join("R").exists() || path.join("tests/testthat").exists()
     }
 
-    /// Finds an R directory.
-    /// Ignores everything in a __MACOSX directory.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for R
-            let file = zip_archive.by_index(i)?;
-            let file_path = Path::new(file.name());
+        let mut iter = archive.iter()?;
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                let file_path = file.path()?;
 
-            // todo: do in one pass somehow
-            if file_path.components().any(|c| c.as_os_str() == "R") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "R")
-                    .collect();
-
-                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                    continue;
+                if let Some(parent) = path_util::get_parent_of_dir(&file_path, "R") {
+                    return Ok(Break(Some(parent)));
                 }
-                return Ok(path);
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
             }
+        };
+
+        match project_dir {
+            Some(project_dir) => Ok(project_dir),
+            None => Err(TmcError::NoProjectDirInArchive),
         }
-        Err(TmcError::NoProjectDirInZip)
     }
 
     /// No operation for now. To be possibly implemented later: remove .Rdata, .Rhistory etc
@@ -431,8 +431,8 @@ test("sample", c("r1.1"), {
         file_to(&temp_dir, "Outer/Inner/r_project/R/main.R", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = RPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = RPlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/r_project"));
     }
 
@@ -444,8 +444,8 @@ test("sample", c("r1.1"), {
         file_to(&temp_dir, "Outer/Inner/r_project/RR/main.R", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let res = RPlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let res = RPlugin::find_project_dir_in_archive(&mut zip);
         assert!(res.is_err());
     }
 

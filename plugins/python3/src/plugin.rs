@@ -12,21 +12,21 @@ use std::{
     env,
     ffi::OsStr,
     io::{BufReader, Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
-    TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
+    TestResult, TmcCommand, TmcError, TmcProjectYml,
 };
 use tmc_langs_util::{
     deserialize, file_util,
     notification_reporter::{self, Notification},
-    parse_util,
+    parse_util, path_util,
 };
 use walkdir::WalkDir;
-use zip::ZipArchive;
 
 pub struct Python3Plugin {}
 
@@ -219,6 +219,10 @@ impl Python3Plugin {
     }
 }
 
+/// Project directory:
+/// Contains setup.py, requirements.txt, test/__init__.py, or tmc/__main__.py
+/// OR
+/// Contains an .ipynb file. This is given lower priority than the prior rule, and if there are multiple .ipynb files, the shallowest directory is returned.
 impl LanguagePlugin for Python3Plugin {
     const PLUGIN_NAME: &'static str = "python3";
     const LINE_COMMENT: &'static str = "#";
@@ -355,61 +359,78 @@ impl LanguagePlugin for Python3Plugin {
         }
     }
 
-    /// Searches the zip for a valid project directory.
-    /// Note that the returned path may not actually have an entry in the zip.
-    /// Searches for either a src directory, or the most shallow directory containing an .ipynb file.
-    /// Ignores everything in a __MACOSX directory.
-    fn find_project_dir_in_zip<R: Read + Seek>(
-        zip_archive: &mut ZipArchive<R>,
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
+        let mut iter = archive.iter()?;
         let mut shallowest_ipynb_path: Option<PathBuf> = None;
 
-        for i in 0..zip_archive.len() {
-            // zips don't necessarily contain entries for intermediate directories,
-            // so we need to check every path for src
-            let file = zip_archive.by_index(i)?;
-            let file_path = Path::new(file.name());
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                // zips don't necessarily contain entries for intermediate directories,
+                // so we need to check every path for src
+                let file_path = file.path()?;
 
-            // todo: do in one pass somehow
-            if file_path.components().any(|c| c.as_os_str() == "src") {
-                let path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != "src")
-                    .collect();
-
-                if path.components().any(|p| p.as_os_str() == "__MACOSX") {
-                    continue;
-                }
-                return Ok(path);
-            }
-            if file_path.extension() == Some(OsStr::new("ipynb")) {
-                if let Some(ipynb_path) = shallowest_ipynb_path.as_mut() {
-                    // make sure we maintain the shallowest ipynb path in the archive
-                    if ipynb_path.components().count() > file_path.components().count() {
-                        *ipynb_path = file_path
-                            .parent()
-                            .map(PathBuf::from)
-                            .unwrap_or_else(|| PathBuf::from(""));
+                if file.is_file() {
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "setup.py") {
+                        return Ok(Break(Some(parent)));
                     }
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "requirements.txt") {
+                        return Ok(Break(Some(parent)));
+                    }
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "__init__.py") {
+                        if let Some(parent) = path_util::get_parent_of(&parent, "test") {
+                            return Ok(Break(Some(parent)));
+                        }
+                    }
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "__main__.py") {
+                        if let Some(parent) = path_util::get_parent_of(&parent, "tmc") {
+                            return Ok(Break(Some(parent)));
+                        }
+                    }
+                    // check for .ipynb file, ignore __MACOSX
+                    if file_path.extension() == Some(OsStr::new("ipynb"))
+                        && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
+                    {
+                        if let Some(ipynb_path) = shallowest_ipynb_path.as_mut() {
+                            // make sure we maintain the shallowest ipynb path in the archive
+                            if ipynb_path.components().count() > file_path.components().count() {
+                                *ipynb_path = file_path
+                                    .parent()
+                                    .map(PathBuf::from)
+                                    .unwrap_or_else(|| PathBuf::from(""));
+                            }
+                        } else {
+                            shallowest_ipynb_path = Some(
+                                file_path
+                                    .parent()
+                                    .map(PathBuf::from)
+                                    .unwrap_or_else(|| PathBuf::from("")),
+                            );
+                        }
+                    }
+                }
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
+            }
+        };
+
+        match project_dir {
+            Some(project_dir) => Ok(project_dir),
+            None => {
+                // no src found, use shallowest ipynb path if any
+                if let Some(ipynb_path) = shallowest_ipynb_path {
+                    Ok(ipynb_path)
                 } else {
-                    shallowest_ipynb_path = Some(
-                        file_path
-                            .parent()
-                            .map(PathBuf::from)
-                            .unwrap_or_else(|| PathBuf::from("")),
-                    );
+                    Err(TmcError::NoProjectDirInArchive)
                 }
             }
-        }
-        if let Some(ipynb_path) = shallowest_ipynb_path {
-            // no src found, use shallowest ipynb path
-            Ok(ipynb_path)
-        } else {
-            Err(TmcError::NoProjectDirInZip)
         }
     }
 
-    /// Checks if the directory has one of setup.py, requirements.txt., test/__init__.py, or tmc/__main__.py
     fn is_exercise_type_correct(path: &Path) -> bool {
         let setup = path.join("setup.py");
         let requirements = path.join("requirements.txt");
@@ -483,7 +504,6 @@ mod test {
         path::{Path, PathBuf},
     };
     use tmc_langs_framework::{LanguagePlugin, RunStatus};
-    use zip::ZipArchive;
 
     fn init() {
         use log::*;
@@ -813,11 +833,11 @@ class TestErroring(unittest.TestCase):
         init();
 
         let temp_dir = tempfile::tempdir().unwrap();
-        file_to(&temp_dir, "Outer/Inner/project/src/main.py", "");
+        file_to(&temp_dir, "Outer/Inner/project/setup.py", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = Python3Plugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/project"));
     }
 
@@ -829,8 +849,8 @@ class TestErroring(unittest.TestCase):
         file_to(&temp_dir, "Outer/Inner/project/srcb/main.py", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let res = Python3Plugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let res = Python3Plugin::find_project_dir_in_archive(&mut zip);
         assert!(res.is_err());
     }
 
@@ -843,8 +863,8 @@ class TestErroring(unittest.TestCase):
         file_to(&temp_dir, "file.ipynb", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = Python3Plugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new(""));
 
         let temp_dir = tempfile::tempdir().unwrap();
@@ -852,8 +872,8 @@ class TestErroring(unittest.TestCase):
         file_to(&temp_dir, "dir/file.ipynb", "");
 
         let bytes = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        let dir = Python3Plugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("dir"));
     }
 

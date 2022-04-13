@@ -4,13 +4,15 @@ use crate::{data::TmcParams, error::LangsError, Compression};
 use once_cell::sync::Lazy;
 use std::{
     io::{Cursor, Write},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     sync::Mutex,
 };
+use tmc_langs_framework::Archive;
 use tmc_langs_plugins::Plugin;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
-use zip::{write::FileOptions, ZipArchive, ZipWriter};
+use zip::{write::FileOptions, ZipWriter};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -228,26 +230,27 @@ fn unzip_with_filter<F: Fn(&Path) -> bool>(
     dest: &Path,
 ) -> Result<(), LangsError> {
     let file = file_util::open_file(zip_path)?;
-    let mut zip = ZipArchive::new(file)?;
-    let project_dir_in_stub = plugin.find_project_dir_in_zip(&mut zip)?;
-    for i in 0..zip.len() {
-        let mut file = zip.by_index(i)?;
-        if file.is_file() {
-            if let Ok(path) = file
-                .enclosed_name()
-                .ok_or_else(|| LangsError::InvalidZipPath {
-                    zip_path: zip_path.to_path_buf(),
-                    file_path: file.name().to_string(),
-                })?
-                .strip_prefix(&project_dir_in_stub)
-            {
-                if exclude_filter(path) {
-                    // path component on ignore list
-                    continue;
-                };
-                let target = dest.join(path);
-                file_util::read_to_file(&mut file, &target)?;
+    let mut zip = Archive::zip(file)?;
+    let project_dir_in_stub = plugin.find_project_dir_in_archive(&mut zip)?;
+
+    let mut iter = zip.iter()?;
+    loop {
+        let next = iter.with_next::<(), _>(|mut file| {
+            if file.is_file() {
+                if let Ok(path) = file.path()?.strip_prefix(&project_dir_in_stub) {
+                    if exclude_filter(path) {
+                        // path component on ignore list
+                        return Ok(Continue(()));
+                    };
+                    let target = dest.join(path);
+                    file_util::read_to_file(&mut file, &target)?;
+                }
             }
+            Ok(Continue(()))
+        });
+        match next? {
+            Continue(_) => continue,
+            Break(_) => break,
         }
     }
     Ok(())

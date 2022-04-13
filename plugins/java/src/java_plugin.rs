@@ -286,9 +286,11 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
+    use std::io::{Read, Seek};
+
     use super::*;
     use crate::SEPARATOR;
-    use tmc_langs_framework::{nom, TmcError};
+    use tmc_langs_framework::{nom, Archive, TmcError};
 
     fn init() {
         use log::*;
@@ -345,6 +347,12 @@ mod test {
             _path: &Path,
             _timeout: Option<Duration>,
         ) -> Result<RunResult, TmcError> {
+            unimplemented!()
+        }
+
+        fn find_project_dir_in_archive<R: Read + Seek>(
+            _archive: &mut Archive<R>,
+        ) -> Result<PathBuf, TmcError> {
             unimplemented!()
         }
 

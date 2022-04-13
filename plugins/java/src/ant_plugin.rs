@@ -8,14 +8,17 @@ use j4rs::Jvm;
 use std::{
     env,
     ffi::OsStr,
+    io::{Read, Seek},
+    ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
     nom::{error::VerboseError, IResult},
-    ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
+    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
+    TmcError,
 };
-use tmc_langs_util::file_util;
+use tmc_langs_util::{file_util, path_util};
 use walkdir::WalkDir;
 
 pub struct AntPlugin {
@@ -62,6 +65,10 @@ impl AntPlugin {
     }
 }
 
+/// Project directory:
+/// Contains build.xml file.
+/// OR
+/// Contains src and test directories.
 impl LanguagePlugin for AntPlugin {
     const PLUGIN_NAME: &'static str = "apache-ant";
     const LINE_COMMENT: &'static str = "//";
@@ -92,6 +99,57 @@ impl LanguagePlugin for AntPlugin {
         timeout: Option<Duration>,
     ) -> Result<RunResult, TmcError> {
         Ok(self.run_java_tests(project_root_path, timeout)?)
+    }
+
+    fn find_project_dir_in_archive<R: Read + Seek>(
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        let mut iter = archive.iter()?;
+        let mut src_parents = vec![];
+        let mut test_parents = vec![];
+        let project_dir = loop {
+            let next = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                if file.is_file() {
+                    // check for build.xml
+                    if let Some(parent) = path_util::get_parent_of(&file_path, "build.xml") {
+                        return Ok(Break(Some(parent)));
+                    }
+                } else if file.is_dir() {
+                    // check for src
+                    if let Some(src_parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                        if test_parents.contains(&src_parent) {
+                            // found a test in the same directory before, return
+                            return Ok(Break(Some(src_parent)));
+                        } else {
+                            src_parents.push(src_parent)
+                        }
+                    }
+
+                    // check for test
+                    if let Some(test_parent) = path_util::get_parent_of_dir(&file_path, "test") {
+                        if src_parents.contains(&test_parent) {
+                            // found a test in the same directory before, return
+                            return Ok(Break(Some(test_parent)));
+                        } else {
+                            test_parents.push(test_parent)
+                        }
+                    }
+                }
+
+                Ok(Continue(()))
+            });
+            match next? {
+                Continue(_) => continue,
+                Break(project_dir) => break project_dir,
+            }
+        };
+
+        match project_dir {
+            Some(project_dir) => Ok(project_dir),
+            None => Err(TmcError::NoProjectDirInArchive),
+        }
     }
 
     /// Checks if the directory contains a build.xml file, or a src and a test directory.
@@ -273,9 +331,8 @@ impl JavaPlugin for AntPlugin {
 mod test {
     use super::*;
     use std::fs;
-    use tmc_langs_framework::StyleValidationStrategy;
+    use tmc_langs_framework::{Archive, StyleValidationStrategy};
     use tmc_langs_util::deserialize;
-    use zip::ZipArchive;
 
     fn init() {
         use log::*;
@@ -601,10 +658,24 @@ mod test {
 
         let temp_dir = tempfile::tempdir().unwrap();
         dir_to(&temp_dir, "Outer/Inner/ant-exercise/src");
+        dir_to(&temp_dir, "Outer/Inner/ant-exercise/test");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = AntPlugin::find_project_dir_in_zip(&mut zip).unwrap();
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = AntPlugin::find_project_dir_in_archive(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("Outer/Inner/ant-exercise"));
+    }
+
+    #[test]
+    fn finds_project_dir_in_zip_build() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "Outer/Inner/ant-exercise/build.xml", "build!");
+
+        let zip_contents = dir_to_zip(&temp_dir);
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = AntPlugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("Outer/Inner/ant-exercise"));
     }
 
@@ -616,8 +687,8 @@ mod test {
         dir_to(&temp_dir, "Outer/Inner/ant-exercise/srcb");
 
         let zip_contents = dir_to_zip(&temp_dir);
-        let mut zip = ZipArchive::new(std::io::Cursor::new(zip_contents)).unwrap();
-        let dir = AntPlugin::find_project_dir_in_zip(&mut zip);
+        let mut zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
+        let dir = AntPlugin::find_project_dir_in_archive(&mut zip);
         assert!(dir.is_err());
     }
 }

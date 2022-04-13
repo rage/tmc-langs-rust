@@ -2,6 +2,7 @@
 
 //! Contains functionality for dealing with projects.
 
+mod archive;
 mod command;
 mod domain;
 mod error;
@@ -11,6 +12,7 @@ mod policy;
 mod tmc_project_yml;
 
 pub use self::{
+    archive::{Archive, Compression},
     command::{ExitStatus, Output, TmcCommand},
     domain::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
@@ -23,42 +25,3 @@ pub use self::{
     tmc_project_yml::{PythonVer, TmcProjectYml},
 };
 pub use nom;
-use serde::Deserialize;
-use std::{fmt::Display, str::FromStr};
-use ts_rs::TS;
-
-/// Supported compression methods.
-#[derive(Debug, Clone, Copy, Deserialize)]
-#[cfg_attr(feature = "ts", derive(TS))]
-pub enum Compression {
-    /// .tar
-    Tar,
-    /// .zip
-    Zip,
-    /// .tar.ztd
-    TarZstd,
-}
-
-impl Display for Compression {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Tar => write!(f, "tar"),
-            Self::Zip => write!(f, "zip"),
-            Self::TarZstd => write!(f, "zstd"),
-        }
-    }
-}
-
-impl FromStr for Compression {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let format = match s {
-            "tar" => Compression::Tar,
-            "zip" => Compression::Zip,
-            "zstd" => Compression::TarZstd,
-            _ => return Err("invalid format"),
-        };
-        Ok(format)
-    }
-}
