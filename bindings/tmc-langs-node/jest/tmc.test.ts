@@ -138,7 +138,7 @@ test("compresses project", async () => {
 
   const dir = await mockExercise();
   expect(fs.existsSync([dir, "output.zip"].join("/"))).toBeFalsy();
-  tmc.compressProject(dir, [dir, "output.zip"].join("/"), "zip");
+  tmc.compressProject(dir, [dir, "output.zip"].join("/"), "zip", false);
   expect(fs.existsSync([dir, "output.zip"].join("/"))).toBeTruthy();
 });
 

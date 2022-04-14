@@ -16,8 +16,12 @@ pub enum TmcError {
     ZipName(String),
     #[error("Failed to read tar archive")]
     TarRead(#[source] std::io::Error),
+    #[error("Failed to write tar archive")]
+    TarWrite(#[source] std::io::Error),
     #[error("Failed to read zstd archive")]
     ZstdRead(#[source] std::io::Error),
+    #[error("Failed to write zstd archive")]
+    ZstdWrite(#[source] std::io::Error),
 
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),

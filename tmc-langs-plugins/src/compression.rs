@@ -1,21 +1,23 @@
 //! Contains functions for zipping and unzipping projects.
 
+use crate::archive::ArchiveBuilder;
 use std::{
-    io::{Cursor, Read, Seek, Write},
+    io::{Cursor, Read, Seek},
     path::{Path, PathBuf},
 };
-use tmc_langs_framework::{StudentFilePolicy, TmcError};
+use tmc_langs_framework::{Compression, StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 pub use zip::result::ZipError;
-use zip::{write::FileOptions, ZipArchive, ZipWriter};
+use zip::ZipArchive;
 
 /// Zips the given directory, only including student files according to the given policy.
-pub fn zip_student_files<P: StudentFilePolicy>(
+pub fn compress_student_files<P: StudentFilePolicy>(
     policy: P,
     root_directory: &Path,
+    compression: Compression,
 ) -> Result<Vec<u8>, TmcError> {
-    let mut writer = ZipWriter::new(Cursor::new(vec![]));
+    let mut writer = ArchiveBuilder::new(Cursor::new(vec![]), compression);
 
     for entry in WalkDir::new(root_directory)
         .into_iter()
@@ -34,21 +36,9 @@ pub fn zip_student_files<P: StudentFilePolicy>(
                 })
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
-                log::trace!("adding directory {}", path.display());
-                writer.add_directory(
-                    path_to_zip_compatible_string(path),
-                    FileOptions::default().unix_permissions(0o755),
-                )?;
+                writer.add_directory(&path_to_zip_compatible_string(path))?;
             } else {
-                let bytes = file_util::read_file(entry.path())?;
-                log::trace!("writing file {}", path.display());
-                writer.start_file(
-                    path_to_zip_compatible_string(path),
-                    FileOptions::default().unix_permissions(0o755),
-                )?;
-                writer
-                    .write_all(&bytes)
-                    .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
+                writer.add_file(entry.path(), &path_to_zip_compatible_string(path))?;
             }
         }
     }
@@ -222,8 +212,12 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped =
-            zip_student_files(EverythingIsStudentFilePolicy::new(&path).unwrap(), &path).unwrap();
+        let zipped = compress_student_files(
+            EverythingIsStudentFilePolicy::new(&path).unwrap(),
+            &path,
+            Compression::Zip,
+        )
+        .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         assert!(!archive.is_empty());
         for i in 0..archive.len() {

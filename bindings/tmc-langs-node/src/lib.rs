@@ -100,11 +100,12 @@ fn compress_project(mut cx: FunctionContext) -> JsResult<JsValue> {
         cx,
         exercise_path: PathBuf,
         output_path: PathBuf,
-        compression: Compression
+        compression: Compression,
+        naive: bool
     );
     lock!(cx, exercise_path);
 
-    let res = tmc_langs::compress_project_to(&exercise_path, &output_path, compression);
+    let res = tmc_langs::compress_project_to(&exercise_path, &output_path, compression, naive);
     convert_res(&mut cx, res)
 }
 

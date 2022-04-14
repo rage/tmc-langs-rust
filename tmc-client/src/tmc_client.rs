@@ -19,7 +19,7 @@ use std::{
     time::Duration,
     u32,
 };
-use tmc_langs_plugins::Language;
+use tmc_langs_plugins::{Compression, Language};
 use tmc_langs_util::progress_reporter;
 #[cfg(feature = "ts")]
 use ts_rs::TS;
@@ -265,7 +265,7 @@ impl TmcClient {
 
         // compress
         start_stage(2, "Compressing paste submission...", None);
-        let compressed = tmc_langs_plugins::compress_project_to_zip(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path, Compression::Zip)?;
         progress_stage(
             "Compressed paste submission. Posting paste submission...",
             None,
@@ -333,7 +333,7 @@ impl TmcClient {
         self.require_authentication()?;
 
         start_stage(2, "Compressing submission...", None);
-        let compressed = tmc_langs_plugins::compress_project_to_zip(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path, Compression::Zip)?;
         progress_stage("Compressed submission. Posting submission...", None);
 
         let result = api_v8::core::submit_exercise(
@@ -556,7 +556,7 @@ impl TmcClient {
     ) -> Result<NewSubmission, ClientError> {
         self.require_authentication()?;
 
-        let compressed = tmc_langs_plugins::compress_project_to_zip(submission_path)?;
+        let compressed = tmc_langs_plugins::compress_project(submission_path, Compression::Zip)?;
         let review = if let Some(message) = message_for_reviewer {
             ReviewData::WithMessage(message)
         } else {

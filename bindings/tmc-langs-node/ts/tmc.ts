@@ -38,8 +38,8 @@ export class Tmc {
     return tmc.clean(exercisePath);
   }
 
-  compressProject(exercisePath: string, outputPath: string, compression: Compression): void {
-    return tmc.compressProject(exercisePath, outputPath, compression);
+  compressProject(exercisePath: string, outputPath: string, compression: Compression, naive: boolean): void {
+    return tmc.compressProject(exercisePath, outputPath, compression, naive);
   }
 
   extractProject(archivePath: string, outputPath: string): void {

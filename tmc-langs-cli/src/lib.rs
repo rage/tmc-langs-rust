@@ -221,7 +221,7 @@ fn run_app(matches: Opt) -> Result<()> {
             naive,
         } => {
             file_util::lock!(exercise_path);
-            tmc_langs::compress_project_to(&exercise_path, &output_path, compression)?;
+            tmc_langs::compress_project_to(&exercise_path, &output_path, compression, naive)?;
             OutputKind::finished(format!(
                 "compressed project from {} to {}",
                 exercise_path.display(),

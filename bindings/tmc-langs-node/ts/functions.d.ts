@@ -14,7 +14,7 @@ export function checkstyle(
   locale: string
 ): types.StyleValidationResult | null;
 export function clean(exercisePath: string): void;
-export function compressProject(exercisePath: string, outputPath: string, compression: Compression): void;
+export function compressProject(exercisePath: string, outputPath: string, compression: Compression, naive: boolean): void;
 export function extractProject(archivePath: string, outputPath: string): void;
 export function fastAvailablePoints(exercisePath: string): Array<string>;
 export function findExercises(exercisePath: string): Array<string>;

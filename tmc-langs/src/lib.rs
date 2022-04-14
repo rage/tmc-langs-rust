@@ -57,7 +57,7 @@ pub use tmc_langs_framework::{
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
-use tmc_langs_plugins::{get_language_plugin, tmc_zip, AntPlugin, PluginType};
+use tmc_langs_plugins::{compression, get_language_plugin, AntPlugin, PluginType};
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
@@ -742,6 +742,7 @@ pub fn compress_project_to(
     source: &Path,
     target: &Path,
     compression: Compression,
+    naive: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
         "compressing {} to {} ({})",
@@ -750,7 +751,7 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project_to_zip(source)?;
+    let data = tmc_langs_plugins::compress_project(source, compression)?;
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;
     }
@@ -980,7 +981,7 @@ fn extract_project_overwrite(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), LangsError> {
-    tmc_zip::unzip(compressed_project, target_location)?;
+    compression::unzip(compressed_project, target_location)?;
     Ok(())
 }
 

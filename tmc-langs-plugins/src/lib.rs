@@ -1,7 +1,8 @@
 #![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
+pub mod archive;
+pub mod compression;
 mod error;
-pub mod tmc_zip;
 
 pub use error::PluginError;
 use std::{
@@ -9,10 +10,11 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_csharp::CSharpPlugin;
-use tmc_langs_framework::{Archive, Compression, LanguagePlugin, TmcError, TmcProjectYml};
+use tmc_langs_framework::{Archive, LanguagePlugin, TmcError, TmcProjectYml};
 pub use tmc_langs_framework::{
-    ExerciseDesc, ExercisePackagingConfiguration, Language, NothingIsStudentFilePolicy, RunResult,
-    StudentFilePolicy, StyleValidationResult, StyleValidationStrategy,
+    Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
+    NothingIsStudentFilePolicy, RunResult, StudentFilePolicy, StyleValidationResult,
+    StyleValidationStrategy,
 };
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
 pub use tmc_langs_make::MakePlugin;
@@ -45,49 +47,48 @@ pub fn extract_project_overwrite(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
 ) -> Result<(), PluginError> {
-    tmc_zip::unzip(compressed_project, target_location)?;
+    compression::unzip(compressed_project, target_location)?;
     Ok(())
-}
-
-pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>, PluginError> {
-    match compression {
-        Compression::Zip => compress_project_to_zip(path),
-        Compression::Tar => todo!(),
-        Compression::TarZstd => todo!(),
-    }
 }
 
 /// See `LanguagePlugin::compress_project`.
 // TODO: clean up
-pub fn compress_project_to_zip(path: &Path) -> Result<Vec<u8>, PluginError> {
+pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>, PluginError> {
     match get_language_plugin_type(path) {
-        Some(PluginType::CSharp) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::CSharp) => Ok(compression::compress_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::Make) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Make) => Ok(compression::compress_student_files(
             <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::Maven) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Maven) => Ok(compression::compress_student_files(
             <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::NoTests) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::NoTests) => Ok(compression::compress_student_files(
             <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::Python3) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Python3) => Ok(compression::compress_student_files(
             <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::R) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::R) => Ok(compression::compress_student_files(
             <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
-        Some(PluginType::Ant) => Ok(tmc_zip::zip_student_files(
+        Some(PluginType::Ant) => Ok(compression::compress_student_files(
             <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
             path,
+            compression,
         )?),
         None => Err(PluginError::PluginNotFound(path.to_path_buf())),
     }
