@@ -7,7 +7,7 @@ use crate::{
     },
     error::TmcError,
     policy::StudentFilePolicy,
-    Archive, TmcProjectYml,
+    Archive, Compression, TmcProjectYml,
 };
 pub use isolang::Language;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
@@ -99,14 +99,15 @@ pub trait LanguagePlugin {
     fn extract_project(
         compressed_project: impl std::io::Read + std::io::Seek,
         target_location: &Path,
+        compression: Compression,
         clean: bool,
     ) -> Result<(), TmcError> {
         log::debug!("Unzipping to {}", target_location.display());
 
-        let mut zip_archive = Archive::zip(compressed_project)?;
+        let mut archive = Archive::new(compressed_project, compression)?;
 
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_archive(&mut zip_archive)?;
+        let project_dir = Self::find_project_dir_in_archive(&mut archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
         // extract config file if any
@@ -114,7 +115,7 @@ pub trait LanguagePlugin {
         let tmc_project_yml_path_s = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = zip_archive.by_path(tmc_project_yml_path_s) {
+        if let Ok(mut file) = archive.by_path(tmc_project_yml_path_s) {
             let target_path = target_location.join(".tmcproject.yml");
             file_util::read_to_file(&mut file, target_path)?;
         }
@@ -123,7 +124,7 @@ pub trait LanguagePlugin {
         // used to clean non-student files not in the zip later
         let mut files_from_zip = HashSet::new();
 
-        let mut iter = zip_archive.iter()?;
+        let mut iter = archive.iter()?;
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 let file_path = file.path()?;
@@ -860,6 +861,7 @@ def f():
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
+            Compression::Zip,
             false,
         )
         .unwrap();
@@ -893,6 +895,7 @@ def f():
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
+            Compression::Zip,
             false,
         )
         .unwrap();
@@ -934,6 +937,7 @@ force_update:
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
+            Compression::Zip,
             false,
         )
         .unwrap();
@@ -970,6 +974,7 @@ force_update:
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
+            Compression::Zip,
             false,
         )
         .unwrap();
@@ -999,6 +1004,7 @@ force_update:
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             &temp.path().join("extracted"),
+            Compression::Zip,
             true,
         )
         .unwrap();

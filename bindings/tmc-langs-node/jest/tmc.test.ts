@@ -147,7 +147,7 @@ test("extracts project", async () => {
 
   const dir = await tempdir();
   expect(fs.existsSync([dir, "setup.py"].join("/"))).toBeFalsy();
-  tmc.extractProject("jest/python-exercise.zip", dir);
+  tmc.extractProject("jest/python-exercise.zip", dir, "zip");
   expect(fs.existsSync([dir, "setup.py"].join("/"))).toBeTruthy();
 });
 

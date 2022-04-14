@@ -18,6 +18,14 @@ pub enum Archive<T: Read + Seek> {
 }
 
 impl<T: Read + Seek> Archive<T> {
+    pub fn new(archive: T, compression: Compression) -> Result<Self, TmcError> {
+        match compression {
+            Compression::Tar => Ok(Self::tar(archive)),
+            Compression::TarZstd => Self::tar_zstd(archive),
+            Compression::Zip => Self::zip(archive),
+        }
+    }
+
     pub fn tar(archive: T) -> Self {
         let archive = tar::Archive::new(archive);
         Self::Tar(archive)

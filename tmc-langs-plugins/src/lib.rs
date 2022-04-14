@@ -27,10 +27,11 @@ pub use tmc_langs_r::RPlugin;
 pub fn extract_project(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
+    compression: Compression,
     clean: bool,
 ) -> Result<(), PluginError> {
     if let Ok(plugin) = get_language_plugin(target_location) {
-        plugin.extract_project(compressed_project, target_location, clean)?;
+        plugin.extract_project(compressed_project, target_location, compression, clean)?;
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",
@@ -98,7 +99,7 @@ pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>
 #[impl_enum::with_methods(
     pub fn clean(&self, path: &Path) -> Result<(), TmcError> {}
     pub fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError> {}
-    pub fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, clean: bool) -> Result<(), TmcError> {}
+    pub fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, compression: Compression, clean: bool) -> Result<(), TmcError> {}
     pub fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path) -> Result<(), TmcError> {}
     pub fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {}
     pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}

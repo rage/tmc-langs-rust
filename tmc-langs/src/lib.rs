@@ -368,12 +368,22 @@ pub fn download_or_update_course_exercises(
                         DownloadTargetKind::Template => {
                             let mut buf = vec![];
                             client.download_exercise(download_target.target.id, &mut buf)?;
-                            extract_project(Cursor::new(buf), &download_target.target.path, false)?;
+                            extract_project(
+                                Cursor::new(buf),
+                                &download_target.target.path,
+                                Compression::Zip,
+                                false,
+                            )?;
                         }
                         DownloadTargetKind::Submission { submission_id } => {
                             let mut buf = vec![];
                             client.download_exercise(download_target.target.id, &mut buf)?;
-                            extract_project(Cursor::new(buf), &download_target.target.path, false)?;
+                            extract_project(
+                                Cursor::new(buf),
+                                &download_target.target.path,
+                                Compression::Zip,
+                                false,
+                            )?;
 
                             let plugin = get_language_plugin(&download_target.target.path)?;
                             let tmc_project_yml =
@@ -639,7 +649,7 @@ pub fn update_exercises(
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
                 client.download_exercise(exercise.id, &mut buf)?;
-                extract_project(Cursor::new(buf), &exercise.path, false)?;
+                extract_project(Cursor::new(buf), &exercise.path, Compression::Zip, false)?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
@@ -779,7 +789,7 @@ pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Resu
     }
     let mut buf = vec![];
     client.download_exercise(exercise_id, &mut buf)?;
-    extract_project(Cursor::new(buf), exercise_path, false)?;
+    extract_project(Cursor::new(buf), exercise_path, Compression::Zip, false)?;
     Ok(())
 }
 
@@ -787,6 +797,7 @@ pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Resu
 pub fn extract_project(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
+    compression: Compression,
     clean: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
@@ -795,7 +806,7 @@ pub fn extract_project(
     );
 
     if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
-        plugin.extract_project(compressed_project, target_location, clean)?;
+        plugin.extract_project(compressed_project, target_location, compression, clean)?;
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",

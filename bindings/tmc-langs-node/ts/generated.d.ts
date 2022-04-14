@@ -8,7 +8,7 @@ export interface ExercisePackagingConfiguration { student_file_paths: Array<stri
 
 export interface LocalExercise { exercise_slug: string, exercise_path: string, }
 
-export type Compression = "Tar" | "Zip" | "TarZstd";
+export type Compression = "tar" | "zip" | "zstd";
 
 export interface RefreshData { new_cache_path: string, course_options: object, exercises: Array<RefreshExercise>, }
 

@@ -42,8 +42,8 @@ export class Tmc {
     return tmc.compressProject(exercisePath, outputPath, compression, naive);
   }
 
-  extractProject(archivePath: string, outputPath: string): void {
-    return tmc.extractProject(archivePath, outputPath);
+  extractProject(archivePath: string, outputPath: string, compression: Compression): void {
+    return tmc.extractProject(archivePath, outputPath, compression);
   }
 
   fastAvailablePoints(exercisePath: string): Array<string> {

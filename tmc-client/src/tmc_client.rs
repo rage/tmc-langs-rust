@@ -586,7 +586,7 @@ impl TmcClient {
 
         let mut buf = vec![];
         api_v8::core::download_exercise_solution(self, exercise_id, &mut buf)?;
-        tmc_langs_plugins::extract_project(Cursor::new(buf), target, false)?;
+        tmc_langs_plugins::extract_project(Cursor::new(buf), target, Compression::Zip, false)?;
         Ok(())
     }
 

@@ -247,7 +247,7 @@ fn run_app(matches: Opt) -> Result<()> {
             let mut data = vec![];
             guard.read_to_end(&mut data)?;
 
-            tmc_langs::extract_project(Cursor::new(data), &output_path, true)?;
+            tmc_langs::extract_project(Cursor::new(data), &output_path, compression, true)?;
 
             OutputKind::finished(format!(
                 "extracted project from {} to {}",

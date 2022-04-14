@@ -110,7 +110,12 @@ fn compress_project(mut cx: FunctionContext) -> JsResult<JsValue> {
 }
 
 fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
-    parse_args!(cx, archive_path: PathBuf, output_path: PathBuf);
+    parse_args!(
+        cx,
+        archive_path: PathBuf,
+        output_path: PathBuf,
+        compression: Compression
+    );
 
     let mut archive =
         file_util::open_file_lock(archive_path).map_err(|e| convert_err(&mut cx, e))?;
@@ -118,7 +123,7 @@ fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
     let mut data = vec![];
     guard.read_to_end(&mut data).expect("failed to read data");
 
-    let res = tmc_langs::extract_project(Cursor::new(data), &output_path, false);
+    let res = tmc_langs::extract_project(Cursor::new(data), &output_path, compression, false);
     convert_res(&mut cx, res)
 }
 
