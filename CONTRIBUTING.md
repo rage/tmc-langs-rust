@@ -1,8 +1,8 @@
 ## Building
 
-Install Rust according to https://www.rust-lang.org/tools/install
+Install Rust according to https://www.rust-lang.org/tools/install.
 
-Install [zstd 1.4.9](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
+Install [zstd 1.5.2](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
 Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
@@ -10,11 +10,11 @@ Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyen
 
 Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
 
-Install [.NET 6.0](https://dotnet.microsoft.com/download)
+Install [.NET 6.0](https://dotnet.microsoft.com/download).
 
-Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15) and [valgrind](https://valgrind.org/)
+Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15) and [valgrind](https://valgrind.org/).
 
-Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`
+Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) with `install.packages("devtools")` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) with `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)`.
 
 ```bash
 git clone git@github.com:rage/tmc-langs-rust.git
