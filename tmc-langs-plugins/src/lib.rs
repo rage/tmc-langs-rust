@@ -97,15 +97,15 @@ pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>
 
 // enum containing all the plugins
 #[impl_enum::with_methods(
-    pub fn clean(&self, path: &Path) -> Result<(), TmcError> {}
-    pub fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError> {}
-    pub fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, compression: Compression, clean: bool) -> Result<(), TmcError> {}
-    pub fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path) -> Result<(), TmcError> {}
-    pub fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {}
-    pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {}
-    pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError> {}
-    pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {}
-    pub fn find_project_dir_in_archive<R: Read + Seek>(archive: &mut Archive<R>) -> Result<PathBuf, TmcError> {}
+    pub fn clean(&self, path: &Path) -> Result<(), TmcError>
+    pub fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError>
+    pub fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, compression: Compression, clean: bool) -> Result<(), TmcError>
+    pub fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path) -> Result<(), TmcError>
+    pub fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>
+    pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError>
+    pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError>
+    pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError>
+    pub fn find_project_dir_in_archive<R: Read + Seek>(archive: &mut Archive<R>) -> Result<PathBuf, TmcError>
 )]
 pub enum Plugin {
     CSharp(CSharpPlugin),
