@@ -19,8 +19,8 @@ use tmc_langs_util::{deserialize, file_util, parse_util, path_util, FileError};
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
-const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-1.1.1.zip");
-const TMC_CSHARP_RUNNER_VERSION: &str = "1.1.1";
+const TMC_CSHARP_RUNNER: &[u8] = include_bytes!("../deps/tmc-csharp-runner-2.0.zip");
+const TMC_CSHARP_RUNNER_VERSION: &str = "2.0";
 
 #[derive(Default)]
 pub struct CSharpPlugin {}
