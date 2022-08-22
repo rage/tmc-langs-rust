@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["signed",""],["verified",""]],"struct":[["Signed",""],["Unsigned",""],["Unverified",""],["Verified",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["signed",""],["verified",""]],"struct":[["Signed",""],["Unsigned",""],["Unverified",""],["Verified",""]]};

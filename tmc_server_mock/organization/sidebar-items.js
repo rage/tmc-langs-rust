@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_organization",""],["get_organizations",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["get_organization",""],["get_organizations",""]]};

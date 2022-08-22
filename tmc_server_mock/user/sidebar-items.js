@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get",""],["get_basic_info_by_emails",""],["get_basic_info_by_usernames",""],["get_current",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["get",""],["get_basic_info_by_emails",""],["get_basic_info_by_usernames",""],["get_current",""]]};

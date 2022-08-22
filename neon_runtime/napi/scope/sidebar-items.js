@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["escape",""],["get_global",""]],"trait":[["Root",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["escape",""],["get_global",""]],"trait":[["Root",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PythonError",""]],"struct":[["Python3Plugin",""],["Python3StudentFilePolicy",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["PythonError",""]],"struct":[["Python3Plugin",""],["Python3StudentFilePolicy",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CallError","Error returned when scheduling a threadsafe function with some data"],["ThreadsafeFunction","Threadsafe Function encapsulate a Rust function pointer and N-API threadsafe function for scheduling tasks to execute on a JavaScript thread."]]});
+window.SIDEBAR_ITEMS = {"struct":[["CallError","Error returned when scheduling a threadsafe function with some data"],["ThreadsafeFunction","Threadsafe Function encapsulate a Rust function pointer and N-API threadsafe function for scheduling tasks to execute on a JavaScript thread."]]};

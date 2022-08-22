@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RPlugin",""],["RStudentFilePolicy",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["RPlugin",""],["RStudentFilePolicy",""]]};

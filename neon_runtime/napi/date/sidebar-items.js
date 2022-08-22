@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["new_date","Create a new date object"],["value","Get the value of a date object"]]});
+window.SIDEBAR_ITEMS = {"fn":[["new_date","Create a new date object"],["value","Get the value of a date object"]]};

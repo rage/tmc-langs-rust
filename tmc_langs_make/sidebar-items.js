@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MakeError",""]],"struct":[["MakePlugin",""],["MakeStudentFilePolicy",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["MakeError",""]],"struct":[["MakePlugin",""],["MakeStudentFilePolicy",""]]};

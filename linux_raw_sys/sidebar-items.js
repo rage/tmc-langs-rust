@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ctypes","Platform-specific types, as defined by C."],["errno",""],["general",""],["ioctl",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["ctypes",""],["errno",""],["general",""],["ioctl",""]]};

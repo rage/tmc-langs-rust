@@ -1,104 +1,108 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;zip-0.5.13&#x2F;src&#x2F;types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../zip/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../zip/index.html"><img class="rust-logo" src="../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
-<span id="2">  2</span>
-<span id="3">  3</span>
-<span id="4">  4</span>
-<span id="5">  5</span>
-<span id="6">  6</span>
-<span id="7">  7</span>
-<span id="8">  8</span>
-<span id="9">  9</span>
-<span id="10"> 10</span>
-<span id="11"> 11</span>
-<span id="12"> 12</span>
-<span id="13"> 13</span>
-<span id="14"> 14</span>
-<span id="15"> 15</span>
-<span id="16"> 16</span>
-<span id="17"> 17</span>
-<span id="18"> 18</span>
-<span id="19"> 19</span>
-<span id="20"> 20</span>
-<span id="21"> 21</span>
-<span id="22"> 22</span>
-<span id="23"> 23</span>
-<span id="24"> 24</span>
-<span id="25"> 25</span>
-<span id="26"> 26</span>
-<span id="27"> 27</span>
-<span id="28"> 28</span>
-<span id="29"> 29</span>
-<span id="30"> 30</span>
-<span id="31"> 31</span>
-<span id="32"> 32</span>
-<span id="33"> 33</span>
-<span id="34"> 34</span>
-<span id="35"> 35</span>
-<span id="36"> 36</span>
-<span id="37"> 37</span>
-<span id="38"> 38</span>
-<span id="39"> 39</span>
-<span id="40"> 40</span>
-<span id="41"> 41</span>
-<span id="42"> 42</span>
-<span id="43"> 43</span>
-<span id="44"> 44</span>
-<span id="45"> 45</span>
-<span id="46"> 46</span>
-<span id="47"> 47</span>
-<span id="48"> 48</span>
-<span id="49"> 49</span>
-<span id="50"> 50</span>
-<span id="51"> 51</span>
-<span id="52"> 52</span>
-<span id="53"> 53</span>
-<span id="54"> 54</span>
-<span id="55"> 55</span>
-<span id="56"> 56</span>
-<span id="57"> 57</span>
-<span id="58"> 58</span>
-<span id="59"> 59</span>
-<span id="60"> 60</span>
-<span id="61"> 61</span>
-<span id="62"> 62</span>
-<span id="63"> 63</span>
-<span id="64"> 64</span>
-<span id="65"> 65</span>
-<span id="66"> 66</span>
-<span id="67"> 67</span>
-<span id="68"> 68</span>
-<span id="69"> 69</span>
-<span id="70"> 70</span>
-<span id="71"> 71</span>
-<span id="72"> 72</span>
-<span id="73"> 73</span>
-<span id="74"> 74</span>
-<span id="75"> 75</span>
-<span id="76"> 76</span>
-<span id="77"> 77</span>
-<span id="78"> 78</span>
-<span id="79"> 79</span>
-<span id="80"> 80</span>
-<span id="81"> 81</span>
-<span id="82"> 82</span>
-<span id="83"> 83</span>
-<span id="84"> 84</span>
-<span id="85"> 85</span>
-<span id="86"> 86</span>
-<span id="87"> 87</span>
-<span id="88"> 88</span>
-<span id="89"> 89</span>
-<span id="90"> 90</span>
-<span id="91"> 91</span>
-<span id="92"> 92</span>
-<span id="93"> 93</span>
-<span id="94"> 94</span>
-<span id="95"> 95</span>
-<span id="96"> 96</span>
-<span id="97"> 97</span>
-<span id="98"> 98</span>
-<span id="99"> 99</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zip-0.6.2/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../zip/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../zip/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../zip/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
@@ -491,7 +495,133 @@
 <span id="489">489</span>
 <span id="490">490</span>
 <span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Types that specify what is contained in a ZIP.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doc</span>)]</span>
+<span class="kw">use</span> {<span class="ident"><span class="kw">crate</span>::read::ZipFile</span>, <span class="ident"><span class="kw">crate</span>::write::FileOptions</span>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(
+    <span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>),
+    <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
+    <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>
+)))]</span>
+<span class="kw">use</span> <span class="ident">std::sync::atomic</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+    <span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>, <span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>),
+    <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
+    <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>
+))]</span>
+<span class="kw">mod</span> <span class="ident">atomic</span> {
+    <span class="kw">use</span> <span class="ident">crossbeam_utils::sync::ShardedLock</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>;
+
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AtomicU64</span> {
+        <span class="ident">value</span>: <span class="ident">ShardedLock</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+    }
+
+    <span class="kw">impl</span> <span class="ident">AtomicU64</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
+            <span class="self">Self</span> {
+                <span class="ident">value</span>: <span class="ident">ShardedLock::new</span>(<span class="ident">v</span>),
+            }
+        }
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">u64</span> {
+            <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">get_mut</span>().<span class="ident">unwrap</span>()
+        }
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="ident">Ordering</span>) -&gt; <span class="ident">u64</span> {
+            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">value</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>()
+        }
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">store</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>, <span class="kw">_</span>: <span class="ident">Ordering</span>) {
+            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">value</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">value</span>;
+        }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">time</span>::{<span class="ident">error::ComponentRange</span>, <span class="ident">Date</span>, <span class="ident">Month</span>, <span class="ident">OffsetDateTime</span>, <span class="ident">PrimitiveDateTime</span>, <span class="ident">Time</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">System</span> {
@@ -512,19 +642,23 @@
     }
 }
 
-<span class="doccomment">/// A DateTime field to be used for storing timestamps in a zip file</span>
+<span class="doccomment">/// Representation of a moment in time.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This structure does bounds checking to ensure the date is able to be stored in a zip file.</span>
+<span class="doccomment">/// Zip files use an old format from DOS to store timestamps,</span>
+<span class="doccomment">/// with its own set of peculiarities.</span>
+<span class="doccomment">/// For example, it has a resolution of 2 seconds!</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// When constructed manually from a date and time, it will also check if the input is sensible</span>
-<span class="doccomment">/// (e.g. months are from [1, 12]), but when read from a zip some parts may be out of their normal</span>
-<span class="doccomment">/// bounds (e.g. month 0, or hour 31).</span>
+<span class="doccomment">/// A [`DateTime`] can be stored directly in a zipfile with [`FileOptions::last_modified_time`],</span>
+<span class="doccomment">/// or read from one with [`ZipFile::last_modified`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Warning</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Some utilities use alternative timestamps to improve the accuracy of their</span>
-<span class="doccomment">/// ZIPs, but we don&#39;t parse them yet. [We&#39;re working on this](https://github.com/zip-rs/zip/issues/156#issuecomment-652981904),</span>
-<span class="doccomment">/// however this API shouldn&#39;t be considered complete.</span>
+<span class="doccomment">/// Because there is no timezone associated with the [`DateTime`], they should ideally only</span>
+<span class="doccomment">/// be used for user-facing descriptions. This also means [`DateTime::to_time`] returns an</span>
+<span class="doccomment">/// [`OffsetDateTime`] (which is the equivalent of chrono&#39;s `NaiveDateTime`).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Modern zip files store more precise timestamps, which are ignored by [`crate::read::ZipArchive`],</span>
+<span class="doccomment">/// so keep in mind that these timestamps are unreliable. [We&#39;re working on this](https://github.com/zip-rs/zip/issues/156#issuecomment-652981904).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DateTime</span> {
     <span class="ident">year</span>: <span class="ident">u16</span>,
@@ -555,7 +689,7 @@
         <span class="kw">let</span> <span class="ident">seconds</span> <span class="op">=</span> (<span class="ident">timepart</span> <span class="op">&amp;</span> <span class="number">0b0000000000011111</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">minutes</span> <span class="op">=</span> (<span class="ident">timepart</span> <span class="op">&amp;</span> <span class="number">0b0000011111100000</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span>;
         <span class="kw">let</span> <span class="ident">hours</span> <span class="op">=</span> (<span class="ident">timepart</span> <span class="op">&amp;</span> <span class="number">0b1111100000000000</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">11</span>;
-        <span class="kw">let</span> <span class="ident">days</span> <span class="op">=</span> (<span class="ident">datepart</span> <span class="op">&amp;</span> <span class="number">0b0000000000011111</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">days</span> <span class="op">=</span> <span class="ident">datepart</span> <span class="op">&amp;</span> <span class="number">0b0000000000011111</span>;
         <span class="kw">let</span> <span class="ident">months</span> <span class="op">=</span> (<span class="ident">datepart</span> <span class="op">&amp;</span> <span class="number">0b0000000111100000</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">5</span>;
         <span class="kw">let</span> <span class="ident">years</span> <span class="op">=</span> (<span class="ident">datepart</span> <span class="op">&amp;</span> <span class="number">0b1111111000000000</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">9</span>;
 
@@ -578,6 +712,7 @@
     <span class="doccomment">/// * hour: [0, 23]</span>
     <span class="doccomment">/// * minute: [0, 59]</span>
     <span class="doccomment">/// * second: [0, 60]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_date_and_time</span>(
         <span class="ident">year</span>: <span class="ident">u16</span>,
         <span class="ident">month</span>: <span class="ident">u8</span>,
@@ -586,8 +721,7 @@
         <span class="ident">minute</span>: <span class="ident">u8</span>,
         <span class="ident">second</span>: <span class="ident">u8</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DateTime</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">year</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1980</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">2107</span>
+        <span class="kw">if</span> (<span class="number">1980</span>..<span class="op">=</span><span class="number">2107</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">year</span>)
             <span class="op">&amp;&amp;</span> <span class="ident">month</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>
             <span class="op">&amp;&amp;</span> <span class="ident">month</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">12</span>
             <span class="op">&amp;&amp;</span> <span class="ident">day</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>
@@ -610,30 +744,19 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-    <span class="doccomment">/// Converts a ::time::Tm object to a DateTime</span>
+    <span class="doccomment">/// Converts a OffsetDateTime object to a DateTime</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns `Err` when this object is out of bounds</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_time</span>(<span class="ident">tm</span>: <span class="ident">::time::Tm</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DateTime</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">80</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">207</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">11</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">31</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">23</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">59</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">60</span>
-        {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::result_unit_err</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_time</span>(<span class="ident">dt</span>: <span class="ident">OffsetDateTime</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DateTime</span>, ()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="ident">dt</span>.<span class="ident">year</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1980</span> <span class="op">&amp;&amp;</span> <span class="ident">dt</span>.<span class="ident">year</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">2107</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">DateTime</span> {
-                <span class="ident">year</span>: (<span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">+</span> <span class="number">1900</span>) <span class="kw">as</span> <span class="ident">u16</span>,
-                <span class="ident">month</span>: (<span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u8</span>,
-                <span class="ident">day</span>: <span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                <span class="ident">hour</span>: <span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                <span class="ident">minute</span>: <span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="kw">as</span> <span class="ident">u8</span>,
-                <span class="ident">second</span>: <span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="kw">as</span> <span class="ident">u8</span>,
+                <span class="ident">year</span>: (<span class="ident">dt</span>.<span class="ident">year</span>()) <span class="kw">as</span> <span class="ident">u16</span>,
+                <span class="ident">month</span>: (<span class="ident">dt</span>.<span class="ident">month</span>()) <span class="kw">as</span> <span class="ident">u8</span>,
+                <span class="ident">day</span>: <span class="ident">dt</span>.<span class="ident">day</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+                <span class="ident">hour</span>: <span class="ident">dt</span>.<span class="ident">hour</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+                <span class="ident">minute</span>: <span class="ident">dt</span>.<span class="ident">minute</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+                <span class="ident">second</span>: <span class="ident">dt</span>.<span class="ident">second</span>() <span class="kw">as</span> <span class="ident">u8</span>,
             })
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(())
@@ -651,20 +774,14 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-    <span class="doccomment">/// Converts the datetime to a Tm structure</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The fields `tm_wday`, `tm_yday`, `tm_utcoff` and `tm_nsec` are set to their defaults.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">::time::Tm</span> {
-        <span class="ident">::time::Tm</span> {
-            <span class="ident">tm_sec</span>: <span class="self">self</span>.<span class="ident">second</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">tm_min</span>: <span class="self">self</span>.<span class="ident">minute</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">tm_hour</span>: <span class="self">self</span>.<span class="ident">hour</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">tm_mday</span>: <span class="self">self</span>.<span class="ident">day</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">tm_mon</span>: <span class="self">self</span>.<span class="ident">month</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>,
-            <span class="ident">tm_year</span>: <span class="self">self</span>.<span class="ident">year</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1900</span>,
-            <span class="ident">tm_isdst</span>: <span class="op">-</span><span class="number">1</span>,
-            ..<span class="ident">::time::empty_tm</span>()
-        }
+    <span class="doccomment">/// Converts the DateTime to a OffsetDateTime structure</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">OffsetDateTime</span>, <span class="ident">ComponentRange</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
+
+        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span>
+            <span class="ident">Date::from_calendar_date</span>(<span class="self">self</span>.<span class="ident">year</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">Month::try_from</span>(<span class="self">self</span>.<span class="ident">month</span>)<span class="question-mark">?</span>, <span class="self">self</span>.<span class="ident">day</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Time::from_hms</span>(<span class="self">self</span>.<span class="ident">hour</span>, <span class="self">self</span>.<span class="ident">minute</span>, <span class="self">self</span>.<span class="ident">second</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">PrimitiveDateTime::new</span>(<span class="ident">date</span>, <span class="ident">time</span>).<span class="ident">assume_utc</span>())
     }
 
     <span class="doccomment">/// Get the year. There is no epoch, i.e. 2018 will be returned as 2018.</span>
@@ -673,32 +790,83 @@
     }
 
     <span class="doccomment">/// Get the month, where 1 = january and 12 = december</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Warning</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When read from a zip file, this may not be a reasonable value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">month</span>
     }
 
     <span class="doccomment">/// Get the day</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Warning</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When read from a zip file, this may not be a reasonable value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">day</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">day</span>
     }
 
     <span class="doccomment">/// Get the hour</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Warning</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When read from a zip file, this may not be a reasonable value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hour</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">hour</span>
     }
 
     <span class="doccomment">/// Get the minute</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Warning</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When read from a zip file, this may not be a reasonable value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">minute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">minute</span>
     }
 
     <span class="doccomment">/// Get the second</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Warning</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When read from a zip file, this may not be a reasonable value</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">second</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u8</span> {
         <span class="self">self</span>.<span class="ident">second</span>
     }
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_VERSION</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">46</span>;
+
+<span class="doccomment">/// A type like `AtomicU64` except it implements `Clone` and has predefined</span>
+<span class="doccomment">/// ordering.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// It uses `Relaxed` ordering because it is not used for synchronisation.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AtomicU64</span>(<span class="ident">atomic::AtomicU64</span>);
+
+<span class="kw">impl</span> <span class="ident">AtomicU64</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">atomic::AtomicU64::new</span>(<span class="ident">v</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">load</span>(<span class="ident">atomic::Ordering::Relaxed</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">store</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">u64</span>) {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">store</span>(<span class="ident">val</span>, <span class="ident">atomic::Ordering::Relaxed</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">u64</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get_mut</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">AtomicU64</span> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">atomic::AtomicU64::new</span>(<span class="self">self</span>.<span class="ident">load</span>()))
+    }
+}
 
 <span class="doccomment">/// Structure representing a ZIP file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -713,6 +881,8 @@
     <span class="kw">pub</span> <span class="ident">using_data_descriptor</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// Compression method used to store the file</span>
     <span class="kw">pub</span> <span class="ident">compression_method</span>: <span class="ident"><span class="kw">crate</span>::compression::CompressionMethod</span>,
+    <span class="doccomment">/// Compression level to store the file</span>
+    <span class="kw">pub</span> <span class="ident">compression_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Last modified time. This will only have a 2 second precision.</span>
     <span class="kw">pub</span> <span class="ident">last_modified_time</span>: <span class="ident">DateTime</span>,
     <span class="doccomment">/// CRC32 checksum</span>
@@ -736,11 +906,13 @@
     <span class="doccomment">/// Note that when this is not known, it is set to 0</span>
     <span class="kw">pub</span> <span class="ident">central_header_start</span>: <span class="ident">u64</span>,
     <span class="doccomment">/// Specifies where the compressed data of the file starts</span>
-    <span class="kw">pub</span> <span class="ident">data_start</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span> <span class="ident">data_start</span>: <span class="ident">AtomicU64</span>,
     <span class="doccomment">/// External file attributes</span>
     <span class="kw">pub</span> <span class="ident">external_attributes</span>: <span class="ident">u32</span>,
     <span class="doccomment">/// Reserve local ZIP64 extra field</span>
     <span class="kw">pub</span> <span class="ident">large_file</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// AES mode if applicable</span>
+    <span class="kw">pub</span> <span class="ident">aes_mode</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">AesMode</span>, <span class="ident">AesVendorVersion</span>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ZipFileData</span> {
@@ -764,10 +936,7 @@
 
         <span class="ident">::std::path::Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">filename</span>)
             .<span class="ident">components</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">component</span> {
-                <span class="ident">::std::path::Component::Normal</span>(..) =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
-            })
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="kw-2">*</span><span class="ident">component</span>, <span class="ident">::std::path::Component::Normal</span>(..)))
             .<span class="ident">fold</span>(<span class="ident">::std::path::PathBuf::new</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">path</span>, <span class="kw-2">ref</span> <span class="ident">cur</span><span class="op">|</span> {
                 <span class="ident">path</span>.<span class="ident">push</span>(<span class="ident">cur</span>.<span class="ident">as_os_str</span>());
                 <span class="ident">path</span>
@@ -787,6 +956,39 @@
             (<span class="kw">_</span>, <span class="ident"><span class="kw">crate</span>::compression::CompressionMethod::Bzip2</span>) =&gt; <span class="number">46</span>,
             (<span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; <span class="number">45</span>,
             <span class="kw">_</span> =&gt; <span class="number">20</span>,
+        }
+    }
+}
+
+<span class="doccomment">/// The encryption specification used to encrypt a file with AES.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// According to the [specification](https://www.winzip.com/win/en/aes_info.html#winzip11) AE-2</span>
+<span class="doccomment">/// does not make use of the CRC check.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AesVendorVersion</span> {
+    <span class="ident">Ae1</span>,
+    <span class="ident">Ae2</span>,
+}
+
+<span class="doccomment">/// AES variant used.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AesMode</span> {
+    <span class="ident">Aes128</span>,
+    <span class="ident">Aes192</span>,
+    <span class="ident">Aes256</span>,
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;aes-crypto&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">AesMode</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">salt_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="self">self</span>.<span class="ident">key_length</span>() <span class="op">/</span> <span class="number">2</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Aes128</span> =&gt; <span class="number">16</span>,
+            <span class="ident"><span class="self">Self</span>::Aes192</span> =&gt; <span class="number">24</span>,
+            <span class="ident"><span class="self">Self</span>::Aes256</span> =&gt; <span class="number">32</span>,
         }
     }
 }
@@ -812,6 +1014,7 @@
             <span class="ident">encrypted</span>: <span class="bool-val">false</span>,
             <span class="ident">using_data_descriptor</span>: <span class="bool-val">false</span>,
             <span class="ident">compression_method</span>: <span class="ident"><span class="kw">crate</span>::compression::CompressionMethod::Stored</span>,
+            <span class="ident">compression_level</span>: <span class="prelude-val">None</span>,
             <span class="ident">last_modified_time</span>: <span class="ident">DateTime::default</span>(),
             <span class="ident">crc32</span>: <span class="number">0</span>,
             <span class="ident">compressed_size</span>: <span class="number">0</span>,
@@ -821,10 +1024,11 @@
             <span class="ident">extra_field</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">file_comment</span>: <span class="ident">String::new</span>(),
             <span class="ident">header_start</span>: <span class="number">0</span>,
-            <span class="ident">data_start</span>: <span class="number">0</span>,
+            <span class="ident">data_start</span>: <span class="ident">AtomicU64::new</span>(<span class="number">0</span>),
             <span class="ident">central_header_start</span>: <span class="number">0</span>,
             <span class="ident">external_attributes</span>: <span class="number">0</span>,
             <span class="ident">large_file</span>: <span class="bool-val">false</span>,
+            <span class="ident">aes_mode</span>: <span class="prelude-val">None</span>,
         };
         <span class="macro">assert_eq!</span>(
             <span class="ident">data</span>.<span class="ident">file_name_sanitized</span>(),
@@ -833,6 +1037,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unusual_byte_groupings</span>)]</span>
     <span class="kw">fn</span> <span class="ident">datetime_default</span>() {
         <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">DateTime::default</span>();
@@ -841,6 +1046,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unusual_byte_groupings</span>)]</span>
     <span class="kw">fn</span> <span class="ident">datetime_max</span>() {
         <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">DateTime::from_date_and_time</span>(<span class="number">2107</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">60</span>).<span class="ident">unwrap</span>();
@@ -868,57 +1074,25 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
+    <span class="kw">use</span> <span class="ident">time</span>::{<span class="ident">format_description::well_known::Rfc3339</span>, <span class="ident">OffsetDateTime</span>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">datetime_from_time_bounds</span>() {
         <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
+        <span class="kw">use</span> <span class="ident">time::macros::datetime</span>;
 
         <span class="comment">// 1979-12-31 23:59:59</span>
-        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">::time::Tm</span> {
-            <span class="ident">tm_sec</span>: <span class="number">59</span>,
-            <span class="ident">tm_min</span>: <span class="number">59</span>,
-            <span class="ident">tm_hour</span>: <span class="number">23</span>,
-            <span class="ident">tm_mday</span>: <span class="number">31</span>,
-            <span class="ident">tm_mon</span>: <span class="number">11</span>,  <span class="comment">// tm_mon has number range [0, 11]</span>
-            <span class="ident">tm_year</span>: <span class="number">79</span>, <span class="comment">// 1979 - 1900 = 79</span>
-            ..<span class="ident">::time::empty_tm</span>()
-        })
-        .<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="macro">datetime!</span>(<span class="number">1979</span><span class="op">-</span><span class="number">12</span><span class="op">-</span><span class="number">31</span> <span class="number">23</span>:<span class="number">59</span>:<span class="number">59</span> <span class="ident">UTC</span>)).<span class="ident">is_err</span>());
 
         <span class="comment">// 1980-01-01 00:00:00</span>
-        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">::time::Tm</span> {
-            <span class="ident">tm_sec</span>: <span class="number">0</span>,
-            <span class="ident">tm_min</span>: <span class="number">0</span>,
-            <span class="ident">tm_hour</span>: <span class="number">0</span>,
-            <span class="ident">tm_mday</span>: <span class="number">1</span>,
-            <span class="ident">tm_mon</span>: <span class="number">0</span>,   <span class="comment">// tm_mon has number range [0, 11]</span>
-            <span class="ident">tm_year</span>: <span class="number">80</span>, <span class="comment">// 1980 - 1900 = 80</span>
-            ..<span class="ident">::time::empty_tm</span>()
-        })
-        .<span class="ident">is_ok</span>());
+        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="macro">datetime!</span>(<span class="number">1980</span><span class="op">-</span><span class="number">01</span><span class="op">-</span><span class="number">01</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> <span class="ident">UTC</span>)).<span class="ident">is_ok</span>());
 
         <span class="comment">// 2107-12-31 23:59:59</span>
-        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">::time::Tm</span> {
-            <span class="ident">tm_sec</span>: <span class="number">59</span>,
-            <span class="ident">tm_min</span>: <span class="number">59</span>,
-            <span class="ident">tm_hour</span>: <span class="number">23</span>,
-            <span class="ident">tm_mday</span>: <span class="number">31</span>,
-            <span class="ident">tm_mon</span>: <span class="number">11</span>,   <span class="comment">// tm_mon has number range [0, 11]</span>
-            <span class="ident">tm_year</span>: <span class="number">207</span>, <span class="comment">// 2107 - 1900 = 207</span>
-            ..<span class="ident">::time::empty_tm</span>()
-        })
-        .<span class="ident">is_ok</span>());
+        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="macro">datetime!</span>(<span class="number">2107</span><span class="op">-</span><span class="number">12</span><span class="op">-</span><span class="number">31</span> <span class="number">23</span>:<span class="number">59</span>:<span class="number">59</span> <span class="ident">UTC</span>)).<span class="ident">is_ok</span>());
 
         <span class="comment">// 2108-01-01 00:00:00</span>
-        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">::time::Tm</span> {
-            <span class="ident">tm_sec</span>: <span class="number">0</span>,
-            <span class="ident">tm_min</span>: <span class="number">0</span>,
-            <span class="ident">tm_hour</span>: <span class="number">0</span>,
-            <span class="ident">tm_mday</span>: <span class="number">1</span>,
-            <span class="ident">tm_mon</span>: <span class="number">0</span>,    <span class="comment">// tm_mon has number range [0, 11]</span>
-            <span class="ident">tm_year</span>: <span class="number">208</span>, <span class="comment">// 2108 - 1900 = 208</span>
-            ..<span class="ident">::time::empty_tm</span>()
-        })
-        .<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="macro">datetime!</span>(<span class="number">2108</span><span class="op">-</span><span class="number">01</span><span class="op">-</span><span class="number">01</span> <span class="number">00</span>:<span class="number">00</span>:<span class="number">00</span> <span class="ident">UTC</span>)).<span class="ident">is_err</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -934,7 +1108,7 @@
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
         <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">rfc3339</span>()),
+            <span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">unwrap</span>().<span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="ident">Rfc3339</span>).<span class="ident">unwrap</span>(),
             <span class="string">&quot;2018-11-17T10:38:30Z&quot;</span>
         );
     }
@@ -951,10 +1125,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">second</span>(), <span class="number">62</span>);
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">rfc3339</span>()),
-            <span class="string">&quot;2107-15-31T31:63:62Z&quot;</span>
-        );
+        <span class="macro">assert!</span>(<span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">is_err</span>());
 
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">DateTime::from_msdos</span>(<span class="number">0x0000</span>, <span class="number">0x0000</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">year</span>(), <span class="number">1980</span>);
@@ -965,10 +1136,7 @@
         <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">second</span>(), <span class="number">0</span>);
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">rfc3339</span>()),
-            <span class="string">&quot;1980-00-00T00:00:00Z&quot;</span>
-        );
+        <span class="macro">assert!</span>(<span class="ident">dt</span>.<span class="ident">to_time</span>().<span class="ident">is_err</span>());
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
@@ -977,11 +1145,11 @@
         <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DateTime</span>;
 
         <span class="comment">// 2020-01-01 00:00:00</span>
-        <span class="kw">let</span> <span class="ident">clock</span> <span class="op">=</span> <span class="ident">::time::Timespec::new</span>(<span class="number">1577836800</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">tm</span> <span class="op">=</span> <span class="ident">::time::at_utc</span>(<span class="ident">clock</span>);
-        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">tm</span>).<span class="ident">is_ok</span>());
+        <span class="kw">let</span> <span class="ident">clock</span> <span class="op">=</span> <span class="ident">OffsetDateTime::from_unix_timestamp</span>(<span class="number">1_577_836_800</span>).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert!</span>(<span class="ident">DateTime::from_time</span>(<span class="ident">clock</span>).<span class="ident">is_ok</span>());
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="zip" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="zip" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
 </body></html>

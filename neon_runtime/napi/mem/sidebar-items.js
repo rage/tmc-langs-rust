@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["strict_equals",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["strict_equals",""]]};

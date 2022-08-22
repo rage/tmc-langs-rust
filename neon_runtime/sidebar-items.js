@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["napi",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["napi",""]]};

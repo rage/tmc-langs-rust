@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["EscapableHandleScope",""],["HandleScope",""],["InheritedHandleScope",""]],"type":[["Env",""],["FunctionCallbackInfo",""],["Local",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["EscapableHandleScope",""],["HandleScope",""],["InheritedHandleScope",""]],"type":[["Env",""],["FunctionCallbackInfo",""],["Local",""]]};

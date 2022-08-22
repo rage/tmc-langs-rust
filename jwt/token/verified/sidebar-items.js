@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["VerifyWithKey","Allow objects to be verified with a key."],["VerifyWithStore","Allow objects to be verified with a store."]]});
+window.SIDEBAR_ITEMS = {"trait":[["VerifyWithKey","Allow objects to be verified with a key."],["VerifyWithStore","Allow objects to be verified with a store."]]};

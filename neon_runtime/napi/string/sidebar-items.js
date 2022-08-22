@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["data",""],["new",""],["run_script",""],["utf8_len",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["data",""],["new",""],["run_script",""],["utf8_len",""]]};

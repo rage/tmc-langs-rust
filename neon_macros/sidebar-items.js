@@ -1,1 +1,1 @@
-initSidebarItems({"attr":[["main","Marks a function as the main entry point for initialization in a Neon module."]]});
+window.SIDEBAR_ITEMS = {"attr":[["main","Marks a function as the main entry point for initialization in a Neon module."]]};

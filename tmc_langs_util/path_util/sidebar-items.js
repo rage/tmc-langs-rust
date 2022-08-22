@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["get_parent_of","Returns the path’s parent path if the path’s name equals the name argument. Ignores paths that contain __MACOSX in the parent."],["get_parent_of_dir","If the path contains a component that equals the component argument, returns its parent. Ignores paths that contain __MACOSX in the parent."]]};

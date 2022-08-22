@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["FileError","A wrapper for std::io::Error that provides more context for the failed operations."]]});
+window.SIDEBAR_ITEMS = {"enum":[["FileError","A wrapper for std::io::Error that provides more context for the failed operations."]]};
