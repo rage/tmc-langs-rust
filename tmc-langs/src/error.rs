@@ -58,8 +58,6 @@ pub enum LangsError {
     Base64PasswordNotUtf8(#[source] FromUtf8Error),
     #[error("Failed to decode with base64")]
     Base64Decode(#[from] base64::DecodeError),
-    #[error("Failed to read password")]
-    ReadPassword(#[source] std::io::Error),
     #[error("Settings files cannot contain null values")]
     SettingsCannotContainNull,
     #[error("The number given was too high: {0}")]
