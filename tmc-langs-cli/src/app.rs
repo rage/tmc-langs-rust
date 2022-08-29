@@ -286,7 +286,7 @@ pub enum Core {
         #[clap(long)]
         download_template: bool,
         /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
-        #[clap(long, required = true)]
+        #[clap(long, multiple = true, required = true)]
         exercise_id: Vec<u32>,
     },
 
@@ -839,6 +839,12 @@ mod core_test {
             "--exercise-id",
             "1234",
             "--exercise-id",
+            "2345",
+        ]);
+        get_matches_core(&[
+            "download-or-update-course-exercises",
+            "--exercise-id",
+            "1234",
             "2345",
         ]);
     }
