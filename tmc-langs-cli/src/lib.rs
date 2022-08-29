@@ -75,7 +75,25 @@ pub fn run() {
 // sets up warning and progress reporting and calls run_app and does error handling for its result
 // returns Ok if we should exit with code 0, Err if we should exit with 1
 fn run_inner() -> Result<(), ()> {
-    let matches = Opt::parse();
+    let matches = match Opt::try_parse().context("Failed to parse arguments") {
+        Ok(matches) => matches,
+        Err(e) => {
+            // CLI was called incorrectly
+            let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
+            let error_output = OutputKind::OutputData(Box::new(OutputData {
+                status: Status::Finished,
+                message: e.to_string(),
+                result: OutputResult::Error,
+                data: Some(DataKind::Error {
+                    kind: Kind::Generic,
+                    trace: causes,
+                }),
+            }));
+            print_output(&error_output, false)
+                .expect("failed to print output");
+            return Err(());
+        }
+    };
     let pretty = matches.pretty;
 
     notification_reporter::init(Box::new(move |warning| {
