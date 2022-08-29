@@ -393,6 +393,10 @@ pub enum Core {
         /// The OAUTH2 access token that should be used for authentication.
         #[clap(long, required_unless_present = "email")]
         set_access_token: Option<String>,
+        /// If set, the password will be read from stdin instead of TTY like usual.
+        /// The keyboard input is not hidden in this case, so this should only be used when running the CLI programmatically.
+        #[clap(long)]
+        stdin: bool,
     },
 
     /// Logs out and removes the OAuth2 token from config

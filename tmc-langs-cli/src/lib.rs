@@ -20,7 +20,7 @@ use std::{
     collections::HashMap,
     env,
     fs::File,
-    io::{self, Cursor, Read, Write},
+    io::{self, Cursor, Read, Write, BufReader},
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -804,13 +804,19 @@ fn run_core_inner(
             base64,
             email,
             set_access_token,
+            stdin,
         } => {
             // get token from argument or server
             let token = if let Some(token) = set_access_token {
                 tmc_langs::login_with_token(token)
             } else if let Some(email) = email {
                 // TODO: print "Please enter password" and add "quiet"  flag
-                let password = rpassword::read_password().context("Failed to read password")?;
+                let password = if stdin {
+                    let mut stdin = BufReader::new(std::io::stdin());
+                    rpassword::read_password_from_bufread(&mut stdin).context("Failed to read password")?
+                } else {
+                    rpassword::read_password().context("Failed to read password")?
+                };
                 let decoded = if base64 {
                     let bytes = base64::decode(password)?;
                     String::from_utf8(bytes).context("Failed to decode password with base64")?
