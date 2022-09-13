@@ -286,10 +286,9 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use std::io::{Read, Seek};
-
     use super::*;
     use crate::SEPARATOR;
+    use std::io::{Read, Seek};
     use tmc_langs_framework::{nom, Archive, TmcError};
 
     fn init() {

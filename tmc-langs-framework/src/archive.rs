@@ -1,12 +1,14 @@
+use crate::TmcError;
 use serde::Deserialize;
-use std::io::{BufReader, Cursor, Read, Seek};
-use std::ops::ControlFlow::{self, Break};
-use std::path::{Path, PathBuf};
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::Display,
+    io::{BufReader, Cursor, Read, Seek},
+    ops::ControlFlow::{self, Break},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 #[cfg(feature = "ts")]
 use ts_rs::TS;
-
-use crate::TmcError;
 
 /// Wrapper unifying the API of all the different compression formats supported by langs.
 /// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,
