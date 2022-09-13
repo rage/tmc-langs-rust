@@ -812,7 +812,7 @@ pub fn extract_project(
             "no matching language plugin found for {}, overwriting",
             target_location.display()
         );
-        extract_project_overwrite(compressed_project, target_location)?;
+        extract_project_overwrite(compressed_project, target_location, compression)?;
     }
     Ok(())
 }
@@ -907,7 +907,7 @@ pub fn extract_student_files(
             "no matching language plugin found for {}, overwriting",
             target_location.display()
         );
-        extract_project_overwrite(compressed_project, target_location)?;
+        extract_project_overwrite(compressed_project, target_location, Compression::Zip)?;
     }
     Ok(())
 }
@@ -991,8 +991,24 @@ fn finish_stage(message: impl Into<String>) {
 fn extract_project_overwrite(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
+    compression: Compression,
 ) -> Result<(), LangsError> {
-    compression::unzip(compressed_project, target_location)?;
+    match compression {
+        Compression::Tar => {
+            let mut archive = tar::Archive::new(compressed_project);
+            archive
+                .unpack(target_location)
+                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
+        }
+        Compression::TarZstd => {
+            let decoder = zstd::Decoder::new(compressed_project).map_err(LangsError::ZstdDecode)?;
+            let mut archive = tar::Archive::new(decoder);
+            archive
+                .unpack(target_location)
+                .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
+        }
+        Compression::Zip => compression::unzip(compressed_project, target_location)?,
+    }
     Ok(())
 }
 
