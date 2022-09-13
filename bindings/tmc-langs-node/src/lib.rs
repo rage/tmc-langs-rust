@@ -123,7 +123,8 @@ fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
     let mut data = vec![];
     guard.read_to_end(&mut data).expect("failed to read data");
 
-    let res = tmc_langs::extract_project(Cursor::new(data), &output_path, compression, false);
+    let res =
+        tmc_langs::extract_project(Cursor::new(data), &output_path, compression, false, false);
     convert_res(&mut cx, res)
 }
 
@@ -180,8 +181,10 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
         output_format: String,
         clone_path: PathBuf,
         output_path: PathBuf,
-        stub_zip_path: Option<PathBuf>,
+        stub_archive_path: Option<PathBuf>,
+        stub_compression: Compression,
         submission_path: PathBuf,
+        submission_compression: Compression,
         tmc_param: Vec<(String, Vec<String>)>,
         top_level_dir_name: Option<String>
     );
@@ -207,12 +210,12 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
     };
 
     let res = tmc_langs::prepare_submission(
-        &submission_path,
+        (&submission_path, submission_compression),
         &output_path,
         top_level_dir_name,
         tmc_params,
         &clone_path,
-        stub_zip_path.as_deref(),
+        stub_archive_path.as_deref().map(|p| (p, stub_compression)),
         compression,
     );
     convert_res(&mut cx, res)

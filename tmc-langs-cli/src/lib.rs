@@ -20,7 +20,7 @@ use std::{
     collections::HashMap,
     env,
     fs::File,
-    io::{self, Cursor, Read, Write, BufReader},
+    io::{self, BufReader, Cursor, Read, Write},
     ops::Deref,
     path::{Path, PathBuf},
 };
@@ -89,8 +89,7 @@ fn run_inner() -> Result<(), ()> {
                     trace: causes,
                 }),
             }));
-            print_output(&error_output, false)
-                .expect("failed to print output");
+            print_output(&error_output, false).expect("failed to print output");
             return Err(());
         }
     };
@@ -265,7 +264,7 @@ fn run_app(matches: Opt) -> Result<()> {
             let mut data = vec![];
             guard.read_to_end(&mut data)?;
 
-            tmc_langs::extract_project(Cursor::new(data), &output_path, compression, true)?;
+            tmc_langs::extract_project(Cursor::new(data), &output_path, compression, true, naive)?;
 
             OutputKind::finished(format!(
                 "extracted project from {} to {}",
@@ -419,12 +418,12 @@ fn run_app(matches: Opt) -> Result<()> {
             }
 
             tmc_langs::prepare_submission(
-                &submission_path,
+                (&submission_path, submission_compression),
                 &output_path,
                 top_level_dir_name,
                 tmc_params,
                 &clone_path,
-                stub_archive_path.as_deref(),
+                stub_archive_path.as_deref().map(|p| (p, stub_compression)),
                 output_format,
             )?;
             OutputKind::finished(format!(
@@ -813,7 +812,8 @@ fn run_core_inner(
                 // TODO: print "Please enter password" and add "quiet"  flag
                 let password = if stdin {
                     let mut stdin = BufReader::new(std::io::stdin());
-                    rpassword::read_password_from_bufread(&mut stdin).context("Failed to read password")?
+                    rpassword::read_password_from_bufread(&mut stdin)
+                        .context("Failed to read password")?
                 } else {
                     rpassword::read_password().context("Failed to read password")?
                 };

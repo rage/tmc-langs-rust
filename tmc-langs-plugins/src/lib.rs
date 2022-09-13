@@ -54,7 +54,16 @@ pub fn extract_project_overwrite(
 
 /// See `LanguagePlugin::compress_project`.
 // TODO: clean up
-pub fn compress_project(path: &Path, compression: Compression) -> Result<Vec<u8>, PluginError> {
+pub fn compress_project(
+    path: &Path,
+    compression: Compression,
+    naive: bool,
+) -> Result<Vec<u8>, PluginError> {
+    if naive {
+        let compressed = compression.compress(path)?;
+        return Ok(compressed);
+    }
+
     match get_language_plugin_type(path) {
         Some(PluginType::CSharp) => Ok(compression::compress_student_files(
             <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,

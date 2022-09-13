@@ -373,6 +373,7 @@ pub fn download_or_update_course_exercises(
                                 &download_target.target.path,
                                 Compression::Zip,
                                 false,
+                                false,
                             )?;
                         }
                         DownloadTargetKind::Submission { submission_id } => {
@@ -382,6 +383,7 @@ pub fn download_or_update_course_exercises(
                                 Cursor::new(buf),
                                 &download_target.target.path,
                                 Compression::Zip,
+                                false,
                                 false,
                             )?;
 
@@ -649,7 +651,13 @@ pub fn update_exercises(
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
                 client.download_exercise(exercise.id, &mut buf)?;
-                extract_project(Cursor::new(buf), &exercise.path, Compression::Zip, false)?;
+                extract_project(
+                    Cursor::new(buf),
+                    &exercise.path,
+                    Compression::Zip,
+                    false,
+                    false,
+                )?;
             }
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
@@ -761,7 +769,7 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project(source, compression)?;
+    let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
     if let Some(parent) = target.parent() {
         file_util::create_dir_all(parent)?;
     }
@@ -789,7 +797,13 @@ pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Resu
     }
     let mut buf = vec![];
     client.download_exercise(exercise_id, &mut buf)?;
-    extract_project(Cursor::new(buf), exercise_path, Compression::Zip, false)?;
+    extract_project(
+        Cursor::new(buf),
+        exercise_path,
+        Compression::Zip,
+        false,
+        false,
+    )?;
     Ok(())
 }
 
@@ -799,13 +813,16 @@ pub fn extract_project(
     target_location: &Path,
     compression: Compression,
     clean: bool,
+    naive: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
         "extracting compressed project to {}",
         target_location.display()
     );
 
-    if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
+    if naive {
+        extract_project_overwrite(compressed_project, target_location, compression)?;
+    } else if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
         plugin.extract_project(compressed_project, target_location, compression, clean)?;
     } else {
         log::debug!(

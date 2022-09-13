@@ -179,7 +179,7 @@ impl LanguagePlugin for MakePlugin {
                             if io_error.kind() == io::ErrorKind::PermissionDenied =>
                         {
                             // failed due to lacking permissions, try to clean and rerun
-                            let _output = self.clean(path)?;
+                            self.clean(path)?;
                             match self.run_tests_with_valgrind(path, false) {
                                 Ok(output) => output,
                                 Err(err) => {

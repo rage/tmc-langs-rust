@@ -20,17 +20,17 @@ static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 /// The clone path is assumed to be a directory with the exercise name as the directory name,
 /// and the course name as its parent, ex. "anything/some_course/some_exercise"
 pub fn prepare_submission(
-    zip_path: &Path,
+    (submission_archive, submission_compression): (&Path, Compression),
     target_path: &Path,
     toplevel_dir_name: Option<String>,
     tmc_params: TmcParams,
     stub_clone_path: &Path,
-    stub_zip_path: Option<&Path>,
+    stub_archive: Option<(&Path, Compression)>,
     output_format: Compression,
 ) -> Result<(), LangsError> {
     // workaround for unknown issues when prepare_submission is ran multiple times in parallel
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
-    log::debug!("preparing submission for {}", zip_path.display());
+    log::debug!("preparing submission for {}", submission_archive.display());
 
     let plugin = tmc_langs_plugins::get_language_plugin(stub_clone_path)?;
 
@@ -46,11 +46,12 @@ pub fn prepare_submission(
         ".directory",
         "__MACOSX",
     ];
-    if let Some(stub_zip_path) = stub_zip_path {
+    if let Some((stub_zip, compression)) = stub_archive {
         // if defined, extract and use as the base
-        unzip_with_filter(
+        extract_with_filter(
             &plugin,
-            stub_zip_path,
+            stub_zip,
+            compression,
             |path| {
                 path.components().any(|c| {
                     c.as_os_str()
@@ -91,7 +92,7 @@ pub fn prepare_submission(
 
     // extract student files from submission over base
     log::debug!("extracting student files");
-    let file = file_util::open_file(zip_path)?;
+    let file = file_util::open_file(submission_archive)?;
     plugin.extract_student_files(file, &extract_dest_path)?;
 
     // extract ide files
@@ -106,9 +107,10 @@ pub fn prepare_submission(
         // idea
         ".idea",
     ];
-    unzip_with_filter(
+    extract_with_filter(
         &plugin,
-        zip_path,
+        submission_archive,
+        submission_compression,
         |path| {
             path.components().all(|c| {
                 c.as_os_str()
@@ -223,14 +225,15 @@ pub fn prepare_submission(
     Ok(())
 }
 
-fn unzip_with_filter<F: Fn(&Path) -> bool>(
+fn extract_with_filter<F: Fn(&Path) -> bool>(
     plugin: &Plugin,
-    zip_path: &Path,
+    archive: &Path,
+    compression: Compression,
     exclude_filter: F,
     dest: &Path,
 ) -> Result<(), LangsError> {
-    let file = file_util::open_file(zip_path)?;
-    let mut zip = Archive::zip(file)?;
+    let file = file_util::open_file(archive)?;
+    let mut zip = Archive::new(file, compression)?;
     let project_dir_in_stub = plugin.find_project_dir_in_archive(&mut zip)?;
 
     let mut iter = zip.iter()?;
@@ -293,7 +296,7 @@ mod test {
             .insert_array("param_two", vec!["value_two", "value_three"])
             .unwrap();
         prepare_submission(
-            Path::new(zip),
+            (Path::new(zip), Compression::Zip),
             &output_archive,
             None,
             tmc_params,
@@ -390,7 +393,7 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            Path::new(MAVEN_ZIP),
+            (Path::new(MAVEN_ZIP), Compression::Zip),
             &output,
             Some("toplevel".to_string()),
             TmcParams::new(),
@@ -425,7 +428,7 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            Path::new(MAVEN_ZIP),
+            (Path::new(MAVEN_ZIP), Compression::Zip),
             &output,
             None,
             TmcParams::new(),
@@ -459,7 +462,7 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            Path::new(MAVEN_ZIP),
+            (Path::new(MAVEN_ZIP), Compression::Zip),
             &output,
             None,
             TmcParams::new(),
@@ -486,7 +489,7 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            Path::new(MAVEN_ZIP),
+            (Path::new(MAVEN_ZIP), Compression::Zip),
             &output,
             Some("toplevel".to_string()),
             TmcParams::new(),
@@ -516,12 +519,12 @@ mod test {
 
         assert!(!output_arch.exists());
         prepare_submission(
-            Path::new(MAVEN_ZIP),
+            (Path::new(MAVEN_ZIP), Compression::Zip),
             &output_arch,
             None,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
-            Some(Path::new("tests/data/MavenStub.zip")),
+            Some((Path::new("tests/data/MavenStub.zip"), Compression::Zip)),
             Compression::Tar,
         )
         .unwrap();

@@ -200,7 +200,7 @@ struct JsObjectAccess<'a, 'j, C: Context<'j> + 'a> {
 }
 
 #[doc(hidden)]
-impl<'x, 'a, 'j, C: Context<'j>> JsObjectAccess<'a, 'j, C> {
+impl<'a, 'j, C: Context<'j>> JsObjectAccess<'a, 'j, C> {
     fn new(cx: &'a mut C, input: Handle<'j, JsObject>) -> LibResult<Self> {
         let prop_names = input.get_own_property_names(cx)?;
         let len = prop_names.len(cx);

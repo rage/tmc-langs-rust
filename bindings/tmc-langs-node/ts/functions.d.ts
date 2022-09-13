@@ -34,8 +34,10 @@ export function prepareSubmission(
   outputFormat: types.Compression,
   clonePath: string,
   outputPath: string,
-  stubZipPath: string | null,
+  stubArchivePath: string | null,
+  stubCompression: Compression,
   submissionPath: string,
+  submissionCompression: Compression,
   tmcParam: Array<[string, Array<string>]>,
   topLevelDirName: string | null
 ): void;

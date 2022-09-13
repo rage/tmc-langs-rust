@@ -23,6 +23,9 @@ pub enum TmcError {
     #[error("Failed to write zstd archive")]
     ZstdWrite(#[source] std::io::Error),
 
+    #[error("Path {0} is not valid UTF-8")]
+    InvalidUtf8(PathBuf),
+
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
     #[error("Failed to canonicalize path {0}")]

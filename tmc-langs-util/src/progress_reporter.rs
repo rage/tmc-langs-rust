@@ -116,7 +116,7 @@ pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>
                     time: reporter.start_time.elapsed().as_millis(),
                     data,
                 };
-                let _r = progress_reporter.progress_report.as_ref()(status_update);
+                progress_reporter.progress_report.as_ref()(status_update);
             }
         }
     }
@@ -150,7 +150,7 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
                     time: reporter.start_time.elapsed().as_millis(),
                     data,
                 };
-                let _r = progress_reporter.progress_report.as_ref()(status_update);
+                progress_reporter.progress_report.as_ref()(status_update);
             }
         }
 

@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::io::{BufReader, Read, Seek};
+use std::io::{BufReader, Cursor, Read, Seek};
 use std::ops::ControlFlow::{self, Break};
 use std::path::{Path, PathBuf};
 use std::{fmt::Display, str::FromStr};
@@ -218,6 +218,39 @@ pub enum Compression {
     /// .tar.ztd
     #[serde(rename = "zstd")]
     TarZstd,
+}
+
+impl Compression {
+    pub fn compress(self, path: &Path) -> Result<Vec<u8>, TmcError> {
+        let buf = Cursor::new(Vec::new());
+        let buf = match self {
+            Self::Tar => {
+                let mut builder = tar::Builder::new(buf);
+                builder
+                    .append_dir_all(".", path)
+                    .map_err(TmcError::TarWrite)?;
+                builder.into_inner().map_err(TmcError::TarWrite)?
+            }
+            Self::Zip => {
+                let mut writer = zip::ZipWriter::new(buf);
+                let path_str = path
+                    .to_str()
+                    .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
+                writer.add_directory(path_str, Default::default())?;
+                writer.finish()?
+            }
+            Self::TarZstd => {
+                let mut builder = tar::Builder::new(buf);
+                builder
+                    .append_dir_all(".", path)
+                    .map_err(TmcError::TarWrite)?;
+                let buf = builder.into_inner().map_err(TmcError::TarWrite)?;
+                let encoder = zstd::Encoder::new(buf, 0).map_err(TmcError::ZstdWrite)?;
+                encoder.finish().map_err(TmcError::ZstdWrite)?
+            }
+        };
+        Ok(buf.into_inner())
+    }
 }
 
 impl Display for Compression {

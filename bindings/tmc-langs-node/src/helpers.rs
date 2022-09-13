@@ -7,8 +7,8 @@ macro_rules! lock {
     ( $cx: ident, $( $path: expr ),+ ) => {
         $(
             let path_buf: PathBuf = (&$path).into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf).map_err(|e| crate::helpers::convert_err(&mut $cx, e))?;
-            let _lock = fl.lock().map_err(|e| crate::helpers::convert_err(&mut $cx, e))?;
+            let mut fl = $crate::file_util::FileLock::new(path_buf).map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
+            let _lock = fl.lock().map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
         )*
     };
 }
@@ -17,7 +17,7 @@ macro_rules! lock {
 macro_rules! parse_arg {
     ($cx: ident, $ty: path, $i: expr) => {{
         let arg = $cx.argument::<JsValue>($i)?;
-        crate::de::from_value::<_, $ty>(&mut $cx, arg).expect("failed to parse argument")
+        $crate::de::from_value::<_, $ty>(&mut $cx, arg).expect("failed to parse argument")
     }};
 }
 
@@ -84,6 +84,19 @@ macro_rules! parse_args {
             parse_arg!($cx, $ty5, 5),
             parse_arg!($cx, $ty6, 6),
             parse_arg!($cx, $ty7, 7),
+        );
+    };
+    ($cx: ident, $id0: ident : $ty0: path, $id1: ident : $ty1: path, $id2: ident : $ty2: path, $id3: ident : $ty3: path, $id4: ident : $ty4: path, $id5: ident : $ty5: path, $id6: ident : $ty6: path, $id7: ident : $ty7: path, $id8: ident : $ty8: path) => {
+        let ($id0, $id1, $id2, $id3, $id4, $id5, $id6, $id7, $id8) = (
+            parse_arg!($cx, $ty0, 0),
+            parse_arg!($cx, $ty1, 1),
+            parse_arg!($cx, $ty2, 2),
+            parse_arg!($cx, $ty3, 3),
+            parse_arg!($cx, $ty4, 4),
+            parse_arg!($cx, $ty5, 5),
+            parse_arg!($cx, $ty6, 6),
+            parse_arg!($cx, $ty7, 7),
+            parse_arg!($cx, $ty8, 8),
         );
     };
 }
