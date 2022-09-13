@@ -458,7 +458,7 @@ fn posts_submission_feedback() {
 #[ignore]
 fn posts_submission_review() {
     let client = &init_client();
-    let _res = api_v8::core::post_submission_review(
+    api_v8::core::post_submission_review(
         client,
         SUBMISSION_ID,
         "review body".to_string(),

@@ -427,7 +427,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let exercises = plugin
-            .scan_exercise(&temp_dir.path(), "test".to_string())
+            .scan_exercise(temp_dir.path(), "test".to_string())
             .unwrap();
         assert_eq!(exercises.name, "test");
         assert_eq!(exercises.tests.len(), 1);

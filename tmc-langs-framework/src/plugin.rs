@@ -663,7 +663,7 @@ mod test {
 @Points("1.1")
 "#,
         );
-        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
         assert!(points.is_empty());
 
         let temp = tempfile::tempdir().unwrap();
@@ -687,7 +687,7 @@ def d():
     pass
 "#,
         );
-        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
         assert_eq!(points, &["1", "2", "3", "4"]);
 
         let temp = tempfile::tempdir().unwrap();
@@ -722,7 +722,7 @@ def f():
     pass
 "#,
         );
-        let points = MockPlugin::get_available_points(&temp.path()).unwrap();
+        let points = MockPlugin::get_available_points(temp.path()).unwrap();
         assert_eq!(points, &["1", "3"]);
     }
 
