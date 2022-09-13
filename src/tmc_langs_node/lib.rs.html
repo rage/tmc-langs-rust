@@ -904,6 +904,9 @@
 <span id="898">898</span>
 <span id="899">899</span>
 <span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">de</span>;
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">helpers</span>;
@@ -1029,7 +1032,8 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="ident">guard</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to read data&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">tmc_langs::extract_project</span>(<span class="ident">Cursor::new</span>(<span class="ident">data</span>), <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">compression</span>, <span class="bool-val">false</span>);
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span>
+        <span class="ident">tmc_langs::extract_project</span>(<span class="ident">Cursor::new</span>(<span class="ident">data</span>), <span class="kw-2">&amp;</span><span class="ident">output_path</span>, <span class="ident">compression</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
     <span class="ident">convert_res</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cx</span>, <span class="ident">res</span>)
 }
 
@@ -1086,8 +1090,10 @@
         <span class="ident">output_format</span>: <span class="ident">String</span>,
         <span class="ident">clone_path</span>: <span class="ident">PathBuf</span>,
         <span class="ident">output_path</span>: <span class="ident">PathBuf</span>,
-        <span class="ident">stub_zip_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+        <span class="ident">stub_archive_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+        <span class="ident">stub_compression</span>: <span class="ident">Compression</span>,
         <span class="ident">submission_path</span>: <span class="ident">PathBuf</span>,
+        <span class="ident">submission_compression</span>: <span class="ident">Compression</span>,
         <span class="ident">tmc_param</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
         <span class="ident">top_level_dir_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
     );
@@ -1113,12 +1119,12 @@
     };
 
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">tmc_langs::prepare_submission</span>(
-        <span class="kw-2">&amp;</span><span class="ident">submission_path</span>,
+        (<span class="kw-2">&amp;</span><span class="ident">submission_path</span>, <span class="ident">submission_compression</span>),
         <span class="kw-2">&amp;</span><span class="ident">output_path</span>,
         <span class="ident">top_level_dir_name</span>,
         <span class="ident">tmc_params</span>,
         <span class="kw-2">&amp;</span><span class="ident">clone_path</span>,
-        <span class="ident">stub_zip_path</span>.<span class="ident">as_deref</span>(),
+        <span class="ident">stub_archive_path</span>.<span class="ident">as_deref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> (<span class="ident">p</span>, <span class="ident">stub_compression</span>)),
         <span class="ident">compression</span>,
     );
     <span class="ident">convert_res</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cx</span>, <span class="ident">res</span>)

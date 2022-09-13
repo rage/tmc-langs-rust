@@ -119,6 +119,19 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">neon</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">result::Throw</span>};
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">std::error::Error</span>;
@@ -128,8 +141,8 @@
     ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>: <span class="ident">ident</span>, $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>: <span class="ident">expr</span> ),<span class="op">+</span> ) =&gt; {
         $(
             <span class="kw">let</span> <span class="ident">path_buf</span>: <span class="ident">PathBuf</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>).<span class="ident">into</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fl</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::file_util::FileLock::new</span>(<span class="ident">path_buf</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::helpers::convert_err</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">fl</span>.<span class="ident">lock</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::helpers::convert_err</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fl</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::file_util::FileLock::new</span>(<span class="ident">path_buf</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::helpers::convert_err</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">fl</span>.<span class="ident">lock</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::helpers::convert_err</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
         )<span class="op">*</span>
     };
 }
@@ -138,7 +151,7 @@
 <span class="macro">macro_rules!</span> <span class="ident">parse_arg</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>: <span class="ident">expr</span>) =&gt; {{
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>.<span class="ident">argument</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)<span class="question-mark">?</span>;
-        <span class="ident"><span class="kw">crate</span>::de::from_value</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">arg</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument&quot;</span>)
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::de::from_value</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="ident">arg</span>).<span class="ident">expect</span>(<span class="string">&quot;failed to parse argument&quot;</span>)
     }};
 }
 
@@ -205,6 +218,19 @@
             <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty5</span>, <span class="number">5</span>),
             <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty6</span>, <span class="number">6</span>),
             <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty7</span>, <span class="number">7</span>),
+        );
+    };
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id0</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty0</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id1</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty1</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id2</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty2</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id3</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty3</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id4</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty4</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id5</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty5</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id6</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty6</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id7</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty7</span>: <span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id8</span>: <span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty8</span>: <span class="ident">path</span>) =&gt; {
+        <span class="kw">let</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">id0</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id1</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id2</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id3</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id4</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id5</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id6</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id7</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id8</span>) <span class="op">=</span> (
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty0</span>, <span class="number">0</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty1</span>, <span class="number">1</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty2</span>, <span class="number">2</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty3</span>, <span class="number">3</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty4</span>, <span class="number">4</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty5</span>, <span class="number">5</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty6</span>, <span class="number">6</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty7</span>, <span class="number">7</span>),
+            <span class="macro">parse_arg!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cx</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty8</span>, <span class="number">8</span>),
         );
     };
 }

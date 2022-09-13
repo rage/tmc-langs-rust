@@ -1548,6 +1548,39 @@
 <span id="1542">1542</span>
 <span id="1543">1543</span>
 <span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">clippy::print_stdout</span>, <span class="ident">clippy::print_stderr</span>, <span class="ident">clippy::unwrap_used</span>)]</span>
 
 <span class="doccomment">//! The main tmc-langs library. Provides a convenient API to all of the functionality provided by the tmc-langs project.</span>
@@ -1923,6 +1956,7 @@
                                 <span class="kw-2">&amp;</span><span class="ident">download_target</span>.<span class="ident">target</span>.<span class="ident">path</span>,
                                 <span class="ident">Compression::Zip</span>,
                                 <span class="bool-val">false</span>,
+                                <span class="bool-val">false</span>,
                             )<span class="question-mark">?</span>;
                         }
                         <span class="ident">DownloadTargetKind::Submission</span> { <span class="ident">submission_id</span> } =&gt; {
@@ -1932,6 +1966,7 @@
                                 <span class="ident">Cursor::new</span>(<span class="ident">buf</span>),
                                 <span class="kw-2">&amp;</span><span class="ident">download_target</span>.<span class="ident">target</span>.<span class="ident">path</span>,
                                 <span class="ident">Compression::Zip</span>,
+                                <span class="bool-val">false</span>,
                                 <span class="bool-val">false</span>,
                             )<span class="question-mark">?</span>;
 
@@ -2199,7 +2234,13 @@
             <span class="kw">for</span> <span class="ident">exercise</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exercises_to_update</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                 <span class="ident">client</span>.<span class="ident">download_exercise</span>(<span class="ident">exercise</span>.<span class="ident">id</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
-                <span class="ident">extract_project</span>(<span class="ident">Cursor::new</span>(<span class="ident">buf</span>), <span class="kw-2">&amp;</span><span class="ident">exercise</span>.<span class="ident">path</span>, <span class="ident">Compression::Zip</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="ident">extract_project</span>(
+                    <span class="ident">Cursor::new</span>(<span class="ident">buf</span>),
+                    <span class="kw-2">&amp;</span><span class="ident">exercise</span>.<span class="ident">path</span>,
+                    <span class="ident">Compression::Zip</span>,
+                    <span class="bool-val">false</span>,
+                    <span class="bool-val">false</span>,
+                )<span class="question-mark">?</span>;
             }
             <span class="kw">for</span> (<span class="ident">course_name</span>, <span class="ident">exercise_names</span>) <span class="kw">in</span> <span class="ident">course_data</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exercises</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
@@ -2311,7 +2352,7 @@
         <span class="ident">compression</span>
     );
 
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">source</span>, <span class="ident">compression</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">source</span>, <span class="ident">compression</span>, <span class="ident">naive</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">target</span>.<span class="ident">parent</span>() {
         <span class="ident">file_util::create_dir_all</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
     }
@@ -2339,7 +2380,13 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="ident">client</span>.<span class="ident">download_exercise</span>(<span class="ident">exercise_id</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
-    <span class="ident">extract_project</span>(<span class="ident">Cursor::new</span>(<span class="ident">buf</span>), <span class="ident">exercise_path</span>, <span class="ident">Compression::Zip</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+    <span class="ident">extract_project</span>(
+        <span class="ident">Cursor::new</span>(<span class="ident">buf</span>),
+        <span class="ident">exercise_path</span>,
+        <span class="ident">Compression::Zip</span>,
+        <span class="bool-val">false</span>,
+        <span class="bool-val">false</span>,
+    )<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -2349,20 +2396,23 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">compression</span>: <span class="ident">Compression</span>,
     <span class="ident">clean</span>: <span class="ident">bool</span>,
+    <span class="ident">naive</span>: <span class="ident">bool</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
     <span class="macro">log::debug!</span>(
         <span class="string">&quot;extracting compressed project to {}&quot;</span>,
         <span class="ident">target_location</span>.<span class="ident">display</span>()
     );
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">plugin</span>) <span class="op">=</span> <span class="ident">tmc_langs_plugins::get_language_plugin</span>(<span class="ident">target_location</span>) {
+    <span class="kw">if</span> <span class="ident">naive</span> {
+        <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>, <span class="ident">compression</span>)<span class="question-mark">?</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">plugin</span>) <span class="op">=</span> <span class="ident">tmc_langs_plugins::get_language_plugin</span>(<span class="ident">target_location</span>) {
         <span class="ident">plugin</span>.<span class="ident">extract_project</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>, <span class="ident">compression</span>, <span class="ident">clean</span>)<span class="question-mark">?</span>;
     } <span class="kw">else</span> {
         <span class="macro">log::debug!</span>(
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
             <span class="ident">target_location</span>.<span class="ident">display</span>()
         );
-        <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+        <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>, <span class="ident">compression</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -2457,7 +2507,7 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
             <span class="ident">target_location</span>.<span class="ident">display</span>()
         );
-        <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+        <span class="ident">extract_project_overwrite</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>, <span class="ident">Compression::Zip</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -2541,8 +2591,24 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 <span class="kw">fn</span> <span class="ident">extract_project_overwrite</span>(
     <span class="ident">compressed_project</span>: <span class="kw">impl</span> <span class="ident">std::io::Read</span> <span class="op">+</span> <span class="ident">std::io::Seek</span>,
     <span class="ident">target_location</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">compression</span>: <span class="ident">Compression</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
-    <span class="ident">compression::unzip</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>;
+    <span class="kw">match</span> <span class="ident">compression</span> {
+        <span class="ident">Compression::Tar</span> =&gt; {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">compressed_project</span>);
+            <span class="ident">archive</span>
+                .<span class="ident">unpack</span>(<span class="ident">target_location</span>)
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::TarExtract</span>(<span class="ident">target_location</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        }
+        <span class="ident">Compression::TarZstd</span> =&gt; {
+            <span class="kw">let</span> <span class="ident">decoder</span> <span class="op">=</span> <span class="ident">zstd::Decoder::new</span>(<span class="ident">compressed_project</span>).<span class="ident">map_err</span>(<span class="ident">LangsError::ZstdDecode</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">archive</span> <span class="op">=</span> <span class="ident">tar::Archive::new</span>(<span class="ident">decoder</span>);
+            <span class="ident">archive</span>
+                .<span class="ident">unpack</span>(<span class="ident">target_location</span>)
+                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::TarExtract</span>(<span class="ident">target_location</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+        }
+        <span class="ident">Compression::Zip</span> =&gt; <span class="ident">compression::unzip</span>(<span class="ident">compressed_project</span>, <span class="ident">target_location</span>)<span class="question-mark">?</span>,
+    }
     <span class="prelude-val">Ok</span>(())
 }
 

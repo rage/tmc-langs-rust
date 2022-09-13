@@ -249,15 +249,52 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufReader</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>};
-<span class="kw">use</span> <span class="ident">std::ops::ControlFlow</span>::{<span class="self">self</span>, <span class="ident">Break</span>};
-<span class="kw">use</span> <span class="ident">std::path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt::Display</span>, <span class="ident">str::FromStr</span>};
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TmcError</span>;
+<span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">fmt::Display</span>,
+    <span class="ident">io</span>::{<span class="ident">BufReader</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>, <span class="ident">Seek</span>},
+    <span class="ident">ops::ControlFlow</span>::{<span class="self">self</span>, <span class="ident">Break</span>},
+    <span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>},
+    <span class="ident">str::FromStr</span>,
+};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ts&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">ts_rs::TS</span>;
-
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TmcError</span>;
 
 <span class="doccomment">/// Wrapper unifying the API of all the different compression formats supported by langs.</span>
 <span class="doccomment">/// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,</span>
@@ -469,6 +506,39 @@
     <span class="doccomment">/// .tar.ztd</span>
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;zstd&quot;</span>)]</span>
     <span class="ident">TarZstd</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Compression</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress</span>(<span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">TmcError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Tar</span> =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">tar::Builder::new</span>(<span class="ident">buf</span>);
+                <span class="ident">builder</span>
+                    .<span class="ident">append_dir_all</span>(<span class="string">&quot;.&quot;</span>, <span class="ident">path</span>)
+                    .<span class="ident">map_err</span>(<span class="ident">TmcError::TarWrite</span>)<span class="question-mark">?</span>;
+                <span class="ident">builder</span>.<span class="ident">into_inner</span>().<span class="ident">map_err</span>(<span class="ident">TmcError::TarWrite</span>)<span class="question-mark">?</span>
+            }
+            <span class="ident"><span class="self">Self</span>::Zip</span> =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writer</span> <span class="op">=</span> <span class="ident">zip::ZipWriter::new</span>(<span class="ident">buf</span>);
+                <span class="kw">let</span> <span class="ident">path_str</span> <span class="op">=</span> <span class="ident">path</span>
+                    .<span class="ident">to_str</span>()
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">TmcError::InvalidUtf8</span>(<span class="ident">path</span>.<span class="ident">to_path_buf</span>()))<span class="question-mark">?</span>;
+                <span class="ident">writer</span>.<span class="ident">add_directory</span>(<span class="ident">path_str</span>, <span class="ident">Default::default</span>())<span class="question-mark">?</span>;
+                <span class="ident">writer</span>.<span class="ident">finish</span>()<span class="question-mark">?</span>
+            }
+            <span class="ident"><span class="self">Self</span>::TarZstd</span> =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">tar::Builder::new</span>(<span class="ident">buf</span>);
+                <span class="ident">builder</span>
+                    .<span class="ident">append_dir_all</span>(<span class="string">&quot;.&quot;</span>, <span class="ident">path</span>)
+                    .<span class="ident">map_err</span>(<span class="ident">TmcError::TarWrite</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">into_inner</span>().<span class="ident">map_err</span>(<span class="ident">TmcError::TarWrite</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="ident">zstd::Encoder::new</span>(<span class="ident">buf</span>, <span class="number">0</span>).<span class="ident">map_err</span>(<span class="ident">TmcError::ZstdWrite</span>)<span class="question-mark">?</span>;
+                <span class="ident">encoder</span>.<span class="ident">finish</span>().<span class="ident">map_err</span>(<span class="ident">TmcError::ZstdWrite</span>)<span class="question-mark">?</span>
+            }
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">buf</span>.<span class="ident">into_inner</span>())
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Compression</span> {

@@ -581,6 +581,9 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Submission packaging.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">data::TmcParams</span>, <span class="ident">error::LangsError</span>, <span class="ident">Compression</span>};
@@ -603,17 +606,17 @@
 <span class="doccomment">/// The clone path is assumed to be a directory with the exercise name as the directory name,</span>
 <span class="doccomment">/// and the course name as its parent, ex. &quot;anything/some_course/some_exercise&quot;</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_submission</span>(
-    <span class="ident">zip_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    (<span class="ident">submission_archive</span>, <span class="ident">submission_compression</span>): (<span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">Compression</span>),
     <span class="ident">target_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
     <span class="ident">toplevel_dir_name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">tmc_params</span>: <span class="ident">TmcParams</span>,
     <span class="ident">stub_clone_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">stub_zip_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Path</span><span class="op">&gt;</span>,
+    <span class="ident">stub_archive</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">Compression</span>)<span class="op">&gt;</span>,
     <span class="ident">output_format</span>: <span class="ident">Compression</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
     <span class="comment">// workaround for unknown issues when prepare_submission is ran multiple times in parallel</span>
     <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="ident">MUTEX</span>.<span class="ident">lock</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">LangsError::MutexError</span>)<span class="question-mark">?</span>;
-    <span class="macro">log::debug!</span>(<span class="string">&quot;preparing submission for {}&quot;</span>, <span class="ident">zip_path</span>.<span class="ident">display</span>());
+    <span class="macro">log::debug!</span>(<span class="string">&quot;preparing submission for {}&quot;</span>, <span class="ident">submission_archive</span>.<span class="ident">display</span>());
 
     <span class="kw">let</span> <span class="ident">plugin</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::get_language_plugin</span>(<span class="ident">stub_clone_path</span>)<span class="question-mark">?</span>;
 
@@ -629,11 +632,12 @@
         <span class="string">&quot;.directory&quot;</span>,
         <span class="string">&quot;__MACOSX&quot;</span>,
     ];
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stub_zip_path</span>) <span class="op">=</span> <span class="ident">stub_zip_path</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">stub_zip</span>, <span class="ident">compression</span>)) <span class="op">=</span> <span class="ident">stub_archive</span> {
         <span class="comment">// if defined, extract and use as the base</span>
-        <span class="ident">unzip_with_filter</span>(
+        <span class="ident">extract_with_filter</span>(
             <span class="kw-2">&amp;</span><span class="ident">plugin</span>,
-            <span class="ident">stub_zip_path</span>,
+            <span class="ident">stub_zip</span>,
+            <span class="ident">compression</span>,
             <span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
                 <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
                     <span class="ident">c</span>.<span class="ident">as_os_str</span>()
@@ -674,7 +678,7 @@
 
     <span class="comment">// extract student files from submission over base</span>
     <span class="macro">log::debug!</span>(<span class="string">&quot;extracting student files&quot;</span>);
-    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">zip_path</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">submission_archive</span>)<span class="question-mark">?</span>;
     <span class="ident">plugin</span>.<span class="ident">extract_student_files</span>(<span class="ident">file</span>, <span class="kw-2">&amp;</span><span class="ident">extract_dest_path</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// extract ide files</span>
@@ -689,9 +693,10 @@
         <span class="comment">// idea</span>
         <span class="string">&quot;.idea&quot;</span>,
     ];
-    <span class="ident">unzip_with_filter</span>(
+    <span class="ident">extract_with_filter</span>(
         <span class="kw-2">&amp;</span><span class="ident">plugin</span>,
-        <span class="ident">zip_path</span>,
+        <span class="ident">submission_archive</span>,
+        <span class="ident">submission_compression</span>,
         <span class="op">|</span><span class="ident">path</span><span class="op">|</span> {
             <span class="ident">path</span>.<span class="ident">components</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
                 <span class="ident">c</span>.<span class="ident">as_os_str</span>()
@@ -806,14 +811,15 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">unzip_with_filter</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span>(
+<span class="kw">fn</span> <span class="ident">extract_with_filter</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="ident">bool</span><span class="op">&gt;</span>(
     <span class="ident">plugin</span>: <span class="kw-2">&amp;</span><span class="ident">Plugin</span>,
-    <span class="ident">zip_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">archive</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+    <span class="ident">compression</span>: <span class="ident">Compression</span>,
     <span class="ident">exclude_filter</span>: <span class="ident">F</span>,
     <span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">zip_path</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">Archive::zip</span>(<span class="ident">file</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">archive</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zip</span> <span class="op">=</span> <span class="ident">Archive::new</span>(<span class="ident">file</span>, <span class="ident">compression</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">project_dir_in_stub</span> <span class="op">=</span> <span class="ident">plugin</span>.<span class="ident">find_project_dir_in_archive</span>(<span class="kw-2">&amp;mut</span> <span class="ident">zip</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">zip</span>.<span class="ident">iter</span>()<span class="question-mark">?</span>;
@@ -876,7 +882,7 @@
             .<span class="ident">insert_array</span>(<span class="string">&quot;param_two&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;value_two&quot;</span>, <span class="string">&quot;value_three&quot;</span>])
             .<span class="ident">unwrap</span>();
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">zip</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">zip</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output_archive</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">tmc_params</span>,
@@ -973,7 +979,7 @@
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;toplevel&quot;</span>.<span class="ident">to_string</span>()),
             <span class="ident">TmcParams::new</span>(),
@@ -1008,7 +1014,7 @@
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">TmcParams::new</span>(),
@@ -1042,7 +1048,7 @@
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">TmcParams::new</span>(),
@@ -1069,7 +1075,7 @@
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;toplevel&quot;</span>.<span class="ident">to_string</span>()),
             <span class="ident">TmcParams::new</span>(),
@@ -1099,12 +1105,12 @@
 
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">output_arch</span>.<span class="ident">exists</span>());
         <span class="ident">prepare_submission</span>(
-            <span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>),
+            (<span class="ident">Path::new</span>(<span class="ident">MAVEN_ZIP</span>), <span class="ident">Compression::Zip</span>),
             <span class="kw-2">&amp;</span><span class="ident">output_arch</span>,
             <span class="prelude-val">None</span>,
             <span class="ident">TmcParams::new</span>(),
             <span class="ident">Path::new</span>(<span class="ident">MAVEN_CLONE</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">Path::new</span>(<span class="string">&quot;tests/data/MavenStub.zip&quot;</span>)),
+            <span class="prelude-val">Some</span>((<span class="ident">Path::new</span>(<span class="string">&quot;tests/data/MavenStub.zip&quot;</span>), <span class="ident">Compression::Zip</span>)),
             <span class="ident">Compression::Tar</span>,
         )
         .<span class="ident">unwrap</span>();

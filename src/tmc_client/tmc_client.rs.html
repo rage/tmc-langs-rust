@@ -825,6 +825,9 @@
 <span id="819">819</span>
 <span id="820">820</span>
 <span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the TmcClient struct for communicating with the TMC server.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">api_v8</span>;
 
@@ -1092,7 +1095,8 @@
 
         <span class="comment">// compress</span>
         <span class="ident">start_stage</span>(<span class="number">2</span>, <span class="string">&quot;Compressing paste submission...&quot;</span>, <span class="prelude-val">None</span>);
-        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span>
+            <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="ident">progress_stage</span>(
             <span class="string">&quot;Compressed paste submission. Posting paste submission...&quot;</span>,
             <span class="prelude-val">None</span>,
@@ -1160,7 +1164,8 @@
         <span class="self">self</span>.<span class="ident">require_authentication</span>()<span class="question-mark">?</span>;
 
         <span class="ident">start_stage</span>(<span class="number">2</span>, <span class="string">&quot;Compressing submission...&quot;</span>, <span class="prelude-val">None</span>);
-        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span>
+            <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="ident">progress_stage</span>(<span class="string">&quot;Compressed submission. Posting submission...&quot;</span>, <span class="prelude-val">None</span>);
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">api_v8::core::submit_exercise</span>(
@@ -1383,7 +1388,8 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NewSubmission</span>, <span class="ident">ClientError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">require_authentication</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span> <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">compressed</span> <span class="op">=</span>
+            <span class="ident">tmc_langs_plugins::compress_project</span>(<span class="ident">submission_path</span>, <span class="ident">Compression::Zip</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">review</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">message_for_reviewer</span> {
             <span class="ident">ReviewData::WithMessage</span>(<span class="ident">message</span>)
         } <span class="kw">else</span> {
