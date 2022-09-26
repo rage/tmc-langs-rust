@@ -1,4 +1,4 @@
-//! Contains functions for zipping and unzipping projects.
+//! Contains functions for compressing and uncompressing projects.
 
 use crate::archive::ArchiveBuilder;
 use std::{
@@ -11,7 +11,7 @@ use walkdir::{DirEntry, WalkDir};
 pub use zip::result::ZipError;
 use zip::ZipArchive;
 
-/// Zips the given directory, only including student files according to the given policy.
+/// Compressesthe given directory, only including student files according to the given policy.
 pub fn compress_student_files<P: StudentFilePolicy>(
     policy: P,
     root_directory: &Path,

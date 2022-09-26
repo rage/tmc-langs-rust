@@ -372,19 +372,23 @@ impl LanguagePlugin for Python3Plugin {
                 let file_path = file.path()?;
 
                 if file.is_file() {
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "setup.py") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "setup.py") {
                         return Ok(Break(Some(parent)));
                     }
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "requirements.txt") {
+                    if let Some(parent) =
+                        path_util::get_parent_of_named(&file_path, "requirements.txt")
+                    {
                         return Ok(Break(Some(parent)));
                     }
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "__init__.py") {
-                        if let Some(parent) = path_util::get_parent_of(&parent, "test") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "__init__.py")
+                    {
+                        if let Some(parent) = path_util::get_parent_of_named(&parent, "test") {
                             return Ok(Break(Some(parent)));
                         }
                     }
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "__main__.py") {
-                        if let Some(parent) = path_util::get_parent_of(&parent, "tmc") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "__main__.py")
+                    {
+                        if let Some(parent) = path_util::get_parent_of_named(&parent, "tmc") {
                             return Ok(Break(Some(parent)));
                         }
                     }

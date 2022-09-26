@@ -69,7 +69,7 @@ impl TmcConfig {
         if let Some(parent) = path.parent() {
             file_util::create_dir_all(parent)?;
         }
-        let mut lock = file_util::create_file_lock(&path)?;
+        let mut lock = file_util::create_file_locked(&path)?;
         let mut guard = lock
             .write()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
@@ -89,7 +89,7 @@ impl TmcConfig {
 
     pub fn load(client_name: &str, path: &Path) -> Result<TmcConfig, LangsError> {
         // try to open config file
-        let config = match file_util::open_file_lock(path) {
+        let config = match file_util::open_file_locked(path) {
             Ok(mut lock) => {
                 // found config file, lock and read
                 let mut guard = lock
@@ -147,7 +147,7 @@ impl TmcConfig {
             file_util::create_dir_all(parent)?;
         }
 
-        let mut lock = file_util::create_file_lock(path)?;
+        let mut lock = file_util::create_file_locked(path)?;
         let mut guard = lock
             .write()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;

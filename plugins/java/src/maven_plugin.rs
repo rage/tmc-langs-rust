@@ -139,7 +139,7 @@ impl LanguagePlugin for MavenPlugin {
 
                 if file.is_file() {
                     // check for pom.xml
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "pom.xml") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "pom.xml") {
                         return Ok(Break(Some(parent)));
                     }
                 }

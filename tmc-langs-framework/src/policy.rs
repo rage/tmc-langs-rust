@@ -27,7 +27,7 @@ pub trait StudentFilePolicy {
     fn get_project_config(&self) -> &TmcProjectYml;
 
     /// Checks whether the path is considered a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
-    fn is_student_source_file(file_path: &Path) -> bool;
+    fn is_student_source_file(&self, file_path: &Path) -> bool;
 
     /// Determines whether a file is a student source file.
     ///
@@ -81,7 +81,7 @@ pub trait StudentFilePolicy {
             .iter()
             .any(|f| relative.starts_with(f));
 
-        Ok(is_extra_student_file || Self::is_student_source_file(relative))
+        Ok(is_extra_student_file || self.is_student_source_file(relative))
     }
 
     /// Used to check for files which should always be overwritten.
@@ -132,7 +132,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         Ok(false)
     }
 
-    fn is_student_source_file(_path: &Path) -> bool {
+    fn is_student_source_file(&self, _path: &Path) -> bool {
         false
     }
 }
@@ -173,7 +173,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         Ok(true)
     }
 
-    fn is_student_source_file(_path: &Path) -> bool {
+    fn is_student_source_file(&self, _path: &Path) -> bool {
         true
     }
 }
@@ -219,7 +219,7 @@ mod test {
             &self.project_config
         }
 
-        fn is_student_source_file(file_path: &Path) -> bool {
+        fn is_student_source_file(&self, file_path: &Path) -> bool {
             file_path
                 .components()
                 .any(|c| c.as_os_str() == "student_file")
@@ -306,5 +306,11 @@ mod test {
             .is_updating_forced(Path::new("other dir/other file"))
             .unwrap());
         assert!(!policy.is_updating_forced(Path::new("other file")).unwrap());
+    }
+
+    #[test]
+    fn is_object_safe() {
+        // this will fail to compile if the trait is not object safe
+        fn _f(_: Box<dyn StudentFilePolicy>) {}
     }
 }

@@ -19,7 +19,7 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_source_file(path: &Path) -> bool {
+    fn is_student_source_file(&self, path: &Path) -> bool {
         // all non-pyc or __pycache__ files in src are student source files
         let in_src = path.starts_with("src");
         let is_cache_file = path.extension() == Some(OsStr::new("pyc"))
@@ -51,71 +51,50 @@ mod test {
 
     #[test]
     fn in_src_is_source_file() {
-        assert!(Python3StudentFilePolicy::is_student_source_file(Path::new(
-            "src/some_file.py"
-        )));
-        assert!(Python3StudentFilePolicy::is_student_source_file(Path::new(
-            "src/some_dir/some_file.py"
-        )));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(policy.is_student_source_file(Path::new("src/some_file.py")));
+        assert!(policy.is_student_source_file(Path::new("src/some_dir/some_file.py")));
     }
 
     #[test]
     fn in_root_is_source_file() {
-        assert!(Python3StudentFilePolicy::is_student_source_file(Path::new(
-            "some_file.py"
-        )));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(policy.is_student_source_file(Path::new("some_file.py")));
     }
 
     #[test]
     fn pycache_is_not_source_file() {
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("__pycache__")
-        ));
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("__pycache__/cachefile")
-        ));
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("src/__pycache__")
-        ));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_source_file(Path::new("__pycache__")));
+        assert!(!policy.is_student_source_file(Path::new("__pycache__/cachefile")));
+        assert!(!policy.is_student_source_file(Path::new("src/__pycache__")));
     }
 
     #[test]
     fn pyc_is_not_source_file() {
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("some.pyc")
-        ));
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("src/other.pyc")
-        ));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_source_file(Path::new("some.pyc")));
+        assert!(!policy.is_student_source_file(Path::new("src/other.pyc")));
     }
 
     #[test]
     fn subdirs_are_student_files() {
-        assert!(Python3StudentFilePolicy::is_student_source_file(Path::new(
-            "subdir/something"
-        )));
-        assert!(Python3StudentFilePolicy::is_student_source_file(Path::new(
-            "another/mid/else"
-        )));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(policy.is_student_source_file(Path::new("subdir/something")));
+        assert!(policy.is_student_source_file(Path::new("another/mid/else")));
     }
 
     #[test]
     fn tmc_and_test_are_not_student_files() {
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("test/something.py")
-        ));
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("tmc/mid/else.py")
-        ));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_source_file(Path::new("test/something.py")));
+        assert!(!policy.is_student_source_file(Path::new("tmc/mid/else.py")));
     }
 
     #[test]
     fn non_py_file_in_root_is_not_student_file() {
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("test")
-        ));
-        assert!(!Python3StudentFilePolicy::is_student_source_file(
-            Path::new("root_file")
-        ));
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_source_file(Path::new("test")));
+        assert!(!policy.is_student_source_file(Path::new("root_file")));
     }
 }

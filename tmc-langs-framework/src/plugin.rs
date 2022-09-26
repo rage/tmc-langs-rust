@@ -511,7 +511,7 @@ mod test {
         fn get_project_config(&self) -> &TmcProjectYml {
             &self.project_config
         }
-        fn is_student_source_file(path: &Path) -> bool {
+        fn is_student_source_file(&self, path: &Path) -> bool {
             path.starts_with("src")
         }
     }
@@ -550,7 +550,9 @@ mod test {
                 let next = iter.with_next(|file| {
                     let file_path = file.path()?;
 
-                    if let Some(parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                    if let Some(parent) =
+                        path_util::get_parent_of_component_in_path(&file_path, "src")
+                    {
                         return Ok(Break(Some(parent)));
                     }
                     Ok(Continue(()))

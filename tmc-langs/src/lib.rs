@@ -871,9 +871,8 @@ pub fn get_exercise_packaging_configuration(
 ) -> Result<ExercisePackagingConfiguration, LangsError> {
     log::debug!("getting exercise packaging config for {}", path.display());
 
-    let config = TmcProjectYml::load_or_default(path)?;
-    Ok(tmc_langs_plugins::get_language_plugin(path)?
-        .get_exercise_packaging_configuration(config)?)
+    let config = tmc_langs_plugins::get_exercise_packaging_configuration(path)?;
+    Ok(config)
 }
 
 /// Prepares the exercise stub, copying tmc-junit-runner for Ant exercises.

@@ -113,12 +113,14 @@ impl LanguagePlugin for AntPlugin {
 
                 if file.is_file() {
                     // check for build.xml
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "build.xml") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "build.xml") {
                         return Ok(Break(Some(parent)));
                     }
                 } else if file.is_dir() {
                     // check for src
-                    if let Some(src_parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                    if let Some(src_parent) =
+                        path_util::get_parent_of_component_in_path(&file_path, "src")
+                    {
                         if test_parents.contains(&src_parent) {
                             // found a test in the same directory before, return
                             return Ok(Break(Some(src_parent)));
@@ -128,7 +130,9 @@ impl LanguagePlugin for AntPlugin {
                     }
 
                     // check for test
-                    if let Some(test_parent) = path_util::get_parent_of_dir(&file_path, "test") {
+                    if let Some(test_parent) =
+                        path_util::get_parent_of_component_in_path(&file_path, "test")
+                    {
                         if src_parents.contains(&test_parent) {
                             // found a test in the same directory before, return
                             return Ok(Break(Some(test_parent)));

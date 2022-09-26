@@ -1,3 +1,5 @@
+//! Contains types that abstract over the various archive formats.
+
 use crate::TmcError;
 use serde::Deserialize;
 use std::{

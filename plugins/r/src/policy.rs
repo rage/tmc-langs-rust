@@ -19,7 +19,7 @@ impl StudentFilePolicy for RStudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_source_file(path: &Path) -> bool {
+    fn is_student_source_file(&self, path: &Path) -> bool {
         path.starts_with("R")
     }
 }
@@ -38,21 +38,17 @@ mod test {
     fn is_student_source_file() {
         init();
 
-        assert!(RStudentFilePolicy::is_student_source_file(Path::new("R")));
-        assert!(RStudentFilePolicy::is_student_source_file(Path::new(
-            "R/file"
-        )));
+        let policy = RStudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(policy.is_student_source_file(Path::new("R")));
+        assert!(policy.is_student_source_file(Path::new("R/file")));
     }
 
     #[test]
     fn is_not_student_source_file() {
         init();
 
-        assert!(!RStudentFilePolicy::is_student_source_file(Path::new(
-            "dir/R"
-        )));
-        assert!(!RStudentFilePolicy::is_student_source_file(Path::new(
-            "dir/R/file"
-        )));
+        let policy = RStudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_source_file(Path::new("dir/R")));
+        assert!(!policy.is_student_source_file(Path::new("dir/R/file")));
     }
 }

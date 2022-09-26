@@ -30,7 +30,7 @@ impl Credentials {
             return Ok(None);
         }
 
-        let mut credentials_file = file_util::open_file_lock(&credentials_path)?;
+        let mut credentials_file = file_util::open_file_locked(&credentials_path)?;
         let guard = credentials_file
             .write()
             .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
@@ -57,7 +57,7 @@ impl Credentials {
         if let Some(p) = credentials_path.parent() {
             file_util::create_dir_all(p)?;
         }
-        let mut credentials_file = file_util::create_file_lock(&credentials_path)?;
+        let mut credentials_file = file_util::create_file_locked(&credentials_path)?;
         let guard = credentials_file
             .write()
             .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;

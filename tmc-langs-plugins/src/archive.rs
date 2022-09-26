@@ -1,3 +1,5 @@
+//! Contains types that abstract over the various archive formats.
+
 use std::{
     io::{self, Cursor, Seek, Write},
     path::Path,

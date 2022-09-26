@@ -294,7 +294,7 @@ impl LanguagePlugin for MakePlugin {
 
                 if file.is_file() {
                     // check for Makefile
-                    if let Some(parent) = path_util::get_parent_of(&file_path, "Makefile") {
+                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "Makefile") {
                         if src_parents.contains(&parent) {
                             return Ok(Break(Some(parent)));
                         } else {
@@ -303,7 +303,9 @@ impl LanguagePlugin for MakePlugin {
                     }
                 } else if file.is_dir() {
                     // check for src
-                    if let Some(parent) = path_util::get_parent_of_dir(&file_path, "src") {
+                    if let Some(parent) =
+                        path_util::get_parent_of_component_in_path(&file_path, "src")
+                    {
                         if makefile_parents.contains(&parent) {
                             return Ok(Break(Some(parent)));
                         } else {

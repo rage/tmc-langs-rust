@@ -92,7 +92,9 @@ impl LanguagePlugin for NoTestsPlugin {
 
                 if file.is_file() {
                     // check for .tmcproject.yml
-                    if let Some(parent) = path_util::get_parent_of(&file_path, ".tmcproject.yml") {
+                    if let Some(parent) =
+                        path_util::get_parent_of_named(&file_path, ".tmcproject.yml")
+                    {
                         let tmc_project_yml: TmcProjectYml = deserialize::yaml_from_reader(file)
                             .map_err(|e| TmcError::YamlDeserialize(file_path, e))?;
                         // check no-tests

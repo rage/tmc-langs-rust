@@ -160,11 +160,12 @@ impl LanguagePlugin for CSharpPlugin {
                     && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
                 {
                     if let Some(parent) = file_path.parent() {
-                        if let Some(src_parent) = path_util::get_parent_of(parent, "src") {
+                        if let Some(src_parent) = path_util::get_parent_of_named(parent, "src") {
                             return Ok(Break(Some(src_parent)));
                         }
                         if let Some(parent) = parent.parent() {
-                            if let Some(src_parent) = path_util::get_parent_of(parent, "src") {
+                            if let Some(src_parent) = path_util::get_parent_of_named(parent, "src")
+                            {
                                 return Ok(Break(Some(src_parent)));
                             }
                         }

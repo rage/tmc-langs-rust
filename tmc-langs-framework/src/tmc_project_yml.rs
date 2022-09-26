@@ -115,7 +115,7 @@ impl TmcProjectYml {
 
     pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
         let config_path = Self::path_in_dir(dir);
-        let mut file = file_util::create_file_lock(&config_path)?;
+        let mut file = file_util::create_file_locked(&config_path)?;
         let guard = file
             .write()
             .map_err(|e| FileError::FdLock(config_path.clone(), e))?;

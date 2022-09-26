@@ -7,6 +7,8 @@ pub enum PluginError {
     PluginNotFound(PathBuf),
     #[error(transparent)]
     Tmc(#[from] tmc_langs_framework::TmcError),
+    #[error(transparent)]
+    Walkdir(#[from] walkdir::Error),
 }
 
 impl From<JavaError> for PluginError {

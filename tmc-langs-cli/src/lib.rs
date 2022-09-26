@@ -258,7 +258,7 @@ fn run_app(matches: Opt) -> Result<()> {
             compression,
             naive,
         } => {
-            let mut archive = file_util::open_file_lock(&archive_path)?;
+            let mut archive = file_util::open_file_locked(&archive_path)?;
             let mut guard = archive.write()?;
 
             let mut data = vec![];
@@ -1093,7 +1093,7 @@ fn write_result_to_file_as_json<T: Serialize>(
     pretty: bool,
     secret: Option<String>,
 ) -> Result<()> {
-    let mut output_file = file_util::create_file_lock(output_path).with_context(|| {
+    let mut output_file = file_util::create_file_locked(output_path).with_context(|| {
         format!(
             "Failed to create results JSON file at {}",
             output_path.display()

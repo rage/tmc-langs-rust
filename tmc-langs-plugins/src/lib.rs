@@ -6,6 +6,7 @@ mod error;
 
 pub use error::PluginError;
 use std::{
+    collections::HashSet,
     io::{Read, Seek},
     path::{Path, PathBuf},
 };
@@ -21,6 +22,7 @@ pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
 pub use tmc_langs_python3::Python3Plugin;
 pub use tmc_langs_r::RPlugin;
+use walkdir::WalkDir;
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
@@ -104,6 +106,35 @@ pub fn compress_project(
     }
 }
 
+pub fn get_exercise_packaging_configuration(
+    path: &Path,
+) -> Result<ExercisePackagingConfiguration, PluginError> {
+    let policy = get_student_file_policy(path)?;
+    let mut config = ExercisePackagingConfiguration {
+        student_file_paths: HashSet::new(),
+        exercise_file_paths: HashSet::new(),
+    };
+    for entry in WalkDir::new(path) {
+        let entry = entry?;
+        if entry.metadata()?.is_dir() {
+            continue;
+        }
+
+        let path = entry
+            .path()
+            .strip_prefix(path)
+            .expect("All entries are within path")
+            .to_path_buf();
+        if policy.is_student_source_file(&path) {
+            config.student_file_paths.insert(path);
+        } else {
+            config.exercise_file_paths.insert(path);
+        }
+    }
+
+    Ok(config)
+}
+
 // enum containing all the plugins
 #[impl_enum::with_methods(
     pub fn clean(&self, path: &Path) -> Result<(), TmcError>
@@ -134,6 +165,23 @@ pub enum PluginType {
     Python3,
     R,
     Ant,
+}
+
+impl PluginType {
+    pub fn get_exercise_packaging_configuration(
+        self,
+        config: TmcProjectYml,
+    ) -> Result<ExercisePackagingConfiguration, TmcError> {
+        match self {
+            Self::CSharp => CSharpPlugin::get_exercise_packaging_configuration(config),
+            Self::Make => MakePlugin::get_exercise_packaging_configuration(config),
+            Self::Maven => MavenPlugin::get_exercise_packaging_configuration(config),
+            Self::NoTests => NoTestsPlugin::get_exercise_packaging_configuration(config),
+            Self::Python3 => Python3Plugin::get_exercise_packaging_configuration(config),
+            Self::R => RPlugin::get_exercise_packaging_configuration(config),
+            Self::Ant => AntPlugin::get_exercise_packaging_configuration(config),
+        }
+    }
 }
 
 pub fn get_language_plugin_type(path: &Path) -> Option<PluginType> {
@@ -206,4 +254,30 @@ pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
         None => return Err(PluginError::PluginNotFound(path.to_path_buf())),
     };
     Ok(plugin)
+}
+
+pub fn get_student_file_policy(path: &Path) -> Result<Box<dyn StudentFilePolicy>, PluginError> {
+    let policy: Box<dyn StudentFilePolicy> = match get_language_plugin_type(path) {
+        Some(PluginType::NoTests) => Box::new(
+            <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+        ),
+        Some(PluginType::CSharp) => Box::new(
+            <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+        ),
+        Some(PluginType::Make) => Box::new(<MakePlugin as LanguagePlugin>::StudentFilePolicy::new(
+            path,
+        )?),
+        Some(PluginType::Python3) => Box::new(
+            <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+        ),
+        Some(PluginType::R) => Box::new(<RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
+        Some(PluginType::Maven) => Box::new(
+            <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
+        ),
+        Some(PluginType::Ant) => {
+            Box::new(<AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?)
+        }
+        None => return Err(PluginError::PluginNotFound(path.to_path_buf())),
+    };
+    Ok(policy)
 }

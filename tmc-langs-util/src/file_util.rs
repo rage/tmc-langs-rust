@@ -1,5 +1,15 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
+#[cfg(unix)]
+mod lock_unix;
+#[cfg(unix)]
+pub use lock_unix::*;
+
+#[cfg(windows)]
+mod lock_windows;
+#[cfg(windows)]
+pub use lock_windows::*;
+
 use crate::error::FileError;
 use fd_lock::RwLock;
 use std::{
@@ -49,16 +59,6 @@ impl Drop for FdLockWrapper {
     }
 }
 
-#[cfg(unix)]
-mod lock_unix;
-#[cfg(unix)]
-pub use lock_unix::*;
-
-#[cfg(windows)]
-mod lock_windows;
-#[cfg(windows)]
-pub use lock_windows::*;
-
 pub fn temp_file() -> Result<File, FileError> {
     tempfile::tempfile().map_err(FileError::TempFile)
 }
@@ -67,13 +67,13 @@ pub fn named_temp_file() -> Result<NamedTempFile, FileError> {
     tempfile::NamedTempFile::new().map_err(FileError::TempFile)
 }
 
-pub fn open_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
+pub fn open_file(path: impl AsRef<Path>) -> Result<File, FileError> {
     let path = path.as_ref();
     File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
 }
 
 /// Opens and locks the given file. Note: Does not work on directories on Windows.
-pub fn open_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
+pub fn open_file_locked(path: impl AsRef<Path>) -> Result<FdLockWrapper, FileError> {
     log::trace!("locking file {}", path.as_ref().display());
 
     let file = open_file(path)?;
@@ -116,7 +116,7 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
 
 /// Creates a file and wraps it in a lock. If a file already exists at the path, it acquires a lock on it first and then recreates it.
 /// Note: creates all intermediary directories if needed.
-pub fn create_file_lock<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
+pub fn create_file_locked<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
     log::trace!("locking file {}", path.as_ref().display());
 
     if let Ok(existing) = open_file(&path) {

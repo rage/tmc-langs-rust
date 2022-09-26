@@ -125,7 +125,7 @@ impl LanguagePlugin for RPlugin {
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
-                if let Some(parent) = path_util::get_parent_of_dir(&file_path, "R") {
+                if let Some(parent) = path_util::get_parent_of_component_in_path(&file_path, "R") {
                     return Ok(Break(Some(parent)));
                 }
                 Ok(Continue(()))
