@@ -10,7 +10,7 @@ cargo build
 
 If you have any troubles building the project, please do make an issue!
 
-## Testing
+## Testing without Docker
 
 Install [zstd 1.5.2](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
@@ -24,7 +24,7 @@ Install [.NET 6.0](https://dotnet.microsoft.com/download).
 
 Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15), [valgrind](https://valgrind.org/) and `libsubunit0` (or equivalent for your distribution).
 
-Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) by running `install.packages("devtools")` in `R` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)` in `R`. `devtools` has several dependencies that need to be installed. For Ubuntu, they can be installed with
+Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) by running `R -e 'install.packages("devtools")'` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'`. `devtools` has several dependencies that need to be installed. For Ubuntu, they can be installed with
 
 ```bash
 sudo apt install libcurl-dev libxml2-dev libopenssl-dev gcc-c++ libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
@@ -33,6 +33,14 @@ sudo apt install libcurl-dev libxml2-dev libopenssl-dev gcc-c++ libharfbuzz-dev 
 With the dependencies instaled, the tests can be run with
 
 ```bash
+cargo test
+```
+
+## Testing with Docker
+```bash
+export DOCKER_BUILDKIT=1
+docker build . -f docker/Dockerfile -t tmc-langs-rust
+docker run --rm -it tmc-langs-rust bash
 cargo test
 ```
 
