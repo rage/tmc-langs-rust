@@ -286,7 +286,7 @@ pub enum Core {
         #[clap(long)]
         download_template: bool,
         /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
-        #[clap(long, multiple = true, required = true)]
+        #[clap(long, num_args = 1..)]
         exercise_id: Vec<u32>,
     },
 
@@ -388,7 +388,7 @@ pub enum Core {
         #[clap(long)]
         base64: bool,
         /// The email address of your TMC account. The password will be read through stdin.
-        #[clap(long, required_unless_present = "set-access-token")]
+        #[clap(long, required_unless_present = "set_access_token")]
         email: Option<String>,
         /// The OAUTH2 access token that should be used for authentication.
         #[clap(long, required_unless_present = "email")]
@@ -466,10 +466,10 @@ pub enum Core {
     #[clap(long_about = schema_leaked::<SubmissionFeedbackResponse>())]
     SendFeedback {
         /// The ID of the submission.
-        #[clap(long, required_unless_present = "feedback-url")]
+        #[clap(long, required_unless_present = "feedback_url")]
         submission_id: Option<u32>,
         /// The feedback answer URL.
-        #[clap(long, required_unless_present = "submission-id")]
+        #[clap(long, required_unless_present = "submission_id")]
         feedback_url: Option<String>,
         /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
         #[clap(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
@@ -558,6 +558,7 @@ pub enum Settings {
     },
 }
 
+#[derive(Clone, Copy)]
 pub struct Locale(pub Language);
 
 impl FromStr for Locale {

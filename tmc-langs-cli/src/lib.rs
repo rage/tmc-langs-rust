@@ -13,7 +13,7 @@ use self::{
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
 use app::{Command, Core, Settings};
-use clap::{ErrorKind, IntoApp, Parser};
+use clap::{error::ErrorKind, CommandFactory, Parser};
 use serde::Serialize;
 use serde_json::Value;
 use std::{
