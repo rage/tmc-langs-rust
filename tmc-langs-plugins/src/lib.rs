@@ -54,56 +54,20 @@ pub fn extract_project_overwrite(
     Ok(())
 }
 
-/// See `LanguagePlugin::compress_project`.
-// TODO: clean up
+/// Compresses the directory at the given path, only including student files unless `naive` is set to true.
 pub fn compress_project(
     path: &Path,
     compression: Compression,
     naive: bool,
 ) -> Result<Vec<u8>, PluginError> {
-    if naive {
-        let compressed = compression.compress(path)?;
-        return Ok(compressed);
-    }
+    let compressed = if naive {
+        compression.compress(path)?
+    } else {
+        let policy = get_student_file_policy(path)?;
+        compression::compress_student_files(policy.as_ref(), path, compression)?
+    };
 
-    match get_language_plugin_type(path) {
-        Some(PluginType::CSharp) => Ok(compression::compress_student_files(
-            <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::Make) => Ok(compression::compress_student_files(
-            <MakePlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::Maven) => Ok(compression::compress_student_files(
-            <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::NoTests) => Ok(compression::compress_student_files(
-            <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::Python3) => Ok(compression::compress_student_files(
-            <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::R) => Ok(compression::compress_student_files(
-            <RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        Some(PluginType::Ant) => Ok(compression::compress_student_files(
-            <AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-            path,
-            compression,
-        )?),
-        None => Err(PluginError::PluginNotFound(path.to_path_buf())),
-    }
+    Ok(compressed)
 }
 
 pub fn get_exercise_packaging_configuration(

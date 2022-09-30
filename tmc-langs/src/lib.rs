@@ -770,9 +770,6 @@ pub fn compress_project_to(
     );
 
     let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
-    if let Some(parent) = target.parent() {
-        file_util::create_dir_all(parent)?;
-    }
     file_util::write_to_file(&data, target)?;
     Ok(())
 }

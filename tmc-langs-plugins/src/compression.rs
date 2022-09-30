@@ -11,9 +11,9 @@ use walkdir::{DirEntry, WalkDir};
 pub use zip::result::ZipError;
 use zip::ZipArchive;
 
-/// Compressesthe given directory, only including student files according to the given policy.
-pub fn compress_student_files<P: StudentFilePolicy>(
-    policy: P,
+/// Compresses the given directory, only including student files according to the given policy.
+pub fn compress_student_files(
+    policy: &dyn StudentFilePolicy,
     root_directory: &Path,
     compression: Compression,
 ) -> Result<Vec<u8>, TmcError> {
@@ -53,7 +53,7 @@ fn path_to_zip_compatible_string(path: &Path) -> String {
         if !string.is_empty() {
             string.push('/');
         }
-        string.push_str(&*component.as_os_str().to_string_lossy());
+        string.push_str(component.as_os_str().to_string_lossy().as_ref());
     }
     string
 }
@@ -213,7 +213,7 @@ mod test {
 
         let path = temp.path().join("exercise-name");
         let zipped = compress_student_files(
-            EverythingIsStudentFilePolicy::new(&path).unwrap(),
+            &EverythingIsStudentFilePolicy::new(&path).unwrap(),
             &path,
             Compression::Zip,
         )

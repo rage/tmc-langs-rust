@@ -25,18 +25,15 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
         }
     }
 
+    /// Does not include any files within the directory.
     pub fn add_directory(&mut self, path: &str) -> Result<(), TmcError> {
         log::trace!("adding directory {}", path);
         match self {
             Self::Tar(builder) => {
-                builder
-                    .append_dir_all(path, path)
-                    .map_err(TmcError::TarWrite)?;
+                builder.append_dir(path, path).map_err(TmcError::TarWrite)?;
             }
             Self::TarZstd(_, builder) => {
-                builder
-                    .append_dir_all(path, path)
-                    .map_err(TmcError::TarWrite)?;
+                builder.append_dir(path, path).map_err(TmcError::TarWrite)?;
             }
             Self::Zip(builder) => {
                 builder.add_directory(path, FileOptions::default().unix_permissions(0o755))?
