@@ -15,6 +15,7 @@ use tmc_langs::{
 
 #[derive(Parser)]
 #[clap(
+    name = env!("CARGO_PKG_NAME"),
     version,
     author,
     about,

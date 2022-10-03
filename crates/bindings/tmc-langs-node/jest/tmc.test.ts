@@ -174,9 +174,8 @@ test("gets exercise packaging configuration", async () => {
 
   const dir = await mockExercise();
   const config = tmc.getExercisePackagingConfiguration(dir);
-  expect(config.student_file_paths[0]).toEqual("src");
-  expect(config.exercise_file_paths).toContain("test");
-  expect(config.exercise_file_paths).toContain("tmc");
+  expect(config.student_file_paths).toContain("src/main.py");
+  expect(config.exercise_file_paths).toContain("test/test.py");
 });
 
 test("lists local course exercises", async () => {
