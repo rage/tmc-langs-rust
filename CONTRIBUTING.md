@@ -10,7 +10,7 @@ cargo build
 
 If you have any troubles building the project, please do make an issue!
 
-## Testing without Docker
+## Testing
 
 Install [zstd 1.5.2](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
@@ -36,7 +36,14 @@ With the dependencies instaled, the tests can be run with
 cargo test
 ```
 
-## Testing with Docker
+## Building and testing with Docker
+Build the binary in Docker and copy it to the current directory (this can be useful to create a binary linked with an older glibc):
+```bash
+export DOCKER_BUILDKIT=1
+docker build . -f docker/Dockerfile -t tmc-langs-rust
+docker run --rm -v $PWD:/build/out tmc-langs-rust bash -c "cargo build && cp /build/target/debug/tmc-langs-cli /build/out/"
+```
+Run tests in Docker:
 ```bash
 export DOCKER_BUILDKIT=1
 docker build . -f docker/Dockerfile -t tmc-langs-rust
