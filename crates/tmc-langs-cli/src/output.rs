@@ -17,7 +17,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub enum OutputKind {
+pub enum CliOutput {
     /// Data that is output at the end of a command.
     OutputData(Box<OutputData>),
     /// Status update output as a command progresses.
@@ -26,7 +26,7 @@ pub enum OutputKind {
     Notification(Notification),
 }
 
-impl OutputKind {
+impl CliOutput {
     pub fn finished_with_data(
         message: impl Into<String>,
         data: impl Into<Option<DataKind>>,
@@ -172,7 +172,7 @@ mod test {
 
     #[test]
     fn output_data_none() {
-        let output_data = OutputKind::OutputData(Box::new(OutputData {
+        let output_data = CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "output with no data".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -185,7 +185,7 @@ mod test {
 
     #[test]
     fn output_data_error() {
-        let output_data = OutputKind::OutputData(Box::new(OutputData {
+        let output_data = CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "errored!".to_string(),
             result: OutputResult::Error,
@@ -201,7 +201,7 @@ mod test {
 
     #[test]
     fn output_data_dl() {
-        let output_data = OutputKind::OutputData(Box::new(OutputData {
+        let output_data = CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
@@ -239,7 +239,7 @@ mod test {
     #[test]
     fn status_update() {
         let status_update =
-            OutputKind::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
+            CliOutput::StatusUpdate(StatusUpdateData::ClientUpdateData(StatusUpdate {
                 data: Some(ClientUpdateData::ExerciseDownload {
                     id: 1234,
                     path: PathBuf::from("some path"),
@@ -256,9 +256,73 @@ mod test {
 
     #[test]
     fn notification() {
-        let status_update = OutputKind::Notification(Notification::warning("some warning"));
+        let status_update = CliOutput::Notification(Notification::warning("some warning"));
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
     }
+}
+
+#[test]
+#[ignore]
+#[cfg(feature = "ts-rs")]
+fn generate_output_definition() {
+    use tmc_langs::*;
+
+    let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
+    ts_rs::export_to!(
+        &mut f,
+        CliOutput,
+        OutputData,
+        StatusUpdateData,
+        Notification,
+        Status,
+        OutputResult,
+        ClientUpdateData,
+        StatusUpdate<()>,
+        notification_reporter::NotificationKind,
+        DataKind,
+        NewSubmission,
+        Kind,
+        StyleValidationResult,
+        ExerciseDownload,
+        StyleValidationStrategy,
+        StyleValidationError,
+        ExercisePackagingConfiguration,
+        LocalExercise,
+        RefreshData,
+        RunResult,
+        ExerciseDesc,
+        RefreshExercise,
+        RunStatus,
+        TestResult,
+        TestDesc,
+        TmcProjectYml,
+        UpdatedExercise,
+        DownloadOrUpdateCourseExercisesResult,
+        CombinedCourseData,
+        CourseDetails,
+        CourseExercise,
+        CourseData,
+        Course,
+        ExerciseDetails,
+        Submission,
+        UpdateResult,
+        Organization,
+        Review,
+        Exercise,
+        ExerciseSubmission,
+        ExercisePoint,
+        Exercise,
+        PythonVer,
+        TmcConfig,
+        ConfigValue,
+        SubmissionFinished,
+        SubmissionFeedbackResponse,
+        SubmissionStatus,
+        SubmissionFeedbackQuestion,
+        TestCase,
+        SubmissionFeedbackKind,
+    )
+    .unwrap();
 }
