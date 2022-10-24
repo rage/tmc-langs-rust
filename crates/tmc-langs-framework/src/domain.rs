@@ -6,12 +6,10 @@ use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
 };
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// A description of an exercise's test case.
 #[derive(Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TestDesc {
     /// The full name of the test.
     ///
@@ -32,7 +30,7 @@ impl TestDesc {
 
 /// The result of a single test case.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TestResult {
     pub name: String,
     pub successful: bool,
@@ -45,7 +43,7 @@ pub struct TestResult {
 
 /// A description of an exercise.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct ExerciseDesc {
     /// The name of the exercise to be shown to the user.
     /// Does not necessarily match or even contain the directory name.
@@ -62,8 +60,8 @@ impl ExerciseDesc {
 
 /// The result of running an exercise's test suite against a submission.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct RunResult {
     /// The overall status of a test run.
     pub status: RunStatus,
@@ -90,7 +88,7 @@ impl RunResult {
 
 /// The overall status of a test run.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum RunStatus {
     /// The submission and tests compiled and all tests passed.
@@ -110,7 +108,7 @@ pub enum RunStatus {
 
 /// Represents configuration based on which submission may be packaged.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct ExercisePackagingConfiguration {
     /// Student folders or files which are copied from submission.
     pub student_file_paths: HashSet<PathBuf>,
@@ -132,7 +130,7 @@ impl ExercisePackagingConfiguration {
 
 /// Determines how style errors are handled.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 #[serde(rename_all = "UPPERCASE")]
 pub enum StyleValidationStrategy {
     Fail,
@@ -142,7 +140,7 @@ pub enum StyleValidationStrategy {
 
 /// A style validation error.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 #[serde(rename_all = "camelCase")]
 pub struct StyleValidationError {
     pub column: u32,
@@ -153,8 +151,8 @@ pub struct StyleValidationError {
 
 /// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct StyleValidationResult {
     pub strategy: StyleValidationStrategy,
     pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,

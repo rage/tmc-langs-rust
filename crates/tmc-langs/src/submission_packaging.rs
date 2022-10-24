@@ -16,9 +16,7 @@ use zip::{write::FileOptions, ZipWriter};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
-/// Note: Used by tmc-server. Prepares a submission for further processing.
-/// The clone path is assumed to be a directory with the exercise name as the directory name,
-/// and the course name as its parent, ex. "anything/some_course/some_exercise"
+/// Prepares a submission for further processing.
 pub fn prepare_submission(
     (submission_archive, submission_compression): (&Path, Compression),
     target_path: &Path,
@@ -28,7 +26,7 @@ pub fn prepare_submission(
     stub_archive: Option<(&Path, Compression)>,
     output_format: Compression,
 ) -> Result<(), LangsError> {
-    // workaround for unknown issues when prepare_submission is ran multiple times in parallel
+    // FIXME: workaround for unknown issues when prepare_submission is ran multiple times in parallel
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
     log::debug!("preparing submission for {}", submission_archive.display());
 

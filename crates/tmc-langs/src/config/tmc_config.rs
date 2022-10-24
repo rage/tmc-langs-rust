@@ -10,17 +10,15 @@ use std::{
 };
 use tmc_langs_util::{deserialize, file_util, FileError};
 use toml::{value::Table, Value};
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// The main configuration file. A separate one is used for each client.
 #[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TmcConfig {
     #[serde(alias = "projects-dir")]
     pub projects_dir: PathBuf,
     #[serde(flatten)]
-    #[cfg_attr(feature = "ts", ts(skip))]
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
     pub table: Table,
 }
 
@@ -185,6 +183,7 @@ impl TmcConfig {
 /// A setting in a TmcConfig file.
 #[derive(Debug, Serialize, Clone)]
 #[serde(untagged)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ConfigValue<'a> {
     Value(Option<Cow<'a, Value>>),
     Path(Cow<'a, Path>),

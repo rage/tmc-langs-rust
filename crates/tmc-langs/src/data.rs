@@ -9,13 +9,11 @@ use std::{
     path::PathBuf,
 };
 use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// Exercise inside the projects directory.
 #[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalExercise {
     pub exercise_slug: String,
     pub exercise_path: PathBuf,
@@ -176,7 +174,7 @@ pub enum DownloadTargetKind {
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct ExerciseDownload {
     pub id: u32,
     pub course_slug: String,
@@ -185,7 +183,7 @@ pub struct ExerciseDownload {
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct CombinedCourseData {
     pub details: CourseDetails,
     pub exercises: Vec<CourseExercise>,
@@ -193,7 +191,7 @@ pub struct CombinedCourseData {
 }
 
 #[derive(Debug, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct DownloadOrUpdateCourseExercisesResult {
     pub downloaded: Vec<ExerciseDownload>,
     pub skipped: Vec<ExerciseDownload>,

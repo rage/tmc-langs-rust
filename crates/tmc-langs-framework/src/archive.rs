@@ -9,8 +9,6 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// Wrapper unifying the API of all the different compression formats supported by langs.
 /// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,
@@ -211,7 +209,7 @@ impl<'a, T: Read> Read for Entry<'a, T> {
 
 /// Supported compression methods.
 #[derive(Debug, Clone, Copy, Deserialize)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Compression {
     /// .tar
     #[serde(rename = "tar")]

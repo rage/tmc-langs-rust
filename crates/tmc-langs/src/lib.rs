@@ -63,13 +63,11 @@ pub use tmc_langs_util::{
     notification_reporter, progress_reporter,
 };
 use toml::Value as TomlValue;
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 use url::Url;
 use walkdir::WalkDir;
 
 #[derive(Debug, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct UpdatedExercise {
     pub id: u32,
 }

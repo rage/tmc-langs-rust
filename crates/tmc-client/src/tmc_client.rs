@@ -21,8 +21,6 @@ use std::{
 };
 use tmc_langs_plugins::{Compression, Language};
 use tmc_langs_util::progress_reporter;
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// Authentication token.
 pub type Token =
@@ -32,6 +30,7 @@ pub type Token =
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "client-update-data-kind")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ClientUpdateData {
     ExerciseDownload { id: u32, path: PathBuf },
     PostedSubmission(NewSubmission),
@@ -39,7 +38,7 @@ pub enum ClientUpdateData {
 
 /// Updated exercises.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct UpdateResult {
     pub created: Vec<Exercise>,
     pub updated: Vec<Exercise>,

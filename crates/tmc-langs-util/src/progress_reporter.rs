@@ -8,6 +8,7 @@ use type_map::concurrent::TypeMap;
 /// The format for all status updates. May contain some data.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct StatusUpdate<T> {
     pub finished: bool,
     pub message: String,

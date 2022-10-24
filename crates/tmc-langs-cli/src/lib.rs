@@ -82,7 +82,7 @@ fn run_inner() -> Result<(), ()> {
             let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
             let error_output = OutputKind::OutputData(Box::new(OutputData {
                 status: Status::Finished,
-                message: e.to_string(),
+                message: format!("{e:?}"), // debug formatting to print backtrace from anyhow
                 result: OutputResult::Error,
                 data: Some(DataKind::Error {
                     kind: Kind::Generic,
@@ -196,7 +196,7 @@ fn error_message_special_casing(e: &anyhow::Error) -> String {
             return cnf.to_string();
         }
     }
-    e.to_string()
+    format!("{e:?}") // debug formatting to print backtrace from anyhow
 }
 
 /// Goes through the error chain and returns the error output file path if a sandbox test error is found

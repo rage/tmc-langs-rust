@@ -11,13 +11,11 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{deserialize, file_util, FileError};
-#[cfg(feature = "ts")]
-use ts_rs::TS;
 
 /// Extra data from a `.tmcproject.yml` file.
 // NOTE: when adding fields, remember to update the merge function as well
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TmcProjectYml {
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -36,7 +34,7 @@ pub struct TmcProjectYml {
     pub tests_timeout_ms: Option<u64>,
 
     #[serde(rename = "no-tests")]
-    #[cfg_attr(feature = "ts", ts(skip))]
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub no_tests: Option<NoTests>,
@@ -127,7 +125,7 @@ impl TmcProjectYml {
 /// Minimum Python version requirement.
 /// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system
 #[derive(Debug, Default, Clone, Copy, Serialize)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct PythonVer {
     pub major: Option<u32>,
     pub minor: Option<u32>,
@@ -186,9 +184,9 @@ impl<'de> Deserialize<'de> for PythonVer {
 
 /// Contents of the no-tests field.
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[cfg_attr(feature = "ts", derive(TS))]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 // we never take these structs as inputs from TS so it's ok to ignore from
-#[cfg_attr(feature = "ts", ts(ignore_serde_attr = "from"))]
+#[cfg_attr(feature = "ts-rs", ts(ignore_serde_attr = "from"))]
 #[serde(from = "NoTestsWrapper")]
 pub struct NoTests {
     pub flag: bool,

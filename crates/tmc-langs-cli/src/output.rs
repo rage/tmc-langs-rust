@@ -16,6 +16,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum OutputKind {
     /// Data that is output at the end of a command.
     OutputData(Box<OutputData>),
@@ -50,6 +51,7 @@ impl OutputKind {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct OutputData {
     pub status: Status,
     pub message: String,
@@ -60,6 +62,7 @@ pub struct OutputData {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum DataKind {
     Error {
         kind: Kind,
@@ -88,7 +91,7 @@ pub enum DataKind {
     Organization(Organization),
     Organizations(Vec<Organization>),
     Reviews(Vec<Review>),
-    Token(Token),
+    Token(#[cfg_attr(feature = "ts-rs", ts(type = "unknown"))] Token),
     NewSubmission(NewSubmission),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
@@ -99,6 +102,7 @@ pub enum DataKind {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "update-data-kind")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
     None(StatusUpdate<()>),
@@ -106,6 +110,7 @@ pub enum StatusUpdateData {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Status {
     /// The command was ran without fatal errors
     Finished,
@@ -115,6 +120,7 @@ pub enum Status {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum OutputResult {
     LoggedIn,
     LoggedOut,
@@ -125,6 +131,7 @@ pub enum OutputResult {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Kind {
     /// For all other errors
     Generic,

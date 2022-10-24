@@ -22,6 +22,7 @@ pub fn notify(notification: Notification) {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct Notification {
     notification_kind: NotificationKind,
     message: String,
@@ -29,6 +30,7 @@ pub struct Notification {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum NotificationKind {
     Warning,
     Info,
