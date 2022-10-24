@@ -80,8 +80,6 @@ export interface ExerciseSubmission { exercise_name: string, id: number, user_id
 
 export interface ExercisePoint { id: number, exercise_id: number, name: string, requires_review: boolean, }
 
-export interface Exercise { id: number, name: string, locked: boolean, deadline_description: string | null, deadline: string | null, soft_deadline: string | null, soft_deadline_description: string | null, checksum: string, return_url: string, zip_url: string, returnable: boolean, requires_review: boolean, attempted: boolean, completed: boolean, reviewed: boolean, all_review_points_given: boolean, memory_limit: number | null, runtime_params: Array<string>, valgrind_strategy: string | null, code_review_requests_enabled: boolean, run_tests_locally_action_enabled: boolean, latest_submission_url: string | null, latest_submission_id: number | null, solution_zip_url: string | null, }
-
 export interface PythonVer { major: number | null, minor: number | null, patch: number | null, }
 
 export interface TmcConfig { projects_dir: string, }

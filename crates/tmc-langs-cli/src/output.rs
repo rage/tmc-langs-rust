@@ -313,7 +313,6 @@ fn generate_output_definition() {
         Exercise,
         ExerciseSubmission,
         ExercisePoint,
-        Exercise,
         PythonVer,
         TmcConfig,
         ConfigValue,
