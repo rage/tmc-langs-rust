@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/myers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>myers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/myers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>myers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -419,421 +413,420 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Myers&#39; diff algorithm.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * time: `O((N+M)D)`</span>
-<span class="doccomment">//! * space `O(N+M)`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! See [the original article by Eugene W. Myers](http://www.xmailserver.org/diff2.pdf)</span>
-<span class="doccomment">//! describing it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The implementation of this algorithm is based on the implementation by</span>
-<span class="doccomment">//! Brandon Williams.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Heuristics</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! At present this implementation of Myers&#39; does not implement any more advanced</span>
-<span class="doccomment">//! heuristics that would solve some pathological cases.  For instance passing two</span>
-<span class="doccomment">//! large and completely distinct sequences to the algorithm will make it spin</span>
-<span class="doccomment">//! without making reasonable progress.  Currently the only protection in the</span>
-<span class="doccomment">//! library against this is to pass a deadline to the diffing algorithm.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! For potential improvements here see [similar#15](https://github.com/mitsuhiko/similar/issues/15).</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Myers&#39; diff algorithm.
+//!
+//! * time: `O((N+M)D)`
+//! * space `O(N+M)`
+//!
+//! See [the original article by Eugene W. Myers](http://www.xmailserver.org/diff2.pdf)
+//! describing it.
+//!
+//! The implementation of this algorithm is based on the implementation by
+//! Brandon Williams.
+//!
+//! # Heuristics
+//!
+//! At present this implementation of Myers&#39; does not implement any more advanced
+//! heuristics that would solve some pathological cases.  For instance passing two
+//! large and completely distinct sequences to the algorithm will make it spin
+//! without making reasonable progress.  Currently the only protection in the
+//! library against this is to pass a deadline to the diffing algorithm.
+//!
+//! For potential improvements here see [similar#15](https://github.com/mitsuhiko/similar/issues/15).
 
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>, <span class="ident">Range</span>};
-<span class="kw">use</span> <span class="ident">std::time::Instant</span>;
+</span><span class="kw">use </span>std::ops::{Index, IndexMut, Range};
+<span class="kw">use </span>std::time::Instant;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithms::utils</span>::{<span class="ident">common_prefix_len</span>, <span class="ident">common_suffix_len</span>, <span class="ident">is_empty_range</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithms::DiffHook</span>;
+<span class="kw">use </span><span class="kw">crate</span>::algorithms::utils::{common_prefix_len, common_suffix_len, is_empty_range};
+<span class="kw">use </span><span class="kw">crate</span>::algorithms::DiffHook;
 
-<span class="doccomment">/// Myers&#39; diff algorithm.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">d</span>: <span class="kw-2">&amp;mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Myers&#39; diff algorithm.
+///
+/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
+</span><span class="kw">pub fn </span>diff&lt;Old, New, D&gt;(
+    d: <span class="kw-2">&amp;mut </span>D,
+    old: <span class="kw-2">&amp;</span>Old,
+    old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    new_range: Range&lt;usize&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    D: DiffHook,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="ident">diff_deadline</span>(<span class="ident">d</span>, <span class="ident">old</span>, <span class="ident">old_range</span>, <span class="ident">new</span>, <span class="ident">new_range</span>, <span class="prelude-val">None</span>)
+    diff_deadline(d, old, old_range, new, new_range, <span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// Myers&#39; diff algorithm with deadline.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This diff is done with an optional deadline that defines the maximal</span>
-<span class="doccomment">/// execution time permitted before it bails and falls back to an approximation.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff_deadline</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">d</span>: <span class="kw-2">&amp;mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Myers&#39; diff algorithm with deadline.
+///
+/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
+///
+/// This diff is done with an optional deadline that defines the maximal
+/// execution time permitted before it bails and falls back to an approximation.
+</span><span class="kw">pub fn </span>diff_deadline&lt;Old, New, D&gt;(
+    d: <span class="kw-2">&amp;mut </span>D,
+    old: <span class="kw-2">&amp;</span>Old,
+    old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    new_range: Range&lt;usize&gt;,
+    deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    D: DiffHook,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">let</span> <span class="ident">max_d</span> <span class="op">=</span> <span class="ident">max_d</span>(<span class="ident">old_range</span>.<span class="ident">len</span>(), <span class="ident">new_range</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vb</span> <span class="op">=</span> <span class="ident">V::new</span>(<span class="ident">max_d</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vf</span> <span class="op">=</span> <span class="ident">V::new</span>(<span class="ident">max_d</span>);
-    <span class="ident">conquer</span>(
-        <span class="ident">d</span>, <span class="ident">old</span>, <span class="ident">old_range</span>, <span class="ident">new</span>, <span class="ident">new_range</span>, <span class="kw-2">&amp;mut</span> <span class="ident">vf</span>, <span class="kw-2">&amp;mut</span> <span class="ident">vb</span>, <span class="ident">deadline</span>,
+    <span class="kw">let </span>max_d = max_d(old_range.len(), new_range.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>vb = V::new(max_d);
+    <span class="kw">let </span><span class="kw-2">mut </span>vf = V::new(max_d);
+    conquer(
+        d, old, old_range, new, new_range, <span class="kw-2">&amp;mut </span>vf, <span class="kw-2">&amp;mut </span>vb, deadline,
     )<span class="question-mark">?</span>;
-    <span class="ident">d</span>.<span class="ident">finish</span>()
+    d.finish()
 }
 
-<span class="comment">// A D-path is a path which starts at (0,0) that has exactly D non-diagonal</span>
-<span class="comment">// edges. All D-paths consist of a (D - 1)-path followed by a non-diagonal edge</span>
-<span class="comment">// and then a possibly empty sequence of diagonal edges called a snake.</span>
+<span class="comment">// A D-path is a path which starts at (0,0) that has exactly D non-diagonal
+// edges. All D-paths consist of a (D - 1)-path followed by a non-diagonal edge
+// and then a possibly empty sequence of diagonal edges called a snake.
 
-<span class="doccomment">/// `V` contains the endpoints of the furthest reaching `D-paths`. For each</span>
-<span class="doccomment">/// recorded endpoint `(x,y)` in diagonal `k`, we only need to retain `x` because</span>
-<span class="doccomment">/// `y` can be computed from `x - k`. In other words, `V` is an array of integers</span>
-<span class="doccomment">/// where `V[k]` contains the row index of the endpoint of the furthest reaching</span>
-<span class="doccomment">/// path in diagonal `k`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// We can&#39;t use a traditional Vec to represent `V` since we use `k` as an index</span>
-<span class="doccomment">/// and it can take on negative values. So instead `V` is represented as a</span>
-<span class="doccomment">/// light-weight wrapper around a Vec plus an `offset` which is the maximum value</span>
-<span class="doccomment">/// `k` can take on in order to map negative `k`&#39;s back to a value &gt;= 0.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">V</span> {
-    <span class="ident">offset</span>: <span class="ident">isize</span>,
-    <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="comment">// Look into initializing this to -1 and storing isize</span>
-}
+</span><span class="doccomment">/// `V` contains the endpoints of the furthest reaching `D-paths`. For each
+/// recorded endpoint `(x,y)` in diagonal `k`, we only need to retain `x` because
+/// `y` can be computed from `x - k`. In other words, `V` is an array of integers
+/// where `V[k]` contains the row index of the endpoint of the furthest reaching
+/// path in diagonal `k`.
+///
+/// We can&#39;t use a traditional Vec to represent `V` since we use `k` as an index
+/// and it can take on negative values. So instead `V` is represented as a
+/// light-weight wrapper around a Vec plus an `offset` which is the maximum value
+/// `k` can take on in order to map negative `k`&#39;s back to a value &gt;= 0.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>V {
+    offset: isize,
+    v: Vec&lt;usize&gt;, <span class="comment">// Look into initializing this to -1 and storing isize
+</span>}
 
-<span class="kw">impl</span> <span class="ident">V</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_d</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">offset</span>: <span class="ident">max_d</span> <span class="kw">as</span> <span class="ident">isize</span>,
-            <span class="ident">v</span>: <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">2</span> <span class="op">*</span> <span class="ident">max_d</span>],
+<span class="kw">impl </span>V {
+    <span class="kw">fn </span>new(max_d: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            offset: max_d <span class="kw">as </span>isize,
+            v: <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">2 </span>* max_d],
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">len</span>()
+    <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.v.len()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">V</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">usize</span>;
+<span class="kw">impl </span>Index&lt;isize&gt; <span class="kw">for </span>V {
+    <span class="kw">type </span>Output = usize;
 
-    <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">v</span>[(<span class="ident">index</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">offset</span>) <span class="kw">as</span> <span class="ident">usize</span>]
+    <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: isize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.v[(index + <span class="self">self</span>.offset) <span class="kw">as </span>usize]
     }
 }
 
-<span class="kw">impl</span> <span class="ident">IndexMut</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">V</span> {
-    <span class="kw">fn</span> <span class="ident">index_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">isize</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Output</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">v</span>[(<span class="ident">index</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">offset</span>) <span class="kw">as</span> <span class="ident">usize</span>]
+<span class="kw">impl </span>IndexMut&lt;isize&gt; <span class="kw">for </span>V {
+    <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: isize) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Output {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.v[(index + <span class="self">self</span>.offset) <span class="kw">as </span>usize]
     }
 }
 
-<span class="kw">fn</span> <span class="ident">max_d</span>(<span class="ident">len1</span>: <span class="ident">usize</span>, <span class="ident">len2</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
-    <span class="comment">// XXX look into reducing the need to have the additional &#39;+ 1&#39;</span>
-    (<span class="ident">len1</span> <span class="op">+</span> <span class="ident">len2</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span> <span class="op">+</span> <span class="number">1</span>
+<span class="kw">fn </span>max_d(len1: usize, len2: usize) -&gt; usize {
+    <span class="comment">// XXX look into reducing the need to have the additional &#39;+ 1&#39;
+    </span>(len1 + len2 + <span class="number">1</span>) / <span class="number">2 </span>+ <span class="number">1
+</span>}
+
+<span class="attribute">#[inline(always)]
+</span><span class="kw">fn </span>split_at(range: Range&lt;usize&gt;, at: usize) -&gt; (Range&lt;usize&gt;, Range&lt;usize&gt;) {
+    (range.start..at, at..range.end)
 }
 
-<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-<span class="kw">fn</span> <span class="ident">split_at</span>(<span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">at</span>: <span class="ident">usize</span>) -&gt; (<span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-    (<span class="ident">range</span>.<span class="ident">start</span>..<span class="ident">at</span>, <span class="ident">at</span>..<span class="ident">range</span>.<span class="ident">end</span>)
-}
-
-<span class="doccomment">/// A `Snake` is a sequence of diagonal edges in the edit graph.  Normally</span>
-<span class="doccomment">/// a snake has a start end end point (and it is possible for a snake to have</span>
-<span class="doccomment">/// a length of zero, meaning the start and end points are the same) however</span>
-<span class="doccomment">/// we do not need the end point which is why it&#39;s not implemented here.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The divide part of a divide-and-conquer strategy. A D-path has D+1 snakes</span>
-<span class="doccomment">/// some of which may be empty. The divide step requires finding the ceil(D/2) +</span>
-<span class="doccomment">/// 1 or middle snake of an optimal D-path. The idea for doing so is to</span>
-<span class="doccomment">/// simultaneously run the basic algorithm in both the forward and reverse</span>
-<span class="doccomment">/// directions until furthest reaching forward and reverse paths starting at</span>
-<span class="doccomment">/// opposing corners &#39;overlap&#39;.</span>
-<span class="kw">fn</span> <span class="ident">find_middle_snake</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span><span class="op">&gt;</span>(
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">vf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">vb</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A `Snake` is a sequence of diagonal edges in the edit graph.  Normally
+/// a snake has a start end end point (and it is possible for a snake to have
+/// a length of zero, meaning the start and end points are the same) however
+/// we do not need the end point which is why it&#39;s not implemented here.
+///
+/// The divide part of a divide-and-conquer strategy. A D-path has D+1 snakes
+/// some of which may be empty. The divide step requires finding the ceil(D/2) +
+/// 1 or middle snake of an optimal D-path. The idea for doing so is to
+/// simultaneously run the basic algorithm in both the forward and reverse
+/// directions until furthest reaching forward and reverse paths starting at
+/// opposing corners &#39;overlap&#39;.
+</span><span class="kw">fn </span>find_middle_snake&lt;Old, New&gt;(
+    old: <span class="kw-2">&amp;</span>Old,
+    old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    new_range: Range&lt;usize&gt;,
+    vf: <span class="kw-2">&amp;mut </span>V,
+    vb: <span class="kw-2">&amp;mut </span>V,
+    deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">old_range</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">new_range</span>.<span class="ident">len</span>();
+    <span class="kw">let </span>n = old_range.len();
+    <span class="kw">let </span>m = new_range.len();
 
-    <span class="comment">// By Lemma 1 in the paper, the optimal edit script length is odd or even as</span>
-    <span class="comment">// `delta` is odd or even.</span>
-    <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">-</span> <span class="ident">m</span> <span class="kw">as</span> <span class="ident">isize</span>;
-    <span class="kw">let</span> <span class="ident">odd</span> <span class="op">=</span> <span class="ident">delta</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span>;
+    <span class="comment">// By Lemma 1 in the paper, the optimal edit script length is odd or even as
+    // `delta` is odd or even.
+    </span><span class="kw">let </span>delta = n <span class="kw">as </span>isize - m <span class="kw">as </span>isize;
+    <span class="kw">let </span>odd = delta &amp; <span class="number">1 </span>== <span class="number">1</span>;
 
-    <span class="comment">// The initial point at (0, -1)</span>
-    <span class="ident">vf</span>[<span class="number">1</span>] <span class="op">=</span> <span class="number">0</span>;
-    <span class="comment">// The initial point at (N, M+1)</span>
-    <span class="ident">vb</span>[<span class="number">1</span>] <span class="op">=</span> <span class="number">0</span>;
+    <span class="comment">// The initial point at (0, -1)
+    </span>vf[<span class="number">1</span>] = <span class="number">0</span>;
+    <span class="comment">// The initial point at (N, M+1)
+    </span>vb[<span class="number">1</span>] = <span class="number">0</span>;
 
-    <span class="comment">// We only need to explore ceil(D/2) + 1</span>
-    <span class="kw">let</span> <span class="ident">d_max</span> <span class="op">=</span> <span class="ident">max_d</span>(<span class="ident">n</span>, <span class="ident">m</span>);
-    <span class="macro">assert!</span>(<span class="ident">vf</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">d_max</span>);
-    <span class="macro">assert!</span>(<span class="ident">vb</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">d_max</span>);
+    <span class="comment">// We only need to explore ceil(D/2) + 1
+    </span><span class="kw">let </span>d_max = max_d(n, m);
+    <span class="macro">assert!</span>(vf.len() &gt;= d_max);
+    <span class="macro">assert!</span>(vb.len() &gt;= d_max);
 
-    <span class="kw">for</span> <span class="ident">d</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">d_max</span> <span class="kw">as</span> <span class="ident">isize</span> {
-        <span class="comment">// are we running for too long?</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <span class="ident">deadline</span> {
-            <span class="kw">if</span> <span class="ident">Instant::now</span>() <span class="op">&gt;</span> <span class="ident">deadline</span> {
+    <span class="kw">for </span>d <span class="kw">in </span><span class="number">0</span>..d_max <span class="kw">as </span>isize {
+        <span class="comment">// are we running for too long?
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = deadline {
+            <span class="kw">if </span>Instant::now() &gt; deadline {
                 <span class="kw">break</span>;
             }
         }
 
-        <span class="comment">// Forward path</span>
-        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="op">-</span><span class="ident">d</span>..<span class="op">=</span><span class="ident">d</span>).<span class="ident">rev</span>().<span class="ident">step_by</span>(<span class="number">2</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="op">-</span><span class="ident">d</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">k</span> <span class="op">!</span><span class="op">=</span> <span class="ident">d</span> <span class="op">&amp;&amp;</span> <span class="ident">vf</span>[<span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">&lt;</span> <span class="ident">vf</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>]) {
-                <span class="ident">vf</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>]
-            } <span class="kw">else</span> {
-                <span class="ident">vf</span>[<span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>
-            };
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">-</span> <span class="ident">k</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="comment">// Forward path
+        </span><span class="kw">for </span>k <span class="kw">in </span>(-d..=d).rev().step_by(<span class="number">2</span>) {
+            <span class="kw">let </span><span class="kw-2">mut </span>x = <span class="kw">if </span>k == -d || (k != d &amp;&amp; vf[k - <span class="number">1</span>] &lt; vf[k + <span class="number">1</span>]) {
+                vf[k + <span class="number">1</span>]
+            } <span class="kw">else </span>{
+                vf[k - <span class="number">1</span>] + <span class="number">1
+            </span>};
+            <span class="kw">let </span>y = (x <span class="kw">as </span>isize - k) <span class="kw">as </span>usize;
 
-            <span class="comment">// The coordinate of the start of a snake</span>
-            <span class="kw">let</span> (<span class="ident">x0</span>, <span class="ident">y0</span>) <span class="op">=</span> (<span class="ident">x</span>, <span class="ident">y</span>);
-            <span class="comment">//  While these sequences are identical, keep moving through the</span>
-            <span class="comment">//  graph with no cost</span>
-            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">old_range</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">&lt;</span> <span class="ident">new_range</span>.<span class="ident">len</span>() {
-                <span class="kw">let</span> <span class="ident">advance</span> <span class="op">=</span> <span class="ident">common_prefix_len</span>(
-                    <span class="ident">old</span>,
-                    <span class="ident">old_range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">x</span>..<span class="ident">old_range</span>.<span class="ident">end</span>,
-                    <span class="ident">new</span>,
-                    <span class="ident">new_range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">y</span>..<span class="ident">new_range</span>.<span class="ident">end</span>,
+            <span class="comment">// The coordinate of the start of a snake
+            </span><span class="kw">let </span>(x0, y0) = (x, y);
+            <span class="comment">//  While these sequences are identical, keep moving through the
+            //  graph with no cost
+            </span><span class="kw">if </span>x &lt; old_range.len() &amp;&amp; y &lt; new_range.len() {
+                <span class="kw">let </span>advance = common_prefix_len(
+                    old,
+                    old_range.start + x..old_range.end,
+                    new,
+                    new_range.start + y..new_range.end,
                 );
-                <span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="ident">advance</span>;
+                x += advance;
             }
 
-            <span class="comment">// This is the new best x value</span>
-            <span class="ident">vf</span>[<span class="ident">k</span>] <span class="op">=</span> <span class="ident">x</span>;
+            <span class="comment">// This is the new best x value
+            </span>vf[k] = x;
 
-            <span class="comment">// Only check for connections from the forward search when N - M is</span>
-            <span class="comment">// odd and when there is a reciprocal k line coming from the other</span>
-            <span class="comment">// direction.</span>
-            <span class="kw">if</span> <span class="ident">odd</span> <span class="op">&amp;&amp;</span> (<span class="ident">k</span> <span class="op">-</span> <span class="ident">delta</span>).<span class="ident">abs</span>() <span class="op">&lt;</span><span class="op">=</span> (<span class="ident">d</span> <span class="op">-</span> <span class="number">1</span>) {
-                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n</span>
-                <span class="kw">if</span> <span class="ident">vf</span>[<span class="ident">k</span>] <span class="op">+</span> <span class="ident">vb</span>[<span class="op">-</span>(<span class="ident">k</span> <span class="op">-</span> <span class="ident">delta</span>)] <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span> {
-                    <span class="comment">// Return the snake</span>
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">x0</span> <span class="op">+</span> <span class="ident">old_range</span>.<span class="ident">start</span>, <span class="ident">y0</span> <span class="op">+</span> <span class="ident">new_range</span>.<span class="ident">start</span>));
+            <span class="comment">// Only check for connections from the forward search when N - M is
+            // odd and when there is a reciprocal k line coming from the other
+            // direction.
+            </span><span class="kw">if </span>odd &amp;&amp; (k - delta).abs() &lt;= (d - <span class="number">1</span>) {
+                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n
+                </span><span class="kw">if </span>vf[k] + vb[-(k - delta)] &gt;= n {
+                    <span class="comment">// Return the snake
+                    </span><span class="kw">return </span><span class="prelude-val">Some</span>((x0 + old_range.start, y0 + new_range.start));
                 }
             }
         }
 
-        <span class="comment">// Backward path</span>
-        <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="op">-</span><span class="ident">d</span>..<span class="op">=</span><span class="ident">d</span>).<span class="ident">rev</span>().<span class="ident">step_by</span>(<span class="number">2</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="op">-</span><span class="ident">d</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">k</span> <span class="op">!</span><span class="op">=</span> <span class="ident">d</span> <span class="op">&amp;&amp;</span> <span class="ident">vb</span>[<span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">&lt;</span> <span class="ident">vb</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>]) {
-                <span class="ident">vb</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>]
-            } <span class="kw">else</span> {
-                <span class="ident">vb</span>[<span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>
-            };
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> (<span class="ident">x</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">-</span> <span class="ident">k</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="comment">// Backward path
+        </span><span class="kw">for </span>k <span class="kw">in </span>(-d..=d).rev().step_by(<span class="number">2</span>) {
+            <span class="kw">let </span><span class="kw-2">mut </span>x = <span class="kw">if </span>k == -d || (k != d &amp;&amp; vb[k - <span class="number">1</span>] &lt; vb[k + <span class="number">1</span>]) {
+                vb[k + <span class="number">1</span>]
+            } <span class="kw">else </span>{
+                vb[k - <span class="number">1</span>] + <span class="number">1
+            </span>};
+            <span class="kw">let </span><span class="kw-2">mut </span>y = (x <span class="kw">as </span>isize - k) <span class="kw">as </span>usize;
 
-            <span class="comment">// The coordinate of the start of a snake</span>
-            <span class="kw">if</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span> <span class="op">&lt;</span> <span class="ident">m</span> {
-                <span class="kw">let</span> <span class="ident">advance</span> <span class="op">=</span> <span class="ident">common_suffix_len</span>(
-                    <span class="ident">old</span>,
-                    <span class="ident">old_range</span>.<span class="ident">start</span>..<span class="ident">old_range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">n</span> <span class="op">-</span> <span class="ident">x</span>,
-                    <span class="ident">new</span>,
-                    <span class="ident">new_range</span>.<span class="ident">start</span>..<span class="ident">new_range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">m</span> <span class="op">-</span> <span class="ident">y</span>,
+            <span class="comment">// The coordinate of the start of a snake
+            </span><span class="kw">if </span>x &lt; n &amp;&amp; y &lt; m {
+                <span class="kw">let </span>advance = common_suffix_len(
+                    old,
+                    old_range.start..old_range.start + n - x,
+                    new,
+                    new_range.start..new_range.start + m - y,
                 );
-                <span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="ident">advance</span>;
-                <span class="ident">y</span> <span class="op">+</span><span class="op">=</span> <span class="ident">advance</span>;
+                x += advance;
+                y += advance;
             }
 
-            <span class="comment">// This is the new best x value</span>
-            <span class="ident">vb</span>[<span class="ident">k</span>] <span class="op">=</span> <span class="ident">x</span>;
+            <span class="comment">// This is the new best x value
+            </span>vb[k] = x;
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">odd</span> <span class="op">&amp;&amp;</span> (<span class="ident">k</span> <span class="op">-</span> <span class="ident">delta</span>).<span class="ident">abs</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">d</span> {
-                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n</span>
-                <span class="kw">if</span> <span class="ident">vb</span>[<span class="ident">k</span>] <span class="op">+</span> <span class="ident">vf</span>[<span class="op">-</span>(<span class="ident">k</span> <span class="op">-</span> <span class="ident">delta</span>)] <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span> {
-                    <span class="comment">// Return the snake</span>
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">n</span> <span class="op">-</span> <span class="ident">x</span> <span class="op">+</span> <span class="ident">old_range</span>.<span class="ident">start</span>, <span class="ident">m</span> <span class="op">-</span> <span class="ident">y</span> <span class="op">+</span> <span class="ident">new_range</span>.<span class="ident">start</span>));
+            <span class="kw">if </span>!odd &amp;&amp; (k - delta).abs() &lt;= d {
+                <span class="comment">// TODO optimize this so we don&#39;t have to compare against n
+                </span><span class="kw">if </span>vb[k] + vf[-(k - delta)] &gt;= n {
+                    <span class="comment">// Return the snake
+                    </span><span class="kw">return </span><span class="prelude-val">Some</span>((n - x + old_range.start, m - y + new_range.start));
                 }
             }
         }
 
-        <span class="comment">// TODO: Maybe there&#39;s an opportunity to optimize and bail early?</span>
-    }
+        <span class="comment">// TODO: Maybe there&#39;s an opportunity to optimize and bail early?
+    </span>}
 
-    <span class="comment">// deadline reached</span>
-    <span class="prelude-val">None</span>
-}
+    <span class="comment">// deadline reached
+    </span><span class="prelude-val">None
+</span>}
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
-<span class="kw">fn</span> <span class="ident">conquer</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">d</span>: <span class="kw-2">&amp;mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="kw-2">mut</span> <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="kw-2">mut</span> <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">vf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">vb</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>,
-    <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="attribute">#[allow(clippy::too_many_arguments)]
+</span><span class="kw">fn </span>conquer&lt;Old, New, D&gt;(
+    d: <span class="kw-2">&amp;mut </span>D,
+    old: <span class="kw-2">&amp;</span>Old,
+    <span class="kw-2">mut </span>old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    <span class="kw-2">mut </span>new_range: Range&lt;usize&gt;,
+    vf: <span class="kw-2">&amp;mut </span>V,
+    vb: <span class="kw-2">&amp;mut </span>V,
+    deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    D: DiffHook,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="comment">// Check for common prefix</span>
-    <span class="kw">let</span> <span class="ident">common_prefix_len</span> <span class="op">=</span> <span class="ident">common_prefix_len</span>(<span class="ident">old</span>, <span class="ident">old_range</span>.<span class="ident">clone</span>(), <span class="ident">new</span>, <span class="ident">new_range</span>.<span class="ident">clone</span>());
-    <span class="kw">if</span> <span class="ident">common_prefix_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">d</span>.<span class="ident">equal</span>(<span class="ident">old_range</span>.<span class="ident">start</span>, <span class="ident">new_range</span>.<span class="ident">start</span>, <span class="ident">common_prefix_len</span>)<span class="question-mark">?</span>;
+    <span class="comment">// Check for common prefix
+    </span><span class="kw">let </span>common_prefix_len = common_prefix_len(old, old_range.clone(), new, new_range.clone());
+    <span class="kw">if </span>common_prefix_len &gt; <span class="number">0 </span>{
+        d.equal(old_range.start, new_range.start, common_prefix_len)<span class="question-mark">?</span>;
     }
-    <span class="ident">old_range</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">common_prefix_len</span>;
-    <span class="ident">new_range</span>.<span class="ident">start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">common_prefix_len</span>;
+    old_range.start += common_prefix_len;
+    new_range.start += common_prefix_len;
 
-    <span class="comment">// Check for common suffix</span>
-    <span class="kw">let</span> <span class="ident">common_suffix_len</span> <span class="op">=</span> <span class="ident">common_suffix_len</span>(<span class="ident">old</span>, <span class="ident">old_range</span>.<span class="ident">clone</span>(), <span class="ident">new</span>, <span class="ident">new_range</span>.<span class="ident">clone</span>());
-    <span class="kw">let</span> <span class="ident">common_suffix</span> <span class="op">=</span> (
-        <span class="ident">old_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">common_suffix_len</span>,
-        <span class="ident">new_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">common_suffix_len</span>,
+    <span class="comment">// Check for common suffix
+    </span><span class="kw">let </span>common_suffix_len = common_suffix_len(old, old_range.clone(), new, new_range.clone());
+    <span class="kw">let </span>common_suffix = (
+        old_range.end - common_suffix_len,
+        new_range.end - common_suffix_len,
     );
-    <span class="ident">old_range</span>.<span class="ident">end</span> <span class="op">-</span><span class="op">=</span> <span class="ident">common_suffix_len</span>;
-    <span class="ident">new_range</span>.<span class="ident">end</span> <span class="op">-</span><span class="op">=</span> <span class="ident">common_suffix_len</span>;
+    old_range.end -= common_suffix_len;
+    new_range.end -= common_suffix_len;
 
-    <span class="kw">if</span> <span class="ident">is_empty_range</span>(<span class="kw-2">&amp;</span><span class="ident">old_range</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_empty_range</span>(<span class="kw-2">&amp;</span><span class="ident">new_range</span>) {
-        <span class="comment">// Do nothing</span>
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_empty_range</span>(<span class="kw-2">&amp;</span><span class="ident">new_range</span>) {
-        <span class="ident">d</span>.<span class="ident">delete</span>(<span class="ident">old_range</span>.<span class="ident">start</span>, <span class="ident">old_range</span>.<span class="ident">len</span>(), <span class="ident">new_range</span>.<span class="ident">start</span>)<span class="question-mark">?</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_empty_range</span>(<span class="kw-2">&amp;</span><span class="ident">old_range</span>) {
-        <span class="ident">d</span>.<span class="ident">insert</span>(<span class="ident">old_range</span>.<span class="ident">start</span>, <span class="ident">new_range</span>.<span class="ident">start</span>, <span class="ident">new_range</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">x_start</span>, <span class="ident">y_start</span>)) <span class="op">=</span> <span class="ident">find_middle_snake</span>(
-        <span class="ident">old</span>,
-        <span class="ident">old_range</span>.<span class="ident">clone</span>(),
-        <span class="ident">new</span>,
-        <span class="ident">new_range</span>.<span class="ident">clone</span>(),
-        <span class="ident">vf</span>,
-        <span class="ident">vb</span>,
-        <span class="ident">deadline</span>,
+    <span class="kw">if </span>is_empty_range(<span class="kw-2">&amp;</span>old_range) &amp;&amp; is_empty_range(<span class="kw-2">&amp;</span>new_range) {
+        <span class="comment">// Do nothing
+    </span>} <span class="kw">else if </span>is_empty_range(<span class="kw-2">&amp;</span>new_range) {
+        d.delete(old_range.start, old_range.len(), new_range.start)<span class="question-mark">?</span>;
+    } <span class="kw">else if </span>is_empty_range(<span class="kw-2">&amp;</span>old_range) {
+        d.insert(old_range.start, new_range.start, new_range.len())<span class="question-mark">?</span>;
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>((x_start, y_start)) = find_middle_snake(
+        old,
+        old_range.clone(),
+        new,
+        new_range.clone(),
+        vf,
+        vb,
+        deadline,
     ) {
-        <span class="kw">let</span> (<span class="ident">old_a</span>, <span class="ident">old_b</span>) <span class="op">=</span> <span class="ident">split_at</span>(<span class="ident">old_range</span>, <span class="ident">x_start</span>);
-        <span class="kw">let</span> (<span class="ident">new_a</span>, <span class="ident">new_b</span>) <span class="op">=</span> <span class="ident">split_at</span>(<span class="ident">new_range</span>, <span class="ident">y_start</span>);
-        <span class="ident">conquer</span>(<span class="ident">d</span>, <span class="ident">old</span>, <span class="ident">old_a</span>, <span class="ident">new</span>, <span class="ident">new_a</span>, <span class="ident">vf</span>, <span class="ident">vb</span>, <span class="ident">deadline</span>)<span class="question-mark">?</span>;
-        <span class="ident">conquer</span>(<span class="ident">d</span>, <span class="ident">old</span>, <span class="ident">old_b</span>, <span class="ident">new</span>, <span class="ident">new_b</span>, <span class="ident">vf</span>, <span class="ident">vb</span>, <span class="ident">deadline</span>)<span class="question-mark">?</span>;
-    } <span class="kw">else</span> {
-        <span class="ident">d</span>.<span class="ident">delete</span>(
-            <span class="ident">old_range</span>.<span class="ident">start</span>,
-            <span class="ident">old_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">old_range</span>.<span class="ident">start</span>,
-            <span class="ident">new_range</span>.<span class="ident">start</span>,
+        <span class="kw">let </span>(old_a, old_b) = split_at(old_range, x_start);
+        <span class="kw">let </span>(new_a, new_b) = split_at(new_range, y_start);
+        conquer(d, old, old_a, new, new_a, vf, vb, deadline)<span class="question-mark">?</span>;
+        conquer(d, old, old_b, new, new_b, vf, vb, deadline)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        d.delete(
+            old_range.start,
+            old_range.end - old_range.start,
+            new_range.start,
         )<span class="question-mark">?</span>;
-        <span class="ident">d</span>.<span class="ident">insert</span>(
-            <span class="ident">old_range</span>.<span class="ident">start</span>,
-            <span class="ident">new_range</span>.<span class="ident">start</span>,
-            <span class="ident">new_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">new_range</span>.<span class="ident">start</span>,
+        d.insert(
+            old_range.start,
+            new_range.start,
+            new_range.end - new_range.start,
         )<span class="question-mark">?</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">common_suffix_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">d</span>.<span class="ident">equal</span>(<span class="ident">common_suffix</span>.<span class="number">0</span>, <span class="ident">common_suffix</span>.<span class="number">1</span>, <span class="ident">common_suffix_len</span>)<span class="question-mark">?</span>;
+    <span class="kw">if </span>common_suffix_len &gt; <span class="number">0 </span>{
+        d.equal(common_suffix.<span class="number">0</span>, common_suffix.<span class="number">1</span>, common_suffix_len)<span class="question-mark">?</span>;
     }
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_find_middle_snake</span>() {
-    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;ABCABBA&quot;</span>[..];
-    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">b&quot;CBABAC&quot;</span>[..];
-    <span class="kw">let</span> <span class="ident">max_d</span> <span class="op">=</span> <span class="ident">max_d</span>(<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>.<span class="ident">len</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vf</span> <span class="op">=</span> <span class="ident">V::new</span>(<span class="ident">max_d</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vb</span> <span class="op">=</span> <span class="ident">V::new</span>(<span class="ident">max_d</span>);
-    <span class="kw">let</span> (<span class="ident">x_start</span>, <span class="ident">y_start</span>) <span class="op">=</span>
-        <span class="ident">find_middle_snake</span>(<span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">vf</span>, <span class="kw-2">&amp;mut</span> <span class="ident">vb</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
-    <span class="macro">assert_eq!</span>(<span class="ident">x_start</span>, <span class="number">4</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">y_start</span>, <span class="number">1</span>);
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_find_middle_snake() {
+    <span class="kw">let </span>a = <span class="kw-2">&amp;</span><span class="string">b&quot;ABCABBA&quot;</span>[..];
+    <span class="kw">let </span>b = <span class="kw-2">&amp;</span><span class="string">b&quot;CBABAC&quot;</span>[..];
+    <span class="kw">let </span>max_d = max_d(a.len(), b.len());
+    <span class="kw">let </span><span class="kw-2">mut </span>vf = V::new(max_d);
+    <span class="kw">let </span><span class="kw-2">mut </span>vb = V::new(max_d);
+    <span class="kw">let </span>(x_start, y_start) =
+        find_middle_snake(a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len(), <span class="kw-2">&amp;mut </span>vf, <span class="kw-2">&amp;mut </span>vb, <span class="prelude-val">None</span>).unwrap();
+    <span class="macro">assert_eq!</span>(x_start, <span class="number">4</span>);
+    <span class="macro">assert_eq!</span>(y_start, <span class="number">1</span>);
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_diff</span>() {
-    <span class="kw">let</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
-    <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">9</span>, <span class="number">4</span>];
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_diff() {
+    <span class="kw">let </span>a: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+    <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">9</span>, <span class="number">4</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::algorithms::Replace::new</span>(<span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>());
-    <span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">d</span>, <span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">into_inner</span>().<span class="ident">ops</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>d = <span class="kw">crate</span>::algorithms::Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
+    diff(<span class="kw-2">&amp;mut </span>d, a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len()).unwrap();
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.into_inner().ops());
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_contiguous</span>() {
-    <span class="kw">let</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>];
-    <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">7</span>];
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_contiguous() {
+    <span class="kw">let </span>a: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>];
+    <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">7</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::algorithms::Replace::new</span>(<span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>());
-    <span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">d</span>, <span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">into_inner</span>().<span class="ident">ops</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>d = <span class="kw">crate</span>::algorithms::Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
+    diff(<span class="kw-2">&amp;mut </span>d, a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len()).unwrap();
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.into_inner().ops());
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_pat</span>() {
-    <span class="kw">let</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
-    <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">9</span>];
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_pat() {
+    <span class="kw">let </span>a: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];
+    <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">8</span>, <span class="number">9</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>();
-    <span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">d</span>, <span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">ops</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>d = <span class="kw">crate</span>::algorithms::Capture::new();
+    diff(<span class="kw-2">&amp;mut </span>d, a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len()).unwrap();
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.ops());
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_deadline_reached</span>() {
-    <span class="kw">use</span> <span class="ident">std::ops::Index</span>;
-    <span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_deadline_reached() {
+    <span class="kw">use </span>std::ops::Index;
+    <span class="kw">use </span>std::time::Duration;
 
-    <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="ident">b</span>[<span class="number">10</span>] <span class="op">=</span> <span class="number">99</span>;
-    <span class="ident">b</span>[<span class="number">50</span>] <span class="op">=</span> <span class="number">99</span>;
-    <span class="ident">b</span>[<span class="number">25</span>] <span class="op">=</span> <span class="number">99</span>;
+    <span class="kw">let </span>a = (<span class="number">0</span>..<span class="number">100</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    <span class="kw">let </span><span class="kw-2">mut </span>b = (<span class="number">0</span>..<span class="number">100</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+    b[<span class="number">10</span>] = <span class="number">99</span>;
+    b[<span class="number">50</span>] = <span class="number">99</span>;
+    b[<span class="number">25</span>] = <span class="number">99</span>;
 
-    <span class="kw">struct</span> <span class="ident">SlowIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">usize</span>]);
+    <span class="kw">struct </span>SlowIndex&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[usize]);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SlowIndex</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">usize</span>;
+    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Index&lt;usize&gt; <span class="kw">for </span>SlowIndex&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">type </span>Output = usize;
 
-        <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-            <span class="ident">std::thread::sleep</span>(<span class="ident">Duration::from_millis</span>(<span class="number">1</span>));
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="ident">index</span>]
+        <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Output {
+            std::thread::sleep(Duration::from_millis(<span class="number">1</span>));
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[index]
         }
     }
 
-    <span class="kw">let</span> <span class="ident">slow_a</span> <span class="op">=</span> <span class="ident">SlowIndex</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>);
-    <span class="kw">let</span> <span class="ident">slow_b</span> <span class="op">=</span> <span class="ident">SlowIndex</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>);
+    <span class="kw">let </span>slow_a = SlowIndex(<span class="kw-2">&amp;</span>a);
+    <span class="kw">let </span>slow_b = SlowIndex(<span class="kw-2">&amp;</span>b);
 
-    <span class="comment">// don&#39;t give it enough time to do anything interesting</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::algorithms::Replace::new</span>(<span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>());
-    <span class="ident">diff_deadline</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">d</span>,
-        <span class="kw-2">&amp;</span><span class="ident">slow_a</span>,
-        <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(),
-        <span class="kw-2">&amp;</span><span class="ident">slow_b</span>,
-        <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">Duration::from_millis</span>(<span class="number">50</span>)),
+    <span class="comment">// don&#39;t give it enough time to do anything interesting
+    </span><span class="kw">let </span><span class="kw-2">mut </span>d = <span class="kw">crate</span>::algorithms::Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
+    diff_deadline(
+        <span class="kw-2">&amp;mut </span>d,
+        <span class="kw-2">&amp;</span>slow_a,
+        <span class="number">0</span>..a.len(),
+        <span class="kw-2">&amp;</span>slow_b,
+        <span class="number">0</span>..b.len(),
+        <span class="prelude-val">Some</span>(Instant::now() + Duration::from_millis(<span class="number">50</span>)),
     )
-    .<span class="ident">unwrap</span>();
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">into_inner</span>().<span class="ident">ops</span>());
+    .unwrap();
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.into_inner().ops());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

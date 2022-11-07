@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/subprocess-0.2.9/src/communicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>communicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/subprocess-0.2.9/src/communicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>communicate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -598,178 +592,178 @@
 <span id="592">592</span>
 <span id="593">593</span>
 <span id="594">594</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::error::Error</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::fs::File</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>};
-<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, ErrorKind};
+<span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">mod</span> <span class="ident">raw</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::posix</span>;
-    <span class="kw">use</span> <span class="ident">std::cmp::min</span>;
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
-    <span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">mod </span>raw {
+    <span class="kw">use </span><span class="kw">crate</span>::posix;
+    <span class="kw">use </span>std::cmp::min;
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span>std::io::{<span class="self">self</span>, Read, Write};
+    <span class="kw">use </span>std::time::{Duration, Instant};
 
-    <span class="kw">fn</span> <span class="ident">as_pollfd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">File</span><span class="op">&gt;</span>, <span class="ident">for_read</span>: <span class="ident">bool</span>) -&gt; <span class="ident">posix::PollFd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">for_read</span> {
-            <span class="ident">posix::POLLIN</span>
-        } <span class="kw">else</span> {
-            <span class="ident">posix::POLLOUT</span>
+    <span class="kw">fn </span>as_pollfd&lt;<span class="lifetime">&#39;a</span>&gt;(f: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>File&gt;, for_read: bool) -&gt; posix::PollFd&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">let </span>events = <span class="kw">if </span>for_read {
+            posix::POLLIN
+        } <span class="kw">else </span>{
+            posix::POLLOUT
         };
-        <span class="ident">posix::PollFd::new</span>(<span class="ident">f</span>, <span class="ident">events</span>)
+        posix::PollFd::new(f, events)
     }
 
-    <span class="kw">fn</span> <span class="ident">maybe_poll</span>(
-        <span class="ident">fin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">fout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">ferr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">bool</span>, <span class="ident">bool</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
-        <span class="comment">// Polling is needed to prevent deadlock when interacting with</span>
-        <span class="comment">// multiple streams, and for timeout.  If we&#39;re interacting with a</span>
-        <span class="comment">// single stream without timeout, we can skip the actual poll()</span>
-        <span class="comment">// syscall and just tell the caller to go ahead with reading/writing.</span>
-        <span class="kw">if</span> <span class="ident">deadline</span>.<span class="ident">is_none</span>() {
-            <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="ident">fin</span>, <span class="kw-2">&amp;</span><span class="ident">fout</span>, <span class="kw-2">&amp;</span><span class="ident">ferr</span>) {
-                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(..)) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)),
-                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(..), <span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)),
-                (<span class="prelude-val">Some</span>(..), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)),
-                <span class="kw">_</span> =&gt; (),
+    <span class="kw">fn </span>maybe_poll(
+        fin: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>File&gt;,
+        fout: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>File&gt;,
+        ferr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>File&gt;,
+        deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+    ) -&gt; io::Result&lt;(bool, bool, bool)&gt; {
+        <span class="comment">// Polling is needed to prevent deadlock when interacting with
+        // multiple streams, and for timeout.  If we&#39;re interacting with a
+        // single stream without timeout, we can skip the actual poll()
+        // syscall and just tell the caller to go ahead with reading/writing.
+        </span><span class="kw">if </span>deadline.is_none() {
+            <span class="kw">match </span>(<span class="kw-2">&amp;</span>fin, <span class="kw-2">&amp;</span>fout, <span class="kw-2">&amp;</span>ferr) {
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(..)) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)),
+                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(..), <span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)),
+                (<span class="prelude-val">Some</span>(..), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)),
+                <span class="kw">_ </span>=&gt; (),
             }
         }
 
-        <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">deadline</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">deadline</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-            <span class="kw">if</span> <span class="ident">now</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">deadline</span> {
-                <span class="ident">Duration::from_secs</span>(<span class="number">0</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">deadline</span> <span class="op">-</span> <span class="ident">now</span>
+        <span class="kw">let </span>timeout = deadline.map(|deadline| {
+            <span class="kw">let </span>now = Instant::now();
+            <span class="kw">if </span>now &gt;= deadline {
+                Duration::from_secs(<span class="number">0</span>)
+            } <span class="kw">else </span>{
+                deadline - now
             }
         });
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fds</span> <span class="op">=</span> [
-            <span class="ident">as_pollfd</span>(<span class="ident">fin</span>, <span class="bool-val">false</span>),
-            <span class="ident">as_pollfd</span>(<span class="ident">fout</span>, <span class="bool-val">true</span>),
-            <span class="ident">as_pollfd</span>(<span class="ident">ferr</span>, <span class="bool-val">true</span>),
+        <span class="kw">let </span><span class="kw-2">mut </span>fds = [
+            as_pollfd(fin, <span class="bool-val">false</span>),
+            as_pollfd(fout, <span class="bool-val">true</span>),
+            as_pollfd(ferr, <span class="bool-val">true</span>),
         ];
-        <span class="ident">posix::poll</span>(<span class="kw-2">&amp;mut</span> <span class="ident">fds</span>, <span class="ident">timeout</span>)<span class="question-mark">?</span>;
+        posix::poll(<span class="kw-2">&amp;mut </span>fds, timeout)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">fds</span>[<span class="number">0</span>].<span class="ident">test</span>(<span class="ident">posix::POLLOUT</span> <span class="op">|</span> <span class="ident">posix::POLLHUP</span>),
-            <span class="ident">fds</span>[<span class="number">1</span>].<span class="ident">test</span>(<span class="ident">posix::POLLIN</span> <span class="op">|</span> <span class="ident">posix::POLLHUP</span>),
-            <span class="ident">fds</span>[<span class="number">2</span>].<span class="ident">test</span>(<span class="ident">posix::POLLIN</span> <span class="op">|</span> <span class="ident">posix::POLLHUP</span>),
+            fds[<span class="number">0</span>].test(posix::POLLOUT | posix::POLLHUP),
+            fds[<span class="number">1</span>].test(posix::POLLIN | posix::POLLHUP),
+            fds[<span class="number">2</span>].test(posix::POLLIN | posix::POLLHUP),
         ))
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawCommunicator</span> {
-        <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">input_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        <span class="ident">input_pos</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>RawCommunicator {
+        stdin: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        stdout: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        stderr: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        input_data: Vec&lt;u8&gt;,
+        input_pos: usize,
     }
 
-    <span class="kw">impl</span> <span class="ident">RawCommunicator</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-            <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">RawCommunicator</span> {
-            <span class="kw">let</span> <span class="ident">input_data</span> <span class="op">=</span> <span class="ident">input_data</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>);
-            <span class="ident">RawCommunicator</span> {
-                <span class="ident">stdin</span>,
-                <span class="ident">stdout</span>,
-                <span class="ident">stderr</span>,
-                <span class="ident">input_data</span>,
-                <span class="ident">input_pos</span>: <span class="number">0</span>,
+    <span class="kw">impl </span>RawCommunicator {
+        <span class="kw">pub fn </span>new(
+            stdin: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            stdout: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            stderr: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            input_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+        ) -&gt; RawCommunicator {
+            <span class="kw">let </span>input_data = input_data.unwrap_or_else(Vec::new);
+            RawCommunicator {
+                stdin,
+                stdout,
+                stderr,
+                input_data,
+                input_pos: <span class="number">0</span>,
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">do_read</span>(
-            <span class="ident">source_ref</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-            <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-            <span class="ident">total_read</span>: <span class="ident">usize</span>,
-        ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> [<span class="number">0u8</span>; <span class="number">4096</span>][..];
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size_limit</span>) <span class="op">=</span> <span class="ident">size_limit</span> {
-                <span class="kw">if</span> <span class="ident">total_read</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size_limit</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        <span class="kw">fn </span>do_read(
+            source_ref: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>File&gt;,
+            dest: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+            size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+            total_read: usize,
+        ) -&gt; io::Result&lt;()&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="kw-2">&amp;mut </span>[<span class="number">0u8</span>; <span class="number">4096</span>][..];
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(size_limit) = size_limit {
+                <span class="kw">if </span>total_read &gt;= size_limit {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
-                <span class="kw">if</span> <span class="ident">size_limit</span> <span class="op">-</span> <span class="ident">total_read</span> <span class="op">&lt;</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
-                    <span class="ident">buf</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="number">0</span>..<span class="ident">size_limit</span> <span class="op">-</span> <span class="ident">total_read</span>];
+                <span class="kw">if </span>size_limit - total_read &lt; buf.len() {
+                    buf = <span class="kw-2">&amp;mut </span>buf[<span class="number">0</span>..size_limit - total_read];
                 }
             }
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">source_ref</span>.<span class="ident">unwrap</span>().<span class="ident">read</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">n</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="ident">dest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">n</span>]);
-            } <span class="kw">else</span> {
-                <span class="kw-2">*</span><span class="ident">source_ref</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            <span class="kw">let </span>n = source_ref.unwrap().read(buf)<span class="question-mark">?</span>;
+            <span class="kw">if </span>n != <span class="number">0 </span>{
+                dest.extend_from_slice(<span class="kw-2">&amp;</span>buf[..n]);
+            } <span class="kw">else </span>{
+                <span class="kw-2">*</span>source_ref = <span class="prelude-val">None</span>;
             }
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">fn</span> <span class="ident">read_into</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-            <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-            <span class="ident">outvec</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-            <span class="ident">errvec</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="comment">// Note: chunk size for writing must be smaller than the pipe buffer</span>
-            <span class="comment">// size.  A large enough write to a pipe deadlocks despite polling.</span>
-            <span class="kw">const</span> <span class="ident">WRITE_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
+        <span class="kw">fn </span>read_into(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+            size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+            outvec: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+            errvec: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        ) -&gt; io::Result&lt;()&gt; {
+            <span class="comment">// Note: chunk size for writing must be smaller than the pipe buffer
+            // size.  A large enough write to a pipe deadlocks despite polling.
+            </span><span class="kw">const </span>WRITE_SIZE: usize = <span class="number">4096</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stdout_ref</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stdout</span>.<span class="ident">as_ref</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stderr_ref</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stderr</span>.<span class="ident">as_ref</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>stdout_ref = <span class="self">self</span>.stdout.as_ref();
+            <span class="kw">let </span><span class="kw-2">mut </span>stderr_ref = <span class="self">self</span>.stderr.as_ref();
 
-            <span class="kw">loop</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size_limit</span>) <span class="op">=</span> <span class="ident">size_limit</span> {
-                    <span class="kw">if</span> <span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">errvec</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size_limit</span> {
+            <span class="kw">loop </span>{
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(size_limit) = size_limit {
+                    <span class="kw">if </span>outvec.len() + errvec.len() &gt;= size_limit {
                         <span class="kw">break</span>;
                     }
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">as_ref</span>(), <span class="ident">stdout_ref</span>, <span class="ident">stderr_ref</span>) {
-                    <span class="comment">// When no stream remains, we are done.</span>
-                    <span class="kw">break</span>;
+                <span class="kw">if let </span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) = (<span class="self">self</span>.stdin.as_ref(), stdout_ref, stderr_ref) {
+                    <span class="comment">// When no stream remains, we are done.
+                    </span><span class="kw">break</span>;
                 }
 
-                <span class="kw">let</span> (<span class="ident">in_ready</span>, <span class="ident">out_ready</span>, <span class="ident">err_ready</span>) <span class="op">=</span>
-                    <span class="ident">maybe_poll</span>(<span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">as_ref</span>(), <span class="ident">stdout_ref</span>, <span class="ident">stderr_ref</span>, <span class="ident">deadline</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">in_ready</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">out_ready</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">err_ready</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::TimedOut</span>, <span class="string">&quot;timeout&quot;</span>));
+                <span class="kw">let </span>(in_ready, out_ready, err_ready) =
+                    maybe_poll(<span class="self">self</span>.stdin.as_ref(), stdout_ref, stderr_ref, deadline)<span class="question-mark">?</span>;
+                <span class="kw">if </span>!in_ready &amp;&amp; !out_ready &amp;&amp; !err_ready {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::TimedOut, <span class="string">&quot;timeout&quot;</span>));
                 }
-                <span class="kw">if</span> <span class="ident">in_ready</span> {
-                    <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input_data</span>[<span class="self">self</span>.<span class="ident">input_pos</span>..];
-                    <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="ident">min</span>(<span class="ident">WRITE_SIZE</span>, <span class="ident">input</span>.<span class="ident">len</span>())];
-                    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">write</span>(<span class="ident">chunk</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">input_pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span>;
-                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input_pos</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">input_data</span>.<span class="ident">len</span>() {
-                        <span class="comment">// close stdin when done writing, so the child receives EOF</span>
-                        <span class="self">self</span>.<span class="ident">stdin</span>.<span class="ident">take</span>();
-                        <span class="comment">// deallocate the input data, we don&#39;t need it any more</span>
-                        <span class="self">self</span>.<span class="ident">input_data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+                <span class="kw">if </span>in_ready {
+                    <span class="kw">let </span>input = <span class="kw-2">&amp;</span><span class="self">self</span>.input_data[<span class="self">self</span>.input_pos..];
+                    <span class="kw">let </span>chunk = <span class="kw-2">&amp;</span>input[..min(WRITE_SIZE, input.len())];
+                    <span class="kw">let </span>n = <span class="self">self</span>.stdin.as_ref().unwrap().write(chunk)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.input_pos += n;
+                    <span class="kw">if </span><span class="self">self</span>.input_pos == <span class="self">self</span>.input_data.len() {
+                        <span class="comment">// close stdin when done writing, so the child receives EOF
+                        </span><span class="self">self</span>.stdin.take();
+                        <span class="comment">// deallocate the input data, we don&#39;t need it any more
+                        </span><span class="self">self</span>.input_data = Vec::new();
                     }
                 }
-                <span class="kw">if</span> <span class="ident">out_ready</span> {
-                    <span class="ident">RawCommunicator::do_read</span>(
-                        <span class="kw-2">&amp;mut</span> <span class="ident">stdout_ref</span>,
-                        <span class="ident">outvec</span>,
-                        <span class="ident">size_limit</span>,
-                        <span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">errvec</span>.<span class="ident">len</span>(),
+                <span class="kw">if </span>out_ready {
+                    RawCommunicator::do_read(
+                        <span class="kw-2">&amp;mut </span>stdout_ref,
+                        outvec,
+                        size_limit,
+                        outvec.len() + errvec.len(),
                     )<span class="question-mark">?</span>;
                 }
-                <span class="kw">if</span> <span class="ident">err_ready</span> {
-                    <span class="ident">RawCommunicator::do_read</span>(
-                        <span class="kw-2">&amp;mut</span> <span class="ident">stderr_ref</span>,
-                        <span class="ident">errvec</span>,
-                        <span class="ident">size_limit</span>,
-                        <span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">errvec</span>.<span class="ident">len</span>(),
+                <span class="kw">if </span>err_ready {
+                    RawCommunicator::do_read(
+                        <span class="kw-2">&amp;mut </span>stderr_ref,
+                        errvec,
+                        size_limit,
+                        outvec.len() + errvec.len(),
                     )<span class="question-mark">?</span>;
                 }
             }
@@ -777,421 +771,420 @@
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-            <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-        ) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span>, (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>)) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">outvec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">errvec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">pub fn </span>read(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+            size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        ) -&gt; (<span class="prelude-ty">Option</span>&lt;io::Error&gt;, (<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;, <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;)) {
+            <span class="kw">let </span><span class="kw-2">mut </span>outvec = <span class="macro">vec!</span>[];
+            <span class="kw">let </span><span class="kw-2">mut </span>errvec = <span class="macro">vec!</span>[];
 
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">read_into</span>(<span class="ident">deadline</span>, <span class="ident">size_limit</span>, <span class="kw-2">&amp;mut</span> <span class="ident">outvec</span>, <span class="kw-2">&amp;mut</span> <span class="ident">errvec</span>)
-                .<span class="ident">err</span>();
-            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> (
-                <span class="self">self</span>.<span class="ident">stdout</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">outvec</span>),
-                <span class="self">self</span>.<span class="ident">stderr</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">errvec</span>),
+            <span class="kw">let </span>err = <span class="self">self
+                </span>.read_into(deadline, size_limit, <span class="kw-2">&amp;mut </span>outvec, <span class="kw-2">&amp;mut </span>errvec)
+                .err();
+            <span class="kw">let </span>output = (
+                <span class="self">self</span>.stdout.as_ref().map(|<span class="kw">_</span>| outvec),
+                <span class="self">self</span>.stderr.as_ref().map(|<span class="kw">_</span>| errvec),
             );
-            (<span class="ident">err</span>, <span class="ident">output</span>)
+            (err, output)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">mod</span> <span class="ident">raw</span> {
-    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
-    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
-    <span class="kw">use</span> <span class="ident">std::sync::mpsc</span>::{<span class="self">self</span>, <span class="ident">RecvTimeoutError</span>, <span class="ident">SyncSender</span>};
-    <span class="kw">use</span> <span class="ident">std::thread</span>;
-    <span class="kw">use</span> <span class="ident">std::time::Instant</span>;
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">mod </span>raw {
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span>std::io::{<span class="self">self</span>, Read, Write};
+    <span class="kw">use </span>std::sync::mpsc::{<span class="self">self</span>, RecvTimeoutError, SyncSender};
+    <span class="kw">use </span>std::thread;
+    <span class="kw">use </span>std::time::Instant;
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-    <span class="kw">enum</span> <span class="ident">StreamIdent</span> {
-        <span class="ident">In</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>,
-        <span class="ident">Out</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>,
-        <span class="prelude-val">Err</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">2</span>,
+    <span class="attribute">#[derive(Debug, Copy, Clone)]
+    </span><span class="kw">enum </span>StreamIdent {
+        In = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>,
+        Out = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>,
+        <span class="prelude-val">Err </span>= <span class="number">1 </span>&lt;&lt; <span class="number">2</span>,
     }
 
-    <span class="kw">enum</span> <span class="ident">Payload</span> {
-        <span class="ident">Data</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
-        <span class="ident">EOF</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">io::Error</span>),
+    <span class="kw">enum </span>Payload {
+        Data(Vec&lt;u8&gt;),
+        EOF,
+        <span class="prelude-val">Err</span>(io::Error),
     }
 
-    <span class="comment">// Messages exchanged between RawCommunicator&#39;s helper threads.</span>
-    <span class="kw">type</span> <span class="ident">Message</span> <span class="op">=</span> (<span class="ident">StreamIdent</span>, <span class="ident">Payload</span>);
+    <span class="comment">// Messages exchanged between RawCommunicator&#39;s helper threads.
+    </span><span class="kw">type </span>Message = (StreamIdent, Payload);
 
-    <span class="kw">fn</span> <span class="ident">read_and_transmit</span>(<span class="kw-2">mut</span> <span class="ident">outfile</span>: <span class="ident">File</span>, <span class="ident">ident</span>: <span class="ident">StreamIdent</span>, <span class="ident">sink</span>: <span class="ident">SyncSender</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4096</span>];
-        <span class="comment">// Note: failing to send to the sink means we&#39;re done.  Sending will</span>
-        <span class="comment">// fail if the main thread drops the RawCommunicator (and with it the</span>
-        <span class="comment">// receiver) prematurely e.g. because a limit was reached or another</span>
-        <span class="comment">// helper encountered an IO error.</span>
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="ident">outfile</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">chunk</span>) {
+    <span class="kw">fn </span>read_and_transmit(<span class="kw-2">mut </span>outfile: File, ident: StreamIdent, sink: SyncSender&lt;Message&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>chunk = [<span class="number">0u8</span>; <span class="number">4096</span>];
+        <span class="comment">// Note: failing to send to the sink means we&#39;re done.  Sending will
+        // fail if the main thread drops the RawCommunicator (and with it the
+        // receiver) prematurely e.g. because a limit was reached or another
+        // helper encountered an IO error.
+        </span><span class="kw">loop </span>{
+            <span class="kw">match </span>outfile.read(<span class="kw-2">&amp;mut </span>chunk) {
                 <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">send</span>((<span class="ident">ident</span>, <span class="ident">Payload::EOF</span>));
+                    <span class="kw">let _ </span>= sink.send((ident, Payload::EOF));
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Ok</span>(<span class="ident">nread</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">send</span>((<span class="ident">ident</span>, <span class="ident">Payload::Data</span>(<span class="ident">chunk</span>[..<span class="ident">nread</span>].<span class="ident">to_vec</span>()))) {
+                <span class="prelude-val">Ok</span>(nread) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = sink.send((ident, Payload::Data(chunk[..nread].to_vec()))) {
                         <span class="kw">break</span>;
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">send</span>((<span class="ident">ident</span>, <span class="ident">Payload::Err</span>(<span class="ident">e</span>)));
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="kw">let _ </span>= sink.send((ident, Payload::Err(e)));
                     <span class="kw">break</span>;
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">spawn_with_arg</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">T</span>) <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>, <span class="ident">arg</span>: <span class="ident">T</span>) {
-        <span class="ident">thread::spawn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">arg</span>));
+    <span class="kw">fn </span>spawn_with_arg&lt;T: Send + <span class="lifetime">&#39;static</span>&gt;(f: <span class="kw">impl </span>FnOnce(T) + Send + <span class="lifetime">&#39;static</span>, arg: T) {
+        thread::spawn(<span class="kw">move </span>|| f(arg));
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawCommunicator</span> {
-        <span class="ident">rx</span>: <span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-        <span class="ident">helper_set</span>: <span class="ident">u8</span>,
-        <span class="ident">requested_streams</span>: <span class="ident">u8</span>,
-        <span class="ident">leftover</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">StreamIdent</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+    <span class="attribute">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>RawCommunicator {
+        rx: mpsc::Receiver&lt;Message&gt;,
+        helper_set: u8,
+        requested_streams: u8,
+        leftover: <span class="prelude-ty">Option</span>&lt;(StreamIdent, Vec&lt;u8&gt;)&gt;,
     }
 
-    <span class="kw">struct</span> <span class="ident">Timeout</span>;
+    <span class="kw">struct </span>Timeout;
 
-    <span class="kw">impl</span> <span class="ident">RawCommunicator</span> {
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-            <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-            <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">RawCommunicator</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">helper_set</span> <span class="op">=</span> <span class="number">0u8</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requested_streams</span> <span class="op">=</span> <span class="number">0u8</span>;
+    <span class="kw">impl </span>RawCommunicator {
+        <span class="kw">pub fn </span>new(
+            stdin: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            stdout: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            stderr: <span class="prelude-ty">Option</span>&lt;File&gt;,
+            input_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+        ) -&gt; RawCommunicator {
+            <span class="kw">let </span><span class="kw-2">mut </span>helper_set = <span class="number">0u8</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>requested_streams = <span class="number">0u8</span>;
 
-            <span class="kw">let</span> <span class="ident">read_stdout</span> <span class="op">=</span> <span class="ident">stdout</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">stdout</span><span class="op">|</span> {
-                <span class="ident">helper_set</span> <span class="op">|</span><span class="op">=</span> <span class="ident">StreamIdent::Out</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">requested_streams</span> <span class="op">|</span><span class="op">=</span> <span class="ident">StreamIdent::Out</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="op">|</span><span class="ident">tx</span><span class="op">|</span> <span class="ident">read_and_transmit</span>(<span class="ident">stdout</span>, <span class="ident">StreamIdent::Out</span>, <span class="ident">tx</span>)
+            <span class="kw">let </span>read_stdout = stdout.map(|stdout| {
+                helper_set |= StreamIdent::Out <span class="kw">as </span>u8;
+                requested_streams |= StreamIdent::Out <span class="kw">as </span>u8;
+                |tx| read_and_transmit(stdout, StreamIdent::Out, tx)
             });
-            <span class="kw">let</span> <span class="ident">read_stderr</span> <span class="op">=</span> <span class="ident">stderr</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">stderr</span><span class="op">|</span> {
-                <span class="ident">helper_set</span> <span class="op">|</span><span class="op">=</span> <span class="ident">StreamIdent::Err</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="ident">requested_streams</span> <span class="op">|</span><span class="op">=</span> <span class="ident">StreamIdent::Err</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="op">|</span><span class="ident">tx</span><span class="op">|</span> <span class="ident">read_and_transmit</span>(<span class="ident">stderr</span>, <span class="ident">StreamIdent::Err</span>, <span class="ident">tx</span>)
+            <span class="kw">let </span>read_stderr = stderr.map(|stderr| {
+                helper_set |= StreamIdent::Err <span class="kw">as </span>u8;
+                requested_streams |= StreamIdent::Err <span class="kw">as </span>u8;
+                |tx| read_and_transmit(stderr, StreamIdent::Err, tx)
             });
-            <span class="kw">let</span> <span class="ident">write_stdin</span> <span class="op">=</span> <span class="ident">stdin</span>.<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">stdin</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">input_data</span> <span class="op">=</span> <span class="ident">input_data</span>.<span class="ident">expect</span>(<span class="string">&quot;must provide input to redirected stdin&quot;</span>);
-                <span class="ident">helper_set</span> <span class="op">|</span><span class="op">=</span> <span class="ident">StreamIdent::In</span> <span class="kw">as</span> <span class="ident">u8</span>;
-                <span class="kw">move</span> <span class="op">|</span><span class="ident">tx</span>: <span class="ident">SyncSender</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">stdin</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">input_data</span>) {
-                    <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>((<span class="ident">StreamIdent::In</span>, <span class="ident">Payload::EOF</span>))),
-                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">drop</span>(<span class="ident">tx</span>.<span class="ident">send</span>((<span class="ident">StreamIdent::In</span>, <span class="ident">Payload::Err</span>(<span class="ident">e</span>)))),
+            <span class="kw">let </span>write_stdin = stdin.map(|<span class="kw-2">mut </span>stdin| {
+                <span class="kw">let </span>input_data = input_data.expect(<span class="string">&quot;must provide input to redirected stdin&quot;</span>);
+                helper_set |= StreamIdent::In <span class="kw">as </span>u8;
+                <span class="kw">move </span>|tx: SyncSender&lt;<span class="kw">_</span>&gt;| <span class="kw">match </span>stdin.write_all(<span class="kw-2">&amp;</span>input_data) {
+                    <span class="prelude-val">Ok</span>(()) =&gt; drop(tx.send((StreamIdent::In, Payload::EOF))),
+                    <span class="prelude-val">Err</span>(e) =&gt; drop(tx.send((StreamIdent::In, Payload::Err(e)))),
                 }
             });
 
-            <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">mpsc::sync_channel</span>(<span class="number">0</span>);
+            <span class="kw">let </span>(tx, rx) = mpsc::sync_channel(<span class="number">0</span>);
 
-            <span class="ident">read_stdout</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">spawn_with_arg</span>(<span class="ident">f</span>, <span class="ident">tx</span>.<span class="ident">clone</span>()));
-            <span class="ident">read_stderr</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">spawn_with_arg</span>(<span class="ident">f</span>, <span class="ident">tx</span>.<span class="ident">clone</span>()));
-            <span class="ident">write_stdin</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">spawn_with_arg</span>(<span class="ident">f</span>, <span class="ident">tx</span>.<span class="ident">clone</span>()));
+            read_stdout.map(|f| spawn_with_arg(f, tx.clone()));
+            read_stderr.map(|f| spawn_with_arg(f, tx.clone()));
+            write_stdin.map(|f| spawn_with_arg(f, tx.clone()));
 
-            <span class="ident">RawCommunicator</span> {
-                <span class="ident">rx</span>,
-                <span class="ident">helper_set</span>,
-                <span class="ident">requested_streams</span>,
-                <span class="ident">leftover</span>: <span class="prelude-val">None</span>,
+            RawCommunicator {
+                rx,
+                helper_set,
+                requested_streams,
+                leftover: <span class="prelude-val">None</span>,
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">recv_until</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Timeout</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <span class="ident">deadline</span> {
-                <span class="kw">match</span> <span class="self">self</span>
-                    .<span class="ident">rx</span>
-                    .<span class="ident">recv_timeout</span>(<span class="ident">deadline</span>.<span class="ident">saturating_duration_since</span>(<span class="ident">Instant::now</span>()))
+        <span class="kw">fn </span>recv_until(<span class="kw-2">&amp;</span><span class="self">self</span>, deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Message, Timeout&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(deadline) = deadline {
+                <span class="kw">match </span><span class="self">self
+                    </span>.rx
+                    .recv_timeout(deadline.saturating_duration_since(Instant::now()))
                 {
-                    <span class="prelude-val">Ok</span>(<span class="ident">message</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">message</span>),
-                    <span class="prelude-val">Err</span>(<span class="ident">RecvTimeoutError::Timeout</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Timeout</span>),
-                    <span class="comment">// should never be disconnected, the helper threads always</span>
-                    <span class="comment">// announce their exit beforehand</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">RecvTimeoutError::Disconnected</span>) =&gt; <span class="macro">unreachable!</span>(),
+                    <span class="prelude-val">Ok</span>(message) =&gt; <span class="prelude-val">Ok</span>(message),
+                    <span class="prelude-val">Err</span>(RecvTimeoutError::Timeout) =&gt; <span class="prelude-val">Err</span>(Timeout),
+                    <span class="comment">// should never be disconnected, the helper threads always
+                    // announce their exit beforehand
+                    </span><span class="prelude-val">Err</span>(RecvTimeoutError::Disconnected) =&gt; <span class="macro">unreachable!</span>(),
                 }
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">rx</span>.<span class="ident">recv</span>().<span class="ident">unwrap</span>())
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.rx.recv().unwrap())
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">read_into</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-            <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-            <span class="ident">outvec</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-            <span class="ident">errvec</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">grow_result</span> <span class="op">=</span>
-                <span class="op">|</span><span class="ident">ident</span>, <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">leftover</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">StreamIdent</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">|</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size_limit</span>) <span class="op">=</span> <span class="ident">size_limit</span> {
-                        <span class="kw">let</span> <span class="ident">total_read</span> <span class="op">=</span> <span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">errvec</span>.<span class="ident">len</span>();
-                        <span class="kw">if</span> <span class="ident">total_read</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size_limit</span> {
-                            <span class="kw">return</span> <span class="bool-val">false</span>;
+        <span class="kw">fn </span>read_into(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+            size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+            outvec: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+            errvec: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        ) -&gt; io::Result&lt;()&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>grow_result =
+                |ident, <span class="kw-2">mut </span>data: <span class="kw-2">&amp;</span>[u8], leftover: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;(StreamIdent, Vec&lt;u8&gt;)&gt;| {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(size_limit) = size_limit {
+                        <span class="kw">let </span>total_read = outvec.len() + errvec.len();
+                        <span class="kw">if </span>total_read &gt;= size_limit {
+                            <span class="kw">return </span><span class="bool-val">false</span>;
                         }
-                        <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">size_limit</span> <span class="op">-</span> <span class="ident">total_read</span>;
-                        <span class="kw">if</span> <span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">remaining</span> {
-                            <span class="kw-2">*</span><span class="ident">leftover</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">data</span>[<span class="ident">remaining</span>..].<span class="ident">to_vec</span>()));
-                            <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">data</span>[..<span class="ident">remaining</span>];
-                        }
-                    }
-                    <span class="kw">match</span> <span class="ident">ident</span> {
-                        <span class="ident">StreamIdent::Out</span> =&gt; <span class="ident">outvec</span>.<span class="ident">extend_from_slice</span>(<span class="ident">data</span>),
-                        <span class="ident">StreamIdent::Err</span> =&gt; <span class="ident">errvec</span>.<span class="ident">extend_from_slice</span>(<span class="ident">data</span>),
-                        <span class="ident">StreamIdent::In</span> =&gt; <span class="macro">unreachable!</span>(),
-                    }
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size_limit</span>) <span class="op">=</span> <span class="ident">size_limit</span> {
-                        <span class="kw">if</span> <span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">errvec</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size_limit</span> {
-                            <span class="kw">return</span> <span class="bool-val">false</span>;
+                        <span class="kw">let </span>remaining = size_limit - total_read;
+                        <span class="kw">if </span>data.len() &gt; remaining {
+                            <span class="kw-2">*</span>leftover = <span class="prelude-val">Some</span>((ident, data[remaining..].to_vec()));
+                            data = <span class="kw-2">&amp;</span>data[..remaining];
                         }
                     }
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                    <span class="kw">match </span>ident {
+                        StreamIdent::Out =&gt; outvec.extend_from_slice(data),
+                        StreamIdent::Err =&gt; errvec.extend_from_slice(data),
+                        StreamIdent::In =&gt; <span class="macro">unreachable!</span>(),
+                    }
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(size_limit) = size_limit {
+                        <span class="kw">if </span>outvec.len() + errvec.len() &gt;= size_limit {
+                            <span class="kw">return </span><span class="bool-val">false</span>;
+                        }
+                    }
+                    <span class="kw">return </span><span class="bool-val">true</span>;
                 };
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">data</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">leftover</span>.<span class="ident">take</span>() {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">grow_result</span>(<span class="ident">ident</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">leftover</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((ident, data)) = <span class="self">self</span>.leftover.take() {
+                <span class="kw">if </span>!grow_result(ident, <span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;mut </span><span class="self">self</span>.leftover) {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
             }
 
-            <span class="kw">while</span> <span class="self">self</span>.<span class="ident">helper_set</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">recv_until</span>(<span class="ident">deadline</span>) {
-                    <span class="prelude-val">Ok</span>((<span class="ident">ident</span>, <span class="ident">Payload::EOF</span>)) =&gt; {
-                        <span class="self">self</span>.<span class="ident">helper_set</span> <span class="op">&amp;=</span> <span class="op">!</span>(<span class="ident">ident</span> <span class="kw">as</span> <span class="ident">u8</span>);
+            <span class="kw">while </span><span class="self">self</span>.helper_set != <span class="number">0 </span>{
+                <span class="kw">match </span><span class="self">self</span>.recv_until(deadline) {
+                    <span class="prelude-val">Ok</span>((ident, Payload::EOF)) =&gt; {
+                        <span class="self">self</span>.helper_set &amp;= !(ident <span class="kw">as </span>u8);
                         <span class="kw">continue</span>;
                     }
-                    <span class="prelude-val">Ok</span>((<span class="ident">ident</span>, <span class="ident">Payload::Data</span>(<span class="ident">data</span>))) =&gt; {
-                        <span class="macro">assert!</span>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">grow_result</span>(<span class="ident">ident</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">leftover</span>) {
+                    <span class="prelude-val">Ok</span>((ident, Payload::Data(data))) =&gt; {
+                        <span class="macro">assert!</span>(data.len() != <span class="number">0</span>);
+                        <span class="kw">if </span>!grow_result(ident, <span class="kw-2">&amp;</span>data, <span class="kw-2">&amp;mut </span><span class="self">self</span>.leftover) {
                             <span class="kw">break</span>;
                         }
                     }
-                    <span class="prelude-val">Ok</span>((<span class="ident">_ident</span>, <span class="ident">Payload::Err</span>(<span class="ident">e</span>))) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
+                    <span class="prelude-val">Ok</span>((_ident, Payload::Err(e))) =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(e);
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">Timeout</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::TimedOut</span>, <span class="string">&quot;timeout&quot;</span>));
+                    <span class="prelude-val">Err</span>(Timeout) =&gt; {
+                        <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::TimedOut, <span class="string">&quot;timeout&quot;</span>));
                     }
                 }
             }
             <span class="prelude-val">Ok</span>(())
         }
 
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-            <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-        ) -&gt; (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Error</span><span class="op">&gt;</span>, (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>)) {
-            <span class="comment">// Create both vectors immediately.  This doesn&#39;t allocate, and if</span>
-            <span class="comment">// one of those is not needed, it just won&#39;t get resized.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">outvec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">errvec</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">pub fn </span>read(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+            size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+        ) -&gt; (<span class="prelude-ty">Option</span>&lt;io::Error&gt;, (<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;, <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;)) {
+            <span class="comment">// Create both vectors immediately.  This doesn&#39;t allocate, and if
+            // one of those is not needed, it just won&#39;t get resized.
+            </span><span class="kw">let </span><span class="kw-2">mut </span>outvec = <span class="macro">vec!</span>[];
+            <span class="kw">let </span><span class="kw-2">mut </span>errvec = <span class="macro">vec!</span>[];
 
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">read_into</span>(<span class="ident">deadline</span>, <span class="ident">size_limit</span>, <span class="kw-2">&amp;mut</span> <span class="ident">outvec</span>, <span class="kw-2">&amp;mut</span> <span class="ident">errvec</span>)
-                .<span class="ident">err</span>();
-            <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> {
-                <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">o</span>, <span class="kw-2">mut</span> <span class="ident">e</span>) <span class="op">=</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">requested_streams</span> <span class="op">&amp;</span> <span class="ident">StreamIdent::Out</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="ident">o</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">outvec</span>);
-                } <span class="kw">else</span> {
-                    <span class="macro">assert!</span>(<span class="ident">outvec</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>);
+            <span class="kw">let </span>err = <span class="self">self
+                </span>.read_into(deadline, size_limit, <span class="kw-2">&amp;mut </span>outvec, <span class="kw-2">&amp;mut </span>errvec)
+                .err();
+            <span class="kw">let </span>output = {
+                <span class="kw">let </span>(<span class="kw-2">mut </span>o, <span class="kw-2">mut </span>e) = (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
+                <span class="kw">if </span><span class="self">self</span>.requested_streams &amp; StreamIdent::Out <span class="kw">as </span>u8 != <span class="number">0 </span>{
+                    o = <span class="prelude-val">Some</span>(outvec);
+                } <span class="kw">else </span>{
+                    <span class="macro">assert!</span>(outvec.len() == <span class="number">0</span>);
                 }
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">requested_streams</span> <span class="op">&amp;</span> <span class="ident">StreamIdent::Err</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="ident">e</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">errvec</span>);
-                } <span class="kw">else</span> {
-                    <span class="macro">assert!</span>(<span class="ident">errvec</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>);
+                <span class="kw">if </span><span class="self">self</span>.requested_streams &amp; StreamIdent::Err <span class="kw">as </span>u8 != <span class="number">0 </span>{
+                    e = <span class="prelude-val">Some</span>(errvec);
+                } <span class="kw">else </span>{
+                    <span class="macro">assert!</span>(errvec.len() == <span class="number">0</span>);
                 }
-                (<span class="ident">o</span>, <span class="ident">e</span>)
+                (o, e)
             };
-            (<span class="ident">err</span>, <span class="ident">output</span>)
+            (err, output)
         }
     }
 }
 
-<span class="kw">use</span> <span class="ident">raw::RawCommunicator</span>;
+<span class="kw">use </span>raw::RawCommunicator;
 
-<span class="doccomment">/// Unattended data exchange with the subprocess.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When a subprocess both expects input and provides output, care must be</span>
-<span class="doccomment">/// taken to avoid deadlock.  The issue arises when the subprocess responds to</span>
-<span class="doccomment">/// part of the input data by providing some output which must be read for the</span>
-<span class="doccomment">/// subprocess to accept further input.  If the parent process is blocked on</span>
-<span class="doccomment">/// writing the input, it cannot read the output and a deadlock occurs.  This</span>
-<span class="doccomment">/// implementation avoids this issue by by reading from and writing to the</span>
-<span class="doccomment">/// subprocess in parallel.  On Unix-like systems this is achieved using</span>
-<span class="doccomment">/// `poll()`, and on Windows using threads.</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Communicator</span> {
-    <span class="ident">inner</span>: <span class="ident">RawCommunicator</span>,
-    <span class="ident">size_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">time_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Unattended data exchange with the subprocess.
+///
+/// When a subprocess both expects input and provides output, care must be
+/// taken to avoid deadlock.  The issue arises when the subprocess responds to
+/// part of the input data by providing some output which must be read for the
+/// subprocess to accept further input.  If the parent process is blocked on
+/// writing the input, it cannot read the output and a deadlock occurs.  This
+/// implementation avoids this issue by by reading from and writing to the
+/// subprocess in parallel.  On Unix-like systems this is achieved using
+/// `poll()`, and on Windows using threads.
+</span><span class="attribute">#[must_use]
+#[derive(Debug)]
+</span><span class="kw">pub struct </span>Communicator {
+    inner: RawCommunicator,
+    size_limit: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    time_limit: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Communicator</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-        <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Communicator</span> {
-        <span class="ident">Communicator</span> {
-            <span class="ident">inner</span>: <span class="ident">RawCommunicator::new</span>(<span class="ident">stdin</span>, <span class="ident">stdout</span>, <span class="ident">stderr</span>, <span class="ident">input_data</span>),
-            <span class="ident">size_limit</span>: <span class="prelude-val">None</span>,
-            <span class="ident">time_limit</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>Communicator {
+    <span class="kw">fn </span>new(
+        stdin: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        stdout: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        stderr: <span class="prelude-ty">Option</span>&lt;File&gt;,
+        input_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+    ) -&gt; Communicator {
+        Communicator {
+            inner: RawCommunicator::new(stdin, stdout, stderr, input_data),
+            size_limit: <span class="prelude-val">None</span>,
+            time_limit: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Communicate with the subprocess, return the contents of its standard</span>
-    <span class="doccomment">/// output and error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This will write input data to the subprocess&#39;s standard input and</span>
-    <span class="doccomment">/// simultaneously read its standard output and error.  The output and</span>
-    <span class="doccomment">/// error contents are returned as a pair of `Option&lt;Vec&gt;`.  The `None`</span>
-    <span class="doccomment">/// options correspond to streams not specified as `Redirection::Pipe`</span>
-    <span class="doccomment">/// when creating the subprocess.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default `read()` will read all data until end-of-file.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `limit_time` has been called, the method will read for no more than</span>
-    <span class="doccomment">/// the specified duration.  In case of timeout, an error of kind</span>
-    <span class="doccomment">/// `io::ErrorKind::TimedOut` is returned.  Communication may be resumed</span>
-    <span class="doccomment">/// after the timeout by calling `read()` again.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `limit_size` has been called, it will limit the allocation done by</span>
-    <span class="doccomment">/// this method.  If the subprocess provides more data than the limit</span>
-    <span class="doccomment">/// specifies, `read()` will successfully return as much data as specified</span>
-    <span class="doccomment">/// by the limit.  (It might internally read a bit more from the</span>
-    <span class="doccomment">/// subprocess, but the data will remain available for future reads.)</span>
-    <span class="doccomment">/// Subsequent data can be retrieved by calling `read()` again, which can</span>
-    <span class="doccomment">/// be repeated until `read()` returns all-empty data, which marks EOF.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this method does not wait for the subprocess to finish, only</span>
-    <span class="doccomment">/// to close its output/error streams.  It is rare but possible for the</span>
-    <span class="doccomment">/// program to continue running after having closed the streams, in which</span>
-    <span class="doccomment">/// case `Popen::Drop` will wait for it to finish.  If such a wait is</span>
-    <span class="doccomment">/// undesirable, it can be prevented by waiting explicitly using `wait()`,</span>
-    <span class="doccomment">/// by detaching the process using `detach()`, or by terminating it with</span>
-    <span class="doccomment">/// `terminate()`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `input_data` is provided and `stdin` was not redirected to a pipe.</span>
-    <span class="doccomment">/// Also, if `input_data` is not provided and `stdin` was redirected to a</span>
-    <span class="doccomment">/// pipe.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * `Err(CommunicateError)` if a system call fails.  In case of timeout,</span>
-    <span class="doccomment">/// the underlying error kind will be `ErrorKind::TimedOut`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Regardless of the nature of the error, the content prior to the error</span>
-    <span class="doccomment">/// can be retrieved using the [`capture`] attribute of the error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`capture`]: struct.CommunicateError.html#structfield.capture</span>
+    <span class="doccomment">/// Communicate with the subprocess, return the contents of its standard
+    /// output and error.
+    ///
+    /// This will write input data to the subprocess&#39;s standard input and
+    /// simultaneously read its standard output and error.  The output and
+    /// error contents are returned as a pair of `Option&lt;Vec&gt;`.  The `None`
+    /// options correspond to streams not specified as `Redirection::Pipe`
+    /// when creating the subprocess.
+    ///
+    /// By default `read()` will read all data until end-of-file.
+    ///
+    /// If `limit_time` has been called, the method will read for no more than
+    /// the specified duration.  In case of timeout, an error of kind
+    /// `io::ErrorKind::TimedOut` is returned.  Communication may be resumed
+    /// after the timeout by calling `read()` again.
+    ///
+    /// If `limit_size` has been called, it will limit the allocation done by
+    /// this method.  If the subprocess provides more data than the limit
+    /// specifies, `read()` will successfully return as much data as specified
+    /// by the limit.  (It might internally read a bit more from the
+    /// subprocess, but the data will remain available for future reads.)
+    /// Subsequent data can be retrieved by calling `read()` again, which can
+    /// be repeated until `read()` returns all-empty data, which marks EOF.
+    ///
+    /// Note that this method does not wait for the subprocess to finish, only
+    /// to close its output/error streams.  It is rare but possible for the
+    /// program to continue running after having closed the streams, in which
+    /// case `Popen::Drop` will wait for it to finish.  If such a wait is
+    /// undesirable, it can be prevented by waiting explicitly using `wait()`,
+    /// by detaching the process using `detach()`, or by terminating it with
+    /// `terminate()`.
+    ///
+    /// # Panics
+    ///
+    /// If `input_data` is provided and `stdin` was not redirected to a pipe.
+    /// Also, if `input_data` is not provided and `stdin` was redirected to a
+    /// pipe.
+    ///
+    /// # Errors
+    ///
+    /// * `Err(CommunicateError)` if a system call fails.  In case of timeout,
+    /// the underlying error kind will be `ErrorKind::TimedOut`.
+    ///
+    /// Regardless of the nature of the error, the content prior to the error
+    /// can be retrieved using the [`capture`] attribute of the error.
+    ///
+    /// [`capture`]: struct.CommunicateError.html#structfield.capture
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>), <span class="ident">CommunicateError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">time_limit</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">timeout</span><span class="op">|</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">timeout</span>);
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">deadline</span>, <span class="self">self</span>.<span class="ident">size_limit</span>) {
-            (<span class="prelude-val">None</span>, <span class="ident">capture</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">capture</span>),
-            (<span class="prelude-val">Some</span>(<span class="ident">error</span>), <span class="ident">capture</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">CommunicateError</span> { <span class="ident">error</span>, <span class="ident">capture</span> }),
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;, <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;), CommunicateError&gt; {
+        <span class="kw">let </span>deadline = <span class="self">self</span>.time_limit.map(|timeout| Instant::now() + timeout);
+        <span class="kw">match </span><span class="self">self</span>.inner.read(deadline, <span class="self">self</span>.size_limit) {
+            (<span class="prelude-val">None</span>, capture) =&gt; <span class="prelude-val">Ok</span>(capture),
+            (<span class="prelude-val">Some</span>(error), capture) =&gt; <span class="prelude-val">Err</span>(CommunicateError { error, capture }),
         }
     }
 
-    <span class="doccomment">/// Return the subprocess&#39;s output and error contents as strings.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Like `read()`, but returns strings instead of byte vectors.  Invalid</span>
-    <span class="doccomment">/// UTF-8 sequences, if found, are replaced with the the `U+FFFD` Unicode</span>
-    <span class="doccomment">/// replacement character.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_string</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>), <span class="ident">CommunicateError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">o</span>, <span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">o</span>.<span class="ident">map</span>(<span class="ident">from_utf8_lossy</span>), <span class="ident">e</span>.<span class="ident">map</span>(<span class="ident">from_utf8_lossy</span>)))
+    <span class="doccomment">/// Return the subprocess&#39;s output and error contents as strings.
+    ///
+    /// Like `read()`, but returns strings instead of byte vectors.  Invalid
+    /// UTF-8 sequences, if found, are replaced with the the `U+FFFD` Unicode
+    /// replacement character.
+    </span><span class="kw">pub fn </span>read_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;String&gt;, <span class="prelude-ty">Option</span>&lt;String&gt;), CommunicateError&gt; {
+        <span class="kw">let </span>(o, e) = <span class="self">self</span>.read()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((o.map(from_utf8_lossy), e.map(from_utf8_lossy)))
     }
 
-    <span class="doccomment">/// Limit the amount of data the next `read()` will read from the</span>
-    <span class="doccomment">/// subprocess.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">limit_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Communicator</span> {
-        <span class="self">self</span>.<span class="ident">size_limit</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Limit the amount of data the next `read()` will read from the
+    /// subprocess.
+    </span><span class="kw">pub fn </span>limit_size(<span class="kw-2">mut </span><span class="self">self</span>, size: usize) -&gt; Communicator {
+        <span class="self">self</span>.size_limit = <span class="prelude-val">Some</span>(size);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Limit the amount of time the next `read()` will spend reading from the</span>
-    <span class="doccomment">/// subprocess.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">limit_time</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">time</span>: <span class="ident">Duration</span>) -&gt; <span class="ident">Communicator</span> {
-        <span class="self">self</span>.<span class="ident">time_limit</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">time</span>);
-        <span class="self">self</span>
+    <span class="doccomment">/// Limit the amount of time the next `read()` will spend reading from the
+    /// subprocess.
+    </span><span class="kw">pub fn </span>limit_time(<span class="kw-2">mut </span><span class="self">self</span>, time: Duration) -&gt; Communicator {
+        <span class="self">self</span>.time_limit = <span class="prelude-val">Some</span>(time);
+        <span class="self">self
+    </span>}
+}
+
+<span class="doccomment">/// Like String::from_utf8_lossy(), but takes `Vec&lt;u8&gt;` and reuses its storage if
+/// possible.
+</span><span class="kw">fn </span>from_utf8_lossy(v: Vec&lt;u8&gt;) -&gt; String {
+    <span class="kw">match </span>String::from_utf8(v) {
+        <span class="prelude-val">Ok</span>(s) =&gt; s,
+        <span class="prelude-val">Err</span>(e) =&gt; String::from_utf8_lossy(e.as_bytes()).into(),
     }
 }
 
-<span class="doccomment">/// Like String::from_utf8_lossy(), but takes `Vec&lt;u8&gt;` and reuses its storage if</span>
-<span class="doccomment">/// possible.</span>
-<span class="kw">fn</span> <span class="ident">from_utf8_lossy</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">match</span> <span class="ident">String::from_utf8</span>(<span class="ident">v</span>) {
-        <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
-        <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">String::from_utf8_lossy</span>(<span class="ident">e</span>.<span class="ident">as_bytes</span>()).<span class="ident">into</span>(),
-    }
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">communicate</span>(
-    <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-    <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-    <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-    <span class="ident">input_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">Communicator</span> {
-    <span class="kw">if</span> <span class="ident">stdin</span>.<span class="ident">is_some</span>() {
-        <span class="ident">input_data</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;must provide input to redirected stdin&quot;</span>);
-    } <span class="kw">else</span> {
+<span class="kw">pub fn </span>communicate(
+    stdin: <span class="prelude-ty">Option</span>&lt;File&gt;,
+    stdout: <span class="prelude-ty">Option</span>&lt;File&gt;,
+    stderr: <span class="prelude-ty">Option</span>&lt;File&gt;,
+    input_data: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;,
+) -&gt; Communicator {
+    <span class="kw">if </span>stdin.is_some() {
+        input_data
+            .as_ref()
+            .expect(<span class="string">&quot;must provide input to redirected stdin&quot;</span>);
+    } <span class="kw">else </span>{
         <span class="macro">assert!</span>(
-            <span class="ident">input_data</span>.<span class="ident">as_ref</span>().<span class="ident">is_none</span>(),
-            <span class="string">&quot;cannot provide input to non-redirected stdin&quot;</span>
-        );
+            input_data.as_ref().is_none(),
+            <span class="string">&quot;cannot provide input to non-redirected stdin&quot;
+        </span>);
     }
-    <span class="ident">Communicator::new</span>(<span class="ident">stdin</span>, <span class="ident">stdout</span>, <span class="ident">stderr</span>, <span class="ident">input_data</span>)
+    Communicator::new(stdin, stdout, stderr, input_data)
 }
 
-<span class="doccomment">/// Error during communication.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It holds the underlying `io::Error` in the `error` field, and also</span>
-<span class="doccomment">/// provides the data captured before the error was encountered in the</span>
-<span class="doccomment">/// `capture` field.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The error description and cause are taken from the underlying IO error.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommunicateError</span> {
-    <span class="doccomment">/// The underlying `io::Error`.</span>
-    <span class="kw">pub</span> <span class="ident">error</span>: <span class="ident">io::Error</span>,
-    <span class="doccomment">/// The data captured before the error was encountered.</span>
-    <span class="kw">pub</span> <span class="ident">capture</span>: (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Error during communication.
+///
+/// It holds the underlying `io::Error` in the `error` field, and also
+/// provides the data captured before the error was encountered in the
+/// `capture` field.
+///
+/// The error description and cause are taken from the underlying IO error.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>CommunicateError {
+    <span class="doccomment">/// The underlying `io::Error`.
+    </span><span class="kw">pub </span>error: io::Error,
+    <span class="doccomment">/// The data captured before the error was encountered.
+    </span><span class="kw">pub </span>capture: (<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;, <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">CommunicateError</span> {
-    <span class="doccomment">/// Returns the corresponding IO `ErrorKind` for this error.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Equivalent to `self.error.kind()`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ErrorKind</span> {
-        <span class="self">self</span>.<span class="ident">error</span>.<span class="ident">kind</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">CommunicateError</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">error</span>.<span class="ident">source</span>()
+<span class="kw">impl </span>CommunicateError {
+    <span class="doccomment">/// Returns the corresponding IO `ErrorKind` for this error.
+    ///
+    /// Equivalent to `self.error.kind()`.
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ErrorKind {
+        <span class="self">self</span>.error.kind()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">CommunicateError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">error</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+<span class="kw">impl </span>Error <span class="kw">for </span>CommunicateError {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="self">self</span>.error.source()
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>CommunicateError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.error.fmt(f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

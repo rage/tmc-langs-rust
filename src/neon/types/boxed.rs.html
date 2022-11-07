@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/types/boxed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>boxed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/types/boxed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>boxed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -441,443 +435,442 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::any</span>::{<span class="self">self</span>, <span class="ident">Any</span>};
-<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::any::{<span class="self">self</span>, Any};
+<span class="kw">use </span>std::ops::Deref;
 
-<span class="kw">use</span> <span class="ident">neon_runtime::external</span>;
-<span class="kw">use</span> <span class="ident">neon_runtime::raw</span>;
+<span class="kw">use </span>neon_runtime::external;
+<span class="kw">use </span>neon_runtime::raw;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context::internal::Env</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context</span>::{<span class="ident">Context</span>, <span class="ident">FinalizeContext</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::handle</span>::{<span class="ident">internal::TransparentNoCopyWrapper</span>, <span class="ident">Handle</span>, <span class="ident">Managed</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::object::Object</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::private::ValueInternal</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types::Value</span>;
-<span class="kw">use</span> <span class="ident">private::JsBoxInner</span>;
+<span class="kw">use </span><span class="kw">crate</span>::context::internal::Env;
+<span class="kw">use </span><span class="kw">crate</span>::context::{Context, FinalizeContext};
+<span class="kw">use </span><span class="kw">crate</span>::handle::{internal::TransparentNoCopyWrapper, Handle, Managed};
+<span class="kw">use </span><span class="kw">crate</span>::object::Object;
+<span class="kw">use </span><span class="kw">crate</span>::types::private::ValueInternal;
+<span class="kw">use </span><span class="kw">crate</span>::types::Value;
+<span class="kw">use </span>private::JsBoxInner;
 
-<span class="kw">type</span> <span class="ident">BoxAny</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>;
+<span class="kw">type </span>BoxAny = Box&lt;<span class="kw">dyn </span>Any + Send + <span class="lifetime">&#39;static</span>&gt;;
 
-<span class="kw">mod</span> <span class="ident">private</span> {
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">local</span>: <span class="ident">neon_runtime::raw::Local</span>,
-        <span class="comment">// Cached raw pointer to the data contained in the `JsBox`. This value is</span>
-        <span class="comment">// required to implement `Deref` for `JsBox`. Unlike most `Js` types, `JsBox`</span>
-        <span class="comment">// is not a transparent wrapper around a `napi_value` and cannot implement `This`.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Safety: `JsBox` cannot verify the lifetime. Store a raw pointer to force</span>
-        <span class="comment">// uses to be marked unsafe. In practice, it can be treated as `&#39;static` but</span>
-        <span class="comment">// should only be exposed as part of a `Handle` tied to a `Context` lifetime.</span>
-        <span class="comment">// Safety: The value must not move on the heap; we must never give a mutable</span>
-        <span class="comment">// reference to the data until the `JsBox` is no longer accessible.</span>
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">raw_data</span>: <span class="kw-2">*const</span> <span class="ident">T</span>,
+<span class="kw">mod </span>private {
+    <span class="kw">pub struct </span>JsBoxInner&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">super</span>) local: neon_runtime::raw::Local,
+        <span class="comment">// Cached raw pointer to the data contained in the `JsBox`. This value is
+        // required to implement `Deref` for `JsBox`. Unlike most `Js` types, `JsBox`
+        // is not a transparent wrapper around a `napi_value` and cannot implement `This`.
+        //
+        // Safety: `JsBox` cannot verify the lifetime. Store a raw pointer to force
+        // uses to be marked unsafe. In practice, it can be treated as `&#39;static` but
+        // should only be exposed as part of a `Handle` tied to a `Context` lifetime.
+        // Safety: The value must not move on the heap; we must never give a mutable
+        // reference to the data until the `JsBox` is no longer accessible.
+        </span><span class="kw">pub</span>(<span class="kw">super</span>) raw_data: <span class="kw-2">*const </span>T,
     }
 }
 
-<span class="doccomment">/// A smart pointer for Rust data managed by the JavaScript engine.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The type `JsBox&lt;T&gt;` provides shared ownership of a value of type `T`,</span>
-<span class="doccomment">/// allocated in the heap. The data is owned by the JavaScript engine and the</span>
-<span class="doccomment">/// lifetime is managed by the JavaScript garbage collector.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Shared references in Rust disallow mutation by default, and `JsBox` is no</span>
-<span class="doccomment">/// exception: you cannot generally obtain a mutable reference to something</span>
-<span class="doccomment">/// inside a `JsBox`. If you need to mutate through a `JsBox`, use</span>
-<span class="doccomment">/// [`Cell`](https://doc.rust-lang.org/std/cell/struct.Cell.html),</span>
-<span class="doccomment">/// [`RefCell`](https://doc.rust-lang.org/stable/std/cell/struct.RefCell.html),</span>
-<span class="doccomment">/// or one of the other types that provide</span>
-<span class="doccomment">/// [interior mutability](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Values contained by a `JsBox` must implement the `Finalize` trait. `Finalize::finalize`</span>
-<span class="doccomment">/// will execute with the value in a `JsBox` immediately before the `JsBox` is garbage</span>
-<span class="doccomment">/// collected. If no additional finalization is necessary, an emply implementation may</span>
-<span class="doccomment">/// be provided.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## `Deref` behavior</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `JsBox&lt;T&gt;` automatically dereferences to `T` (via the `Deref` trait), so</span>
-<span class="doccomment">/// you can call `T`&#39;s method on a value of type `JsBox&lt;T&gt;`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use neon::prelude::*;</span>
-<span class="doccomment">/// # fn my_neon_function(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {</span>
-<span class="doccomment">/// let vec: Handle&lt;JsBox&lt;Vec&lt;_&gt;&gt;&gt; = cx.boxed(vec![1, 2, 3]);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// println!(&quot;Length: {}&quot;, vec.len());</span>
-<span class="doccomment">/// # Ok(cx.undefined())</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Passing some immutable data between Rust and JavaScript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use neon::prelude::*;</span>
-<span class="doccomment">/// # use std::path::{Path, PathBuf};</span>
-<span class="doccomment">/// fn create_path(mut cx: FunctionContext) -&gt; JsResult&lt;JsBox&lt;PathBuf&gt;&gt; {</span>
-<span class="doccomment">///     let path = cx.argument::&lt;JsString&gt;(0)?.value(&amp;mut cx);</span>
-<span class="doccomment">///     let path = Path::new(&amp;path).to_path_buf();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     Ok(cx.boxed(path))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn print_path(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {</span>
-<span class="doccomment">///     let path = cx.argument::&lt;JsBox&lt;PathBuf&gt;&gt;(0)?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     println!(&quot;{}&quot;, path.display());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     Ok(cx.undefined())</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Passing a user defined struct wrapped in a `RefCell` for mutability. This</span>
-<span class="doccomment">/// pattern is useful for creating classes in JavaScript.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use neon::prelude::*;</span>
-<span class="doccomment">/// # use std::cell::RefCell;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// type BoxedPerson = JsBox&lt;RefCell&lt;Person&gt;&gt;;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// struct Person {</span>
-<span class="doccomment">///      name: String,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Finalize for Person {}</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Person {</span>
-<span class="doccomment">///     pub fn new(name: String) -&gt; Self {</span>
-<span class="doccomment">///         Person { name }</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     pub fn set_name(&amp;mut self, name: String) {</span>
-<span class="doccomment">///         self.name = name;</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     pub fn greet(&amp;self) -&gt; String {</span>
-<span class="doccomment">///         format!(&quot;Hello, {}!&quot;, self.name)</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn person_new(mut cx: FunctionContext) -&gt; JsResult&lt;BoxedPerson&gt; {</span>
-<span class="doccomment">///     let name = cx.argument::&lt;JsString&gt;(0)?.value(&amp;mut cx);</span>
-<span class="doccomment">///     let person = RefCell::new(Person::new(name));</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     Ok(cx.boxed(person))</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn person_set_name(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {</span>
-<span class="doccomment">///     let person = cx.argument::&lt;BoxedPerson&gt;(0)?;</span>
-<span class="doccomment">///     let mut person = person.borrow_mut();</span>
-<span class="doccomment">///     let name = cx.argument::&lt;JsString&gt;(1)?.value(&amp;mut cx);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     person.set_name(name);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     Ok(cx.undefined())</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// fn person_greet(mut cx: FunctionContext) -&gt; JsResult&lt;JsString&gt; {</span>
-<span class="doccomment">///     let person = cx.argument::&lt;BoxedPerson&gt;(0)?;</span>
-<span class="doccomment">///     let person = person.borrow();</span>
-<span class="doccomment">///     let greeting = person.greet();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     Ok(cx.string(greeting))</span>
-<span class="doccomment">/// }</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A smart pointer for Rust data managed by the JavaScript engine.
+///
+/// The type `JsBox&lt;T&gt;` provides shared ownership of a value of type `T`,
+/// allocated in the heap. The data is owned by the JavaScript engine and the
+/// lifetime is managed by the JavaScript garbage collector.
+///
+/// Shared references in Rust disallow mutation by default, and `JsBox` is no
+/// exception: you cannot generally obtain a mutable reference to something
+/// inside a `JsBox`. If you need to mutate through a `JsBox`, use
+/// [`Cell`](https://doc.rust-lang.org/std/cell/struct.Cell.html),
+/// [`RefCell`](https://doc.rust-lang.org/stable/std/cell/struct.RefCell.html),
+/// or one of the other types that provide
+/// [interior mutability](https://doc.rust-lang.org/book/ch15-05-interior-mutability.html).
+///
+/// Values contained by a `JsBox` must implement the `Finalize` trait. `Finalize::finalize`
+/// will execute with the value in a `JsBox` immediately before the `JsBox` is garbage
+/// collected. If no additional finalization is necessary, an emply implementation may
+/// be provided.
+///
+///
+/// ## `Deref` behavior
+///
+/// `JsBox&lt;T&gt;` automatically dereferences to `T` (via the `Deref` trait), so
+/// you can call `T`&#39;s method on a value of type `JsBox&lt;T&gt;`.
+///
+/// ```rust
+/// # use neon::prelude::*;
+/// # fn my_neon_function(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {
+/// let vec: Handle&lt;JsBox&lt;Vec&lt;_&gt;&gt;&gt; = cx.boxed(vec![1, 2, 3]);
+///
+/// println!(&quot;Length: {}&quot;, vec.len());
+/// # Ok(cx.undefined())
+/// # }
+/// ```
+///
+/// ## Examples
+///
+/// Passing some immutable data between Rust and JavaScript.
+///
+/// ```rust
+/// # use neon::prelude::*;
+/// # use std::path::{Path, PathBuf};
+/// fn create_path(mut cx: FunctionContext) -&gt; JsResult&lt;JsBox&lt;PathBuf&gt;&gt; {
+///     let path = cx.argument::&lt;JsString&gt;(0)?.value(&amp;mut cx);
+///     let path = Path::new(&amp;path).to_path_buf();
+///
+///     Ok(cx.boxed(path))
+/// }
+///
+/// fn print_path(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {
+///     let path = cx.argument::&lt;JsBox&lt;PathBuf&gt;&gt;(0)?;
+///
+///     println!(&quot;{}&quot;, path.display());
+///
+///     Ok(cx.undefined())
+/// }
+/// ```
+///
+/// Passing a user defined struct wrapped in a `RefCell` for mutability. This
+/// pattern is useful for creating classes in JavaScript.
+///
+/// ```rust
+/// # use neon::prelude::*;
+/// # use std::cell::RefCell;
+///
+/// type BoxedPerson = JsBox&lt;RefCell&lt;Person&gt;&gt;;
+///
+/// struct Person {
+///      name: String,
+/// }
+///
+/// impl Finalize for Person {}
+///
+/// impl Person {
+///     pub fn new(name: String) -&gt; Self {
+///         Person { name }
+///     }
+///
+///     pub fn set_name(&amp;mut self, name: String) {
+///         self.name = name;
+///     }
+///
+///     pub fn greet(&amp;self) -&gt; String {
+///         format!(&quot;Hello, {}!&quot;, self.name)
+///     }
+/// }
+///
+/// fn person_new(mut cx: FunctionContext) -&gt; JsResult&lt;BoxedPerson&gt; {
+///     let name = cx.argument::&lt;JsString&gt;(0)?.value(&amp;mut cx);
+///     let person = RefCell::new(Person::new(name));
+///
+///     Ok(cx.boxed(person))
+/// }
+///
+/// fn person_set_name(mut cx: FunctionContext) -&gt; JsResult&lt;JsUndefined&gt; {
+///     let person = cx.argument::&lt;BoxedPerson&gt;(0)?;
+///     let mut person = person.borrow_mut();
+///     let name = cx.argument::&lt;JsString&gt;(1)?.value(&amp;mut cx);
+///
+///     person.set_name(name);
+///
+///     Ok(cx.undefined())
+/// }
+///
+/// fn person_greet(mut cx: FunctionContext) -&gt; JsResult&lt;JsString&gt; {
+///     let person = cx.argument::&lt;BoxedPerson&gt;(0)?;
+///     let person = person.borrow();
+///     let greeting = person.greet();
+///
+///     Ok(cx.string(greeting))
+/// }
+</span><span class="attribute">#[repr(transparent)]
+</span><span class="kw">pub struct </span>JsBox&lt;T: Send + <span class="lifetime">&#39;static</span>&gt;(JsBoxInner&lt;T&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;JsBox&lt;{}&gt;&quot;</span>, <span class="ident">std::any::type_name</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; std::fmt::Debug <span class="kw">for </span>JsBoxInner&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;JsBox&lt;{}&gt;&quot;</span>, std::any::type_name::&lt;T&gt;())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">std::fmt::Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">f</span>)
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; std::fmt::Debug <span class="kw">for </span>JsBox&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        std::fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
     }
 }
 
-<span class="comment">// Attempt to use a `napi_value` as a `napi_external` to unwrap a `BoxAny&gt;</span>
-<span class="doccomment">/// Safety: `local` must be a `napi_value` that is valid for the lifetime `&#39;a`.</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">maybe_external_deref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">local</span>: <span class="ident">raw::Local</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">BoxAny</span><span class="op">&gt;</span> {
-    <span class="ident">external::deref</span>::<span class="op">&lt;</span><span class="ident">BoxAny</span><span class="op">&gt;</span>(<span class="ident">env</span>.<span class="ident">to_raw</span>(), <span class="ident">local</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">v</span>)
+<span class="comment">// Attempt to use a `napi_value` as a `napi_external` to unwrap a `BoxAny&gt;
+</span><span class="doccomment">/// Safety: `local` must be a `napi_value` that is valid for the lifetime `&#39;a`.
+</span><span class="kw">unsafe fn </span>maybe_external_deref&lt;<span class="lifetime">&#39;a</span>&gt;(env: Env, local: raw::Local) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BoxAny&gt; {
+    external::deref::&lt;BoxAny&gt;(env.to_raw(), local).map(|v| <span class="kw-2">&amp;*</span>v)
 }
 
-<span class="comment">// Custom `Clone` implementation since `T` might not be `Clone`</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">local</span>: <span class="self">self</span>.<span class="ident">local</span>,
-            <span class="ident">raw_data</span>: <span class="self">self</span>.<span class="ident">raw_data</span>,
+<span class="comment">// Custom `Clone` implementation since `T` might not be `Clone`
+</span><span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Clone <span class="kw">for </span>JsBoxInner&lt;T&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            local: <span class="self">self</span>.local,
+            raw_data: <span class="self">self</span>.raw_data,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Object</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Object <span class="kw">for </span>JsBox&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Copy</span> <span class="kw">for</span> <span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Copy <span class="kw">for </span>JsBoxInner&lt;T&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Value</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Value <span class="kw">for </span>JsBox&lt;T&gt; {}
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">TransparentNoCopyWrapper</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Inner</span> <span class="op">=</span> <span class="ident">JsBoxInner</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+<span class="kw">unsafe impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; TransparentNoCopyWrapper <span class="kw">for </span>JsBox&lt;T&gt; {
+    <span class="kw">type </span>Inner = JsBoxInner&lt;T&gt;;
 
-    <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Inner</span> {
-        <span class="self">self</span>.<span class="number">0</span>
+    <span class="kw">fn </span>into_inner(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Inner {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; Managed <span class="kw">for </span>JsBox&lt;T&gt; {
+    <span class="kw">fn </span>to_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; raw::Local {
+        <span class="self">self</span>.<span class="number">0</span>.local
+    }
+
+    <span class="kw">fn </span>from_raw(env: Env, local: raw::Local) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>raw_data = <span class="kw">unsafe </span>{ maybe_external_deref(env, local) }
+            .expect(<span class="string">&quot;Failed to unwrap napi_external as Box&lt;Any&gt;&quot;</span>)
+            .downcast_ref()
+            .expect(<span class="string">&quot;Failed to downcast Any&quot;</span>);
+
+        <span class="self">Self</span>(JsBoxInner { local, raw_data })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Managed</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">to_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">raw::Local</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">local</span>
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; ValueInternal <span class="kw">for </span>JsBox&lt;T&gt; {
+    <span class="kw">fn </span>name() -&gt; String {
+        any::type_name::&lt;<span class="self">Self</span>&gt;().to_string()
     }
 
-    <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">local</span>: <span class="ident">raw::Local</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">raw_data</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">maybe_external_deref</span>(<span class="ident">env</span>, <span class="ident">local</span>) }
-            .<span class="ident">expect</span>(<span class="string">&quot;Failed to unwrap napi_external as Box&lt;Any&gt;&quot;</span>)
-            .<span class="ident">downcast_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Failed to downcast Any&quot;</span>);
+    <span class="kw">fn </span>is_typeof&lt;Other: Value&gt;(env: Env, other: <span class="kw-2">&amp;</span>Other) -&gt; bool {
+        <span class="kw">let </span>data = <span class="kw">unsafe </span>{ maybe_external_deref(env, other.to_raw()) };
 
-        <span class="self">Self</span>(<span class="ident">JsBoxInner</span> { <span class="ident">local</span>, <span class="ident">raw_data</span> })
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">ValueInternal</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">name</span>() -&gt; <span class="ident">String</span> {
-        <span class="ident">any::type_name</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>().<span class="ident">to_string</span>()
+        data.map(|v| v.is::&lt;T&gt;()).unwrap_or(<span class="bool-val">false</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">is_typeof</span><span class="op">&lt;</span><span class="ident">Other</span>: <span class="ident">Value</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Other</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">maybe_external_deref</span>(<span class="ident">env</span>, <span class="ident">other</span>.<span class="ident">to_raw</span>()) };
+    <span class="kw">fn </span>downcast&lt;Other: Value&gt;(env: Env, other: <span class="kw-2">&amp;</span>Other) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>local = other.to_raw();
+        <span class="kw">let </span>data = <span class="kw">unsafe </span>{ maybe_external_deref(env, local) };
 
-        <span class="ident">data</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">downcast</span><span class="op">&lt;</span><span class="ident">Other</span>: <span class="ident">Value</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Other</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_raw</span>();
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">maybe_external_deref</span>(<span class="ident">env</span>, <span class="ident">local</span>) };
-
-        <span class="comment">// Attempt to downcast the `Option&lt;&amp;BoxAny&gt;` to `Option&lt;*const T&gt;`</span>
-        <span class="ident">data</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">downcast_ref</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">raw_data</span><span class="op">|</span> <span class="self">Self</span>(<span class="ident">JsBoxInner</span> { <span class="ident">local</span>, <span class="ident">raw_data</span> }))
+        <span class="comment">// Attempt to downcast the `Option&lt;&amp;BoxAny&gt;` to `Option&lt;*const T&gt;`
+        </span>data.and_then(|v| v.downcast_ref())
+            .map(|raw_data| <span class="self">Self</span>(JsBoxInner { local, raw_data }))
     }
 }
 
-<span class="doccomment">/// Values contained by a `JsBox` must be `Finalize + Send + &#39;static`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### `Finalize`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `neon::prelude::Finalize` trait provides a `finalize` method that will be called</span>
-<span class="doccomment">/// immediately before the `JsBox` is garbage collected.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### `Send`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `JsBox` may be moved across threads. It is important to guarantee that the</span>
-<span class="doccomment">/// contents is also safe to move across threads.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ### `&#39;static&#39;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The lifetime of a `JsBox` is managed by the JavaScript garbage collector. Since Rust</span>
-<span class="doccomment">/// is unable to verify the lifetime of the contents, references must be valid for the</span>
-<span class="doccomment">/// entire duration of the program. This does not mean that the `JsBox` will be valid</span>
-<span class="doccomment">/// until the application terminates, only that its lifetime is indefinite.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructs a new `JsBox` containing `value`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Handle</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Values contained by a `JsBox` must be `Finalize + Send + &#39;static`
+///
+/// ### `Finalize`
+///
+/// The `neon::prelude::Finalize` trait provides a `finalize` method that will be called
+/// immediately before the `JsBox` is garbage collected.
+///
+/// ### `Send`
+///
+/// `JsBox` may be moved across threads. It is important to guarantee that the
+/// contents is also safe to move across threads.
+///
+/// ### `&#39;static&#39;
+///
+/// The lifetime of a `JsBox` is managed by the JavaScript garbage collector. Since Rust
+/// is unable to verify the lifetime of the contents, references must be valid for the
+/// entire duration of the program. This does not mean that the `JsBox` will be valid
+/// until the application terminates, only that its lifetime is indefinite.
+</span><span class="kw">impl</span>&lt;T: Finalize + Send + <span class="lifetime">&#39;static</span>&gt; JsBox&lt;T&gt; {
+    <span class="doccomment">/// Constructs a new `JsBox` containing `value`.
+    </span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>, C&gt;(cx: <span class="kw-2">&amp;mut </span>C, value: T) -&gt; Handle&lt;<span class="lifetime">&#39;a</span>, JsBox&lt;T&gt;&gt;
+    <span class="kw">where
+        </span>C: Context&lt;<span class="lifetime">&#39;a</span>&gt;,
+        T: Send + <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// This function will execute immediately before the `JsBox` is garbage collected.</span>
-        <span class="comment">// It unwraps the `napi_external`, downcasts the `BoxAny` and moves the type</span>
-        <span class="comment">// out of the `Box`. Lastly, it calls the trait method `Finalize::fianlize` of the</span>
-        <span class="comment">// contained value `T`.</span>
-        <span class="kw">fn</span> <span class="ident">finalizer</span><span class="op">&lt;</span><span class="ident">U</span>: <span class="ident">Finalize</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">raw::Env</span>, <span class="ident">data</span>: <span class="ident">BoxAny</span>) {
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span>.<span class="ident">downcast</span>::<span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<span class="ident">env</span>) };
+        <span class="comment">// This function will execute immediately before the `JsBox` is garbage collected.
+        // It unwraps the `napi_external`, downcasts the `BoxAny` and moves the type
+        // out of the `Box`. Lastly, it calls the trait method `Finalize::fianlize` of the
+        // contained value `T`.
+        </span><span class="kw">fn </span>finalizer&lt;U: Finalize + <span class="lifetime">&#39;static</span>&gt;(env: raw::Env, data: BoxAny) {
+            <span class="kw">let </span>data = <span class="kw-2">*</span>data.downcast::&lt;U&gt;().unwrap();
+            <span class="kw">let </span>env = <span class="kw">unsafe </span>{ std::mem::transmute(env) };
 
-            <span class="ident">FinalizeContext::with</span>(<span class="ident">env</span>, <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">cx</span><span class="op">|</span> <span class="ident">data</span>.<span class="ident">finalize</span>(<span class="kw-2">&amp;mut</span> <span class="ident">cx</span>));
+            FinalizeContext::with(env, <span class="kw">move </span>|<span class="kw-2">mut </span>cx| data.finalize(<span class="kw-2">&amp;mut </span>cx));
         }
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">value</span>) <span class="kw">as</span> <span class="ident">BoxAny</span>;
-        <span class="comment">// Since this value was just constructed, we know it is `T`</span>
-        <span class="kw">let</span> <span class="ident">raw_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">v</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">dyn</span> <span class="ident">Any</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">T</span>;
-        <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">external::create</span>(<span class="ident">cx</span>.<span class="ident">env</span>().<span class="ident">to_raw</span>(), <span class="ident">v</span>, <span class="ident">finalizer</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) };
+        <span class="kw">let </span>v = Box::new(value) <span class="kw">as </span>BoxAny;
+        <span class="comment">// Since this value was just constructed, we know it is `T`
+        </span><span class="kw">let </span>raw_data = <span class="kw-2">&amp;*</span>v <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">dyn </span>Any <span class="kw">as </span><span class="kw-2">*const </span>T;
+        <span class="kw">let </span>local = <span class="kw">unsafe </span>{ external::create(cx.env().to_raw(), v, finalizer::&lt;T&gt;) };
 
-        <span class="ident">Handle::new_internal</span>(<span class="self">Self</span>(<span class="ident">JsBoxInner</span> { <span class="ident">local</span>, <span class="ident">raw_data</span> }))
+        Handle::new_internal(<span class="self">Self</span>(JsBoxInner { local, raw_data }))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">JsBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T: Send + <span class="lifetime">&#39;static</span>&gt; Deref <span class="kw">for </span>JsBox&lt;T&gt; {
+    <span class="kw">type </span>Target = T;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="comment">// Safety: This depends on a `Handle&lt;&#39;a, JsBox&lt;T&gt;&gt;` wrapper to provide</span>
-        <span class="comment">// a proper lifetime.</span>
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">raw_data</span> }
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="comment">// Safety: This depends on a `Handle&lt;&#39;a, JsBox&lt;T&gt;&gt;` wrapper to provide
+        // a proper lifetime.
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0</span>.raw_data }
     }
 }
 
-<span class="doccomment">/// Finalize is executed on the main JavaScript thread and executed immediately</span>
-<span class="doccomment">/// before garbage collection.</span>
-<span class="doccomment">/// Values contained by a `JsBox` must implement `Finalize`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `Finalize` provides a default implementation that does not perform any finalization.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use neon::prelude::*;</span>
-<span class="doccomment">/// struct Point(f64, f64);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Finalize for Point {}</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A `finalize` method may be specified for performing clean-up operations before dropping</span>
-<span class="doccomment">/// the contained value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # use neon::prelude::*;</span>
-<span class="doccomment">/// struct Point(f64, f64);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Finalize for Point {</span>
-<span class="doccomment">///     fn finalize&lt;&#39;a, C: Context&lt;&#39;a&gt;&gt;(self, cx: &amp;mut C) {</span>
-<span class="doccomment">///         let global = cx.global();</span>
-<span class="doccomment">///         let emit: Handle&lt;JsFunction&gt; = global</span>
-<span class="doccomment">///             .get(cx, &quot;emit&quot;)</span>
-<span class="doccomment">///             .unwrap();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         let args = vec![</span>
-<span class="doccomment">///             cx.string(&quot;gc_point&quot;).upcast::&lt;JsValue&gt;(),</span>
-<span class="doccomment">///             cx.number(self.0).upcast(),</span>
-<span class="doccomment">///             cx.number(self.1).upcast(),</span>
-<span class="doccomment">///         ];</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         emit.call(cx, global, args).unwrap();</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Finalize</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {}
+<span class="doccomment">/// Finalize is executed on the main JavaScript thread and executed immediately
+/// before garbage collection.
+/// Values contained by a `JsBox` must implement `Finalize`.
+///
+/// ## Examples
+///
+/// `Finalize` provides a default implementation that does not perform any finalization.
+///
+/// ```rust
+/// # use neon::prelude::*;
+/// struct Point(f64, f64);
+///
+/// impl Finalize for Point {}
+/// ```
+///
+/// A `finalize` method may be specified for performing clean-up operations before dropping
+/// the contained value.
+///
+/// ```rust
+/// # use neon::prelude::*;
+/// struct Point(f64, f64);
+///
+/// impl Finalize for Point {
+///     fn finalize&lt;&#39;a, C: Context&lt;&#39;a&gt;&gt;(self, cx: &amp;mut C) {
+///         let global = cx.global();
+///         let emit: Handle&lt;JsFunction&gt; = global
+///             .get(cx, &quot;emit&quot;)
+///             .unwrap();
+///
+///         let args = vec![
+///             cx.string(&quot;gc_point&quot;).upcast::&lt;JsValue&gt;(),
+///             cx.number(self.0).upcast(),
+///             cx.number(self.1).upcast(),
+///         ];
+///
+///         emit.call(cx, global, args).unwrap();
+///     }
+/// }
+/// ```
+</span><span class="kw">pub trait </span>Finalize: Sized {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>C) {}
 }
 
-<span class="comment">// Primitives</span>
+<span class="comment">// Primitives
 
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">bool</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">char</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">i8</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">i16</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">i32</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">i64</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">isize</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">u8</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">u16</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">u32</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">u64</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">usize</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">f32</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">f64</span> {}
+</span><span class="kw">impl </span>Finalize <span class="kw">for </span>bool {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>char {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>i8 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>i16 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>i32 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>i64 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>isize {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>u8 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>u16 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>u32 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>u64 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>usize {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>f32 {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>f64 {}
 
-<span class="comment">// Common types</span>
+<span class="comment">// Common types
 
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">String</span> {}
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::path::PathBuf</span> {}
+</span><span class="kw">impl </span>Finalize <span class="kw">for </span>String {}
+<span class="kw">impl </span>Finalize <span class="kw">for </span>std::path::PathBuf {}
 
-<span class="comment">// Tuples</span>
+<span class="comment">// Tuples
 
-<span class="macro">macro_rules!</span> <span class="ident">finalize_tuple_impls</span> {
-    ($( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> )<span class="op">+</span>) =&gt; {
-        <span class="kw">impl</span><span class="op">&lt;</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>: <span class="ident">Finalize</span>),<span class="op">+</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>,)<span class="op">+</span>) {
-            <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-                <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-                <span class="kw">let</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>,)<span class="op">+</span>) <span class="op">=</span> <span class="self">self</span>;
-                ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>),)<span class="op">+</span>);
+</span><span class="macro">macro_rules! </span>finalize_tuple_impls {
+    ($( <span class="macro-nonterminal">$name</span>:ident )+) =&gt; {
+        <span class="kw">impl</span>&lt;$(<span class="macro-nonterminal">$name</span>: Finalize),+&gt; Finalize <span class="kw">for </span>($(<span class="macro-nonterminal">$name</span>,)+) {
+            <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+                <span class="attribute">#![allow(non_snake_case)]
+                </span><span class="kw">let </span>($(<span class="macro-nonterminal">$name</span>,)+) = <span class="self">self</span>;
+                ($(<span class="macro-nonterminal">$name</span>.finalize(cx),)+);
             }
         }
     };
 }
 
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> () {}
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> <span class="ident">T3</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> <span class="ident">T3</span> <span class="ident">T4</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> <span class="ident">T3</span> <span class="ident">T4</span> <span class="ident">T5</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> <span class="ident">T3</span> <span class="ident">T4</span> <span class="ident">T5</span> <span class="ident">T6</span> }
-<span class="macro">finalize_tuple_impls!</span> { <span class="ident">T0</span> <span class="ident">T1</span> <span class="ident">T2</span> <span class="ident">T3</span> <span class="ident">T4</span> <span class="ident">T5</span> <span class="ident">T6</span> <span class="ident">T7</span> }
+<span class="kw">impl </span>Finalize <span class="kw">for </span>() {}
+<span class="macro">finalize_tuple_impls! </span>{ T0 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 T3 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 T3 T4 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 T3 T4 T5 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 T3 T4 T5 T6 }
+<span class="macro">finalize_tuple_impls! </span>{ T0 T1 T2 T3 T4 T5 T6 T7 }
 
-<span class="comment">// Collections</span>
+<span class="comment">// Collections
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span> {
-            <span class="ident">item</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+</span><span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>Vec&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">for </span>item <span class="kw">in </span><span class="self">self </span>{
+            item.finalize(cx);
         }
     }
 }
 
-<span class="comment">// Smart pointers and other wrappers</span>
+<span class="comment">// Smart pointers and other wrappers
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::boxed::Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        (<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">finalize</span>(<span class="ident">cx</span>);
+</span><span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::boxed::Box&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        (<span class="kw-2">*</span><span class="self">self</span>).finalize(cx);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">v</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = <span class="self">self </span>{
+            v.finalize(cx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::rc::Rc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">std::rc::Rc::try_unwrap</span>(<span class="self">self</span>) {
-            <span class="ident">v</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::rc::Rc&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = std::rc::Rc::try_unwrap(<span class="self">self</span>) {
+            v.finalize(cx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::sync::Arc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">std::sync::Arc::try_unwrap</span>(<span class="self">self</span>) {
-            <span class="ident">v</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::sync::Arc&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = std::sync::Arc::try_unwrap(<span class="self">self</span>) {
+            v.finalize(cx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::sync::Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_inner</span>() {
-            <span class="ident">v</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::sync::Mutex&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = <span class="self">self</span>.into_inner() {
+            v.finalize(cx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::sync::RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_inner</span>() {
-            <span class="ident">v</span>.<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::sync::RwLock&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = <span class="self">self</span>.into_inner() {
+            v.finalize(cx);
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::cell::Cell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="self">self</span>.<span class="ident">into_inner</span>().<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::cell::Cell&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="self">self</span>.into_inner().finalize(cx);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Finalize</span><span class="op">&gt;</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">std::cell::RefCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">finalize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span>) {
-        <span class="self">self</span>.<span class="ident">into_inner</span>().<span class="ident">finalize</span>(<span class="ident">cx</span>);
+<span class="kw">impl</span>&lt;T: Finalize&gt; Finalize <span class="kw">for </span>std::cell::RefCell&lt;T&gt; {
+    <span class="kw">fn </span>finalize&lt;<span class="lifetime">&#39;a</span>, C: Context&lt;<span class="lifetime">&#39;a</span>&gt;&gt;(<span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>C) {
+        <span class="self">self</span>.into_inner().finalize(cx);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

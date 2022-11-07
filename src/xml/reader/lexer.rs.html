@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/lexer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/lexer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -871,873 +865,872 @@
 <span id="865">865</span>
 <span id="866">866</span>
 <span id="867">867</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Contains simple lexer for XML documents.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module is for internal use. Use `xml::pull` module to do parsing.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Contains simple lexer for XML documents.
+//!
+//! This module is for internal use. Use `xml::pull` module to do parsing.
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
-<span class="kw">use</span> <span class="ident">std::result</span>;
-<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>std::io::Read;
+<span class="kw">use </span>std::result;
+<span class="kw">use </span>std::borrow::Cow;
 
-<span class="kw">use</span> <span class="ident">common</span>::{<span class="ident">Position</span>, <span class="ident">TextPosition</span>, <span class="ident">is_whitespace_char</span>, <span class="ident">is_name_char</span>};
-<span class="kw">use</span> <span class="ident">reader::Error</span>;
-<span class="kw">use</span> <span class="ident">util</span>;
+<span class="kw">use </span>common::{Position, TextPosition, is_whitespace_char, is_name_char};
+<span class="kw">use </span>reader::Error;
+<span class="kw">use </span>util;
 
-<span class="doccomment">/// `Token` represents a single lexeme of an XML document. These lexemes</span>
-<span class="doccomment">/// are used to perform actual parsing.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Token</span> {
-    <span class="doccomment">/// `&lt;?`</span>
-    <span class="ident">ProcessingInstructionStart</span>,
-    <span class="doccomment">/// `?&gt;`</span>
-    <span class="ident">ProcessingInstructionEnd</span>,
-    <span class="doccomment">/// `&lt;!DOCTYPE</span>
-    <span class="ident">DoctypeStart</span>,
-    <span class="doccomment">/// `&lt;`</span>
-    <span class="ident">OpeningTagStart</span>,
-    <span class="doccomment">/// `&lt;/`</span>
-    <span class="ident">ClosingTagStart</span>,
-    <span class="doccomment">/// `&gt;`</span>
-    <span class="ident">TagEnd</span>,
-    <span class="doccomment">/// `/&gt;`</span>
-    <span class="ident">EmptyTagEnd</span>,
-    <span class="doccomment">/// `&lt;!--`</span>
-    <span class="ident">CommentStart</span>,
-    <span class="doccomment">/// `--&gt;`</span>
-    <span class="ident">CommentEnd</span>,
-    <span class="doccomment">/// A chunk of characters, used for errors recovery.</span>
-    <span class="ident">Chunk</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>),
-    <span class="doccomment">/// Any non-special character except whitespace.</span>
-    <span class="ident">Character</span>(<span class="ident">char</span>),
-    <span class="doccomment">/// Whitespace character.</span>
-    <span class="ident">Whitespace</span>(<span class="ident">char</span>),
-    <span class="doccomment">/// `=`</span>
-    <span class="ident">EqualsSign</span>,
-    <span class="doccomment">/// `&#39;`</span>
-    <span class="ident">SingleQuote</span>,
-    <span class="doccomment">/// `&quot;`</span>
-    <span class="ident">DoubleQuote</span>,
-    <span class="doccomment">/// `&lt;![CDATA[`</span>
-    <span class="ident">CDataStart</span>,
-    <span class="doccomment">/// `]]&gt;`</span>
-    <span class="ident">CDataEnd</span>,
-    <span class="doccomment">/// `&amp;`</span>
-    <span class="ident">ReferenceStart</span>,
-    <span class="doccomment">/// `;`</span>
-    <span class="ident">ReferenceEnd</span>,
+<span class="doccomment">/// `Token` represents a single lexeme of an XML document. These lexemes
+/// are used to perform actual parsing.
+</span><span class="attribute">#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+</span><span class="kw">pub enum </span>Token {
+    <span class="doccomment">/// `&lt;?`
+    </span>ProcessingInstructionStart,
+    <span class="doccomment">/// `?&gt;`
+    </span>ProcessingInstructionEnd,
+    <span class="doccomment">/// `&lt;!DOCTYPE
+    </span>DoctypeStart,
+    <span class="doccomment">/// `&lt;`
+    </span>OpeningTagStart,
+    <span class="doccomment">/// `&lt;/`
+    </span>ClosingTagStart,
+    <span class="doccomment">/// `&gt;`
+    </span>TagEnd,
+    <span class="doccomment">/// `/&gt;`
+    </span>EmptyTagEnd,
+    <span class="doccomment">/// `&lt;!--`
+    </span>CommentStart,
+    <span class="doccomment">/// `--&gt;`
+    </span>CommentEnd,
+    <span class="doccomment">/// A chunk of characters, used for errors recovery.
+    </span>Chunk(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    <span class="doccomment">/// Any non-special character except whitespace.
+    </span>Character(char),
+    <span class="doccomment">/// Whitespace character.
+    </span>Whitespace(char),
+    <span class="doccomment">/// `=`
+    </span>EqualsSign,
+    <span class="doccomment">/// `&#39;`
+    </span>SingleQuote,
+    <span class="doccomment">/// `&quot;`
+    </span>DoubleQuote,
+    <span class="doccomment">/// `&lt;![CDATA[`
+    </span>CDataStart,
+    <span class="doccomment">/// `]]&gt;`
+    </span>CDataEnd,
+    <span class="doccomment">/// `&amp;`
+    </span>ReferenceStart,
+    <span class="doccomment">/// `;`
+    </span>ReferenceEnd,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Token</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Token::Chunk</span>(<span class="ident">s</span>)                            =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">s</span>),
-            <span class="ident">Token::Character</span>(<span class="ident">c</span>) <span class="op">|</span> <span class="ident">Token::Whitespace</span>(<span class="ident">c</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
-            <span class="ident">other</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw">match</span> <span class="ident">other</span> {
-                <span class="ident">Token::OpeningTagStart</span>            =&gt; <span class="string">&quot;&lt;&quot;</span>,
-                <span class="ident">Token::ProcessingInstructionStart</span> =&gt; <span class="string">&quot;&lt;?&quot;</span>,
-                <span class="ident">Token::DoctypeStart</span>               =&gt; <span class="string">&quot;&lt;!DOCTYPE&quot;</span>,
-                <span class="ident">Token::ClosingTagStart</span>            =&gt; <span class="string">&quot;&lt;/&quot;</span>,
-                <span class="ident">Token::CommentStart</span>               =&gt; <span class="string">&quot;&lt;!--&quot;</span>,
-                <span class="ident">Token::CDataStart</span>                 =&gt; <span class="string">&quot;&lt;![CDATA[&quot;</span>,
-                <span class="ident">Token::TagEnd</span>                     =&gt; <span class="string">&quot;&gt;&quot;</span>,
-                <span class="ident">Token::EmptyTagEnd</span>                =&gt; <span class="string">&quot;/&gt;&quot;</span>,
-                <span class="ident">Token::ProcessingInstructionEnd</span>   =&gt; <span class="string">&quot;?&gt;&quot;</span>,
-                <span class="ident">Token::CommentEnd</span>                 =&gt; <span class="string">&quot;--&gt;&quot;</span>,
-                <span class="ident">Token::CDataEnd</span>                   =&gt; <span class="string">&quot;]]&gt;&quot;</span>,
-                <span class="ident">Token::ReferenceStart</span>             =&gt; <span class="string">&quot;&amp;&quot;</span>,
-                <span class="ident">Token::ReferenceEnd</span>               =&gt; <span class="string">&quot;;&quot;</span>,
-                <span class="ident">Token::EqualsSign</span>                 =&gt; <span class="string">&quot;=&quot;</span>,
-                <span class="ident">Token::SingleQuote</span>                =&gt; <span class="string">&quot;&#39;&quot;</span>,
-                <span class="ident">Token::DoubleQuote</span>                =&gt; <span class="string">&quot;\&quot;&quot;</span>,
-                <span class="kw">_</span>                          =&gt; <span class="macro">unreachable!</span>()
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Token {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Token::Chunk(s)                            =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, s),
+            Token::Character(c) | Token::Whitespace(c) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, c),
+            other =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="kw">match </span>other {
+                Token::OpeningTagStart            =&gt; <span class="string">&quot;&lt;&quot;</span>,
+                Token::ProcessingInstructionStart =&gt; <span class="string">&quot;&lt;?&quot;</span>,
+                Token::DoctypeStart               =&gt; <span class="string">&quot;&lt;!DOCTYPE&quot;</span>,
+                Token::ClosingTagStart            =&gt; <span class="string">&quot;&lt;/&quot;</span>,
+                Token::CommentStart               =&gt; <span class="string">&quot;&lt;!--&quot;</span>,
+                Token::CDataStart                 =&gt; <span class="string">&quot;&lt;![CDATA[&quot;</span>,
+                Token::TagEnd                     =&gt; <span class="string">&quot;&gt;&quot;</span>,
+                Token::EmptyTagEnd                =&gt; <span class="string">&quot;/&gt;&quot;</span>,
+                Token::ProcessingInstructionEnd   =&gt; <span class="string">&quot;?&gt;&quot;</span>,
+                Token::CommentEnd                 =&gt; <span class="string">&quot;--&gt;&quot;</span>,
+                Token::CDataEnd                   =&gt; <span class="string">&quot;]]&gt;&quot;</span>,
+                Token::ReferenceStart             =&gt; <span class="string">&quot;&amp;&quot;</span>,
+                Token::ReferenceEnd               =&gt; <span class="string">&quot;;&quot;</span>,
+                Token::EqualsSign                 =&gt; <span class="string">&quot;=&quot;</span>,
+                Token::SingleQuote                =&gt; <span class="string">&quot;&#39;&quot;</span>,
+                Token::DoubleQuote                =&gt; <span class="string">&quot;\&quot;&quot;</span>,
+                <span class="kw">_                          </span>=&gt; <span class="macro">unreachable!</span>()
             })
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Token</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_static_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Token::OpeningTagStart</span>            =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;&quot;</span>),
-            <span class="ident">Token::ProcessingInstructionStart</span> =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;?&quot;</span>),
-            <span class="ident">Token::DoctypeStart</span>               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;!DOCTYPE&quot;</span>),
-            <span class="ident">Token::ClosingTagStart</span>            =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;/&quot;</span>),
-            <span class="ident">Token::CommentStart</span>               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;!--&quot;</span>),
-            <span class="ident">Token::CDataStart</span>                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;![CDATA[&quot;</span>),
-            <span class="ident">Token::TagEnd</span>                     =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&gt;&quot;</span>),
-            <span class="ident">Token::EmptyTagEnd</span>                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;/&gt;&quot;</span>),
-            <span class="ident">Token::ProcessingInstructionEnd</span>   =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;?&gt;&quot;</span>),
-            <span class="ident">Token::CommentEnd</span>                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>),
-            <span class="ident">Token::CDataEnd</span>                   =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;]]&gt;&quot;</span>),
-            <span class="ident">Token::ReferenceStart</span>             =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&amp;&quot;</span>),
-            <span class="ident">Token::ReferenceEnd</span>               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;;&quot;</span>),
-            <span class="ident">Token::EqualsSign</span>                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;=&quot;</span>),
-            <span class="ident">Token::SingleQuote</span>                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&#39;&quot;</span>),
-            <span class="ident">Token::DoubleQuote</span>                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;\&quot;&quot;</span>),
-            <span class="ident">Token::Chunk</span>(<span class="ident">s</span>)                   =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>),
-            <span class="kw">_</span>                                 =&gt; <span class="prelude-val">None</span>
-        }
+<span class="kw">impl </span>Token {
+    <span class="kw">pub fn </span>as_static_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Token::OpeningTagStart            =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;&quot;</span>),
+            Token::ProcessingInstructionStart =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;?&quot;</span>),
+            Token::DoctypeStart               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;!DOCTYPE&quot;</span>),
+            Token::ClosingTagStart            =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;/&quot;</span>),
+            Token::CommentStart               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;!--&quot;</span>),
+            Token::CDataStart                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&lt;![CDATA[&quot;</span>),
+            Token::TagEnd                     =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&gt;&quot;</span>),
+            Token::EmptyTagEnd                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;/&gt;&quot;</span>),
+            Token::ProcessingInstructionEnd   =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;?&gt;&quot;</span>),
+            Token::CommentEnd                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;--&gt;&quot;</span>),
+            Token::CDataEnd                   =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;]]&gt;&quot;</span>),
+            Token::ReferenceStart             =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&amp;&quot;</span>),
+            Token::ReferenceEnd               =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;;&quot;</span>),
+            Token::EqualsSign                 =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;=&quot;</span>),
+            Token::SingleQuote                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;&#39;&quot;</span>),
+            Token::DoubleQuote                =&gt; <span class="prelude-val">Some</span>(<span class="string">&quot;\&quot;&quot;</span>),
+            Token::Chunk(s)                   =&gt; <span class="prelude-val">Some</span>(s),
+            <span class="kw">_                                 </span>=&gt; <span class="prelude-val">None
+        </span>}
     }
 
-    <span class="comment">// using String.push_str(token.to_string()) is simply way too slow</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">as_static_str</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; { <span class="ident">target</span>.<span class="ident">push_str</span>(<span class="ident">s</span>); }
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                    <span class="ident">Token::Character</span>(<span class="ident">c</span>) <span class="op">|</span> <span class="ident">Token::Whitespace</span>(<span class="ident">c</span>) =&gt; <span class="ident">target</span>.<span class="ident">push</span>(<span class="ident">c</span>),
-                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
+    <span class="comment">// using String.push_str(token.to_string()) is simply way too slow
+    </span><span class="kw">pub fn </span>push_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;mut </span>String) {
+        <span class="kw">match </span><span class="self">self</span>.as_static_str() {
+            <span class="prelude-val">Some</span>(s) =&gt; { target.push_str(s); }
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+                    Token::Character(c) | Token::Whitespace(c) =&gt; target.push(c),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>()
                 }
             }
         }
     }
 
-    <span class="doccomment">/// Returns `true` if this token contains data that can be interpreted</span>
-    <span class="doccomment">/// as a part of the text. Surprisingly, this also means &#39;&gt;&#39; and &#39;=&#39; and &#39;&quot;&#39; and &quot;&#39;&quot; and &#39;--&gt;&#39;.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_char_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Token::Chunk</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Token::Character</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Token::CommentEnd</span> <span class="op">|</span>
-            <span class="ident">Token::TagEnd</span> <span class="op">|</span> <span class="ident">Token::EqualsSign</span> <span class="op">|</span> <span class="ident">Token::DoubleQuote</span> <span class="op">|</span> <span class="ident">Token::SingleQuote</span> <span class="op">|</span> <span class="ident">Token::CDataEnd</span> <span class="op">|</span> 
-            <span class="ident">Token::ProcessingInstructionEnd</span> <span class="op">|</span> <span class="ident">Token::EmptyTagEnd</span> =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>
-        }
+    <span class="doccomment">/// Returns `true` if this token contains data that can be interpreted
+    /// as a part of the text. Surprisingly, this also means &#39;&gt;&#39; and &#39;=&#39; and &#39;&quot;&#39; and &quot;&#39;&quot; and &#39;--&gt;&#39;.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>contains_char_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Token::Whitespace(<span class="kw">_</span>) | Token::Chunk(<span class="kw">_</span>) | Token::Character(<span class="kw">_</span>) | Token::CommentEnd |
+            Token::TagEnd | Token::EqualsSign | Token::DoubleQuote | Token::SingleQuote | Token::CDataEnd | 
+            Token::ProcessingInstructionEnd | Token::EmptyTagEnd =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Returns `true` if this token corresponds to a white space character.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>
-        }
+    <span class="doccomment">/// Returns `true` if this token corresponds to a white space character.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>is_whitespace(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="doccomment">/// Triggered on &#39;&lt;&#39;</span>
-    <span class="ident">TagStarted</span>,
-    <span class="doccomment">/// Triggered on &#39;&lt;!&#39;</span>
-    <span class="ident">CommentOrCDataOrDoctypeStarted</span>,
-    <span class="doccomment">/// Triggered on &#39;&lt;!-&#39;</span>
-    <span class="ident">CommentStarted</span>,
-    <span class="doccomment">/// Triggered on &#39;&lt;!D&#39; up to &#39;&lt;!DOCTYPE&#39;</span>
-    <span class="ident">DoctypeStarted</span>(<span class="ident">DoctypeStartedSubstate</span>),
-    <span class="doccomment">/// Triggered after DoctypeStarted to handle sub elements</span>
-    <span class="ident">DoctypeFinishing</span>(<span class="ident">u8</span>),
-    <span class="doccomment">/// Triggered on &#39;&lt;![&#39; up to &#39;&lt;![CDATA&#39;</span>
-    <span class="ident">CDataStarted</span>(<span class="ident">CDataStartedSubstate</span>),
-    <span class="doccomment">/// Triggered on &#39;?&#39;</span>
-    <span class="ident">ProcessingInstructionClosing</span>,
-    <span class="doccomment">/// Triggered on &#39;/&#39;</span>
-    <span class="ident">EmptyTagClosing</span>,
-    <span class="doccomment">/// Triggered on &#39;-&#39; up to &#39;--&#39;</span>
-    <span class="ident">CommentClosing</span>(<span class="ident">ClosingSubstate</span>),
-    <span class="doccomment">/// Triggered on &#39;]&#39; up to &#39;]]&#39;</span>
-    <span class="ident">CDataClosing</span>(<span class="ident">ClosingSubstate</span>),
-    <span class="doccomment">/// Default state</span>
-    <span class="ident">Normal</span>
+<span class="kw">enum </span>State {
+    <span class="doccomment">/// Triggered on &#39;&lt;&#39;
+    </span>TagStarted,
+    <span class="doccomment">/// Triggered on &#39;&lt;!&#39;
+    </span>CommentOrCDataOrDoctypeStarted,
+    <span class="doccomment">/// Triggered on &#39;&lt;!-&#39;
+    </span>CommentStarted,
+    <span class="doccomment">/// Triggered on &#39;&lt;!D&#39; up to &#39;&lt;!DOCTYPE&#39;
+    </span>DoctypeStarted(DoctypeStartedSubstate),
+    <span class="doccomment">/// Triggered after DoctypeStarted to handle sub elements
+    </span>DoctypeFinishing(u8),
+    <span class="doccomment">/// Triggered on &#39;&lt;![&#39; up to &#39;&lt;![CDATA&#39;
+    </span>CDataStarted(CDataStartedSubstate),
+    <span class="doccomment">/// Triggered on &#39;?&#39;
+    </span>ProcessingInstructionClosing,
+    <span class="doccomment">/// Triggered on &#39;/&#39;
+    </span>EmptyTagClosing,
+    <span class="doccomment">/// Triggered on &#39;-&#39; up to &#39;--&#39;
+    </span>CommentClosing(ClosingSubstate),
+    <span class="doccomment">/// Triggered on &#39;]&#39; up to &#39;]]&#39;
+    </span>CDataClosing(ClosingSubstate),
+    <span class="doccomment">/// Default state
+    </span>Normal
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">ClosingSubstate</span> {
-    <span class="ident">First</span>, <span class="ident">Second</span>
+<span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">enum </span>ClosingSubstate {
+    First, Second
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">DoctypeStartedSubstate</span> {
-    <span class="ident">D</span>, <span class="ident">DO</span>, <span class="ident">DOC</span>, <span class="ident">DOCT</span>, <span class="ident">DOCTY</span>, <span class="ident">DOCTYP</span>
+<span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">enum </span>DoctypeStartedSubstate {
+    D, DO, DOC, DOCT, DOCTY, DOCTYP
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">enum</span> <span class="ident">CDataStartedSubstate</span> {
-    <span class="ident">E</span>, <span class="ident">C</span>, <span class="ident">CD</span>, <span class="ident">CDA</span>, <span class="ident">CDAT</span>, <span class="ident">CDATA</span>
+<span class="attribute">#[derive(Copy, Clone)]
+</span><span class="kw">enum </span>CDataStartedSubstate {
+    E, C, CD, CDA, CDAT, CDATA
 }
 
-<span class="doccomment">/// `Result` represents lexing result. It is either a token or an error message.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// `Result` represents lexing result. It is either a token or an error message.
+</span><span class="kw">pub type </span><span class="prelude-ty">Result </span>= result::Result&lt;<span class="prelude-ty">Option</span>&lt;Token&gt;, Error&gt;;
 
-<span class="doccomment">/// Helps to set up a dispatch table for lexing large unambigous tokens like</span>
-<span class="doccomment">/// `&lt;![CDATA[` or `&lt;!DOCTYPE `.</span>
-<span class="macro">macro_rules!</span> <span class="ident">dispatch_on_enum_state</span>(
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is</span>:<span class="ident">expr</span>,
-     $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">st</span>:<span class="ident">ident</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stc</span>:<span class="ident">expr</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">next_st</span>:<span class="ident">ident</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">chunk</span>:<span class="ident">expr</span>),<span class="op">+</span>;
-     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_st</span>:<span class="ident">ident</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_c</span>:<span class="ident">expr</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_chunk</span>:<span class="ident">expr</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; (
-        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span> {
+<span class="doccomment">/// Helps to set up a dispatch table for lexing large unambigous tokens like
+/// `&lt;![CDATA[` or `&lt;!DOCTYPE `.
+</span><span class="macro">macro_rules! </span>dispatch_on_enum_state(
+    (<span class="macro-nonterminal">$_self</span>:ident, <span class="macro-nonterminal">$s</span>:expr, <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$is</span>:expr,
+     $(<span class="macro-nonterminal">$st</span>:ident; <span class="macro-nonterminal">$stc</span>:expr ; <span class="macro-nonterminal">$next_st</span>:ident ; <span class="macro-nonterminal">$chunk</span>:expr),+;
+     <span class="macro-nonterminal">$end_st</span>:ident ; <span class="macro-nonterminal">$end_c</span>:expr ; <span class="macro-nonterminal">$end_chunk</span>:expr ; <span class="macro-nonterminal">$e</span>:expr) =&gt; (
+        <span class="kw">match </span><span class="macro-nonterminal">$s </span>{
             $(
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">st</span> =&gt; <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stc</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">move_to</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">is</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">next_st</span>)),
-                <span class="kw">_</span>  =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">handle_error</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">chunk</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>)
+            <span class="macro-nonterminal">$st </span>=&gt; <span class="kw">match </span><span class="macro-nonterminal">$c </span>{
+                <span class="macro-nonterminal">$stc </span>=&gt; <span class="macro-nonterminal">$_self</span>.move_to(<span class="macro-nonterminal">$is</span>(<span class="macro-nonterminal">$next_st</span>)),
+                <span class="kw">_  </span>=&gt; <span class="macro-nonterminal">$_self</span>.handle_error(<span class="macro-nonterminal">$chunk</span>, <span class="macro-nonterminal">$c</span>)
             },
-            )<span class="op">+</span>
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_st</span> =&gt; <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_c</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>,
-                <span class="kw">_</span>      =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">handle_error</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">end_chunk</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>)
+            )+
+            <span class="macro-nonterminal">$end_st </span>=&gt; <span class="kw">match </span><span class="macro-nonterminal">$c </span>{
+                <span class="macro-nonterminal">$end_c </span>=&gt; <span class="macro-nonterminal">$e</span>,
+                <span class="kw">_      </span>=&gt; <span class="macro-nonterminal">$_self</span>.handle_error(<span class="macro-nonterminal">$end_chunk</span>, <span class="macro-nonterminal">$c</span>)
             }
         }
     )
 );
 
-<span class="doccomment">/// `Lexer` is a lexer for XML documents, which implements pull API.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Main method is `next_token` which accepts an `std::io::Read` instance and</span>
-<span class="doccomment">/// tries to read the next lexeme from it.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When `skip_errors` flag is set, invalid lexemes will be returned as `Chunk`s.</span>
-<span class="doccomment">/// When it is not set, errors will be reported as `Err` objects with a string message.</span>
-<span class="doccomment">/// By default this flag is not set. Use `enable_errors` and `disable_errors` methods</span>
-<span class="doccomment">/// to toggle the behavior.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Lexer</span> {
-    <span class="ident">pos</span>: <span class="ident">TextPosition</span>,
-    <span class="ident">head_pos</span>: <span class="ident">TextPosition</span>,
-    <span class="ident">char_queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>,
-    <span class="ident">st</span>: <span class="ident">State</span>,
-    <span class="ident">skip_errors</span>: <span class="ident">bool</span>,
-    <span class="ident">inside_comment</span>: <span class="ident">bool</span>,
-    <span class="ident">inside_token</span>: <span class="ident">bool</span>,
-    <span class="ident">eof_handled</span>: <span class="ident">bool</span>
+<span class="doccomment">/// `Lexer` is a lexer for XML documents, which implements pull API.
+///
+/// Main method is `next_token` which accepts an `std::io::Read` instance and
+/// tries to read the next lexeme from it.
+///
+/// When `skip_errors` flag is set, invalid lexemes will be returned as `Chunk`s.
+/// When it is not set, errors will be reported as `Err` objects with a string message.
+/// By default this flag is not set. Use `enable_errors` and `disable_errors` methods
+/// to toggle the behavior.
+</span><span class="kw">pub struct </span>Lexer {
+    pos: TextPosition,
+    head_pos: TextPosition,
+    char_queue: VecDeque&lt;char&gt;,
+    st: State,
+    skip_errors: bool,
+    inside_comment: bool,
+    inside_token: bool,
+    eof_handled: bool
 }
 
-<span class="kw">impl</span> <span class="ident">Position</span> <span class="kw">for</span> <span class="ident">Lexer</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Returns the position of the last token produced by the lexer</span>
-    <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">TextPosition</span> { <span class="self">self</span>.<span class="ident">pos</span> }
+<span class="kw">impl </span>Position <span class="kw">for </span>Lexer {
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Returns the position of the last token produced by the lexer
+    </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TextPosition { <span class="self">self</span>.pos }
 }
 
-<span class="kw">impl</span> <span class="ident">Lexer</span> {
-    <span class="doccomment">/// Returns a new lexer with default state.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Lexer</span> {
-        <span class="ident">Lexer</span> {
-            <span class="ident">pos</span>: <span class="ident">TextPosition::new</span>(),
-            <span class="ident">head_pos</span>: <span class="ident">TextPosition::new</span>(),
-            <span class="ident">char_queue</span>: <span class="ident">VecDeque::with_capacity</span>(<span class="number">4</span>),  <span class="comment">// TODO: check size</span>
-            <span class="ident">st</span>: <span class="ident">State::Normal</span>,
-            <span class="ident">skip_errors</span>: <span class="bool-val">false</span>,
-            <span class="ident">inside_comment</span>: <span class="bool-val">false</span>,
-            <span class="ident">inside_token</span>: <span class="bool-val">false</span>,
-            <span class="ident">eof_handled</span>: <span class="bool-val">false</span>
-        }
+<span class="kw">impl </span>Lexer {
+    <span class="doccomment">/// Returns a new lexer with default state.
+    </span><span class="kw">pub fn </span>new() -&gt; Lexer {
+        Lexer {
+            pos: TextPosition::new(),
+            head_pos: TextPosition::new(),
+            char_queue: VecDeque::with_capacity(<span class="number">4</span>),  <span class="comment">// TODO: check size
+            </span>st: State::Normal,
+            skip_errors: <span class="bool-val">false</span>,
+            inside_comment: <span class="bool-val">false</span>,
+            inside_token: <span class="bool-val">false</span>,
+            eof_handled: <span class="bool-val">false
+        </span>}
     }
 
-    <span class="doccomment">/// Enables error handling so `next_token` will return `Some(Err(..))`</span>
-    <span class="doccomment">/// upon invalid lexeme.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enable_errors</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) { <span class="self">self</span>.<span class="ident">skip_errors</span> <span class="op">=</span> <span class="bool-val">false</span>; }
+    <span class="doccomment">/// Enables error handling so `next_token` will return `Some(Err(..))`
+    /// upon invalid lexeme.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>enable_errors(<span class="kw-2">&amp;mut </span><span class="self">self</span>) { <span class="self">self</span>.skip_errors = <span class="bool-val">false</span>; }
 
-    <span class="doccomment">/// Disables error handling so `next_token` will return `Some(Chunk(..))`</span>
-    <span class="doccomment">/// upon invalid lexeme with this lexeme content.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">disable_errors</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) { <span class="self">self</span>.<span class="ident">skip_errors</span> <span class="op">=</span> <span class="bool-val">true</span>; }
+    <span class="doccomment">/// Disables error handling so `next_token` will return `Some(Chunk(..))`
+    /// upon invalid lexeme with this lexeme content.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>disable_errors(<span class="kw-2">&amp;mut </span><span class="self">self</span>) { <span class="self">self</span>.skip_errors = <span class="bool-val">true</span>; }
 
-    <span class="doccomment">/// Enables special handling of some lexemes which should be done when we&#39;re parsing comment</span>
-    <span class="doccomment">/// internals.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inside_comment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) { <span class="self">self</span>.<span class="ident">inside_comment</span> <span class="op">=</span> <span class="bool-val">true</span>; }
+    <span class="doccomment">/// Enables special handling of some lexemes which should be done when we&#39;re parsing comment
+    /// internals.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>inside_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) { <span class="self">self</span>.inside_comment = <span class="bool-val">true</span>; }
 
-    <span class="doccomment">/// Disables the effect of `inside_comment()` method.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">outside_comment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) { <span class="self">self</span>.<span class="ident">inside_comment</span> <span class="op">=</span> <span class="bool-val">false</span>; }
+    <span class="doccomment">/// Disables the effect of `inside_comment()` method.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>outside_comment(<span class="kw-2">&amp;mut </span><span class="self">self</span>) { <span class="self">self</span>.inside_comment = <span class="bool-val">false</span>; }
 
-    <span class="doccomment">/// Reset the eof handled flag of the lexer.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_eof_handled</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) { <span class="self">self</span>.<span class="ident">eof_handled</span> <span class="op">=</span> <span class="bool-val">false</span>; }
+    <span class="doccomment">/// Reset the eof handled flag of the lexer.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>reset_eof_handled(<span class="kw-2">&amp;mut </span><span class="self">self</span>) { <span class="self">self</span>.eof_handled = <span class="bool-val">false</span>; }
 
-    <span class="doccomment">/// Tries to read the next token from the buffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is possible to pass different instaces of `BufReader` each time</span>
-    <span class="doccomment">/// this method is called, but the resulting behavior is undefined in this case.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Return value:</span>
-    <span class="doccomment">/// * `Err(reason) where reason: reader::Error` - when an error occurs;</span>
-    <span class="doccomment">/// * `Ok(None)` - upon end of stream is reached;</span>
-    <span class="doccomment">/// * `Ok(Some(token)) where token: Token` - in case a complete-token has been read from the stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next_token</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="kw-2">&amp;mut</span> <span class="ident">B</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="comment">// Already reached end of buffer</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">eof_handled</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    <span class="doccomment">/// Tries to read the next token from the buffer.
+    ///
+    /// It is possible to pass different instaces of `BufReader` each time
+    /// this method is called, but the resulting behavior is undefined in this case.
+    ///
+    /// Return value:
+    /// * `Err(reason) where reason: reader::Error` - when an error occurs;
+    /// * `Ok(None)` - upon end of stream is reached;
+    /// * `Ok(Some(token)) where token: Token` - in case a complete-token has been read from the stream.
+    </span><span class="kw">pub fn </span>next_token&lt;B: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="comment">// Already reached end of buffer
+        </span><span class="kw">if </span><span class="self">self</span>.eof_handled {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inside_token</span> {
-            <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head_pos</span>;
-            <span class="self">self</span>.<span class="ident">inside_token</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">if </span>!<span class="self">self</span>.inside_token {
+            <span class="self">self</span>.pos = <span class="self">self</span>.head_pos;
+            <span class="self">self</span>.inside_token = <span class="bool-val">true</span>;
         }
 
-        <span class="comment">// Check if we have saved a char or two for ourselves</span>
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">char_queue</span>.<span class="ident">pop_front</span>() {
-            <span class="kw">match</span> <span class="macro">try!</span>(<span class="self">self</span>.<span class="ident">read_next_token</span>(<span class="ident">c</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">inside_token</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>));
+        <span class="comment">// Check if we have saved a char or two for ourselves
+        </span><span class="kw">while let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.char_queue.pop_front() {
+            <span class="kw">match </span><span class="macro">try!</span>(<span class="self">self</span>.read_next_token(c)) {
+                <span class="prelude-val">Some</span>(t) =&gt; {
+                    <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
                 }
-                <span class="prelude-val">None</span> =&gt; {}  <span class="comment">// continue</span>
+                <span class="prelude-val">None </span>=&gt; {}  <span class="comment">// continue
+            </span>}
+        }
+
+        <span class="kw">loop </span>{
+            <span class="comment">// TODO: this should handle multiple encodings
+            </span><span class="kw">let </span>c = <span class="kw">match </span><span class="macro">try!</span>(util::next_char_from(b)) {
+                <span class="prelude-val">Some</span>(c) =&gt; c,   <span class="comment">// got next char
+                </span><span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,  <span class="comment">// nothing to read left
+            </span>};
+
+            <span class="kw">match </span><span class="macro">try!</span>(<span class="self">self</span>.read_next_token(c)) {
+                <span class="prelude-val">Some</span>(t) =&gt; {
+                    <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
+                }
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="comment">// continue
+                </span>}
             }
         }
 
-        <span class="kw">loop</span> {
-            <span class="comment">// TODO: this should handle multiple encodings</span>
-            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">try!</span>(<span class="ident">util::next_char_from</span>(<span class="ident">b</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>,   <span class="comment">// got next char</span>
-                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,  <span class="comment">// nothing to read left</span>
-            };
-
-            <span class="kw">match</span> <span class="macro">try!</span>(<span class="self">self</span>.<span class="ident">read_next_token</span>(<span class="ident">c</span>)) {
-                <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">inside_token</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">t</span>));
-                }
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="comment">// continue</span>
-                }
-            }
-        }
-
-        <span class="comment">// Handle end of stream</span>
-        <span class="self">self</span>.<span class="ident">eof_handled</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="self">self</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head_pos</span>;
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">st</span> {
-            <span class="ident">State::TagStarted</span> <span class="op">|</span> <span class="ident">State::CommentOrCDataOrDoctypeStarted</span> <span class="op">|</span>
-            <span class="ident">State::CommentStarted</span> <span class="op">|</span> <span class="ident">State::CDataStarted</span>(<span class="kw">_</span>)<span class="op">|</span> <span class="ident">State::DoctypeStarted</span>(<span class="kw">_</span>) <span class="op">|</span>
-            <span class="ident">State::CommentClosing</span>(<span class="ident">ClosingSubstate::Second</span>) <span class="op">|</span>
-            <span class="ident">State::DoctypeFinishing</span>(<span class="kw">_</span>) =&gt;
-                <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="string">&quot;Unexpected end of stream&quot;</span>)),
-            <span class="ident">State::ProcessingInstructionClosing</span> =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Character</span>(<span class="string">&#39;?&#39;</span>))),
-            <span class="ident">State::EmptyTagClosing</span> =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Character</span>(<span class="string">&#39;/&#39;</span>))),
-            <span class="ident">State::CommentClosing</span>(<span class="ident">ClosingSubstate::First</span>) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Character</span>(<span class="string">&#39;-&#39;</span>))),
-            <span class="ident">State::CDataClosing</span>(<span class="ident">ClosingSubstate::First</span>) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>))),
-            <span class="ident">State::CDataClosing</span>(<span class="ident">ClosingSubstate::Second</span>) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Chunk</span>(<span class="string">&quot;]]&quot;</span>))),
-            <span class="ident">State::Normal</span> =&gt;
+        <span class="comment">// Handle end of stream
+        </span><span class="self">self</span>.eof_handled = <span class="bool-val">true</span>;
+        <span class="self">self</span>.pos = <span class="self">self</span>.head_pos;
+        <span class="kw">match </span><span class="self">self</span>.st {
+            State::TagStarted | State::CommentOrCDataOrDoctypeStarted |
+            State::CommentStarted | State::CDataStarted(<span class="kw">_</span>)| State::DoctypeStarted(<span class="kw">_</span>) |
+            State::CommentClosing(ClosingSubstate::Second) |
+            State::DoctypeFinishing(<span class="kw">_</span>) =&gt;
+                <span class="prelude-val">Err</span>(<span class="self">self</span>.error(<span class="string">&quot;Unexpected end of stream&quot;</span>)),
+            State::ProcessingInstructionClosing =&gt;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">&#39;?&#39;</span>))),
+            State::EmptyTagClosing =&gt;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">&#39;/&#39;</span>))),
+            State::CommentClosing(ClosingSubstate::First) =&gt;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">&#39;-&#39;</span>))),
+            State::CDataClosing(ClosingSubstate::First) =&gt;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">&#39;]&#39;</span>))),
+            State::CDataClosing(ClosingSubstate::Second) =&gt;
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Chunk(<span class="string">&quot;]]&quot;</span>))),
+            State::Normal =&gt;
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">M</span>) -&gt; <span class="ident">Error</span> {
-        (<span class="self">self</span>, <span class="ident">msg</span>).<span class="ident">into</span>()
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>error&lt;M: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: M) -&gt; Error {
+        (<span class="self">self</span>, msg).into()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_next_token</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">dispatch_char</span>(<span class="ident">c</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">char_queue</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> {
-                <span class="self">self</span>.<span class="ident">head_pos</span>.<span class="ident">new_line</span>();
-            } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">head_pos</span>.<span class="ident">advance</span>(<span class="number">1</span>);
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>read_next_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">let </span>res = <span class="self">self</span>.dispatch_char(c);
+        <span class="kw">if </span><span class="self">self</span>.char_queue.is_empty() {
+            <span class="kw">if </span>c == <span class="string">&#39;\n&#39; </span>{
+                <span class="self">self</span>.head_pos.new_line();
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.head_pos.advance(<span class="number">1</span>);
             }
         }
-        <span class="ident">res</span>
+        res
     }
 
-    <span class="kw">fn</span> <span class="ident">dispatch_char</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">st</span> {
-            <span class="ident">State::Normal</span>                         =&gt; <span class="self">self</span>.<span class="ident">normal</span>(<span class="ident">c</span>),
-            <span class="ident">State::TagStarted</span>                     =&gt; <span class="self">self</span>.<span class="ident">tag_opened</span>(<span class="ident">c</span>),
-            <span class="ident">State::CommentOrCDataOrDoctypeStarted</span> =&gt; <span class="self">self</span>.<span class="ident">comment_or_cdata_or_doctype_started</span>(<span class="ident">c</span>),
-            <span class="ident">State::CommentStarted</span>                 =&gt; <span class="self">self</span>.<span class="ident">comment_started</span>(<span class="ident">c</span>),
-            <span class="ident">State::CDataStarted</span>(<span class="ident">s</span>)                =&gt; <span class="self">self</span>.<span class="ident">cdata_started</span>(<span class="ident">c</span>, <span class="ident">s</span>),
-            <span class="ident">State::DoctypeStarted</span>(<span class="ident">s</span>)              =&gt; <span class="self">self</span>.<span class="ident">doctype_started</span>(<span class="ident">c</span>, <span class="ident">s</span>),
-            <span class="ident">State::DoctypeFinishing</span>(<span class="ident">d</span>)            =&gt; <span class="self">self</span>.<span class="ident">doctype_finishing</span>(<span class="ident">c</span>, <span class="ident">d</span>),
-            <span class="ident">State::ProcessingInstructionClosing</span>   =&gt; <span class="self">self</span>.<span class="ident">processing_instruction_closing</span>(<span class="ident">c</span>),
-            <span class="ident">State::EmptyTagClosing</span>                =&gt; <span class="self">self</span>.<span class="ident">empty_element_closing</span>(<span class="ident">c</span>),
-            <span class="ident">State::CommentClosing</span>(<span class="ident">s</span>)              =&gt; <span class="self">self</span>.<span class="ident">comment_closing</span>(<span class="ident">c</span>, <span class="ident">s</span>),
-            <span class="ident">State::CDataClosing</span>(<span class="ident">s</span>)                =&gt; <span class="self">self</span>.<span class="ident">cdata_closing</span>(<span class="ident">c</span>, <span class="ident">s</span>)
+    <span class="kw">fn </span>dispatch_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span><span class="self">self</span>.st {
+            State::Normal                         =&gt; <span class="self">self</span>.normal(c),
+            State::TagStarted                     =&gt; <span class="self">self</span>.tag_opened(c),
+            State::CommentOrCDataOrDoctypeStarted =&gt; <span class="self">self</span>.comment_or_cdata_or_doctype_started(c),
+            State::CommentStarted                 =&gt; <span class="self">self</span>.comment_started(c),
+            State::CDataStarted(s)                =&gt; <span class="self">self</span>.cdata_started(c, s),
+            State::DoctypeStarted(s)              =&gt; <span class="self">self</span>.doctype_started(c, s),
+            State::DoctypeFinishing(d)            =&gt; <span class="self">self</span>.doctype_finishing(c, d),
+            State::ProcessingInstructionClosing   =&gt; <span class="self">self</span>.processing_instruction_closing(c),
+            State::EmptyTagClosing                =&gt; <span class="self">self</span>.empty_element_closing(c),
+            State::CommentClosing(s)              =&gt; <span class="self">self</span>.comment_closing(c, s),
+            State::CDataClosing(s)                =&gt; <span class="self">self</span>.cdata_closing(c, s)
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">move_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">st</span>: <span class="ident">State</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="self">self</span>.<span class="ident">st</span> <span class="op">=</span> <span class="ident">st</span>;
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>move_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="self">self</span>.st = st;
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">move_to_with</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">st</span>: <span class="ident">State</span>, <span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="self">self</span>.<span class="ident">st</span> <span class="op">=</span> <span class="ident">st</span>;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">token</span>))
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>move_to_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, token: Token) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="self">self</span>.st = st;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(token))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">move_to_with_unread</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">st</span>: <span class="ident">State</span>, <span class="ident">cs</span>: <span class="kw-2">&amp;</span>[<span class="ident">char</span>], <span class="ident">token</span>: <span class="ident">Token</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="self">self</span>.<span class="ident">char_queue</span>.<span class="ident">extend</span>(<span class="ident">cs</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">st</span>, <span class="ident">token</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>move_to_with_unread(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, cs: <span class="kw-2">&amp;</span>[char], token: Token) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="self">self</span>.char_queue.extend(cs.iter().cloned());
+        <span class="self">self</span>.move_to_with(st, token)
     }
 
-    <span class="kw">fn</span> <span class="ident">handle_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="self">self</span>.<span class="ident">char_queue</span>.<span class="ident">push_back</span>(<span class="ident">c</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">skip_errors</span> <span class="op">|</span><span class="op">|</span> (<span class="self">self</span>.<span class="ident">inside_comment</span> <span class="op">&amp;&amp;</span> <span class="ident">chunk</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;--&quot;</span>) {  <span class="comment">// FIXME: looks hacky</span>
-            <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::Chunk</span>(<span class="ident">chunk</span>))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="macro">format!</span>(<span class="string">&quot;Unexpected token &#39;{}&#39; before &#39;{}&#39;&quot;</span>, <span class="ident">chunk</span>, <span class="ident">c</span>)))
+    <span class="kw">fn </span>handle_error(<span class="kw-2">&amp;mut </span><span class="self">self</span>, chunk: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="self">self</span>.char_queue.push_back(c);
+        <span class="kw">if </span><span class="self">self</span>.skip_errors || (<span class="self">self</span>.inside_comment &amp;&amp; chunk != <span class="string">&quot;--&quot;</span>) {  <span class="comment">// FIXME: looks hacky
+            </span><span class="self">self</span>.move_to_with(State::Normal, Token::Chunk(chunk))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(<span class="self">self</span>.error(<span class="macro">format!</span>(<span class="string">&quot;Unexpected token &#39;{}&#39; before &#39;{}&#39;&quot;</span>, chunk, c)))
         }
     }
 
-    <span class="doccomment">/// Encountered a char</span>
-    <span class="kw">fn</span> <span class="ident">normal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;&lt;&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::TagStarted</span>),
-            <span class="string">&#39;&gt;&#39;</span>                        =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::TagEnd</span>)),
-            <span class="string">&#39;/&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::EmptyTagClosing</span>),
-            <span class="string">&#39;=&#39;</span>                        =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::EqualsSign</span>)),
-            <span class="string">&#39;&quot;&#39;</span>                        =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::DoubleQuote</span>)),
-            <span class="string">&#39;\&#39;&#39;</span>                       =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::SingleQuote</span>)),
-            <span class="string">&#39;?&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::ProcessingInstructionClosing</span>),
-            <span class="string">&#39;-&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CommentClosing</span>(<span class="ident">ClosingSubstate::First</span>)),
-            <span class="string">&#39;]&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CDataClosing</span>(<span class="ident">ClosingSubstate::First</span>)),
-            <span class="string">&#39;&amp;&#39;</span>                        =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::ReferenceStart</span>)),
-            <span class="string">&#39;;&#39;</span>                        =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::ReferenceEnd</span>)),
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">is_whitespace_char</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Whitespace</span>(<span class="ident">c</span>))),
-            <span class="kw">_</span>                          =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Token::Character</span>(<span class="ident">c</span>)))
+    <span class="doccomment">/// Encountered a char
+    </span><span class="kw">fn </span>normal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;&lt;&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::TagStarted),
+            <span class="string">&#39;&gt;&#39;                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::TagEnd)),
+            <span class="string">&#39;/&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::EmptyTagClosing),
+            <span class="string">&#39;=&#39;                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::EqualsSign)),
+            <span class="string">&#39;&quot;&#39;                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::DoubleQuote)),
+            <span class="string">&#39;\&#39;&#39;                       </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::SingleQuote)),
+            <span class="string">&#39;?&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::ProcessingInstructionClosing),
+            <span class="string">&#39;-&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::CommentClosing(ClosingSubstate::First)),
+            <span class="string">&#39;]&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::CDataClosing(ClosingSubstate::First)),
+            <span class="string">&#39;&amp;&#39;                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceStart)),
+            <span class="string">&#39;;&#39;                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceEnd)),
+            <span class="kw">_ if </span>is_whitespace_char(c) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Whitespace(c))),
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c)))
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;&lt;&#39;</span>
-    <span class="kw">fn</span> <span class="ident">tag_opened</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;?&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::ProcessingInstructionStart</span>),
-            <span class="string">&#39;/&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::ClosingTagStart</span>),
-            <span class="string">&#39;!&#39;</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CommentOrCDataOrDoctypeStarted</span>),
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">is_whitespace_char</span>(<span class="ident">c</span>) =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::OpeningTagStart</span>),
-            <span class="kw">_</span> <span class="kw">if</span> <span class="ident">is_name_char</span>(<span class="ident">c</span>)       =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::OpeningTagStart</span>),
-            <span class="kw">_</span>                          =&gt; <span class="self">self</span>.<span class="ident">handle_error</span>(<span class="string">&quot;&lt;&quot;</span>, <span class="ident">c</span>)
+    <span class="doccomment">/// Encountered &#39;&lt;&#39;
+    </span><span class="kw">fn </span>tag_opened(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;?&#39;                        </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::ProcessingInstructionStart),
+            <span class="string">&#39;/&#39;                        </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::ClosingTagStart),
+            <span class="string">&#39;!&#39;                        </span>=&gt; <span class="self">self</span>.move_to(State::CommentOrCDataOrDoctypeStarted),
+            <span class="kw">_ if </span>is_whitespace_char(c) =&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart),
+            <span class="kw">_ if </span>is_name_char(c)       =&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart),
+            <span class="kw">_                          </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">&quot;&lt;&quot;</span>, c)
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;&lt;!&#39;</span>
-    <span class="kw">fn</span> <span class="ident">comment_or_cdata_or_doctype_started</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;-&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CommentStarted</span>),
-            <span class="string">&#39;[&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CDataStarted</span>(<span class="ident">CDataStartedSubstate::E</span>)),
-            <span class="string">&#39;D&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::DoctypeStarted</span>(<span class="ident">DoctypeStartedSubstate::D</span>)),
-            <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">handle_error</span>(<span class="string">&quot;&lt;!&quot;</span>, <span class="ident">c</span>)
+    <span class="doccomment">/// Encountered &#39;&lt;!&#39;
+    </span><span class="kw">fn </span>comment_or_cdata_or_doctype_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;-&#39; </span>=&gt; <span class="self">self</span>.move_to(State::CommentStarted),
+            <span class="string">&#39;[&#39; </span>=&gt; <span class="self">self</span>.move_to(State::CDataStarted(CDataStartedSubstate::E)),
+            <span class="string">&#39;D&#39; </span>=&gt; <span class="self">self</span>.move_to(State::DoctypeStarted(DoctypeStartedSubstate::D)),
+            <span class="kw">_   </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">&quot;&lt;!&quot;</span>, c)
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;&lt;!-&#39;</span>
-    <span class="kw">fn</span> <span class="ident">comment_started</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;-&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::CommentStart</span>),
-            <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">handle_error</span>(<span class="string">&quot;&lt;!-&quot;</span>, <span class="ident">c</span>)
+    <span class="doccomment">/// Encountered &#39;&lt;!-&#39;
+    </span><span class="kw">fn </span>comment_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;-&#39; </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::CommentStart),
+            <span class="kw">_   </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">&quot;&lt;!-&quot;</span>, c)
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;&lt;![&#39;</span>
-    <span class="kw">fn</span> <span class="ident">cdata_started</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">s</span>: <span class="ident">CDataStartedSubstate</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::CDataStartedSubstate</span>::{<span class="ident">E</span>, <span class="ident">C</span>, <span class="ident">CD</span>, <span class="ident">CDA</span>, <span class="ident">CDAT</span>, <span class="ident">CDATA</span>};
-        <span class="macro">dispatch_on_enum_state!</span>(<span class="self">self</span>, <span class="ident">s</span>, <span class="ident">c</span>, <span class="ident">State::CDataStarted</span>,
-            <span class="ident">E</span>     ; <span class="string">&#39;C&#39;</span> ; <span class="ident">C</span>     ; <span class="string">&quot;&lt;![&quot;</span>,
-            <span class="ident">C</span>     ; <span class="string">&#39;D&#39;</span> ; <span class="ident">CD</span>    ; <span class="string">&quot;&lt;![C&quot;</span>,
-            <span class="ident">CD</span>    ; <span class="string">&#39;A&#39;</span> ; <span class="ident">CDA</span>   ; <span class="string">&quot;&lt;![CD&quot;</span>,
-            <span class="ident">CDA</span>   ; <span class="string">&#39;T&#39;</span> ; <span class="ident">CDAT</span>  ; <span class="string">&quot;&lt;![CDA&quot;</span>,
-            <span class="ident">CDAT</span>  ; <span class="string">&#39;A&#39;</span> ; <span class="ident">CDATA</span> ; <span class="string">&quot;&lt;![CDAT&quot;</span>;
-            <span class="ident">CDATA</span> ; <span class="string">&#39;[&#39;</span> ; <span class="string">&quot;&lt;![CDATA&quot;</span> ; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::CDataStart</span>)
+    <span class="doccomment">/// Encountered &#39;&lt;![&#39;
+    </span><span class="kw">fn </span>cdata_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: CDataStartedSubstate) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">use </span><span class="self">self</span>::CDataStartedSubstate::{E, C, CD, CDA, CDAT, CDATA};
+        <span class="macro">dispatch_on_enum_state!</span>(<span class="self">self</span>, s, c, State::CDataStarted,
+            E     ; <span class="string">&#39;C&#39; </span>; C     ; <span class="string">&quot;&lt;![&quot;</span>,
+            C     ; <span class="string">&#39;D&#39; </span>; CD    ; <span class="string">&quot;&lt;![C&quot;</span>,
+            CD    ; <span class="string">&#39;A&#39; </span>; CDA   ; <span class="string">&quot;&lt;![CD&quot;</span>,
+            CDA   ; <span class="string">&#39;T&#39; </span>; CDAT  ; <span class="string">&quot;&lt;![CDA&quot;</span>,
+            CDAT  ; <span class="string">&#39;A&#39; </span>; CDATA ; <span class="string">&quot;&lt;![CDAT&quot;</span>;
+            CDATA ; <span class="string">&#39;[&#39; </span>; <span class="string">&quot;&lt;![CDATA&quot; </span>; <span class="self">self</span>.move_to_with(State::Normal, Token::CDataStart)
         )
     }
 
-    <span class="doccomment">/// Encountered &#39;&lt;!D&#39;</span>
-    <span class="kw">fn</span> <span class="ident">doctype_started</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">s</span>: <span class="ident">DoctypeStartedSubstate</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">use</span> <span class="ident"><span class="self">self</span>::DoctypeStartedSubstate</span>::{<span class="ident">D</span>, <span class="ident">DO</span>, <span class="ident">DOC</span>, <span class="ident">DOCT</span>, <span class="ident">DOCTY</span>, <span class="ident">DOCTYP</span>};
-        <span class="macro">dispatch_on_enum_state!</span>(<span class="self">self</span>, <span class="ident">s</span>, <span class="ident">c</span>, <span class="ident">State::DoctypeStarted</span>,
-            <span class="ident">D</span>      ; <span class="string">&#39;O&#39;</span> ; <span class="ident">DO</span>     ; <span class="string">&quot;&lt;!D&quot;</span>,
-            <span class="ident">DO</span>     ; <span class="string">&#39;C&#39;</span> ; <span class="ident">DOC</span>    ; <span class="string">&quot;&lt;!DO&quot;</span>,
-            <span class="ident">DOC</span>    ; <span class="string">&#39;T&#39;</span> ; <span class="ident">DOCT</span>   ; <span class="string">&quot;&lt;!DOC&quot;</span>,
-            <span class="ident">DOCT</span>   ; <span class="string">&#39;Y&#39;</span> ; <span class="ident">DOCTY</span>  ; <span class="string">&quot;&lt;!DOCT&quot;</span>,
-            <span class="ident">DOCTY</span>  ; <span class="string">&#39;P&#39;</span> ; <span class="ident">DOCTYP</span> ; <span class="string">&quot;&lt;!DOCTY&quot;</span>;
-            <span class="ident">DOCTYP</span> ; <span class="string">&#39;E&#39;</span> ; <span class="string">&quot;&lt;!DOCTYP&quot;</span> ; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::DoctypeFinishing</span>(<span class="number">1</span>), <span class="ident">Token::DoctypeStart</span>)
+    <span class="doccomment">/// Encountered &#39;&lt;!D&#39;
+    </span><span class="kw">fn </span>doctype_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: DoctypeStartedSubstate) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">use </span><span class="self">self</span>::DoctypeStartedSubstate::{D, DO, DOC, DOCT, DOCTY, DOCTYP};
+        <span class="macro">dispatch_on_enum_state!</span>(<span class="self">self</span>, s, c, State::DoctypeStarted,
+            D      ; <span class="string">&#39;O&#39; </span>; DO     ; <span class="string">&quot;&lt;!D&quot;</span>,
+            DO     ; <span class="string">&#39;C&#39; </span>; DOC    ; <span class="string">&quot;&lt;!DO&quot;</span>,
+            DOC    ; <span class="string">&#39;T&#39; </span>; DOCT   ; <span class="string">&quot;&lt;!DOC&quot;</span>,
+            DOCT   ; <span class="string">&#39;Y&#39; </span>; DOCTY  ; <span class="string">&quot;&lt;!DOCT&quot;</span>,
+            DOCTY  ; <span class="string">&#39;P&#39; </span>; DOCTYP ; <span class="string">&quot;&lt;!DOCTY&quot;</span>;
+            DOCTYP ; <span class="string">&#39;E&#39; </span>; <span class="string">&quot;&lt;!DOCTYP&quot; </span>; <span class="self">self</span>.move_to_with(State::DoctypeFinishing(<span class="number">1</span>), Token::DoctypeStart)
         )
     }
 
-    <span class="doccomment">/// State used while awaiting the closing bracket for the &lt;!DOCTYPE tag</span>
-    <span class="kw">fn</span> <span class="ident">doctype_finishing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">d</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;&lt;&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::DoctypeFinishing</span>(<span class="ident">d</span> <span class="op">+</span> <span class="number">1</span>)),
-            <span class="string">&#39;&gt;&#39;</span> <span class="kw">if</span> <span class="ident">d</span> <span class="op">==</span> <span class="number">1</span> =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::TagEnd</span>),
-            <span class="string">&#39;&gt;&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::DoctypeFinishing</span>(<span class="ident">d</span> <span class="op">-</span> <span class="number">1</span>)),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+    <span class="doccomment">/// State used while awaiting the closing bracket for the &lt;!DOCTYPE tag
+    </span><span class="kw">fn </span>doctype_finishing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, d: u8) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;&lt;&#39; </span>=&gt; <span class="self">self</span>.move_to(State::DoctypeFinishing(d + <span class="number">1</span>)),
+            <span class="string">&#39;&gt;&#39; </span><span class="kw">if </span>d == <span class="number">1 </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::TagEnd),
+            <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="self">self</span>.move_to(State::DoctypeFinishing(d - <span class="number">1</span>)),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;?&#39;</span>
-    <span class="kw">fn</span> <span class="ident">processing_instruction_closing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;&gt;&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::ProcessingInstructionEnd</span>),
-            <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::Character</span>(<span class="string">&#39;?&#39;</span>)),
+    <span class="doccomment">/// Encountered &#39;?&#39;
+    </span><span class="kw">fn </span>processing_instruction_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::ProcessingInstructionEnd),
+            <span class="kw">_   </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">&#39;?&#39;</span>)),
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;/&#39;</span>
-    <span class="kw">fn</span> <span class="ident">empty_element_closing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">&#39;&gt;&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::EmptyTagEnd</span>),
-            <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::Character</span>(<span class="string">&#39;/&#39;</span>)),
+    <span class="doccomment">/// Encountered &#39;/&#39;
+    </span><span class="kw">fn </span>empty_element_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>c {
+            <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::EmptyTagEnd),
+            <span class="kw">_   </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">&#39;/&#39;</span>)),
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;-&#39;</span>
-    <span class="kw">fn</span> <span class="ident">comment_closing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">s</span>: <span class="ident">ClosingSubstate</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="ident">ClosingSubstate::First</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;-&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CommentClosing</span>(<span class="ident">ClosingSubstate::Second</span>)),
-                <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::Character</span>(<span class="string">&#39;-&#39;</span>))
+    <span class="doccomment">/// Encountered &#39;-&#39;
+    </span><span class="kw">fn </span>comment_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>s {
+            ClosingSubstate::First =&gt; <span class="kw">match </span>c {
+                <span class="string">&#39;-&#39; </span>=&gt; <span class="self">self</span>.move_to(State::CommentClosing(ClosingSubstate::Second)),
+                <span class="kw">_   </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">&#39;-&#39;</span>))
             },
-            <span class="ident">ClosingSubstate::Second</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;&gt;&#39;</span>                      =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::CommentEnd</span>),
-                <span class="comment">// double dash not followed by a greater-than is a hard error inside comment</span>
-                <span class="kw">_</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inside_comment</span> =&gt; <span class="self">self</span>.<span class="ident">handle_error</span>(<span class="string">&quot;--&quot;</span>, <span class="ident">c</span>),
-                <span class="comment">// nothing else except comment closing starts with a double dash, and comment</span>
-                <span class="comment">// closing can never be after another dash, and also we&#39;re outside of a comment,</span>
-                <span class="comment">// therefore it is safe to push only the last read character to the list of unread</span>
-                <span class="comment">// characters and pass the double dash directly to the output</span>
-                <span class="kw">_</span>                        =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::Chunk</span>(<span class="string">&quot;--&quot;</span>))
+            ClosingSubstate::Second =&gt; <span class="kw">match </span>c {
+                <span class="string">&#39;&gt;&#39;                      </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::CommentEnd),
+                <span class="comment">// double dash not followed by a greater-than is a hard error inside comment
+                </span><span class="kw">_ if </span><span class="self">self</span>.inside_comment =&gt; <span class="self">self</span>.handle_error(<span class="string">&quot;--&quot;</span>, c),
+                <span class="comment">// nothing else except comment closing starts with a double dash, and comment
+                // closing can never be after another dash, and also we&#39;re outside of a comment,
+                // therefore it is safe to push only the last read character to the list of unread
+                // characters and pass the double dash directly to the output
+                </span><span class="kw">_                        </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Chunk(<span class="string">&quot;--&quot;</span>))
             }
         }
     }
 
-    <span class="doccomment">/// Encountered &#39;]&#39;</span>
-    <span class="kw">fn</span> <span class="ident">cdata_closing</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">s</span>: <span class="ident">ClosingSubstate</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="ident">ClosingSubstate::First</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;]&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">State::CDataClosing</span>(<span class="ident">ClosingSubstate::Second</span>)),
-                <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="ident">c</span>], <span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>))
+    <span class="doccomment">/// Encountered &#39;]&#39;
+    </span><span class="kw">fn </span>cdata_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Result </span>{
+        <span class="kw">match </span>s {
+            ClosingSubstate::First =&gt; <span class="kw">match </span>c {
+                <span class="string">&#39;]&#39; </span>=&gt; <span class="self">self</span>.move_to(State::CDataClosing(ClosingSubstate::Second)),
+                <span class="kw">_   </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">&#39;]&#39;</span>))
             },
-            <span class="ident">ClosingSubstate::Second</span> =&gt; <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;&gt;&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">move_to_with</span>(<span class="ident">State::Normal</span>, <span class="ident">Token::CDataEnd</span>),
-                <span class="kw">_</span>   =&gt; <span class="self">self</span>.<span class="ident">move_to_with_unread</span>(<span class="ident">State::Normal</span>, <span class="kw-2">&amp;</span>[<span class="string">&#39;]&#39;</span>, <span class="ident">c</span>], <span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>))
+            ClosingSubstate::Second =&gt; <span class="kw">match </span>c {
+                <span class="string">&#39;&gt;&#39; </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::CDataEnd),
+                <span class="kw">_   </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[<span class="string">&#39;]&#39;</span>, c], Token::Character(<span class="string">&#39;]&#39;</span>))
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">common</span>::{<span class="ident">Position</span>};
-    <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">BufReader</span>, <span class="ident">Cursor</span>};
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>common::{Position};
+    <span class="kw">use </span>std::io::{BufReader, Cursor};
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Lexer</span>, <span class="ident">Token</span>};
+    <span class="kw">use super</span>::{Lexer, Token};
 
-    <span class="macro">macro_rules!</span> <span class="ident">assert_oks</span>(
-        (<span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>:<span class="ident">ident</span> <span class="ident">and</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>:<span class="ident">ident</span> ; $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>)<span class="op">+</span>) =&gt; ({
+    <span class="macro">macro_rules! </span>assert_oks(
+        (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident ; $(<span class="macro-nonterminal">$e</span>:expr)+) =&gt; ({
             $(
-                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>)), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>.<span class="ident">next_token</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>));
-             )<span class="op">+</span>
+                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$e</span>)), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>));
+             )+
         })
     );
 
-    <span class="macro">macro_rules!</span> <span class="ident">assert_err</span>(
-        (<span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>:<span class="ident">ident</span> <span class="ident">and</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>:<span class="ident">ident</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) =&gt; ({
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>.<span class="ident">next_token</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>);
-            <span class="macro">assert!</span>(<span class="ident">err</span>.<span class="ident">is_err</span>());
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">unwrap_err</span>();
-            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">err</span>.<span class="ident">position</span>().<span class="ident">row</span>);
-            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">err</span>.<span class="ident">position</span>().<span class="ident">column</span>);
-            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>, <span class="ident">err</span>.<span class="ident">msg</span>());
+    <span class="macro">macro_rules! </span>assert_err(
+        (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident expect row <span class="macro-nonterminal">$r</span>:expr ; <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$s</span>:expr) =&gt; ({
+            <span class="kw">let </span>err = <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>);
+            <span class="macro">assert!</span>(err.is_err());
+            <span class="kw">let </span>err = err.unwrap_err();
+            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$r </span><span class="kw">as </span>u64, err.position().row);
+            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$c </span><span class="kw">as </span>u64, err.position().column);
+            <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$s</span>, err.msg());
         })
     );
 
-    <span class="macro">macro_rules!</span> <span class="ident">assert_none</span>(
-        (<span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>:<span class="ident">ident</span> <span class="ident">and</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>:<span class="ident">ident</span>) =&gt; (
-            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lex</span>.<span class="ident">next_token</span>(<span class="kw-2">&amp;mut</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buf</span>));
+    <span class="macro">macro_rules! </span>assert_none(
+        (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident) =&gt; (
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>));
         )
     );
 
-    <span class="kw">fn</span> <span class="ident">make_lex_and_buf</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; (<span class="ident">Lexer</span>, <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
-        (<span class="ident">Lexer::new</span>(), <span class="ident">BufReader::new</span>(<span class="ident">Cursor::new</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>().<span class="ident">into_bytes</span>())))
+    <span class="kw">fn </span>make_lex_and_buf(s: <span class="kw-2">&amp;</span>str) -&gt; (Lexer, BufReader&lt;Cursor&lt;Vec&lt;u8&gt;&gt;&gt;) {
+        (Lexer::new(), BufReader::new(Cursor::new(s.to_owned().into_bytes())))
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">simple_lexer_test</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;&lt;a p=&#39;q&#39;&gt; x&lt;b z=&quot;y&quot;&gt;d	&lt;/b&gt;&lt;/a&gt;&lt;p/&gt; &lt;?nm ?&gt; &lt;!-- a c --&gt; &amp;nbsp;&quot;#</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>simple_lexer_test() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;&lt;a p=&#39;q&#39;&gt; x&lt;b z=&quot;y&quot;&gt;d	&lt;/b&gt;&lt;/a&gt;&lt;p/&gt; &lt;?nm ?&gt; &lt;!-- a c --&gt; &amp;nbsp;&quot;#
+        </span>);
 
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;p&#39;</span>)
-            <span class="ident">Token::EqualsSign</span>
-            <span class="ident">Token::SingleQuote</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;q&#39;</span>)
-            <span class="ident">Token::SingleQuote</span>
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;x&#39;</span>)
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;b&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;z&#39;</span>)
-            <span class="ident">Token::EqualsSign</span>
-            <span class="ident">Token::DoubleQuote</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;y&#39;</span>)
-            <span class="ident">Token::DoubleQuote</span>
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;d&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39;\t&#39;</span>)
-            <span class="ident">Token::ClosingTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;b&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::ClosingTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;p&#39;</span>)
-            <span class="ident">Token::EmptyTagEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::ProcessingInstructionStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;n&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;m&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::ProcessingInstructionEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::CommentStart</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;c&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::CommentEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::ReferenceStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;n&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;b&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;s&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;p&#39;</span>)
-            <span class="ident">Token::ReferenceEnd</span>
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;p&#39;</span>)
+            Token::EqualsSign
+            Token::SingleQuote
+            Token::Character(<span class="string">&#39;q&#39;</span>)
+            Token::SingleQuote
+            Token::TagEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;x&#39;</span>)
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;b&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;z&#39;</span>)
+            Token::EqualsSign
+            Token::DoubleQuote
+            Token::Character(<span class="string">&#39;y&#39;</span>)
+            Token::DoubleQuote
+            Token::TagEnd
+            Token::Character(<span class="string">&#39;d&#39;</span>)
+            Token::Whitespace(<span class="string">&#39;\t&#39;</span>)
+            Token::ClosingTagStart
+            Token::Character(<span class="string">&#39;b&#39;</span>)
+            Token::TagEnd
+            Token::ClosingTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::TagEnd
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;p&#39;</span>)
+            Token::EmptyTagEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::ProcessingInstructionStart
+            Token::Character(<span class="string">&#39;n&#39;</span>)
+            Token::Character(<span class="string">&#39;m&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::ProcessingInstructionEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::CommentStart
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;c&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::CommentEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::ReferenceStart
+            Token::Character(<span class="string">&#39;n&#39;</span>)
+            Token::Character(<span class="string">&#39;b&#39;</span>)
+            Token::Character(<span class="string">&#39;s&#39;</span>)
+            Token::Character(<span class="string">&#39;p&#39;</span>)
+            Token::ReferenceEnd
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">special_chars_test</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;?x!+ // -| ]z]]&quot;#</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>special_chars_test() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;?x!+ // -| ]z]]&quot;#
+        </span>);
 
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::Character</span>(<span class="string">&#39;?&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;x&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;!&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;+&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;/&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;/&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;-&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;|&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;z&#39;</span>)
-            <span class="ident">Token::Chunk</span>(<span class="string">&quot;]]&quot;</span>)
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::Character(<span class="string">&#39;?&#39;</span>)
+            Token::Character(<span class="string">&#39;x&#39;</span>)
+            Token::Character(<span class="string">&#39;!&#39;</span>)
+            Token::Character(<span class="string">&#39;+&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;/&#39;</span>)
+            Token::Character(<span class="string">&#39;/&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;-&#39;</span>)
+            Token::Character(<span class="string">&#39;|&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;]&#39;</span>)
+            Token::Character(<span class="string">&#39;z&#39;</span>)
+            Token::Chunk(<span class="string">&quot;]]&quot;</span>)
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cdata_test</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;&lt;a&gt;&lt;![CDATA[x y ?]]&gt; &lt;/a&gt;&quot;#</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>cdata_test() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;&lt;a&gt;&lt;![CDATA[x y ?]]&gt; &lt;/a&gt;&quot;#
+        </span>);
 
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::CDataStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;x&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;y&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;?&#39;</span>)
-            <span class="ident">Token::CDataEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::ClosingTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::TagEnd
+            Token::CDataStart
+            Token::Character(<span class="string">&#39;x&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;y&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;?&#39;</span>)
+            Token::CDataEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::ClosingTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::TagEnd
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">doctype_test</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;&lt;a&gt;&lt;!DOCTYPE ab xx z&gt; &quot;#</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>doctype_test() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;&lt;a&gt;&lt;!DOCTYPE ab xx z&gt; &quot;#
+        </span>);
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::TagEnd
+            Token::DoctypeStart
+            Token::TagEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
         );
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::DoctypeStart</span>
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-        );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>)
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf)
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">doctype_with_internal_subset_test</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;&lt;a&gt;&lt;!DOCTYPE ab[&lt;!ELEMENT ba&gt; ]&gt; &quot;#</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>doctype_with_internal_subset_test() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;&lt;a&gt;&lt;!DOCTYPE ab[&lt;!ELEMENT ba&gt; ]&gt; &quot;#
+        </span>);
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::OpeningTagStart
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::TagEnd
+            Token::DoctypeStart
+            Token::TagEnd
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
         );
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::OpeningTagStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::DoctypeStart</span>
-            <span class="ident">Token::TagEnd</span>
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-        );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>)
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf)
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">end_of_stream_handling_ok</span>() {
-        <span class="macro">macro_rules!</span> <span class="ident">eof_check</span>(
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>:<span class="ident">expr</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>:<span class="ident">expr</span>) =&gt; ({
-                <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>);
-                <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">token</span>);
-                <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>end_of_stream_handling_ok() {
+        <span class="macro">macro_rules! </span>eof_check(
+            (<span class="macro-nonterminal">$data</span>:expr ; <span class="macro-nonterminal">$token</span>:expr) =&gt; ({
+                <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
+                <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ; <span class="macro-nonterminal">$token</span>);
+                <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
             })
         );
-        <span class="macro">eof_check!</span>(<span class="string">&quot;?&quot;</span>  ; <span class="ident">Token::Character</span>(<span class="string">&#39;?&#39;</span>));
-        <span class="macro">eof_check!</span>(<span class="string">&quot;/&quot;</span>  ; <span class="ident">Token::Character</span>(<span class="string">&#39;/&#39;</span>));
-        <span class="macro">eof_check!</span>(<span class="string">&quot;-&quot;</span>  ; <span class="ident">Token::Character</span>(<span class="string">&#39;-&#39;</span>));
-        <span class="macro">eof_check!</span>(<span class="string">&quot;]&quot;</span>  ; <span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>));
-        <span class="macro">eof_check!</span>(<span class="string">&quot;]]&quot;</span> ; <span class="ident">Token::Chunk</span>(<span class="string">&quot;]]&quot;</span>));
+        <span class="macro">eof_check!</span>(<span class="string">&quot;?&quot;  </span>; Token::Character(<span class="string">&#39;?&#39;</span>));
+        <span class="macro">eof_check!</span>(<span class="string">&quot;/&quot;  </span>; Token::Character(<span class="string">&#39;/&#39;</span>));
+        <span class="macro">eof_check!</span>(<span class="string">&quot;-&quot;  </span>; Token::Character(<span class="string">&#39;-&#39;</span>));
+        <span class="macro">eof_check!</span>(<span class="string">&quot;]&quot;  </span>; Token::Character(<span class="string">&#39;]&#39;</span>));
+        <span class="macro">eof_check!</span>(<span class="string">&quot;]]&quot; </span>; Token::Chunk(<span class="string">&quot;]]&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">end_of_stream_handling_error</span>() {
-        <span class="macro">macro_rules!</span> <span class="ident">eof_check</span>(
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">expr</span>) =&gt; ({
-                <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>);
-                <span class="macro">assert_err!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>, <span class="string">&quot;Unexpected end of stream&quot;</span>);
-                <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>end_of_stream_handling_error() {
+        <span class="macro">macro_rules! </span>eof_check(
+            (<span class="macro-nonterminal">$data</span>:expr; <span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$c</span>:expr) =&gt; ({
+                <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
+                <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="macro-nonterminal">$r </span>; <span class="macro-nonterminal">$c</span>, <span class="string">&quot;Unexpected end of stream&quot;</span>);
+                <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
             })
         );
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;&quot;</span>        ; <span class="number">0</span>, <span class="number">1</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;!&quot;</span>       ; <span class="number">0</span>, <span class="number">2</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;!-&quot;</span>      ; <span class="number">0</span>, <span class="number">3</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![&quot;</span>      ; <span class="number">0</span>, <span class="number">3</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![C&quot;</span>     ; <span class="number">0</span>, <span class="number">4</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CD&quot;</span>    ; <span class="number">0</span>, <span class="number">5</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDA&quot;</span>   ; <span class="number">0</span>, <span class="number">6</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDAT&quot;</span>  ; <span class="number">0</span>, <span class="number">7</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDATA&quot;</span> ; <span class="number">0</span>, <span class="number">8</span>);
-        <span class="macro">eof_check!</span>(<span class="string">&quot;--&quot;</span>       ; <span class="number">0</span>, <span class="number">2</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;&quot;        </span>; <span class="number">0</span>, <span class="number">1</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;!&quot;       </span>; <span class="number">0</span>, <span class="number">2</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;!-&quot;      </span>; <span class="number">0</span>, <span class="number">3</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![&quot;      </span>; <span class="number">0</span>, <span class="number">3</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![C&quot;     </span>; <span class="number">0</span>, <span class="number">4</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CD&quot;    </span>; <span class="number">0</span>, <span class="number">5</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDA&quot;   </span>; <span class="number">0</span>, <span class="number">6</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDAT&quot;  </span>; <span class="number">0</span>, <span class="number">7</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;&lt;![CDATA&quot; </span>; <span class="number">0</span>, <span class="number">8</span>);
+        <span class="macro">eof_check!</span>(<span class="string">&quot;--&quot;       </span>; <span class="number">0</span>, <span class="number">2</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_in_comment_or_cdata_prefix</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;&lt;!x&quot;</span>);
-        <span class="macro">assert_err!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="number">0</span> ; <span class="number">0</span>,
-            <span class="string">&quot;Unexpected token &#39;&lt;!&#39; before &#39;x&#39;&quot;</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>error_in_comment_or_cdata_prefix() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;&lt;!x&quot;</span>);
+        <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="number">0 </span>; <span class="number">0</span>,
+            <span class="string">&quot;Unexpected token &#39;&lt;!&#39; before &#39;x&#39;&quot;
+        </span>);
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;&lt;!x&quot;</span>);
-        <span class="ident">lex</span>.<span class="ident">disable_errors</span>();
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::Chunk</span>(<span class="string">&quot;&lt;!&quot;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;x&#39;</span>)
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;&lt;!x&quot;</span>);
+        lex.disable_errors();
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::Chunk(<span class="string">&quot;&lt;!&quot;</span>)
+            Token::Character(<span class="string">&#39;x&#39;</span>)
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_in_comment_started</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;&lt;!-\t&quot;</span>);
-        <span class="macro">assert_err!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="number">0</span> ; <span class="number">0</span>,
-            <span class="string">&quot;Unexpected token &#39;&lt;!-&#39; before &#39;\t&#39;&quot;</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>error_in_comment_started() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;&lt;!-\t&quot;</span>);
+        <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="number">0 </span>; <span class="number">0</span>,
+            <span class="string">&quot;Unexpected token &#39;&lt;!-&#39; before &#39;\t&#39;&quot;
+        </span>);
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;&lt;!-\t&quot;</span>);
-        <span class="ident">lex</span>.<span class="ident">disable_errors</span>();
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::Chunk</span>(<span class="string">&quot;&lt;!-&quot;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39;\t&#39;</span>)
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;&lt;!-\t&quot;</span>);
+        lex.disable_errors();
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::Chunk(<span class="string">&quot;&lt;!-&quot;</span>)
+            Token::Whitespace(<span class="string">&#39;\t&#39;</span>)
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_in_comment_two_dashes_not_at_end</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;--x&quot;</span>);
-        <span class="ident">lex</span>.<span class="ident">inside_comment</span>();
-        <span class="macro">assert_err!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="number">0</span>; <span class="number">0</span>,
-            <span class="string">&quot;Unexpected token &#39;--&#39; before &#39;x&#39;&quot;</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>error_in_comment_two_dashes_not_at_end() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;--x&quot;</span>);
+        lex.inside_comment();
+        <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="number">0</span>; <span class="number">0</span>,
+            <span class="string">&quot;Unexpected token &#39;--&#39; before &#39;x&#39;&quot;
+        </span>);
 
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="string">&quot;--x&quot;</span>);
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::Chunk</span>(<span class="string">&quot;--&quot;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;x&#39;</span>)
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">&quot;--x&quot;</span>);
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::Chunk(<span class="string">&quot;--&quot;</span>)
+            Token::Character(<span class="string">&#39;x&#39;</span>)
         );
     }
 
-    <span class="macro">macro_rules!</span> <span class="ident">check_case</span>(
-        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">chunk</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">app</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">expr</span>) =&gt; ({
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>);
-            <span class="macro">assert_err!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> <span class="ident">expect</span> <span class="ident">row</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span> ; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">c</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>);
+    <span class="macro">macro_rules! </span>check_case(
+        (<span class="macro-nonterminal">$chunk</span>:expr, <span class="macro-nonterminal">$app</span>:expr; <span class="macro-nonterminal">$data</span>:expr; <span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$s</span>:expr) =&gt; ({
+            <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
+            <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="macro-nonterminal">$r </span>; <span class="macro-nonterminal">$c</span>, <span class="macro-nonterminal">$s</span>);
 
-            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">data</span>);
-            <span class="ident">lex</span>.<span class="ident">disable_errors</span>();
-            <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-                <span class="ident">Token::Chunk</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">chunk</span>)
-                <span class="ident">Token::Character</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">app</span>)
+            <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
+            lex.disable_errors();
+            <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+                Token::Chunk(<span class="macro-nonterminal">$chunk</span>)
+                Token::Character(<span class="macro-nonterminal">$app</span>)
             );
-            <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+            <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
         })
     );
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_in_cdata_started</span>() {
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![&quot;</span>,      <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![[&quot;</span>      ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![&#39; before &#39;[&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![C&quot;</span>,     <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![C[&quot;</span>     ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![C&#39; before &#39;[&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CD&quot;</span>,    <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CD[&quot;</span>    ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CD&#39; before &#39;[&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDA&quot;</span>,   <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CDA[&quot;</span>   ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDA&#39; before &#39;[&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDAT&quot;</span>,  <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CDAT[&quot;</span>  ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDAT&#39; before &#39;[&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDATA&quot;</span>, <span class="string">&#39;|&#39;</span>; <span class="string">&quot;&lt;![CDATA|&quot;</span> ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDATA&#39; before &#39;|&#39;&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>error_in_cdata_started() {
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![&quot;</span>,      <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![[&quot;      </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![&#39; before &#39;[&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![C&quot;</span>,     <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![C[&quot;     </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![C&#39; before &#39;[&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CD&quot;</span>,    <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CD[&quot;    </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CD&#39; before &#39;[&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDA&quot;</span>,   <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CDA[&quot;   </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDA&#39; before &#39;[&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDAT&quot;</span>,  <span class="string">&#39;[&#39;</span>; <span class="string">&quot;&lt;![CDAT[&quot;  </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDAT&#39; before &#39;[&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;![CDATA&quot;</span>, <span class="string">&#39;|&#39;</span>; <span class="string">&quot;&lt;![CDATA|&quot; </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;![CDATA&#39; before &#39;|&#39;&quot;</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">error_in_doctype_started</span>() {
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!D&quot;</span>,      <span class="string">&#39;a&#39;</span>; <span class="string">&quot;&lt;!Da&quot;</span>      ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!D&#39; before &#39;a&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DO&quot;</span>,     <span class="string">&#39;b&#39;</span>; <span class="string">&quot;&lt;!DOb&quot;</span>     ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DO&#39; before &#39;b&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOC&quot;</span>,    <span class="string">&#39;c&#39;</span>; <span class="string">&quot;&lt;!DOCc&quot;</span>    ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOC&#39; before &#39;c&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCT&quot;</span>,   <span class="string">&#39;d&#39;</span>; <span class="string">&quot;&lt;!DOCTd&quot;</span>   ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCT&#39; before &#39;d&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCTY&quot;</span>,  <span class="string">&#39;e&#39;</span>; <span class="string">&quot;&lt;!DOCTYe&quot;</span>  ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCTY&#39; before &#39;e&#39;&quot;</span>);
-        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCTYP&quot;</span>, <span class="string">&#39;f&#39;</span>; <span class="string">&quot;&lt;!DOCTYPf&quot;</span> ; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCTYP&#39; before &#39;f&#39;&quot;</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>error_in_doctype_started() {
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!D&quot;</span>,      <span class="string">&#39;a&#39;</span>; <span class="string">&quot;&lt;!Da&quot;      </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!D&#39; before &#39;a&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DO&quot;</span>,     <span class="string">&#39;b&#39;</span>; <span class="string">&quot;&lt;!DOb&quot;     </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DO&#39; before &#39;b&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOC&quot;</span>,    <span class="string">&#39;c&#39;</span>; <span class="string">&quot;&lt;!DOCc&quot;    </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOC&#39; before &#39;c&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCT&quot;</span>,   <span class="string">&#39;d&#39;</span>; <span class="string">&quot;&lt;!DOCTd&quot;   </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCT&#39; before &#39;d&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCTY&quot;</span>,  <span class="string">&#39;e&#39;</span>; <span class="string">&quot;&lt;!DOCTYe&quot;  </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCTY&#39; before &#39;e&#39;&quot;</span>);
+        <span class="macro">check_case!</span>(<span class="string">&quot;&lt;!DOCTYP&quot;</span>, <span class="string">&#39;f&#39;</span>; <span class="string">&quot;&lt;!DOCTYPf&quot; </span>; <span class="number">0</span>, <span class="number">0</span>, <span class="string">&quot;Unexpected token &#39;&lt;!DOCTYP&#39; before &#39;f&#39;&quot;</span>);
     }
 
 
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">issue_98_cdata_ending_with_right_bracket</span>() {
-        <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lex</span>, <span class="kw-2">mut</span> <span class="ident">buf</span>) <span class="op">=</span> <span class="ident">make_lex_and_buf</span>(
-            <span class="string">r#&quot;&lt;![CDATA[Foo [Bar]]]&gt;&quot;#</span>
-        );
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>issue_98_cdata_ending_with_right_bracket() {
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
+            <span class="string">r#&quot;&lt;![CDATA[Foo [Bar]]]&gt;&quot;#
+        </span>);
 
-        <span class="macro">assert_oks!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span> ;
-            <span class="ident">Token::CDataStart</span>
-            <span class="ident">Token::Character</span>(<span class="string">&#39;F&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;o&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;o&#39;</span>)
-            <span class="ident">Token::Whitespace</span>(<span class="string">&#39; &#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;[&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;B&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;a&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;r&#39;</span>)
-            <span class="ident">Token::Character</span>(<span class="string">&#39;]&#39;</span>)
-            <span class="ident">Token::CDataEnd</span>
+        <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
+            Token::CDataStart
+            Token::Character(<span class="string">&#39;F&#39;</span>)
+            Token::Character(<span class="string">&#39;o&#39;</span>)
+            Token::Character(<span class="string">&#39;o&#39;</span>)
+            Token::Whitespace(<span class="string">&#39; &#39;</span>)
+            Token::Character(<span class="string">&#39;[&#39;</span>)
+            Token::Character(<span class="string">&#39;B&#39;</span>)
+            Token::Character(<span class="string">&#39;a&#39;</span>)
+            Token::Character(<span class="string">&#39;r&#39;</span>)
+            Token::Character(<span class="string">&#39;]&#39;</span>)
+            Token::CDataEnd
         );
-        <span class="macro">assert_none!</span>(<span class="kw">for</span> <span class="ident">lex</span> <span class="ident">and</span> <span class="ident">buf</span>);
+        <span class="macro">assert_none!</span>(<span class="kw">for </span>lex and buf);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

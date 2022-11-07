@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/context/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/context/internal.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>internal.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -278,280 +272,279 @@
 <span id="272">272</span>
 <span id="273">273</span>
 <span id="274">274</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ModuleContext</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::handle::Handle</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::object::class::ClassMap</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::result::NeonResult</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">JsObject</span>, <span class="ident">JsValue</span>};
-<span class="kw">use</span> <span class="ident">neon_runtime</span>;
-<span class="kw">use</span> <span class="ident">neon_runtime::raw</span>;
-<span class="kw">use</span> <span class="ident">neon_runtime::scope::Root</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">neon_runtime::try_catch::TryCatchControl</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::any::Any</span>;
-<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
-<span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::raw::c_void</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<span class="ident">catch_unwind</span>, <span class="ident">resume_unwind</span>, <span class="ident">AssertUnwindSafe</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::ModuleContext;
+<span class="kw">use </span><span class="kw">crate</span>::handle::Handle;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">crate</span>::object::class::ClassMap;
+<span class="kw">use </span><span class="kw">crate</span>::result::NeonResult;
+<span class="kw">use </span><span class="kw">crate</span>::types::{JsObject, JsValue};
+<span class="kw">use </span>neon_runtime;
+<span class="kw">use </span>neon_runtime::raw;
+<span class="kw">use </span>neon_runtime::scope::Root;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">use </span>neon_runtime::try_catch::TryCatchControl;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">use </span>std::any::Any;
+<span class="kw">use </span>std::cell::{Cell, RefCell};
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">use </span>std::os::raw::c_void;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">use </span>std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Env</span>(<span class="ident">raw::Isolate</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+#[repr(C)]
+#[derive(Clone, Copy)]
+</span><span class="kw">pub struct </span>Env(raw::Isolate);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Env</span>(<span class="ident">raw::Env</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+#[repr(C)]
+#[derive(Clone, Copy)]
+</span><span class="kw">pub struct </span>Env(raw::Env);
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">raw::Env</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Env</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">raw::Env</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">env</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;raw::Env&gt; <span class="kw">for </span>Env {
+    <span class="kw">fn </span>from(env: raw::Env) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(env)
     }
 }
 
-<span class="macro">thread_local!</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">IS_RUNNING</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="bool-val">false</span>);
+<span class="macro">thread_local! </span>{
+    <span class="attribute">#[allow(unused)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>IS_RUNNING: RefCell&lt;bool&gt; = RefCell::new(<span class="bool-val">false</span>);
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">drop_class_map</span>(<span class="ident">map</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ClassMap</span><span class="op">&gt;</span>) {
-    <span class="ident">std::mem::drop</span>(<span class="ident">map</span>);
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>drop_class_map(map: Box&lt;ClassMap&gt;) {
+    std::mem::drop(map);
 }
 
-<span class="kw">impl</span> <span class="ident">Env</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">raw::Isolate</span> {
-        <span class="kw">let</span> <span class="self">Self</span>(<span class="ident">ptr</span>) <span class="op">=</span> <span class="self">self</span>;
-        <span class="ident">ptr</span>
+<span class="kw">impl </span>Env {
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_raw(<span class="self">self</span>) -&gt; raw::Isolate {
+        <span class="kw">let </span><span class="self">Self</span>(ptr) = <span class="self">self</span>;
+        ptr
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">raw::Env</span> {
-        <span class="kw">let</span> <span class="self">Self</span>(<span class="ident">ptr</span>) <span class="op">=</span> <span class="self">self</span>;
-        <span class="ident">ptr</span>
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_raw(<span class="self">self</span>) -&gt; raw::Env {
+        <span class="kw">let </span><span class="self">Self</span>(ptr) = <span class="self">self</span>;
+        ptr
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">class_map</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">ClassMap</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">neon_runtime::class::get_class_map</span>(<span class="self">self</span>.<span class="ident">to_raw</span>()) };
-        <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
-            <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ClassMap</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">ClassMap::new</span>());
-            <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">b</span>);
-            <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">raw</span>.<span class="ident">cast</span>();
-            <span class="kw">let</span> <span class="ident">free_map</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<span class="ident">drop_class_map</span> <span class="kw">as</span> <span class="ident">usize</span>) };
-            <span class="kw">unsafe</span> {
-                <span class="ident">neon_runtime::class::set_class_map</span>(<span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">ptr</span>, <span class="ident">free_map</span>);
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>class_map(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ClassMap {
+        <span class="kw">let </span><span class="kw-2">mut </span>ptr: <span class="kw-2">*mut </span>c_void = <span class="kw">unsafe </span>{ neon_runtime::class::get_class_map(<span class="self">self</span>.to_raw()) };
+        <span class="kw">if </span>ptr.is_null() {
+            <span class="kw">let </span>b: Box&lt;ClassMap&gt; = Box::new(ClassMap::new());
+            <span class="kw">let </span>raw = Box::into_raw(b);
+            ptr = raw.cast();
+            <span class="kw">let </span>free_map: <span class="kw-2">*mut </span>c_void = <span class="kw">unsafe </span>{ std::mem::transmute(drop_class_map <span class="kw">as </span>usize) };
+            <span class="kw">unsafe </span>{
+                neon_runtime::class::set_class_map(<span class="self">self</span>.to_raw(), ptr, free_map);
             }
         }
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">ptr</span>.<span class="ident">cast</span>() }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>ptr.cast() }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">current</span>() -&gt; <span class="ident">Env</span> {
-        <span class="kw">unsafe</span> { <span class="ident">std::mem::transmute</span>(<span class="ident">neon_runtime::call::current_isolate</span>()) }
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>current() -&gt; Env {
+        <span class="kw">unsafe </span>{ std::mem::transmute(neon_runtime::call::current_isolate()) }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_catch</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">raw::Local</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident"><span class="kw">crate</span>::result::Throw</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+    </span><span class="kw">unsafe fn </span>try_catch&lt;T, F&gt;(<span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;T, raw::Local&gt;
+    <span class="kw">where
+        </span>F: FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;T, <span class="kw">crate</span>::result::Throw&gt;,
     {
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">f</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">raw::Local</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::zeroed</span>();
+        <span class="kw">let </span>result = f();
+        <span class="kw">let </span><span class="kw-2">mut </span>local: MaybeUninit&lt;raw::Local&gt; = MaybeUninit::zeroed();
 
-        <span class="kw">if</span> <span class="ident">neon_runtime::error::catch_error</span>(<span class="self">self</span>.<span class="ident">to_raw</span>(), <span class="ident">local</span>.<span class="ident">as_mut_ptr</span>()) {
-            <span class="prelude-val">Err</span>(<span class="ident">local</span>.<span class="ident">assume_init</span>())
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=</span> <span class="ident">result</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
-        } <span class="kw">else</span> {
+        <span class="kw">if </span>neon_runtime::error::catch_error(<span class="self">self</span>.to_raw(), local.as_mut_ptr()) {
+            <span class="prelude-val">Err</span>(local.assume_init())
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(result) = result {
+            <span class="prelude-val">Ok</span>(result)
+        } <span class="kw">else </span>{
             <span class="macro">panic!</span>(<span class="string">&quot;try_catch: unexpected Err(Throw) when VM is not in a throwing state&quot;</span>);
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ScopeMetadata</span> {
-    <span class="ident">env</span>: <span class="ident">Env</span>,
-    <span class="ident">active</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>ScopeMetadata {
+    env: Env,
+    active: Cell&lt;bool&gt;,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">Root</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">ScopeMetadata</span>,
-    <span class="kw">pub</span> <span class="ident">handle_scope</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>,
+<span class="kw">pub struct </span>Scope&lt;<span class="lifetime">&#39;a</span>, R: Root + <span class="lifetime">&#39;static</span>&gt; {
+    <span class="kw">pub </span>metadata: ScopeMetadata,
+    <span class="kw">pub </span>handle_scope: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">Root</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="ident">Scope</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">T</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handle_scope</span>: <span class="ident">R</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">R::allocate</span>() };
-        <span class="kw">unsafe</span> {
-            <span class="ident">handle_scope</span>.<span class="ident">enter</span>(<span class="ident">env</span>.<span class="ident">to_raw</span>());
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Root + <span class="lifetime">&#39;static</span>&gt; Scope&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+    <span class="kw">pub fn </span>with&lt;T, F: <span class="kw">for</span>&lt;<span class="lifetime">&#39;b</span>&gt; FnOnce(Scope&lt;<span class="lifetime">&#39;b</span>, R&gt;) -&gt; T&gt;(env: Env, f: F) -&gt; T {
+        <span class="kw">let </span><span class="kw-2">mut </span>handle_scope: R = <span class="kw">unsafe </span>{ R::allocate() };
+        <span class="kw">unsafe </span>{
+            handle_scope.enter(env.to_raw());
         }
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">Scope</span> {
-                <span class="ident">metadata</span>: <span class="ident">ScopeMetadata</span> {
-                    <span class="ident">env</span>,
-                    <span class="ident">active</span>: <span class="ident">Cell::new</span>(<span class="bool-val">true</span>),
+        <span class="kw">let </span>result = {
+            <span class="kw">let </span>scope = Scope {
+                metadata: ScopeMetadata {
+                    env,
+                    active: Cell::new(<span class="bool-val">true</span>),
                 },
-                <span class="ident">handle_scope</span>: <span class="kw-2">&amp;mut</span> <span class="ident">handle_scope</span>,
+                handle_scope: <span class="kw-2">&amp;mut </span>handle_scope,
             };
-            <span class="ident">f</span>(<span class="ident">scope</span>)
+            f(scope)
         };
-        <span class="kw">unsafe</span> {
-            <span class="ident">handle_scope</span>.<span class="ident">exit</span>(<span class="ident">env</span>.<span class="ident">to_raw</span>());
+        <span class="kw">unsafe </span>{
+            handle_scope.exit(env.to_raw());
         }
-        <span class="ident">result</span>
+        result
     }
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ContextInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">scope_metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ScopeMetadata</span>;
+<span class="kw">pub trait </span>ContextInternal&lt;<span class="lifetime">&#39;a</span>&gt;: Sized {
+    <span class="kw">fn </span>scope_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>ScopeMetadata;
 
-    <span class="kw">fn</span> <span class="ident">env</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Env</span> {
-        <span class="self">self</span>.<span class="ident">scope_metadata</span>().<span class="ident">env</span>
+    <span class="kw">fn </span>env(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Env {
+        <span class="self">self</span>.scope_metadata().env
     }
 
-    <span class="kw">fn</span> <span class="ident">is_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">scope_metadata</span>().<span class="ident">active</span>.<span class="ident">get</span>()
+    <span class="kw">fn </span>is_active(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.scope_metadata().active.get()
     }
 
-    <span class="kw">fn</span> <span class="ident">check_active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_active</span>() {
+    <span class="kw">fn </span>check_active(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.is_active() {
             <span class="macro">panic!</span>(<span class="string">&quot;execution context is inactive&quot;</span>);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">activate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">scope_metadata</span>().<span class="ident">active</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
+    <span class="kw">fn </span>activate(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.scope_metadata().active.set(<span class="bool-val">true</span>);
     }
-    <span class="kw">fn</span> <span class="ident">deactivate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">scope_metadata</span>().<span class="ident">active</span>.<span class="ident">set</span>(<span class="bool-val">false</span>);
+    <span class="kw">fn </span>deactivate(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.scope_metadata().active.set(<span class="bool-val">false</span>);
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_catch_internal</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Handle</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="self">Self</span>) -&gt; <span class="ident">NeonResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+    </span><span class="kw">fn </span>try_catch_internal&lt;T, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;T, Handle&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; NeonResult&lt;T&gt;,
     {
-        <span class="comment">// A closure does not have a guaranteed layout, so we need to box it in order to pass</span>
-        <span class="comment">// a pointer to it across the boundary into C++.</span>
-        <span class="kw">let</span> <span class="ident">rust_thunk</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">f</span>));
+        <span class="comment">// A closure does not have a guaranteed layout, so we need to box it in order to pass
+        // a pointer to it across the boundary into C++.
+        </span><span class="kw">let </span>rust_thunk = Box::into_raw(Box::new(f));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ok</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::zeroed</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">raw::Local</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::zeroed</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unwind_value</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">c_void</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::zeroed</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>ok: MaybeUninit&lt;T&gt; = MaybeUninit::zeroed();
+        <span class="kw">let </span><span class="kw-2">mut </span>err: MaybeUninit&lt;raw::Local&gt; = MaybeUninit::zeroed();
+        <span class="kw">let </span><span class="kw-2">mut </span>unwind_value: MaybeUninit&lt;<span class="kw-2">*mut </span>c_void&gt; = MaybeUninit::zeroed();
 
-        <span class="kw">let</span> <span class="ident">ctrl</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">neon_runtime::try_catch::with</span>(
-                <span class="ident">try_catch_glue</span>::<span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>,
-                <span class="ident">rust_thunk</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-                (<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="self">Self</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-                <span class="ident">ok</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-                <span class="ident">err</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="ident">unwind_value</span>.<span class="ident">as_mut_ptr</span>(),
+        <span class="kw">let </span>ctrl = <span class="kw">unsafe </span>{
+            neon_runtime::try_catch::with(
+                try_catch_glue::&lt;<span class="self">Self</span>, T, F&gt;,
+                rust_thunk <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                (<span class="self">self </span><span class="kw">as </span><span class="kw-2">*mut </span><span class="self">Self</span>) <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                ok.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_void,
+                err.as_mut_ptr(),
+                unwind_value.as_mut_ptr(),
             )
         };
 
-        <span class="kw">match</span> <span class="ident">ctrl</span> {
-            <span class="ident">TryCatchControl::Panicked</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">unwind_value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw">unsafe</span> {
-                    <span class="ident">Box::from_raw</span>(<span class="ident">unwind_value</span>.<span class="ident">assume_init</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>)
+        <span class="kw">match </span>ctrl {
+            TryCatchControl::Panicked =&gt; {
+                <span class="kw">let </span>unwind_value: Box&lt;<span class="kw">dyn </span>Any + Send&gt; = <span class="kw-2">*</span><span class="kw">unsafe </span>{
+                    Box::from_raw(unwind_value.assume_init() <span class="kw">as </span><span class="kw-2">*mut </span>Box&lt;<span class="kw">dyn </span>Any + Send&gt;)
                 };
-                <span class="ident">resume_unwind</span>(<span class="ident">unwind_value</span>);
+                resume_unwind(unwind_value);
             }
-            <span class="ident">TryCatchControl::Returned</span> =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { <span class="ident">ok</span>.<span class="ident">assume_init</span>() }),
-            <span class="ident">TryCatchControl::Threw</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">err</span>.<span class="ident">assume_init</span>() };
-                <span class="prelude-val">Err</span>(<span class="ident">JsValue::new_internal</span>(<span class="ident">err</span>))
+            TryCatchControl::Returned =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ ok.assume_init() }),
+            TryCatchControl::Threw =&gt; {
+                <span class="kw">let </span>err = <span class="kw">unsafe </span>{ err.assume_init() };
+                <span class="prelude-val">Err</span>(JsValue::new_internal(err))
             }
-            <span class="ident">TryCatchControl::UnexpectedErr</span> =&gt; {
+            TryCatchControl::UnexpectedErr =&gt; {
                 <span class="macro">panic!</span>(<span class="string">&quot;try_catch: unexpected Err(Throw) when VM is not in a throwing state&quot;</span>);
             }
         }
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">try_catch_internal</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Handle</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="self">Self</span>) -&gt; <span class="ident">NeonResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+    </span><span class="kw">fn </span>try_catch_internal&lt;T, F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="prelude-ty">Result</span>&lt;T, Handle&lt;<span class="lifetime">&#39;a</span>, JsValue&gt;&gt;
+    <span class="kw">where
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>) -&gt; NeonResult&lt;T&gt;,
     {
-        <span class="kw">unsafe</span> {
-            <span class="self">self</span>.<span class="ident">env</span>()
-                .<span class="ident">try_catch</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>(<span class="self">self</span>))
-                .<span class="ident">map_err</span>(<span class="ident">JsValue::new_internal</span>)
+        <span class="kw">unsafe </span>{
+            <span class="self">self</span>.env()
+                .try_catch(<span class="kw">move </span>|| f(<span class="self">self</span>))
+                .map_err(JsValue::new_internal)
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">try_catch_glue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, <span class="ident">C</span>, <span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(
-    <span class="ident">rust_thunk</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-    <span class="ident">cx</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-    <span class="ident">returned</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-    <span class="ident">unwind_value</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-) -&gt; <span class="ident">TryCatchControl</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">ContextInternal</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">C</span>) -&gt; <span class="ident">NeonResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>try_catch_glue&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>, C, T, F&gt;(
+    rust_thunk: <span class="kw-2">*mut </span>c_void,
+    cx: <span class="kw-2">*mut </span>c_void,
+    returned: <span class="kw-2">*mut </span>c_void,
+    unwind_value: <span class="kw-2">*mut *mut </span>c_void,
+) -&gt; TryCatchControl
+<span class="kw">where
+    </span>C: ContextInternal&lt;<span class="lifetime">&#39;a</span>&gt;,
+    F: FnOnce(<span class="kw-2">&amp;mut </span>C) -&gt; NeonResult&lt;T&gt;,
 {
-    <span class="kw">let</span> <span class="ident">f</span>: <span class="ident">F</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">rust_thunk</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">F</span>) };
-    <span class="kw">let</span> <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">C</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">cx</span>.<span class="ident">cast</span>() };
+    <span class="kw">let </span>f: F = <span class="kw-2">*</span><span class="kw">unsafe </span>{ Box::from_raw(rust_thunk <span class="kw">as </span><span class="kw-2">*mut </span>F) };
+    <span class="kw">let </span>cx: <span class="kw-2">&amp;mut </span>C = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>cx.cast() };
 
-    <span class="comment">// The mutable reference to the context is a fiction of the Neon library,</span>
-    <span class="comment">// since it doesn&#39;t actually contain any data in the Rust memory space,</span>
-    <span class="comment">// just a link to the JS VM. So we don&#39;t need to do any kind of poisoning</span>
-    <span class="comment">// of the context when a panic occurs. So we suppress the Rust compiler</span>
-    <span class="comment">// errors from using the mutable reference across an unwind boundary.</span>
-    <span class="kw">match</span> <span class="ident">catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">cx</span>))) {
-        <span class="comment">// No Rust panic, no JS exception.</span>
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">result</span>)) =&gt; <span class="kw">unsafe</span> {
-            (<span class="ident">returned</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>).<span class="ident">write</span>(<span class="ident">result</span>);
-            <span class="ident">TryCatchControl::Returned</span>
+    <span class="comment">// The mutable reference to the context is a fiction of the Neon library,
+    // since it doesn&#39;t actually contain any data in the Rust memory space,
+    // just a link to the JS VM. So we don&#39;t need to do any kind of poisoning
+    // of the context when a panic occurs. So we suppress the Rust compiler
+    // errors from using the mutable reference across an unwind boundary.
+    </span><span class="kw">match </span>catch_unwind(AssertUnwindSafe(|| f(cx))) {
+        <span class="comment">// No Rust panic, no JS exception.
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(result)) =&gt; <span class="kw">unsafe </span>{
+            (returned <span class="kw">as </span><span class="kw-2">*mut </span>T).write(result);
+            TryCatchControl::Returned
         },
-        <span class="comment">// No Rust panic, caught a JS exception.</span>
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="ident">TryCatchControl::Threw</span>,
-        <span class="comment">// Rust panicked.</span>
-        <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">unsafe</span> {
-            <span class="comment">// A panic value has an undefined layout, so wrap it in an extra box.</span>
-            <span class="kw">let</span> <span class="ident">boxed</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">err</span>);
-            <span class="kw-2">*</span><span class="ident">unwind_value</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">boxed</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>;
-            <span class="ident">TryCatchControl::Panicked</span>
+        <span class="comment">// No Rust panic, caught a JS exception.
+        </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; TryCatchControl::Threw,
+        <span class="comment">// Rust panicked.
+        </span><span class="prelude-val">Err</span>(err) =&gt; <span class="kw">unsafe </span>{
+            <span class="comment">// A panic value has an undefined layout, so wrap it in an extra box.
+            </span><span class="kw">let </span>boxed = Box::new(err);
+            <span class="kw-2">*</span>unwind_value = Box::into_raw(boxed) <span class="kw">as </span><span class="kw-2">*mut </span>c_void;
+            TryCatchControl::Panicked
         },
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;legacy-runtime&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_module</span>(<span class="ident">exports</span>: <span class="ident">Handle</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>, <span class="ident">init</span>: <span class="kw">fn</span>(<span class="ident">ModuleContext</span>) -&gt; <span class="ident">NeonResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) {
-    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">Env::current</span>();
+<span class="attribute">#[cfg(feature = <span class="string">&quot;legacy-runtime&quot;</span>)]
+</span><span class="kw">pub fn </span>initialize_module(exports: Handle&lt;JsObject&gt;, init: <span class="kw">fn</span>(ModuleContext) -&gt; NeonResult&lt;()&gt;) {
+    <span class="kw">let </span>env = Env::current();
 
-    <span class="ident">ModuleContext::with</span>(<span class="ident">env</span>, <span class="ident">exports</span>, <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">init</span>(<span class="ident">cx</span>);
+    ModuleContext::with(env, exports, |cx| {
+        <span class="kw">let _ </span>= init(cx);
     });
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-1&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_module</span>(
-    <span class="ident">env</span>: <span class="ident">raw::Env</span>,
-    <span class="ident">exports</span>: <span class="ident">Handle</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-    <span class="ident">init</span>: <span class="kw">fn</span>(<span class="ident">ModuleContext</span>) -&gt; <span class="ident">NeonResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;napi-1&quot;</span>)]
+</span><span class="kw">pub fn </span>initialize_module(
+    env: raw::Env,
+    exports: Handle&lt;JsObject&gt;,
+    init: <span class="kw">fn</span>(ModuleContext) -&gt; NeonResult&lt;()&gt;,
 ) {
-    <span class="kw">unsafe</span> {
-        <span class="ident">neon_runtime::setup</span>(<span class="ident">env</span>);
+    <span class="kw">unsafe </span>{
+        neon_runtime::setup(env);
     }
 
-    <span class="ident">IS_RUNNING</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-        <span class="kw-2">*</span><span class="ident">v</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="bool-val">true</span>;
+    IS_RUNNING.with(|v| {
+        <span class="kw-2">*</span>v.borrow_mut() = <span class="bool-val">true</span>;
     });
 
-    <span class="ident">ModuleContext::with</span>(<span class="ident">Env</span>(<span class="ident">env</span>), <span class="ident">exports</span>, <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">init</span>(<span class="ident">cx</span>);
+    ModuleContext::with(Env(env), exports, |cx| {
+        <span class="kw">let _ </span>= init(cx);
     });
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/async_work.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_work.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/async_work.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_work.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -185,187 +179,186 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Rust wrappers for Node-API simple asynchronous operations</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Unlike `napi_async_work` which threads a single mutable pointer to a data</span>
-<span class="doccomment">//! struct to both the `execute` and `complete` callbacks, the wrapper follows</span>
-<span class="doccomment">//! a more idiomatic Rust ownership pattern by passing the output of `execute`</span>
-<span class="doccomment">//! into the input of `complete`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! https://nodejs.org/api/n-api.html#n_api_simple_asynchronous_operations</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Rust wrappers for Node-API simple asynchronous operations
+//!
+//! Unlike `napi_async_work` which threads a single mutable pointer to a data
+//! struct to both the `execute` and `complete` callbacks, the wrapper follows
+//! a more idiomatic Rust ownership pattern by passing the output of `execute`
+//! into the input of `complete`.
+//!
+//! https://nodejs.org/api/n-api.html#n_api_simple_asynchronous_operations
 
-<span class="kw">use</span> <span class="ident">std::ffi::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>;
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<span class="ident">catch_unwind</span>, <span class="ident">resume_unwind</span>, <span class="ident">AssertUnwindSafe</span>};
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
-<span class="kw">use</span> <span class="ident">std::thread</span>;
+</span><span class="kw">use </span>std::ffi::c_void;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::thread;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::no_panic::FailureBoundary</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::raw::Env</span>;
+<span class="kw">use </span><span class="kw">super</span>::bindings <span class="kw">as </span>napi;
+<span class="kw">use </span><span class="kw">super</span>::no_panic::FailureBoundary;
+<span class="kw">use </span><span class="kw">super</span>::raw::Env;
 
-<span class="kw">const</span> <span class="ident">BOUNDARY</span>: <span class="ident">FailureBoundary</span> <span class="op">=</span> <span class="ident">FailureBoundary</span> {
-    <span class="ident">both</span>: <span class="string">&quot;A panic and exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
-    <span class="ident">exception</span>: <span class="string">&quot;An exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
-    <span class="ident">panic</span>: <span class="string">&quot;A panic occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+<span class="kw">const </span>BOUNDARY: FailureBoundary = FailureBoundary {
+    both: <span class="string">&quot;A panic and exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+    exception: <span class="string">&quot;An exception occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
+    panic: <span class="string">&quot;A panic occurred while executing a `neon::event::TaskBuilder` task&quot;</span>,
 };
 
-<span class="kw">type</span> <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="ident">input</span>: <span class="ident">I</span>) -&gt; <span class="ident">O</span>;
-<span class="kw">type</span> <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">fn</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">output</span>: <span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">D</span>);
+<span class="kw">type </span>Execute&lt;I, O&gt; = <span class="kw">fn</span>(input: I) -&gt; O;
+<span class="kw">type </span>Complete&lt;O, D&gt; = <span class="kw">fn</span>(env: Env, output: thread::Result&lt;O&gt;, data: D);
 
-<span class="doccomment">/// Schedule work to execute on the libuv thread pool</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">/// * `env` must be a valid `napi_env` for the current thread</span>
-<span class="doccomment">/// * The `thread::Result::Err` must only be used for resuming unwind if</span>
-<span class="doccomment">///   `execute` is not unwind safe</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">schedule</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">env</span>: <span class="ident">Env</span>,
-    <span class="ident">input</span>: <span class="ident">I</span>,
-    <span class="ident">execute</span>: <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
-    <span class="ident">complete</span>: <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>,
-    <span class="ident">data</span>: <span class="ident">D</span>,
-) <span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">O</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">D</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Schedule work to execute on the libuv thread pool
+///
+/// # Safety
+/// * `env` must be a valid `napi_env` for the current thread
+/// * The `thread::Result::Err` must only be used for resuming unwind if
+///   `execute` is not unwind safe
+</span><span class="kw">pub unsafe fn </span>schedule&lt;I, O, D&gt;(
+    env: Env,
+    input: I,
+    execute: Execute&lt;I, O&gt;,
+    complete: Complete&lt;O, D&gt;,
+    data: D,
+) <span class="kw">where
+    </span>I: Send + <span class="lifetime">&#39;static</span>,
+    O: Send + <span class="lifetime">&#39;static</span>,
+    D: Send + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Data</span> {
-        <span class="ident">state</span>: <span class="ident">State::Input</span>(<span class="ident">input</span>),
-        <span class="ident">execute</span>,
-        <span class="ident">complete</span>,
-        <span class="ident">data</span>,
-        <span class="comment">// Work is initialized as a null pointer, but set by `create_async_work`</span>
-        <span class="comment">// `data` must not be used until this value has been set.</span>
-        <span class="ident">work</span>: <span class="ident">ptr::null_mut</span>(),
+    <span class="kw">let </span><span class="kw-2">mut </span>data = Box::new(Data {
+        state: State::Input(input),
+        execute,
+        complete,
+        data,
+        <span class="comment">// Work is initialized as a null pointer, but set by `create_async_work`
+        // `data` must not be used until this value has been set.
+        </span>work: ptr::null_mut(),
     });
 
-    <span class="comment">// Store a pointer to `work` before ownership is transferred to `Box::into_raw`</span>
-    <span class="kw">let</span> <span class="ident">work</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">data</span>.<span class="ident">work</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
+    <span class="comment">// Store a pointer to `work` before ownership is transferred to `Box::into_raw`
+    </span><span class="kw">let </span>work = <span class="kw-2">&amp;mut </span>data.work <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
 
-    <span class="comment">// Create the `async_work`</span>
-    <span class="macro">assert_eq!</span>(
-        <span class="ident">napi::create_async_work</span>(
-            <span class="ident">env</span>,
-            <span class="ident">ptr::null_mut</span>(),
-            <span class="ident"><span class="kw">super</span>::string</span>(<span class="ident">env</span>, <span class="string">&quot;neon_async_work&quot;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">call_execute</span>::<span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">call_complete</span>::<span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>),
-            <span class="ident">Box::into_raw</span>(<span class="ident">data</span>).<span class="ident">cast</span>(),
-            <span class="ident">work</span>,
+    <span class="comment">// Create the `async_work`
+    </span><span class="macro">assert_eq!</span>(
+        napi::create_async_work(
+            env,
+            ptr::null_mut(),
+            <span class="kw">super</span>::string(env, <span class="string">&quot;neon_async_work&quot;</span>),
+            <span class="prelude-val">Some</span>(call_execute::&lt;I, O, D&gt;),
+            <span class="prelude-val">Some</span>(call_complete::&lt;I, O, D&gt;),
+            Box::into_raw(data).cast(),
+            work,
         ),
-        <span class="ident">napi::Status::Ok</span>,
+        napi::Status::Ok,
     );
 
-    <span class="comment">// Queue the work</span>
-    <span class="kw">match</span> <span class="ident">napi::queue_async_work</span>(<span class="ident">env</span>, <span class="kw-2">*</span><span class="ident">work</span>) {
-        <span class="ident">napi::Status::Ok</span> =&gt; {}
-        <span class="ident">status</span> =&gt; {
-            <span class="comment">// If queueing failed, delete the work to prevent a leak</span>
-            <span class="ident">napi::delete_async_work</span>(<span class="ident">env</span>, <span class="kw-2">*</span><span class="ident">work</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+    <span class="comment">// Queue the work
+    </span><span class="kw">match </span>napi::queue_async_work(env, <span class="kw-2">*</span>work) {
+        napi::Status::Ok =&gt; {}
+        status =&gt; {
+            <span class="comment">// If queueing failed, delete the work to prevent a leak
+            </span>napi::delete_async_work(env, <span class="kw-2">*</span>work);
+            <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
         }
     }
 }
 
-<span class="doccomment">/// A pointer to data is passed to the `execute` and `complete` callbacks</span>
-<span class="kw">struct</span> <span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
-    <span class="ident">execute</span>: <span class="ident">Execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span>,
-    <span class="ident">complete</span>: <span class="ident">Complete</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>,
-    <span class="ident">data</span>: <span class="ident">D</span>,
-    <span class="ident">work</span>: <span class="ident">napi::AsyncWork</span>,
+<span class="doccomment">/// A pointer to data is passed to the `execute` and `complete` callbacks
+</span><span class="kw">struct </span>Data&lt;I, O, D&gt; {
+    state: State&lt;I, O&gt;,
+    execute: Execute&lt;I, O&gt;,
+    complete: Complete&lt;O, D&gt;,
+    data: D,
+    work: napi::AsyncWork,
 }
 
-<span class="doccomment">/// State of the task that is transitioned by `execute` and `complete`</span>
-<span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Initial data input passed to `execute`</span>
-    <span class="ident">Input</span>(<span class="ident">I</span>),
-    <span class="doccomment">/// Transient state while `execute` is running</span>
-    <span class="ident">Executing</span>,
-    <span class="doccomment">/// Return data of `execute` passed to `complete`</span>
-    <span class="ident">Output</span>(<span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>),
+<span class="doccomment">/// State of the task that is transitioned by `execute` and `complete`
+</span><span class="kw">enum </span>State&lt;I, O&gt; {
+    <span class="doccomment">/// Initial data input passed to `execute`
+    </span>Input(I),
+    <span class="doccomment">/// Transient state while `execute` is running
+    </span>Executing,
+    <span class="doccomment">/// Return data of `execute` passed to `complete`
+    </span>Output(thread::Result&lt;O&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Return the input if `State::Input`, replacing with `State::Executing`</span>
-    <span class="kw">fn</span> <span class="ident">take_execute_input</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">mem::replace</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Executing</span>) {
-            <span class="ident"><span class="self">Self</span>::Input</span>(<span class="ident">input</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">input</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+<span class="kw">impl</span>&lt;I, O&gt; State&lt;I, O&gt; {
+    <span class="doccomment">/// Return the input if `State::Input`, replacing with `State::Executing`
+    </span><span class="kw">fn </span>take_execute_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;I&gt; {
+        <span class="kw">match </span>mem::replace(<span class="self">self</span>, <span class="self">Self</span>::Executing) {
+            <span class="self">Self</span>::Input(input) =&gt; <span class="prelude-val">Some</span>(input),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Return the output if `State::Output`, replacing with `State::Executing`</span>
-    <span class="kw">fn</span> <span class="ident">into_output</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">thread::Result</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Output</span>(<span class="ident">output</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">output</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Return the output if `State::Output`, replacing with `State::Executing`
+    </span><span class="kw">fn </span>into_output(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;thread::Result&lt;O&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Output(output) =&gt; <span class="prelude-val">Some</span>(output),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="doccomment">/// Callback executed on the libuv thread pool</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">/// * `Env` should not be used because it could attempt to call JavaScript</span>
-<span class="doccomment">/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`</span>
-<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call_execute</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="ident">Env</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">data</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+<span class="doccomment">/// Callback executed on the libuv thread pool
+///
+/// # Safety
+/// * `Env` should not be used because it could attempt to call JavaScript
+/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`
+</span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>call_execute&lt;I, O, D&gt;(<span class="kw">_</span>: Env, data: <span class="kw-2">*mut </span>c_void) {
+    <span class="kw">let </span>data = <span class="kw-2">&amp;mut *</span>data.cast::&lt;Data&lt;I, O, D&gt;&gt;();
 
-    <span class="comment">// This is unwind safe because unwinding will resume on the other side</span>
-    <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="comment">// `unwrap` is ok because `call_execute` should be called exactly once</span>
-        <span class="comment">// after initialization</span>
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">state</span>.<span class="ident">take_execute_input</span>().<span class="ident">unwrap</span>();
+    <span class="comment">// This is unwind safe because unwinding will resume on the other side
+    </span><span class="kw">let </span>output = catch_unwind(AssertUnwindSafe(|| {
+        <span class="comment">// `unwrap` is ok because `call_execute` should be called exactly once
+        // after initialization
+        </span><span class="kw">let </span>input = data.state.take_execute_input().unwrap();
 
-        (<span class="ident">data</span>.<span class="ident">execute</span>)(<span class="ident">input</span>)
+        (data.execute)(input)
     }));
 
-    <span class="ident">data</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Output</span>(<span class="ident">output</span>);
+    data.state = State::Output(output);
 }
 
-<span class="doccomment">/// Callback executed on the JavaScript main thread</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`</span>
-<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call_complete</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">status</span>: <span class="ident">napi::Status</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
-    <span class="kw">let</span> <span class="ident">Data</span> {
-        <span class="ident">state</span>,
-        <span class="ident">complete</span>,
-        <span class="ident">data</span>,
-        <span class="ident">work</span>,
+<span class="doccomment">/// Callback executed on the JavaScript main thread
+///
+/// # Safety
+/// * `data` is expected to be a pointer to `Data&lt;I, O, D&gt;`
+</span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>call_complete&lt;I, O, D&gt;(env: Env, status: napi::Status, data: <span class="kw-2">*mut </span>c_void) {
+    <span class="kw">let </span>Data {
+        state,
+        complete,
+        data,
+        work,
         ..
-    } <span class="op">=</span> <span class="kw-2">*</span><span class="ident">Box</span>::<span class="op">&lt;</span><span class="ident">Data</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from_raw</span>(<span class="ident">data</span>.<span class="ident">cast</span>());
+    } = <span class="kw-2">*</span>Box::&lt;Data&lt;I, O, D&gt;&gt;::from_raw(data.cast());
 
-    <span class="ident">napi::delete_async_work</span>(<span class="ident">env</span>, <span class="ident">work</span>);
+    napi::delete_async_work(env, work);
 
-    <span class="ident">BOUNDARY</span>.<span class="ident">catch_failure</span>(<span class="ident">env</span>, <span class="prelude-val">None</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">env</span><span class="op">|</span> {
-        <span class="comment">// `unwrap` is okay because `call_complete` should be called exactly once</span>
-        <span class="comment">// if and only if `call_execute` has completed successfully</span>
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">into_output</span>().<span class="ident">unwrap</span>();
+    BOUNDARY.catch_failure(env, <span class="prelude-val">None</span>, <span class="kw">move </span>|env| {
+        <span class="comment">// `unwrap` is okay because `call_complete` should be called exactly once
+        // if and only if `call_execute` has completed successfully
+        </span><span class="kw">let </span>output = state.into_output().unwrap();
 
-        <span class="comment">// The event looped has stopped if we do not have an Env</span>
-        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span> <span class="ident">env</span> {
-            <span class="ident">env</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// Resume panicking if necessary</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">panic</span>) <span class="op">=</span> <span class="ident">output</span> {
-                <span class="ident">resume_unwind</span>(<span class="ident">panic</span>);
+        <span class="comment">// The event looped has stopped if we do not have an Env
+        </span><span class="kw">let </span>env = <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = env {
+            env
+        } <span class="kw">else </span>{
+            <span class="comment">// Resume panicking if necessary
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(panic) = output {
+                resume_unwind(panic);
             }
 
-            <span class="kw">return</span> <span class="ident">ptr::null_mut</span>();
+            <span class="kw">return </span>ptr::null_mut();
         };
 
-        <span class="kw">match</span> <span class="ident">status</span> {
-            <span class="ident">napi::Status::Ok</span> =&gt; <span class="ident">complete</span>(<span class="ident">env</span>, <span class="ident">output</span>, <span class="ident">data</span>),
-            <span class="ident">napi::Status::Cancelled</span> =&gt; {}
-            <span class="kw">_</span> =&gt; <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>),
+        <span class="kw">match </span>status {
+            napi::Status::Ok =&gt; complete(env, output, data),
+            napi::Status::Cancelled =&gt; {}
+            <span class="kw">_ </span>=&gt; <span class="macro">assert_eq!</span>(status, napi::Status::Ok),
         }
 
-        <span class="ident">ptr::null_mut</span>()
+        ptr::null_mut()
     });
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

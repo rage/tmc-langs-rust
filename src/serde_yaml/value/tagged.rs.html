@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.11/src/value/tagged.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.14/src/value/tagged.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -383,385 +377,484 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value::de</span>::{<span class="ident">MapDeserializer</span>, <span class="ident">MapRefDeserializer</span>, <span class="ident">SeqDeserializer</span>, <span class="ident">SeqRefDeserializer</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value::Value</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Error</span>;
-<span class="kw">use</span> <span class="ident">serde::de::value</span>::{<span class="ident">BorrowedStrDeserializer</span>, <span class="ident">StrDeserializer</span>};
-<span class="kw">use</span> <span class="ident">serde::de</span>::{
-    <span class="ident">Deserialize</span>, <span class="ident">DeserializeSeed</span>, <span class="ident">Deserializer</span>, <span class="ident">EnumAccess</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">VariantAccess</span>, <span class="ident">Visitor</span>,
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::value::de::{MapDeserializer, MapRefDeserializer, SeqDeserializer, SeqRefDeserializer};
+<span class="kw">use </span><span class="kw">crate</span>::value::Value;
+<span class="kw">use </span><span class="kw">crate</span>::Error;
+<span class="kw">use </span>serde::de::value::{BorrowedStrDeserializer, StrDeserializer};
+<span class="kw">use </span>serde::de::{
+    Deserialize, DeserializeSeed, Deserializer, EnumAccess, Error <span class="kw">as _</span>, VariantAccess, Visitor,
 };
-<span class="kw">use</span> <span class="ident">serde::ser</span>::{<span class="ident">Serialize</span>, <span class="ident">SerializeMap</span>, <span class="ident">Serializer</span>};
-<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
-<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use </span>serde::forward_to_deserialize_any;
+<span class="kw">use </span>serde::ser::{Serialize, SerializeMap, Serializer};
+<span class="kw">use </span>std::cmp::Ordering;
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug, Display};
+<span class="kw">use </span>std::hash::{Hash, Hasher};
+<span class="kw">use </span>std::mem;
 
-<span class="doccomment">/// A representation of YAML&#39;s `!Tag` syntax, used for enums.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Refer to the example code on [`TaggedValue`] for an example of deserializing</span>
-<span class="doccomment">/// tagged values.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tag</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">string</span>: <span class="ident">String</span>,
+<span class="doccomment">/// A representation of YAML&#39;s `!Tag` syntax, used for enums.
+///
+/// Refer to the example code on [`TaggedValue`] for an example of deserializing
+/// tagged values.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Tag {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) string: String,
 }
 
-<span class="doccomment">/// A `Tag` + `Value` representing a tagged YAML scalar, sequence, or mapping.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use serde_yaml::value::TaggedValue;</span>
-<span class="doccomment">/// use std::collections::BTreeMap;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let yaml = &quot;</span>
-<span class="doccomment">///     scalar: !Thing x</span>
-<span class="doccomment">///     sequence_flow: !Thing [first]</span>
-<span class="doccomment">///     sequence_block: !Thing</span>
-<span class="doccomment">///       - first</span>
-<span class="doccomment">///     mapping_flow: !Thing {k: v}</span>
-<span class="doccomment">///     mapping_block: !Thing</span>
-<span class="doccomment">///       k: v</span>
-<span class="doccomment">/// &quot;;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let data: BTreeMap&lt;String, TaggedValue&gt; = serde_yaml::from_str(yaml).unwrap();</span>
-<span class="doccomment">/// assert!(data[&quot;scalar&quot;].tag == &quot;Thing&quot;);</span>
-<span class="doccomment">/// assert!(data[&quot;sequence_flow&quot;].tag == &quot;Thing&quot;);</span>
-<span class="doccomment">/// assert!(data[&quot;sequence_block&quot;].tag == &quot;Thing&quot;);</span>
-<span class="doccomment">/// assert!(data[&quot;mapping_flow&quot;].tag == &quot;Thing&quot;);</span>
-<span class="doccomment">/// assert!(data[&quot;mapping_block&quot;].tag == &quot;Thing&quot;);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // The leading &#39;!&#39; in tags are not significant. The following is also true.</span>
-<span class="doccomment">/// assert!(data[&quot;scalar&quot;].tag == &quot;!Thing&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Hash</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaggedValue</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">tag</span>: <span class="ident">Tag</span>,
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Value</span>,
+<span class="doccomment">/// A `Tag` + `Value` representing a tagged YAML scalar, sequence, or mapping.
+///
+/// ```
+/// use serde_yaml::value::TaggedValue;
+/// use std::collections::BTreeMap;
+///
+/// let yaml = &quot;
+///     scalar: !Thing x
+///     sequence_flow: !Thing [first]
+///     sequence_block: !Thing
+///       - first
+///     mapping_flow: !Thing {k: v}
+///     mapping_block: !Thing
+///       k: v
+/// &quot;;
+///
+/// let data: BTreeMap&lt;String, TaggedValue&gt; = serde_yaml::from_str(yaml).unwrap();
+/// assert!(data[&quot;scalar&quot;].tag == &quot;Thing&quot;);
+/// assert!(data[&quot;sequence_flow&quot;].tag == &quot;Thing&quot;);
+/// assert!(data[&quot;sequence_block&quot;].tag == &quot;Thing&quot;);
+/// assert!(data[&quot;mapping_flow&quot;].tag == &quot;Thing&quot;);
+/// assert!(data[&quot;mapping_block&quot;].tag == &quot;Thing&quot;);
+///
+/// // The leading &#39;!&#39; in tags are not significant. The following is also true.
+/// assert!(data[&quot;scalar&quot;].tag == &quot;!Thing&quot;);
+/// ```
+</span><span class="attribute">#[derive(Clone, PartialEq, PartialOrd, Hash, Debug)]
+</span><span class="kw">pub struct </span>TaggedValue {
+    <span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub </span>tag: Tag,
+    <span class="attribute">#[allow(missing_docs)]
+    </span><span class="kw">pub </span>value: Value,
 }
 
-<span class="kw">impl</span> <span class="ident">Tag</span> {
-    <span class="doccomment">/// Create tag.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The leading &#39;!&#39; is not significant. It may be provided, but does not</span>
-    <span class="doccomment">/// have to be. The following are equivalent:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use serde_yaml::value::Tag;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(Tag::new(&quot;!Thing&quot;), Tag::new(&quot;Thing&quot;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let tag = Tag::new(&quot;Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag == &quot;Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag == &quot;!Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag.to_string() == &quot;!Thing&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let tag = Tag::new(&quot;!Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag == &quot;Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag == &quot;!Thing&quot;);</span>
-    <span class="doccomment">/// assert!(tag.to_string() == &quot;!Thing&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Such a tag would serialize to `!Thing` in YAML regardless of whether a</span>
-    <span class="doccomment">/// &#39;!&#39; was included in the call to `Tag::new`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Tag</span> {
-            <span class="ident">string</span>: <span class="ident">string</span>.<span class="ident">into</span>(),
+<span class="kw">impl </span>Tag {
+    <span class="doccomment">/// Create tag.
+    ///
+    /// The leading &#39;!&#39; is not significant. It may be provided, but does not
+    /// have to be. The following are equivalent:
+    ///
+    /// ```
+    /// use serde_yaml::value::Tag;
+    ///
+    /// assert_eq!(Tag::new(&quot;!Thing&quot;), Tag::new(&quot;Thing&quot;));
+    ///
+    /// let tag = Tag::new(&quot;Thing&quot;);
+    /// assert!(tag == &quot;Thing&quot;);
+    /// assert!(tag == &quot;!Thing&quot;);
+    /// assert!(tag.to_string() == &quot;!Thing&quot;);
+    ///
+    /// let tag = Tag::new(&quot;!Thing&quot;);
+    /// assert!(tag == &quot;Thing&quot;);
+    /// assert!(tag == &quot;!Thing&quot;);
+    /// assert!(tag.to_string() == &quot;!Thing&quot;);
+    /// ```
+    ///
+    /// Such a tag would serialize to `!Thing` in YAML regardless of whether a
+    /// &#39;!&#39; was included in the call to `Tag::new`.
+    </span><span class="kw">pub fn </span>new(string: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
+        Tag {
+            string: string.into(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Value</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">untag</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur</span> <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="ident">Value::Tagged</span>(<span class="ident">tagged</span>) <span class="op">=</span> <span class="ident">cur</span> {
-            <span class="ident">cur</span> <span class="op">=</span> <span class="ident">tagged</span>.<span class="ident">value</span>;
+<span class="kw">impl </span>Value {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>untag(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>;
+        <span class="kw">while let </span>Value::Tagged(tagged) = cur {
+            cur = tagged.value;
         }
-        <span class="ident">cur</span>
+        cur
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">untag_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur</span> <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="ident">Value::Tagged</span>(<span class="ident">tagged</span>) <span class="op">=</span> <span class="ident">cur</span> {
-            <span class="ident">cur</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tagged</span>.<span class="ident">value</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>untag_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>;
+        <span class="kw">while let </span>Value::Tagged(tagged) = cur {
+            cur = <span class="kw-2">&amp;</span>tagged.value;
         }
-        <span class="ident">cur</span>
+        cur
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">untag_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur</span> <span class="op">=</span> <span class="self">self</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="ident">Value::Tagged</span>(<span class="ident">tagged</span>) <span class="op">=</span> <span class="ident">cur</span> {
-            <span class="ident">cur</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">tagged</span>.<span class="ident">value</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>untag_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>;
+        <span class="kw">while let </span>Value::Tagged(tagged) = cur {
+            cur = <span class="kw-2">&amp;mut </span>tagged.value;
         }
-        <span class="ident">cur</span>
+        cur
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">nobang</span>(<span class="ident">maybe_banged</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-    <span class="ident">maybe_banged</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;!&#39;</span>).<span class="ident">unwrap_or</span>(<span class="ident">maybe_banged</span>)
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>nobang(maybe_banged: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
+    maybe_banged.strip_prefix(<span class="string">&#39;!&#39;</span>).unwrap_or(maybe_banged)
 }
 
-<span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Tag</span> {}
+<span class="kw">impl </span>Eq <span class="kw">for </span>Tag {}
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Tag</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">PartialEq::eq</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>), <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">string</span>))
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Tag) -&gt; bool {
+        PartialEq::eq(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string), nobang(<span class="kw-2">&amp;</span>other.string))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Tag</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T&gt; PartialEq&lt;T&gt; <span class="kw">for </span>Tag
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span>Sized + AsRef&lt;str&gt;,
 {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">PartialEq::eq</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>), <span class="ident">nobang</span>(<span class="ident">other</span>.<span class="ident">as_ref</span>()))
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>T) -&gt; bool {
+        PartialEq::eq(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string), nobang(other.as_ref()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">Ord::cmp</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>), <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">string</span>))
+<span class="kw">impl </span>Ord <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; Ordering {
+        Ord::cmp(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string), nobang(<span class="kw-2">&amp;</span>other.string))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
-        <span class="ident">PartialOrd::partial_cmp</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>), <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">string</span>))
+<span class="kw">impl </span>PartialOrd <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
+        PartialOrd::partial_cmp(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string), nobang(<span class="kw-2">&amp;</span>other.string))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">hasher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>).<span class="ident">hash</span>(<span class="ident">hasher</span>);
+<span class="kw">impl </span>Hash <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, hasher: <span class="kw-2">&amp;mut </span>H) {
+        nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string).hash(hasher);
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;!{}&quot;</span>, <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>))
+<span class="kw">impl </span>Display <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="macro">write!</span>(formatter, <span class="string">&quot;!{}&quot;</span>, nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Tag</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">Display::fmt</span>(<span class="self">self</span>, <span class="ident">formatter</span>)
+<span class="kw">impl </span>Debug <span class="kw">for </span>Tag {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        Display::fmt(<span class="self">self</span>, formatter)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">TaggedValue</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Serializer</span>,
+<span class="kw">impl </span>Serialize <span class="kw">for </span>TaggedValue {
+    <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+    <span class="kw">where
+        </span>S: Serializer,
     {
-        <span class="kw">struct</span> <span class="ident">SerializeTag</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Tag</span>);
+        <span class="kw">struct </span>SerializeTag&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Tag);
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">SerializeTag</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">S</span>: <span class="ident">Serializer</span>,
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Serialize <span class="kw">for </span>SerializeTag&lt;<span class="lifetime">&#39;a</span>&gt; {
+            <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+            <span class="kw">where
+                </span>S: Serializer,
             {
-                <span class="ident">serializer</span>.<span class="ident">collect_str</span>(<span class="self">self</span>.<span class="number">0</span>)
+                serializer.collect_str(<span class="self">self</span>.<span class="number">0</span>)
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">serializer</span>.<span class="ident">serialize_map</span>(<span class="prelude-val">Some</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
-        <span class="ident">map</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="ident">SerializeTag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tag</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
-        <span class="ident">map</span>.<span class="ident">end</span>()
+        <span class="kw">let </span><span class="kw-2">mut </span>map = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
+        map.serialize_entry(<span class="kw-2">&amp;</span>SerializeTag(<span class="kw-2">&amp;</span><span class="self">self</span>.tag), <span class="kw-2">&amp;</span><span class="self">self</span>.value)<span class="question-mark">?</span>;
+        map.end()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TaggedValue</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+    <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
+    <span class="kw">where
+        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">struct</span> <span class="ident">TaggedValueVisitor</span>;
+        <span class="kw">struct </span>TaggedValueVisitor;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TaggedValueVisitor</span> {
-            <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">TaggedValue</span>;
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValueVisitor {
+            <span class="kw">type </span>Value = TaggedValue;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-                <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a YAML value with a !Tag&quot;</span>)
+            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+                formatter.write_str(<span class="string">&quot;a YAML value with a !Tag&quot;</span>)
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_enum</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">data</span>: <span class="ident">A</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident">A::Error</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">A</span>: <span class="ident">EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="kw">fn </span>visit_enum&lt;A&gt;(<span class="self">self</span>, data: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
+            <span class="kw">where
+                </span>A: EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
             {
-                <span class="kw">let</span> (<span class="ident">tag</span>, <span class="ident">contents</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">variant</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">Tag::new</span>(<span class="ident">tag</span>);
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">contents</span>.<span class="ident">newtype_variant</span>()<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">TaggedValue</span> { <span class="ident">tag</span>, <span class="ident">value</span> })
+                <span class="kw">let </span>(tag, contents) = data.variant::&lt;String&gt;()<span class="question-mark">?</span>;
+                <span class="kw">let </span>tag = Tag::new(tag);
+                <span class="kw">let </span>value = contents.newtype_variant()<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(TaggedValue { tag, value })
             }
         }
 
-        <span class="ident">deserializer</span>.<span class="ident">deserialize_any</span>(<span class="ident">TaggedValueVisitor</span>)
+        deserializer.deserialize_any(TaggedValueVisitor)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TaggedValue</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
-    <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="ident">Value</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">variant_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Variant</span>), <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">StrDeserializer</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tag</span>.<span class="ident">string</span>));
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="ident">tag</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="self">self</span>.<span class="ident">value</span>))
+        visitor.visit_enum(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        drop(<span class="self">self</span>);
+        visitor.visit_unit()
+    }
+
+    <span class="macro">forward_to_deserialize_any! </span>{
+        bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes
+        byte_buf option unit unit_struct newtype_struct seq tuple tuple_struct
+        map <span class="kw">struct enum </span>identifier
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+    <span class="kw">type </span>Error = Error;
+    <span class="kw">type </span>Variant = Value;
 
-    <span class="kw">fn</span> <span class="ident">unit_variant</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">Deserialize::deserialize</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), Error&gt;
+    <span class="kw">where
+        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">let </span>tag = StrDeserializer::&lt;Error&gt;::new(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.tag.string));
+        <span class="kw">let </span>value = seed.deserialize(tag)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((value, <span class="self">self</span>.value))
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Value {
+    <span class="kw">type </span>Error = Error;
+
+    <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        Deserialize::deserialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">newtype_variant_seed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, Error&gt;
+    <span class="kw">where
+        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="self">self</span>)
+        seed.deserialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">tuple_variant</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">_len</span>: <span class="ident">usize</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Sequence</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">Deserializer::deserialize_any</span>(<span class="ident">SeqDeserializer::new</span>(<span class="ident">v</span>), <span class="ident">visitor</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_type</span>(<span class="self">self</span>.<span class="ident">unexpected</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
+        <span class="kw">if let </span>Value::Sequence(v) = <span class="self">self </span>{
+            Deserializer::deserialize_any(SeqDeserializer::new(v), visitor)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">struct_variant</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        <span class="ident">_fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>],
-        <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">Deserializer::deserialize_any</span>(<span class="ident">MapDeserializer::new</span>(<span class="ident">v</span>), <span class="ident">visitor</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_type</span>(<span class="self">self</span>.<span class="ident">unexpected</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
+        <span class="kw">if let </span>Value::Mapping(v) = <span class="self">self </span>{
+            Deserializer::deserialize_any(MapDeserializer::new(v), visitor)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">EnumAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">TaggedValue</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
-    <span class="kw">type</span> <span class="ident">Variant</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Value</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>TaggedValue {
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">variant_seed</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">V::Value</span>, <span class="ident"><span class="self">Self</span>::Variant</span>), <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">BorrowedStrDeserializer</span>::<span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span><span class="ident">::new</span>(<span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tag</span>.<span class="ident">string</span>));
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="ident">tag</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>))
+        visitor.visit_enum(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        visitor.visit_unit()
+    }
+
+    <span class="macro">forward_to_deserialize_any! </span>{
+        bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes
+        byte_buf option unit unit_struct newtype_struct seq tuple tuple_struct
+        map <span class="kw">struct enum </span>identifier
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">VariantAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Value</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>TaggedValue {
+    <span class="kw">type </span>Error = Error;
+    <span class="kw">type </span>Variant = <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>Value;
 
-    <span class="kw">fn</span> <span class="ident">unit_variant</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">Deserialize::deserialize</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), Error&gt;
+    <span class="kw">where
+        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+    {
+        <span class="kw">let </span>tag = BorrowedStrDeserializer::&lt;Error&gt;::new(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.tag.string));
+        <span class="kw">let </span>value = seed.deserialize(tag)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((value, <span class="kw-2">&amp;</span><span class="self">self</span>.value))
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>Value {
+    <span class="kw">type </span>Error = Error;
+
+    <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        Deserialize::deserialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">newtype_variant_seed</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">seed</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, Error&gt;
+    <span class="kw">where
+        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="self">self</span>)
+        seed.deserialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">tuple_variant</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">_len</span>: <span class="ident">usize</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Sequence</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">Deserializer::deserialize_any</span>(<span class="ident">SeqRefDeserializer::new</span>(<span class="ident">v</span>), <span class="ident">visitor</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_type</span>(<span class="self">self</span>.<span class="ident">unexpected</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
+        <span class="kw">if let </span>Value::Sequence(v) = <span class="self">self </span>{
+            Deserializer::deserialize_any(SeqRefDeserializer::new(v), visitor)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">struct_variant</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        <span class="ident">_fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>],
-        <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        visitor: V,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
+    <span class="kw">where
+        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">Deserializer::deserialize_any</span>(<span class="ident">MapRefDeserializer::new</span>(<span class="ident">v</span>), <span class="ident">visitor</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_type</span>(<span class="self">self</span>.<span class="ident">unexpected</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
+        <span class="kw">if let </span>Value::Mapping(v) = <span class="self">self </span>{
+            Deserializer::deserialize_any(MapRefDeserializer::new(v), visitor)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">Tag</span>(<span class="ident">String</span>),
-    <span class="ident">NotTag</span>(<span class="ident">T</span>),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>MaybeTag&lt;T&gt; {
+    Tag(String),
+    NotTag(T),
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_for_tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Display</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>check_for_tag&lt;T&gt;(value: <span class="kw-2">&amp;</span>T) -&gt; MaybeTag&lt;String&gt;
+<span class="kw">where
+    </span>T: <span class="question-mark">?</span>Sized + Display,
 {
-    <span class="kw">enum</span> <span class="ident">CheckForTag</span> {
-        <span class="ident">Empty</span>,
-        <span class="ident">Bang</span>,
-        <span class="ident">Tag</span>(<span class="ident">String</span>),
-        <span class="ident">NotTag</span>(<span class="ident">String</span>),
+    <span class="kw">enum </span>CheckForTag {
+        Empty,
+        Bang,
+        Tag(String),
+        NotTag(String),
     }
 
-    <span class="kw">impl</span> <span class="ident">fmt::Write</span> <span class="kw">for</span> <span class="ident">CheckForTag</span> {
-        <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">fmt::Result</span> {
-            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+    <span class="kw">impl </span>fmt::Write <span class="kw">for </span>CheckForTag {
+        <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; fmt::Result {
+            <span class="kw">if </span>s.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
-            <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident">CheckForTag::Empty</span> =&gt; {
-                    <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;!&quot;</span> {
-                        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::Bang</span>;
-                    } <span class="kw">else</span> {
-                        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::NotTag</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+            <span class="kw">match </span><span class="self">self </span>{
+                CheckForTag::Empty =&gt; {
+                    <span class="kw">if </span>s == <span class="string">&quot;!&quot; </span>{
+                        <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::Bang;
+                    } <span class="kw">else </span>{
+                        <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::NotTag(s.to_owned());
                     }
                 }
-                <span class="ident">CheckForTag::Bang</span> =&gt; {
-                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::Tag</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+                CheckForTag::Bang =&gt; {
+                    <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::Tag(s.to_owned());
                 }
-                <span class="ident">CheckForTag::Tag</span>(<span class="ident">string</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="ident">string</span>);
-                    <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
-                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>);
+                CheckForTag::Tag(string) =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>string = mem::take(string);
+                    string.push_str(s);
+                    <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::NotTag(string);
                 }
-                <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>) =&gt; {
-                    <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
+                CheckForTag::NotTag(string) =&gt; {
+                    string.push_str(s);
                 }
             }
             <span class="prelude-val">Ok</span>(())
         }
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">check_for_tag</span> <span class="op">=</span> <span class="ident">CheckForTag::Empty</span>;
-    <span class="ident">fmt::write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">check_for_tag</span>, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">value</span>)).<span class="ident">unwrap</span>();
-    <span class="kw">match</span> <span class="ident">check_for_tag</span> {
-        <span class="ident">CheckForTag::Empty</span> =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="ident">String::new</span>()),
-        <span class="ident">CheckForTag::Bang</span> =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="string">&quot;!&quot;</span>.<span class="ident">to_owned</span>()),
-        <span class="ident">CheckForTag::Tag</span>(<span class="ident">string</span>) =&gt; <span class="ident">MaybeTag::Tag</span>(<span class="ident">string</span>),
-        <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>) =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="ident">string</span>),
+    <span class="kw">let </span><span class="kw-2">mut </span>check_for_tag = CheckForTag::Empty;
+    fmt::write(<span class="kw-2">&amp;mut </span>check_for_tag, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, value)).unwrap();
+    <span class="kw">match </span>check_for_tag {
+        CheckForTag::Empty =&gt; MaybeTag::NotTag(String::new()),
+        CheckForTag::Bang =&gt; MaybeTag::NotTag(<span class="string">&quot;!&quot;</span>.to_owned()),
+        CheckForTag::Tag(string) =&gt; MaybeTag::Tag(string),
+        CheckForTag::NotTag(string) =&gt; MaybeTag::NotTag(string),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_yaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_yaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

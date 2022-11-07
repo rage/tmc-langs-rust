@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bzip2-0.4.3/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bzip2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bzip2-0.4.3/src/read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bzip2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -387,389 +381,388 @@
 <span id="381">381</span>
 <span id="382">382</span>
 <span id="383">383</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Reader-based compression/decompression streams</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Reader-based compression/decompression streams
 
-<span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">BufReader</span>};
+</span><span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, BufReader};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures::Poll</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">use </span>futures::Poll;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">use </span>tokio_io::{AsyncRead, AsyncWrite};
 
-<span class="kw">use</span> <span class="ident">bufread</span>;
-<span class="kw">use</span> <span class="ident">Compression</span>;
+<span class="kw">use </span>bufread;
+<span class="kw">use </span>Compression;
 
-<span class="doccomment">/// A compression stream which wraps an uncompressed stream of data. Compressed</span>
-<span class="doccomment">/// data will be read from the stream.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">bufread::BzEncoder</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A compression stream which wraps an uncompressed stream of data. Compressed
+/// data will be read from the stream.
+</span><span class="kw">pub struct </span>BzEncoder&lt;R&gt; {
+    inner: bufread::BzEncoder&lt;BufReader&lt;R&gt;&gt;,
 }
 
-<span class="doccomment">/// A decompression stream which wraps a compressed stream of data. Decompressed</span>
-<span class="doccomment">/// data will be read from the stream.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">bufread::BzDecoder</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A decompression stream which wraps a compressed stream of data. Decompressed
+/// data will be read from the stream.
+</span><span class="kw">pub struct </span>BzDecoder&lt;R&gt; {
+    inner: bufread::BzDecoder&lt;BufReader&lt;R&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new compression stream which will compress at the given level</span>
-    <span class="doccomment">/// to read compress output to the give output stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>, <span class="ident">level</span>: <span class="ident">Compression</span>) -&gt; <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">BzEncoder</span> {
-            <span class="ident">inner</span>: <span class="ident">bufread::BzEncoder::new</span>(<span class="ident">BufReader::new</span>(<span class="ident">r</span>), <span class="ident">level</span>),
+<span class="kw">impl</span>&lt;R: Read&gt; BzEncoder&lt;R&gt; {
+    <span class="doccomment">/// Create a new compression stream which will compress at the given level
+    /// to read compress output to the give output stream.
+    </span><span class="kw">pub fn </span>new(r: R, level: Compression) -&gt; BzEncoder&lt;R&gt; {
+        BzEncoder {
+            inner: bufread::BzEncoder::new(BufReader::new(r), level),
         }
     }
 
-    <span class="doccomment">/// Acquires a reference to the underlying stream</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">get_ref</span>()
+    <span class="doccomment">/// Acquires a reference to the underlying stream
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="self">self</span>.inner.get_ref().get_ref()
     }
 
-    <span class="doccomment">/// Acquires a mutable reference to the underlying stream</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
-    <span class="doccomment">/// this encoder is continued to be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<span class="ident">get_mut</span>()
+    <span class="doccomment">/// Acquires a mutable reference to the underlying stream
+    ///
+    /// Note that mutation of the stream may result in surprising results if
+    /// this encoder is continued to be used.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
+        <span class="self">self</span>.inner.get_mut().get_mut()
     }
 
-    <span class="doccomment">/// Unwrap the underlying writer, finishing the compression stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>()
+    <span class="doccomment">/// Unwrap the underlying writer, finishing the compression stream.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
+        <span class="self">self</span>.inner.into_inner().into_inner()
     }
 
-    <span class="doccomment">/// Returns the number of bytes produced by the compressor</span>
-    <span class="doccomment">/// (e.g. the number of bytes read from this stream)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that, due to buffering, this only bears any relation to</span>
-    <span class="doccomment">/// total_in() when the compressor chooses to flush its data</span>
-    <span class="doccomment">/// (unfortunately, this won&#39;t happen in general</span>
-    <span class="doccomment">/// at the end of the stream, because the compressor doesn&#39;t know</span>
-    <span class="doccomment">/// if there&#39;s more data to come).  At that point,</span>
-    <span class="doccomment">/// `total_out() / total_in()` would be the compression ratio.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_out</span>()
+    <span class="doccomment">/// Returns the number of bytes produced by the compressor
+    /// (e.g. the number of bytes read from this stream)
+    ///
+    /// Note that, due to buffering, this only bears any relation to
+    /// total_in() when the compressor chooses to flush its data
+    /// (unfortunately, this won&#39;t happen in general
+    /// at the end of the stream, because the compressor doesn&#39;t know
+    /// if there&#39;s more data to come).  At that point,
+    /// `total_out() / total_in()` would be the compression ratio.
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 
-    <span class="doccomment">/// Returns the number of bytes consumed by the compressor</span>
-    <span class="doccomment">/// (e.g. the number of bytes read from the underlying stream)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_in</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">buf</span>)
+    <span class="doccomment">/// Returns the number of bytes consumed by the compressor
+    /// (e.g. the number of bytes read from the underlying stream)
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">flush</span>()
+<span class="kw">impl</span>&lt;R: Read&gt; Read <span class="kw">for </span>BzEncoder&lt;R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.read(buf)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">BzEncoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>BzEncoder&lt;R&gt; {}
+
+<span class="kw">impl</span>&lt;W: Write + Read&gt; Write <span class="kw">for </span>BzEncoder&lt;W&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.get_mut().write(buf)
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.get_mut().flush()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new decompression stream, which will read compressed</span>
-    <span class="doccomment">/// data from the given input stream and decompress it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">BzDecoder</span> {
-            <span class="ident">inner</span>: <span class="ident">bufread::BzDecoder::new</span>(<span class="ident">BufReader::new</span>(<span class="ident">r</span>)),
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncWrite + Read&gt; AsyncWrite <span class="kw">for </span>BzEncoder&lt;R&gt; {
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Poll&lt;(), io::Error&gt; {
+        <span class="self">self</span>.get_mut().shutdown()
+    }
+}
+
+<span class="kw">impl</span>&lt;R: Read&gt; BzDecoder&lt;R&gt; {
+    <span class="doccomment">/// Create a new decompression stream, which will read compressed
+    /// data from the given input stream and decompress it.
+    </span><span class="kw">pub fn </span>new(r: R) -&gt; BzDecoder&lt;R&gt; {
+        BzDecoder {
+            inner: bufread::BzDecoder::new(BufReader::new(r)),
         }
     }
 
-    <span class="doccomment">/// Acquires a reference to the underlying stream</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">get_ref</span>()
+    <span class="doccomment">/// Acquires a reference to the underlying stream
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="self">self</span>.inner.get_ref().get_ref()
     }
 
-    <span class="doccomment">/// Acquires a mutable reference to the underlying stream</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
-    <span class="doccomment">/// this encoder is continued to be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<span class="ident">get_mut</span>()
+    <span class="doccomment">/// Acquires a mutable reference to the underlying stream
+    ///
+    /// Note that mutation of the stream may result in surprising results if
+    /// this encoder is continued to be used.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
+        <span class="self">self</span>.inner.get_mut().get_mut()
     }
 
-    <span class="doccomment">/// Unwrap the underlying writer, finishing the compression stream.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>()
+    <span class="doccomment">/// Unwrap the underlying writer, finishing the compression stream.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
+        <span class="self">self</span>.inner.into_inner().into_inner()
     }
 
-    <span class="doccomment">/// Returns the number of bytes produced by the decompressor</span>
-    <span class="doccomment">/// (e.g. the number of bytes read from this stream)</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that, due to buffering, this only bears any relation to</span>
-    <span class="doccomment">/// total_in() when the decompressor reaches a sync point</span>
-    <span class="doccomment">/// (e.g. where the original compressed stream was flushed).</span>
-    <span class="doccomment">/// At that point, `total_in() / total_out()` is the compression ratio.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_out</span>()
+    <span class="doccomment">/// Returns the number of bytes produced by the decompressor
+    /// (e.g. the number of bytes read from this stream)
+    ///
+    /// Note that, due to buffering, this only bears any relation to
+    /// total_in() when the decompressor reaches a sync point
+    /// (e.g. where the original compressed stream was flushed).
+    /// At that point, `total_in() / total_out()` is the compression ratio.
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 
-    <span class="doccomment">/// Returns the number of bytes consumed by the decompressor</span>
-    <span class="doccomment">/// (e.g. the number of bytes read from the underlying stream)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_in</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">into</span>)
+    <span class="doccomment">/// Returns the number of bytes consumed by the decompressor
+    /// (e.g. the number of bytes read from the underlying stream)
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span> <span class="op">+</span> <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">flush</span>()
+<span class="kw">impl</span>&lt;R: Read&gt; Read <span class="kw">for </span>BzDecoder&lt;R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.read(into)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">BzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncRead + Read&gt; AsyncRead <span class="kw">for </span>BzDecoder&lt;R&gt; {}
+
+<span class="kw">impl</span>&lt;W: Write + Read&gt; Write <span class="kw">for </span>BzDecoder&lt;W&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.get_mut().write(buf)
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.get_mut().flush()
     }
 }
 
-<span class="doccomment">/// A bzip2 streaming decoder that decodes all members of a multistream</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wikipedia, particularly, uses bzip2 multistream for their dumps.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="ident">inner</span>: <span class="ident">bufread::MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncWrite + Read&gt; AsyncWrite <span class="kw">for </span>BzDecoder&lt;R&gt; {
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Poll&lt;(), io::Error&gt; {
+        <span class="self">self</span>.get_mut().shutdown()
+    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new decoder from the given reader, immediately parsing the</span>
-    <span class="doccomment">/// (first) gzip header. If the gzip stream contains multiple members all will</span>
-    <span class="doccomment">/// be decoded.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">r</span>: <span class="ident">R</span>) -&gt; <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="ident">MultiBzDecoder</span> {
-            <span class="ident">inner</span>: <span class="ident">bufread::MultiBzDecoder::new</span>(<span class="ident">BufReader::new</span>(<span class="ident">r</span>)),
+<span class="doccomment">/// A bzip2 streaming decoder that decodes all members of a multistream
+///
+/// Wikipedia, particularly, uses bzip2 multistream for their dumps.
+</span><span class="kw">pub struct </span>MultiBzDecoder&lt;R&gt; {
+    inner: bufread::MultiBzDecoder&lt;BufReader&lt;R&gt;&gt;,
+}
+
+<span class="kw">impl</span>&lt;R: Read&gt; MultiBzDecoder&lt;R&gt; {
+    <span class="doccomment">/// Creates a new decoder from the given reader, immediately parsing the
+    /// (first) gzip header. If the gzip stream contains multiple members all will
+    /// be decoded.
+    </span><span class="kw">pub fn </span>new(r: R) -&gt; MultiBzDecoder&lt;R&gt; {
+        MultiBzDecoder {
+            inner: bufread::MultiBzDecoder::new(BufReader::new(r)),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Acquires a reference to the underlying reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">get_ref</span>()
+<span class="kw">impl</span>&lt;R&gt; MultiBzDecoder&lt;R&gt; {
+    <span class="doccomment">/// Acquires a reference to the underlying reader.
+    </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
+        <span class="self">self</span>.inner.get_ref().get_ref()
     }
 
-    <span class="doccomment">/// Acquires a mutable reference to the underlying stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that mutation of the stream may result in surprising results if</span>
-    <span class="doccomment">/// this encoder is continued to be used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_mut</span>().<span class="ident">get_mut</span>()
+    <span class="doccomment">/// Acquires a mutable reference to the underlying stream.
+    ///
+    /// Note that mutation of the stream may result in surprising results if
+    /// this encoder is continued to be used.
+    </span><span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>R {
+        <span class="self">self</span>.inner.get_mut().get_mut()
     }
 
-    <span class="doccomment">/// Consumes this decoder, returning the underlying reader.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>().<span class="ident">into_inner</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">into</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read</span>(<span class="ident">into</span>)
+    <span class="doccomment">/// Consumes this decoder, returning the underlying reader.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
+        <span class="self">self</span>.inner.into_inner().into_inner()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">flush</span>()
+<span class="kw">impl</span>&lt;R: Read&gt; Read <span class="kw">for </span>MultiBzDecoder&lt;R&gt; {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, into: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.read(into)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tokio&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="ident">AsyncRead</span><span class="op">&gt;</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">MultiBzDecoder</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">shutdown</span>()
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncRead&gt; AsyncRead <span class="kw">for </span>MultiBzDecoder&lt;R&gt; {}
+
+<span class="kw">impl</span>&lt;R: Read + Write&gt; Write <span class="kw">for </span>MultiBzDecoder&lt;R&gt; {
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.get_mut().write(buf)
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.get_mut().flush()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">partial_io</span>::{<span class="ident">GenInterrupted</span>, <span class="ident">PartialRead</span>, <span class="ident">PartialWithErrors</span>};
-    <span class="kw">use</span> <span class="ident">rand::distributions::Standard</span>;
-    <span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">thread_rng</span>, <span class="ident">Rng</span>};
-    <span class="kw">use</span> <span class="ident">read</span>::{<span class="ident">BzDecoder</span>, <span class="ident">BzEncoder</span>, <span class="ident">MultiBzDecoder</span>};
-    <span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">Compression</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncWrite + AsyncRead&gt; AsyncWrite <span class="kw">for </span>MultiBzDecoder&lt;R&gt; {
+    <span class="kw">fn </span>shutdown(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Poll&lt;(), io::Error&gt; {
+        <span class="self">self</span>.get_mut().shutdown()
+    }
+}
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="kw">let</span> <span class="ident">m</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="ident">m</span>, <span class="ident">Compression::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="ident">c</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data2</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">d</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data2</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">data2</span>, <span class="ident">m</span>);
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>partial_io::{GenInterrupted, PartialRead, PartialWithErrors};
+    <span class="kw">use </span>rand::distributions::Standard;
+    <span class="kw">use </span>rand::{thread_rng, Rng};
+    <span class="kw">use </span>read::{BzDecoder, BzEncoder, MultiBzDecoder};
+    <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
+    <span class="kw">use </span>Compression;
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke() {
+        <span class="kw">let </span>m: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>c = BzEncoder::new(m, Compression::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[];
+        c.read_to_end(<span class="kw-2">&amp;mut </span>data).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(<span class="kw-2">&amp;</span>data[..]);
+        <span class="kw">let </span><span class="kw-2">mut </span>data2 = Vec::new();
+        d.read_to_end(<span class="kw-2">&amp;mut </span>data2).unwrap();
+        <span class="macro">assert_eq!</span>(data2, m);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke2</span>() {
-        <span class="kw">let</span> <span class="ident">m</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="ident">m</span>, <span class="ident">Compression::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="ident">c</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="ident">d</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">data</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke2() {
+        <span class="kw">let </span>m: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>];
+        <span class="kw">let </span>c = BzEncoder::new(m, Compression::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(c);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[];
+        d.read_to_end(<span class="kw-2">&amp;mut </span>data).unwrap();
+        <span class="macro">assert_eq!</span>(data, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">smoke3</span>() {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">1</span>];
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>[..], <span class="ident">Compression::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="ident">c</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="ident">d</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">data</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">m</span>[..]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>smoke3() {
+        <span class="kw">let </span>m = <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128 </span>* <span class="number">1024 </span>+ <span class="number">1</span>];
+        <span class="kw">let </span>c = BzEncoder::new(<span class="kw-2">&amp;</span>m[..], Compression::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(c);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[];
+        d.read_to_end(<span class="kw-2">&amp;mut </span>data).unwrap();
+        <span class="macro">assert!</span>(data == <span class="kw-2">&amp;</span>m[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">self_terminating</span>() {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>[..], <span class="ident">Compression::default</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>self_terminating() {
+        <span class="kw">let </span>m = <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128 </span>* <span class="number">1024 </span>+ <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>c = BzEncoder::new(<span class="kw-2">&amp;</span>m[..], Compression::default());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">c</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
+        c.read_to_end(<span class="kw-2">&amp;mut </span>result).unwrap();
 
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">thread_rng</span>()
-            .<span class="ident">sample_iter</span>(<span class="kw-2">&amp;</span><span class="ident">Standard</span>)
-            .<span class="ident">take</span>(<span class="number">1024</span>)
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">200</span> {
-            <span class="ident">result</span>.<span class="ident">extend</span>(<span class="ident">v</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">u8</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>));
+        <span class="kw">let </span>v = thread_rng()
+            .sample_iter(<span class="kw-2">&amp;</span>Standard)
+            .take(<span class="number">1024</span>)
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">200 </span>{
+            result.extend(v.iter().map(|x: <span class="kw-2">&amp;</span>u8| <span class="kw-2">*</span>x));
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">m</span>.<span class="ident">len</span>());
-        <span class="kw">unsafe</span> {
-            <span class="ident">data</span>.<span class="ident">set_len</span>(<span class="ident">m</span>.<span class="ident">len</span>());
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(<span class="kw-2">&amp;</span>result[..]);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::with_capacity(m.len());
+        <span class="kw">unsafe </span>{
+            data.set_len(m.len());
         }
-        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>() <span class="op">==</span> <span class="ident">m</span>.<span class="ident">len</span>());
-        <span class="macro">assert!</span>(<span class="ident">data</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">m</span>[..]);
+        <span class="macro">assert!</span>(d.read(<span class="kw-2">&amp;mut </span>data).unwrap() == m.len());
+        <span class="macro">assert!</span>(data == <span class="kw-2">&amp;</span>m[..]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero_length_read_at_eof</span>() {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>[..], <span class="ident">Compression::default</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>zero_length_read_at_eof() {
+        <span class="kw">let </span>m = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>c = BzEncoder::new(<span class="kw-2">&amp;</span>m[..], Compression::default());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">c</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
+        c.read_to_end(<span class="kw-2">&amp;mut </span>result).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(<span class="kw-2">&amp;</span>result[..]);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+        <span class="macro">assert!</span>(d.read(<span class="kw-2">&amp;mut </span>data).unwrap() == <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">zero_length_read_with_data</span>() {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">1</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>[..], <span class="ident">Compression::default</span>());
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>zero_length_read_with_data() {
+        <span class="kw">let </span>m = <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128 </span>* <span class="number">1024 </span>+ <span class="number">1</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>c = BzEncoder::new(<span class="kw-2">&amp;</span>m[..], Compression::default());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">c</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
+        c.read_to_end(<span class="kw-2">&amp;mut </span>result).unwrap();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>() <span class="op">==</span> <span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>d = BzDecoder::new(<span class="kw-2">&amp;</span>result[..]);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
+        <span class="macro">assert!</span>(d.read(<span class="kw-2">&amp;mut </span>data).unwrap() == <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">multistream_read_till_eof</span>() {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">1</span>];
-        <span class="kw">let</span> <span class="ident">repeat</span> <span class="op">=</span> <span class="number">3</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>multistream_read_till_eof() {
+        <span class="kw">let </span>m = <span class="macro">vec!</span>[<span class="number">3u8</span>; <span class="number">128 </span>* <span class="number">1024 </span>+ <span class="number">1</span>];
+        <span class="kw">let </span>repeat = <span class="number">3</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::new();
 
-        <span class="kw">for</span> <span class="ident">_i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">repeat</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>[..], <span class="ident">Compression::default</span>());
-            <span class="ident">c</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">result</span>).<span class="ident">unwrap</span>();
+        <span class="kw">for </span>_i <span class="kw">in </span><span class="number">0</span>..repeat {
+            <span class="kw">let </span><span class="kw-2">mut </span>c = BzEncoder::new(<span class="kw-2">&amp;</span>m[..], Compression::default());
+            c.read_to_end(<span class="kw-2">&amp;mut </span>result).unwrap();
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">MultiBzDecoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..]);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>d = MultiBzDecoder::new(<span class="kw-2">&amp;</span>result[..]);
+        <span class="kw">let </span><span class="kw-2">mut </span>data = Vec::new();
 
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">d</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">repeat</span>;
-        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>, <span class="string">&quot;{} {}&quot;</span>, <span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="kw">let </span>a = d.read_to_end(<span class="kw-2">&amp;mut </span>data).unwrap();
+        <span class="kw">let </span>b = m.len() * repeat;
+        <span class="macro">assert!</span>(a == b, <span class="string">&quot;{} {}&quot;</span>, a, b);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">empty</span>() {
-        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span>[][..], <span class="ident">Compression::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="ident">r</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="ident">r</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">v2</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">v2</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>empty() {
+        <span class="kw">let </span>r = BzEncoder::new(<span class="kw-2">&amp;</span>[][..], Compression::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>r = BzDecoder::new(r);
+        <span class="kw">let </span><span class="kw-2">mut </span>v2 = Vec::new();
+        r.read_to_end(<span class="kw-2">&amp;mut </span>v2).unwrap();
+        <span class="macro">assert!</span>(v2.len() == <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">qc</span>() {
-        <span class="ident">::quickcheck::quickcheck</span>(<span class="ident">test</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="kw">_</span>) -&gt; <span class="kw">_</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>qc() {
+        ::quickcheck::quickcheck(test <span class="kw">as fn</span>(<span class="kw">_</span>) -&gt; <span class="kw">_</span>);
 
-        <span class="kw">fn</span> <span class="ident">test</span>(<span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[..], <span class="ident">Compression::default</span>());
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="ident">r</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="ident">r</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">v2</span>).<span class="ident">unwrap</span>();
-            <span class="ident">v</span> <span class="op">==</span> <span class="ident">v2</span>
+        <span class="kw">fn </span>test(v: Vec&lt;u8&gt;) -&gt; bool {
+            <span class="kw">let </span>r = BzEncoder::new(<span class="kw-2">&amp;</span>v[..], Compression::default());
+            <span class="kw">let </span><span class="kw-2">mut </span>r = BzDecoder::new(r);
+            <span class="kw">let </span><span class="kw-2">mut </span>v2 = Vec::new();
+            r.read_to_end(<span class="kw-2">&amp;mut </span>v2).unwrap();
+            v == v2
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">qc_partial</span>() {
-        <span class="ident">quickcheck6::quickcheck</span>(<span class="ident">test</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) -&gt; <span class="kw">_</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>qc_partial() {
+        quickcheck6::quickcheck(test <span class="kw">as fn</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>) -&gt; <span class="kw">_</span>);
 
-        <span class="kw">fn</span> <span class="ident">test</span>(
-            <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-            <span class="ident">encode_ops</span>: <span class="ident">PartialWithErrors</span><span class="op">&lt;</span><span class="ident">GenInterrupted</span><span class="op">&gt;</span>,
-            <span class="ident">decode_ops</span>: <span class="ident">PartialWithErrors</span><span class="op">&lt;</span><span class="ident">GenInterrupted</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzEncoder::new</span>(<span class="ident">PartialRead::new</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[..], <span class="ident">encode_ops</span>), <span class="ident">Compression::default</span>());
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">BzDecoder::new</span>(<span class="ident">PartialRead::new</span>(<span class="ident">r</span>, <span class="ident">decode_ops</span>));
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v2</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="ident">r</span>.<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">v2</span>).<span class="ident">unwrap</span>();
-            <span class="ident">v</span> <span class="op">==</span> <span class="ident">v2</span>
+        <span class="kw">fn </span>test(
+            v: Vec&lt;u8&gt;,
+            encode_ops: PartialWithErrors&lt;GenInterrupted&gt;,
+            decode_ops: PartialWithErrors&lt;GenInterrupted&gt;,
+        ) -&gt; bool {
+            <span class="kw">let </span>r = BzEncoder::new(PartialRead::new(<span class="kw-2">&amp;</span>v[..], encode_ops), Compression::default());
+            <span class="kw">let </span><span class="kw-2">mut </span>r = BzDecoder::new(PartialRead::new(r, decode_ops));
+            <span class="kw">let </span><span class="kw-2">mut </span>v2 = Vec::new();
+            r.read_to_end(<span class="kw-2">&amp;mut </span>v2).unwrap();
+            v == v2
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bzip2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bzip2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/parser/inside_declaration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inside_declaration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/parser/inside_declaration.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inside_declaration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -156,156 +150,155 @@
 <span id="150">150</span>
 <span id="151">151</span>
 </pre><pre class="rust"><code>
-<span class="kw">use</span> <span class="ident">common::XmlVersion</span>;
+<span class="kw">use </span>common::XmlVersion;
 
-<span class="kw">use</span> <span class="ident">reader::events::XmlEvent</span>;
-<span class="kw">use</span> <span class="ident">reader::lexer::Token</span>;
+<span class="kw">use </span>reader::events::XmlEvent;
+<span class="kw">use </span>reader::lexer::Token;
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="prelude-ty">Result</span>, <span class="ident">PullParser</span>, <span class="ident">State</span>, <span class="ident">DeclarationSubstate</span>, <span class="ident">QualifiedNameTarget</span>,
-    <span class="ident">DEFAULT_VERSION</span>, <span class="ident">DEFAULT_ENCODING</span>
+<span class="kw">use super</span>::{
+    <span class="prelude-ty">Result</span>, PullParser, State, DeclarationSubstate, QualifiedNameTarget,
+    DEFAULT_VERSION, DEFAULT_ENCODING
 };
 
-<span class="kw">impl</span> <span class="ident">PullParser</span> {
-    <span class="comment">// TODO: remove redundancy via macros or extra methods</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inside_declaration</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">Token</span>, <span class="ident">s</span>: <span class="ident">DeclarationSubstate</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&gt;</span> {
-        <span class="macro">macro_rules!</span> <span class="ident">unexpected_token</span>(
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>:<span class="ident">expr</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">expr</span>) =&gt; (<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">this</span>.<span class="ident">error</span>(<span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside XML declaration: {}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>))));
-            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">expr</span>) =&gt; (<span class="macro">unexpected_token!</span>(<span class="self">self</span>; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>));
+<span class="kw">impl </span>PullParser {
+    <span class="comment">// TODO: remove redundancy via macros or extra methods
+    </span><span class="kw">pub fn </span>inside_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token, s: DeclarationSubstate) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+        <span class="macro">macro_rules! </span>unexpected_token(
+            (<span class="macro-nonterminal">$this</span>:expr; <span class="macro-nonterminal">$t</span>:expr) =&gt; (<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$this</span>.error(<span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside XML declaration: {}&quot;</span>, <span class="macro-nonterminal">$t</span>))));
+            (<span class="macro-nonterminal">$t</span>:expr) =&gt; (<span class="macro">unexpected_token!</span>(<span class="self">self</span>; <span class="macro-nonterminal">$t</span>));
         );
 
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">emit_start_document</span>(<span class="ident">this</span>: <span class="kw-2">&amp;mut</span> <span class="ident">PullParser</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&gt;</span> {
-            <span class="ident">this</span>.<span class="ident">parsed_declaration</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">take_version</span>();
-            <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">take_encoding</span>();
-            <span class="kw">let</span> <span class="ident">standalone</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">take_standalone</span>();
-            <span class="ident">this</span>.<span class="ident">into_state_emit</span>(<span class="ident">State::OutsideTag</span>, <span class="prelude-val">Ok</span>(<span class="ident">XmlEvent::StartDocument</span> {
-                <span class="ident">version</span>: <span class="ident">version</span>.<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_VERSION</span>),
-                <span class="ident">encoding</span>: <span class="ident">encoding</span>.<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_ENCODING</span>.<span class="ident">into</span>()),
-                <span class="ident">standalone</span>: <span class="ident">standalone</span>
+        <span class="attribute">#[inline]
+        </span><span class="kw">fn </span>emit_start_document(this: <span class="kw-2">&amp;mut </span>PullParser) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+            this.parsed_declaration = <span class="bool-val">true</span>;
+            <span class="kw">let </span>version = this.data.take_version();
+            <span class="kw">let </span>encoding = this.data.take_encoding();
+            <span class="kw">let </span>standalone = this.data.take_standalone();
+            this.into_state_emit(State::OutsideTag, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument {
+                version: version.unwrap_or(DEFAULT_VERSION),
+                encoding: encoding.unwrap_or(DEFAULT_ENCODING.into()),
+                standalone: standalone
             }))
         }
 
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="ident">DeclarationSubstate::BeforeVersion</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// continue</span>
-                <span class="ident">Token::Character</span>(<span class="string">&#39;v&#39;</span>) =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideVersion</span>)),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+        <span class="kw">match </span>s {
+            DeclarationSubstate::BeforeVersion =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// continue
+                </span>Token::Character(<span class="string">&#39;v&#39;</span>) =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideVersion)),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideVersion</span> =&gt; <span class="self">self</span>.<span class="ident">read_qualified_name</span>(<span class="ident">t</span>, <span class="ident">QualifiedNameTarget::AttributeNameTarget</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">token</span>, <span class="ident">name</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">local_name</span>[..] {
-                    <span class="string">&quot;ersion&quot;</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">namespace</span>.<span class="ident">is_none</span>() =&gt;
-                        <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(
-                            <span class="kw">if</span> <span class="ident">token</span> <span class="op">==</span> <span class="ident">Token::EqualsSign</span> {
-                                <span class="ident">DeclarationSubstate::InsideVersionValue</span>
-                            } <span class="kw">else</span> {
-                                <span class="ident">DeclarationSubstate::AfterVersion</span>
+            DeclarationSubstate::InsideVersion =&gt; <span class="self">self</span>.read_qualified_name(t, QualifiedNameTarget::AttributeNameTarget, |this, token, name| {
+                <span class="kw">match </span><span class="kw-2">&amp;</span>name.local_name[..] {
+                    <span class="string">&quot;ersion&quot; </span><span class="kw">if </span>name.namespace.is_none() =&gt;
+                        this.into_state_continue(State::InsideDeclaration(
+                            <span class="kw">if </span>token == Token::EqualsSign {
+                                DeclarationSubstate::InsideVersionValue
+                            } <span class="kw">else </span>{
+                                DeclarationSubstate::AfterVersion
                             }
                         )),
-                    <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">this</span>; <span class="ident">name</span>)
+                    <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(this; name)
                 }
             }),
 
-            <span class="ident">DeclarationSubstate::AfterVersion</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">Token::EqualsSign</span> =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideVersionValue</span>)),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::AfterVersion =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                Token::EqualsSign =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideVersionValue)),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideVersionValue</span> =&gt; <span class="self">self</span>.<span class="ident">read_attribute_value</span>(<span class="ident">t</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">value</span><span class="op">|</span> {
-                <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">version</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">value</span>[..] {
-                    <span class="string">&quot;1.0&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">XmlVersion::Version10</span>),
-                    <span class="string">&quot;1.1&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">XmlVersion::Version11</span>),
-                    <span class="kw">_</span>     =&gt; <span class="prelude-val">None</span>
-                };
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">version</span>.<span class="ident">is_some</span>() {
-                    <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::AfterVersionValue</span>))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Unexpected XML version value: {}&quot;</span>, <span class="ident">value</span>))
+            DeclarationSubstate::InsideVersionValue =&gt; <span class="self">self</span>.read_attribute_value(t, |this, value| {
+                this.data.version = <span class="kw">match </span><span class="kw-2">&amp;</span>value[..] {
+                    <span class="string">&quot;1.0&quot; </span>=&gt; <span class="prelude-val">Some</span>(XmlVersion::Version10),
+                    <span class="string">&quot;1.1&quot; </span>=&gt; <span class="prelude-val">Some</span>(XmlVersion::Version11),
+                    <span class="kw">_     </span>=&gt; <span class="prelude-val">None
+                </span>};
+                <span class="kw">if </span>this.data.version.is_some() {
+                    this.into_state_continue(State::InsideDeclaration(DeclarationSubstate::AfterVersionValue))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Unexpected XML version value: {}&quot;</span>, value))
                 }
             }),
 
-            <span class="ident">DeclarationSubstate::AfterVersionValue</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace</span>
-                <span class="ident">Token::Character</span>(<span class="string">&#39;e&#39;</span>) =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideEncoding</span>)),
-                <span class="ident">Token::Character</span>(<span class="string">&#39;s&#39;</span>) =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideStandaloneDecl</span>)),
-                <span class="ident">Token::ProcessingInstructionEnd</span> =&gt; <span class="ident">emit_start_document</span>(<span class="self">self</span>),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::AfterVersionValue =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace
+                </span>Token::Character(<span class="string">&#39;e&#39;</span>) =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideEncoding)),
+                Token::Character(<span class="string">&#39;s&#39;</span>) =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideStandaloneDecl)),
+                Token::ProcessingInstructionEnd =&gt; emit_start_document(<span class="self">self</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideEncoding</span> =&gt; <span class="self">self</span>.<span class="ident">read_qualified_name</span>(<span class="ident">t</span>, <span class="ident">QualifiedNameTarget::AttributeNameTarget</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">token</span>, <span class="ident">name</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">local_name</span>[..] {
-                    <span class="string">&quot;ncoding&quot;</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">namespace</span>.<span class="ident">is_none</span>() =&gt;
-                        <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(
-                            <span class="kw">if</span> <span class="ident">token</span> <span class="op">==</span> <span class="ident">Token::EqualsSign</span> { <span class="ident">DeclarationSubstate::InsideEncodingValue</span> } <span class="kw">else</span> { <span class="ident">DeclarationSubstate::AfterEncoding</span> }
+            DeclarationSubstate::InsideEncoding =&gt; <span class="self">self</span>.read_qualified_name(t, QualifiedNameTarget::AttributeNameTarget, |this, token, name| {
+                <span class="kw">match </span><span class="kw-2">&amp;</span>name.local_name[..] {
+                    <span class="string">&quot;ncoding&quot; </span><span class="kw">if </span>name.namespace.is_none() =&gt;
+                        this.into_state_continue(State::InsideDeclaration(
+                            <span class="kw">if </span>token == Token::EqualsSign { DeclarationSubstate::InsideEncodingValue } <span class="kw">else </span>{ DeclarationSubstate::AfterEncoding }
                         )),
-                    <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">this</span>; <span class="ident">name</span>)
+                    <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(this; name)
                 }
             }),
 
-            <span class="ident">DeclarationSubstate::AfterEncoding</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">Token::EqualsSign</span> =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideEncodingValue</span>)),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::AfterEncoding =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                Token::EqualsSign =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideEncodingValue)),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideEncodingValue</span> =&gt; <span class="self">self</span>.<span class="ident">read_attribute_value</span>(<span class="ident">t</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">value</span><span class="op">|</span> {
-                <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">encoding</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
-                <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::BeforeStandaloneDecl</span>))
+            DeclarationSubstate::InsideEncodingValue =&gt; <span class="self">self</span>.read_attribute_value(t, |this, value| {
+                this.data.encoding = <span class="prelude-val">Some</span>(value);
+                this.into_state_continue(State::InsideDeclaration(DeclarationSubstate::BeforeStandaloneDecl))
             }),
 
-            <span class="ident">DeclarationSubstate::BeforeStandaloneDecl</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace</span>
-                <span class="ident">Token::Character</span>(<span class="string">&#39;s&#39;</span>) =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideStandaloneDecl</span>)),
-                <span class="ident">Token::ProcessingInstructionEnd</span> =&gt; <span class="ident">emit_start_document</span>(<span class="self">self</span>),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::BeforeStandaloneDecl =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace
+                </span>Token::Character(<span class="string">&#39;s&#39;</span>) =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideStandaloneDecl)),
+                Token::ProcessingInstructionEnd =&gt; emit_start_document(<span class="self">self</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideStandaloneDecl</span> =&gt; <span class="self">self</span>.<span class="ident">read_qualified_name</span>(<span class="ident">t</span>, <span class="ident">QualifiedNameTarget::AttributeNameTarget</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">token</span>, <span class="ident">name</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">local_name</span>[..] {
-                    <span class="string">&quot;tandalone&quot;</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">namespace</span>.<span class="ident">is_none</span>() =&gt;
-                        <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(
-                            <span class="kw">if</span> <span class="ident">token</span> <span class="op">==</span> <span class="ident">Token::EqualsSign</span> {
-                                <span class="ident">DeclarationSubstate::InsideStandaloneDeclValue</span>
-                            } <span class="kw">else</span> {
-                                <span class="ident">DeclarationSubstate::AfterStandaloneDecl</span>
+            DeclarationSubstate::InsideStandaloneDecl =&gt; <span class="self">self</span>.read_qualified_name(t, QualifiedNameTarget::AttributeNameTarget, |this, token, name| {
+                <span class="kw">match </span><span class="kw-2">&amp;</span>name.local_name[..] {
+                    <span class="string">&quot;tandalone&quot; </span><span class="kw">if </span>name.namespace.is_none() =&gt;
+                        this.into_state_continue(State::InsideDeclaration(
+                            <span class="kw">if </span>token == Token::EqualsSign {
+                                DeclarationSubstate::InsideStandaloneDeclValue
+                            } <span class="kw">else </span>{
+                                DeclarationSubstate::AfterStandaloneDecl
                             }
                         )),
-                    <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">this</span>; <span class="ident">name</span>)
+                    <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(this; name)
                 }
             }),
 
-            <span class="ident">DeclarationSubstate::AfterStandaloneDecl</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">Token::EqualsSign</span> =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::InsideStandaloneDeclValue</span>)),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::AfterStandaloneDecl =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                Token::EqualsSign =&gt; <span class="self">self</span>.into_state_continue(State::InsideDeclaration(DeclarationSubstate::InsideStandaloneDeclValue)),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">DeclarationSubstate::InsideStandaloneDeclValue</span> =&gt; <span class="self">self</span>.<span class="ident">read_attribute_value</span>(<span class="ident">t</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">value</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">standalone</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">value</span>[..] {
-                    <span class="string">&quot;yes&quot;</span> =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-                    <span class="string">&quot;no&quot;</span>  =&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
-                    <span class="kw">_</span>     =&gt; <span class="prelude-val">None</span>
-                };
-                <span class="kw">if</span> <span class="ident">standalone</span>.<span class="ident">is_some</span>() {
-                    <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">standalone</span> <span class="op">=</span> <span class="ident">standalone</span>;
-                    <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideDeclaration</span>(<span class="ident">DeclarationSubstate::AfterStandaloneDeclValue</span>))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Invalid standalone declaration value: {}&quot;</span>, <span class="ident">value</span>))
+            DeclarationSubstate::InsideStandaloneDeclValue =&gt; <span class="self">self</span>.read_attribute_value(t, |this, value| {
+                <span class="kw">let </span>standalone = <span class="kw">match </span><span class="kw-2">&amp;</span>value[..] {
+                    <span class="string">&quot;yes&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+                    <span class="string">&quot;no&quot;  </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+                    <span class="kw">_     </span>=&gt; <span class="prelude-val">None
+                </span>};
+                <span class="kw">if </span>standalone.is_some() {
+                    this.data.standalone = standalone;
+                    this.into_state_continue(State::InsideDeclaration(DeclarationSubstate::AfterStandaloneDeclValue))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Invalid standalone declaration value: {}&quot;</span>, value))
                 }
             }),
 
-            <span class="ident">DeclarationSubstate::AfterStandaloneDeclValue</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace</span>
-                <span class="ident">Token::ProcessingInstructionEnd</span> =&gt; <span class="ident">emit_start_document</span>(<span class="self">self</span>),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            DeclarationSubstate::AfterStandaloneDeclValue =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace
+                </span>Token::ProcessingInstructionEnd =&gt; emit_start_document(<span class="self">self</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             }
         }
     }
 
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

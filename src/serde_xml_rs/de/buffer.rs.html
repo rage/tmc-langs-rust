@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-xml-rs-0.6.0/src/de/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_xml_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../serde_xml_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_xml_rs/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-xml-rs-0.6.0/src/de/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_xml_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_xml_rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_xml_rs/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -173,175 +167,174 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::debug_expect</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Result</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::VecDeque</span>, <span class="ident">io::Read</span>};
-<span class="kw">use</span> <span class="ident">xml::reader</span>::{<span class="ident">EventReader</span>, <span class="ident">XmlEvent</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::debug_expect;
+<span class="kw">use </span><span class="kw">crate</span>::error::Result;
+<span class="kw">use </span>std::{collections::VecDeque, io::Read};
+<span class="kw">use </span>xml::reader::{EventReader, XmlEvent};
 
-<span class="doccomment">/// Retrieve XML events from an underlying reader.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BufferedXmlReader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Get and &quot;consume&quot; the next event.</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Retrieve XML events from an underlying reader.
+</span><span class="kw">pub trait </span>BufferedXmlReader&lt;R: Read&gt; {
+    <span class="doccomment">/// Get and &quot;consume&quot; the next event.
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;XmlEvent&gt;;
 
-    <span class="doccomment">/// Get the next event without consuming.</span>
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Get the next event without consuming.
+    </span><span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>XmlEvent&gt;;
 
-    <span class="doccomment">/// Spawn a child buffer whose cursor starts at the same position as this buffer.</span>
-    <span class="kw">fn</span> <span class="ident">child_buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Spawn a child buffer whose cursor starts at the same position as this buffer.
+    </span><span class="kw">fn </span>child_buffer&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; ChildXmlBuffer&lt;<span class="lifetime">&#39;a</span>, R&gt;;
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RootXmlBuffer</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> {
-    <span class="ident">reader</span>: <span class="ident">EventReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">buffer</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">CachedXmlEvent</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>RootXmlBuffer&lt;R: Read&gt; {
+    reader: EventReader&lt;R&gt;,
+    buffer: VecDeque&lt;CachedXmlEvent&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">RootXmlBuffer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">EventReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">RootXmlBuffer</span> {
-            <span class="ident">reader</span>,
-            <span class="ident">buffer</span>: <span class="ident">VecDeque::new</span>(),
+<span class="kw">impl</span>&lt;R: Read&gt; RootXmlBuffer&lt;R&gt; {
+    <span class="kw">pub fn </span>new(reader: EventReader&lt;R&gt;) -&gt; <span class="self">Self </span>{
+        RootXmlBuffer {
+            reader,
+            buffer: VecDeque::new(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">BufferedXmlReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RootXmlBuffer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumed XML events in the root buffer are moved to the caller</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">pop_front</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Unused</span>(<span class="ident">ev</span>)) =&gt; <span class="kw">break</span> <span class="prelude-val">Ok</span>(<span class="ident">ev</span>),
-                <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Used</span>) =&gt; <span class="kw">continue</span>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">break</span> <span class="ident">next_significant_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>),
+<span class="kw">impl</span>&lt;R: Read&gt; BufferedXmlReader&lt;R&gt; <span class="kw">for </span>RootXmlBuffer&lt;R&gt; {
+    <span class="doccomment">/// Consumed XML events in the root buffer are moved to the caller
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;XmlEvent&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.buffer.pop_front() {
+                <span class="prelude-val">Some</span>(CachedXmlEvent::Unused(ev)) =&gt; <span class="kw">break </span><span class="prelude-val">Ok</span>(ev),
+                <span class="prelude-val">Some</span>(CachedXmlEvent::Used) =&gt; <span class="kw">continue</span>,
+                <span class="prelude-val">None </span>=&gt; <span class="kw">break </span>next_significant_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>.reader),
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-        <span class="ident">get_from_buffer_or_reader</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">buffer</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="number">0</span>)
+    <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>XmlEvent&gt; {
+        get_from_buffer_or_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer, <span class="kw-2">&amp;mut </span><span class="self">self</span>.reader, <span class="kw-2">&amp;mut </span><span class="number">0</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">child_buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;root</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;root</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;root</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">RootXmlBuffer</span> { <span class="ident">reader</span>, <span class="ident">buffer</span> } <span class="op">=</span> <span class="self">self</span>;
-        <span class="ident">ChildXmlBuffer</span> {
-            <span class="ident">reader</span>,
-            <span class="ident">buffer</span>,
-            <span class="ident">cursor</span>: <span class="number">0</span>,
+    <span class="kw">fn </span>child_buffer&lt;<span class="lifetime">&#39;root</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;root </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; ChildXmlBuffer&lt;<span class="lifetime">&#39;root</span>, R&gt; {
+        <span class="kw">let </span>RootXmlBuffer { reader, buffer } = <span class="self">self</span>;
+        ChildXmlBuffer {
+            reader,
+            buffer,
+            cursor: <span class="number">0</span>,
         }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;parent</span>, <span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> {
-    <span class="ident">reader</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parent</span> <span class="kw-2">mut</span> <span class="ident">EventReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parent</span> <span class="kw-2">mut</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">CachedXmlEvent</span><span class="op">&gt;</span>,
-    <span class="ident">cursor</span>: <span class="ident">usize</span>,
+<span class="kw">pub struct </span>ChildXmlBuffer&lt;<span class="lifetime">&#39;parent</span>, R: Read&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parent </span><span class="kw-2">mut </span>EventReader&lt;R&gt;,
+    buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;parent </span><span class="kw-2">mut </span>VecDeque&lt;CachedXmlEvent&gt;,
+    cursor: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;parent</span>, <span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;parent</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Advance the child buffer without marking an event as &quot;used&quot;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">skip</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;parent</span>, R: Read&gt; ChildXmlBuffer&lt;<span class="lifetime">&#39;parent</span>, R&gt; {
+    <span class="doccomment">/// Advance the child buffer without marking an event as &quot;used&quot;
+    </span><span class="kw">pub fn </span>skip(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="macro">debug_assert!</span>(
-            <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>(),
-            <span class="string">&quot;.skip() only should be called after .peek()&quot;</span>
-        );
+            <span class="self">self</span>.cursor &lt; <span class="self">self</span>.buffer.len(),
+            <span class="string">&quot;.skip() only should be called after .peek()&quot;
+        </span>);
 
-        <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.cursor += <span class="number">1</span>;
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;parent</span>, <span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span> <span class="ident">BufferedXmlReader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;parent</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Consumed XML events in a child buffer are marked as &quot;used&quot;</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">get_mut</span>(<span class="self">self</span>.<span class="ident">cursor</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">entry</span> @ <span class="ident">CachedXmlEvent::Unused</span>(<span class="kw">_</span>)) =&gt; {
-                    <span class="kw">let</span> <span class="ident">taken</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">pop_front</span>().<span class="ident">unwrap</span>()
-                    } <span class="kw">else</span> {
-                        <span class="ident">std::mem::replace</span>(<span class="ident">entry</span>, <span class="ident">CachedXmlEvent::Used</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;parent</span>, R: Read&gt; BufferedXmlReader&lt;R&gt; <span class="kw">for </span>ChildXmlBuffer&lt;<span class="lifetime">&#39;parent</span>, R&gt; {
+    <span class="doccomment">/// Consumed XML events in a child buffer are marked as &quot;used&quot;
+    </span><span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;XmlEvent&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.buffer.get_mut(<span class="self">self</span>.cursor) {
+                <span class="prelude-val">Some</span>(entry @ CachedXmlEvent::Unused(<span class="kw">_</span>)) =&gt; {
+                    <span class="kw">let </span>taken = <span class="kw">if </span><span class="self">self</span>.cursor == <span class="number">0 </span>{
+                        <span class="self">self</span>.buffer.pop_front().unwrap()
+                    } <span class="kw">else </span>{
+                        std::mem::replace(entry, CachedXmlEvent::Used)
                     };
 
-                    <span class="kw">return</span> <span class="macro">debug_expect!</span>(<span class="ident">taken</span>, <span class="ident">CachedXmlEvent::Unused</span>(<span class="ident">ev</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">ev</span>));
+                    <span class="kw">return </span><span class="macro">debug_expect!</span>(taken, CachedXmlEvent::Unused(ev) =&gt; <span class="prelude-val">Ok</span>(ev));
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Used</span>) =&gt; {
+                <span class="prelude-val">Some</span>(CachedXmlEvent::Used) =&gt; {
                     <span class="macro">debug_assert!</span>(
-                        <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>,
-                        <span class="string">&quot;Event buffer should not start with &#39;used&#39; slot (should have been popped)&quot;</span>
-                    );
-                    <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        <span class="self">self</span>.cursor != <span class="number">0</span>,
+                        <span class="string">&quot;Event buffer should not start with &#39;used&#39; slot (should have been popped)&quot;
+                    </span>);
+                    <span class="self">self</span>.cursor += <span class="number">1</span>;
                     <span class="kw">continue</span>;
                 }
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>(), <span class="self">self</span>.<span class="ident">cursor</span>);
+                <span class="prelude-val">None </span>=&gt; {
+                    <span class="macro">debug_assert_eq!</span>(<span class="self">self</span>.buffer.len(), <span class="self">self</span>.cursor);
 
-                    <span class="comment">// Skip creation of buffer entry when consuming event straight away</span>
-                    <span class="kw">return</span> <span class="ident">next_significant_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">reader</span>);
+                    <span class="comment">// Skip creation of buffer entry when consuming event straight away
+                    </span><span class="kw">return </span>next_significant_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>.reader);
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">peek</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-        <span class="ident">get_from_buffer_or_reader</span>(<span class="self">self</span>.<span class="ident">buffer</span>, <span class="self">self</span>.<span class="ident">reader</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>)
+    <span class="kw">fn </span>peek(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>XmlEvent&gt; {
+        get_from_buffer_or_reader(<span class="self">self</span>.buffer, <span class="self">self</span>.reader, <span class="kw-2">&amp;mut </span><span class="self">self</span>.cursor)
     }
 
-    <span class="kw">fn</span> <span class="ident">child_buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">ChildXmlBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ChildXmlBuffer</span> {
-            <span class="ident">reader</span>,
-            <span class="ident">buffer</span>,
-            <span class="ident">cursor</span>,
-        } <span class="op">=</span> <span class="self">self</span>;
+    <span class="kw">fn </span>child_buffer&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; ChildXmlBuffer&lt;<span class="lifetime">&#39;a</span>, R&gt; {
+        <span class="kw">let </span>ChildXmlBuffer {
+            reader,
+            buffer,
+            cursor,
+        } = <span class="self">self</span>;
 
-        <span class="ident">ChildXmlBuffer</span> {
-            <span class="ident">reader</span>,
-            <span class="ident">buffer</span>,
-            <span class="ident">cursor</span>: <span class="kw-2">*</span><span class="ident">cursor</span>,
+        ChildXmlBuffer {
+            reader,
+            buffer,
+            cursor: <span class="kw-2">*</span>cursor,
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">CachedXmlEvent</span> {
-    <span class="ident">Unused</span>(<span class="ident">XmlEvent</span>),
-    <span class="ident">Used</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">enum </span>CachedXmlEvent {
+    Unused(XmlEvent),
+    Used,
 }
 
-<span class="kw">fn</span> <span class="ident">get_from_buffer_or_reader</span><span class="op">&lt;</span><span class="lifetime">&#39;buf</span><span class="op">&gt;</span>(
-    <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf</span> <span class="kw-2">mut</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">CachedXmlEvent</span><span class="op">&gt;</span>,
-    <span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventReader</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Read</span><span class="op">&gt;</span>,
-    <span class="ident">index</span>: <span class="kw-2">&amp;mut</span> <span class="ident">usize</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;buf</span> <span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-    <span class="comment">// We should only be attempting to get an event already in the buffer, or the next event to place in the buffer</span>
-    <span class="macro">debug_assert!</span>(<span class="kw-2">*</span><span class="ident">index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>());
+<span class="kw">fn </span>get_from_buffer_or_reader&lt;<span class="lifetime">&#39;buf</span>&gt;(
+    buffer: <span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span><span class="kw-2">mut </span>VecDeque&lt;CachedXmlEvent&gt;,
+    reader: <span class="kw-2">&amp;mut </span>EventReader&lt;<span class="kw">impl </span>Read&gt;,
+    index: <span class="kw-2">&amp;mut </span>usize,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;buf </span>XmlEvent&gt; {
+    <span class="comment">// We should only be attempting to get an event already in the buffer, or the next event to place in the buffer
+    </span><span class="macro">debug_assert!</span>(<span class="kw-2">*</span>index &lt;= buffer.len());
 
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">buffer</span>.<span class="ident">get_mut</span>(<span class="kw-2">*</span><span class="ident">index</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Unused</span>(<span class="kw">_</span>)) =&gt; <span class="kw">break</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Used</span>) =&gt; {
-                <span class="kw-2">*</span><span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">loop </span>{
+        <span class="kw">match </span>buffer.get_mut(<span class="kw-2">*</span>index) {
+            <span class="prelude-val">Some</span>(CachedXmlEvent::Unused(<span class="kw">_</span>)) =&gt; <span class="kw">break</span>,
+            <span class="prelude-val">Some</span>(CachedXmlEvent::Used) =&gt; {
+                <span class="kw-2">*</span>index += <span class="number">1</span>;
             }
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">next_significant_event</span>(<span class="ident">reader</span>)<span class="question-mark">?</span>;
-                <span class="ident">buffer</span>.<span class="ident">push_back</span>(<span class="ident">CachedXmlEvent::Unused</span>(<span class="ident">next</span>));
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="kw">let </span>next = next_significant_event(reader)<span class="question-mark">?</span>;
+                buffer.push_back(CachedXmlEvent::Unused(next));
             }
         }
     }
 
-    <span class="comment">// Returning of borrowed data must be done after of loop/match due to current limitation of borrow checker</span>
-    <span class="macro">debug_expect!</span>(<span class="ident">buffer</span>.<span class="ident">get_mut</span>(<span class="kw-2">*</span><span class="ident">index</span>), <span class="prelude-val">Some</span>(<span class="ident">CachedXmlEvent::Unused</span>(<span class="ident">event</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">event</span>))
+    <span class="comment">// Returning of borrowed data must be done after of loop/match due to current limitation of borrow checker
+    </span><span class="macro">debug_expect!</span>(buffer.get_mut(<span class="kw-2">*</span>index), <span class="prelude-val">Some</span>(CachedXmlEvent::Unused(event)) =&gt; <span class="prelude-val">Ok</span>(event))
 }
 
-<span class="doccomment">/// Reads the next XML event from the underlying reader, skipping events we&#39;re not interested in.</span>
-<span class="kw">fn</span> <span class="ident">next_significant_event</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EventReader</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Read</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">XmlEvent</span><span class="op">&gt;</span> {
-    <span class="kw">loop</span> {
-        <span class="kw">match</span> <span class="ident">reader</span>.<span class="ident">next</span>()<span class="question-mark">?</span> {
-            <span class="ident">XmlEvent::StartDocument</span> { .. }
-            <span class="op">|</span> <span class="ident">XmlEvent::ProcessingInstruction</span> { .. }
-            <span class="op">|</span> <span class="ident">XmlEvent::Whitespace</span> { .. }
-            <span class="op">|</span> <span class="ident">XmlEvent::Comment</span>(<span class="kw">_</span>) =&gt; { <span class="comment">/* skip */</span> }
-            <span class="ident">other</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">other</span>),
+<span class="doccomment">/// Reads the next XML event from the underlying reader, skipping events we&#39;re not interested in.
+</span><span class="kw">fn </span>next_significant_event(reader: <span class="kw-2">&amp;mut </span>EventReader&lt;<span class="kw">impl </span>Read&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;XmlEvent&gt; {
+    <span class="kw">loop </span>{
+        <span class="kw">match </span>reader.next()<span class="question-mark">? </span>{
+            XmlEvent::StartDocument { .. }
+            | XmlEvent::ProcessingInstruction { .. }
+            | XmlEvent::Whitespace { .. }
+            | XmlEvent::Comment(<span class="kw">_</span>) =&gt; { <span class="comment">/* skip */ </span>}
+            other =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(other),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_xml_rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_xml_rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

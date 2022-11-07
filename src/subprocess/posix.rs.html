@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/subprocess-0.2.9/src/posix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>posix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/subprocess-0.2.9/src/posix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>posix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../subprocess/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -410,412 +404,411 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::env</span>;
-<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CString</span>, <span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-<span class="kw">use</span> <span class="ident">std::fs::File</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use</span> <span class="ident">std::iter</span>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>;
-<span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">AsRawFd</span>, <span class="ident">FromRawFd</span>, <span class="ident">RawFd</span>};
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
-<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
-<span class="kw">use</span> <span class="ident">std::time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>std::env;
+<span class="kw">use </span>std::ffi::{CString, OsStr, OsString};
+<span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::{Error, <span class="prelude-ty">Result</span>};
+<span class="kw">use </span>std::iter;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::os::unix::ffi::OsStrExt;
+<span class="kw">use </span>std::os::unix::io::{AsRawFd, FromRawFd, RawFd};
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::time::{Duration, Instant};
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>};
+<span class="kw">use </span>libc::{c_char, c_int};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::os_common</span>::{<span class="ident">ExitStatus</span>, <span class="ident">StandardStream</span>};
+<span class="kw">use </span><span class="kw">crate</span>::os_common::{ExitStatus, StandardStream};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">ECHILD</span>, <span class="ident">ENOSPC</span>};
+<span class="kw">pub use </span>libc::{ECHILD, ENOSPC};
 
-<span class="kw">fn</span> <span class="ident">check_err</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span>(<span class="ident">num</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">num</span> <span class="op">&lt;</span> <span class="ident">T::default</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>());
+<span class="kw">fn </span>check_err&lt;T: Ord + Default&gt;(num: T) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
+    <span class="kw">if </span>num &lt; T::default() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error());
     }
-    <span class="prelude-val">Ok</span>(<span class="ident">num</span>)
+    <span class="prelude-val">Ok</span>(num)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pipe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">File</span>, <span class="ident">File</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fds</span> <span class="op">=</span> [<span class="number">0</span> <span class="kw">as</span> <span class="ident">c_int</span>; <span class="number">2</span>];
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::pipe</span>(<span class="ident">fds</span>.<span class="ident">as_mut_ptr</span>()) })<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> { (<span class="ident">File::from_raw_fd</span>(<span class="ident">fds</span>[<span class="number">0</span>]), <span class="ident">File::from_raw_fd</span>(<span class="ident">fds</span>[<span class="number">1</span>])) })
+<span class="kw">pub fn </span>pipe() -&gt; <span class="prelude-ty">Result</span>&lt;(File, File)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>fds = [<span class="number">0 </span><span class="kw">as </span>c_int; <span class="number">2</span>];
+    check_err(<span class="kw">unsafe </span>{ libc::pipe(fds.as_mut_ptr()) })<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ (File::from_raw_fd(fds[<span class="number">0</span>]), File::from_raw_fd(fds[<span class="number">1</span>])) })
 }
 
-<span class="comment">// marked unsafe because the child must not allocate before exec-ing</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fork</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">check_err</span>(<span class="ident">libc::fork</span>())<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="ident">pid</span> <span class="op">==</span> <span class="number">0</span> {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="comment">// child</span>
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">pid</span> <span class="kw">as</span> <span class="ident">u32</span>)) <span class="comment">// parent</span>
-    }
+<span class="comment">// marked unsafe because the child must not allocate before exec-ing
+</span><span class="kw">pub unsafe fn </span>fork() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;u32&gt;&gt; {
+    <span class="kw">let </span>pid = check_err(libc::fork())<span class="question-mark">?</span>;
+    <span class="kw">if </span>pid == <span class="number">0 </span>{
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="comment">// child
+    </span>} <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(pid <span class="kw">as </span>u32)) <span class="comment">// parent
+    </span>}
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setuid</span>(<span class="ident">uid</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::setuid</span>(<span class="ident">uid</span> <span class="kw">as</span> <span class="ident">libc::uid_t</span>) })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>setuid(uid: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    check_err(<span class="kw">unsafe </span>{ libc::setuid(uid <span class="kw">as </span>libc::uid_t) })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setgid</span>(<span class="ident">gid</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::setgid</span>(<span class="ident">gid</span> <span class="kw">as</span> <span class="ident">libc::gid_t</span>) })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>setgid(gid: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    check_err(<span class="kw">unsafe </span>{ libc::setgid(gid <span class="kw">as </span>libc::gid_t) })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setpgid</span>(<span class="ident">pid</span>: <span class="ident">u32</span>, <span class="ident">pgid</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::setpgid</span>(<span class="ident">pid</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">pgid</span> <span class="kw">as</span> <span class="kw">_</span>) })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>setpgid(pid: u32, pgid: u32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    check_err(<span class="kw">unsafe </span>{ libc::setpgid(pid <span class="kw">as _</span>, pgid <span class="kw">as _</span>) })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">os_to_cstring</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span> {
-    <span class="comment">// Like CString::new, but returns an io::Result for consistency with</span>
-    <span class="comment">// everything else.</span>
-    <span class="ident">CString::new</span>(<span class="ident">s</span>.<span class="ident">as_bytes</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error::from_raw_os_error</span>(<span class="ident">libc::EINVAL</span>))
+<span class="kw">fn </span>os_to_cstring(s: <span class="kw-2">&amp;</span>OsStr) -&gt; <span class="prelude-ty">Result</span>&lt;CString&gt; {
+    <span class="comment">// Like CString::new, but returns an io::Result for consistency with
+    // everything else.
+    </span>CString::new(s.as_bytes()).map_err(|<span class="kw">_</span>| Error::from_raw_os_error(libc::EINVAL))
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">CVec</span> {
-    <span class="comment">// Individual C strings.  Each element self.ptrs[i] points to the</span>
-    <span class="comment">// data of self.strings[i].as_bytes_with_nul().as_ptr().</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-    <span class="ident">strings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>CVec {
+    <span class="comment">// Individual C strings.  Each element self.ptrs[i] points to the
+    // data of self.strings[i].as_bytes_with_nul().as_ptr().
+    </span><span class="attribute">#[allow(dead_code)]
+    </span>strings: Vec&lt;CString&gt;,
 
-    <span class="comment">// nullptr-terminated vector of pointers to data inside</span>
-    <span class="comment">// self.strings.</span>
-    <span class="ident">ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">c_char</span><span class="op">&gt;</span>,
+    <span class="comment">// nullptr-terminated vector of pointers to data inside
+    // self.strings.
+    </span>ptrs: Vec&lt;<span class="kw-2">*const </span>c_char&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">CVec</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CVec</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">maybe_strings</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CString</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">slice</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">os_to_cstring</span>(<span class="ident">x</span>.<span class="ident">as_ref</span>())).<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">strings</span> <span class="op">=</span> <span class="ident">maybe_strings</span><span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">ptrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">strings</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_bytes_with_nul</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw">_</span>)
-            .<span class="ident">chain</span>(<span class="ident">iter::once</span>(<span class="ident">ptr::null</span>()))
-            .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">CVec</span> { <span class="ident">strings</span>, <span class="ident">ptrs</span> })
+<span class="kw">impl </span>CVec {
+    <span class="kw">fn </span>new(slice: <span class="kw-2">&amp;</span>[<span class="kw">impl </span>AsRef&lt;OsStr&gt;]) -&gt; <span class="prelude-ty">Result</span>&lt;CVec&gt; {
+        <span class="kw">let </span>maybe_strings: <span class="prelude-ty">Result</span>&lt;Vec&lt;CString&gt;&gt; =
+            slice.iter().map(|x| os_to_cstring(x.as_ref())).collect();
+        <span class="kw">let </span>strings = maybe_strings<span class="question-mark">?</span>;
+        <span class="kw">let </span>ptrs: Vec&lt;<span class="kw">_</span>&gt; = strings
+            .iter()
+            .map(|s| s.as_bytes_with_nul().as_ptr() <span class="kw">as _</span>)
+            .chain(iter::once(ptr::null()))
+            .collect();
+        <span class="prelude-val">Ok</span>(CVec { strings, ptrs })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_c_vec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <span class="kw-2">*const</span> <span class="ident">c_char</span> {
-        <span class="self">self</span>.<span class="ident">ptrs</span>.<span class="ident">as_ptr</span>()
+    <span class="kw">pub fn </span>as_c_vec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const *const </span>c_char {
+        <span class="self">self</span>.ptrs.as_ptr()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">split_path</span>(<span class="kw-2">mut</span> <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">OsStr</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span> {
-    <span class="comment">// Can&#39;t use `env::split`_path because it allocates OsString objects, and</span>
-    <span class="comment">// we need to iterate over PATH after fork() when allocations are strictly</span>
-    <span class="comment">// verboten.  We can&#39;t use `str::split()` either because PATH is an</span>
-    <span class="comment">// `OsStr`, and there is no `OsStr::split()`.</span>
-    <span class="ident">std::iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>) <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_bytes</span>().<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;:&#39;</span>) {
-            <span class="kw">let</span> <span class="ident">piece</span> <span class="op">=</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">as_bytes</span>()[..<span class="ident">pos</span>]);
-            <span class="ident">path</span> <span class="op">=</span> <span class="ident">OsStr::from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">as_bytes</span>()[<span class="ident">pos</span> <span class="op">+</span> <span class="number">1</span>..]);
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">piece</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">piece</span>);
+<span class="kw">fn </span>split_path(<span class="kw-2">mut </span>path: <span class="kw-2">&amp;</span>OsStr) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>OsStr&gt; {
+    <span class="comment">// Can&#39;t use `env::split`_path because it allocates OsString objects, and
+    // we need to iterate over PATH after fork() when allocations are strictly
+    // verboten.  We can&#39;t use `str::split()` either because PATH is an
+    // `OsStr`, and there is no `OsStr::split()`.
+    </span>std::iter::from_fn(<span class="kw">move </span>|| {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(pos) = path.as_bytes().iter().position(|<span class="kw-2">&amp;</span>c| c == <span class="string">b&#39;:&#39;</span>) {
+            <span class="kw">let </span>piece = OsStr::from_bytes(<span class="kw-2">&amp;</span>path.as_bytes()[..pos]);
+            path = OsStr::from_bytes(<span class="kw-2">&amp;</span>path.as_bytes()[pos + <span class="number">1</span>..]);
+            <span class="kw">if </span>!piece.is_empty() {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(piece);
             }
         }
-        <span class="kw">let</span> <span class="ident">piece</span> <span class="op">=</span> <span class="ident">path</span>;
-        <span class="ident">path</span> <span class="op">=</span> <span class="ident">OsStr::new</span>(<span class="string">&quot;&quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">piece</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">piece</span>);
+        <span class="kw">let </span>piece = path;
+        path = OsStr::new(<span class="string">&quot;&quot;</span>);
+        <span class="kw">if </span>!piece.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(piece);
         }
-        <span class="prelude-val">None</span>
-    })
+        <span class="prelude-val">None
+    </span>})
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::split_path</span>;
-    <span class="kw">use</span> <span class="ident">std</span>;
-    <span class="kw">use</span> <span class="ident">std::ffi::OsStr</span>;
-    <span class="kw">use</span> <span class="ident">std::os::unix::ffi::OsStrExt</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::split_path;
+    <span class="kw">use </span>std;
+    <span class="kw">use </span>std::ffi::OsStr;
+    <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 
-    <span class="kw">fn</span> <span class="ident">s</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="ident">split_path</span>(<span class="ident">OsStr::new</span>(<span class="ident">s</span>))
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">osstr</span><span class="op">|</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">osstr</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap</span>())
-            .<span class="ident">collect</span>()
+    <span class="kw">fn </span>s(s: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;<span class="kw-2">&amp;</span>str&gt; {
+        split_path(OsStr::new(s))
+            .map(|osstr| std::str::from_utf8(osstr.as_bytes()).unwrap())
+            .collect()
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_split_path</span>() {
-        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">OsStr</span><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_split_path() {
+        <span class="kw">let </span>empty = Vec::&lt;<span class="kw-2">&amp;</span>OsStr&gt;::new();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;a:b&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;one:twothree&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;one&quot;</span>, <span class="string">&quot;twothree&quot;</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;a:&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;&quot;</span>), <span class="ident">empty</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;:&quot;</span>), <span class="ident">empty</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;::&quot;</span>), <span class="ident">empty</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;:::&quot;</span>), <span class="ident">empty</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;a::b&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>(<span class="string">&quot;:a::::b:&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;a:b&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;one:twothree&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;one&quot;</span>, <span class="string">&quot;twothree&quot;</span>]);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;a:&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>]);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;&quot;</span>), empty);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;:&quot;</span>), empty);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;::&quot;</span>), empty);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;:::&quot;</span>), empty);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;a::b&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
+        <span class="macro">assert_eq!</span>(s(<span class="string">&quot;:a::::b:&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>]);
     }
 }
 
-<span class="kw">struct</span> <span class="ident">PrepExec</span> {
-    <span class="ident">cmd</span>: <span class="ident">OsString</span>,
-    <span class="ident">argvec</span>: <span class="ident">CVec</span>,
-    <span class="ident">envvec</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CVec</span><span class="op">&gt;</span>,
-    <span class="ident">search_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>,
-    <span class="ident">prealloc_exe</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>PrepExec {
+    cmd: OsString,
+    argvec: CVec,
+    envvec: <span class="prelude-ty">Option</span>&lt;CVec&gt;,
+    search_path: <span class="prelude-ty">Option</span>&lt;OsString&gt;,
+    prealloc_exe: Vec&lt;u8&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">PrepExec</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">cmd</span>: <span class="ident">OsString</span>,
-        <span class="ident">argvec</span>: <span class="ident">CVec</span>,
-        <span class="ident">envvec</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CVec</span><span class="op">&gt;</span>,
-        <span class="ident">search_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">PrepExec</span> {
-        <span class="comment">// Avoid allocation after fork() by pre-allocating the buffer</span>
-        <span class="comment">// that will be used for constructing the executable C string.</span>
+<span class="kw">impl </span>PrepExec {
+    <span class="kw">fn </span>new(
+        cmd: OsString,
+        argvec: CVec,
+        envvec: <span class="prelude-ty">Option</span>&lt;CVec&gt;,
+        search_path: <span class="prelude-ty">Option</span>&lt;OsString&gt;,
+    ) -&gt; PrepExec {
+        <span class="comment">// Avoid allocation after fork() by pre-allocating the buffer
+        // that will be used for constructing the executable C string.
 
-        <span class="comment">// Allocate enough room for &quot;&lt;pathdir&gt;/&lt;command&gt;\0&quot;, pathdir</span>
-        <span class="comment">// being the longest component of PATH.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">max_exe_len</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">search_path</span>) <span class="op">=</span> <span class="ident">search_path</span> {
-            <span class="comment">// make sure enough room is present for the largest of the</span>
-            <span class="comment">// PATH components, plus 1 for the intervening &#39;/&#39;.</span>
-            <span class="ident">max_exe_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> <span class="op">+</span> <span class="ident">split_path</span>(<span class="ident">search_path</span>).<span class="ident">map</span>(<span class="ident">OsStr::len</span>).<span class="ident">max</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+        // Allocate enough room for &quot;&lt;pathdir&gt;/&lt;command&gt;\0&quot;, pathdir
+        // being the longest component of PATH.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>max_exe_len = cmd.len() + <span class="number">1</span>;
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>search_path) = search_path {
+            <span class="comment">// make sure enough room is present for the largest of the
+            // PATH components, plus 1 for the intervening &#39;/&#39;.
+            </span>max_exe_len += <span class="number">1 </span>+ split_path(search_path).map(OsStr::len).max().unwrap_or(<span class="number">0</span>);
         }
 
-        <span class="ident">PrepExec</span> {
-            <span class="ident">cmd</span>,
-            <span class="ident">argvec</span>,
-            <span class="ident">envvec</span>,
-            <span class="ident">search_path</span>,
-            <span class="ident">prealloc_exe</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">max_exe_len</span>),
+        PrepExec {
+            cmd,
+            argvec,
+            envvec,
+            search_path,
+            prealloc_exe: Vec::with_capacity(max_exe_len),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">exec</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="comment">// Invoked after fork() - no heap allocation allowed</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exe</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">prealloc_exe</span>);
+    <span class="kw">fn </span>exec(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="comment">// Invoked after fork() - no heap allocation allowed
+        </span><span class="kw">let </span><span class="kw-2">mut </span>exe = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.prealloc_exe);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">search_path</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">search_path</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(());
-            <span class="comment">// POSIX requires execvp and execve, but not execvpe (although</span>
-            <span class="comment">// glibc provides one), so we have to iterate over PATH ourselves</span>
-            <span class="kw">for</span> <span class="ident">dir</span> <span class="kw">in</span> <span class="ident">split_path</span>(<span class="ident">search_path</span>.<span class="ident">as_os_str</span>()) {
-                <span class="ident">err</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">libc_exec</span>(<span class="ident">PrepExec::assemble_exe</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="ident">exe</span>,
-                    <span class="kw-2">&amp;</span>[<span class="ident">dir</span>.<span class="ident">as_bytes</span>(), <span class="string">b&quot;/&quot;</span>, <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">as_bytes</span>()],
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>search_path) = <span class="self">self</span>.search_path {
+            <span class="kw">let </span><span class="kw-2">mut </span>err = <span class="prelude-val">Ok</span>(());
+            <span class="comment">// POSIX requires execvp and execve, but not execvpe (although
+            // glibc provides one), so we have to iterate over PATH ourselves
+            </span><span class="kw">for </span>dir <span class="kw">in </span>split_path(search_path.as_os_str()) {
+                err = <span class="self">self</span>.libc_exec(PrepExec::assemble_exe(
+                    <span class="kw-2">&amp;mut </span>exe,
+                    <span class="kw-2">&amp;</span>[dir.as_bytes(), <span class="string">b&quot;/&quot;</span>, <span class="self">self</span>.cmd.as_bytes()],
                 ));
-                <span class="comment">// if exec succeeds, we won&#39;t run anymore; if we&#39;re here, it failed</span>
-                <span class="macro">assert!</span>(<span class="ident">err</span>.<span class="ident">is_err</span>());
+                <span class="comment">// if exec succeeds, we won&#39;t run anymore; if we&#39;re here, it failed
+                </span><span class="macro">assert!</span>(err.is_err());
             }
-            <span class="comment">// we haven&#39;t found the command anywhere on the path, just return</span>
-            <span class="comment">// the last error</span>
-            <span class="kw">return</span> <span class="ident">err</span>;
+            <span class="comment">// we haven&#39;t found the command anywhere on the path, just return
+            // the last error
+            </span><span class="kw">return </span>err;
         }
 
-        <span class="self">self</span>.<span class="ident">libc_exec</span>(<span class="ident">PrepExec::assemble_exe</span>(<span class="kw-2">&amp;mut</span> <span class="ident">exe</span>, <span class="kw-2">&amp;</span>[<span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">as_bytes</span>()]))<span class="question-mark">?</span>;
+        <span class="self">self</span>.libc_exec(PrepExec::assemble_exe(<span class="kw-2">&amp;mut </span>exe, <span class="kw-2">&amp;</span>[<span class="self">self</span>.cmd.as_bytes()]))<span class="question-mark">?</span>;
 
-        <span class="comment">// failed exec can only return Err(..)</span>
-        <span class="macro">unreachable!</span>();
+        <span class="comment">// failed exec can only return Err(..)
+        </span><span class="macro">unreachable!</span>();
     }
 
-    <span class="kw">fn</span> <span class="ident">assemble_exe</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">storage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">components</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="ident">u8</span>]]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>] {
-        <span class="ident">storage</span>.<span class="ident">truncate</span>(<span class="number">0</span>);
-        <span class="kw">for</span> <span class="ident">comp</span> <span class="kw">in</span> <span class="ident">components</span> {
-            <span class="ident">storage</span>.<span class="ident">extend_from_slice</span>(<span class="ident">comp</span>);
+    <span class="kw">fn </span>assemble_exe&lt;<span class="lifetime">&#39;a</span>&gt;(storage: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;u8&gt;, components: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[u8]]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        storage.truncate(<span class="number">0</span>);
+        <span class="kw">for </span>comp <span class="kw">in </span>components {
+            storage.extend_from_slice(comp);
         }
-        <span class="comment">// `storage` will be passed to libc::execve so it must end with \0.</span>
-        <span class="ident">storage</span>.<span class="ident">push</span>(<span class="number">0u8</span>);
-        <span class="ident">storage</span>.<span class="ident">as_slice</span>()
+        <span class="comment">// `storage` will be passed to libc::execve so it must end with \0.
+        </span>storage.push(<span class="number">0u8</span>);
+        storage.as_slice()
     }
 
-    <span class="kw">fn</span> <span class="ident">libc_exec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exe</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">envvec</span>.<span class="ident">as_ref</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">envvec</span>) =&gt; {
-                    <span class="ident">libc::execve</span>(<span class="ident">exe</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw">_</span>, <span class="self">self</span>.<span class="ident">argvec</span>.<span class="ident">as_c_vec</span>(), <span class="ident">envvec</span>.<span class="ident">as_c_vec</span>())
+    <span class="kw">fn </span>libc_exec(<span class="kw-2">&amp;</span><span class="self">self</span>, exe: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span><span class="self">self</span>.envvec.as_ref() {
+                <span class="prelude-val">Some</span>(envvec) =&gt; {
+                    libc::execve(exe.as_ptr() <span class="kw">as _</span>, <span class="self">self</span>.argvec.as_c_vec(), envvec.as_c_vec())
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="ident">libc::execv</span>(<span class="ident">exe</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw">_</span>, <span class="self">self</span>.<span class="ident">argvec</span>.<span class="ident">as_c_vec</span>()),
+                <span class="prelude-val">None </span>=&gt; libc::execv(exe.as_ptr() <span class="kw">as _</span>, <span class="self">self</span>.argvec.as_c_vec()),
             }
         };
-        <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>())
+        <span class="prelude-val">Err</span>(Error::last_os_error())
     }
 }
 
-<span class="doccomment">/// Prepare everything needed to `exec()` the provided `cmd` after `fork()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Since code executed in the child after a `fork()` is not allowed to</span>
-<span class="doccomment">/// allocate (because the lock might be held), this allocates everything</span>
-<span class="doccomment">/// beforehand.</span>
+<span class="doccomment">/// Prepare everything needed to `exec()` the provided `cmd` after `fork()`.
+///
+/// Since code executed in the child after a `fork()` is not allowed to
+/// allocate (because the lock might be held), this allocates everything
+/// beforehand.
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prep_exec</span>(
-    <span class="ident">cmd</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>,
-    <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>],
-    <span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">OsStr</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>();
-    <span class="kw">let</span> <span class="ident">argvec</span> <span class="op">=</span> <span class="ident">CVec::new</span>(<span class="ident">args</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">envvec</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span> <span class="ident">env</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">CVec::new</span>(<span class="ident">env</span>)<span class="question-mark">?</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    };
+</span><span class="kw">pub fn </span>prep_exec(
+    cmd: <span class="kw">impl </span>AsRef&lt;OsStr&gt;,
+    args: <span class="kw-2">&amp;</span>[<span class="kw">impl </span>AsRef&lt;OsStr&gt;],
+    env: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[<span class="kw">impl </span>AsRef&lt;OsStr&gt;]&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;&gt; {
+    <span class="kw">let </span>cmd = cmd.as_ref().to_owned();
+    <span class="kw">let </span>argvec = CVec::new(args)<span class="question-mark">?</span>;
+    <span class="kw">let </span>envvec = <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = env {
+        <span class="prelude-val">Some</span>(CVec::new(env)<span class="question-mark">?</span>)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
 
-    <span class="kw">let</span> <span class="ident">search_path</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">as_bytes</span>().<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="string">b&#39;/&#39;</span>) {
-        <span class="ident">env::var_os</span>(<span class="string">&quot;PATH&quot;</span>)
-            <span class="comment">// treat empty path as non-existent</span>
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">p</span>) })
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    };
+    <span class="kw">let </span>search_path = <span class="kw">if </span>!cmd.as_bytes().iter().any(|<span class="kw-2">&amp;</span>b| b == <span class="string">b&#39;/&#39;</span>) {
+        env::var_os(<span class="string">&quot;PATH&quot;</span>)
+            <span class="comment">// treat empty path as non-existent
+            </span>.and_then(|p| <span class="kw">if </span>p.len() == <span class="number">0 </span>{ <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(p) })
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
 
-    <span class="comment">// Allocate now and return a closure that just does the exec.</span>
-    <span class="kw">let</span> <span class="ident">prep</span> <span class="op">=</span> <span class="ident">PrepExec::new</span>(<span class="ident">cmd</span>, <span class="ident">argvec</span>, <span class="ident">envvec</span>, <span class="ident">search_path</span>);
-    <span class="prelude-val">Ok</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">prep</span>.<span class="ident">exec</span>())
+    <span class="comment">// Allocate now and return a closure that just does the exec.
+    </span><span class="kw">let </span>prep = PrepExec::new(cmd, argvec, envvec, search_path);
+    <span class="prelude-val">Ok</span>(<span class="kw">move </span>|| prep.exec())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">_exit</span>(<span class="ident">status</span>: <span class="ident">u8</span>) -&gt; <span class="op">!</span> {
-    <span class="kw">unsafe</span> { <span class="ident">libc::_exit</span>(<span class="ident">status</span> <span class="kw">as</span> <span class="ident">c_int</span>) }
+<span class="kw">pub fn </span>_exit(status: u8) -&gt; ! {
+    <span class="kw">unsafe </span>{ libc::_exit(status <span class="kw">as </span>c_int) }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WNOHANG</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc::WNOHANG</span>;
+<span class="kw">pub const </span>WNOHANG: i32 = libc::WNOHANG;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">waitpid</span>(<span class="ident">pid</span>: <span class="ident">u32</span>, <span class="ident">flags</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">ExitStatus</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">status</span> <span class="op">=</span> <span class="number">0</span> <span class="kw">as</span> <span class="ident">c_int</span>;
-    <span class="kw">let</span> <span class="ident">pid</span> <span class="op">=</span> <span class="ident">check_err</span>(<span class="kw">unsafe</span> {
-        <span class="ident">libc::waitpid</span>(
-            <span class="ident">pid</span> <span class="kw">as</span> <span class="ident">libc::pid_t</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">status</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">c_int</span>,
-            <span class="ident">flags</span> <span class="kw">as</span> <span class="ident">c_int</span>,
+<span class="kw">pub fn </span>waitpid(pid: u32, flags: i32) -&gt; <span class="prelude-ty">Result</span>&lt;(u32, ExitStatus)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>status = <span class="number">0 </span><span class="kw">as </span>c_int;
+    <span class="kw">let </span>pid = check_err(<span class="kw">unsafe </span>{
+        libc::waitpid(
+            pid <span class="kw">as </span>libc::pid_t,
+            <span class="kw-2">&amp;mut </span>status <span class="kw">as </span><span class="kw-2">*mut </span>c_int,
+            flags <span class="kw">as </span>c_int,
         )
     })<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((<span class="ident">pid</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">decode_exit_status</span>(<span class="ident">status</span>)))
+    <span class="prelude-val">Ok</span>((pid <span class="kw">as </span>u32, decode_exit_status(status)))
 }
 
-<span class="kw">fn</span> <span class="ident">decode_exit_status</span>(<span class="ident">status</span>: <span class="ident">i32</span>) -&gt; <span class="ident">ExitStatus</span> {
-    <span class="kw">if</span> <span class="ident">libc::WIFEXITED</span>(<span class="ident">status</span>) {
-        <span class="ident">ExitStatus::Exited</span>(<span class="ident">libc::WEXITSTATUS</span>(<span class="ident">status</span>) <span class="kw">as</span> <span class="ident">u32</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">libc::WIFSIGNALED</span>(<span class="ident">status</span>) {
-        <span class="ident">ExitStatus::Signaled</span>(<span class="ident">libc::WTERMSIG</span>(<span class="ident">status</span>) <span class="kw">as</span> <span class="ident">u8</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">ExitStatus::Other</span>(<span class="ident">status</span>)
+<span class="kw">fn </span>decode_exit_status(status: i32) -&gt; ExitStatus {
+    <span class="kw">if </span>libc::WIFEXITED(status) {
+        ExitStatus::Exited(libc::WEXITSTATUS(status) <span class="kw">as </span>u32)
+    } <span class="kw">else if </span>libc::WIFSIGNALED(status) {
+        ExitStatus::Signaled(libc::WTERMSIG(status) <span class="kw">as </span>u8)
+    } <span class="kw">else </span>{
+        ExitStatus::Other(status)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">SIGKILL</span>, <span class="ident">SIGTERM</span>};
+<span class="kw">pub use </span>libc::{SIGKILL, SIGTERM};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kill</span>(<span class="ident">pid</span>: <span class="ident">u32</span>, <span class="ident">signal</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::kill</span>(<span class="ident">pid</span> <span class="kw">as</span> <span class="ident">c_int</span>, <span class="ident">signal</span>) })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>kill(pid: u32, signal: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    check_err(<span class="kw">unsafe </span>{ libc::kill(pid <span class="kw">as </span>c_int, signal) })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">F_GETFD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc::F_GETFD</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">F_SETFD</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc::F_SETFD</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FD_CLOEXEC</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">libc::FD_CLOEXEC</span>;
+<span class="kw">pub const </span>F_GETFD: i32 = libc::F_GETFD;
+<span class="kw">pub const </span>F_SETFD: i32 = libc::F_SETFD;
+<span class="kw">pub const </span>FD_CLOEXEC: i32 = libc::FD_CLOEXEC;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fcntl</span>(<span class="ident">fd</span>: <span class="ident">i32</span>, <span class="ident">cmd</span>: <span class="ident">i32</span>, <span class="ident">arg1</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> {
-        <span class="kw">match</span> <span class="ident">arg1</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">arg1</span>) =&gt; <span class="ident">libc::fcntl</span>(<span class="ident">fd</span>, <span class="ident">cmd</span>, <span class="ident">arg1</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="ident">libc::fcntl</span>(<span class="ident">fd</span>, <span class="ident">cmd</span>),
+<span class="kw">pub fn </span>fcntl(fd: i32, cmd: i32, arg1: <span class="prelude-ty">Option</span>&lt;i32&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;i32&gt; {
+    check_err(<span class="kw">unsafe </span>{
+        <span class="kw">match </span>arg1 {
+            <span class="prelude-val">Some</span>(arg1) =&gt; libc::fcntl(fd, cmd, arg1),
+            <span class="prelude-val">None </span>=&gt; libc::fcntl(fd, cmd),
         }
     })
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dup2</span>(<span class="ident">oldfd</span>: <span class="ident">i32</span>, <span class="ident">newfd</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">check_err</span>(<span class="kw">unsafe</span> { <span class="ident">libc::dup2</span>(<span class="ident">oldfd</span>, <span class="ident">newfd</span>) })<span class="question-mark">?</span>;
+<span class="kw">pub fn </span>dup2(oldfd: i32, newfd: i32) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    check_err(<span class="kw">unsafe </span>{ libc::dup2(oldfd, newfd) })<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_standard_stream</span>(<span class="ident">which</span>: <span class="ident">StandardStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="kw">unsafe</span> { <span class="ident">File::from_raw_fd</span>(<span class="ident">which</span> <span class="kw">as</span> <span class="ident">RawFd</span>) });
-    <span class="comment">// Leak the Rc so the object we return doesn&#39;t close the underlying file</span>
-    <span class="comment">// descriptor.  We didn&#39;t open it, and it is shared by everything else, so</span>
-    <span class="comment">// we are not allowed to close it either.</span>
-    <span class="ident">mem::forget</span>(<span class="ident">Rc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">stream</span>));
-    <span class="prelude-val">Ok</span>(<span class="ident">stream</span>)
+<span class="kw">pub fn </span>make_standard_stream(which: StandardStream) -&gt; <span class="prelude-ty">Result</span>&lt;Rc&lt;File&gt;&gt; {
+    <span class="kw">let </span>stream = Rc::new(<span class="kw">unsafe </span>{ File::from_raw_fd(which <span class="kw">as </span>RawFd) });
+    <span class="comment">// Leak the Rc so the object we return doesn&#39;t close the underlying file
+    // descriptor.  We didn&#39;t open it, and it is shared by everything else, so
+    // we are not allowed to close it either.
+    </span>mem::forget(Rc::clone(<span class="kw-2">&amp;</span>stream));
+    <span class="prelude-val">Ok</span>(stream)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_sigpipe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="comment">// This is called after forking to reset SIGPIPE handling to the</span>
-    <span class="comment">// defaults that Unix programs expect.  Quoting</span>
-    <span class="comment">// std::process::Command::do_exec:</span>
-    <span class="comment">//</span>
-    <span class="comment">// &quot;&quot;&quot;</span>
-    <span class="comment">// libstd ignores SIGPIPE, and signal-handling libraries often set</span>
-    <span class="comment">// a mask. Child processes inherit ignored signals and the signal</span>
-    <span class="comment">// mask from their parent, but most UNIX programs do not reset</span>
-    <span class="comment">// these things on their own, so we need to clean things up now to</span>
-    <span class="comment">// avoid confusing the program we&#39;re about to run.</span>
-    <span class="comment">// &quot;&quot;&quot;</span>
+<span class="kw">pub fn </span>reset_sigpipe() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="comment">// This is called after forking to reset SIGPIPE handling to the
+    // defaults that Unix programs expect.  Quoting
+    // std::process::Command::do_exec:
+    //
+    // &quot;&quot;&quot;
+    // libstd ignores SIGPIPE, and signal-handling libraries often set
+    // a mask. Child processes inherit ignored signals and the signal
+    // mask from their parent, but most UNIX programs do not reset
+    // these things on their own, so we need to clean things up now to
+    // avoid confusing the program we&#39;re about to run.
+    // &quot;&quot;&quot;
 
-    <span class="kw">unsafe</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span>: <span class="ident">mem::MaybeUninit</span><span class="op">&lt;</span><span class="ident">libc::sigset_t</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">mem::MaybeUninit::uninit</span>();
-        <span class="ident">check_err</span>(<span class="ident">libc::sigemptyset</span>(<span class="ident">set</span>.<span class="ident">as_mut_ptr</span>()))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">assume_init</span>();
-        <span class="ident">check_err</span>(<span class="ident">libc::pthread_sigmask</span>(
-            <span class="ident">libc::SIG_SETMASK</span>,
-            <span class="kw-2">&amp;</span><span class="ident">set</span>,
-            <span class="ident">ptr::null_mut</span>(),
+    </span><span class="kw">unsafe </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>set: mem::MaybeUninit&lt;libc::sigset_t&gt; = mem::MaybeUninit::uninit();
+        check_err(libc::sigemptyset(set.as_mut_ptr()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>set = set.assume_init();
+        check_err(libc::pthread_sigmask(
+            libc::SIG_SETMASK,
+            <span class="kw-2">&amp;</span>set,
+            ptr::null_mut(),
         ))<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">libc::signal</span>(<span class="ident">libc::SIGPIPE</span>, <span class="ident">libc::SIG_DFL</span>) {
-            <span class="ident">libc::SIG_ERR</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>()),
-            <span class="kw">_</span> =&gt; (),
+        <span class="kw">match </span>libc::signal(libc::SIGPIPE, libc::SIG_DFL) {
+            libc::SIG_ERR =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(Error::last_os_error()),
+            <span class="kw">_ </span>=&gt; (),
         }
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PollFd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">libc::pollfd</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> ()<span class="op">&gt;</span>);
+<span class="attribute">#[repr(C)]
+</span><span class="kw">pub struct </span>PollFd&lt;<span class="lifetime">&#39;a</span>&gt;(libc::pollfd, PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>()&gt;);
 
-<span class="kw">impl</span> <span class="ident">PollFd</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">file</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">File</span><span class="op">&gt;</span>, <span class="ident">events</span>: <span class="ident">i16</span>) -&gt; <span class="ident">PollFd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">PollFd</span>(
-            <span class="ident">libc::pollfd</span> {
-                <span class="ident">fd</span>: <span class="ident">file</span>.<span class="ident">map</span>(<span class="ident">File::as_raw_fd</span>).<span class="ident">unwrap_or</span>(<span class="op">-</span><span class="number">1</span>),
-                <span class="ident">events</span>,
-                <span class="ident">revents</span>: <span class="number">0</span>,
+<span class="kw">impl </span>PollFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(file: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>File&gt;, events: i16) -&gt; PollFd&lt;<span class="lifetime">&#39;a</span>&gt; {
+        PollFd(
+            libc::pollfd {
+                fd: file.map(File::as_raw_fd).unwrap_or(-<span class="number">1</span>),
+                events,
+                revents: <span class="number">0</span>,
             },
-            <span class="ident">PhantomData</span>,
+            PhantomData,
         )
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mask</span>: <span class="ident">i16</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">revents</span> <span class="op">&amp;</span> <span class="ident">mask</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    }
+    <span class="kw">pub fn </span>test(<span class="kw-2">&amp;</span><span class="self">self</span>, mask: i16) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.revents &amp; mask != <span class="number">0
+    </span>}
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">POLLERR</span>, <span class="ident">POLLHUP</span>, <span class="ident">POLLIN</span>, <span class="ident">POLLNVAL</span>, <span class="ident">POLLOUT</span>, <span class="ident">POLLPRI</span>};
+<span class="kw">pub use </span>libc::{POLLERR, POLLHUP, POLLIN, POLLNVAL, POLLOUT, POLLPRI};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="ident">fds</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">PollFd</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>], <span class="kw-2">mut</span> <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="ident">timeout</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">timeout</span><span class="op">|</span> <span class="ident">Instant::now</span>() <span class="op">+</span> <span class="ident">timeout</span>);
-    <span class="kw">loop</span> {
-        <span class="comment">// poll() accepts a maximum timeout of 2**31-1 ms, which is</span>
-        <span class="comment">// less than 25 days.  The caller can specify Durations much</span>
-        <span class="comment">// larger than that, so support them by waiting in a loop.</span>
-        <span class="kw">let</span> (<span class="ident">timeout_ms</span>, <span class="ident">overflow</span>) <span class="op">=</span> <span class="ident">timeout</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">timeout</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">timeout</span>.<span class="ident">as_millis</span>();
-                <span class="kw">if</span> <span class="ident">timeout</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i32::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span> {
-                    (<span class="ident">timeout</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="bool-val">false</span>)
-                } <span class="kw">else</span> {
-                    (<span class="ident">i32::max_value</span>(), <span class="bool-val">true</span>)
+<span class="kw">pub fn </span>poll(fds: <span class="kw-2">&amp;mut </span>[PollFd&lt;<span class="lifetime">&#39;_</span>&gt;], <span class="kw-2">mut </span>timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;usize&gt; {
+    <span class="kw">let </span>deadline = timeout.map(|timeout| Instant::now() + timeout);
+    <span class="kw">loop </span>{
+        <span class="comment">// poll() accepts a maximum timeout of 2**31-1 ms, which is
+        // less than 25 days.  The caller can specify Durations much
+        // larger than that, so support them by waiting in a loop.
+        </span><span class="kw">let </span>(timeout_ms, overflow) = timeout
+            .map(|timeout| {
+                <span class="kw">let </span>timeout = timeout.as_millis();
+                <span class="kw">if </span>timeout &lt;= i32::max_value() <span class="kw">as </span>u128 {
+                    (timeout <span class="kw">as </span>i32, <span class="bool-val">false</span>)
+                } <span class="kw">else </span>{
+                    (i32::max_value(), <span class="bool-val">true</span>)
                 }
             })
-            .<span class="ident">unwrap_or</span>((<span class="op">-</span><span class="number">1</span>, <span class="bool-val">false</span>));
-        <span class="kw">let</span> <span class="ident">fds_ptr</span> <span class="op">=</span> <span class="ident">fds</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::pollfd</span>;
-        <span class="kw">let</span> <span class="ident">cnt</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">check_err</span>(<span class="ident">libc::poll</span>(<span class="ident">fds_ptr</span>, <span class="ident">fds</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">libc::nfds_t</span>, <span class="ident">timeout_ms</span>))<span class="question-mark">?</span> };
-        <span class="kw">if</span> <span class="ident">cnt</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">overflow</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">cnt</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            .unwrap_or((-<span class="number">1</span>, <span class="bool-val">false</span>));
+        <span class="kw">let </span>fds_ptr = fds.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::pollfd;
+        <span class="kw">let </span>cnt = <span class="kw">unsafe </span>{ check_err(libc::poll(fds_ptr, fds.len() <span class="kw">as </span>libc::nfds_t, timeout_ms))<span class="question-mark">? </span>};
+        <span class="kw">if </span>cnt != <span class="number">0 </span>|| !overflow {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(cnt <span class="kw">as </span>usize);
         }
 
-        <span class="kw">let</span> <span class="ident">deadline</span> <span class="op">=</span> <span class="ident">deadline</span>.<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
-        <span class="kw">if</span> <span class="ident">now</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">deadline</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        <span class="kw">let </span>deadline = deadline.unwrap();
+        <span class="kw">let </span>now = Instant::now();
+        <span class="kw">if </span>now &gt;= deadline {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
-        <span class="ident">timeout</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span> <span class="op">-</span> <span class="ident">now</span>);
+        timeout = <span class="prelude-val">Some</span>(deadline - now);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="subprocess" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

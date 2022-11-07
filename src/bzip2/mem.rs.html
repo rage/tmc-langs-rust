@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bzip2-0.4.3/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bzip2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bzip2-0.4.3/src/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../bzip2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bzip2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -328,330 +322,329 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Raw low-level manipulations of bz streams.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Raw low-level manipulations of bz streams.
 
-<span class="kw">use</span> <span class="ident">std::error</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::marker</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>;
-<span class="kw">use</span> <span class="ident">std::slice</span>;
+</span><span class="kw">use </span>std::error;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::marker;
+<span class="kw">use </span>std::mem;
+<span class="kw">use </span>std::slice;
 
-<span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_int</span>, <span class="ident">c_uint</span>};
+<span class="kw">use </span>libc::{c_int, c_uint};
 
-<span class="kw">use</span> {<span class="ident">ffi</span>, <span class="ident">Compression</span>};
+<span class="kw">use </span>{ffi, Compression};
 
-<span class="doccomment">/// Representation of an in-memory compression stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An instance of `Compress` can be used to compress a stream of bz2 data.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compress</span> {
-    <span class="ident">inner</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">DirCompress</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Representation of an in-memory compression stream.
+///
+/// An instance of `Compress` can be used to compress a stream of bz2 data.
+</span><span class="kw">pub struct </span>Compress {
+    inner: Stream&lt;DirCompress&gt;,
 }
 
-<span class="doccomment">/// Representation of an in-memory decompression stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// An instance of `Decompress` can be used to inflate a stream of bz2-encoded</span>
-<span class="doccomment">/// data.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Decompress</span> {
-    <span class="ident">inner</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">DirDecompress</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Representation of an in-memory decompression stream.
+///
+/// An instance of `Decompress` can be used to inflate a stream of bz2-encoded
+/// data.
+</span><span class="kw">pub struct </span>Decompress {
+    inner: Stream&lt;DirDecompress&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Direction</span><span class="op">&gt;</span> {
-    <span class="comment">// libbz2 requires a stable address for this stream.</span>
-    <span class="ident">raw</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ffi::bz_stream</span><span class="op">&gt;</span>,
-    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Stream&lt;D: Direction&gt; {
+    <span class="comment">// libbz2 requires a stable address for this stream.
+    </span>raw: Box&lt;ffi::bz_stream&gt;,
+    _marker: marker::PhantomData&lt;D&gt;,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {}
+<span class="kw">unsafe impl</span>&lt;D: Direction&gt; Send <span class="kw">for </span>Stream&lt;D&gt; {}
+<span class="kw">unsafe impl</span>&lt;D: Direction&gt; Sync <span class="kw">for </span>Stream&lt;D&gt; {}
 
-<span class="kw">trait</span> <span class="ident">Direction</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::bz_stream</span>) -&gt; <span class="ident">c_int</span>;
+<span class="kw">trait </span>Direction {
+    <span class="kw">unsafe fn </span>destroy(stream: <span class="kw-2">*mut </span>ffi::bz_stream) -&gt; c_int;
 }
 
-<span class="kw">enum</span> <span class="ident">DirCompress</span> {}
-<span class="kw">enum</span> <span class="ident">DirDecompress</span> {}
+<span class="kw">enum </span>DirCompress {}
+<span class="kw">enum </span>DirDecompress {}
 
-<span class="doccomment">/// Possible actions to take on compression.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-    <span class="doccomment">/// Normal compression.</span>
-    <span class="ident">Run</span> <span class="op">=</span> <span class="ident">ffi::BZ_RUN</span> <span class="kw">as</span> <span class="ident">isize</span>,
-    <span class="doccomment">/// Request that the current compression block is terminate.</span>
-    <span class="ident">Flush</span> <span class="op">=</span> <span class="ident">ffi::BZ_FLUSH</span> <span class="kw">as</span> <span class="ident">isize</span>,
-    <span class="doccomment">/// Request that the compression stream be finalized.</span>
-    <span class="ident">Finish</span> <span class="op">=</span> <span class="ident">ffi::BZ_FINISH</span> <span class="kw">as</span> <span class="ident">isize</span>,
+<span class="doccomment">/// Possible actions to take on compression.
+</span><span class="attribute">#[derive(PartialEq, Eq, Copy, Debug, Clone)]
+</span><span class="kw">pub enum </span>Action {
+    <span class="doccomment">/// Normal compression.
+    </span>Run = ffi::BZ_RUN <span class="kw">as </span>isize,
+    <span class="doccomment">/// Request that the current compression block is terminate.
+    </span>Flush = ffi::BZ_FLUSH <span class="kw">as </span>isize,
+    <span class="doccomment">/// Request that the compression stream be finalized.
+    </span>Finish = ffi::BZ_FINISH <span class="kw">as </span>isize,
 }
 
-<span class="doccomment">/// Result of compression or decompression</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Status</span> {
-    <span class="doccomment">/// Decompression went fine, nothing much to report.</span>
-    <span class="prelude-val">Ok</span>,
+<span class="doccomment">/// Result of compression or decompression
+</span><span class="attribute">#[derive(PartialEq, Eq, Copy, Debug, Clone)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// Decompression went fine, nothing much to report.
+    </span><span class="prelude-val">Ok</span>,
 
-    <span class="doccomment">/// The Flush action on a compression went ok.</span>
-    <span class="ident">FlushOk</span>,
+    <span class="doccomment">/// The Flush action on a compression went ok.
+    </span>FlushOk,
 
-    <span class="doccomment">/// THe Run action on compression went ok.</span>
-    <span class="ident">RunOk</span>,
+    <span class="doccomment">/// THe Run action on compression went ok.
+    </span>RunOk,
 
-    <span class="doccomment">/// The Finish action on compression went ok.</span>
-    <span class="ident">FinishOk</span>,
+    <span class="doccomment">/// The Finish action on compression went ok.
+    </span>FinishOk,
 
-    <span class="doccomment">/// The stream&#39;s end has been met, meaning that no more data can be input.</span>
-    <span class="ident">StreamEnd</span>,
+    <span class="doccomment">/// The stream&#39;s end has been met, meaning that no more data can be input.
+    </span>StreamEnd,
 
-    <span class="doccomment">/// There was insufficient memory in the input or output buffer to complete</span>
-    <span class="doccomment">/// the request, but otherwise everything went normally.</span>
-    <span class="ident">MemNeeded</span>,
+    <span class="doccomment">/// There was insufficient memory in the input or output buffer to complete
+    /// the request, but otherwise everything went normally.
+    </span>MemNeeded,
 }
 
-<span class="doccomment">/// Fatal errors encountered when compressing/decompressing bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// These errors indicate that progress could not be made in any form due to</span>
-<span class="doccomment">/// input or output parameters.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// The sequence of operations called on a decompression/compression stream</span>
-    <span class="doccomment">/// were invalid. See methods for details.</span>
-    <span class="ident">Sequence</span>,
+<span class="doccomment">/// Fatal errors encountered when compressing/decompressing bytes.
+///
+/// These errors indicate that progress could not be made in any form due to
+/// input or output parameters.
+</span><span class="attribute">#[derive(PartialEq, Eq, Copy, Debug, Clone)]
+</span><span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// The sequence of operations called on a decompression/compression stream
+    /// were invalid. See methods for details.
+    </span>Sequence,
 
-    <span class="doccomment">/// The data being decompressed was invalid, or it was not a valid bz2</span>
-    <span class="doccomment">/// stream.</span>
-    <span class="ident">Data</span>,
+    <span class="doccomment">/// The data being decompressed was invalid, or it was not a valid bz2
+    /// stream.
+    </span>Data,
 
-    <span class="doccomment">/// The magic bz2 header wasn&#39;t present when decompressing.</span>
-    <span class="ident">DataMagic</span>,
+    <span class="doccomment">/// The magic bz2 header wasn&#39;t present when decompressing.
+    </span>DataMagic,
 
-    <span class="doccomment">/// The parameters to this function were invalid.</span>
-    <span class="ident">Param</span>,
+    <span class="doccomment">/// The parameters to this function were invalid.
+    </span>Param,
 }
 
-<span class="kw">impl</span> <span class="ident">Compress</span> {
-    <span class="doccomment">/// Creates a new stream prepared for compression.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The `work_factor` parameter controls how the compression phase behaves</span>
-    <span class="doccomment">/// when presented with worst case, highly repetitive, input data. If</span>
-    <span class="doccomment">/// compression runs into difficulties caused by repetitive data, the</span>
-    <span class="doccomment">/// library switches from the standard sorting algorithm to a fallback</span>
-    <span class="doccomment">/// algorithm. The fallback is slower than the standard algorithm by perhaps</span>
-    <span class="doccomment">/// a factor of three, but always behaves reasonably, no matter how bad the</span>
-    <span class="doccomment">/// input.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Lower values of `work_factor` reduce the amount of effort the standard</span>
-    <span class="doccomment">/// algorithm will expend before resorting to the fallback. You should set</span>
-    <span class="doccomment">/// this parameter carefully; too low, and many inputs will be handled by</span>
-    <span class="doccomment">/// the fallback algorithm and so compress rather slowly, too high, and your</span>
-    <span class="doccomment">/// average-to-worst case compression times can become very large. The</span>
-    <span class="doccomment">/// default value of 30 gives reasonable behaviour over a wide range of</span>
-    <span class="doccomment">/// circumstances.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Allowable values range from 0 to 250 inclusive. 0 is a special case,</span>
-    <span class="doccomment">/// equivalent to using the default value of 30.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">lvl</span>: <span class="ident">Compression</span>, <span class="ident">work_factor</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Compress</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">mem::zeroed</span>());
+<span class="kw">impl </span>Compress {
+    <span class="doccomment">/// Creates a new stream prepared for compression.
+    ///
+    /// The `work_factor` parameter controls how the compression phase behaves
+    /// when presented with worst case, highly repetitive, input data. If
+    /// compression runs into difficulties caused by repetitive data, the
+    /// library switches from the standard sorting algorithm to a fallback
+    /// algorithm. The fallback is slower than the standard algorithm by perhaps
+    /// a factor of three, but always behaves reasonably, no matter how bad the
+    /// input.
+    ///
+    /// Lower values of `work_factor` reduce the amount of effort the standard
+    /// algorithm will expend before resorting to the fallback. You should set
+    /// this parameter carefully; too low, and many inputs will be handled by
+    /// the fallback algorithm and so compress rather slowly, too high, and your
+    /// average-to-worst case compression times can become very large. The
+    /// default value of 30 gives reasonable behaviour over a wide range of
+    /// circumstances.
+    ///
+    /// Allowable values range from 0 to 250 inclusive. 0 is a special case,
+    /// equivalent to using the default value of 30.
+    </span><span class="kw">pub fn </span>new(lvl: Compression, work_factor: u32) -&gt; Compress {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>raw = Box::new(mem::zeroed());
             <span class="macro">assert_eq!</span>(
-                <span class="ident">ffi::BZ2_bzCompressInit</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">raw</span>, <span class="ident">lvl</span>.<span class="ident">level</span>() <span class="kw">as</span> <span class="ident">c_int</span>, <span class="number">0</span>, <span class="ident">work_factor</span> <span class="kw">as</span> <span class="ident">c_int</span>),
-                <span class="number">0</span>
-            );
-            <span class="ident">Compress</span> {
-                <span class="ident">inner</span>: <span class="ident">Stream</span> {
-                    <span class="ident">raw</span>: <span class="ident">raw</span>,
-                    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+                ffi::BZ2_bzCompressInit(<span class="kw-2">&amp;mut *</span>raw, lvl.level() <span class="kw">as </span>c_int, <span class="number">0</span>, work_factor <span class="kw">as </span>c_int),
+                <span class="number">0
+            </span>);
+            Compress {
+                inner: Stream {
+                    raw: raw,
+                    _marker: marker::PhantomData,
                 },
             }
         }
     }
 
-    <span class="doccomment">/// Compress a block of input into a block of output.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If anything other than BZ_OK is seen, `Err` is returned. The action</span>
-    <span class="doccomment">/// given must be one of Run, Flush or Finish.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-        <span class="ident">action</span>: <span class="ident">Action</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Status</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="comment">// apparently 0-length compression requests which don&#39;t actually make</span>
-        <span class="comment">// any progress are returned as BZ_PARAM_ERROR, which we don&#39;t want, to</span>
-        <span class="comment">// just translate to a success here.</span>
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">action</span> <span class="op">==</span> <span class="ident">Action::Run</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Status::RunOk</span>);
+    <span class="doccomment">/// Compress a block of input into a block of output.
+    ///
+    /// If anything other than BZ_OK is seen, `Err` is returned. The action
+    /// given must be one of Run, Flush or Finish.
+    </span><span class="kw">pub fn </span>compress(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>[u8],
+        action: Action,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, Error&gt; {
+        <span class="comment">// apparently 0-length compression requests which don&#39;t actually make
+        // any progress are returned as BZ_PARAM_ERROR, which we don&#39;t want, to
+        // just translate to a success here.
+        </span><span class="kw">if </span>input.len() == <span class="number">0 </span>&amp;&amp; action == Action::Run {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Status::RunOk);
         }
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">next_in</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">avail_in</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_uint</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">next_out</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">avail_out</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_uint</span>;
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <span class="ident">ffi::BZ2_bzCompress</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>, <span class="ident">action</span> <span class="kw">as</span> <span class="ident">c_int</span>) {
-                <span class="ident">ffi::BZ_RUN_OK</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::RunOk</span>),
-                <span class="ident">ffi::BZ_FLUSH_OK</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::FlushOk</span>),
-                <span class="ident">ffi::BZ_FINISH_OK</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::FinishOk</span>),
-                <span class="ident">ffi::BZ_STREAM_END</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::StreamEnd</span>),
-                <span class="ident">ffi::BZ_SEQUENCE_ERROR</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Sequence</span>),
-                <span class="ident">c</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return status: {}&quot;</span>, <span class="ident">c</span>),
+        <span class="self">self</span>.inner.raw.next_in = input.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="self">self</span>.inner.raw.avail_in = input.len() <span class="kw">as </span>c_uint;
+        <span class="self">self</span>.inner.raw.next_out = output.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="self">self</span>.inner.raw.avail_out = output.len() <span class="kw">as </span>c_uint;
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span>ffi::BZ2_bzCompress(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.raw, action <span class="kw">as </span>c_int) {
+                ffi::BZ_RUN_OK =&gt; <span class="prelude-val">Ok</span>(Status::RunOk),
+                ffi::BZ_FLUSH_OK =&gt; <span class="prelude-val">Ok</span>(Status::FlushOk),
+                ffi::BZ_FINISH_OK =&gt; <span class="prelude-val">Ok</span>(Status::FinishOk),
+                ffi::BZ_STREAM_END =&gt; <span class="prelude-val">Ok</span>(Status::StreamEnd),
+                ffi::BZ_SEQUENCE_ERROR =&gt; <span class="prelude-val">Err</span>(Error::Sequence),
+                c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown return status: {}&quot;</span>, c),
             }
         }
     }
 
-    <span class="doccomment">/// Compress a block of input into an output vector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not grow `output`, but it will fill the space after</span>
-    <span class="doccomment">/// its current length up to its capacity. The length of the vector will be</span>
-    <span class="doccomment">/// adjusted appropriately.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compress_vec</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        <span class="ident">action</span>: <span class="ident">Action</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Status</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">capacity</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>();
+    <span class="doccomment">/// Compress a block of input into an output vector.
+    ///
+    /// This function will not grow `output`, but it will fill the space after
+    /// its current length up to its capacity. The length of the vector will be
+    /// adjusted appropriately.
+    </span><span class="kw">pub fn </span>compress_vec(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        input: <span class="kw-2">&amp;</span>[u8],
+        output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;,
+        action: Action,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Status, Error&gt; {
+        <span class="kw">let </span>cap = output.capacity();
+        <span class="kw">let </span>len = output.len();
 
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_out</span>();
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">offset</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">isize</span>);
-                <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">cap</span> <span class="op">-</span> <span class="ident">len</span>);
-                <span class="self">self</span>.<span class="ident">compress</span>(<span class="ident">input</span>, <span class="ident">out</span>, <span class="ident">action</span>)
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>before = <span class="self">self</span>.total_out();
+            <span class="kw">let </span>ret = {
+                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
+                <span class="self">self</span>.compress(input, out, action)
             };
-            <span class="ident">output</span>.<span class="ident">set_len</span>((<span class="self">self</span>.<span class="ident">total_out</span>() <span class="op">-</span> <span class="ident">before</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">len</span>);
-            <span class="kw">return</span> <span class="ident">ret</span>;
+            output.set_len((<span class="self">self</span>.total_out() - before) <span class="kw">as </span>usize + len);
+            <span class="kw">return </span>ret;
         }
     }
 
-    <span class="doccomment">/// Total number of bytes processed as input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_in</span>()
+    <span class="doccomment">/// Total number of bytes processed as input
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 
-    <span class="doccomment">/// Total number of bytes processed as output</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_out</span>()
+    <span class="doccomment">/// Total number of bytes processed as output
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Decompress</span> {
-    <span class="doccomment">/// Creates a new stream prepared for decompression.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `small` is true, then the library will use an alternative</span>
-    <span class="doccomment">/// decompression algorithm which uses less memory but at the cost of</span>
-    <span class="doccomment">/// decompressing more slowly (roughly speaking, half the speed, but the</span>
-    <span class="doccomment">/// maximum memory requirement drops to around 2300k). See</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">small</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Decompress</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">mem::zeroed</span>());
-            <span class="macro">assert_eq!</span>(<span class="ident">ffi::BZ2_bzDecompressInit</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">raw</span>, <span class="number">0</span>, <span class="ident">small</span> <span class="kw">as</span> <span class="ident">c_int</span>), <span class="number">0</span>);
-            <span class="ident">Decompress</span> {
-                <span class="ident">inner</span>: <span class="ident">Stream</span> {
-                    <span class="ident">raw</span>: <span class="ident">raw</span>,
-                    <span class="ident">_marker</span>: <span class="ident">marker::PhantomData</span>,
+<span class="kw">impl </span>Decompress {
+    <span class="doccomment">/// Creates a new stream prepared for decompression.
+    ///
+    /// If `small` is true, then the library will use an alternative
+    /// decompression algorithm which uses less memory but at the cost of
+    /// decompressing more slowly (roughly speaking, half the speed, but the
+    /// maximum memory requirement drops to around 2300k). See
+    </span><span class="kw">pub fn </span>new(small: bool) -&gt; Decompress {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>raw = Box::new(mem::zeroed());
+            <span class="macro">assert_eq!</span>(ffi::BZ2_bzDecompressInit(<span class="kw-2">&amp;mut *</span>raw, <span class="number">0</span>, small <span class="kw">as </span>c_int), <span class="number">0</span>);
+            Decompress {
+                inner: Stream {
+                    raw: raw,
+                    _marker: marker::PhantomData,
                 },
             }
         }
     }
 
-    <span class="doccomment">/// Decompress a block of input into a block of output.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Status</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">next_in</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">avail_in</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_uint</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">next_out</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>.<span class="ident">avail_out</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_uint</span>;
-        <span class="kw">unsafe</span> {
-            <span class="kw">match</span> <span class="ident">ffi::BZ2_bzDecompress</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">raw</span>) {
-                <span class="ident">ffi::BZ_OK</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::Ok</span>),
-                <span class="ident">ffi::BZ_MEM_ERROR</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::MemNeeded</span>),
-                <span class="ident">ffi::BZ_STREAM_END</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Status::StreamEnd</span>),
-                <span class="ident">ffi::BZ_PARAM_ERROR</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Param</span>),
-                <span class="ident">ffi::BZ_DATA_ERROR</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Data</span>),
-                <span class="ident">ffi::BZ_DATA_ERROR_MAGIC</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::DataMagic</span>),
-                <span class="ident">ffi::BZ_SEQUENCE_ERROR</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Sequence</span>),
-                <span class="ident">c</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;wut: {}&quot;</span>, <span class="ident">c</span>),
+    <span class="doccomment">/// Decompress a block of input into a block of output.
+    </span><span class="kw">pub fn </span>decompress(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Status, Error&gt; {
+        <span class="self">self</span>.inner.raw.next_in = input.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="self">self</span>.inner.raw.avail_in = input.len() <span class="kw">as </span>c_uint;
+        <span class="self">self</span>.inner.raw.next_out = output.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
+        <span class="self">self</span>.inner.raw.avail_out = output.len() <span class="kw">as </span>c_uint;
+        <span class="kw">unsafe </span>{
+            <span class="kw">match </span>ffi::BZ2_bzDecompress(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.inner.raw) {
+                ffi::BZ_OK =&gt; <span class="prelude-val">Ok</span>(Status::Ok),
+                ffi::BZ_MEM_ERROR =&gt; <span class="prelude-val">Ok</span>(Status::MemNeeded),
+                ffi::BZ_STREAM_END =&gt; <span class="prelude-val">Ok</span>(Status::StreamEnd),
+                ffi::BZ_PARAM_ERROR =&gt; <span class="prelude-val">Err</span>(Error::Param),
+                ffi::BZ_DATA_ERROR =&gt; <span class="prelude-val">Err</span>(Error::Data),
+                ffi::BZ_DATA_ERROR_MAGIC =&gt; <span class="prelude-val">Err</span>(Error::DataMagic),
+                ffi::BZ_SEQUENCE_ERROR =&gt; <span class="prelude-val">Err</span>(Error::Sequence),
+                c =&gt; <span class="macro">panic!</span>(<span class="string">&quot;wut: {}&quot;</span>, c),
             }
         }
     }
 
-    <span class="doccomment">/// Decompress a block of input into an output vector.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not grow `output`, but it will fill the space after</span>
-    <span class="doccomment">/// its current length up to its capacity. The length of the vector will be</span>
-    <span class="doccomment">/// adjusted appropriately.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">decompress_vec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Status</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">capacity</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>();
+    <span class="doccomment">/// Decompress a block of input into an output vector.
+    ///
+    /// This function will not grow `output`, but it will fill the space after
+    /// its current length up to its capacity. The length of the vector will be
+    /// adjusted appropriately.
+    </span><span class="kw">pub fn </span>decompress_vec(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[u8], output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Status, Error&gt; {
+        <span class="kw">let </span>cap = output.capacity();
+        <span class="kw">let </span>len = output.len();
 
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">total_out</span>();
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">offset</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">isize</span>);
-                <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">ptr</span>, <span class="ident">cap</span> <span class="op">-</span> <span class="ident">len</span>);
-                <span class="self">self</span>.<span class="ident">decompress</span>(<span class="ident">input</span>, <span class="ident">out</span>)
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>before = <span class="self">self</span>.total_out();
+            <span class="kw">let </span>ret = {
+                <span class="kw">let </span>ptr = output.as_mut_ptr().offset(len <span class="kw">as </span>isize);
+                <span class="kw">let </span>out = slice::from_raw_parts_mut(ptr, cap - len);
+                <span class="self">self</span>.decompress(input, out)
             };
-            <span class="ident">output</span>.<span class="ident">set_len</span>((<span class="self">self</span>.<span class="ident">total_out</span>() <span class="op">-</span> <span class="ident">before</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">len</span>);
-            <span class="kw">return</span> <span class="ident">ret</span>;
+            output.set_len((<span class="self">self</span>.total_out() - before) <span class="kw">as </span>usize + len);
+            <span class="kw">return </span>ret;
         }
     }
 
-    <span class="doccomment">/// Total number of bytes processed as input</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_in</span>()
+    <span class="doccomment">/// Total number of bytes processed as input
+    </span><span class="kw">pub fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_in()
     }
 
-    <span class="doccomment">/// Total number of bytes processed as output</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">total_out</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">total_in</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        (<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">total_in_lo32</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">|</span> ((<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">total_in_hi32</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">total_out</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        (<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">total_out_lo32</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">|</span> ((<span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">total_out_hi32</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)
+    <span class="doccomment">/// Total number of bytes processed as output
+    </span><span class="kw">pub fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.inner.total_out()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {}
+<span class="kw">impl</span>&lt;D: Direction&gt; Stream&lt;D&gt; {
+    <span class="kw">fn </span>total_in(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        (<span class="self">self</span>.raw.total_in_lo32 <span class="kw">as </span>u64) | ((<span class="self">self</span>.raw.total_in_hi32 <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)
+    }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::Sequence</span> =&gt; <span class="string">&quot;bzip2: sequence of operations invalid&quot;</span>,
-            <span class="ident">Error::Data</span> =&gt; <span class="string">&quot;bzip2: invalid data&quot;</span>,
-            <span class="ident">Error::DataMagic</span> =&gt; <span class="string">&quot;bzip2: bz2 header missing&quot;</span>,
-            <span class="ident">Error::Param</span> =&gt; <span class="string">&quot;bzip2: invalid parameters&quot;</span>,
+    <span class="kw">fn </span>total_out(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        (<span class="self">self</span>.raw.total_out_lo32 <span class="kw">as </span>u64) | ((<span class="self">self</span>.raw.total_out_hi32 <span class="kw">as </span>u64) &lt;&lt; <span class="number">32</span>)
+    }
+}
+
+<span class="kw">impl </span>error::Error <span class="kw">for </span>Error {}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>description = <span class="kw">match </span><span class="self">self </span>{
+            Error::Sequence =&gt; <span class="string">&quot;bzip2: sequence of operations invalid&quot;</span>,
+            Error::Data =&gt; <span class="string">&quot;bzip2: invalid data&quot;</span>,
+            Error::DataMagic =&gt; <span class="string">&quot;bzip2: bz2 header missing&quot;</span>,
+            Error::Param =&gt; <span class="string">&quot;bzip2: invalid parameters&quot;</span>,
         };
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">description</span>)
+        f.write_str(description)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">std::io::Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">data</span>: <span class="ident">Error</span>) -&gt; <span class="ident">std::io::Error</span> {
-        <span class="ident">std::io::Error::new</span>(<span class="ident">std::io::ErrorKind::Other</span>, <span class="ident">data</span>)
+<span class="kw">impl </span>From&lt;Error&gt; <span class="kw">for </span>std::io::Error {
+    <span class="kw">fn </span>from(data: Error) -&gt; std::io::Error {
+        std::io::Error::new(std::io::ErrorKind::Other, data)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Direction</span> <span class="kw">for</span> <span class="ident">DirCompress</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::bz_stream</span>) -&gt; <span class="ident">c_int</span> {
-        <span class="ident">ffi::BZ2_bzCompressEnd</span>(<span class="ident">stream</span>)
+<span class="kw">impl </span>Direction <span class="kw">for </span>DirCompress {
+    <span class="kw">unsafe fn </span>destroy(stream: <span class="kw-2">*mut </span>ffi::bz_stream) -&gt; c_int {
+        ffi::BZ2_bzCompressEnd(stream)
     }
 }
-<span class="kw">impl</span> <span class="ident">Direction</span> <span class="kw">for</span> <span class="ident">DirDecompress</span> {
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">destroy</span>(<span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">ffi::bz_stream</span>) -&gt; <span class="ident">c_int</span> {
-        <span class="ident">ffi::BZ2_bzDecompressEnd</span>(<span class="ident">stream</span>)
+<span class="kw">impl </span>Direction <span class="kw">for </span>DirDecompress {
+    <span class="kw">unsafe fn </span>destroy(stream: <span class="kw-2">*mut </span>ffi::bz_stream) -&gt; c_int {
+        ffi::BZ2_bzDecompressEnd(stream)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Direction</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">D::destroy</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>);
+<span class="kw">impl</span>&lt;D: Direction&gt; Drop <span class="kw">for </span>Stream&lt;D&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let _ </span>= D::destroy(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.raw);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bzip2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bzip2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

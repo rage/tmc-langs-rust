@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/call.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/call.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -150,152 +144,151 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-<span class="kw">use</span> <span class="ident">std::os::raw::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::ptr::null_mut</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::os::raw::c_void;
+<span class="kw">use </span>std::ptr::null_mut;
 
-<span class="kw">use</span> <span class="ident">smallvec::SmallVec</span>;
+<span class="kw">use </span>smallvec::SmallVec;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::napi::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::raw</span>::{<span class="ident">Env</span>, <span class="ident">FunctionCallbackInfo</span>, <span class="ident">Local</span>};
+<span class="kw">use </span><span class="kw">crate</span>::napi::bindings <span class="kw">as </span>napi;
+<span class="kw">use </span><span class="kw">crate</span>::raw::{Env, FunctionCallbackInfo, Local};
 
-<span class="comment">// Number of arguments to allocate on the stack. This should be large enough</span>
-<span class="comment">// to cover most use cases without being wasteful.</span>
-<span class="comment">//</span>
-<span class="comment">// * If the number is too large, too much space is allocated and then filled</span>
-<span class="comment">//   with `undefined`.</span>
-<span class="comment">// * If the number is too small, getting arguments frequently takes two tries</span>
-<span class="comment">//   and requires heap allocation.</span>
-<span class="kw">const</span> <span class="ident">ARGV_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="comment">// Number of arguments to allocate on the stack. This should be large enough
+// to cover most use cases without being wasteful.
+//
+// * If the number is too large, too much space is allocated and then filled
+//   with `undefined`.
+// * If the number is too small, getting arguments frequently takes two tries
+//   and requires heap allocation.
+</span><span class="kw">const </span>ARGV_SIZE: usize = <span class="number">4</span>;
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="doccomment">/// List of JavaScript arguments to a function</span>
-<span class="comment">// `Arguments` is intended to be a small abstraction to hide the usage of</span>
-<span class="comment">// `SmallVec` allowing changes to `ARGV_SIZE` in a single location</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Arguments</span>(<span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Local</span>; <span class="ident">ARGV_SIZE</span>]<span class="op">&gt;</span>);
+<span class="attribute">#[repr(transparent)]
+</span><span class="doccomment">/// List of JavaScript arguments to a function
+</span><span class="comment">// `Arguments` is intended to be a small abstraction to hide the usage of
+// `SmallVec` allowing changes to `ARGV_SIZE` in a single location
+</span><span class="kw">pub struct </span>Arguments(SmallVec&lt;[Local; ARGV_SIZE]&gt;);
 
-<span class="kw">impl</span> <span class="ident">Arguments</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Get an argument at a specific position</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">cloned</span>()
+<span class="kw">impl </span>Arguments {
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Get an argument at a specific position
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Local&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.get(i).cloned()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// Returns the number of arguments</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">len</span>()
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// Returns the number of arguments
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.<span class="number">0</span>.len()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="doccomment">/// `true` if there are no arguments</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_empty</span>()
+    <span class="attribute">#[inline]
+    </span><span class="doccomment">/// `true` if there are no arguments
+    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.is_empty()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_construct</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">FunctionCallbackInfo</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MaybeUninit::zeroed</span>();
+<span class="kw">pub unsafe fn </span>is_construct(env: Env, info: FunctionCallbackInfo) -&gt; bool {
+    <span class="kw">let </span><span class="kw-2">mut </span>target: MaybeUninit&lt;Local&gt; = MaybeUninit::zeroed();
 
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::get_new_target</span>(<span class="ident">env</span>, <span class="ident">info</span>, <span class="ident">target</span>.<span class="ident">as_mut_ptr</span>());
+    <span class="kw">let </span>status = napi::get_new_target(env, info, target.as_mut_ptr());
 
-    <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+    <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
 
-    <span class="comment">// get_new_target is guaranteed to assign to target, so it&#39;s initialized.</span>
-    <span class="kw">let</span> <span class="ident">target</span>: <span class="ident">Local</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">assume_init</span>();
+    <span class="comment">// get_new_target is guaranteed to assign to target, so it&#39;s initialized.
+    </span><span class="kw">let </span>target: Local = target.assume_init();
 
-    <span class="comment">// By the get_new_target contract, target will either be NULL if the current</span>
-    <span class="comment">// function was called without `new`, or a valid napi_value handle if the current</span>
-    <span class="comment">// function was called with `new`.</span>
-    <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_null</span>()
+    <span class="comment">// By the get_new_target contract, target will either be NULL if the current
+    // function was called without `new`, or a valid napi_value handle if the current
+    // function was called with `new`.
+    </span>!target.is_null()
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">this</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">FunctionCallbackInfo</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Local</span>) {
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::get_cb_info</span>(<span class="ident">env</span>, <span class="ident">info</span>, <span class="ident">null_mut</span>(), <span class="ident">null_mut</span>(), <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="ident">null_mut</span>());
-    <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+<span class="kw">pub unsafe fn </span>this(env: Env, info: FunctionCallbackInfo, out: <span class="kw-2">&amp;mut </span>Local) {
+    <span class="kw">let </span>status = napi::get_cb_info(env, info, null_mut(), null_mut(), out <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, null_mut());
+    <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
 }
 
-<span class="doccomment">/// Mutates the `out` argument provided to refer to the associated data value of the</span>
-<span class="doccomment">/// `napi_callback_info`.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">FunctionCallbackInfo</span>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">null_mut</span>();
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::get_cb_info</span>(
-        <span class="ident">env</span>,
-        <span class="ident">info</span>,
-        <span class="ident">null_mut</span>(),
-        <span class="ident">null_mut</span>(),
-        <span class="ident">null_mut</span>(),
-        <span class="kw-2">&amp;mut</span> <span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+<span class="doccomment">/// Mutates the `out` argument provided to refer to the associated data value of the
+/// `napi_callback_info`.
+</span><span class="kw">pub unsafe fn </span>data(env: Env, info: FunctionCallbackInfo, out: <span class="kw-2">&amp;mut *mut </span>c_void) {
+    <span class="kw">let </span><span class="kw-2">mut </span>data = null_mut();
+    <span class="kw">let </span>status = napi::get_cb_info(
+        env,
+        info,
+        null_mut(),
+        null_mut(),
+        null_mut(),
+        <span class="kw-2">&amp;mut </span>data <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
     );
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="kw-2">*</span><span class="ident">out</span> <span class="op">=</span> <span class="ident">data</span>;
+    <span class="kw">if </span>status == napi::Status::Ok {
+        <span class="kw-2">*</span>out = data;
     }
 }
 
-<span class="doccomment">/// Gets the number of arguments passed to the function.</span>
-<span class="comment">// TODO: Remove this when `CallContext` is refactored to get call info upfront.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">FunctionCallbackInfo</span>) -&gt; <span class="ident">i32</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">argc</span> <span class="op">=</span> <span class="number">0usize</span>;
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::get_cb_info</span>(
-        <span class="ident">env</span>,
-        <span class="ident">info</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">argc</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-        <span class="ident">null_mut</span>(),
-        <span class="ident">null_mut</span>(),
-        <span class="ident">null_mut</span>(),
+<span class="doccomment">/// Gets the number of arguments passed to the function.
+</span><span class="comment">// TODO: Remove this when `CallContext` is refactored to get call info upfront.
+</span><span class="kw">pub unsafe fn </span>len(env: Env, info: FunctionCallbackInfo) -&gt; i32 {
+    <span class="kw">let </span><span class="kw-2">mut </span>argc = <span class="number">0usize</span>;
+    <span class="kw">let </span>status = napi::get_cb_info(
+        env,
+        info,
+        <span class="kw-2">&amp;mut </span>argc <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+        null_mut(),
+        null_mut(),
+        null_mut(),
     );
-    <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
-    <span class="ident">argc</span> <span class="kw">as</span> <span class="ident">i32</span>
+    <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
+    argc <span class="kw">as </span>i32
 }
 
-<span class="doccomment">/// Returns the function arguments for a call</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">argv</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">FunctionCallbackInfo</span>) -&gt; <span class="ident">Arguments</span> {
-    <span class="comment">// Allocate space on the stack for up to `ARGV_SIZE` values</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">argv</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span>[<span class="ident">Local</span>; <span class="ident">ARGV_SIZE</span>]<span class="op">&gt;</span><span class="ident">::uninit</span>();
+<span class="doccomment">/// Returns the function arguments for a call
+</span><span class="kw">pub unsafe fn </span>argv(env: Env, info: FunctionCallbackInfo) -&gt; Arguments {
+    <span class="comment">// Allocate space on the stack for up to `ARGV_SIZE` values
+    </span><span class="kw">let </span><span class="kw-2">mut </span>argv = MaybeUninit::&lt;[Local; ARGV_SIZE]&gt;::uninit();
 
-    <span class="comment">// Starts as the size allocated; after `get_cb_info` it is the number of arguments</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">argc</span> <span class="op">=</span> <span class="ident">ARGV_SIZE</span>;
+    <span class="comment">// Starts as the size allocated; after `get_cb_info` it is the number of arguments
+    </span><span class="kw">let </span><span class="kw-2">mut </span>argc = ARGV_SIZE;
 
     <span class="macro">assert_eq!</span>(
-        <span class="ident">napi::get_cb_info</span>(
-            <span class="ident">env</span>,
-            <span class="ident">info</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">argc</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-            <span class="ident">argv</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">cast</span>(),
-            <span class="ident">null_mut</span>(),
-            <span class="ident">null_mut</span>(),
+        napi::get_cb_info(
+            env,
+            info,
+            <span class="kw-2">&amp;mut </span>argc <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+            argv.as_mut_ptr().cast(),
+            null_mut(),
+            null_mut(),
         ),
-        <span class="ident">napi::Status::Ok</span>,
+        napi::Status::Ok,
     );
 
-    <span class="comment">// We did not allocate enough space; allocate on the heap and try again</span>
-    <span class="kw">let</span> <span class="ident">argv</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">argc</span> <span class="op">&gt;</span> <span class="ident">ARGV_SIZE</span> {
-        <span class="comment">// We know exactly how much space to reserve</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">argv</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argc</span>);
+    <span class="comment">// We did not allocate enough space; allocate on the heap and try again
+    </span><span class="kw">let </span>argv = <span class="kw">if </span>argc &gt; ARGV_SIZE {
+        <span class="comment">// We know exactly how much space to reserve
+        </span><span class="kw">let </span><span class="kw-2">mut </span>argv = Vec::with_capacity(argc);
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">napi::get_cb_info</span>(
-                <span class="ident">env</span>,
-                <span class="ident">info</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">argc</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="ident">argv</span>.<span class="ident">as_mut_ptr</span>(),
-                <span class="ident">null_mut</span>(),
-                <span class="ident">null_mut</span>(),
+            napi::get_cb_info(
+                env,
+                info,
+                <span class="kw-2">&amp;mut </span>argc <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                argv.as_mut_ptr(),
+                null_mut(),
+                null_mut(),
             ),
-            <span class="ident">napi::Status::Ok</span>,
+            napi::Status::Ok,
         );
 
-        <span class="comment">// Set the size of `argv` to the number of initialized elements</span>
-        <span class="ident">argv</span>.<span class="ident">set_len</span>(<span class="ident">argc</span>);
-        <span class="ident">SmallVec::from_vec</span>(<span class="ident">argv</span>)
+        <span class="comment">// Set the size of `argv` to the number of initialized elements
+        </span>argv.set_len(argc);
+        SmallVec::from_vec(argv)
 
-    <span class="comment">// There were `ARGV_SIZE` or fewer arguments, use the stack allocated space</span>
-    } <span class="kw">else</span> {
-        <span class="ident">SmallVec::from_buf_and_len</span>(<span class="ident">argv</span>.<span class="ident">assume_init</span>(), <span class="ident">argc</span>)
+    <span class="comment">// There were `ARGV_SIZE` or fewer arguments, use the stack allocated space
+    </span>} <span class="kw">else </span>{
+        SmallVec::from_buf_and_len(argv.assume_init(), argc)
     };
 
-    <span class="ident">Arguments</span>(<span class="ident">argv</span>)
+    Arguments(argv)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

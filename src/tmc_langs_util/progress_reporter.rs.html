@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-util/src/progress_reporter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>progress_reporter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_util/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-util/src/progress_reporter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>progress_reporter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_util/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -280,282 +274,283 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Utility struct for printing progress reports.</span>
+<span id="277">277</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Utility struct for printing progress reports.
 
-<span class="kw">use</span> <span class="ident">once_cell::sync::OnceCell</span>;
-<span class="kw">use</span> <span class="ident">serde::Serialize</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">ops::DerefMut</span>, <span class="ident">sync::RwLock</span>, <span class="ident">time::Instant</span>};
-<span class="kw">use</span> <span class="ident">type_map::concurrent::TypeMap</span>;
+</span><span class="kw">use </span>once_cell::sync::OnceCell;
+<span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>std::{ops::DerefMut, sync::RwLock, time::Instant};
+<span class="kw">use </span>type_map::concurrent::TypeMap;
 
-<span class="doccomment">/// The format for all status updates. May contain some data.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Serialize</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="ident">finished</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span> <span class="ident">message</span>: <span class="ident">String</span>,
-    <span class="kw">pub</span> <span class="ident">percent_done</span>: <span class="ident">f64</span>,
-    <span class="kw">pub</span> <span class="ident">time</span>: <span class="ident">u128</span>,
-    <span class="kw">pub</span> <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The format for all status updates. May contain some data.
+</span><span class="attribute">#[derive(Debug, Serialize)]
+#[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
+#[cfg_attr(feature = <span class="string">&quot;ts-rs&quot;</span>, derive(ts_rs::TS))]
+</span><span class="kw">pub struct </span>StatusUpdate&lt;T&gt; {
+    <span class="kw">pub </span>finished: bool,
+    <span class="kw">pub </span>message: String,
+    <span class="kw">pub </span>percent_done: f64,
+    <span class="kw">pub </span>time: u128,
+    <span class="kw">pub </span>data: <span class="prelude-ty">Option</span>&lt;T&gt;,
 }
 
-<span class="comment">// the closure called to report progress, could for example print the report as JSON</span>
-<span class="kw">type</span> <span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+<span class="comment">// the closure called to report progress, could for example print the report as JSON
+</span><span class="kw">type </span>UpdateClosure&lt;T&gt; = <span class="kw">dyn </span><span class="lifetime">&#39;static </span>+ Sync + Send + Fn(StatusUpdate&lt;T&gt;);
 
-<span class="doccomment">/// The struct that keeps track of progress for a given progress update type T and contains a closure for reporting whenever progress is made.</span>
-<span class="kw">struct</span> <span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">progress_report</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">UpdateClosure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// The struct that keeps track of progress for a given progress update type T and contains a closure for reporting whenever progress is made.
+</span><span class="kw">struct </span>ProgressReporter&lt;T&gt; {
+    progress_report: Box&lt;UpdateClosure&lt;T&gt;&gt;,
 }
 
-<span class="doccomment">/// Contains all the different progress reporters and keeps track of the overall progress.</span>
-<span class="kw">struct</span> <span class="ident">ProgressReporterContainer</span> {
-    <span class="ident">reporters</span>: <span class="ident">TypeMap</span>,
-    <span class="ident">current_progress</span>: <span class="ident">f64</span>,
-    <span class="ident">total_steps_left</span>: <span class="ident">u32</span>,
-    <span class="ident">start_time</span>: <span class="ident">Instant</span>,
-    <span class="ident">stage_steps</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="comment">// steps left</span>
-}
+<span class="doccomment">/// Contains all the different progress reporters and keeps track of the overall progress.
+</span><span class="kw">struct </span>ProgressReporterContainer {
+    reporters: TypeMap,
+    current_progress: f64,
+    total_steps_left: u32,
+    start_time: Instant,
+    stage_steps: Vec&lt;u32&gt;, <span class="comment">// steps left
+</span>}
 
-<span class="kw">static</span> <span class="ident">PROGRESS_REPORTERS</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">ProgressReporterContainer</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
+<span class="kw">static </span>PROGRESS_REPORTERS: OnceCell&lt;RwLock&lt;ProgressReporterContainer&gt;&gt; = OnceCell::new();
 
-<span class="doccomment">/// Subscribes to progress reports of type T with callback of type F called every time progress is made with type T.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">progress_report</span>: <span class="ident">F</span>)
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">F</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">StatusUpdate</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Subscribes to progress reports of type T with callback of type F called every time progress is made with type T.
+</span><span class="kw">pub fn </span>subscribe&lt;T, F&gt;(progress_report: F)
+<span class="kw">where
+    </span>T: <span class="lifetime">&#39;static </span>+ Send + Sync,
+    F: <span class="lifetime">&#39;static </span>+ Sync + Send + Fn(StatusUpdate&lt;T&gt;),
 {
-    <span class="kw">let</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">RwLock::new</span>(<span class="ident">ProgressReporterContainer</span> {
-            <span class="ident">reporters</span>: <span class="ident">TypeMap::new</span>(),
-            <span class="ident">current_progress</span>: <span class="number">0.0</span>,
-            <span class="ident">total_steps_left</span>: <span class="number">0</span>,
-            <span class="ident">start_time</span>: <span class="ident">Instant::now</span>(),
-            <span class="ident">stage_steps</span>: <span class="ident">Vec::new</span>(),
+    <span class="kw">let </span>lock = PROGRESS_REPORTERS.get_or_init(|| {
+        RwLock::new(ProgressReporterContainer {
+            reporters: TypeMap::new(),
+            current_progress: <span class="number">0.0</span>,
+            total_steps_left: <span class="number">0</span>,
+            start_time: Instant::now(),
+            stage_steps: Vec::new(),
         })
     });
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">lock</span>
-        .<span class="ident">write</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;only fails if the lock is poisoned; we should never panic while holding the lock&quot;</span>);
-    <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">ProgressReporter</span> {
-        <span class="ident">progress_report</span>: <span class="ident">Box::new</span>(<span class="ident">progress_report</span>),
+    <span class="kw">let </span><span class="kw-2">mut </span>guard = lock
+        .write()
+        .expect(<span class="string">&quot;only fails if the lock is poisoned; we should never panic while holding the lock&quot;</span>);
+    <span class="kw">let </span>reporter = ProgressReporter {
+        progress_report: Box::new(progress_report),
     };
-    <span class="ident">guard</span>.<span class="ident">reporters</span>.<span class="ident">insert</span>(<span class="ident">reporter</span>);
+    guard.reporters.insert(reporter);
 }
 
-<span class="doccomment">/// Starts a new stage.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">total_steps</span>: <span class="ident">u32</span>, <span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="comment">// check for init</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Starts a new stage.
+</span><span class="kw">pub fn </span>start_stage&lt;T: <span class="lifetime">&#39;static </span>+ Send + Sync&gt;(total_steps: u32, message: String, data: <span class="prelude-ty">Option</span>&lt;T&gt;) {
+    <span class="comment">// check for init
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(lock) = PROGRESS_REPORTERS.get() {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = lock.write().expect(
             <span class="string">&quot;only fails if the lock is poisoned; we should never panic while holding the lock&quot;</span>,
         );
-        <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
-        <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">+</span><span class="op">=</span> <span class="ident">total_steps</span>;
-        <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">push</span>(<span class="ident">total_steps</span>);
+        <span class="kw">let </span>reporter = reporter.deref_mut();
+        reporter.total_steps_left += total_steps;
+        reporter.stage_steps.push(total_steps);
 
-        <span class="comment">// check for subscriber</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-            <span class="comment">// report status</span>
-            <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
-                <span class="ident">finished</span>: <span class="bool-val">false</span>,
-                <span class="ident">message</span>,
-                <span class="ident">percent_done</span>: <span class="ident">reporter</span>.<span class="ident">current_progress</span>,
-                <span class="ident">time</span>: <span class="ident">reporter</span>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>(),
-                <span class="ident">data</span>,
+        <span class="comment">// check for subscriber
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(progress_reporter) = reporter.reporters.get::&lt;ProgressReporter&lt;T&gt;&gt;() {
+            <span class="comment">// report status
+            </span><span class="kw">let </span>status_update = StatusUpdate {
+                finished: <span class="bool-val">false</span>,
+                message,
+                percent_done: reporter.current_progress,
+                time: reporter.start_time.elapsed().as_millis(),
+                data,
             };
-            <span class="ident">progress_reporter</span>.<span class="ident">progress_report</span>.<span class="ident">as_ref</span>()(<span class="ident">status_update</span>);
+            progress_reporter.progress_report.as_ref()(status_update);
         }
     }
 }
 
-<span class="doccomment">/// Progresses the current stage.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">progress_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="comment">// check for init</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Progresses the current stage.
+</span><span class="kw">pub fn </span>progress_stage&lt;T: <span class="lifetime">&#39;static </span>+ Send + Sync&gt;(message: String, data: <span class="prelude-ty">Option</span>&lt;T&gt;) {
+    <span class="comment">// check for init
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(lock) = PROGRESS_REPORTERS.get() {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = lock.write().expect(
             <span class="string">&quot;only fails if the lock is poisoned; we should never panic while holding the lock&quot;</span>,
         );
-        <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
+        <span class="kw">let </span>reporter = reporter.deref_mut();
 
-        <span class="comment">// check for stage</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">last_mut</span>() {
-            <span class="comment">// check if steps left in stage</span>
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
-                    (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
-                <span class="kw-2">*</span><span class="ident">stage_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span>
-                    <span class="ident">f64::min</span>(<span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">step_progress</span>, <span class="number">1.0</span>);
-                <span class="comment">// guard against going over 1.0</span>
-            }
+        <span class="comment">// check for stage
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(stage_steps_left) = reporter.stage_steps.last_mut() {
+            <span class="comment">// check if steps left in stage
+            </span><span class="kw">if </span><span class="kw-2">*</span>stage_steps_left &gt; <span class="number">0 </span>{
+                <span class="kw">let </span>step_progress =
+                    (<span class="number">1.0 </span>- reporter.current_progress) / reporter.total_steps_left <span class="kw">as </span>f64;
+                <span class="kw-2">*</span>stage_steps_left -= <span class="number">1</span>;
+                reporter.total_steps_left -= <span class="number">1</span>;
+                reporter.current_progress =
+                    f64::min(reporter.current_progress + step_progress, <span class="number">1.0</span>);
+                <span class="comment">// guard against going over 1.0
+            </span>}
 
-            <span class="comment">// check for subscriber</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get_mut</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-                <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
-                    <span class="ident">finished</span>: <span class="bool-val">false</span>,
-                    <span class="ident">message</span>,
-                    <span class="ident">percent_done</span>: <span class="ident">reporter</span>.<span class="ident">current_progress</span>,
-                    <span class="ident">time</span>: <span class="ident">reporter</span>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>(),
-                    <span class="ident">data</span>,
+            <span class="comment">// check for subscriber
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(progress_reporter) = reporter.reporters.get_mut::&lt;ProgressReporter&lt;T&gt;&gt;() {
+                <span class="kw">let </span>status_update = StatusUpdate {
+                    finished: <span class="bool-val">false</span>,
+                    message,
+                    percent_done: reporter.current_progress,
+                    time: reporter.start_time.elapsed().as_millis(),
+                    data,
                 };
-                <span class="ident">progress_reporter</span>.<span class="ident">progress_report</span>.<span class="ident">as_ref</span>()(<span class="ident">status_update</span>);
+                progress_reporter.progress_report.as_ref()(status_update);
             }
         }
     }
 }
 
-<span class="doccomment">/// Finishes the current stage.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish_stage</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">String</span>, <span class="ident">data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-    <span class="comment">// check for init</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">lock</span>.<span class="ident">write</span>().<span class="ident">expect</span>(
+<span class="doccomment">/// Finishes the current stage.
+</span><span class="kw">pub fn </span>finish_stage&lt;T: <span class="lifetime">&#39;static </span>+ Send + Sync&gt;(message: String, data: <span class="prelude-ty">Option</span>&lt;T&gt;) {
+    <span class="comment">// check for init
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(lock) = PROGRESS_REPORTERS.get() {
+        <span class="kw">let </span><span class="kw-2">mut </span>reporter = lock.write().expect(
             <span class="string">&quot;only fails if the lock is poisoned; we should never panic while holding the lock&quot;</span>,
         );
-        <span class="kw">let</span> <span class="ident">reporter</span> <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">deref_mut</span>();
+        <span class="kw">let </span>reporter = reporter.deref_mut();
 
-        <span class="comment">// check for stage</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">stage_steps_left</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">stage_steps</span>.<span class="ident">pop</span>() {
-            <span class="kw">let</span> <span class="ident">step_progress</span> <span class="op">=</span>
-                (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">reporter</span>.<span class="ident">current_progress</span>) <span class="op">/</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span>;
-            <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">-</span><span class="op">=</span> <span class="ident">stage_steps_left</span>;
-            <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span> <span class="ident">f64::min</span>(
-                <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">+</span> <span class="ident">stage_steps_left</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> <span class="ident">step_progress</span>,
+        <span class="comment">// check for stage
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(stage_steps_left) = reporter.stage_steps.pop() {
+            <span class="kw">let </span>step_progress =
+                (<span class="number">1.0 </span>- reporter.current_progress) / reporter.total_steps_left <span class="kw">as </span>f64;
+            reporter.total_steps_left -= stage_steps_left;
+            reporter.current_progress = f64::min(
+                reporter.current_progress + stage_steps_left <span class="kw">as </span>f64 * step_progress,
                 <span class="number">1.0</span>,
-            ); <span class="comment">// guard against going over 1.0</span>
+            ); <span class="comment">// guard against going over 1.0
 
-            <span class="comment">// check for subscriber</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">progress_reporter</span>) <span class="op">=</span> <span class="ident">reporter</span>.<span class="ident">reporters</span>.<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">ProgressReporter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() {
-                <span class="kw">let</span> <span class="ident">status_update</span> <span class="op">=</span> <span class="ident">StatusUpdate</span> {
-                    <span class="ident">finished</span>: <span class="bool-val">true</span>,
-                    <span class="ident">message</span>,
-                    <span class="ident">percent_done</span>: <span class="ident">reporter</span>.<span class="ident">current_progress</span>,
-                    <span class="ident">time</span>: <span class="ident">reporter</span>.<span class="ident">start_time</span>.<span class="ident">elapsed</span>().<span class="ident">as_millis</span>(),
-                    <span class="ident">data</span>,
+            // check for subscriber
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(progress_reporter) = reporter.reporters.get::&lt;ProgressReporter&lt;T&gt;&gt;() {
+                <span class="kw">let </span>status_update = StatusUpdate {
+                    finished: <span class="bool-val">true</span>,
+                    message,
+                    percent_done: reporter.current_progress,
+                    time: reporter.start_time.elapsed().as_millis(),
+                    data,
                 };
-                <span class="ident">progress_reporter</span>.<span class="ident">progress_report</span>.<span class="ident">as_ref</span>()(<span class="ident">status_update</span>);
+                progress_reporter.progress_report.as_ref()(status_update);
             }
         }
 
-        <span class="comment">// All of the stages have been finished, resetting progress for future events.</span>
-        <span class="kw">if</span> <span class="ident">reporter</span>.<span class="ident">total_steps_left</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> (<span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">-</span> <span class="number">1.0_f64</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span> {
-            <span class="ident">reporter</span>.<span class="ident">current_progress</span> <span class="op">=</span> <span class="number">0.0</span>;
+        <span class="comment">// All of the stages have been finished, resetting progress for future events.
+        </span><span class="kw">if </span>reporter.total_steps_left == <span class="number">0 </span>&amp;&amp; (reporter.current_progress - <span class="number">1.0_f64</span>).abs() &lt; <span class="number">0.001 </span>{
+            reporter.current_progress = <span class="number">0.0</span>;
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>};
+<span class="attribute">#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::sync::{Arc, Mutex, MutexGuard};
 
-    <span class="kw">static</span> <span class="ident">PROGRESS_MUTEX</span>: <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
+    <span class="kw">static </span>PROGRESS_MUTEX: OnceCell&lt;Mutex&lt;()&gt;&gt; = OnceCell::new();
 
-    <span class="kw">fn</span> <span class="ident">init</span>() -&gt; <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger::new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter::Debug</span>).<span class="ident">init</span>();
+    <span class="kw">fn </span>init() -&gt; MutexGuard&lt;<span class="lifetime">&#39;static</span>, ()&gt; {
+        <span class="kw">use </span>log::<span class="kw-2">*</span>;
+        <span class="kw">use </span>simple_logger::<span class="kw-2">*</span>;
+        <span class="kw">let _ </span>= SimpleLogger::new().with_level(LevelFilter::Debug).init();
 
-        <span class="comment">// wait for lock and clear reporter map</span>
-        <span class="kw">let</span> <span class="ident">mutex</span> <span class="op">=</span> <span class="ident">PROGRESS_MUTEX</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Mutex::new</span>(()));
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">mutex</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reporters</span>) <span class="op">=</span> <span class="ident">PROGRESS_REPORTERS</span>.<span class="ident">get</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reporters</span> <span class="op">=</span> <span class="ident">reporters</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
-            <span class="kw-2">*</span><span class="ident">reporters</span> <span class="op">=</span> <span class="ident">ProgressReporterContainer</span> {
-                <span class="ident">reporters</span>: <span class="ident">TypeMap::new</span>(),
-                <span class="ident">current_progress</span>: <span class="number">0.0</span>,
-                <span class="ident">total_steps_left</span>: <span class="number">0</span>,
-                <span class="ident">start_time</span>: <span class="ident">Instant::now</span>(),
-                <span class="ident">stage_steps</span>: <span class="ident">Vec::new</span>(),
+        <span class="comment">// wait for lock and clear reporter map
+        </span><span class="kw">let </span>mutex = PROGRESS_MUTEX.get_or_init(|| Mutex::new(()));
+        <span class="kw">let </span>guard = mutex.lock().unwrap();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(reporters) = PROGRESS_REPORTERS.get() {
+            <span class="kw">let </span><span class="kw-2">mut </span>reporters = reporters.write().unwrap();
+            <span class="kw-2">*</span>reporters = ProgressReporterContainer {
+                reporters: TypeMap::new(),
+                current_progress: <span class="number">0.0</span>,
+                total_steps_left: <span class="number">0</span>,
+                start_time: Instant::now(),
+                stage_steps: Vec::new(),
             };
         }
-        <span class="ident">guard</span>
+        guard
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">single_stage_progress</span>() {
-        <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>single_stage_progress() {
+        <span class="kw">let </span>_lock = init();
 
-        <span class="kw">let</span> <span class="ident">su</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>));
-        <span class="kw">let</span> <span class="ident">suc</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">su</span>);
-        <span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, <span class="ident">s</span>);
-            <span class="kw-2">*</span><span class="ident">suc</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+        <span class="kw">let </span>su = Arc::new(Mutex::new(<span class="prelude-val">None</span>));
+        <span class="kw">let </span>suc = Arc::clone(<span class="kw-2">&amp;</span>su);
+        subscribe::&lt;u32, <span class="kw">_</span>&gt;(<span class="kw">move </span>|s| {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, s);
+            <span class="kw-2">*</span>suc.lock().unwrap() = <span class="prelude-val">Some</span>(s);
         });
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
+        start_stage::&lt;u32&gt;(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
 
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.5000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello!&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">1.0000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.5000</span>).abs() &lt; <span class="number">0.01</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello!&quot;</span>.to_string(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">1.0000</span>).abs() &lt; <span class="number">0.01</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">multi_stage_progress</span>() {
-        <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>multi_stage_progress() {
+        <span class="kw">let </span>_lock = init();
 
-        <span class="kw">let</span> <span class="ident">su</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>));
-        <span class="kw">let</span> <span class="ident">suc</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">su</span>);
-        <span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, <span class="ident">s</span>);
-            <span class="kw-2">*</span><span class="ident">suc</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+        <span class="kw">let </span>su = Arc::new(Mutex::new(<span class="prelude-val">None</span>));
+        <span class="kw">let </span>suc = Arc::clone(<span class="kw-2">&amp;</span>su);
+        subscribe::&lt;u32, <span class="kw">_</span>&gt;(<span class="kw">move </span>|s| {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, s);
+            <span class="kw-2">*</span>suc.lock().unwrap() = <span class="prelude-val">Some</span>(s);
         });
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.5000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        start_stage::&lt;u32&gt;(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.5000</span>).abs() &lt; <span class="number">0.01</span>);
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.6666</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        start_stage::&lt;u32&gt;(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.6666</span>).abs() &lt; <span class="number">0.01</span>);
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.7499</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.8333</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
-        <span class="ident">finish_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.8333</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        start_stage::&lt;u32&gt;(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.7499</span>).abs() &lt; <span class="number">0.01</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.8333</span>).abs() &lt; <span class="number">0.01</span>);
+        finish_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.8333</span>).abs() &lt; <span class="number">0.01</span>);
 
-        <span class="ident">finish_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.9166</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        finish_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.9166</span>).abs() &lt; <span class="number">0.01</span>);
 
-        <span class="ident">finish_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;msg&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">1.0000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        finish_stage::&lt;u32&gt;(<span class="string">&quot;msg&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">1.0000</span>).abs() &lt; <span class="number">0.01</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">consecutive_progress</span>() {
-        <span class="kw">let</span> <span class="ident">_lock</span> <span class="op">=</span> <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>consecutive_progress() {
+        <span class="kw">let </span>_lock = init();
 
-        <span class="kw">let</span> <span class="ident">su</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="prelude-val">None</span>));
-        <span class="kw">let</span> <span class="ident">suc</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="ident">su</span>);
-        <span class="ident">subscribe</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, <span class="ident">s</span>);
-            <span class="kw-2">*</span><span class="ident">suc</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+        <span class="kw">let </span>su = Arc::new(Mutex::new(<span class="prelude-val">None</span>));
+        <span class="kw">let </span>suc = Arc::clone(<span class="kw-2">&amp;</span>su);
+        subscribe::&lt;u32, <span class="kw">_</span>&gt;(<span class="kw">move </span>|s| {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;got {:#?}&quot;</span>, s);
+            <span class="kw-2">*</span>suc.lock().unwrap() = <span class="prelude-val">Some</span>(s);
         });
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">3</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
+        start_stage::&lt;u32&gt;(<span class="number">3</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello&quot;</span>.to_string(), <span class="prelude-val">None</span>);
         <span class="macro">assert!</span>(
-            (<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> (<span class="number">1.0000</span> <span class="op">/</span> <span class="number">3.0000</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>
-        );
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello!&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+            (su.lock().unwrap().as_ref().unwrap().percent_done - (<span class="number">1.0000 </span>/ <span class="number">3.0000</span>)).abs() &lt; <span class="number">0.01
+        </span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello!&quot;</span>.to_string(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
         <span class="macro">assert!</span>(
-            (<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> (<span class="number">2.0000</span> <span class="op">/</span> <span class="number">3.0000</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>
-        );
-        <span class="ident">finish_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;finished&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">1.0000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+            (su.lock().unwrap().as_ref().unwrap().percent_done - (<span class="number">2.0000 </span>/ <span class="number">3.0000</span>)).abs() &lt; <span class="number">0.01
+        </span>);
+        finish_stage::&lt;u32&gt;(<span class="string">&quot;finished&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">1.0000</span>).abs() &lt; <span class="number">0.01</span>);
 
-        <span class="ident">start_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.0000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">None</span>);
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">0.5000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
-        <span class="ident">progress_stage</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="string">&quot;hello!&quot;</span>.<span class="ident">to_string</span>(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
-        <span class="macro">assert!</span>((<span class="ident">su</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">percent_done</span> <span class="op">-</span> <span class="number">1.0000</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        start_stage::&lt;u32&gt;(<span class="number">2</span>, <span class="string">&quot;starting&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.0000</span>).abs() &lt; <span class="number">0.01</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello&quot;</span>.to_string(), <span class="prelude-val">None</span>);
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">0.5000</span>).abs() &lt; <span class="number">0.01</span>);
+        progress_stage::&lt;u32&gt;(<span class="string">&quot;hello!&quot;</span>.to_string(), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+        <span class="macro">assert!</span>((su.lock().unwrap().as_ref().unwrap().percent_done - <span class="number">1.0000</span>).abs() &lt; <span class="number">0.01</span>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

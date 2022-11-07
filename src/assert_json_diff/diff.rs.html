@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/assert-json-diff-2.0.2/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../assert_json_diff/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../assert_json_diff/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../assert_json_diff/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/assert-json-diff-2.0.2/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../assert_json_diff/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../assert_json_diff/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../assert_json_diff/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -536,125 +530,125 @@
 <span id="530">530</span>
 <span id="531">531</span>
 <span id="532">532</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::core_ext</span>::{<span class="ident">Indent</span>, <span class="ident">Indexes</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">CompareMode</span>, <span class="ident">Config</span>, <span class="ident">NumericMode</span>};
-<span class="kw">use</span> <span class="ident">serde_json::Value</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">fmt</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core_ext::{Indent, Indexes};
+<span class="kw">use crate</span>::{CompareMode, Config, NumericMode};
+<span class="kw">use </span>serde_json::Value;
+<span class="kw">use </span>std::{collections::HashSet, fmt};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">diff</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>, <span class="ident">config</span>: <span class="ident">Config</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">acc</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-    <span class="ident">diff_with</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>, <span class="ident">config</span>, <span class="ident">Path::Root</span>, <span class="kw-2">&amp;mut</span> <span class="ident">acc</span>);
-    <span class="ident">acc</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>diff&lt;<span class="lifetime">&#39;a</span>&gt;(lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value, rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value, config: Config) -&gt; Vec&lt;Difference&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>acc = <span class="macro">vec!</span>[];
+    diff_with(lhs, rhs, config, Path::Root, <span class="kw-2">&amp;mut </span>acc);
+    acc
 }
 
-<span class="kw">fn</span> <span class="ident">diff_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>,
-    <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
-    <span class="ident">path</span>: <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">acc</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>diff_with&lt;<span class="lifetime">&#39;a</span>&gt;(
+    lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    config: Config,
+    path: Path&lt;<span class="lifetime">&#39;a</span>&gt;,
+    acc: <span class="kw-2">&amp;mut </span>Vec&lt;Difference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 ) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">folder</span> <span class="op">=</span> <span class="ident">DiffFolder</span> {
-        <span class="ident">rhs</span>,
-        <span class="ident">path</span>,
-        <span class="ident">acc</span>,
-        <span class="ident">config</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>folder = DiffFolder {
+        rhs,
+        path,
+        acc,
+        config,
     };
 
-    <span class="ident">fold_json</span>(<span class="ident">lhs</span>, <span class="kw-2">&amp;mut</span> <span class="ident">folder</span>);
+    fold_json(lhs, <span class="kw-2">&amp;mut </span>folder);
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">DiffFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>,
-    <span class="ident">path</span>: <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">acc</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>DiffFolder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    rhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value,
+    path: Path&lt;<span class="lifetime">&#39;a</span>&gt;,
+    acc: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Vec&lt;Difference&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
+    config: Config,
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">direct_compare</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rhs</span> <span class="op">!</span><span class="op">=</span> <span class="ident">lhs</span> {
-                <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                    <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                    <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                    <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
-                    <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+<span class="macro">macro_rules! </span>direct_compare {
+    (<span class="macro-nonterminal">$name</span>:ident) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$name</span>(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value) {
+            <span class="kw">if </span><span class="self">self</span>.rhs != lhs {
+                <span class="self">self</span>.acc.push(Difference {
+                    lhs: <span class="prelude-val">Some</span>(lhs),
+                    rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                    path: <span class="self">self</span>.path.clone(),
+                    config: <span class="self">self</span>.config.clone(),
                 });
             }
         }
     };
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">DiffFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
-    <span class="macro">direct_compare!</span>(<span class="ident">on_null</span>);
-    <span class="macro">direct_compare!</span>(<span class="ident">on_bool</span>);
-    <span class="macro">direct_compare!</span>(<span class="ident">on_string</span>);
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; DiffFolder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>&gt; {
+    <span class="macro">direct_compare!</span>(on_null);
+    <span class="macro">direct_compare!</span>(on_bool);
+    <span class="macro">direct_compare!</span>(on_string);
 
-    <span class="kw">fn</span> <span class="ident">on_number</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) {
-        <span class="kw">let</span> <span class="ident">is_equal</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">numeric_mode</span> {
-            <span class="ident">NumericMode::Strict</span> =&gt; <span class="self">self</span>.<span class="ident">rhs</span> <span class="op">==</span> <span class="ident">lhs</span>,
-            <span class="ident">NumericMode::AssumeFloat</span> =&gt; <span class="self">self</span>.<span class="ident">rhs</span>.<span class="ident">as_f64</span>() <span class="op">==</span> <span class="ident">lhs</span>.<span class="ident">as_f64</span>(),
+    <span class="kw">fn </span>on_number(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value) {
+        <span class="kw">let </span>is_equal = <span class="kw">match </span><span class="self">self</span>.config.numeric_mode {
+            NumericMode::Strict =&gt; <span class="self">self</span>.rhs == lhs,
+            NumericMode::AssumeFloat =&gt; <span class="self">self</span>.rhs.as_f64() == lhs.as_f64(),
         };
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_equal</span> {
-            <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
-                <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+        <span class="kw">if </span>!is_equal {
+            <span class="self">self</span>.acc.push(Difference {
+                lhs: <span class="prelude-val">Some</span>(lhs),
+                rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                path: <span class="self">self</span>.path.clone(),
+                config: <span class="self">self</span>.config.clone(),
             });
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">on_array</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rhs</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>.<span class="ident">as_array</span>() {
-            <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">as_array</span>().<span class="ident">unwrap</span>();
+    <span class="kw">fn </span>on_array(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = <span class="self">self</span>.rhs.as_array() {
+            <span class="kw">let </span>lhs = lhs.as_array().unwrap();
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">compare_mode</span> {
-                <span class="ident">CompareMode::Inclusive</span> =&gt; {
-                    <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">rhs</span>) <span class="kw">in</span> <span class="ident">rhs</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">append</span>(<span class="ident">Key::Idx</span>(<span class="ident">idx</span>));
+            <span class="kw">match </span><span class="self">self</span>.config.compare_mode {
+                CompareMode::Inclusive =&gt; {
+                    <span class="kw">for </span>(idx, rhs) <span class="kw">in </span>rhs.iter().enumerate() {
+                        <span class="kw">let </span>path = <span class="self">self</span>.path.append(Key::Idx(idx));
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">get</span>(<span class="ident">idx</span>) {
-                            <span class="ident">diff_with</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>, <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(), <span class="ident">path</span>, <span class="self">self</span>.<span class="ident">acc</span>)
-                        } <span class="kw">else</span> {
-                            <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
-                                <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                                <span class="ident">path</span>,
-                                <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = lhs.get(idx) {
+                            diff_with(lhs, rhs, <span class="self">self</span>.config.clone(), path, <span class="self">self</span>.acc)
+                        } <span class="kw">else </span>{
+                            <span class="self">self</span>.acc.push(Difference {
+                                lhs: <span class="prelude-val">None</span>,
+                                rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                                path,
+                                config: <span class="self">self</span>.config.clone(),
                             });
                         }
                     }
                 }
-                <span class="ident">CompareMode::Strict</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">all_keys</span> <span class="op">=</span> <span class="ident">rhs</span>
-                        .<span class="ident">indexes</span>()
-                        .<span class="ident">into_iter</span>()
-                        .<span class="ident">chain</span>(<span class="ident">lhs</span>.<span class="ident">indexes</span>())
-                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                    <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">all_keys</span> {
-                        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">append</span>(<span class="ident">Key::Idx</span>(<span class="ident">key</span>));
+                CompareMode::Strict =&gt; {
+                    <span class="kw">let </span>all_keys = rhs
+                        .indexes()
+                        .into_iter()
+                        .chain(lhs.indexes())
+                        .collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+                    <span class="kw">for </span>key <span class="kw">in </span>all_keys {
+                        <span class="kw">let </span>path = <span class="self">self</span>.path.append(Key::Idx(key));
 
-                        <span class="kw">match</span> (<span class="ident">lhs</span>.<span class="ident">get</span>(<span class="ident">key</span>), <span class="ident">rhs</span>.<span class="ident">get</span>(<span class="ident">key</span>)) {
-                            (<span class="prelude-val">Some</span>(<span class="ident">lhs</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>)) =&gt; {
-                                <span class="ident">diff_with</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>, <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(), <span class="ident">path</span>, <span class="self">self</span>.<span class="ident">acc</span>);
+                        <span class="kw">match </span>(lhs.get(key), rhs.get(key)) {
+                            (<span class="prelude-val">Some</span>(lhs), <span class="prelude-val">Some</span>(rhs)) =&gt; {
+                                diff_with(lhs, rhs, <span class="self">self</span>.config.clone(), path, <span class="self">self</span>.acc);
                             }
-                            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">rhs</span>)) =&gt; {
-                                <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                    <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
-                                    <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="ident">rhs</span>),
-                                    <span class="ident">path</span>,
-                                    <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(rhs)) =&gt; {
+                                <span class="self">self</span>.acc.push(Difference {
+                                    lhs: <span class="prelude-val">None</span>,
+                                    rhs: <span class="prelude-val">Some</span>(rhs),
+                                    path,
+                                    config: <span class="self">self</span>.config.clone(),
                                 });
                             }
-                            (<span class="prelude-val">Some</span>(<span class="ident">lhs</span>), <span class="prelude-val">None</span>) =&gt; {
-                                <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                    <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                                    <span class="ident">rhs</span>: <span class="prelude-val">None</span>,
-                                    <span class="ident">path</span>,
-                                    <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                            (<span class="prelude-val">Some</span>(lhs), <span class="prelude-val">None</span>) =&gt; {
+                                <span class="self">self</span>.acc.push(Difference {
+                                    lhs: <span class="prelude-val">Some</span>(lhs),
+                                    rhs: <span class="prelude-val">None</span>,
+                                    path,
+                                    config: <span class="self">self</span>.config.clone(),
                                 });
                             }
                             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
@@ -664,60 +658,60 @@
                     }
                 }
             }
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
-                <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.acc.push(Difference {
+                lhs: <span class="prelude-val">Some</span>(lhs),
+                rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                path: <span class="self">self</span>.path.clone(),
+                config: <span class="self">self</span>.config.clone(),
             });
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">on_object</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rhs</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>.<span class="ident">as_object</span>() {
-            <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>();
+    <span class="kw">fn </span>on_object(<span class="kw-2">&amp;mut </span><span class="self">self</span>, lhs: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(rhs) = <span class="self">self</span>.rhs.as_object() {
+            <span class="kw">let </span>lhs = lhs.as_object().unwrap();
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">compare_mode</span> {
-                <span class="ident">CompareMode::Inclusive</span> =&gt; {
-                    <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">rhs</span>) <span class="kw">in</span> <span class="ident">rhs</span>.<span class="ident">iter</span>() {
-                        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">append</span>(<span class="ident">Key::Field</span>(<span class="ident">key</span>));
+            <span class="kw">match </span><span class="self">self</span>.config.compare_mode {
+                CompareMode::Inclusive =&gt; {
+                    <span class="kw">for </span>(key, rhs) <span class="kw">in </span>rhs.iter() {
+                        <span class="kw">let </span>path = <span class="self">self</span>.path.append(Key::Field(key));
 
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lhs</span>) <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">get</span>(<span class="ident">key</span>) {
-                            <span class="ident">diff_with</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>, <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(), <span class="ident">path</span>, <span class="self">self</span>.<span class="ident">acc</span>)
-                        } <span class="kw">else</span> {
-                            <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
-                                <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                                <span class="ident">path</span>,
-                                <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(lhs) = lhs.get(key) {
+                            diff_with(lhs, rhs, <span class="self">self</span>.config.clone(), path, <span class="self">self</span>.acc)
+                        } <span class="kw">else </span>{
+                            <span class="self">self</span>.acc.push(Difference {
+                                lhs: <span class="prelude-val">None</span>,
+                                rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                                path,
+                                config: <span class="self">self</span>.config.clone(),
                             });
                         }
                     }
                 }
-                <span class="ident">CompareMode::Strict</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">all_keys</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">keys</span>().<span class="ident">chain</span>(<span class="ident">lhs</span>.<span class="ident">keys</span>()).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-                    <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">all_keys</span> {
-                        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">append</span>(<span class="ident">Key::Field</span>(<span class="ident">key</span>));
+                CompareMode::Strict =&gt; {
+                    <span class="kw">let </span>all_keys = rhs.keys().chain(lhs.keys()).collect::&lt;HashSet&lt;<span class="kw">_</span>&gt;&gt;();
+                    <span class="kw">for </span>key <span class="kw">in </span>all_keys {
+                        <span class="kw">let </span>path = <span class="self">self</span>.path.append(Key::Field(key));
 
-                        <span class="kw">match</span> (<span class="ident">lhs</span>.<span class="ident">get</span>(<span class="ident">key</span>), <span class="ident">rhs</span>.<span class="ident">get</span>(<span class="ident">key</span>)) {
-                            (<span class="prelude-val">Some</span>(<span class="ident">lhs</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>)) =&gt; {
-                                <span class="ident">diff_with</span>(<span class="ident">lhs</span>, <span class="ident">rhs</span>, <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(), <span class="ident">path</span>, <span class="self">self</span>.<span class="ident">acc</span>);
+                        <span class="kw">match </span>(lhs.get(key), rhs.get(key)) {
+                            (<span class="prelude-val">Some</span>(lhs), <span class="prelude-val">Some</span>(rhs)) =&gt; {
+                                diff_with(lhs, rhs, <span class="self">self</span>.config.clone(), path, <span class="self">self</span>.acc);
                             }
-                            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">rhs</span>)) =&gt; {
-                                <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                    <span class="ident">lhs</span>: <span class="prelude-val">None</span>,
-                                    <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="ident">rhs</span>),
-                                    <span class="ident">path</span>,
-                                    <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                            (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(rhs)) =&gt; {
+                                <span class="self">self</span>.acc.push(Difference {
+                                    lhs: <span class="prelude-val">None</span>,
+                                    rhs: <span class="prelude-val">Some</span>(rhs),
+                                    path,
+                                    config: <span class="self">self</span>.config.clone(),
                                 });
                             }
-                            (<span class="prelude-val">Some</span>(<span class="ident">lhs</span>), <span class="prelude-val">None</span>) =&gt; {
-                                <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                                    <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                                    <span class="ident">rhs</span>: <span class="prelude-val">None</span>,
-                                    <span class="ident">path</span>,
-                                    <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+                            (<span class="prelude-val">Some</span>(lhs), <span class="prelude-val">None</span>) =&gt; {
+                                <span class="self">self</span>.acc.push(Difference {
+                                    lhs: <span class="prelude-val">Some</span>(lhs),
+                                    rhs: <span class="prelude-val">None</span>,
+                                    path,
+                                    config: <span class="self">self</span>.config.clone(),
                                 });
                             }
                             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
@@ -727,95 +721,95 @@
                     }
                 }
             }
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">acc</span>.<span class="ident">push</span>(<span class="ident">Difference</span> {
-                <span class="ident">lhs</span>: <span class="prelude-val">Some</span>(<span class="ident">lhs</span>),
-                <span class="ident">rhs</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>),
-                <span class="ident">path</span>: <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>(),
-                <span class="ident">config</span>: <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.acc.push(Difference {
+                lhs: <span class="prelude-val">Some</span>(lhs),
+                rhs: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.rhs),
+                path: <span class="self">self</span>.path.clone(),
+                config: <span class="self">self</span>.config.clone(),
             });
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">path</span>: <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">lhs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="ident">rhs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="ident">config</span>: <span class="ident">Config</span>,
+<span class="attribute">#[derive(Debug, PartialEq)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Difference&lt;<span class="lifetime">&#39;a</span>&gt; {
+    path: Path&lt;<span class="lifetime">&#39;a</span>&gt;,
+    lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value&gt;,
+    rhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value&gt;,
+    config: Config,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">json_to_string</span> <span class="op">=</span> <span class="op">|</span><span class="ident">json</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">|</span> <span class="ident">serde_json::to_string_pretty</span>(<span class="ident">json</span>).<span class="ident">unwrap</span>();
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Difference&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>json_to_string = |json: <span class="kw-2">&amp;</span>Value| serde_json::to_string_pretty(json).unwrap();
 
-        <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">compare_mode</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">lhs</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rhs</span>) {
-            (<span class="ident">CompareMode::Inclusive</span>, <span class="prelude-val">Some</span>(<span class="ident">actual</span>), <span class="prelude-val">Some</span>(<span class="ident">expected</span>)) =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;json atoms at path \&quot;{}\&quot; are not equal:&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    expected:&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">json_to_string</span>(<span class="ident">expected</span>).<span class="ident">indent</span>(<span class="number">8</span>))<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    actual:&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">json_to_string</span>(<span class="ident">actual</span>).<span class="ident">indent</span>(<span class="number">8</span>))<span class="question-mark">?</span>;
+        <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.config.compare_mode, <span class="kw-2">&amp;</span><span class="self">self</span>.lhs, <span class="kw-2">&amp;</span><span class="self">self</span>.rhs) {
+            (CompareMode::Inclusive, <span class="prelude-val">Some</span>(actual), <span class="prelude-val">Some</span>(expected)) =&gt; {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;json atoms at path \&quot;{}\&quot; are not equal:&quot;</span>, <span class="self">self</span>.path)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;    expected:&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, json_to_string(expected).indent(<span class="number">8</span>))<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;    actual:&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, json_to_string(actual).indent(<span class="number">8</span>))<span class="question-mark">?</span>;
             }
-            (<span class="ident">CompareMode::Inclusive</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">_expected</span>)) =&gt; {
+            (CompareMode::Inclusive, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(_expected)) =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;json atom at path \&quot;{}\&quot; is missing from actual&quot;</span>,
-                    <span class="self">self</span>.<span class="ident">path</span>
+                    <span class="self">self</span>.path
                 )<span class="question-mark">?</span>;
             }
-            (<span class="ident">CompareMode::Inclusive</span>, <span class="prelude-val">Some</span>(<span class="ident">_actual</span>), <span class="prelude-val">None</span>) =&gt; {
+            (CompareMode::Inclusive, <span class="prelude-val">Some</span>(_actual), <span class="prelude-val">None</span>) =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;stuff missing actual wont produce an error&quot;</span>)
             }
-            (<span class="ident">CompareMode::Inclusive</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;can&#39;t both be missing&quot;</span>),
+            (CompareMode::Inclusive, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;can&#39;t both be missing&quot;</span>),
 
-            (<span class="ident">CompareMode::Strict</span>, <span class="prelude-val">Some</span>(<span class="ident">lhs</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>)) =&gt; {
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;json atoms at path \&quot;{}\&quot; are not equal:&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    lhs:&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">json_to_string</span>(<span class="ident">lhs</span>).<span class="ident">indent</span>(<span class="number">8</span>))<span class="question-mark">?</span>;
-                <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    rhs:&quot;</span>)<span class="question-mark">?</span>;
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">json_to_string</span>(<span class="ident">rhs</span>).<span class="ident">indent</span>(<span class="number">8</span>))<span class="question-mark">?</span>;
+            (CompareMode::Strict, <span class="prelude-val">Some</span>(lhs), <span class="prelude-val">Some</span>(rhs)) =&gt; {
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;json atoms at path \&quot;{}\&quot; are not equal:&quot;</span>, <span class="self">self</span>.path)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;    lhs:&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;{}&quot;</span>, json_to_string(lhs).indent(<span class="number">8</span>))<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(f, <span class="string">&quot;    rhs:&quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, json_to_string(rhs).indent(<span class="number">8</span>))<span class="question-mark">?</span>;
             }
-            (<span class="ident">CompareMode::Strict</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;json atom at path \&quot;{}\&quot; is missing from lhs&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
+            (CompareMode::Strict, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;json atom at path \&quot;{}\&quot; is missing from lhs&quot;</span>, <span class="self">self</span>.path)<span class="question-mark">?</span>;
             }
-            (<span class="ident">CompareMode::Strict</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;json atom at path \&quot;{}\&quot; is missing from rhs&quot;</span>, <span class="self">self</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
+            (CompareMode::Strict, <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;json atom at path \&quot;{}\&quot; is missing from rhs&quot;</span>, <span class="self">self</span>.path)<span class="question-mark">?</span>;
             }
-            (<span class="ident">CompareMode::Strict</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;can&#39;t both be missing&quot;</span>),
+            (CompareMode::Strict, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;can&#39;t both be missing&quot;</span>),
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Root</span>,
-    <span class="ident">Keys</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="attribute">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">enum </span>Path&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Root,
+    Keys(Vec&lt;Key&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">next</span>: <span class="ident">Key</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Path::Root</span> =&gt; <span class="ident">Path::Keys</span>(<span class="macro">vec!</span>[<span class="ident">next</span>]),
-            <span class="ident">Path::Keys</span>(<span class="ident">list</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">copy</span> <span class="op">=</span> <span class="ident">list</span>.<span class="ident">clone</span>();
-                <span class="ident">copy</span>.<span class="ident">push</span>(<span class="ident">next</span>);
-                <span class="ident">Path::Keys</span>(<span class="ident">copy</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Path&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>append(<span class="kw-2">&amp;</span><span class="self">self</span>, next: Key&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; Path&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Path::Root =&gt; Path::Keys(<span class="macro">vec!</span>[next]),
+            Path::Keys(list) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>copy = list.clone();
+                copy.push(next);
+                Path::Keys(copy)
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Path</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Path::Root</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;(root)&quot;</span>),
-            <span class="ident">Path::Keys</span>(<span class="ident">keys</span>) =&gt; {
-                <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">keys</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Path&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Path::Root =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;(root)&quot;</span>),
+            Path::Keys(keys) =&gt; {
+                <span class="kw">for </span>key <span class="kw">in </span>keys {
+                    <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, key)<span class="question-mark">?</span>;
                 }
                 <span class="prelude-val">Ok</span>(())
             }
@@ -823,251 +817,250 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Key</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Idx</span>(<span class="ident">usize</span>),
-    <span class="ident">Field</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>),
+<span class="attribute">#[derive(Debug, Copy, Clone, PartialEq)]
+</span><span class="kw">enum </span>Key&lt;<span class="lifetime">&#39;a</span>&gt; {
+    Idx(usize),
+    Field(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Key</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Key::Idx</span>(<span class="ident">idx</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;[{}]&quot;</span>, <span class="ident">idx</span>),
-            <span class="ident">Key::Field</span>(<span class="ident">key</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;.{}&quot;</span>, <span class="ident">key</span>),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Key&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Key::Idx(idx) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;[{}]&quot;</span>, idx),
+            Key::Field(key) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;.{}&quot;</span>, key),
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">fold_json</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">json</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Value</span>, <span class="ident">folder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">DiffFolder</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-    <span class="kw">match</span> <span class="ident">json</span> {
-        <span class="ident">Value::Null</span> =&gt; <span class="ident">folder</span>.<span class="ident">on_null</span>(<span class="ident">json</span>),
-        <span class="ident">Value::Bool</span>(<span class="kw">_</span>) =&gt; <span class="ident">folder</span>.<span class="ident">on_bool</span>(<span class="ident">json</span>),
-        <span class="ident">Value::Number</span>(<span class="kw">_</span>) =&gt; <span class="ident">folder</span>.<span class="ident">on_number</span>(<span class="ident">json</span>),
-        <span class="ident">Value::String</span>(<span class="kw">_</span>) =&gt; <span class="ident">folder</span>.<span class="ident">on_string</span>(<span class="ident">json</span>),
-        <span class="ident">Value::Array</span>(<span class="kw">_</span>) =&gt; <span class="ident">folder</span>.<span class="ident">on_array</span>(<span class="ident">json</span>),
-        <span class="ident">Value::Object</span>(<span class="kw">_</span>) =&gt; <span class="ident">folder</span>.<span class="ident">on_object</span>(<span class="ident">json</span>),
+<span class="kw">fn </span>fold_json&lt;<span class="lifetime">&#39;a</span>&gt;(json: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value, folder: <span class="kw-2">&amp;mut </span>DiffFolder&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;_</span>&gt;) {
+    <span class="kw">match </span>json {
+        Value::Null =&gt; folder.on_null(json),
+        Value::Bool(<span class="kw">_</span>) =&gt; folder.on_bool(json),
+        Value::Number(<span class="kw">_</span>) =&gt; folder.on_number(json),
+        Value::String(<span class="kw">_</span>) =&gt; folder.on_string(json),
+        Value::Array(<span class="kw">_</span>) =&gt; folder.on_array(json),
+        Value::Object(<span class="kw">_</span>) =&gt; folder.on_object(json),
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">serde_json::json</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="attribute">#[allow(unused_imports)]
+    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>serde_json::json;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_diffing_leaf_json</span>() {
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
-            <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="ident">null</span>),
-            <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="ident">null</span>),
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>),
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_diffing_leaf_json() {
+        <span class="kw">let </span>diffs = diff(
+            <span class="kw-2">&amp;</span><span class="macro">json!</span>(null),
+            <span class="kw-2">&amp;</span><span class="macro">json!</span>(null),
+            Config::new(CompareMode::Inclusive),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
+        <span class="kw">let </span>diffs = diff(
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">false</span>),
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">false</span>),
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>),
+            Config::new(CompareMode::Inclusive),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
+        <span class="kw">let </span>diffs = diff(
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">true</span>),
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">true</span>),
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>),
+            Config::new(CompareMode::Inclusive),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
+        <span class="kw">let </span>diffs = diff(
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">false</span>),
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">true</span>),
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>),
+            Config::new(CompareMode::Inclusive),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
+        <span class="kw">let </span>diffs = diff(
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">true</span>),
             <span class="kw-2">&amp;</span><span class="macro">json!</span>(<span class="bool-val">false</span>),
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>),
+            Config::new(CompareMode::Inclusive),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">2</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">2</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
-            <span class="kw-2">&amp;</span><span class="ident">actual</span>,
-            <span class="kw-2">&amp;</span><span class="ident">expected</span>,
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>).<span class="ident">numeric_mode</span>(<span class="ident">NumericMode::AssumeFloat</span>),
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>diffs = diff(
+            <span class="kw-2">&amp;</span>actual,
+            <span class="kw-2">&amp;</span>expected,
+            Config::new(CompareMode::Inclusive).numeric_mode(NumericMode::AssumeFloat),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1.0</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(
-            <span class="kw-2">&amp;</span><span class="ident">actual</span>,
-            <span class="kw-2">&amp;</span><span class="ident">expected</span>,
-            <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>).<span class="ident">numeric_mode</span>(<span class="ident">NumericMode::AssumeFloat</span>),
+        <span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1.0</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>diffs = diff(
+            <span class="kw-2">&amp;</span>actual,
+            <span class="kw-2">&amp;</span>expected,
+            Config::new(CompareMode::Inclusive).numeric_mode(NumericMode::AssumeFloat),
         );
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_diffing_array</span>() {
-        <span class="comment">// empty</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_diffing_array() {
+        <span class="comment">// empty
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="comment">// eq</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="comment">// eq
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="comment">// actual longer</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="comment">// actual longer
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="comment">// expected longer</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="comment">// expected longer
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="comment">// eq length but different</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">3</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="comment">// eq length but different
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">3</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="comment">// different types</span>
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="comment">// different types
+        </span><span class="kw">let </span>actual = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>(<span class="number">1</span>);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_array_strict</span>() {
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_array_strict() {
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>([<span class="number">1</span>]);
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>([<span class="number">1</span>, <span class="number">2</span>]);
+        <span class="kw">let </span>expected = <span class="macro">json!</span>([<span class="number">1</span>]);
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_object</span>() {
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({});
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({});
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_object() {
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({});
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span>, <span class="string">&quot;b&quot;</span>: <span class="number">123</span> });
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span>, <span class="string">&quot;b&quot;</span>: <span class="number">123 </span>});
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;b&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({ <span class="string">&quot;b&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">2</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">2 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: { <span class="string">&quot;b&quot;</span>: <span class="bool-val">true</span> } });
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: {} });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">actual</span>, <span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Inclusive</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>actual = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: { <span class="string">&quot;b&quot;</span>: <span class="bool-val">true </span>} });
+        <span class="kw">let </span>expected = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: {} });
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>actual, <span class="kw-2">&amp;</span>expected, Config::new(CompareMode::Inclusive));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_object_strict</span>() {
-        <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="macro">json!</span>({});
-        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_object_strict() {
+        <span class="kw">let </span>lhs = <span class="macro">json!</span>({});
+        <span class="kw">let </span>rhs = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>lhs, <span class="kw-2">&amp;</span>rhs, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="macro">json!</span>({});
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let </span>lhs = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>rhs = <span class="macro">json!</span>({});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>lhs, <span class="kw-2">&amp;</span>rhs, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs.len(), <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1</span> });
-        <span class="kw">let</span> <span class="ident">diffs</span> <span class="op">=</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="kw-2">&amp;</span><span class="ident">json</span>, <span class="ident">Config::new</span>(<span class="ident">CompareMode::Strict</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">diffs</span>, <span class="macro">vec!</span>[]);
+        <span class="kw">let </span>json = <span class="macro">json!</span>({ <span class="string">&quot;a&quot;</span>: <span class="number">1 </span>});
+        <span class="kw">let </span>diffs = diff(<span class="kw-2">&amp;</span>json, <span class="kw-2">&amp;</span>json, Config::new(CompareMode::Strict));
+        <span class="macro">assert_eq!</span>(diffs, <span class="macro">vec!</span>[]);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assert_json_diff" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="assert_json_diff" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

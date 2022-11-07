@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/fun.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fun.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/fun.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fun.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -120,122 +114,121 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Facilities for working with JS functions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Facilities for working with JS functions.
 
-<span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-<span class="kw">use</span> <span class="ident">std::os::raw::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
+</span><span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::os::raw::c_void;
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::napi::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::raw</span>::{<span class="ident">Env</span>, <span class="ident">Local</span>};
+<span class="kw">use </span><span class="kw">crate</span>::napi::bindings <span class="kw">as </span>napi;
+<span class="kw">use </span><span class="kw">crate</span>::raw::{Env, Local};
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">callback</span>: <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Local</span>, <span class="ident">napi::Status</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">Env</span>, <span class="ident">napi::CallbackInfo</span>) -&gt; <span class="ident">Local</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">pub unsafe fn </span>new&lt;F&gt;(env: Env, name: <span class="kw-2">&amp;</span>str, callback: F) -&gt; <span class="prelude-ty">Result</span>&lt;Local, napi::Status&gt;
+<span class="kw">where
+    </span>F: Fn(Env, napi::CallbackInfo) -&gt; Local + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">callback</span>));
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::create_function</span>(
-        <span class="ident">env</span>,
-        <span class="ident">name</span>.<span class="ident">as_ptr</span>().<span class="ident">cast</span>(),
-        <span class="ident">name</span>.<span class="ident">len</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">call_boxed</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>),
-        <span class="ident">data</span>.<span class="ident">cast</span>(),
-        <span class="ident">out</span>.<span class="ident">as_mut_ptr</span>(),
+    <span class="kw">let </span><span class="kw-2">mut </span>out = MaybeUninit::uninit();
+    <span class="kw">let </span>data = Box::into_raw(Box::new(callback));
+    <span class="kw">let </span>status = napi::create_function(
+        env,
+        name.as_ptr().cast(),
+        name.len(),
+        <span class="prelude-val">Some</span>(call_boxed::&lt;F&gt;),
+        data.cast(),
+        out.as_mut_ptr(),
     );
 
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::PendingException</span> {
-        <span class="ident">Box::from_raw</span>(<span class="ident">data</span>);
+    <span class="kw">if </span>status == napi::Status::PendingException {
+        Box::from_raw(data);
 
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">status</span>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(status);
     }
 
-    <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+    <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
 
-    <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">out</span>.<span class="ident">assume_init</span>();
+    <span class="kw">let </span>out = out.assume_init();
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;napi-5&quot;</span>)]</span>
-    {
-        <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">drop_function</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-            <span class="ident">_env</span>: <span class="ident">Env</span>,
-            <span class="ident">_finalize_data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-            <span class="ident">finalize_hint</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="attribute">#[cfg(feature = <span class="string">&quot;napi-5&quot;</span>)]
+    </span>{
+        <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>drop_function&lt;F&gt;(
+            _env: Env,
+            _finalize_data: <span class="kw-2">*mut </span>c_void,
+            finalize_hint: <span class="kw-2">*mut </span>c_void,
         ) {
-            <span class="ident">Box::from_raw</span>(<span class="ident">finalize_hint</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>());
+            Box::from_raw(finalize_hint.cast::&lt;F&gt;());
         }
 
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::add_finalizer</span>(
-            <span class="ident">env</span>,
-            <span class="ident">out</span>,
-            <span class="ident">ptr::null_mut</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">drop_function</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>),
-            <span class="ident">data</span>.<span class="ident">cast</span>(),
-            <span class="ident">ptr::null_mut</span>(),
+        <span class="kw">let </span>status = napi::add_finalizer(
+            env,
+            out,
+            ptr::null_mut(),
+            <span class="prelude-val">Some</span>(drop_function::&lt;F&gt;),
+            data.cast(),
+            ptr::null_mut(),
         );
 
-        <span class="comment">// If adding the finalizer fails the closure will leak, but it would</span>
-        <span class="comment">// be unsafe to drop it because there&#39;s no guarantee V8 won&#39;t use the</span>
-        <span class="comment">// pointer.</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+        <span class="comment">// If adding the finalizer fails the closure will leak, but it would
+        // be unsafe to drop it because there&#39;s no guarantee V8 won&#39;t use the
+        // pointer.
+        </span><span class="macro">assert_eq!</span>(status, napi::Status::Ok);
     }
 
-    <span class="prelude-val">Ok</span>(<span class="ident">out</span>)
+    <span class="prelude-val">Ok</span>(out)
 }
 
-<span class="comment">// C ABI compatible function for invoking a boxed closure from the data field</span>
-<span class="comment">// of a Node-API JavaScript function</span>
-<span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">call_boxed</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">info</span>: <span class="ident">napi::CallbackInfo</span>) -&gt; <span class="ident">Local</span>
-<span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">Env</span>, <span class="ident">napi::CallbackInfo</span>) -&gt; <span class="ident">Local</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="comment">// C ABI compatible function for invoking a boxed closure from the data field
+// of a Node-API JavaScript function
+</span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>call_boxed&lt;F&gt;(env: Env, info: napi::CallbackInfo) -&gt; Local
+<span class="kw">where
+    </span>F: Fn(Env, napi::CallbackInfo) -&gt; Local + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::get_cb_info</span>(
-        <span class="ident">env</span>,
-        <span class="ident">info</span>,
-        <span class="ident">ptr::null_mut</span>(),
-        <span class="ident">ptr::null_mut</span>(),
-        <span class="ident">ptr::null_mut</span>(),
-        <span class="ident">data</span>.<span class="ident">as_mut_ptr</span>(),
+    <span class="kw">let </span><span class="kw-2">mut </span>data = MaybeUninit::uninit();
+    <span class="kw">let </span>status = napi::get_cb_info(
+        env,
+        info,
+        ptr::null_mut(),
+        ptr::null_mut(),
+        ptr::null_mut(),
+        data.as_mut_ptr(),
     );
 
-    <span class="macro">assert_eq!</span>(<span class="ident">status</span>, <span class="ident">napi::Status::Ok</span>);
+    <span class="macro">assert_eq!</span>(status, napi::Status::Ok);
 
-    <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">data</span>.<span class="ident">assume_init</span>().<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>();
+    <span class="kw">let </span>callback = <span class="kw-2">&amp;*</span>data.assume_init().cast::&lt;F&gt;();
 
-    <span class="ident">callback</span>(<span class="ident">env</span>, <span class="ident">info</span>)
+    callback(env, info)
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">call</span>(
-    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Local</span>,
-    <span class="ident">env</span>: <span class="ident">Env</span>,
-    <span class="ident">fun</span>: <span class="ident">Local</span>,
-    <span class="ident">this</span>: <span class="ident">Local</span>,
-    <span class="ident">argc</span>: <span class="ident">i32</span>,
-    <span class="ident">argv</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>,
-) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::call_function</span>(
-        <span class="ident">env</span>,
-        <span class="ident">this</span>,
-        <span class="ident">fun</span>,
-        <span class="ident">argc</span> <span class="kw">as</span> <span class="ident">usize</span>,
-        <span class="ident">argv</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-        <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+<span class="kw">pub unsafe fn </span>call(
+    out: <span class="kw-2">&amp;mut </span>Local,
+    env: Env,
+    fun: Local,
+    this: Local,
+    argc: i32,
+    argv: <span class="kw-2">*const </span>c_void,
+) -&gt; bool {
+    <span class="kw">let </span>status = napi::call_function(
+        env,
+        this,
+        fun,
+        argc <span class="kw">as </span>usize,
+        argv <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>,
+        out <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
     );
 
-    <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Ok</span>
+    status == napi::Status::Ok
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">construct</span>(
-    <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Local</span>,
-    <span class="ident">env</span>: <span class="ident">Env</span>,
-    <span class="ident">fun</span>: <span class="ident">Local</span>,
-    <span class="ident">argc</span>: <span class="ident">i32</span>,
-    <span class="ident">argv</span>: <span class="kw-2">*const</span> <span class="ident">c_void</span>,
-) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::new_instance</span>(<span class="ident">env</span>, <span class="ident">fun</span>, <span class="ident">argc</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">argv</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="ident">out</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>);
+<span class="kw">pub unsafe fn </span>construct(
+    out: <span class="kw-2">&amp;mut </span>Local,
+    env: Env,
+    fun: Local,
+    argc: i32,
+    argv: <span class="kw-2">*const </span>c_void,
+) -&gt; bool {
+    <span class="kw">let </span>status = napi::new_instance(env, fun, argc <span class="kw">as </span>usize, argv <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_</span>, out <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>);
 
-    <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Ok</span>
+    status == napi::Status::Ok
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

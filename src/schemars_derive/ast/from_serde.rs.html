@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars_derive-0.8.10/src/ast/from_serde.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>from_serde.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../schemars_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../schemars_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../schemars_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars_derive-0.8.11/src/ast/from_serde.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>from_serde.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../schemars_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../schemars_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../schemars_derive/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -83,85 +77,84 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attr::Attrs</span>;
-<span class="kw">use</span> <span class="ident">serde_derive_internals::ast</span> <span class="kw">as</span> <span class="ident">serde_ast</span>;
-<span class="kw">use</span> <span class="ident">serde_derive_internals::Ctxt</span>;
+</pre><pre class="rust"><code><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::attr::Attrs;
+<span class="kw">use </span>serde_derive_internals::ast <span class="kw">as </span>serde_ast;
+<span class="kw">use </span>serde_derive_internals::Ctxt;
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">FromSerde</span>: <span class="ident">Sized</span> {
-    <span class="kw">type</span> <span class="ident">SerdeType</span>;
+<span class="kw">pub trait </span>FromSerde: Sized {
+    <span class="kw">type </span>SerdeType;
 
-    <span class="kw">fn</span> <span class="ident">from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serde</span>: <span class="ident"><span class="self">Self</span>::SerdeType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span>;
+    <span class="kw">fn </span>from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serde: <span class="self">Self</span>::SerdeType) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt;;
 
-    <span class="kw">fn</span> <span class="ident">vec_from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serdes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerdeType</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">serdes</span>.<span class="ident">len</span>());
-        <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="ident">serdes</span> {
-            <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident"><span class="self">Self</span>::from_serde</span>(<span class="ident">errors</span>, <span class="ident">s</span>)<span class="question-mark">?</span>)
+    <span class="kw">fn </span>vec_from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serdes: Vec&lt;<span class="self">Self</span>::SerdeType&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="self">Self</span>&gt;, ()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::with_capacity(serdes.len());
+        <span class="kw">for </span>s <span class="kw">in </span>serdes {
+            result.push(<span class="self">Self</span>::from_serde(errors, s)<span class="question-mark">?</span>)
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+        <span class="prelude-val">Ok</span>(result)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FromSerde</span> <span class="kw">for</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">SerdeType</span> <span class="op">=</span> <span class="ident">serde_ast::Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromSerde <span class="kw">for </span>Container&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>SerdeType = serde_ast::Container&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serde</span>: <span class="ident"><span class="self">Self</span>::SerdeType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">ident</span>: <span class="ident">serde</span>.<span class="ident">ident</span>,
-            <span class="ident">serde_attrs</span>: <span class="ident">serde</span>.<span class="ident">attrs</span>,
-            <span class="ident">data</span>: <span class="ident">Data::from_serde</span>(<span class="ident">errors</span>, <span class="ident">serde</span>.<span class="ident">data</span>)<span class="question-mark">?</span>,
-            <span class="ident">generics</span>: <span class="ident">serde</span>.<span class="ident">generics</span>,
-            <span class="ident">original</span>: <span class="ident">serde</span>.<span class="ident">original</span>,
-            <span class="comment">// FIXME this allows with/schema_with attribute on containers</span>
-            <span class="ident">attrs</span>: <span class="ident">Attrs::new</span>(<span class="kw-2">&amp;</span><span class="ident">serde</span>.<span class="ident">original</span>.<span class="ident">attrs</span>, <span class="ident">errors</span>),
+    <span class="kw">fn </span>from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serde: <span class="self">Self</span>::SerdeType) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            ident: serde.ident,
+            serde_attrs: serde.attrs,
+            data: Data::from_serde(errors, serde.data)<span class="question-mark">?</span>,
+            generics: serde.generics.clone(),
+            original: serde.original,
+            <span class="comment">// FIXME this allows with/schema_with attribute on containers
+            </span>attrs: Attrs::new(<span class="kw-2">&amp;</span>serde.original.attrs, errors),
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FromSerde</span> <span class="kw">for</span> <span class="ident">Data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">SerdeType</span> <span class="op">=</span> <span class="ident">serde_ast::Data</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromSerde <span class="kw">for </span>Data&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>SerdeType = serde_ast::Data&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serde</span>: <span class="ident"><span class="self">Self</span>::SerdeType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">serde</span> {
-            <span class="ident">serde_ast::Data::Enum</span>(<span class="ident">variants</span>) =&gt; {
-                <span class="ident">Data::Enum</span>(<span class="ident">Variant::vec_from_serde</span>(<span class="ident">errors</span>, <span class="ident">variants</span>)<span class="question-mark">?</span>)
+    <span class="kw">fn </span>from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serde: <span class="self">Self</span>::SerdeType) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>serde {
+            serde_ast::Data::Enum(variants) =&gt; {
+                Data::Enum(Variant::vec_from_serde(errors, variants)<span class="question-mark">?</span>)
             }
-            <span class="ident">serde_ast::Data::Struct</span>(<span class="ident">style</span>, <span class="ident">fields</span>) =&gt; {
-                <span class="ident">Data::Struct</span>(<span class="ident">style</span>, <span class="ident">Field::vec_from_serde</span>(<span class="ident">errors</span>, <span class="ident">fields</span>)<span class="question-mark">?</span>)
+            serde_ast::Data::Struct(style, fields) =&gt; {
+                Data::Struct(style, Field::vec_from_serde(errors, fields)<span class="question-mark">?</span>)
             }
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FromSerde</span> <span class="kw">for</span> <span class="ident">Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">SerdeType</span> <span class="op">=</span> <span class="ident">serde_ast::Variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromSerde <span class="kw">for </span>Variant&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>SerdeType = serde_ast::Variant&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serde</span>: <span class="ident"><span class="self">Self</span>::SerdeType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">ident</span>: <span class="ident">serde</span>.<span class="ident">ident</span>,
-            <span class="ident">serde_attrs</span>: <span class="ident">serde</span>.<span class="ident">attrs</span>,
-            <span class="ident">style</span>: <span class="ident">serde</span>.<span class="ident">style</span>,
-            <span class="ident">fields</span>: <span class="ident">Field::vec_from_serde</span>(<span class="ident">errors</span>, <span class="ident">serde</span>.<span class="ident">fields</span>)<span class="question-mark">?</span>,
-            <span class="ident">original</span>: <span class="ident">serde</span>.<span class="ident">original</span>,
-            <span class="ident">attrs</span>: <span class="ident">Attrs::new</span>(<span class="kw-2">&amp;</span><span class="ident">serde</span>.<span class="ident">original</span>.<span class="ident">attrs</span>, <span class="ident">errors</span>),
+    <span class="kw">fn </span>from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serde: <span class="self">Self</span>::SerdeType) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            ident: serde.ident,
+            serde_attrs: serde.attrs,
+            style: serde.style,
+            fields: Field::vec_from_serde(errors, serde.fields)<span class="question-mark">?</span>,
+            original: serde.original,
+            attrs: Attrs::new(<span class="kw-2">&amp;</span>serde.original.attrs, errors),
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">FromSerde</span> <span class="kw">for</span> <span class="ident">Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">SerdeType</span> <span class="op">=</span> <span class="ident">serde_ast::Field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; FromSerde <span class="kw">for </span>Field&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>SerdeType = serde_ast::Field&lt;<span class="lifetime">&#39;a</span>&gt;;
 
-    <span class="kw">fn</span> <span class="ident">from_serde</span>(<span class="ident">errors</span>: <span class="kw-2">&amp;</span><span class="ident">Ctxt</span>, <span class="ident">serde</span>: <span class="ident"><span class="self">Self</span>::SerdeType</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, ()<span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">member</span>: <span class="ident">serde</span>.<span class="ident">member</span>,
-            <span class="ident">serde_attrs</span>: <span class="ident">serde</span>.<span class="ident">attrs</span>,
-            <span class="ident">ty</span>: <span class="ident">serde</span>.<span class="ident">ty</span>,
-            <span class="ident">original</span>: <span class="ident">serde</span>.<span class="ident">original</span>,
-            <span class="ident">attrs</span>: <span class="ident">Attrs::new</span>(<span class="kw-2">&amp;</span><span class="ident">serde</span>.<span class="ident">original</span>.<span class="ident">attrs</span>, <span class="ident">errors</span>),
-            <span class="ident">validation_attrs</span>: <span class="ident">ValidationAttrs::new</span>(<span class="kw-2">&amp;</span><span class="ident">serde</span>.<span class="ident">original</span>.<span class="ident">attrs</span>, <span class="ident">errors</span>),
+    <span class="kw">fn </span>from_serde(errors: <span class="kw-2">&amp;</span>Ctxt, serde: <span class="self">Self</span>::SerdeType) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ()&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+            member: serde.member,
+            serde_attrs: serde.attrs,
+            ty: serde.ty,
+            original: serde.original,
+            attrs: Attrs::new(<span class="kw-2">&amp;</span>serde.original.attrs, errors),
+            validation_attrs: ValidationAttrs::new(<span class="kw-2">&amp;</span>serde.original.attrs, errors),
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="schemars_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="schemars_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

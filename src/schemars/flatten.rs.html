@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars-0.8.10/src/flatten.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../schemars/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars-0.8.11/src/flatten.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>flatten.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../schemars/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -182,184 +176,183 @@
 <span id="176">176</span>
 <span id="177">177</span>
 <span id="178">178</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::schema</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Map</span>, <span class="ident">Set</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::schema::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{Map, Set};
 
-<span class="kw">impl</span> <span class="ident">Schema</span> {
-    <span class="doccomment">/// This function is only public for use by schemars_derive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It should not be considered part of the public API.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flatten</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="ident">Schema</span> {
-        <span class="kw">if</span> <span class="ident">is_null_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-            <span class="kw">return</span> <span class="ident">other</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_null_type</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>) {
-            <span class="kw">return</span> <span class="self">self</span>;
+<span class="kw">impl </span>Schema {
+    <span class="doccomment">/// This function is only public for use by schemars_derive.
+    ///
+    /// It should not be considered part of the public API.
+    </span><span class="attribute">#[doc(hidden)]
+    </span><span class="kw">pub fn </span>flatten(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; Schema {
+        <span class="kw">if </span>is_null_type(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+            <span class="kw">return </span>other;
+        } <span class="kw">else if </span>is_null_type(<span class="kw-2">&amp;</span>other) {
+            <span class="kw">return </span><span class="self">self</span>;
         }
-        <span class="kw">let</span> <span class="ident">s1</span>: <span class="ident">SchemaObject</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">s2</span>: <span class="ident">SchemaObject</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">into</span>();
-        <span class="ident">Schema::Object</span>(<span class="ident">s1</span>.<span class="ident">merge</span>(<span class="ident">s2</span>))
+        <span class="kw">let </span>s1: SchemaObject = <span class="self">self</span>.into();
+        <span class="kw">let </span>s2: SchemaObject = other.into();
+        Schema::Object(s1.merge(s2))
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">Merge</span>: <span class="ident">Sized</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Merge: Sized {
+    <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">impl_merge</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> { <span class="ident">merge</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">merge_field</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>, <span class="ident">or</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>, }) =&gt; {
-        <span class="kw">impl</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
-            <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
-                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">merge_field</span>: <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">merge_field</span>.<span class="ident">merge</span>(<span class="ident">other</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">merge_field</span>),)<span class="op">*</span>
-                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>: <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>.<span class="ident">or</span>(<span class="ident">other</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>),)<span class="op">*</span>
+<span class="macro">macro_rules! </span>impl_merge {
+    (<span class="macro-nonterminal">$ty</span>:ident { merge: $(<span class="macro-nonterminal">$merge_field</span>:ident)<span class="kw-2">*</span>, or: $(<span class="macro-nonterminal">$or_field</span>:ident)<span class="kw-2">*</span>, }) =&gt; {
+        <span class="kw">impl </span>Merge <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+            <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+                <span class="macro-nonterminal">$ty </span>{
+                    $(<span class="macro-nonterminal">$merge_field</span>: <span class="self">self</span>.<span class="macro-nonterminal">$merge_field</span>.merge(other.<span class="macro-nonterminal">$merge_field</span>),)*
+                    $(<span class="macro-nonterminal">$or_field</span>: <span class="self">self</span>.<span class="macro-nonterminal">$or_field</span>.or(other.<span class="macro-nonterminal">$or_field</span>),)*
                 }
             }
         }
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> { <span class="ident">or</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>, }) =&gt; {
-        <span class="macro">impl_merge!</span>( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> { <span class="ident">merge</span>: , <span class="ident">or</span>: $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">or_field</span>)<span class="kw-2">*</span>, });
+    (<span class="macro-nonterminal">$ty</span>:ident { or: $(<span class="macro-nonterminal">$or_field</span>:ident)<span class="kw-2">*</span>, }) =&gt; {
+        <span class="macro">impl_merge!</span>( <span class="macro-nonterminal">$ty </span>{ merge: , or: $(<span class="macro-nonterminal">$or_field</span>)<span class="kw-2">*</span>, });
     };
 }
 
-<span class="comment">// For ObjectValidation::additional_properties.</span>
-<span class="kw">impl</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Schema</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>), <span class="ident">other</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span>)) {
-            <span class="comment">// Perfer permissive schemas.</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>)), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="bool-val">true</span>.<span class="ident">into</span>())),
-            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="bool-val">true</span>.<span class="ident">into</span>())),
+<span class="comment">// For ObjectValidation::additional_properties.
+</span><span class="kw">impl </span>Merge <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt; {
+    <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>(<span class="self">self</span>.map(|x| <span class="kw-2">*</span>x), other.map(|x| <span class="kw-2">*</span>x)) {
+            <span class="comment">// Perfer permissive schemas.
+            </span>(<span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>)), <span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Box::new(<span class="bool-val">true</span>.into())),
+            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>))) =&gt; <span class="prelude-val">Some</span>(Box::new(<span class="bool-val">true</span>.into())),
             (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             (<span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">None</span>,
 
-            <span class="comment">// Merge if we have two non-trivial schemas.</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">Schema::Object</span>(<span class="ident">s1</span>)), <span class="prelude-val">Some</span>(<span class="ident">Schema::Object</span>(<span class="ident">s2</span>))) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">Schema::Object</span>(<span class="ident">s1</span>.<span class="ident">merge</span>(<span class="ident">s2</span>))))
+            <span class="comment">// Merge if we have two non-trivial schemas.
+            </span>(<span class="prelude-val">Some</span>(Schema::Object(s1)), <span class="prelude-val">Some</span>(Schema::Object(s2))) =&gt; {
+                <span class="prelude-val">Some</span>(Box::new(Schema::Object(s1.merge(s2))))
             }
 
-            <span class="comment">// Perfer the more permissive schema.</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">s1</span> @ <span class="ident">Schema::Object</span>(<span class="kw">_</span>)), <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">s1</span>)),
-            (<span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>)), <span class="prelude-val">Some</span>(<span class="ident">s2</span> @ <span class="ident">Schema::Object</span>(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">s2</span>)),
+            <span class="comment">// Perfer the more permissive schema.
+            </span>(<span class="prelude-val">Some</span>(s1 @ Schema::Object(<span class="kw">_</span>)), <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">false</span>))) =&gt; <span class="prelude-val">Some</span>(Box::new(s1)),
+            (<span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">false</span>)), <span class="prelude-val">Some</span>(s2 @ Schema::Object(<span class="kw">_</span>))) =&gt; <span class="prelude-val">Some</span>(Box::new(s2)),
 
-            <span class="comment">// Default to the null schema.</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>)), <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="bool-val">false</span>.<span class="ident">into</span>())),
+            <span class="comment">// Default to the null schema.
+            </span>(<span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">false</span>)), <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">false</span>))) =&gt; <span class="prelude-val">Some</span>(Box::new(<span class="bool-val">false</span>.into())),
         }
     }
 }
 
-<span class="macro">impl_merge!</span>(<span class="ident">SchemaObject</span> {
-    <span class="ident">merge</span>: <span class="ident">extensions</span> <span class="ident">instance_type</span> <span class="ident">enum_values</span>
-        <span class="ident">metadata</span> <span class="ident">subschemas</span> <span class="ident">number</span> <span class="ident">string</span> <span class="ident">array</span> <span class="ident">object</span>,
-    <span class="ident">or</span>: <span class="ident">format</span> <span class="ident">const_value</span> <span class="ident">reference</span>,
+<span class="macro">impl_merge!</span>(SchemaObject {
+    merge: extensions instance_type enum_values
+        metadata subschemas number string array object,
+    or: format const_value reference,
 });
 
-<span class="kw">impl</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">Metadata</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Metadata</span> {
-            <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">or</span>(<span class="ident">other</span>.<span class="ident">id</span>),
-            <span class="ident">title</span>: <span class="self">self</span>.<span class="ident">title</span>.<span class="ident">or</span>(<span class="ident">other</span>.<span class="ident">title</span>),
-            <span class="ident">description</span>: <span class="self">self</span>.<span class="ident">description</span>.<span class="ident">or</span>(<span class="ident">other</span>.<span class="ident">description</span>),
-            <span class="ident">default</span>: <span class="self">self</span>.<span class="ident">default</span>.<span class="ident">or</span>(<span class="ident">other</span>.<span class="ident">default</span>),
-            <span class="ident">deprecated</span>: <span class="self">self</span>.<span class="ident">deprecated</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">deprecated</span>,
-            <span class="ident">read_only</span>: <span class="self">self</span>.<span class="ident">read_only</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">read_only</span>,
-            <span class="ident">write_only</span>: <span class="self">self</span>.<span class="ident">write_only</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">write_only</span>,
-            <span class="ident">examples</span>: <span class="self">self</span>.<span class="ident">examples</span>.<span class="ident">merge</span>(<span class="ident">other</span>.<span class="ident">examples</span>),
+<span class="kw">impl </span>Merge <span class="kw">for </span>Metadata {
+    <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        Metadata {
+            id: <span class="self">self</span>.id.or(other.id),
+            title: <span class="self">self</span>.title.or(other.title),
+            description: <span class="self">self</span>.description.or(other.description),
+            default: <span class="self">self</span>.default.or(other.default),
+            deprecated: <span class="self">self</span>.deprecated || other.deprecated,
+            read_only: <span class="self">self</span>.read_only || other.read_only,
+            write_only: <span class="self">self</span>.write_only || other.write_only,
+            examples: <span class="self">self</span>.examples.merge(other.examples),
         }
     }
 }
 
-<span class="macro">impl_merge!</span>(<span class="ident">SubschemaValidation</span> {
-    <span class="ident">or</span>: <span class="ident">all_of</span> <span class="ident">any_of</span> <span class="ident">one_of</span> <span class="ident">not</span> <span class="ident">if_schema</span> <span class="ident">then_schema</span> <span class="ident">else_schema</span>,
+<span class="macro">impl_merge!</span>(SubschemaValidation {
+    or: all_of any_of one_of not if_schema then_schema else_schema,
 });
 
-<span class="macro">impl_merge!</span>(<span class="ident">NumberValidation</span> {
-    <span class="ident">or</span>: <span class="ident">multiple_of</span> <span class="ident">maximum</span> <span class="ident">exclusive_maximum</span> <span class="ident">minimum</span> <span class="ident">exclusive_minimum</span>,
+<span class="macro">impl_merge!</span>(NumberValidation {
+    or: multiple_of maximum exclusive_maximum minimum exclusive_minimum,
 });
 
-<span class="macro">impl_merge!</span>(<span class="ident">StringValidation</span> {
-    <span class="ident">or</span>: <span class="ident">max_length</span> <span class="ident">min_length</span> <span class="ident">pattern</span>,
+<span class="macro">impl_merge!</span>(StringValidation {
+    or: max_length min_length pattern,
 });
 
-<span class="macro">impl_merge!</span>(<span class="ident">ArrayValidation</span> {
-    <span class="ident">or</span>: <span class="ident">items</span> <span class="ident">additional_items</span> <span class="ident">max_items</span> <span class="ident">min_items</span> <span class="ident">unique_items</span> <span class="ident">contains</span>,
+<span class="macro">impl_merge!</span>(ArrayValidation {
+    or: items additional_items max_items min_items unique_items contains,
 });
 
-<span class="macro">impl_merge!</span>(<span class="ident">ObjectValidation</span> {
-    <span class="ident">merge</span>: <span class="ident">required</span> <span class="ident">properties</span> <span class="ident">pattern_properties</span> <span class="ident">additional_properties</span>,
-    <span class="ident">or</span>: <span class="ident">max_properties</span> <span class="ident">min_properties</span> <span class="ident">property_names</span>,
+<span class="macro">impl_merge!</span>(ObjectValidation {
+    merge: required properties pattern_properties additional_properties,
+    or: max_properties min_properties property_names,
 });
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Merge</span><span class="op">&gt;</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">merge</span>(<span class="ident">y</span>)),
-            (<span class="prelude-val">None</span>, <span class="ident">y</span>) =&gt; <span class="ident">y</span>,
-            (<span class="ident">x</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">x</span>,
+<span class="kw">impl</span>&lt;T: Merge&gt; Merge <span class="kw">for </span><span class="prelude-ty">Option</span>&lt;T&gt; {
+    <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>(<span class="self">self</span>, other) {
+            (<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) =&gt; <span class="prelude-val">Some</span>(x.merge(y)),
+            (<span class="prelude-val">None</span>, y) =&gt; y,
+            (x, <span class="prelude-val">None</span>) =&gt; x,
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Merge</span><span class="op">&gt;</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">merge</span>(<span class="kw-2">*</span><span class="ident">other</span>);
-        <span class="self">self</span>
-    }
+<span class="kw">impl</span>&lt;T: Merge&gt; Merge <span class="kw">for </span>Box&lt;T&gt; {
+    <span class="kw">fn </span>merge(<span class="kw-2">mut </span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw-2">*</span><span class="self">self </span>= (<span class="kw-2">*</span><span class="self">self</span>).merge(<span class="kw-2">*</span>other);
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">other</span>);
-        <span class="self">self</span>
-    }
+<span class="kw">impl</span>&lt;T&gt; Merge <span class="kw">for </span>Vec&lt;T&gt; {
+    <span class="kw">fn </span>merge(<span class="kw-2">mut </span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.extend(other);
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">K</span>: <span class="ident">std::hash::Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Ord</span>,
+<span class="kw">impl</span>&lt;K, V&gt; Merge <span class="kw">for </span>Map&lt;K, V&gt;
+<span class="kw">where
+    </span>K: std::hash::Hash + Eq + Ord,
 {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">other</span>);
-        <span class="self">self</span>
-    }
+    <span class="kw">fn </span>merge(<span class="kw-2">mut </span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.extend(other);
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">Set</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">extend</span>(<span class="ident">other</span>);
-        <span class="self">self</span>
-    }
+<span class="kw">impl</span>&lt;T: Ord&gt; Merge <span class="kw">for </span>Set&lt;T&gt; {
+    <span class="kw">fn </span>merge(<span class="kw-2">mut </span><span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.extend(other);
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">Merge</span> <span class="kw">for</span> <span class="ident">SingleOrVec</span><span class="op">&lt;</span><span class="ident">InstanceType</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="self">self</span> <span class="op">==</span> <span class="ident">other</span> {
-            <span class="kw">return</span> <span class="self">self</span>;
+<span class="kw">impl </span>Merge <span class="kw">for </span>SingleOrVec&lt;InstanceType&gt; {
+    <span class="kw">fn </span>merge(<span class="self">self</span>, other: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span><span class="self">self </span>== other {
+            <span class="kw">return </span><span class="self">self</span>;
         }
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vec</span> <span class="op">=</span> <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
-            (<span class="ident">SingleOrVec::Vec</span>(<span class="ident">v1</span>), <span class="ident">SingleOrVec::Vec</span>(<span class="ident">v2</span>)) =&gt; <span class="ident">v1</span>.<span class="ident">merge</span>(<span class="ident">v2</span>),
-            (<span class="ident">SingleOrVec::Vec</span>(<span class="kw-2">mut</span> <span class="ident">v</span>), <span class="ident">SingleOrVec::Single</span>(<span class="ident">s</span>))
-            <span class="op">|</span> (<span class="ident">SingleOrVec::Single</span>(<span class="ident">s</span>), <span class="ident">SingleOrVec::Vec</span>(<span class="kw-2">mut</span> <span class="ident">v</span>)) =&gt; {
-                <span class="ident">v</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">s</span>);
-                <span class="ident">v</span>
+        <span class="kw">let </span><span class="kw-2">mut </span>vec = <span class="kw">match </span>(<span class="self">self</span>, other) {
+            (SingleOrVec::Vec(v1), SingleOrVec::Vec(v2)) =&gt; v1.merge(v2),
+            (SingleOrVec::Vec(<span class="kw-2">mut </span>v), SingleOrVec::Single(s))
+            | (SingleOrVec::Single(s), SingleOrVec::Vec(<span class="kw-2">mut </span>v)) =&gt; {
+                v.push(<span class="kw-2">*</span>s);
+                v
             }
-            (<span class="ident">SingleOrVec::Single</span>(<span class="ident">s1</span>), <span class="ident">SingleOrVec::Single</span>(<span class="ident">s2</span>)) =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="ident">s1</span>, <span class="kw-2">*</span><span class="ident">s2</span>],
+            (SingleOrVec::Single(s1), SingleOrVec::Single(s2)) =&gt; <span class="macro">vec!</span>[<span class="kw-2">*</span>s1, <span class="kw-2">*</span>s2],
         };
-        <span class="ident">vec</span>.<span class="ident">sort</span>();
-        <span class="ident">vec</span>.<span class="ident">dedup</span>();
-        <span class="ident">SingleOrVec::Vec</span>(<span class="ident">vec</span>)
+        vec.sort();
+        vec.dedup();
+        SingleOrVec::Vec(vec)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">is_null_type</span>(<span class="ident">schema</span>: <span class="kw-2">&amp;</span><span class="ident">Schema</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">schema</span> {
-        <span class="ident">Schema::Object</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>,
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+<span class="kw">fn </span>is_null_type(schema: <span class="kw-2">&amp;</span>Schema) -&gt; bool {
+    <span class="kw">let </span>s = <span class="kw">match </span>schema {
+        Schema::Object(s) =&gt; s,
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
     };
-    <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">instance_type</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">SingleOrVec::Single</span>(<span class="ident">t</span>)) <span class="kw">if</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">t</span> <span class="op">==</span> <span class="ident">InstanceType::Null</span> =&gt; <span class="bool-val">true</span>,
-        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+    <span class="kw">match </span><span class="kw-2">&amp;</span>s.instance_type {
+        <span class="prelude-val">Some</span>(SingleOrVec::Single(t)) <span class="kw">if </span><span class="kw-2">**</span>t == InstanceType::Null =&gt; <span class="bool-val">true</span>,
+        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="schemars" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="schemars" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

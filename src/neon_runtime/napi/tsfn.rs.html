@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/tsfn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tsfn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/tsfn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tsfn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -218,220 +212,219 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Idiomatic Rust wrappers for N-API threadsafe functions</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Idiomatic Rust wrappers for N-API threadsafe functions
 
-<span class="kw">use</span> <span class="ident">std::ffi::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
-<span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
+</span><span class="kw">use </span>std::ffi::c_void;
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::ptr;
+<span class="kw">use </span>std::sync::{Arc, Mutex};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::no_panic::FailureBoundary</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::raw::Env</span>;
+<span class="kw">use </span><span class="kw">super</span>::bindings <span class="kw">as </span>napi;
+<span class="kw">use </span><span class="kw">super</span>::no_panic::FailureBoundary;
+<span class="kw">use </span><span class="kw">super</span>::raw::Env;
 
-<span class="kw">const</span> <span class="ident">BOUNDARY</span>: <span class="ident">FailureBoundary</span> <span class="op">=</span> <span class="ident">FailureBoundary</span> {
-    <span class="ident">both</span>: <span class="string">&quot;A panic and exception occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
-    <span class="ident">exception</span>: <span class="string">&quot;An exception occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
-    <span class="ident">panic</span>: <span class="string">&quot;A panic occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
+<span class="kw">const </span>BOUNDARY: FailureBoundary = FailureBoundary {
+    both: <span class="string">&quot;A panic and exception occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
+    exception: <span class="string">&quot;An exception occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
+    panic: <span class="string">&quot;A panic occurred while executing a `neon::event::Channel::send` callback&quot;</span>,
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Tsfn</span>(<span class="ident">napi::ThreadsafeFunction</span>);
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Tsfn(napi::ThreadsafeFunction);
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Tsfn</span> {}
+<span class="kw">unsafe impl </span>Send <span class="kw">for </span>Tsfn {}
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Tsfn</span> {}
+<span class="kw">unsafe impl </span>Sync <span class="kw">for </span>Tsfn {}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Threadsafe Function encapsulate a Rust function pointer and N-API threadsafe</span>
-<span class="doccomment">/// function for scheduling tasks to execute on a JavaScript thread.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ThreadsafeFunction</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">tsfn</span>: <span class="ident">Tsfn</span>,
-    <span class="ident">is_finalized</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">callback</span>: <span class="kw">fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Env</span><span class="op">&gt;</span>, <span class="ident">T</span>),
+<span class="attribute">#[derive(Debug)]
+</span><span class="doccomment">/// Threadsafe Function encapsulate a Rust function pointer and N-API threadsafe
+/// function for scheduling tasks to execute on a JavaScript thread.
+</span><span class="kw">pub struct </span>ThreadsafeFunction&lt;T&gt; {
+    tsfn: Tsfn,
+    is_finalized: Arc&lt;Mutex&lt;bool&gt;&gt;,
+    callback: <span class="kw">fn</span>(<span class="prelude-ty">Option</span>&lt;Env&gt;, T),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Callback</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">callback</span>: <span class="kw">fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Env</span><span class="op">&gt;</span>, <span class="ident">T</span>),
-    <span class="ident">data</span>: <span class="ident">T</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Callback&lt;T&gt; {
+    callback: <span class="kw">fn</span>(<span class="prelude-ty">Option</span>&lt;Env&gt;, T),
+    data: T,
 }
 
-<span class="doccomment">/// Error returned when scheduling a threadsafe function with some data</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">kind</span>: <span class="ident">napi::Status</span>,
-    <span class="ident">data</span>: <span class="ident">T</span>,
+<span class="doccomment">/// Error returned when scheduling a threadsafe function with some data
+</span><span class="kw">pub struct </span>CallError&lt;T&gt; {
+    kind: napi::Status,
+    data: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CallError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The specific error that occurred</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">napi::Status</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>
+<span class="kw">impl</span>&lt;T&gt; CallError&lt;T&gt; {
+    <span class="doccomment">/// The specific error that occurred
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; napi::Status {
+        <span class="self">self</span>.kind
     }
 
-    <span class="doccomment">/// Returns the data that was sent when scheduling to allow re-scheduling</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
-        <span class="self">self</span>.<span class="ident">data</span>
+    <span class="doccomment">/// Returns the data that was sent when scheduling to allow re-scheduling
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T {
+        <span class="self">self</span>.data
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">ThreadsafeFunction</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new unbounded N-API Threadsafe Function</span>
-    <span class="doccomment">/// Safety: `Env` must be valid for the current thread</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">callback</span>: <span class="kw">fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Env</span><span class="op">&gt;</span>, <span class="ident">T</span>)) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::with_capacity</span>(<span class="ident">env</span>, <span class="number">0</span>, <span class="ident">callback</span>)
+<span class="kw">impl</span>&lt;T: Send + <span class="lifetime">&#39;static</span>&gt; ThreadsafeFunction&lt;T&gt; {
+    <span class="doccomment">/// Creates a new unbounded N-API Threadsafe Function
+    /// Safety: `Env` must be valid for the current thread
+    </span><span class="kw">pub unsafe fn </span>new(env: Env, callback: <span class="kw">fn</span>(<span class="prelude-ty">Option</span>&lt;Env&gt;, T)) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_capacity(env, <span class="number">0</span>, callback)
     }
 
-    <span class="doccomment">/// Creates a bounded N-API Threadsafe Function</span>
-    <span class="doccomment">/// Safety: `Env` must be valid for the current thread</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(
-        <span class="ident">env</span>: <span class="ident">Env</span>,
-        <span class="ident">max_queue_size</span>: <span class="ident">usize</span>,
-        <span class="ident">callback</span>: <span class="kw">fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Env</span><span class="op">&gt;</span>, <span class="ident">T</span>),
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-        <span class="kw">let</span> <span class="ident">is_finalized</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="bool-val">false</span>));
+    <span class="doccomment">/// Creates a bounded N-API Threadsafe Function
+    /// Safety: `Env` must be valid for the current thread
+    </span><span class="kw">pub unsafe fn </span>with_capacity(
+        env: Env,
+        max_queue_size: usize,
+        callback: <span class="kw">fn</span>(<span class="prelude-ty">Option</span>&lt;Env&gt;, T),
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::uninit();
+        <span class="kw">let </span>is_finalized = Arc::new(Mutex::new(<span class="bool-val">false</span>));
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">napi::create_threadsafe_function</span>(
-                <span class="ident">env</span>,
-                <span class="ident">std::ptr::null_mut</span>(),
-                <span class="ident">std::ptr::null_mut</span>(),
-                <span class="ident"><span class="kw">super</span>::string</span>(<span class="ident">env</span>, <span class="string">&quot;neon threadsafe function&quot;</span>),
-                <span class="ident">max_queue_size</span>,
-                <span class="comment">// Always set the reference count to 1. Prefer using</span>
-                <span class="comment">// Rust `Arc` to maintain the struct.</span>
-                <span class="number">1</span>,
-                <span class="ident">Arc::into_raw</span>(<span class="ident">is_finalized</span>.<span class="ident">clone</span>()) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::finalize</span>),
-                <span class="ident">std::ptr::null_mut</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::callback</span>),
-                <span class="ident">result</span>.<span class="ident">as_mut_ptr</span>(),
+            napi::create_threadsafe_function(
+                env,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                <span class="kw">super</span>::string(env, <span class="string">&quot;neon threadsafe function&quot;</span>),
+                max_queue_size,
+                <span class="comment">// Always set the reference count to 1. Prefer using
+                // Rust `Arc` to maintain the struct.
+                </span><span class="number">1</span>,
+                Arc::into_raw(is_finalized.clone()) <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>,
+                <span class="prelude-val">Some</span>(<span class="self">Self</span>::finalize),
+                std::ptr::null_mut(),
+                <span class="prelude-val">Some</span>(<span class="self">Self</span>::callback),
+                result.as_mut_ptr(),
             ),
-            <span class="ident">napi::Status::Ok</span>,
+            napi::Status::Ok,
         );
 
-        <span class="self">Self</span> {
-            <span class="ident">tsfn</span>: <span class="ident">Tsfn</span>(<span class="ident">result</span>.<span class="ident">assume_init</span>()),
-            <span class="ident">is_finalized</span>: <span class="ident">is_finalized</span>,
-            <span class="ident">callback</span>,
+        <span class="self">Self </span>{
+            tsfn: Tsfn(result.assume_init()),
+            is_finalized: is_finalized,
+            callback,
         }
     }
 
-    <span class="doccomment">/// Schedule a threadsafe function to be executed with some data</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call</span>(
+    <span class="doccomment">/// Schedule a threadsafe function to be executed with some data
+    </span><span class="kw">pub fn </span>call(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">data</span>: <span class="ident">T</span>,
-        <span class="ident">is_blocking</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">napi::ThreadsafeFunctionCallMode</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CallError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">is_blocking</span> <span class="op">=</span> <span class="ident">is_blocking</span>.<span class="ident">unwrap_or</span>(<span class="ident">napi::ThreadsafeFunctionCallMode::Blocking</span>);
+        data: T,
+        is_blocking: <span class="prelude-ty">Option</span>&lt;napi::ThreadsafeFunctionCallMode&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), CallError&lt;T&gt;&gt; {
+        <span class="kw">let </span>is_blocking = is_blocking.unwrap_or(napi::ThreadsafeFunctionCallMode::Blocking);
 
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">Callback</span> {
-            <span class="ident">callback</span>: <span class="self">self</span>.<span class="ident">callback</span>,
-            <span class="ident">data</span>,
+        <span class="kw">let </span>callback = Box::into_raw(Box::new(Callback {
+            callback: <span class="self">self</span>.callback,
+            data,
         }));
 
-        <span class="comment">// Hold the lock before entering `call_threadsafe_function` so that</span>
-        <span class="comment">// `finalize_cb` would never complete.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_finalized</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_finalized</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <span class="comment">// Hold the lock before entering `call_threadsafe_function` so that
+        // `finalize_cb` would never complete.
+        </span><span class="kw">let </span><span class="kw-2">mut </span>is_finalized = <span class="self">self</span>.is_finalized.lock().unwrap();
 
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_finalized</span> {
-                <span class="ident">napi::Status::Closing</span>
-            } <span class="kw">else</span> {
-                <span class="kw">unsafe</span> {
-                    <span class="ident">napi::call_threadsafe_function</span>(<span class="self">self</span>.<span class="ident">tsfn</span>.<span class="number">0</span>, <span class="ident">callback</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>, <span class="ident">is_blocking</span>)
+        <span class="kw">let </span>status = {
+            <span class="kw">if </span><span class="kw-2">*</span>is_finalized {
+                napi::Status::Closing
+            } <span class="kw">else </span>{
+                <span class="kw">unsafe </span>{
+                    napi::call_threadsafe_function(<span class="self">self</span>.tsfn.<span class="number">0</span>, callback <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, is_blocking)
                 }
             }
         };
 
-        <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Ok</span> {
+        <span class="kw">if </span>status == napi::Status::Ok {
             <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else</span> {
-            <span class="comment">// Prevent further calls to `call_threadsafe_function`</span>
-            <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Closing</span> {
-                <span class="kw-2">*</span><span class="ident">is_finalized</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        } <span class="kw">else </span>{
+            <span class="comment">// Prevent further calls to `call_threadsafe_function`
+            </span><span class="kw">if </span>status == napi::Status::Closing {
+                <span class="kw-2">*</span>is_finalized = <span class="bool-val">true</span>;
             }
 
-            <span class="comment">// If the call failed, the callback won&#39;t execute</span>
-            <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">callback</span>) };
+            <span class="comment">// If the call failed, the callback won&#39;t execute
+            </span><span class="kw">let </span>callback = <span class="kw">unsafe </span>{ Box::from_raw(callback) };
 
-            <span class="prelude-val">Err</span>(<span class="ident">CallError</span> {
-                <span class="ident">kind</span>: <span class="ident">status</span>,
-                <span class="ident">data</span>: <span class="ident">callback</span>.<span class="ident">data</span>,
+            <span class="prelude-val">Err</span>(CallError {
+                kind: status,
+                data: callback.data,
             })
         }
     }
 
-    <span class="doccomment">/// References a threadsafe function to prevent exiting the event loop until it has been dropped. (Default)</span>
-    <span class="doccomment">/// Safety: `Env` must be valid for the current thread</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reference</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Env</span>) {
+    <span class="doccomment">/// References a threadsafe function to prevent exiting the event loop until it has been dropped. (Default)
+    /// Safety: `Env` must be valid for the current thread
+    </span><span class="kw">pub unsafe fn </span>reference(<span class="kw-2">&amp;</span><span class="self">self</span>, env: Env) {
         <span class="macro">assert_eq!</span>(
-            <span class="ident">napi::ref_threadsafe_function</span>(<span class="ident">env</span>, <span class="self">self</span>.<span class="ident">tsfn</span>.<span class="number">0</span>),
-            <span class="ident">napi::Status::Ok</span>,
+            napi::ref_threadsafe_function(env, <span class="self">self</span>.tsfn.<span class="number">0</span>),
+            napi::Status::Ok,
         );
     }
 
-    <span class="doccomment">/// Unreferences a threadsafe function to allow exiting the event loop before it has been dropped.</span>
-    <span class="doccomment">/// Safety: `Env` must be valid for the current thread</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Env</span>) {
+    <span class="doccomment">/// Unreferences a threadsafe function to allow exiting the event loop before it has been dropped.
+    /// Safety: `Env` must be valid for the current thread
+    </span><span class="kw">pub unsafe fn </span>unref(<span class="kw-2">&amp;</span><span class="self">self</span>, env: Env) {
         <span class="macro">assert_eq!</span>(
-            <span class="ident">napi::unref_threadsafe_function</span>(<span class="ident">env</span>, <span class="self">self</span>.<span class="ident">tsfn</span>.<span class="number">0</span>),
-            <span class="ident">napi::Status::Ok</span>,
+            napi::unref_threadsafe_function(env, <span class="self">self</span>.tsfn.<span class="number">0</span>),
+            napi::Status::Ok,
         );
     }
 
-    <span class="comment">// Provides a C ABI wrapper for a napi callback notifying us about tsfn</span>
-    <span class="comment">// being finalized.</span>
-    <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">finalize</span>(<span class="ident">_env</span>: <span class="ident">Env</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">_hint</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
-        <span class="kw">let</span> <span class="ident">is_finalized</span> <span class="op">=</span> <span class="ident">Arc::from_raw</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>);
+    <span class="comment">// Provides a C ABI wrapper for a napi callback notifying us about tsfn
+    // being finalized.
+    </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>finalize(_env: Env, data: <span class="kw-2">*mut </span>c_void, _hint: <span class="kw-2">*mut </span>c_void) {
+        <span class="kw">let </span>is_finalized = Arc::from_raw(data <span class="kw">as </span><span class="kw-2">*mut </span>Mutex&lt;bool&gt;);
 
-        <span class="kw-2">*</span><span class="ident">is_finalized</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw-2">*</span>is_finalized.lock().unwrap() = <span class="bool-val">true</span>;
     }
 
-    <span class="comment">// Provides a C ABI wrapper for invoking the user supplied function pointer</span>
-    <span class="comment">// On panic or exception, creates a fatal exception of the form:</span>
-    <span class="comment">// Error(msg: string) {</span>
-    <span class="comment">//     // Exception thrown</span>
-    <span class="comment">//     cause?: Error,</span>
-    <span class="comment">//     // Panic occurred</span>
-    <span class="comment">//     panic?: Error(msg: string) {</span>
-    <span class="comment">//         // Opaque panic type if it wasn&#39;t a string</span>
-    <span class="comment">//         cause?: JsBox&lt;Panic&gt;</span>
-    <span class="comment">//     }</span>
-    <span class="comment">// }</span>
-    <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">callback</span>(
-        <span class="ident">env</span>: <span class="ident">Env</span>,
-        <span class="ident">_js_callback</span>: <span class="ident">napi::Value</span>,
-        <span class="ident">_context</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
-        <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>,
+    <span class="comment">// Provides a C ABI wrapper for invoking the user supplied function pointer
+    // On panic or exception, creates a fatal exception of the form:
+    // Error(msg: string) {
+    //     // Exception thrown
+    //     cause?: Error,
+    //     // Panic occurred
+    //     panic?: Error(msg: string) {
+    //         // Opaque panic type if it wasn&#39;t a string
+    //         cause?: JsBox&lt;Panic&gt;
+    //     }
+    // }
+    </span><span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>callback(
+        env: Env,
+        _js_callback: napi::Value,
+        _context: <span class="kw-2">*mut </span>c_void,
+        data: <span class="kw-2">*mut </span>c_void,
     ) {
-        <span class="kw">let</span> <span class="ident">Callback</span> { <span class="ident">callback</span>, <span class="ident">data</span> } <span class="op">=</span> <span class="kw-2">*</span><span class="ident">Box::from_raw</span>(<span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Callback</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+        <span class="kw">let </span>Callback { callback, data } = <span class="kw-2">*</span>Box::from_raw(data <span class="kw">as </span><span class="kw-2">*mut </span>Callback&lt;T&gt;);
 
-        <span class="ident">BOUNDARY</span>.<span class="ident">catch_failure</span>(<span class="ident">env</span>, <span class="prelude-val">None</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">env</span><span class="op">|</span> {
-            <span class="ident">callback</span>(<span class="ident">env</span>, <span class="ident">data</span>);
-            <span class="ident">ptr::null_mut</span>()
+        BOUNDARY.catch_failure(env, <span class="prelude-val">None</span>, <span class="kw">move </span>|env| {
+            callback(env, data);
+            ptr::null_mut()
         });
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ThreadsafeFunction</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">is_finalized</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">is_finalized</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>ThreadsafeFunction&lt;T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let </span>is_finalized = <span class="self">self</span>.is_finalized.lock().unwrap();
 
-        <span class="comment">// tsfn was already finalized by `Environment::CleanupHandles()` in Node.js</span>
-        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_finalized</span> {
+        <span class="comment">// tsfn was already finalized by `Environment::CleanupHandles()` in Node.js
+        </span><span class="kw">if </span><span class="kw-2">*</span>is_finalized {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">napi::release_threadsafe_function</span>(
-                <span class="self">self</span>.<span class="ident">tsfn</span>.<span class="number">0</span>,
-                <span class="ident">napi::ThreadsafeFunctionReleaseMode::Release</span>,
+        <span class="kw">unsafe </span>{
+            napi::release_threadsafe_function(
+                <span class="self">self</span>.tsfn.<span class="number">0</span>,
+                napi::ThreadsafeFunctionReleaseMode::Release,
             );
         };
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

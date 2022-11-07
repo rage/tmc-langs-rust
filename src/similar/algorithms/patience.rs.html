@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/patience.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patience.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/patience.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>patience.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -173,175 +167,174 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Patience diff algorithm.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! * time: `O(N log N + M log M + (N+M)D)`</span>
-<span class="doccomment">//! * space: `O(N+M)`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Tends to give more human-readable outputs. See [Bram Cohen&#39;s blog</span>
-<span class="doccomment">//! post](https://bramcohen.livejournal.com/73318.html) describing it.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This is based on the patience implementation of [pijul](https://pijul.org/)</span>
-<span class="doccomment">//! by Pierre-Étienne Meunier.</span>
-<span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
-<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Index</span>, <span class="ident">Range</span>};
-<span class="kw">use</span> <span class="ident">std::time::Instant</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Patience diff algorithm.
+//!
+//! * time: `O(N log N + M log M + (N+M)D)`
+//! * space: `O(N+M)`
+//!
+//! Tends to give more human-readable outputs. See [Bram Cohen&#39;s blog
+//! post](https://bramcohen.livejournal.com/73318.html) describing it.
+//!
+//! This is based on the patience implementation of [pijul](https://pijul.org/)
+//! by Pierre-Étienne Meunier.
+</span><span class="kw">use </span>std::hash::Hash;
+<span class="kw">use </span>std::ops::{Index, Range};
+<span class="kw">use </span>std::time::Instant;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithms</span>::{<span class="ident">myers</span>, <span class="ident">DiffHook</span>, <span class="ident">NoFinishHook</span>, <span class="ident">Replace</span>};
+<span class="kw">use </span><span class="kw">crate</span>::algorithms::{myers, DiffHook, NoFinishHook, Replace};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::utils</span>::{<span class="ident">unique</span>, <span class="ident">UniqueItem</span>};
+<span class="kw">use </span><span class="kw">super</span>::utils::{unique, UniqueItem};
 
-<span class="doccomment">/// Patience diff algorithm.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">d</span>: <span class="kw-2">&amp;mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">Old::Output</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
+<span class="doccomment">/// Patience diff algorithm.
+///
+/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
+</span><span class="kw">pub fn </span>diff&lt;Old, New, D&gt;(
+    d: <span class="kw-2">&amp;mut </span>D,
+    old: <span class="kw-2">&amp;</span>Old,
+    old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    new_range: Range&lt;usize&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    Old::Output: Hash + Eq,
+    New::Output: PartialEq&lt;Old::Output&gt; + Hash + Eq,
+    D: DiffHook,
 {
-    <span class="ident">diff_deadline</span>(<span class="ident">d</span>, <span class="ident">old</span>, <span class="ident">old_range</span>, <span class="ident">new</span>, <span class="ident">new_range</span>, <span class="prelude-val">None</span>)
+    diff_deadline(d, old, old_range, new, new_range, <span class="prelude-val">None</span>)
 }
 
-<span class="doccomment">/// Patience diff algorithm with deadline.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This diff is done with an optional deadline that defines the maximal</span>
-<span class="doccomment">/// execution time permitted before it bails and falls back to an approximation.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">diff_deadline</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>(
-    <span class="ident">d</span>: <span class="kw-2">&amp;mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">old_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="ident">new_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">Old::Output</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
+<span class="doccomment">/// Patience diff algorithm with deadline.
+///
+/// Diff `old`, between indices `old_range` and `new` between indices `new_range`.
+///
+/// This diff is done with an optional deadline that defines the maximal
+/// execution time permitted before it bails and falls back to an approximation.
+</span><span class="kw">pub fn </span>diff_deadline&lt;Old, New, D&gt;(
+    d: <span class="kw-2">&amp;mut </span>D,
+    old: <span class="kw-2">&amp;</span>Old,
+    old_range: Range&lt;usize&gt;,
+    new: <span class="kw-2">&amp;</span>New,
+    new_range: Range&lt;usize&gt;,
+    deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt;
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    Old::Output: Hash + Eq,
+    New::Output: PartialEq&lt;Old::Output&gt; + Hash + Eq,
+    D: DiffHook,
 {
-    <span class="kw">let</span> <span class="ident">old_indexes</span> <span class="op">=</span> <span class="ident">unique</span>(<span class="ident">old</span>, <span class="ident">old_range</span>.<span class="ident">clone</span>());
-    <span class="kw">let</span> <span class="ident">new_indexes</span> <span class="op">=</span> <span class="ident">unique</span>(<span class="ident">new</span>, <span class="ident">new_range</span>.<span class="ident">clone</span>());
+    <span class="kw">let </span>old_indexes = unique(old, old_range.clone());
+    <span class="kw">let </span>new_indexes = unique(new, new_range.clone());
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Replace::new</span>(<span class="ident">Patience</span> {
-        <span class="ident">d</span>,
-        <span class="ident">old</span>,
-        <span class="ident">old_current</span>: <span class="ident">old_range</span>.<span class="ident">start</span>,
-        <span class="ident">old_end</span>: <span class="ident">old_range</span>.<span class="ident">end</span>,
-        <span class="ident">old_indexes</span>: <span class="kw-2">&amp;</span><span class="ident">old_indexes</span>,
-        <span class="ident">new</span>,
-        <span class="ident">new_current</span>: <span class="ident">new_range</span>.<span class="ident">start</span>,
-        <span class="ident">new_end</span>: <span class="ident">new_range</span>.<span class="ident">end</span>,
-        <span class="ident">new_indexes</span>: <span class="kw-2">&amp;</span><span class="ident">new_indexes</span>,
-        <span class="ident">deadline</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>d = Replace::new(Patience {
+        d,
+        old,
+        old_current: old_range.start,
+        old_end: old_range.end,
+        old_indexes: <span class="kw-2">&amp;</span>old_indexes,
+        new,
+        new_current: new_range.start,
+        new_end: new_range.end,
+        new_indexes: <span class="kw-2">&amp;</span>new_indexes,
+        deadline,
     });
-    <span class="ident">myers::diff_deadline</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">d</span>,
-        <span class="kw-2">&amp;</span><span class="ident">old_indexes</span>,
-        <span class="number">0</span>..<span class="ident">old_indexes</span>.<span class="ident">len</span>(),
-        <span class="kw-2">&amp;</span><span class="ident">new_indexes</span>,
-        <span class="number">0</span>..<span class="ident">new_indexes</span>.<span class="ident">len</span>(),
-        <span class="ident">deadline</span>,
+    myers::diff_deadline(
+        <span class="kw-2">&amp;mut </span>d,
+        <span class="kw-2">&amp;</span>old_indexes,
+        <span class="number">0</span>..old_indexes.len(),
+        <span class="kw-2">&amp;</span>new_indexes,
+        <span class="number">0</span>..new_indexes.len(),
+        deadline,
     )<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">struct</span> <span class="ident">Patience</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, <span class="ident">Old</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">New</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d</span> <span class="kw-2">mut</span> <span class="ident">D</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old</span> <span class="ident">Old</span>,
-    <span class="ident">old_current</span>: <span class="ident">usize</span>,
-    <span class="ident">old_end</span>: <span class="ident">usize</span>,
-    <span class="ident">old_indexes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old</span> [<span class="ident">UniqueItem</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="ident">Old</span><span class="op">&gt;</span>],
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new</span> <span class="ident">New</span>,
-    <span class="ident">new_current</span>: <span class="ident">usize</span>,
-    <span class="ident">new_end</span>: <span class="ident">usize</span>,
-    <span class="ident">new_indexes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new</span> [<span class="ident">UniqueItem</span><span class="op">&lt;</span><span class="lifetime">&#39;new</span>, <span class="ident">New</span><span class="op">&gt;</span>],
-    <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instant</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Patience&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, Old: <span class="question-mark">?</span>Sized, New: <span class="question-mark">?</span>Sized, D&gt; {
+    d: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>D,
+    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>Old,
+    old_current: usize,
+    old_end: usize,
+    old_indexes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>[UniqueItem&lt;<span class="lifetime">&#39;old</span>, Old&gt;],
+    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>New,
+    new_current: usize,
+    new_end: usize,
+    new_indexes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>[UniqueItem&lt;<span class="lifetime">&#39;new</span>, New&gt;],
+    deadline: <span class="prelude-ty">Option</span>&lt;Instant&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">DiffHook</span> <span class="kw">for</span> <span class="ident">Patience</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">DiffHook</span> <span class="op">+</span> <span class="lifetime">&#39;d</span>,
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;old</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;new</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, Old, New, D&gt; DiffHook <span class="kw">for </span>Patience&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="lifetime">&#39;d</span>, Old, New, D&gt;
+<span class="kw">where
+    </span>D: DiffHook + <span class="lifetime">&#39;d</span>,
+    Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;old</span>,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;new</span>,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">D::Error</span>;
-    <span class="kw">fn</span> <span class="ident">equal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">old</span>: <span class="ident">usize</span>, <span class="ident">new</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span> {
-        <span class="kw">for</span> (<span class="ident">old</span>, <span class="ident">new</span>) <span class="kw">in</span> (<span class="ident">old</span>..<span class="ident">old</span> <span class="op">+</span> <span class="ident">len</span>).<span class="ident">zip</span>(<span class="ident">new</span>..<span class="ident">new</span> <span class="op">+</span> <span class="ident">len</span>) {
-            <span class="kw">let</span> <span class="ident">a0</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">old_current</span>;
-            <span class="kw">let</span> <span class="ident">b0</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">new_current</span>;
-            <span class="kw">while</span> <span class="self">self</span>.<span class="ident">old_current</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">old_indexes</span>[<span class="ident">old</span>].<span class="ident">original_index</span>()
-                <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new_current</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">new_indexes</span>[<span class="ident">new</span>].<span class="ident">original_index</span>()
-                <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">new</span>[<span class="self">self</span>.<span class="ident">new_current</span>] <span class="op">==</span> <span class="self">self</span>.<span class="ident">old</span>[<span class="self">self</span>.<span class="ident">old_current</span>]
+    <span class="kw">type </span>Error = D::Error;
+    <span class="kw">fn </span>equal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, old: usize, new: usize, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt; {
+        <span class="kw">for </span>(old, new) <span class="kw">in </span>(old..old + len).zip(new..new + len) {
+            <span class="kw">let </span>a0 = <span class="self">self</span>.old_current;
+            <span class="kw">let </span>b0 = <span class="self">self</span>.new_current;
+            <span class="kw">while </span><span class="self">self</span>.old_current &lt; <span class="self">self</span>.old_indexes[old].original_index()
+                &amp;&amp; <span class="self">self</span>.new_current &lt; <span class="self">self</span>.new_indexes[new].original_index()
+                &amp;&amp; <span class="self">self</span>.new[<span class="self">self</span>.new_current] == <span class="self">self</span>.old[<span class="self">self</span>.old_current]
             {
-                <span class="self">self</span>.<span class="ident">old_current</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="self">self</span>.<span class="ident">new_current</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="self">self</span>.old_current += <span class="number">1</span>;
+                <span class="self">self</span>.new_current += <span class="number">1</span>;
             }
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">old_current</span> <span class="op">&gt;</span> <span class="ident">a0</span> {
-                <span class="self">self</span>.<span class="ident">d</span>.<span class="ident">equal</span>(<span class="ident">a0</span>, <span class="ident">b0</span>, <span class="self">self</span>.<span class="ident">old_current</span> <span class="op">-</span> <span class="ident">a0</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span><span class="self">self</span>.old_current &gt; a0 {
+                <span class="self">self</span>.d.equal(a0, b0, <span class="self">self</span>.old_current - a0)<span class="question-mark">?</span>;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">no_finish_d</span> <span class="op">=</span> <span class="ident">NoFinishHook::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">d</span>);
-            <span class="ident">myers::diff_deadline</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">no_finish_d</span>,
-                <span class="self">self</span>.<span class="ident">old</span>,
-                <span class="self">self</span>.<span class="ident">old_current</span>..<span class="self">self</span>.<span class="ident">old_indexes</span>[<span class="ident">old</span>].<span class="ident">original_index</span>(),
-                <span class="self">self</span>.<span class="ident">new</span>,
-                <span class="self">self</span>.<span class="ident">new_current</span>..<span class="self">self</span>.<span class="ident">new_indexes</span>[<span class="ident">new</span>].<span class="ident">original_index</span>(),
-                <span class="self">self</span>.<span class="ident">deadline</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>no_finish_d = NoFinishHook::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.d);
+            myers::diff_deadline(
+                <span class="kw-2">&amp;mut </span>no_finish_d,
+                <span class="self">self</span>.old,
+                <span class="self">self</span>.old_current..<span class="self">self</span>.old_indexes[old].original_index(),
+                <span class="self">self</span>.new,
+                <span class="self">self</span>.new_current..<span class="self">self</span>.new_indexes[new].original_index(),
+                <span class="self">self</span>.deadline,
             )<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">old_current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">old_indexes</span>[<span class="ident">old</span>].<span class="ident">original_index</span>();
-            <span class="self">self</span>.<span class="ident">new_current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">new_indexes</span>[<span class="ident">new</span>].<span class="ident">original_index</span>();
+            <span class="self">self</span>.old_current = <span class="self">self</span>.old_indexes[old].original_index();
+            <span class="self">self</span>.new_current = <span class="self">self</span>.new_indexes[new].original_index();
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">D::Error</span><span class="op">&gt;</span> {
-        <span class="ident">myers::diff_deadline</span>(
-            <span class="self">self</span>.<span class="ident">d</span>,
-            <span class="self">self</span>.<span class="ident">old</span>,
-            <span class="self">self</span>.<span class="ident">old_current</span>..<span class="self">self</span>.<span class="ident">old_end</span>,
-            <span class="self">self</span>.<span class="ident">new</span>,
-            <span class="self">self</span>.<span class="ident">new_current</span>..<span class="self">self</span>.<span class="ident">new_end</span>,
-            <span class="self">self</span>.<span class="ident">deadline</span>,
+    <span class="kw">fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), D::Error&gt; {
+        myers::diff_deadline(
+            <span class="self">self</span>.d,
+            <span class="self">self</span>.old,
+            <span class="self">self</span>.old_current..<span class="self">self</span>.old_end,
+            <span class="self">self</span>.new,
+            <span class="self">self</span>.new_current..<span class="self">self</span>.new_end,
+            <span class="self">self</span>.deadline,
         )
     }
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_patience</span>() {
-    <span class="kw">let</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">11</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">47</span>, <span class="number">19</span>];
-    <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">10</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">7</span>, <span class="number">47</span>, <span class="number">18</span>];
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_patience() {
+    <span class="kw">let </span>a: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">11</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">47</span>, <span class="number">19</span>];
+    <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">10</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">4</span>, <span class="number">4</span>, <span class="number">7</span>, <span class="number">47</span>, <span class="number">18</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Replace::new</span>(<span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>());
-    <span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">d</span>, <span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>d = Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
+    diff(<span class="kw-2">&amp;mut </span>d, a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len()).unwrap();
 
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">into_inner</span>().<span class="ident">ops</span>());
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.into_inner().ops());
 }
 
-<span class="attribute">#[<span class="ident">test</span>]</span>
-<span class="kw">fn</span> <span class="ident">test_patience_out_of_bounds_bug</span>() {
-    <span class="comment">// this used to be a bug</span>
-    <span class="kw">let</span> <span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
-    <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">usize</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
+<span class="attribute">#[test]
+</span><span class="kw">fn </span>test_patience_out_of_bounds_bug() {
+    <span class="comment">// this used to be a bug
+    </span><span class="kw">let </span>a: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+    <span class="kw">let </span>b: <span class="kw-2">&amp;</span>[usize] = <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">Replace::new</span>(<span class="ident"><span class="kw">crate</span>::algorithms::Capture::new</span>());
-    <span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">d</span>, <span class="ident">a</span>, <span class="number">0</span>..<span class="ident">a</span>.<span class="ident">len</span>(), <span class="ident">b</span>, <span class="number">0</span>..<span class="ident">b</span>.<span class="ident">len</span>()).<span class="ident">unwrap</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>d = Replace::new(<span class="kw">crate</span>::algorithms::Capture::new());
+    diff(<span class="kw-2">&amp;mut </span>d, a, <span class="number">0</span>..a.len(), b, <span class="number">0</span>..b.len()).unwrap();
 
-    <span class="macro">insta::assert_debug_snapshot!</span>(<span class="ident">d</span>.<span class="ident">into_inner</span>().<span class="ident">ops</span>());
+    <span class="macro">insta::assert_debug_snapshot!</span>(d.into_inner().ops());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.2/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.4/src/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -152,154 +146,153 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::success</span>::{<span class="ident">Success</span>, <span class="ident">FAIL</span>, <span class="ident">OK</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::yaml::size_t</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">libc</span>, <span class="ident">yaml_emitter_t</span>, <span class="ident">PointerExt</span>, <span class="ident">YAML_ANY_ENCODING</span>, <span class="ident">YAML_UTF16LE_ENCODING</span>, <span class="ident">YAML_UTF8_ENCODING</span>,
-    <span class="ident">YAML_WRITER_ERROR</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::success::{Success, FAIL, OK};
+<span class="kw">use </span><span class="kw">crate</span>::yaml::size_t;
+<span class="kw">use crate</span>::{
+    libc, yaml_emitter_t, PointerExt, YAML_ANY_ENCODING, YAML_UTF16LE_ENCODING, YAML_UTF8_ENCODING,
+    YAML_WRITER_ERROR,
 };
-<span class="kw">use</span> <span class="ident">core::ptr::addr_of_mut</span>;
+<span class="kw">use </span>core::ptr::addr_of_mut;
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_set_writer_error</span>(
-    <span class="kw-2">mut</span> <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">problem</span>: <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
-) -&gt; <span class="ident">Success</span> {
-    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_WRITER_ERROR</span>;
-    <span class="kw">let</span> <span class="ident">fresh0</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">problem</span>);
-    <span class="kw-2">*</span><span class="ident">fresh0</span> <span class="op">=</span> <span class="ident">problem</span>;
-    <span class="ident">FAIL</span>
+<span class="kw">unsafe fn </span>yaml_emitter_set_writer_error(
+    <span class="kw-2">mut </span>emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    problem: <span class="kw-2">*const </span>libc::c_char,
+) -&gt; Success {
+    (<span class="kw-2">*</span>emitter).error = YAML_WRITER_ERROR;
+    <span class="kw">let </span>fresh0 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).problem);
+    <span class="kw-2">*</span>fresh0 = problem;
+    FAIL
 }
 
-<span class="doccomment">/// Flush the accumulated characters to the output.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_flush</span>(<span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>) -&gt; <span class="ident">Success</span> {
-    <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">emitter</span>.<span class="ident">is_null</span>());
-    <span class="macro">__assert!</span>(((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">write_handler</span>).<span class="ident">is_some</span>());
-    <span class="macro">__assert!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">encoding</span> <span class="op">!</span><span class="op">=</span> <span class="ident">YAML_ANY_ENCODING</span>);
-    <span class="kw">let</span> <span class="ident">fresh1</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">last</span>);
-    <span class="kw-2">*</span><span class="ident">fresh1</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>;
-    <span class="kw">let</span> <span class="ident">fresh2</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>);
-    <span class="kw-2">*</span><span class="ident">fresh2</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>;
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span> <span class="op">==</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">last</span> {
-        <span class="kw">return</span> <span class="ident">OK</span>;
+<span class="doccomment">/// Flush the accumulated characters to the output.
+</span><span class="kw">pub unsafe fn </span>yaml_emitter_flush(emitter: <span class="kw-2">*mut </span>yaml_emitter_t) -&gt; Success {
+    <span class="macro">__assert!</span>(!emitter.is_null());
+    <span class="macro">__assert!</span>(((<span class="kw-2">*</span>emitter).write_handler).is_some());
+    <span class="macro">__assert!</span>((<span class="kw-2">*</span>emitter).encoding != YAML_ANY_ENCODING);
+    <span class="kw">let </span>fresh1 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.last);
+    <span class="kw-2">*</span>fresh1 = (<span class="kw-2">*</span>emitter).buffer.pointer;
+    <span class="kw">let </span>fresh2 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
+    <span class="kw-2">*</span>fresh2 = (<span class="kw-2">*</span>emitter).buffer.start;
+    <span class="kw">if </span>(<span class="kw-2">*</span>emitter).buffer.start == (<span class="kw-2">*</span>emitter).buffer.last {
+        <span class="kw">return </span>OK;
     }
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">encoding</span> <span class="op">==</span> <span class="ident">YAML_UTF8_ENCODING</span> {
-        <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">write_handler</span>.<span class="ident">expect</span>(<span class="string">&quot;non-null function pointer&quot;</span>)(
-            (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">write_handler_data</span>,
-            (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>,
-            (<span class="kw-2">*</span><span class="ident">emitter</span>)
-                .<span class="ident">buffer</span>
-                .<span class="ident">last</span>
-                .<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">size_t</span>,
-        ) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-        {
-            <span class="kw">let</span> <span class="ident">fresh3</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">last</span>);
-            <span class="kw-2">*</span><span class="ident">fresh3</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>;
-            <span class="kw">let</span> <span class="ident">fresh4</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>);
-            <span class="kw-2">*</span><span class="ident">fresh4</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>;
-            <span class="kw">return</span> <span class="ident">OK</span>;
-        } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">yaml_emitter_set_writer_error</span>(
-                <span class="ident">emitter</span>,
-                <span class="string">b&quot;write error\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
+    <span class="kw">if </span>(<span class="kw-2">*</span>emitter).encoding == YAML_UTF8_ENCODING {
+        <span class="kw">if </span>(<span class="kw-2">*</span>emitter).write_handler.expect(<span class="string">&quot;non-null function pointer&quot;</span>)(
+            (<span class="kw-2">*</span>emitter).write_handler_data,
+            (<span class="kw-2">*</span>emitter).buffer.start,
+            (<span class="kw-2">*</span>emitter)
+                .buffer
+                .last
+                .c_offset_from((<span class="kw-2">*</span>emitter).buffer.start) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t,
+        ) != <span class="number">0
+        </span>{
+            <span class="kw">let </span>fresh3 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.last);
+            <span class="kw-2">*</span>fresh3 = (<span class="kw-2">*</span>emitter).buffer.start;
+            <span class="kw">let </span>fresh4 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
+            <span class="kw-2">*</span>fresh4 = (<span class="kw-2">*</span>emitter).buffer.start;
+            <span class="kw">return </span>OK;
+        } <span class="kw">else </span>{
+            <span class="kw">return </span>yaml_emitter_set_writer_error(
+                emitter,
+                <span class="string">b&quot;write error\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             );
         }
     }
-    <span class="kw">let</span> <span class="ident">low</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">encoding</span> <span class="op">==</span> <span class="ident">YAML_UTF16LE_ENCODING</span> {
-        <span class="number">0</span>
-    } <span class="kw">else</span> {
-        <span class="number">1</span>
-    };
-    <span class="kw">let</span> <span class="ident">high</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">encoding</span> <span class="op">==</span> <span class="ident">YAML_UTF16LE_ENCODING</span> {
-        <span class="number">1</span>
-    } <span class="kw">else</span> {
-        <span class="number">0</span>
-    };
-    <span class="kw">while</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span> <span class="op">!</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">last</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">octet</span>: <span class="ident">libc::c_uchar</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span>: <span class="ident">libc::c_uint</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span>: <span class="ident">size_t</span>;
-        <span class="ident">octet</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>;
-        <span class="kw">let</span> <span class="ident">width</span>: <span class="ident">libc::c_uint</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="number">1</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xE0</span> <span class="op">==</span> <span class="number">0xC0</span> {
-            <span class="number">2</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xF0</span> <span class="op">==</span> <span class="number">0xE0</span> {
-            <span class="number">3</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xF8</span> <span class="op">==</span> <span class="number">0xF0</span> {
-            <span class="number">4</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        } <span class="kw">as</span> <span class="ident">libc::c_uint</span>;
-        <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x80</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x7F</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xE0</span> <span class="op">==</span> <span class="number">0xC0</span> {
-            <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x1F</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xF0</span> <span class="op">==</span> <span class="number">0xE0</span> {
-            <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xF</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0xF8</span> <span class="op">==</span> <span class="number">0xF0</span> {
-            <span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x7</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        } <span class="kw">as</span> <span class="ident">libc::c_uint</span>;
-        <span class="ident">k</span> <span class="op">=</span> <span class="number">1_u64</span>;
-        <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">width</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span> {
-            <span class="ident">octet</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>.<span class="ident">wrapping_offset</span>(<span class="ident">k</span> <span class="kw">as</span> <span class="ident">isize</span>);
-            <span class="ident">value</span> <span class="op">=</span> (<span class="ident">value</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>).<span class="ident">wrapping_add</span>((<span class="ident">octet</span> <span class="op">&amp;</span> <span class="number">0x3F</span>) <span class="kw">as</span> <span class="ident">libc::c_uint</span>);
-            <span class="ident">k</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+    <span class="kw">let </span>low: libc::c_int = <span class="kw">if </span>(<span class="kw-2">*</span>emitter).encoding == YAML_UTF16LE_ENCODING {
+        <span class="number">0
+    </span>} <span class="kw">else </span>{
+        <span class="number">1
+    </span>};
+    <span class="kw">let </span>high: libc::c_int = <span class="kw">if </span>(<span class="kw-2">*</span>emitter).encoding == YAML_UTF16LE_ENCODING {
+        <span class="number">1
+    </span>} <span class="kw">else </span>{
+        <span class="number">0
+    </span>};
+    <span class="kw">while </span>(<span class="kw-2">*</span>emitter).buffer.pointer != (<span class="kw-2">*</span>emitter).buffer.last {
+        <span class="kw">let </span><span class="kw-2">mut </span>octet: libc::c_uchar;
+        <span class="kw">let </span><span class="kw-2">mut </span>value: libc::c_uint;
+        <span class="kw">let </span><span class="kw-2">mut </span>k: size_t;
+        octet = <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).buffer.pointer;
+        <span class="kw">let </span>width: libc::c_uint = <span class="kw">if </span>octet &amp; <span class="number">0x80 </span>== <span class="number">0 </span>{
+            <span class="number">1
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xE0 </span>== <span class="number">0xC0 </span>{
+            <span class="number">2
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xF0 </span>== <span class="number">0xE0 </span>{
+            <span class="number">3
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xF8 </span>== <span class="number">0xF0 </span>{
+            <span class="number">4
+        </span>} <span class="kw">else </span>{
+            <span class="number">0
+        </span>} <span class="kw">as </span>libc::c_uint;
+        value = <span class="kw">if </span>octet &amp; <span class="number">0x80 </span>== <span class="number">0 </span>{
+            octet &amp; <span class="number">0x7F
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xE0 </span>== <span class="number">0xC0 </span>{
+            octet &amp; <span class="number">0x1F
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xF0 </span>== <span class="number">0xE0 </span>{
+            octet &amp; <span class="number">0xF
+        </span>} <span class="kw">else if </span>octet &amp; <span class="number">0xF8 </span>== <span class="number">0xF0 </span>{
+            octet &amp; <span class="number">0x7
+        </span>} <span class="kw">else </span>{
+            <span class="number">0
+        </span>} <span class="kw">as </span>libc::c_uint;
+        k = <span class="number">1_u64</span>;
+        <span class="kw">while </span>k &lt; width <span class="kw">as </span>libc::c_ulong {
+            octet = <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).buffer.pointer.wrapping_offset(k <span class="kw">as </span>isize);
+            value = (value &lt;&lt; <span class="number">6</span>).wrapping_add((octet &amp; <span class="number">0x3F</span>) <span class="kw">as </span>libc::c_uint);
+            k = k.wrapping_add(<span class="number">1</span>);
         }
-        <span class="kw">let</span> <span class="ident">fresh5</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>);
-        <span class="kw-2">*</span><span class="ident">fresh5</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">fresh5</span>).<span class="ident">wrapping_offset</span>(<span class="ident">width</span> <span class="kw">as</span> <span class="ident">isize</span>);
-        <span class="kw">if</span> <span class="ident">value</span> <span class="op">&lt;</span> <span class="number">0x10000</span> {
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>.<span class="ident">wrapping_offset</span>(<span class="ident">high</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span>
-                (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>.<span class="ident">wrapping_offset</span>(<span class="ident">low</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span>
-                (<span class="ident">value</span> <span class="op">&amp;</span> <span class="number">0xFF</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw">let</span> <span class="ident">fresh6</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>);
-            <span class="kw-2">*</span><span class="ident">fresh6</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">fresh6</span>).<span class="ident">wrapping_offset</span>(<span class="number">2_isize</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">wrapping_sub</span>(<span class="number">0x10000</span>);
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>.<span class="ident">wrapping_offset</span>(<span class="ident">high</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span>
-                <span class="number">0xD8_u32</span>.<span class="ident">wrapping_add</span>(<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">18</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>.<span class="ident">wrapping_offset</span>(<span class="ident">low</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span>
-                (<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">10</span> <span class="op">&amp;</span> <span class="number">0xFF</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>)
-                .<span class="ident">raw_buffer</span>
-                .<span class="ident">last</span>
-                .<span class="ident">wrapping_offset</span>((<span class="ident">high</span> <span class="op">+</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span>
-                <span class="number">0xDC_u32</span>.<span class="ident">wrapping_add</span>(<span class="ident">value</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span> <span class="op">&amp;</span> <span class="number">0xFF</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>)
-                .<span class="ident">raw_buffer</span>
-                .<span class="ident">last</span>
-                .<span class="ident">wrapping_offset</span>((<span class="ident">low</span> <span class="op">+</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> (<span class="ident">value</span> <span class="op">&amp;</span> <span class="number">0xFF</span>) <span class="kw">as</span> <span class="ident">libc::c_uchar</span>;
-            <span class="kw">let</span> <span class="ident">fresh7</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>);
-            <span class="kw-2">*</span><span class="ident">fresh7</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">fresh7</span>).<span class="ident">wrapping_offset</span>(<span class="number">4_isize</span>);
+        <span class="kw">let </span>fresh5 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
+        <span class="kw-2">*</span>fresh5 = (<span class="kw-2">*</span>fresh5).wrapping_offset(width <span class="kw">as </span>isize);
+        <span class="kw">if </span>value &lt; <span class="number">0x10000 </span>{
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).raw_buffer.last.wrapping_offset(high <span class="kw">as </span>isize) =
+                (value &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).raw_buffer.last.wrapping_offset(low <span class="kw">as </span>isize) =
+                (value &amp; <span class="number">0xFF</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw">let </span>fresh6 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).raw_buffer.last);
+            <span class="kw-2">*</span>fresh6 = (<span class="kw-2">*</span>fresh6).wrapping_offset(<span class="number">2_isize</span>);
+        } <span class="kw">else </span>{
+            value = value.wrapping_sub(<span class="number">0x10000</span>);
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).raw_buffer.last.wrapping_offset(high <span class="kw">as </span>isize) =
+                <span class="number">0xD8_u32</span>.wrapping_add(value &gt;&gt; <span class="number">18</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).raw_buffer.last.wrapping_offset(low <span class="kw">as </span>isize) =
+                (value &gt;&gt; <span class="number">10 </span>&amp; <span class="number">0xFF</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter)
+                .raw_buffer
+                .last
+                .wrapping_offset((high + <span class="number">2</span>) <span class="kw">as </span>isize) =
+                <span class="number">0xDC_u32</span>.wrapping_add(value &gt;&gt; <span class="number">8 </span>&amp; <span class="number">0xFF</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw-2">*</span>(<span class="kw-2">*</span>emitter)
+                .raw_buffer
+                .last
+                .wrapping_offset((low + <span class="number">2</span>) <span class="kw">as </span>isize) = (value &amp; <span class="number">0xFF</span>) <span class="kw">as </span>libc::c_uchar;
+            <span class="kw">let </span>fresh7 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).raw_buffer.last);
+            <span class="kw-2">*</span>fresh7 = (<span class="kw-2">*</span>fresh7).wrapping_offset(<span class="number">4_isize</span>);
         }
     }
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">write_handler</span>.<span class="ident">expect</span>(<span class="string">&quot;non-null function pointer&quot;</span>)(
-        (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">write_handler_data</span>,
-        (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">start</span>,
-        (<span class="kw-2">*</span><span class="ident">emitter</span>)
-            .<span class="ident">raw_buffer</span>
-            .<span class="ident">last</span>
-            .<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">size_t</span>,
-    ) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
-    {
-        <span class="kw">let</span> <span class="ident">fresh8</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">last</span>);
-        <span class="kw-2">*</span><span class="ident">fresh8</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>;
-        <span class="kw">let</span> <span class="ident">fresh9</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">pointer</span>);
-        <span class="kw-2">*</span><span class="ident">fresh9</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>.<span class="ident">start</span>;
-        <span class="kw">let</span> <span class="ident">fresh10</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">last</span>);
-        <span class="kw-2">*</span><span class="ident">fresh10</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">start</span>;
-        <span class="kw">let</span> <span class="ident">fresh11</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">pointer</span>);
-        <span class="kw-2">*</span><span class="ident">fresh11</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>.<span class="ident">start</span>;
-        <span class="ident">OK</span>
-    } <span class="kw">else</span> {
-        <span class="ident">yaml_emitter_set_writer_error</span>(
-            <span class="ident">emitter</span>,
-            <span class="string">b&quot;write error\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
+    <span class="kw">if </span>(<span class="kw-2">*</span>emitter).write_handler.expect(<span class="string">&quot;non-null function pointer&quot;</span>)(
+        (<span class="kw-2">*</span>emitter).write_handler_data,
+        (<span class="kw-2">*</span>emitter).raw_buffer.start,
+        (<span class="kw-2">*</span>emitter)
+            .raw_buffer
+            .last
+            .c_offset_from((<span class="kw-2">*</span>emitter).raw_buffer.start) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t,
+    ) != <span class="number">0
+    </span>{
+        <span class="kw">let </span>fresh8 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.last);
+        <span class="kw-2">*</span>fresh8 = (<span class="kw-2">*</span>emitter).buffer.start;
+        <span class="kw">let </span>fresh9 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
+        <span class="kw-2">*</span>fresh9 = (<span class="kw-2">*</span>emitter).buffer.start;
+        <span class="kw">let </span>fresh10 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).raw_buffer.last);
+        <span class="kw-2">*</span>fresh10 = (<span class="kw-2">*</span>emitter).raw_buffer.start;
+        <span class="kw">let </span>fresh11 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).raw_buffer.pointer);
+        <span class="kw-2">*</span>fresh11 = (<span class="kw-2">*</span>emitter).raw_buffer.start;
+        OK
+    } <span class="kw">else </span>{
+        yaml_emitter_set_writer_error(
+            emitter,
+            <span class="string">b&quot;write error\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         )
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

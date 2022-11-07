@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mockito-0.31.0/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mockito/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../mockito/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mockito/index.html">
-                        <img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mockito-0.31.0/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mockito/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../mockito/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mockito/index.html">
+                        <img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -66,66 +60,65 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
-</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">colored</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">similar</span>::{<span class="ident">Change</span>, <span class="ident">ChangeTag</span>, <span class="ident">TextDiff</span>};
+</pre><pre class="rust"><code><span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+</span><span class="kw">use </span>colored::<span class="kw-2">*</span>;
+<span class="kw">use </span>similar::{Change, ChangeTag, TextDiff};
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare</span>(<span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">actual</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
+<span class="kw">pub fn </span>compare(expected: <span class="kw-2">&amp;</span>str, actual: <span class="kw-2">&amp;</span>str) -&gt; String {
+    <span class="kw">let </span><span class="kw-2">mut </span>result = String::new();
 
-    <span class="kw">let</span> <span class="ident">clean_expected</span> <span class="op">=</span> <span class="ident">expected</span>.<span class="ident">replace</span>(<span class="string">&quot;\r\n&quot;</span>, <span class="string">&quot;\n&quot;</span>);
-    <span class="kw">let</span> <span class="ident">clean_actual</span> <span class="op">=</span> <span class="ident">actual</span>.<span class="ident">replace</span>(<span class="string">&quot;\r\n&quot;</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let </span>clean_expected = expected.replace(<span class="string">&quot;\r\n&quot;</span>, <span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let </span>clean_actual = actual.replace(<span class="string">&quot;\r\n&quot;</span>, <span class="string">&quot;\n&quot;</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Change</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-    <span class="kw">for</span> <span class="ident">diff</span> <span class="kw">in</span> <span class="ident">TextDiff::from_lines</span>(<span class="kw-2">&amp;</span><span class="ident">clean_expected</span>, <span class="kw-2">&amp;</span><span class="ident">clean_actual</span>).<span class="ident">iter_all_changes</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">diff</span>.<span class="ident">value</span>();
-        <span class="kw">match</span> <span class="ident">diff</span>.<span class="ident">tag</span>() {
-            <span class="ident">ChangeTag::Equal</span> =&gt; {
-                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">x</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>last: <span class="prelude-ty">Option</span>&lt;Change&lt;<span class="kw">_</span>&gt;&gt; = <span class="prelude-val">None</span>;
+    <span class="kw">for </span>diff <span class="kw">in </span>TextDiff::from_lines(<span class="kw-2">&amp;</span>clean_expected, <span class="kw-2">&amp;</span>clean_actual).iter_all_changes() {
+        <span class="kw">let </span>x = diff.value();
+        <span class="kw">match </span>diff.tag() {
+            ChangeTag::Equal =&gt; {
+                result.push_str(x);
             }
-            <span class="ident">ChangeTag::Insert</span> =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">y</span>, <span class="ident">ChangeTag::Delete</span>)) <span class="op">=</span> <span class="ident">last</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> (<span class="ident">d</span>.<span class="ident">value</span>(), <span class="ident">d</span>.<span class="ident">tag</span>())) {
-                    <span class="kw">for</span> <span class="ident">change</span> <span class="kw">in</span> <span class="ident">TextDiff::from_words</span>(<span class="ident">y</span>, <span class="ident">x</span>).<span class="ident">iter_all_changes</span>() {
-                        <span class="kw">match</span> <span class="ident">change</span>.<span class="ident">tag</span>() {
-                            <span class="ident">ChangeTag::Equal</span> =&gt; {
-                                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">change</span>.<span class="ident">value</span>();
-                                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-                                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">z</span>.<span class="ident">green</span>().<span class="ident">to_string</span>());
-                                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-                                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">z</span>);
+            ChangeTag::Insert =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((y, ChangeTag::Delete)) = last.map(|d| (d.value(), d.tag())) {
+                    <span class="kw">for </span>change <span class="kw">in </span>TextDiff::from_words(y, x).iter_all_changes() {
+                        <span class="kw">match </span>change.tag() {
+                            ChangeTag::Equal =&gt; {
+                                <span class="kw">let </span>z = change.value();
+                                <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+                                </span>result.push_str(<span class="kw-2">&amp;</span>z.green().to_string());
+                                <span class="attribute">#[cfg(not(feature = <span class="string">&quot;color&quot;</span>))]
+                                </span>result.push_str(z);
                             }
-                            <span class="ident">ChangeTag::Insert</span> =&gt; {
-                                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">change</span>.<span class="ident">value</span>();
-                                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-                                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">z</span>.<span class="ident">white</span>().<span class="ident">on_green</span>().<span class="ident">to_string</span>());
-                                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-                                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">z</span>);
+                            ChangeTag::Insert =&gt; {
+                                <span class="kw">let </span>z = change.value();
+                                <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+                                </span>result.push_str(<span class="kw-2">&amp;</span>z.white().on_green().to_string());
+                                <span class="attribute">#[cfg(not(feature = <span class="string">&quot;color&quot;</span>))]
+                                </span>result.push_str(z);
                             }
-                            <span class="kw">_</span> =&gt; (),
+                            <span class="kw">_ </span>=&gt; (),
                         }
                     }
-                } <span class="kw">else</span> {
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-                    <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">bright_green</span>().<span class="ident">to_string</span>());
-                    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-                    <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">x</span>);
+                } <span class="kw">else </span>{
+                    <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+                    </span>result.push_str(<span class="kw-2">&amp;</span>x.bright_green().to_string());
+                    <span class="attribute">#[cfg(not(feature = <span class="string">&quot;color&quot;</span>))]
+                    </span>result.push_str(x);
                 }
             }
-            <span class="ident">ChangeTag::Delete</span> =&gt; {
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>)]</span>
-                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">red</span>().<span class="ident">to_string</span>());
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;color&quot;</span>))]</span>
-                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">x</span>);
+            ChangeTag::Delete =&gt; {
+                <span class="attribute">#[cfg(feature = <span class="string">&quot;color&quot;</span>)]
+                </span>result.push_str(<span class="kw-2">&amp;</span>x.red().to_string());
+                <span class="attribute">#[cfg(not(feature = <span class="string">&quot;color&quot;</span>))]
+                </span>result.push_str(x);
             }
         }
 
-        <span class="ident">last</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">diff</span>);
+        last = <span class="prelude-val">Some</span>(diff);
     }
 
-    <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span>);
+    result.push(<span class="string">&#39;\n&#39;</span>);
 
-    <span class="ident">result</span>
+    result
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mockito" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mockito" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

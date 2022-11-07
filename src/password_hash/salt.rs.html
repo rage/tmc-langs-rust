@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/password-hash-0.3.2/src/salt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>salt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../password_hash/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../password_hash/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../password_hash/index.html">
-                        <img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/password-hash-0.4.2/src/salt.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>salt.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../password_hash/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../password_hash/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../password_hash/index.html">
+                        <img src="https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -307,307 +301,342 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Salt string support.</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Salt string support.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Encoding</span>, <span class="ident">Error</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
-    <span class="ident">fmt</span>, <span class="ident">str</span>,
-};
+</span><span class="kw">use crate</span>::{Encoding, Error, <span class="prelude-ty">Result</span>, Value};
+<span class="kw">use </span>core::{fmt, str};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors::InvalidValue</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand_core&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">CryptoRng</span>, <span class="ident">RngCore</span>};
+<span class="kw">use </span><span class="kw">crate</span>::errors::InvalidValue;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;rand_core&quot;</span>)]
+</span><span class="kw">use </span>rand_core::{CryptoRng, RngCore};
 
-<span class="doccomment">/// Error message used with `expect` for when internal invariants are violated</span>
-<span class="doccomment">/// (i.e. the contents of a [`Salt`] should always be valid)</span>
-<span class="kw">const</span> <span class="ident">INVARIANT_VIOLATED_MSG</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;salt string invariant violated&quot;</span>;
+<span class="doccomment">/// Error message used with `expect` for when internal invariants are violated
+/// (i.e. the contents of a [`Salt`] should always be valid)
+</span><span class="kw">const </span>INVARIANT_VIOLATED_MSG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;salt string invariant violated&quot;</span>;
 
-<span class="doccomment">/// Salt string.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In password hashing, a &quot;salt&quot; is an additional value used to</span>
-<span class="doccomment">/// personalize/tweak the output of a password hashing function for a given</span>
-<span class="doccomment">/// input password.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Salts help defend against attacks based on precomputed tables of hashed</span>
-<span class="doccomment">/// passwords, i.e. &quot;[rainbow tables][1]&quot;.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The [`Salt`] type implements the RECOMMENDED best practices for salts</span>
-<span class="doccomment">/// described in the [PHC string format specification][2], namely:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; - Maximum lengths for salt, output and parameter values are meant to help</span>
-<span class="doccomment">/// &gt;   consumer implementations, in particular written in C and using</span>
-<span class="doccomment">/// &gt;   stack-allocated buffers. These buffers must account for the worst case,</span>
-<span class="doccomment">/// &gt;   i.e. the maximum defined length. Therefore, keep these lengths low.</span>
-<span class="doccomment">/// &gt; - The role of salts is to achieve uniqueness. A random salt is fine for</span>
-<span class="doccomment">/// &gt;   that as long as its length is sufficient; a 16-byte salt would work well</span>
-<span class="doccomment">/// &gt;   (by definition, UUID are very good salts, and they encode over exactly</span>
-<span class="doccomment">/// &gt;   16 bytes). 16 bytes encode as 22 characters in B64. Functions should</span>
-<span class="doccomment">/// &gt;   disallow salt values that are too small for security (4 bytes should be</span>
-<span class="doccomment">/// &gt;   viewed as an absolute minimum).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Recommended length</span>
-<span class="doccomment">/// The recommended default length for a salt string is **16-bytes** (128-bits).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// See below for rationale.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Constraints</span>
-<span class="doccomment">/// Salt strings are constrained to the following set of characters per the</span>
-<span class="doccomment">/// PHC spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; The salt consists in a sequence of characters in: `[a-zA-Z0-9/+.-]`</span>
-<span class="doccomment">/// &gt; (lowercase letters, uppercase letters, digits, /, +, . and -).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Additionally the following length restrictions are enforced based on the</span>
-<span class="doccomment">/// guidelines from the spec:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - Minimum length: **4**-bytes</span>
-<span class="doccomment">/// - Maximum length: **64**-bytes</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A maximum length is enforced based on the above recommendation for</span>
-<span class="doccomment">/// supporting stack-allocated buffers (which this library uses), and the</span>
-<span class="doccomment">/// specific determination of 64-bytes is taken as a best practice from the</span>
-<span class="doccomment">/// [Argon2 Encoding][3] specification in the same document:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &gt; The length in bytes of the salt is between 8 and 64 bytes&lt;sup&gt;†&lt;/sup&gt;, thus</span>
-<span class="doccomment">/// &gt; yielding a length in characters between 11 and 64 characters (and that</span>
-<span class="doccomment">/// &gt; length is never equal to 1 modulo 4). The default byte length of the salt</span>
-<span class="doccomment">/// &gt; is 16 bytes (22 characters in B64 encoding). An encoded UUID, or a</span>
-<span class="doccomment">/// &gt; sequence of 16 bytes produced with a cryptographically strong PRNG, are</span>
-<span class="doccomment">/// &gt; appropriate salt values.</span>
-<span class="doccomment">/// &gt;</span>
-<span class="doccomment">/// &gt; &lt;sup&gt;†&lt;/sup&gt;The Argon2 specification states that the salt can be much longer, up</span>
-<span class="doccomment">/// &gt; to 2^32-1 bytes, but this makes little sense for password hashing.</span>
-<span class="doccomment">/// &gt; Specifying a relatively small maximum length allows for parsing with a</span>
-<span class="doccomment">/// &gt; stack allocated buffer.)</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Based on this guidance, this type enforces an upper bound of 64-bytes</span>
-<span class="doccomment">/// as a reasonable maximum, and recommends using 16-bytes.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [1]: https://en.wikipedia.org/wiki/Rainbow_table</span>
-<span class="doccomment">/// [2]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#function-duties</span>
-<span class="doccomment">/// [3]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#argon2-encoding</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">Value</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Salt string.
+///
+/// In password hashing, a &quot;salt&quot; is an additional value used to
+/// personalize/tweak the output of a password hashing function for a given
+/// input password.
+///
+/// Salts help defend against attacks based on precomputed tables of hashed
+/// passwords, i.e. &quot;[rainbow tables][1]&quot;.
+///
+/// The [`Salt`] type implements the RECOMMENDED best practices for salts
+/// described in the [PHC string format specification][2], namely:
+///
+/// &gt; - Maximum lengths for salt, output and parameter values are meant to help
+/// &gt;   consumer implementations, in particular written in C and using
+/// &gt;   stack-allocated buffers. These buffers must account for the worst case,
+/// &gt;   i.e. the maximum defined length. Therefore, keep these lengths low.
+/// &gt; - The role of salts is to achieve uniqueness. A random salt is fine for
+/// &gt;   that as long as its length is sufficient; a 16-byte salt would work well
+/// &gt;   (by definition, UUID are very good salts, and they encode over exactly
+/// &gt;   16 bytes). 16 bytes encode as 22 characters in B64. Functions should
+/// &gt;   disallow salt values that are too small for security (4 bytes should be
+/// &gt;   viewed as an absolute minimum).
+///
+/// # Recommended length
+/// The recommended default length for a salt string is **16-bytes** (128-bits).
+///
+/// See [`Salt::RECOMMENDED_LENGTH`] for more information.
+///
+/// # Constraints
+/// Salt strings are constrained to the following set of characters per the
+/// PHC spec:
+///
+/// &gt; The salt consists in a sequence of characters in: `[a-zA-Z0-9/+.-]`
+/// &gt; (lowercase letters, uppercase letters, digits, /, +, . and -).
+///
+/// Additionally the following length restrictions are enforced based on the
+/// guidelines from the spec:
+///
+/// - Minimum length: **4**-bytes
+/// - Maximum length: **64**-bytes
+///
+/// A maximum length is enforced based on the above recommendation for
+/// supporting stack-allocated buffers (which this library uses), and the
+/// specific determination of 64-bytes is taken as a best practice from the
+/// [Argon2 Encoding][3] specification in the same document:
+///
+/// &gt; The length in bytes of the salt is between 8 and 64 bytes&lt;sup&gt;†&lt;/sup&gt;, thus
+/// &gt; yielding a length in characters between 11 and 64 characters (and that
+/// &gt; length is never equal to 1 modulo 4). The default byte length of the salt
+/// &gt; is 16 bytes (22 characters in B64 encoding). An encoded UUID, or a
+/// &gt; sequence of 16 bytes produced with a cryptographically strong PRNG, are
+/// &gt; appropriate salt values.
+/// &gt;
+/// &gt; &lt;sup&gt;†&lt;/sup&gt;The Argon2 specification states that the salt can be much longer, up
+/// &gt; to 2^32-1 bytes, but this makes little sense for password hashing.
+/// &gt; Specifying a relatively small maximum length allows for parsing with a
+/// &gt; stack allocated buffer.)
+///
+/// Based on this guidance, this type enforces an upper bound of 64-bytes
+/// as a reasonable maximum, and recommends using 16-bytes.
+///
+/// [1]: https://en.wikipedia.org/wiki/Rainbow_table
+/// [2]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#function-duties
+/// [3]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#argon2-encoding
+</span><span class="attribute">#[derive(Copy, Clone, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt;(Value&lt;<span class="lifetime">&#39;a</span>&gt;);
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::len_without_is_empty</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Minimum length of a [`Salt`] string: 4-bytes.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIN_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="attribute">#[allow(clippy::len_without_is_empty)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Minimum length of a [`Salt`] string: 4-bytes.
+    </span><span class="kw">pub const </span>MIN_LENGTH: usize = <span class="number">4</span>;
 
-    <span class="doccomment">/// Maximum length of a [`Salt`] string: 64-bytes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See type-level documentation about [`Salt`] for more information.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">64</span>;
+    <span class="doccomment">/// Maximum length of a [`Salt`] string: 64-bytes.
+    ///
+    /// See type-level documentation about [`Salt`] for more information.
+    </span><span class="kw">pub const </span>MAX_LENGTH: usize = <span class="number">64</span>;
 
-    <span class="doccomment">/// Recommended length of a salt: 16-bytes.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RECOMMENDED_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">16</span>;
+    <span class="doccomment">/// Recommended length of a salt: 16-bytes.
+    ///
+    /// This recommendation comes from the [PHC string format specification]:
+    ///
+    /// &gt; The role of salts is to achieve uniqueness. A *random* salt is fine
+    /// &gt; for that as long as its length is sufficient; a 16-byte salt would
+    /// &gt; work well (by definition, UUID are very good salts, and they encode
+    /// &gt; over exactly 16 bytes). 16 bytes encode as 22 characters in B64.
+    ///
+    /// [PHC string format specification]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#function-duties
+    </span><span class="kw">pub const </span>RECOMMENDED_LENGTH: usize = <span class="number">16</span>;
 
-    <span class="doccomment">/// Create a [`Salt`] from the given `str`, validating it according to</span>
-    <span class="doccomment">/// [`Salt::MIN_LENGTH`] and [`Salt::MAX_LENGTH`] length restrictions.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>();
+    <span class="doccomment">/// Create a [`Salt`] from the given `str`, validating it according to
+    /// [`Salt::MIN_LENGTH`] and [`Salt::MAX_LENGTH`] length restrictions.
+    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>length = input.as_bytes().len();
 
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::MIN_LENGTH</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::TooShort</span>));
+        <span class="kw">if </span>length &lt; <span class="self">Self</span>::MIN_LENGTH {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SaltInvalid(InvalidValue::TooShort));
         }
 
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="ident"><span class="self">Self</span>::MAX_LENGTH</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::TooLong</span>));
+        <span class="kw">if </span>length &gt; <span class="self">Self</span>::MAX_LENGTH {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SaltInvalid(InvalidValue::TooLong));
         }
 
-        <span class="ident">input</span>.<span class="ident">try_into</span>().<span class="ident">map</span>(<span class="self">Self</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">Error::ParamValueInvalid</span>(<span class="ident">value_err</span>) =&gt; <span class="ident">Error::SaltInvalid</span>(<span class="ident">value_err</span>),
-            <span class="ident">err</span> =&gt; <span class="ident">err</span>,
+        input.try_into().map(<span class="self">Self</span>).map_err(|e| <span class="kw">match </span>e {
+            Error::ParamValueInvalid(value_err) =&gt; Error::SaltInvalid(value_err),
+            err =&gt; err,
         })
     }
 
-    <span class="doccomment">/// Attempt to decode a B64-encoded [`Salt`], writing the decoded result</span>
-    <span class="doccomment">/// into the provided buffer, and returning a slice of the buffer</span>
-    <span class="doccomment">/// containing the decoded result on success.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [1]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#argon2-encoding</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">b64_decode</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">b64_decode</span>(<span class="ident">buf</span>)
+    <span class="doccomment">/// Attempt to decode a B64-encoded [`Salt`], writing the decoded result
+    /// into the provided buffer, and returning a slice of the buffer
+    /// containing the decoded result on success.
+    ///
+    /// [1]: https://github.com/P-H-C/phc-string-format/blob/master/phc-sf-spec.md#argon2-encoding
+    </span><span class="kw">pub fn </span>b64_decode&lt;<span class="lifetime">&#39;b</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u8]&gt; {
+        <span class="self">self</span>.<span class="number">0</span>.b64_decode(buf)
     }
 
-    <span class="doccomment">/// Borrow this value as a `str`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_str</span>()
+    <span class="doccomment">/// Borrow this value as a `str`.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+        <span class="self">self</span>.<span class="number">0</span>.as_str()
     }
 
-    <span class="doccomment">/// Borrow this value as bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>] {
-        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>()
+    <span class="doccomment">/// Borrow this value as bytes.
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
+        <span class="self">self</span>.as_str().as_bytes()
     }
 
-    <span class="doccomment">/// Get the length of this value in ASCII characters.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">len</span>()
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="self">self</span>.<span class="ident">as_str</span>()
+    <span class="doccomment">/// Get the length of this value in ASCII characters.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.as_str().len()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
-
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">input</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; AsRef&lt;str&gt; <span class="kw">for </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.as_str()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="self">self</span>.<span class="ident">as_str</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TryFrom&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span>Error = Error;
+
+    <span class="kw">fn </span>try_from(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="self">Self</span>::new(input)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Salt({:?})&quot;</span>, <span class="self">self</span>.<span class="ident">as_ref</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="self">self</span>.as_str())
     }
 }
 
-<span class="doccomment">/// Owned stack-allocated equivalent of [`Salt`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SaltString</span> {
-    <span class="doccomment">/// Byte array containing an ASCiI-encoded string.</span>
-    <span class="ident">bytes</span>: [<span class="ident">u8</span>; <span class="ident">Salt::MAX_LENGTH</span>],
-
-    <span class="doccomment">/// Length of the string in ASCII characters (i.e. bytes).</span>
-    <span class="ident">length</span>: <span class="ident">u8</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Salt({:?})&quot;</span>, <span class="self">self</span>.as_str())
+    }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::len_without_is_empty</span>)]</span>
-<span class="kw">impl</span> <span class="ident">SaltString</span> {
-    <span class="doccomment">/// Generate a random B64-encoded [`SaltString`].</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand_core&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand_core&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">mut</span> <span class="ident">rng</span>: <span class="kw">impl</span> <span class="ident">CryptoRng</span> <span class="op">+</span> <span class="ident">RngCore</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">Salt::RECOMMENDED_LENGTH</span>];
-        <span class="ident">rng</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>);
-        <span class="ident"><span class="self">Self</span>::b64_encode</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>).<span class="ident">expect</span>(<span class="ident">INVARIANT_VIOLATED_MSG</span>)
+<span class="doccomment">/// Owned stack-allocated equivalent of [`Salt`].
+</span><span class="attribute">#[derive(Clone, Eq)]
+</span><span class="kw">pub struct </span>SaltString {
+    <span class="doccomment">/// Byte array containing an ASCiI-encoded string.
+    </span>bytes: [u8; Salt::MAX_LENGTH],
+
+    <span class="doccomment">/// Length of the string in ASCII characters (i.e. bytes).
+    </span>length: u8,
+}
+
+<span class="attribute">#[allow(clippy::len_without_is_empty)]
+</span><span class="kw">impl </span>SaltString {
+    <span class="doccomment">/// Generate a random B64-encoded [`SaltString`].
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;rand_core&quot;</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;rand_core&quot;</span>)))]
+    </span><span class="kw">pub fn </span>generate(<span class="kw-2">mut </span>rng: <span class="kw">impl </span>CryptoRng + RngCore) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0u8</span>; Salt::RECOMMENDED_LENGTH];
+        rng.fill_bytes(<span class="kw-2">&amp;mut </span>bytes);
+        <span class="self">Self</span>::b64_encode(<span class="kw-2">&amp;</span>bytes).expect(INVARIANT_VIOLATED_MSG)
     }
 
-    <span class="doccomment">/// Create a new [`SaltString`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="comment">// Assert `s` parses successfully as a `Salt`</span>
-        <span class="ident">Salt::new</span>(<span class="ident">s</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Create a new [`SaltString`].
+    </span><span class="kw">pub fn </span>new(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="comment">// Assert `s` parses successfully as a `Salt`
+        </span>Salt::new(s)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>();
+        <span class="kw">let </span>length = s.as_bytes().len();
 
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="ident">Salt::MAX_LENGTH</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">Salt::MAX_LENGTH</span>];
-            <span class="ident">bytes</span>[..<span class="ident">length</span>].<span class="ident">copy_from_slice</span>(<span class="ident">s</span>.<span class="ident">as_bytes</span>());
-            <span class="prelude-val">Ok</span>(<span class="ident">SaltString</span> {
-                <span class="ident">bytes</span>,
-                <span class="ident">length</span>: <span class="ident">length</span> <span class="kw">as</span> <span class="ident">u8</span>,
+        <span class="kw">if </span>length &lt; Salt::MAX_LENGTH {
+            <span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0u8</span>; Salt::MAX_LENGTH];
+            bytes[..length].copy_from_slice(s.as_bytes());
+            <span class="prelude-val">Ok</span>(SaltString {
+                bytes,
+                length: length <span class="kw">as </span>u8,
             })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::TooLong</span>))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::SaltInvalid(InvalidValue::TooLong))
         }
     }
 
-    <span class="doccomment">/// Encode the given byte slice as B64 into a new [`SaltString`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns `None` if the slice is too long.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">b64_encode</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="ident">Salt::MAX_LENGTH</span>];
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">Encoding::B64</span>.<span class="ident">encode</span>(<span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">bytes</span>)<span class="question-mark">?</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">bytes</span>, <span class="ident">length</span> })
+    <span class="doccomment">/// Encode the given byte slice as B64 into a new [`SaltString`].
+    ///
+    /// Returns `None` if the slice is too long.
+    </span><span class="kw">pub fn </span>b64_encode(input: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>bytes = [<span class="number">0u8</span>; Salt::MAX_LENGTH];
+        <span class="kw">let </span>length = Encoding::B64.encode(input, <span class="kw-2">&amp;mut </span>bytes)<span class="question-mark">?</span>.len() <span class="kw">as </span>u8;
+        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ bytes, length })
     }
 
-    <span class="doccomment">/// Decode this [`SaltString`] from B64 into the provided output buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">b64_decode</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_salt</span>().<span class="ident">b64_decode</span>(<span class="ident">buf</span>)
+    <span class="doccomment">/// Decode this [`SaltString`] from B64 into the provided output buffer.
+    </span><span class="kw">pub fn </span>b64_decode&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]&gt; {
+        <span class="self">self</span>.as_salt().b64_decode(buf)
     }
 
-    <span class="doccomment">/// Borrow the contents of a [`SaltString`] as a [`Salt`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_salt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">Salt::new</span>(<span class="self">self</span>.<span class="ident">as_str</span>()).<span class="ident">expect</span>(<span class="ident">INVARIANT_VIOLATED_MSG</span>)
+    <span class="doccomment">/// Borrow the contents of a [`SaltString`] as a [`Salt`].
+    </span><span class="kw">pub fn </span>as_salt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Salt&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Salt::new(<span class="self">self</span>.as_str()).expect(INVARIANT_VIOLATED_MSG)
     }
 
-    <span class="doccomment">/// Borrow the contents of a [`SaltString`] as a `str`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="ident">str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bytes</span>[..(<span class="self">self</span>.<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>)]).<span class="ident">expect</span>(<span class="ident">INVARIANT_VIOLATED_MSG</span>)
+    <span class="doccomment">/// Borrow the contents of a [`SaltString`] as a `str`.
+    </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        str::from_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>.bytes[..(<span class="self">self</span>.length <span class="kw">as </span>usize)]).expect(INVARIANT_VIOLATED_MSG)
     }
 
-    <span class="doccomment">/// Borrow this value as bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">as_bytes</span>()
+    <span class="doccomment">/// Borrow this value as bytes.
+    </span><span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.as_str().as_bytes()
     }
 
-    <span class="doccomment">/// Get the length of this value in ASCII characters.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">len</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SaltString</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="self">self</span>.<span class="ident">as_str</span>()
+    <span class="doccomment">/// Get the length of this value in ASCII characters.
+    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.as_str().len()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">SaltString</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// Ensure comparisons always honor the initialized portion of the buffer</span>
-        <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">eq</span>(<span class="ident">other</span>.<span class="ident">as_ref</span>())
+<span class="kw">impl </span>AsRef&lt;str&gt; <span class="kw">for </span>SaltString {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.as_str()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SaltString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">salt_string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">SaltString</span>) -&gt; <span class="ident">Salt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">salt_string</span>.<span class="ident">as_salt</span>()
+<span class="kw">impl </span>PartialEq <span class="kw">for </span>SaltString {
+    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="comment">// Ensure comparisons always honor the initialized portion of the buffer
+        </span><span class="self">self</span>.as_ref().eq(other.as_ref())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Error</span>, <span class="ident">Salt</span>};
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::errors::InvalidValue</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SaltString&gt; <span class="kw">for </span>Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>from(salt_string: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>SaltString) -&gt; Salt&lt;<span class="lifetime">&#39;a</span>&gt; {
+        salt_string.as_salt()
+    }
+}
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_with_valid_min_length_input</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;abcd&quot;</span>;
-        <span class="kw">let</span> <span class="ident">salt</span> <span class="op">=</span> <span class="ident">Salt::new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">salt</span>.<span class="ident">as_ref</span>(), <span class="ident">s</span>);
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>SaltString {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.write_str(<span class="self">self</span>.as_str())
+    }
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>SaltString {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;SaltString({:?})&quot;</span>, <span class="self">self</span>.as_str())
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{Error, Salt};
+    <span class="kw">use </span><span class="kw">crate</span>::errors::InvalidValue;
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>new_with_valid_min_length_input() {
+        <span class="kw">let </span>s = <span class="string">&quot;abcd&quot;</span>;
+        <span class="kw">let </span>salt = Salt::new(s).unwrap();
+        <span class="macro">assert_eq!</span>(salt.as_ref(), s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">new_with_valid_max_length_input</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;012345678911234567892123456789312345678941234567&quot;</span>;
-        <span class="kw">let</span> <span class="ident">salt</span> <span class="op">=</span> <span class="ident">Salt::new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">salt</span>.<span class="ident">as_ref</span>(), <span class="ident">s</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>new_with_valid_max_length_input() {
+        <span class="kw">let </span>s = <span class="string">&quot;012345678911234567892123456789312345678941234567&quot;</span>;
+        <span class="kw">let </span>salt = Salt::new(s).unwrap();
+        <span class="macro">assert_eq!</span>(salt.as_ref(), s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reject_new_too_short</span>() {
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">too_short</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="string">&quot;abc&quot;</span>] {
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">Salt::new</span>(<span class="ident">too_short</span>).<span class="ident">err</span>().<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq!</span>(<span class="ident">err</span>, <span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::TooShort</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reject_new_too_short() {
+        <span class="kw">for </span><span class="kw-2">&amp;</span>too_short <span class="kw">in </span><span class="kw-2">&amp;</span>[<span class="string">&quot;&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="string">&quot;abc&quot;</span>] {
+            <span class="kw">let </span>err = Salt::new(too_short).err().unwrap();
+            <span class="macro">assert_eq!</span>(err, Error::SaltInvalid(InvalidValue::TooShort));
         }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reject_new_too_long</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;01234567891123456789212345678931234567894123456785234567896234567&quot;</span>;
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">Salt::new</span>(<span class="ident">s</span>).<span class="ident">err</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">err</span>, <span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::TooLong</span>));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reject_new_too_long() {
+        <span class="kw">let </span>s = <span class="string">&quot;01234567891123456789212345678931234567894123456785234567896234567&quot;</span>;
+        <span class="kw">let </span>err = Salt::new(s).err().unwrap();
+        <span class="macro">assert_eq!</span>(err, Error::SaltInvalid(InvalidValue::TooLong));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">reject_new_invalid_char</span>() {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="string">&quot;01234_abcd&quot;</span>;
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">Salt::new</span>(<span class="ident">s</span>).<span class="ident">err</span>().<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">err</span>, <span class="ident">Error::SaltInvalid</span>(<span class="ident">InvalidValue::InvalidChar</span>(<span class="string">&#39;_&#39;</span>)));
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>reject_new_invalid_char() {
+        <span class="kw">let </span>s = <span class="string">&quot;01234_abcd&quot;</span>;
+        <span class="kw">let </span>err = Salt::new(s).err().unwrap();
+        <span class="macro">assert_eq!</span>(err, Error::SaltInvalid(InvalidValue::InvalidChar(<span class="string">&#39;_&#39;</span>)));
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="password_hash" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="password_hash" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

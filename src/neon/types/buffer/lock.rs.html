@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/types/buffer/lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../neon/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-0.10.1/src/types/buffer/lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../neon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../neon/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -198,200 +192,199 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-<span class="kw">use</span> <span class="ident">std::ops::Range</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
+<span class="kw">use </span>std::ops::Range;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context::Context</span>;
+<span class="kw">use </span><span class="kw">crate</span>::context::Context;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">BorrowError</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
+<span class="kw">use super</span>::{BorrowError, Ref, RefMut};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// A temporary lock of an execution context.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// While a lock is alive, no JavaScript code can be executed in the execution context.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Values that support the `Borrow` trait may be dynamically borrowed by passing a</span>
-<span class="doccomment">/// [`Lock`].</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Lock</span><span class="op">&lt;</span><span class="lifetime">&#39;cx</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cx</span> <span class="ident">C</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">ledger</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Ledger</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="doccomment">/// A temporary lock of an execution context.
+///
+/// While a lock is alive, no JavaScript code can be executed in the execution context.
+///
+/// Values that support the `Borrow` trait may be dynamically borrowed by passing a
+/// [`Lock`].
+</span><span class="kw">pub struct </span>Lock&lt;<span class="lifetime">&#39;cx</span>, C&gt; {
+    <span class="kw">pub</span>(<span class="kw">super</span>) cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cx </span>C,
+    <span class="kw">pub</span>(<span class="kw">super</span>) ledger: RefCell&lt;Ledger&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;cx</span>, <span class="lifetime">&#39;cx</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">Lock</span><span class="op">&lt;</span><span class="lifetime">&#39;cx</span>, <span class="ident">C</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;cx</span>, <span class="lifetime">&#39;cx</span>, C&gt; Lock&lt;<span class="lifetime">&#39;cx</span>, C&gt;
+<span class="kw">where
+    </span>C: Context&lt;<span class="lifetime">&#39;a</span>&gt;,
 {
-    <span class="doccomment">/// Constructs a new [`Lock`] and locks the VM. See also [`Context::lock`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cx</span> <span class="kw-2">mut</span> <span class="ident">C</span>) -&gt; <span class="ident">Lock</span><span class="op">&lt;</span><span class="lifetime">&#39;cx</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-        <span class="ident">Lock</span> {
-            <span class="ident">cx</span>,
-            <span class="ident">ledger</span>: <span class="ident">Default::default</span>(),
+    <span class="doccomment">/// Constructs a new [`Lock`] and locks the VM. See also [`Context::lock`].
+    </span><span class="kw">pub fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cx </span><span class="kw-2">mut </span>C) -&gt; Lock&lt;<span class="lifetime">&#39;cx</span>, C&gt; {
+        Lock {
+            cx,
+            ledger: Default::default(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="comment">// Bookkeeping for dynamically check borrowing rules</span>
-<span class="comment">//</span>
-<span class="comment">// Ranges are open on the end: `[start, end)`</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Ledger</span> {
-    <span class="comment">// Mutable borrows. Should never overlap with other borrows.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">owned</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Default)]
+</span><span class="comment">// Bookkeeping for dynamically check borrowing rules
+//
+// Ranges are open on the end: `[start, end)`
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>Ledger {
+    <span class="comment">// Mutable borrows. Should never overlap with other borrows.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) owned: Vec&lt;Range&lt;<span class="kw-2">*const </span>u8&gt;&gt;,
 
-    <span class="comment">// Immutable borrows. May overlap or contain duplicates.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">shared</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="comment">// Immutable borrows. May overlap or contain duplicates.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) shared: Vec&lt;Range&lt;<span class="kw-2">*const </span>u8&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Ledger</span> {
-    <span class="comment">// Convert a slice of arbitrary type and size to a range of bytes addresses</span>
-    <span class="comment">//</span>
-    <span class="comment">// Alignment does not matter because we are only interested in bytes.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slice_to_range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">Range</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span> <span class="ident">data</span>.<span class="ident">as_ptr_range</span>();
+<span class="kw">impl </span>Ledger {
+    <span class="comment">// Convert a slice of arbitrary type and size to a range of bytes addresses
+    //
+    // Alignment does not matter because we are only interested in bytes.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>slice_to_range&lt;T&gt;(data: <span class="kw-2">&amp;</span>[T]) -&gt; Range&lt;<span class="kw-2">*const </span>u8&gt; {
+        <span class="kw">let </span>Range { start, end } = data.as_ptr_range();
 
-        (<span class="ident">start</span>.<span class="ident">cast</span>())..(<span class="ident">end</span>.<span class="ident">cast</span>())
+        (start.cast())..(end.cast())
     }
 
-    <span class="comment">// Dynamically check a slice conforms to borrow rules before returning by</span>
-    <span class="comment">// using interior mutability of the ledger.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_borrow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">ledger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">T</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-        <span class="ident">ledger</span>.<span class="ident">borrow_mut</span>().<span class="ident">try_add_borrow</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
+    <span class="comment">// Dynamically check a slice conforms to borrow rules before returning by
+    // using interior mutability of the ledger.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_borrow&lt;<span class="lifetime">&#39;a</span>, T&gt;(
+        ledger: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RefCell&lt;<span class="self">Self</span>&gt;,
+        data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Ref&lt;<span class="lifetime">&#39;a</span>, T&gt;, BorrowError&gt; {
+        ledger.borrow_mut().try_add_borrow(data)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Ref</span> { <span class="ident">ledger</span>, <span class="ident">data</span> })
+        <span class="prelude-val">Ok</span>(Ref { ledger, data })
     }
 
-    <span class="comment">// Dynamically check a mutable slice conforms to borrow rules before returning by</span>
-    <span class="comment">// using interior mutability of the ledger.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_borrow_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="ident">ledger</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RefCell</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">T</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-        <span class="ident">ledger</span>.<span class="ident">borrow_mut</span>().<span class="ident">try_add_borrow_mut</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
+    <span class="comment">// Dynamically check a mutable slice conforms to borrow rules before returning by
+    // using interior mutability of the ledger.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>try_borrow_mut&lt;<span class="lifetime">&#39;a</span>, T&gt;(
+        ledger: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>RefCell&lt;<span class="self">Self</span>&gt;,
+        data: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[T],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;RefMut&lt;<span class="lifetime">&#39;a</span>, T&gt;, BorrowError&gt; {
+        ledger.borrow_mut().try_add_borrow_mut(data)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">RefMut</span> { <span class="ident">ledger</span>, <span class="ident">data</span> })
+        <span class="prelude-val">Ok</span>(RefMut { ledger, data })
     }
 
-    <span class="comment">// Try to add an immutable borrow to the ledger</span>
-    <span class="kw">fn</span> <span class="ident">try_add_borrow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::slice_to_range</span>(<span class="ident">data</span>);
+    <span class="comment">// Try to add an immutable borrow to the ledger
+    </span><span class="kw">fn </span>try_add_borrow&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;(), BorrowError&gt; {
+        <span class="kw">let </span>range = <span class="self">Self</span>::slice_to_range(data);
 
-        <span class="comment">// Check if the borrow overlaps with any active mutable borrow</span>
-        <span class="ident">check_overlap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">owned</span>, <span class="kw-2">&amp;</span><span class="ident">range</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Check if the borrow overlaps with any active mutable borrow
+        </span>check_overlap(<span class="kw-2">&amp;</span><span class="self">self</span>.owned, <span class="kw-2">&amp;</span>range)<span class="question-mark">?</span>;
 
-        <span class="comment">// Record a record of the immutable borrow</span>
-        <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">push</span>(<span class="ident">range</span>);
+        <span class="comment">// Record a record of the immutable borrow
+        </span><span class="self">self</span>.shared.push(range);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="comment">// Try to add a mutable borrow to the ledger</span>
-    <span class="kw">fn</span> <span class="ident">try_add_borrow_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::slice_to_range</span>(<span class="ident">data</span>);
+    <span class="comment">// Try to add a mutable borrow to the ledger
+    </span><span class="kw">fn </span>try_add_borrow_mut&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;(), BorrowError&gt; {
+        <span class="kw">let </span>range = <span class="self">Self</span>::slice_to_range(data);
 
-        <span class="comment">// Check if the borrow overlaps with any active mutable borrow</span>
-        <span class="ident">check_overlap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">owned</span>, <span class="kw-2">&amp;</span><span class="ident">range</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Check if the borrow overlaps with any active mutable borrow
+        </span>check_overlap(<span class="kw-2">&amp;</span><span class="self">self</span>.owned, <span class="kw-2">&amp;</span>range)<span class="question-mark">?</span>;
 
-        <span class="comment">// Check if the borrow overlaps with any active immutable borrow</span>
-        <span class="ident">check_overlap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">shared</span>, <span class="kw-2">&amp;</span><span class="ident">range</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Check if the borrow overlaps with any active immutable borrow
+        </span>check_overlap(<span class="kw-2">&amp;</span><span class="self">self</span>.shared, <span class="kw-2">&amp;</span>range)<span class="question-mark">?</span>;
 
-        <span class="comment">// Record a record of the mutable borrow</span>
-        <span class="self">self</span>.<span class="ident">owned</span>.<span class="ident">push</span>(<span class="ident">range</span>);
+        <span class="comment">// Record a record of the mutable borrow
+        </span><span class="self">self</span>.owned.push(range);
 
         <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">fn</span> <span class="ident">is_disjoint</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-    <span class="ident">b</span>.<span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">a</span>.<span class="ident">end</span> <span class="op">|</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">end</span>
-}
-
-<span class="kw">fn</span> <span class="ident">check_overlap</span>(
-    <span class="ident">existing</span>: <span class="kw-2">&amp;</span>[<span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span>],
-    <span class="ident">range</span>: <span class="kw-2">&amp;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">u8</span><span class="op">&gt;</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">existing</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">is_disjoint</span>(<span class="ident">i</span>, <span class="ident">range</span>)) {
-        <span class="prelude-val">Ok</span>(())
-    } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<span class="ident">BorrowError::new</span>())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-    <span class="kw">use</span> <span class="ident">std::error::Error</span>;
-    <span class="kw">use</span> <span class="ident">std::mem</span>;
-    <span class="kw">use</span> <span class="ident">std::slice</span>;
+<span class="kw">fn </span>is_disjoint(a: <span class="kw-2">&amp;</span>Range&lt;<span class="kw-2">*const </span>u8&gt;, b: <span class="kw-2">&amp;</span>Range&lt;<span class="kw-2">*const </span>u8&gt;) -&gt; bool {
+    b.start &gt;= a.end || a.start &gt;= b.end
+}
 
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">BorrowError</span>, <span class="ident">Ledger</span>};
+<span class="kw">fn </span>check_overlap(
+    existing: <span class="kw-2">&amp;</span>[Range&lt;<span class="kw-2">*const </span>u8&gt;],
+    range: <span class="kw-2">&amp;</span>Range&lt;<span class="kw-2">*const </span>u8&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), BorrowError&gt; {
+    <span class="kw">if </span>existing.iter().all(|i| is_disjoint(i, range)) {
+        <span class="prelude-val">Ok</span>(())
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(BorrowError::new())
+    }
+}
 
-    <span class="comment">// Super unsafe, but we only use it for testing `Ledger`</span>
-    <span class="kw">fn</span> <span class="ident">unsafe_aliased_slice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="kw-2">mut</span> [<span class="ident">T</span>] {
-        <span class="kw">unsafe</span> { <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">data</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">data</span>.<span class="ident">len</span>()) }
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::cell::RefCell;
+    <span class="kw">use </span>std::error::Error;
+    <span class="kw">use </span>std::mem;
+    <span class="kw">use </span>std::slice;
+
+    <span class="kw">use super</span>::{BorrowError, Ledger};
+
+    <span class="comment">// Super unsafe, but we only use it for testing `Ledger`
+    </span><span class="kw">fn </span>unsafe_aliased_slice&lt;T&gt;(data: <span class="kw-2">&amp;mut </span>[T]) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span><span class="kw-2">mut </span>[T] {
+        <span class="kw">unsafe </span>{ slice::from_raw_parts_mut(data.as_mut_ptr(), data.len()) }
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_overlapping_immutable_borrows</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ledger</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">Ledger::default</span>());
-        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">128</span>];
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_overlapping_immutable_borrows() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+        <span class="kw">let </span>ledger = RefCell::new(Ledger::default());
+        <span class="kw">let </span>data = <span class="macro">vec!</span>[<span class="number">0u8</span>; <span class="number">128</span>];
 
-        <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="number">0</span>..<span class="number">10</span>])<span class="question-mark">?</span>;
-        <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="number">0</span>..<span class="number">100</span>])<span class="question-mark">?</span>;
-        <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="number">20</span>..])<span class="question-mark">?</span>;
+        Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, <span class="kw-2">&amp;</span>data[<span class="number">0</span>..<span class="number">10</span>])<span class="question-mark">?</span>;
+        Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, <span class="kw-2">&amp;</span>data[<span class="number">0</span>..<span class="number">100</span>])<span class="question-mark">?</span>;
+        Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, <span class="kw-2">&amp;</span>data[<span class="number">20</span>..])<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_nonoverlapping_borrows</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ledger</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">Ledger::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">16</span>];
-        <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="ident">data</span>.<span class="ident">split_at_mut</span>(<span class="number">4</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_nonoverlapping_borrows() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+        <span class="kw">let </span>ledger = RefCell::new(Ledger::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">16</span>];
+        <span class="kw">let </span>(a, b) = data.split_at_mut(<span class="number">4</span>);
 
-        <span class="kw">let</span> <span class="ident">_a</span> <span class="op">=</span> <span class="ident">Ledger::try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">a</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">_b</span> <span class="op">=</span> <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">b</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>_a = Ledger::try_borrow_mut(<span class="kw-2">&amp;</span>ledger, a)<span class="question-mark">?</span>;
+        <span class="kw">let </span>_b = Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, b)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_overlapping_borrows</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ledger</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">Ledger::default</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">16</span>];
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">unsafe_aliased_slice</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>[<span class="number">4</span>..<span class="number">8</span>]);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">unsafe_aliased_slice</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>[<span class="number">6</span>..<span class="number">12</span>]);
-        <span class="kw">let</span> <span class="ident">ab</span> <span class="op">=</span> <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">a</span>)<span class="question-mark">?</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>test_overlapping_borrows() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
+        <span class="kw">let </span>ledger = RefCell::new(Ledger::default());
+        <span class="kw">let </span><span class="kw-2">mut </span>data = <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">16</span>];
+        <span class="kw">let </span>a = unsafe_aliased_slice(<span class="kw-2">&amp;mut </span>data[<span class="number">4</span>..<span class="number">8</span>]);
+        <span class="kw">let </span>b = unsafe_aliased_slice(<span class="kw-2">&amp;mut </span>data[<span class="number">6</span>..<span class="number">12</span>]);
+        <span class="kw">let </span>ab = Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, a)<span class="question-mark">?</span>;
 
-        <span class="comment">// Should fail because it overlaps</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">Ledger::try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">b</span>).<span class="ident">unwrap_err</span>(),
-            <span class="ident">BorrowError::new</span>(),
+        <span class="comment">// Should fail because it overlaps
+        </span><span class="macro">assert_eq!</span>(
+            Ledger::try_borrow_mut(<span class="kw-2">&amp;</span>ledger, b).unwrap_err(),
+            BorrowError::new(),
         );
 
-        <span class="comment">// Drop the first borrow</span>
-        <span class="ident">mem::drop</span>(<span class="ident">ab</span>);
+        <span class="comment">// Drop the first borrow
+        </span>mem::drop(ab);
 
-        <span class="comment">// Should succeed because previous borrow was dropped</span>
-        <span class="kw">let</span> <span class="ident">bb</span> <span class="op">=</span> <span class="ident">Ledger::try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">b</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Should succeed because previous borrow was dropped
+        </span><span class="kw">let </span>bb = Ledger::try_borrow_mut(<span class="kw-2">&amp;</span>ledger, b)<span class="question-mark">?</span>;
 
-        <span class="comment">// Should fail because it overlaps</span>
-        <span class="macro">assert_eq!</span>(
-            <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">a</span>).<span class="ident">unwrap_err</span>(),
-            <span class="ident">BorrowError::new</span>(),
+        <span class="comment">// Should fail because it overlaps
+        </span><span class="macro">assert_eq!</span>(
+            Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, a).unwrap_err(),
+            BorrowError::new(),
         );
 
-        <span class="comment">// Drop the second borrow</span>
-        <span class="ident">mem::drop</span>(<span class="ident">bb</span>);
+        <span class="comment">// Drop the second borrow
+        </span>mem::drop(bb);
 
-        <span class="comment">// Should succeed because previous borrow was dropped</span>
-        <span class="kw">let</span> <span class="ident">_ab</span> <span class="op">=</span> <span class="ident">Ledger::try_borrow</span>(<span class="kw-2">&amp;</span><span class="ident">ledger</span>, <span class="ident">a</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Should succeed because previous borrow was dropped
+        </span><span class="kw">let </span>_ab = Ledger::try_borrow(<span class="kw-2">&amp;</span>ledger, a)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="neon" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

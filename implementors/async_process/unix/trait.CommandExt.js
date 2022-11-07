@@ -1,4 +1,4 @@
-(function() {var implementors = {};
-implementors["async_process"] = [];
-implementors["smol"] = [];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"async_process":[],
+"smol":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

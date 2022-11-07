@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-mid-0.5.3/src/pat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn_mid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../syn_mid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn_mid/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-mid-0.5.3/src/pat.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pat.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn_mid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn_mid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn_mid/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -390,392 +384,391 @@
 <span id="384">384</span>
 <span id="385">385</span>
 <span id="386">386</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">punctuated::Punctuated</span>, <span class="ident">token</span>, <span class="ident">Attribute</span>, <span class="ident">Ident</span>, <span class="ident">Member</span>, <span class="ident">Path</span>, <span class="ident">Token</span>, <span class="ident">Type</span>};
+</pre><pre class="rust"><code><span class="kw">use </span>syn::{punctuated::Punctuated, token, Attribute, Ident, Member, Path, Token, Type};
 
-<span class="macro">ast_enum_of_structs!</span> {
-    <span class="doccomment">/// A pattern in a local binding, function signature, match expression, or</span>
-    <span class="doccomment">/// various other places.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Syntax tree enum</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This type is a [syntax tree enum].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [syntax tree enum]: https://docs.rs/syn/1/syn/enum.Expr.html#syntax-tree-enums</span>
-    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Pat</span> {
-        <span class="doccomment">/// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.</span>
-        <span class="ident">Ident</span>(<span class="ident">PatIdent</span>),
+<span class="macro">ast_enum_of_structs! </span>{
+    <span class="doccomment">/// A pattern in a local binding, function signature, match expression, or
+    /// various other places.
+    ///
+    /// # Syntax tree enum
+    ///
+    /// This type is a [syntax tree enum].
+    ///
+    /// [syntax tree enum]: https://docs.rs/syn/1/syn/enum.Expr.html#syntax-tree-enums
+    </span><span class="kw">pub enum </span>Pat {
+        <span class="doccomment">/// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.
+        </span>Ident(PatIdent),
 
-        <span class="doccomment">/// A path pattern like `Color::Red`.</span>
-        <span class="ident">Path</span>(<span class="ident">PatPath</span>),
+        <span class="doccomment">/// A path pattern like `Color::Red`.
+        </span>Path(PatPath),
 
-        <span class="doccomment">/// A reference pattern: `&amp;mut var`.</span>
-        <span class="ident">Reference</span>(<span class="ident">PatReference</span>),
+        <span class="doccomment">/// A reference pattern: `&amp;mut var`.
+        </span>Reference(PatReference),
 
-        <span class="doccomment">/// A struct or struct variant pattern: `Variant { x, y, .. }`.</span>
-        <span class="ident">Struct</span>(<span class="ident">PatStruct</span>),
+        <span class="doccomment">/// A struct or struct variant pattern: `Variant { x, y, .. }`.
+        </span>Struct(PatStruct),
 
-        <span class="doccomment">/// A tuple pattern: `(a, b)`.</span>
-        <span class="ident">Tuple</span>(<span class="ident">PatTuple</span>),
+        <span class="doccomment">/// A tuple pattern: `(a, b)`.
+        </span>Tuple(PatTuple),
 
-        <span class="doccomment">/// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.</span>
-        <span class="ident">TupleStruct</span>(<span class="ident">PatTupleStruct</span>),
+        <span class="doccomment">/// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.
+        </span>TupleStruct(PatTupleStruct),
 
-        <span class="doccomment">/// A type ascription pattern: `foo: f64`.</span>
-        <span class="ident">Type</span>(<span class="ident">PatType</span>),
+        <span class="doccomment">/// A type ascription pattern: `foo: f64`.
+        </span>Type(PatType),
 
-        <span class="doccomment">/// A pattern that matches any value: `_`.</span>
-        <span class="ident">Wild</span>(<span class="ident">PatWild</span>),
+        <span class="doccomment">/// A pattern that matches any value: `_`.
+        </span>Wild(PatWild),
 
-        <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-        <span class="ident">__Nonexhaustive</span>,
+        <span class="attribute">#[doc(hidden)]
+        </span>__Nonexhaustive,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatIdent</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">by_ref</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">ref</span>]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Ident</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A pattern that binds a new variable: `ref mut binding @ SUBPATTERN`.
+    </span><span class="kw">pub struct </span>PatIdent {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>by_ref: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">ref</span>]&gt;,
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>ident: Ident,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A path pattern like `Color::Red`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatPath</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">Path</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A path pattern like `Color::Red`.
+    </span><span class="kw">pub struct </span>PatPath {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>path: Path,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A reference pattern: `&amp;mut var`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatReference</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">and_token</span>: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>],
-        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">pat</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A reference pattern: `&amp;mut var`.
+    </span><span class="kw">pub struct </span>PatReference {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>and_token: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>],
+        <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;,
+        <span class="kw">pub </span>pat: Box&lt;Pat&gt;,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A struct or struct variant pattern: `Variant { x, y, .. }`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatStruct</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">Path</span>,
-        <span class="kw">pub</span> <span class="ident">brace_token</span>: <span class="ident">token::Brace</span>,
-        <span class="kw">pub</span> <span class="ident">fields</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">FieldPat</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">dot2_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[..]<span class="op">&gt;</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A struct or struct variant pattern: `Variant { x, y, .. }`.
+    </span><span class="kw">pub struct </span>PatStruct {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>path: Path,
+        <span class="kw">pub </span>brace_token: token::Brace,
+        <span class="kw">pub </span>fields: Punctuated&lt;FieldPat, <span class="macro">Token!</span>[,]&gt;,
+        <span class="kw">pub </span>dot2_token: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[..]&gt;,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A tuple pattern: `(a, b)`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatTuple</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token::Paren</span>,
-        <span class="kw">pub</span> <span class="ident">elems</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Pat</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A tuple pattern: `(a, b)`.
+    </span><span class="kw">pub struct </span>PatTuple {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>paren_token: token::Paren,
+        <span class="kw">pub </span>elems: Punctuated&lt;Pat, <span class="macro">Token!</span>[,]&gt;,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatTupleStruct</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">Path</span>,
-        <span class="kw">pub</span> <span class="ident">pat</span>: <span class="ident">PatTuple</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A tuple struct or tuple variant pattern: `Variant(x, y, .., z)`.
+    </span><span class="kw">pub struct </span>PatTupleStruct {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>path: Path,
+        <span class="kw">pub </span>pat: PatTuple,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A type ascription pattern: `foo: f64`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatType</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">pat</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">colon_token</span>: <span class="macro">Token!</span>[:],
-        <span class="kw">pub</span> <span class="ident">ty</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A type ascription pattern: `foo: f64`.
+    </span><span class="kw">pub struct </span>PatType {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>pat: Box&lt;Pat&gt;,
+        <span class="kw">pub </span>colon_token: <span class="macro">Token!</span>[:],
+        <span class="kw">pub </span>ty: Box&lt;Type&gt;,
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A pattern that matches any value: `_`.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatWild</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">underscore_token</span>: <span class="macro">Token!</span>[<span class="kw">_</span>],
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A pattern that matches any value: `_`.
+    </span><span class="kw">pub struct </span>PatWild {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>underscore_token: <span class="macro">Token!</span>[<span class="kw">_</span>],
     }
 }
 
-<span class="macro">ast_struct!</span> {
-    <span class="doccomment">/// A single field in a struct pattern.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Patterns like the fields of Foo `{ x, ref y, ref mut z }` are treated</span>
-    <span class="doccomment">/// the same as `x: x, y: ref y, z: ref mut z` but there is no colon token.</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FieldPat</span> {
-        <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">member</span>: <span class="ident">Member</span>,
-        <span class="kw">pub</span> <span class="ident">colon_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[:]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">pat</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span>,
+<span class="macro">ast_struct! </span>{
+    <span class="doccomment">/// A single field in a struct pattern.
+    ///
+    /// Patterns like the fields of Foo `{ x, ref y, ref mut z }` are treated
+    /// the same as `x: x, y: ref y, z: ref mut z` but there is no colon token.
+    </span><span class="kw">pub struct </span>FieldPat {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>member: Member,
+        <span class="kw">pub </span>colon_token: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[:]&gt;,
+        <span class="kw">pub </span>pat: Box&lt;Pat&gt;,
     }
 }
 
-<span class="kw">mod</span> <span class="ident">parsing</span> {
-    <span class="kw">use</span> <span class="ident">syn</span>::{
-        <span class="ident">braced</span>,
-        <span class="ident">ext::IdentExt</span>,
-        <span class="ident">parenthesized</span>,
-        <span class="ident">parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>},
-        <span class="ident">punctuated::Punctuated</span>,
-        <span class="ident">token</span>, <span class="ident">Attribute</span>, <span class="ident">Ident</span>, <span class="ident">Member</span>, <span class="ident">Path</span>, <span class="ident">Token</span>,
+<span class="kw">mod </span>parsing {
+    <span class="kw">use </span>syn::{
+        braced,
+        ext::IdentExt,
+        parenthesized,
+        parse::{Parse, ParseStream, <span class="prelude-ty">Result</span>},
+        punctuated::Punctuated,
+        token, Attribute, Ident, Member, Path, Token,
     };
 
-    <span class="kw">use</span> <span class="kw">super</span>::{
-        <span class="ident">FieldPat</span>, <span class="ident">Pat</span>, <span class="ident">PatIdent</span>, <span class="ident">PatPath</span>, <span class="ident">PatReference</span>, <span class="ident">PatStruct</span>, <span class="ident">PatTuple</span>, <span class="ident">PatTupleStruct</span>,
-        <span class="ident">PatWild</span>,
+    <span class="kw">use super</span>::{
+        FieldPat, Pat, PatIdent, PatPath, PatReference, PatStruct, PatTuple, PatTupleStruct,
+        PatWild,
     };
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::path</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::path;
 
-    <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Pat</span> {
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
-            <span class="kw">if</span> {
-                <span class="kw">let</span> <span class="ident">ahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
-                <span class="ident">ahead</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">is_some</span>()
-                    <span class="op">&amp;&amp;</span> (<span class="ident">ahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::])
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">ahead</span>.<span class="ident">peek</span>(<span class="ident">token::Brace</span>)
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">ahead</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>))
-            } <span class="op">|</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">ahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
-                <span class="ident">ahead</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="self">self</span>]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">ahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::])
-            } <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">Self</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">super</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">extern</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">crate</span>])
+    <span class="kw">impl </span>Parse <span class="kw">for </span>Pat {
+        <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>lookahead = input.lookahead1();
+            <span class="kw">if </span>{
+                <span class="kw">let </span>ahead = input.fork();
+                ahead.parse::&lt;<span class="prelude-ty">Option</span>&lt;Ident&gt;&gt;()<span class="question-mark">?</span>.is_some()
+                    &amp;&amp; (ahead.peek(<span class="macro">Token!</span>[::])
+                        || ahead.peek(token::Brace)
+                        || ahead.peek(token::Paren))
+            } || {
+                <span class="kw">let </span>ahead = input.fork();
+                ahead.parse::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="self">self</span>]&gt;&gt;()<span class="question-mark">?</span>.is_some() &amp;&amp; ahead.peek(<span class="macro">Token!</span>[::])
+            } || lookahead.peek(<span class="macro">Token!</span>[::])
+                || lookahead.peek(<span class="macro">Token!</span>[&lt;])
+                || input.peek(<span class="macro">Token!</span>[<span class="self">Self</span>])
+                || input.peek(<span class="macro">Token!</span>[<span class="kw">super</span>])
+                || input.peek(<span class="macro">Token!</span>[<span class="kw">extern</span>])
+                || input.peek(<span class="macro">Token!</span>[<span class="kw">crate</span>])
             {
-                <span class="ident">pat_path_or_struct</span>(<span class="ident">input</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">_</span>]) {
-                <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">pat_wild</span>).<span class="ident">map</span>(<span class="ident">Pat::Wild</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">ref</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">mut</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">self</span>])
-                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>)
+                pat_path_or_struct(input)
+            } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw">_</span>]) {
+                input.call(pat_wild).map(Pat::Wild)
+            } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">ref</span>])
+                || lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">mut</span>])
+                || input.peek(<span class="macro">Token!</span>[<span class="self">self</span>])
+                || input.peek(Ident)
             {
-                <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">pat_ident</span>).<span class="ident">map</span>(<span class="ident">Pat::Ident</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
-                <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">pat_reference</span>).<span class="ident">map</span>(<span class="ident">Pat::Reference</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>) {
-                <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">pat_tuple</span>).<span class="ident">map</span>(<span class="ident">Pat::Tuple</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
+                input.call(pat_ident).map(Pat::Ident)
+            } <span class="kw">else if </span>lookahead.peek(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
+                input.call(pat_reference).map(Pat::Reference)
+            } <span class="kw">else if </span>lookahead.peek(token::Paren) {
+                input.call(pat_tuple).map(Pat::Tuple)
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Err</span>(lookahead.error())
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_path_or_struct</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Pat</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path::parse_path</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>pat_path_or_struct(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Pat&gt; {
+        <span class="kw">let </span>path = path::parse_path(input)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Brace</span>) {
-            <span class="ident">pat_struct</span>(<span class="ident">input</span>, <span class="ident">path</span>).<span class="ident">map</span>(<span class="ident">Pat::Struct</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>) {
-            <span class="ident">pat_tuple_struct</span>(<span class="ident">input</span>, <span class="ident">path</span>).<span class="ident">map</span>(<span class="ident">Pat::TupleStruct</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Pat::Path</span>(<span class="ident">PatPath</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">path</span> }))
+        <span class="kw">if </span>input.peek(token::Brace) {
+            pat_struct(input, path).map(Pat::Struct)
+        } <span class="kw">else if </span>input.peek(token::Paren) {
+            pat_tuple_struct(input, path).map(Pat::TupleStruct)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(Pat::Path(PatPath { attrs: Vec::new(), path }))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_wild</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatWild</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">PatWild</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">underscore_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span> })
+    <span class="kw">fn </span>pat_wild(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PatWild&gt; {
+        <span class="prelude-val">Ok</span>(PatWild { attrs: Vec::new(), underscore_token: input.parse()<span class="question-mark">? </span>})
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_ident</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatIdent</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">PatIdent</span> {
-            <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">by_ref</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">mutability</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">ident</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>,
+    <span class="kw">fn </span>pat_ident(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PatIdent&gt; {
+        <span class="prelude-val">Ok</span>(PatIdent {
+            attrs: Vec::new(),
+            by_ref: input.parse()<span class="question-mark">?</span>,
+            mutability: input.parse()<span class="question-mark">?</span>,
+            ident: input.call(Ident::parse_any)<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_tuple_struct</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatTupleStruct</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">PatTupleStruct</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">path</span>, <span class="ident">pat</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">pat_tuple</span>)<span class="question-mark">?</span> })
+    <span class="kw">fn </span>pat_tuple_struct(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;, path: Path) -&gt; <span class="prelude-ty">Result</span>&lt;PatTupleStruct&gt; {
+        <span class="prelude-val">Ok</span>(PatTupleStruct { attrs: Vec::new(), path, pat: input.call(pat_tuple)<span class="question-mark">? </span>})
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_struct</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatStruct</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">content</span>;
-        <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+    <span class="kw">fn </span>pat_struct(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;, path: Path) -&gt; <span class="prelude-ty">Result</span>&lt;PatStruct&gt; {
+        <span class="kw">let </span>content;
+        <span class="kw">let </span>brace_token = <span class="macro">braced!</span>(content <span class="kw">in </span>input);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
-        <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[..]) {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">field_pat</span>)<span class="question-mark">?</span>;
-            <span class="ident">fields</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
-            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">let </span><span class="kw-2">mut </span>fields = Punctuated::new();
+        <span class="kw">while </span>!content.is_empty() &amp;&amp; !content.peek(<span class="macro">Token!</span>[..]) {
+            <span class="kw">let </span>value = content.call(field_pat)<span class="question-mark">?</span>;
+            fields.push_value(value);
+            <span class="kw">if </span>content.is_empty() {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">punct</span>: <span class="macro">Token!</span>[,] <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="ident">fields</span>.<span class="ident">push_punct</span>(<span class="ident">punct</span>);
+            <span class="kw">let </span>punct: <span class="macro">Token!</span>[,] = content.parse()<span class="question-mark">?</span>;
+            fields.push_punct(punct);
         }
 
-        <span class="kw">let</span> <span class="ident">dot2_token</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">fields</span>.<span class="ident">empty_or_trailing</span>() <span class="op">&amp;&amp;</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[..]) {
-            <span class="prelude-val">Some</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+        <span class="kw">let </span>dot2_token = <span class="kw">if </span>fields.empty_or_trailing() &amp;&amp; content.peek(<span class="macro">Token!</span>[..]) {
+            <span class="prelude-val">Some</span>(content.parse()<span class="question-mark">?</span>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PatStruct</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">path</span>, <span class="ident">brace_token</span>, <span class="ident">fields</span>, <span class="ident">dot2_token</span> })
+        <span class="prelude-val">Ok</span>(PatStruct { attrs: Vec::new(), path, brace_token, fields, dot2_token })
     }
 
-    <span class="kw">fn</span> <span class="ident">field_pat</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FieldPat</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">boxed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">box</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">by_ref</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">ref</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">member</span>: <span class="ident">Member</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+    <span class="kw">fn </span>field_pat(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;FieldPat&gt; {
+        <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
+        <span class="kw">let </span>boxed: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw">box</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>by_ref: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">ref</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>mutability: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+        <span class="kw">let </span>member: Member = input.parse()<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">boxed</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">by_ref</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">mutability</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[:])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">is_unnamed</span>(<span class="kw-2">&amp;</span><span class="ident">member</span>)
+        <span class="kw">if </span>boxed.is_none() &amp;&amp; by_ref.is_none() &amp;&amp; mutability.is_none() &amp;&amp; input.peek(<span class="macro">Token!</span>[:])
+            || is_unnamed(<span class="kw-2">&amp;</span>member)
         {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FieldPat</span> {
-                <span class="ident">attrs</span>,
-                <span class="ident">member</span>,
-                <span class="ident">colon_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                <span class="ident">pat</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(FieldPat {
+                attrs,
+                member,
+                colon_token: input.parse()<span class="question-mark">?</span>,
+                pat: input.parse()<span class="question-mark">?</span>,
             });
         }
 
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">member</span> {
-            <span class="ident">Member::Named</span>(<span class="ident">ident</span>) =&gt; <span class="ident">ident</span>,
-            <span class="ident">Member::Unnamed</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+        <span class="kw">let </span>ident = <span class="kw">match </span>member {
+            Member::Named(ident) =&gt; ident,
+            Member::Unnamed(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span>
-            <span class="ident">Pat::Ident</span>(<span class="ident">PatIdent</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">by_ref</span>, <span class="ident">mutability</span>, <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">clone</span>() });
+        <span class="kw">let </span>pat =
+            Pat::Ident(PatIdent { attrs: Vec::new(), by_ref, mutability, ident: ident.clone() });
 
-        <span class="prelude-val">Ok</span>(<span class="ident">FieldPat</span> { <span class="ident">attrs</span>, <span class="ident">member</span>: <span class="ident">Member::Named</span>(<span class="ident">ident</span>), <span class="ident">colon_token</span>: <span class="prelude-val">None</span>, <span class="ident">pat</span>: <span class="ident">Box::new</span>(<span class="ident">pat</span>) })
+        <span class="prelude-val">Ok</span>(FieldPat { attrs, member: Member::Named(ident), colon_token: <span class="prelude-val">None</span>, pat: Box::new(pat) })
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_tuple</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatTuple</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">content</span>;
-        <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+    <span class="kw">fn </span>pat_tuple(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PatTuple&gt; {
+        <span class="kw">let </span>content;
+        <span class="kw">let </span>paren_token = <span class="macro">parenthesized!</span>(content <span class="kw">in </span>input);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
-        <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">Pat</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="ident">elems</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
-            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">let </span><span class="kw-2">mut </span>elems = Punctuated::new();
+        <span class="kw">while </span>!content.is_empty() {
+            <span class="kw">let </span>value: Pat = content.parse()<span class="question-mark">?</span>;
+            elems.push_value(value);
+            <span class="kw">if </span>content.is_empty() {
                 <span class="kw">break</span>;
             }
-            <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="ident">elems</span>.<span class="ident">push_punct</span>(<span class="ident">punct</span>);
+            <span class="kw">let </span>punct = content.parse()<span class="question-mark">?</span>;
+            elems.push_punct(punct);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">PatTuple</span> { <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(), <span class="ident">paren_token</span>, <span class="ident">elems</span> })
+        <span class="prelude-val">Ok</span>(PatTuple { attrs: Vec::new(), paren_token, elems })
     }
 
-    <span class="kw">fn</span> <span class="ident">pat_reference</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PatReference</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">PatReference</span> {
-            <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">and_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">mutability</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">pat</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+    <span class="kw">fn </span>pat_reference(input: ParseStream&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PatReference&gt; {
+        <span class="prelude-val">Ok</span>(PatReference {
+            attrs: Vec::new(),
+            and_token: input.parse()<span class="question-mark">?</span>,
+            mutability: input.parse()<span class="question-mark">?</span>,
+            pat: input.parse()<span class="question-mark">?</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">is_unnamed</span>(<span class="ident">member</span>: <span class="kw-2">&amp;</span><span class="ident">Member</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="ident">member</span> {
-            <span class="ident">Member::Named</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident">Member::Unnamed</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+    <span class="kw">fn </span>is_unnamed(member: <span class="kw-2">&amp;</span>Member) -&gt; bool {
+        <span class="kw">match </span>member {
+            Member::Named(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            Member::Unnamed(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
         }
     }
 }
 
-<span class="kw">mod</span> <span class="ident">printing</span> {
-    <span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
-    <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
-    <span class="kw">use</span> <span class="ident">syn::Token</span>;
+<span class="kw">mod </span>printing {
+    <span class="kw">use </span>proc_macro2::TokenStream;
+    <span class="kw">use </span>quote::{ToTokens, TokenStreamExt};
+    <span class="kw">use </span>syn::Token;
 
-    <span class="kw">use</span> <span class="kw">super</span>::{
-        <span class="ident">FieldPat</span>, <span class="ident">PatIdent</span>, <span class="ident">PatPath</span>, <span class="ident">PatReference</span>, <span class="ident">PatStruct</span>, <span class="ident">PatTuple</span>, <span class="ident">PatTupleStruct</span>, <span class="ident">PatType</span>,
-        <span class="ident">PatWild</span>,
+    <span class="kw">use super</span>::{
+        FieldPat, PatIdent, PatPath, PatReference, PatStruct, PatTuple, PatTupleStruct, PatType,
+        PatWild,
     };
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatWild</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">underscore_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatWild {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.underscore_token.to_tokens(tokens);
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatIdent</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">by_ref</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">mutability</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatIdent {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.by_ref.to_tokens(tokens);
+            <span class="self">self</span>.mutability.to_tokens(tokens);
+            <span class="self">self</span>.ident.to_tokens(tokens);
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatStruct</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">brace_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-                <span class="comment">// NOTE: We need a comma before the dot2 token if it is present.</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">empty_or_trailing</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">dot2_token</span>.<span class="ident">is_some</span>() {
-                    <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatStruct {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.path.to_tokens(tokens);
+            <span class="self">self</span>.brace_token.surround(tokens, |tokens| {
+                <span class="self">self</span>.fields.to_tokens(tokens);
+                <span class="comment">// NOTE: We need a comma before the dot2 token if it is present.
+                </span><span class="kw">if </span>!<span class="self">self</span>.fields.empty_or_trailing() &amp;&amp; <span class="self">self</span>.dot2_token.is_some() {
+                    &lt;<span class="macro">Token!</span>[,]&gt;::default().to_tokens(tokens);
                 }
-                <span class="self">self</span>.<span class="ident">dot2_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+                <span class="self">self</span>.dot2_token.to_tokens(tokens);
             });
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatTupleStruct</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">pat</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatTupleStruct {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.path.to_tokens(tokens);
+            <span class="self">self</span>.pat.to_tokens(tokens);
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatType</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>);
-            <span class="self">self</span>.<span class="ident">pat</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">ty</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatType {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append_all(<span class="kw-2">&amp;</span><span class="self">self</span>.attrs);
+            <span class="self">self</span>.pat.to_tokens(tokens);
+            <span class="self">self</span>.colon_token.to_tokens(tokens);
+            <span class="self">self</span>.ty.to_tokens(tokens);
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatPath</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>)
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatPath {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.path.to_tokens(tokens)
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatTuple</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">paren_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatTuple {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.paren_token.surround(tokens, |tokens| {
+                <span class="self">self</span>.elems.to_tokens(tokens);
             });
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">PatReference</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="self">self</span>.<span class="ident">and_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">mutability</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="self">self</span>.<span class="ident">pat</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>PatReference {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="self">self</span>.and_token.to_tokens(tokens);
+            <span class="self">self</span>.mutability.to_tokens(tokens);
+            <span class="self">self</span>.pat.to_tokens(tokens);
         }
     }
 
-    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">FieldPat</span> {
-        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">colon_token</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colon_token</span> {
-                <span class="self">self</span>.<span class="ident">member</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-                <span class="ident">colon_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>FieldPat {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(colon_token) = <span class="kw-2">&amp;</span><span class="self">self</span>.colon_token {
+                <span class="self">self</span>.member.to_tokens(tokens);
+                colon_token.to_tokens(tokens);
             }
-            <span class="self">self</span>.<span class="ident">pat</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+            <span class="self">self</span>.pat.to_tokens(tokens);
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn_mid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn_mid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/compact.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compact.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/similar-2.2.0/src/algorithms/compact.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compact.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../similar/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../similar/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -359,361 +353,360 @@
 <span id="353">353</span>
 <span id="354">354</span>
 <span id="355">355</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Implements basic compacting.  This is based on the compaction logic from</span>
-<span class="doccomment">//! diffy by Brandon Williams.</span>
-<span class="kw">use</span> <span class="ident">std::ops::Index</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Implements basic compacting.  This is based on the compaction logic from
+//! diffy by Brandon Williams.
+</span><span class="kw">use </span>std::ops::Index;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">DiffOp</span>, <span class="ident">DiffTag</span>};
+<span class="kw">use crate</span>::{DiffOp, DiffTag};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::utils</span>::{<span class="ident">common_prefix_len</span>, <span class="ident">common_suffix_len</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::DiffHook</span>;
+<span class="kw">use </span><span class="kw">super</span>::utils::{common_prefix_len, common_suffix_len};
+<span class="kw">use </span><span class="kw">super</span>::DiffHook;
 
-<span class="doccomment">/// Performs semantic cleanup operations on a diff.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This merges similar ops together but also tries to move hunks up and</span>
-<span class="doccomment">/// down the diff with the desire to connect as many hunks as possible.</span>
-<span class="doccomment">/// It still needs to be combined with [`Replace`](crate::algorithms::Replace)</span>
-<span class="doccomment">/// to get actual replace diff ops out.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compact</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">New</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-    <span class="ident">d</span>: <span class="ident">D</span>,
-    <span class="ident">ops</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DiffOp</span><span class="op">&gt;</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old</span> <span class="ident">Old</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new</span> <span class="ident">New</span>,
+<span class="doccomment">/// Performs semantic cleanup operations on a diff.
+///
+/// This merges similar ops together but also tries to move hunks up and
+/// down the diff with the desire to connect as many hunks as possible.
+/// It still needs to be combined with [`Replace`](crate::algorithms::Replace)
+/// to get actual replace diff ops out.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Compact&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old: <span class="question-mark">?</span>Sized, New: <span class="question-mark">?</span>Sized, D&gt; {
+    d: D,
+    ops: Vec&lt;DiffOp&gt;,
+    old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>Old,
+    new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>New,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">Compact</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;old</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;new</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt; Compact&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt;
+<span class="kw">where
+    </span>D: DiffHook,
+    Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;old</span>,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;new</span>,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="doccomment">/// Creates a new compact hook wrapping another hook.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">d</span>: <span class="ident">D</span>, <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old</span> <span class="ident">Old</span>, <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new</span> <span class="ident">New</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Compact</span> {
-            <span class="ident">d</span>,
-            <span class="ident">ops</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">old</span>,
-            <span class="ident">new</span>,
+    <span class="doccomment">/// Creates a new compact hook wrapping another hook.
+    </span><span class="kw">pub fn </span>new(d: D, old: <span class="kw-2">&amp;</span><span class="lifetime">&#39;old </span>Old, new: <span class="kw-2">&amp;</span><span class="lifetime">&#39;new </span>New) -&gt; <span class="self">Self </span>{
+        Compact {
+            d,
+            ops: Vec::new(),
+            old,
+            new,
         }
     }
 
-    <span class="doccomment">/// Extracts the inner hook.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">D</span> {
-        <span class="self">self</span>.<span class="ident">d</span>
+    <span class="doccomment">/// Extracts the inner hook.
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; D {
+        <span class="self">self</span>.d
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">New</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">D</span>: <span class="ident">DiffHook</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Compact</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old: <span class="question-mark">?</span>Sized, New: <span class="question-mark">?</span>Sized, D: DiffHook&gt; AsRef&lt;D&gt;
+    <span class="kw">for </span>Compact&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt;
 {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">D</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">d</span>
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>D {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.d
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">New</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">D</span>: <span class="ident">DiffHook</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Compact</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old: <span class="question-mark">?</span>Sized, New: <span class="question-mark">?</span>Sized, D: DiffHook&gt; AsMut&lt;D&gt;
+    <span class="kw">for </span>Compact&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt;
 {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">D</span> {
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">d</span>
+    <span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>D {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.d
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">DiffHook</span> <span class="kw">for</span> <span class="ident">Compact</span><span class="op">&lt;</span><span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, <span class="ident">Old</span>, <span class="ident">New</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">DiffHook</span>,
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;old</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="lifetime">&#39;new</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt; DiffHook <span class="kw">for </span>Compact&lt;<span class="lifetime">&#39;old</span>, <span class="lifetime">&#39;new</span>, Old, New, D&gt;
+<span class="kw">where
+    </span>D: DiffHook,
+    Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;old</span>,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;new</span>,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">D::Error</span>;
+    <span class="kw">type </span>Error = D::Error;
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">equal</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">old_index</span>: <span class="ident">usize</span>, <span class="ident">new_index</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ops</span>.<span class="ident">push</span>(<span class="ident">DiffOp::Equal</span> {
-            <span class="ident">old_index</span>,
-            <span class="ident">new_index</span>,
-            <span class="ident">len</span>,
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>equal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, old_index: usize, new_index: usize, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.ops.push(DiffOp::Equal {
+            old_index,
+            new_index,
+            len,
         });
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">delete</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">old_index</span>: <span class="ident">usize</span>,
-        <span class="ident">old_len</span>: <span class="ident">usize</span>,
-        <span class="ident">new_index</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ops</span>.<span class="ident">push</span>(<span class="ident">DiffOp::Delete</span> {
-            <span class="ident">old_index</span>,
-            <span class="ident">old_len</span>,
-            <span class="ident">new_index</span>,
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>delete(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        old_index: usize,
+        old_len: usize,
+        new_index: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.ops.push(DiffOp::Delete {
+            old_index,
+            old_len,
+            new_index,
         });
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">insert</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">old_index</span>: <span class="ident">usize</span>,
-        <span class="ident">new_index</span>: <span class="ident">usize</span>,
-        <span class="ident">new_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">ops</span>.<span class="ident">push</span>(<span class="ident">DiffOp::Insert</span> {
-            <span class="ident">old_index</span>,
-            <span class="ident">new_index</span>,
-            <span class="ident">new_len</span>,
+    <span class="attribute">#[inline(always)]
+    </span><span class="kw">fn </span>insert(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        old_index: usize,
+        new_index: usize,
+        new_len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.ops.push(DiffOp::Insert {
+            old_index,
+            new_index,
+            new_len,
         });
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">cleanup_diff_ops</span>(<span class="self">self</span>.<span class="ident">old</span>, <span class="self">self</span>.<span class="ident">new</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">ops</span>);
-        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ops</span> {
-            <span class="ident">op</span>.<span class="ident">apply_to_hook</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">d</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn </span>finish(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+        cleanup_diff_ops(<span class="self">self</span>.old, <span class="self">self</span>.new, <span class="kw-2">&amp;mut </span><span class="self">self</span>.ops);
+        <span class="kw">for </span>op <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.ops {
+            op.apply_to_hook(<span class="kw-2">&amp;mut </span><span class="self">self</span>.d)<span class="question-mark">?</span>;
         }
-        <span class="self">self</span>.<span class="ident">d</span>.<span class="ident">finish</span>()
+        <span class="self">self</span>.d.finish()
     }
 }
 
-<span class="comment">// Walks through all edits and shifts them up and then down, trying to see if</span>
-<span class="comment">// they run into similar edits which can be merged.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cleanup_diff_ops</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span><span class="op">&gt;</span>(<span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>, <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>, <span class="ident">ops</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DiffOp</span><span class="op">&gt;</span>)
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="comment">// Walks through all edits and shifts them up and then down, trying to see if
+// they run into similar edits which can be merged.
+</span><span class="kw">pub fn </span>cleanup_diff_ops&lt;Old, New&gt;(old: <span class="kw-2">&amp;</span>Old, new: <span class="kw-2">&amp;</span>New, ops: <span class="kw-2">&amp;mut </span>Vec&lt;DiffOp&gt;)
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="comment">// First attempt to compact all Deletions</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>) <span class="op">=</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">pointer</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DiffTag::Delete</span> <span class="op">=</span> <span class="ident">op</span>.<span class="ident">tag</span>() {
-            <span class="ident">pointer</span> <span class="op">=</span> <span class="ident">shift_diff_ops_up</span>(<span class="ident">ops</span>, <span class="ident">old</span>, <span class="ident">new</span>, <span class="ident">pointer</span>);
-            <span class="ident">pointer</span> <span class="op">=</span> <span class="ident">shift_diff_ops_down</span>(<span class="ident">ops</span>, <span class="ident">old</span>, <span class="ident">new</span>, <span class="ident">pointer</span>);
+    <span class="comment">// First attempt to compact all Deletions
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pointer = <span class="number">0</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>op) = ops.get(pointer) {
+        <span class="kw">if let </span>DiffTag::Delete = op.tag() {
+            pointer = shift_diff_ops_up(ops, old, new, pointer);
+            pointer = shift_diff_ops_down(ops, old, new, pointer);
         }
-        <span class="ident">pointer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        pointer += <span class="number">1</span>;
     }
 
-    <span class="comment">// Then attempt to compact all Insertions</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">op</span>) <span class="op">=</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">pointer</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">DiffTag::Insert</span> <span class="op">=</span> <span class="ident">op</span>.<span class="ident">tag</span>() {
-            <span class="ident">pointer</span> <span class="op">=</span> <span class="ident">shift_diff_ops_up</span>(<span class="ident">ops</span>, <span class="ident">old</span>, <span class="ident">new</span>, <span class="ident">pointer</span>);
-            <span class="ident">pointer</span> <span class="op">=</span> <span class="ident">shift_diff_ops_down</span>(<span class="ident">ops</span>, <span class="ident">old</span>, <span class="ident">new</span>, <span class="ident">pointer</span>);
+    <span class="comment">// Then attempt to compact all Insertions
+    </span><span class="kw">let </span><span class="kw-2">mut </span>pointer = <span class="number">0</span>;
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>op) = ops.get(pointer) {
+        <span class="kw">if let </span>DiffTag::Insert = op.tag() {
+            pointer = shift_diff_ops_up(ops, old, new, pointer);
+            pointer = shift_diff_ops_down(ops, old, new, pointer);
         }
-        <span class="ident">pointer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        pointer += <span class="number">1</span>;
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shift_diff_ops_up</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span><span class="op">&gt;</span>(
-    <span class="ident">ops</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DiffOp</span><span class="op">&gt;</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="kw-2">mut</span> <span class="ident">pointer</span>: <span class="ident">usize</span>,
-) -&gt; <span class="ident">usize</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>shift_diff_ops_up&lt;Old, New&gt;(
+    ops: <span class="kw-2">&amp;mut </span>Vec&lt;DiffOp&gt;,
+    old: <span class="kw-2">&amp;</span>Old,
+    new: <span class="kw-2">&amp;</span>New,
+    <span class="kw-2">mut </span>pointer: usize,
+) -&gt; usize
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">prev_op</span>) <span class="op">=</span> <span class="ident">pointer</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">idx</span>)) {
-        <span class="kw">let</span> <span class="ident">this_op</span> <span class="op">=</span> <span class="ident">ops</span>[<span class="ident">pointer</span>];
-        <span class="kw">match</span> (<span class="ident">this_op</span>.<span class="ident">tag</span>(), <span class="ident">prev_op</span>.<span class="ident">tag</span>()) {
-            <span class="comment">// Shift Inserts Upwards</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Equal</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">suffix_len</span> <span class="op">=</span>
-                    <span class="ident">common_suffix_len</span>(<span class="ident">old</span>, <span class="ident">prev_op</span>.<span class="ident">old_range</span>(), <span class="ident">new</span>, <span class="ident">this_op</span>.<span class="ident">new_range</span>());
-                <span class="kw">if</span> <span class="ident">suffix_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DiffTag::Equal</span>) <span class="op">=</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">tag</span>()) {
-                        <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">grow_left</span>(<span class="ident">suffix_len</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">ops</span>.<span class="ident">insert</span>(
-                            <span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>,
-                            <span class="ident">DiffOp::Equal</span> {
-                                <span class="ident">old_index</span>: <span class="ident">prev_op</span>.<span class="ident">old_range</span>().<span class="ident">end</span> <span class="op">-</span> <span class="ident">suffix_len</span>,
-                                <span class="ident">new_index</span>: <span class="ident">this_op</span>.<span class="ident">new_range</span>().<span class="ident">end</span> <span class="op">-</span> <span class="ident">suffix_len</span>,
-                                <span class="ident">len</span>: <span class="ident">suffix_len</span>,
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>prev_op) = pointer.checked_sub(<span class="number">1</span>).and_then(|idx| ops.get(idx)) {
+        <span class="kw">let </span>this_op = ops[pointer];
+        <span class="kw">match </span>(this_op.tag(), prev_op.tag()) {
+            <span class="comment">// Shift Inserts Upwards
+            </span>(DiffTag::Insert, DiffTag::Equal) =&gt; {
+                <span class="kw">let </span>suffix_len =
+                    common_suffix_len(old, prev_op.old_range(), new, this_op.new_range());
+                <span class="kw">if </span>suffix_len &gt; <span class="number">0 </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(DiffTag::Equal) = ops.get(pointer + <span class="number">1</span>).map(|x| x.tag()) {
+                        ops[pointer + <span class="number">1</span>].grow_left(suffix_len);
+                    } <span class="kw">else </span>{
+                        ops.insert(
+                            pointer + <span class="number">1</span>,
+                            DiffOp::Equal {
+                                old_index: prev_op.old_range().end - suffix_len,
+                                new_index: this_op.new_range().end - suffix_len,
+                                len: suffix_len,
                             },
                         );
                     }
-                    <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">shift_left</span>(<span class="ident">suffix_len</span>);
-                    <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">shrink_left</span>(<span class="ident">suffix_len</span>);
+                    ops[pointer].shift_left(suffix_len);
+                    ops[pointer - <span class="number">1</span>].shrink_left(suffix_len);
 
-                    <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                        <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>);
-                        <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw">if </span>ops[pointer - <span class="number">1</span>].is_empty() {
+                        ops.remove(pointer - <span class="number">1</span>);
+                        pointer -= <span class="number">1</span>;
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                    <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>);
-                    <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> {
-                    <span class="comment">// We can&#39;t shift upwards anymore</span>
-                    <span class="kw">break</span>;
+                } <span class="kw">else if </span>ops[pointer - <span class="number">1</span>].is_empty() {
+                    ops.remove(pointer - <span class="number">1</span>);
+                    pointer -= <span class="number">1</span>;
+                } <span class="kw">else </span>{
+                    <span class="comment">// We can&#39;t shift upwards anymore
+                    </span><span class="kw">break</span>;
                 }
             }
-            <span class="comment">// Shift Deletions Upwards</span>
-            (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Equal</span>) =&gt; {
-                <span class="comment">// check common suffix for the amount we can shift</span>
-                <span class="kw">let</span> <span class="ident">suffix_len</span> <span class="op">=</span>
-                    <span class="ident">common_suffix_len</span>(<span class="ident">old</span>, <span class="ident">prev_op</span>.<span class="ident">old_range</span>(), <span class="ident">new</span>, <span class="ident">this_op</span>.<span class="ident">new_range</span>());
-                <span class="kw">if</span> <span class="ident">suffix_len</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DiffTag::Equal</span>) <span class="op">=</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">tag</span>()) {
-                        <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">grow_left</span>(<span class="ident">suffix_len</span>);
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="ident">old_range</span> <span class="op">=</span> <span class="ident">prev_op</span>.<span class="ident">old_range</span>();
-                        <span class="ident">ops</span>.<span class="ident">insert</span>(
-                            <span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>,
-                            <span class="ident">DiffOp::Equal</span> {
-                                <span class="ident">old_index</span>: <span class="ident">old_range</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">suffix_len</span>,
-                                <span class="ident">new_index</span>: <span class="ident">this_op</span>.<span class="ident">new_range</span>().<span class="ident">end</span> <span class="op">-</span> <span class="ident">suffix_len</span>,
-                                <span class="ident">len</span>: <span class="ident">old_range</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">suffix_len</span>,
+            <span class="comment">// Shift Deletions Upwards
+            </span>(DiffTag::Delete, DiffTag::Equal) =&gt; {
+                <span class="comment">// check common suffix for the amount we can shift
+                </span><span class="kw">let </span>suffix_len =
+                    common_suffix_len(old, prev_op.old_range(), new, this_op.new_range());
+                <span class="kw">if </span>suffix_len != <span class="number">0 </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(DiffTag::Equal) = ops.get(pointer + <span class="number">1</span>).map(|x| x.tag()) {
+                        ops[pointer + <span class="number">1</span>].grow_left(suffix_len);
+                    } <span class="kw">else </span>{
+                        <span class="kw">let </span>old_range = prev_op.old_range();
+                        ops.insert(
+                            pointer + <span class="number">1</span>,
+                            DiffOp::Equal {
+                                old_index: old_range.end - suffix_len,
+                                new_index: this_op.new_range().end - suffix_len,
+                                len: old_range.len() - suffix_len,
                             },
                         );
                     }
-                    <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">shift_left</span>(<span class="ident">suffix_len</span>);
-                    <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">shrink_left</span>(<span class="ident">suffix_len</span>);
+                    ops[pointer].shift_left(suffix_len);
+                    ops[pointer - <span class="number">1</span>].shrink_left(suffix_len);
 
-                    <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                        <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>);
-                        <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw">if </span>ops[pointer - <span class="number">1</span>].is_empty() {
+                        ops.remove(pointer - <span class="number">1</span>);
+                        pointer -= <span class="number">1</span>;
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                    <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>);
-                    <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                } <span class="kw">else</span> {
-                    <span class="comment">// We can&#39;t shift upwards anymore</span>
-                    <span class="kw">break</span>;
+                } <span class="kw">else if </span>ops[pointer - <span class="number">1</span>].is_empty() {
+                    ops.remove(pointer - <span class="number">1</span>);
+                    pointer -= <span class="number">1</span>;
+                } <span class="kw">else </span>{
+                    <span class="comment">// We can&#39;t shift upwards anymore
+                    </span><span class="kw">break</span>;
                 }
             }
-            <span class="comment">// Swap the Delete and Insert</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Delete</span>) <span class="op">|</span> (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Insert</span>) =&gt; {
-                <span class="ident">ops</span>.<span class="ident">swap</span>(<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>, <span class="ident">pointer</span>);
-                <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="comment">// Swap the Delete and Insert
+            </span>(DiffTag::Insert, DiffTag::Delete) | (DiffTag::Delete, DiffTag::Insert) =&gt; {
+                ops.swap(pointer - <span class="number">1</span>, pointer);
+                pointer -= <span class="number">1</span>;
             }
-            <span class="comment">// Merge the two ranges</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Insert</span>) =&gt; {
-                <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">grow_right</span>(<span class="ident">this_op</span>.<span class="ident">new_range</span>().<span class="ident">len</span>());
-                <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span>);
-                <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="comment">// Merge the two ranges
+            </span>(DiffTag::Insert, DiffTag::Insert) =&gt; {
+                ops[pointer - <span class="number">1</span>].grow_right(this_op.new_range().len());
+                ops.remove(pointer);
+                pointer -= <span class="number">1</span>;
             }
-            (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Delete</span>) =&gt; {
-                <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">grow_right</span>(<span class="ident">this_op</span>.<span class="ident">old_range</span>().<span class="ident">len</span>());
-                <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span>);
-                <span class="ident">pointer</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            (DiffTag::Delete, DiffTag::Delete) =&gt; {
+                ops[pointer - <span class="number">1</span>].grow_right(this_op.old_range().len());
+                ops.remove(pointer);
+                pointer -= <span class="number">1</span>;
             }
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unexpected tag&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unexpected tag&quot;</span>),
         }
     }
-    <span class="ident">pointer</span>
+    pointer
 }
 
-<span class="kw">fn</span> <span class="ident">shift_diff_ops_down</span><span class="op">&lt;</span><span class="ident">Old</span>, <span class="ident">New</span><span class="op">&gt;</span>(
-    <span class="ident">ops</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DiffOp</span><span class="op">&gt;</span>,
-    <span class="ident">old</span>: <span class="kw-2">&amp;</span><span class="ident">Old</span>,
-    <span class="ident">new</span>: <span class="kw-2">&amp;</span><span class="ident">New</span>,
-    <span class="kw-2">mut</span> <span class="ident">pointer</span>: <span class="ident">usize</span>,
-) -&gt; <span class="ident">usize</span>
-<span class="kw">where</span>
-    <span class="ident">Old</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New</span>: <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">New::Output</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Old::Output</span><span class="op">&gt;</span>,
+<span class="kw">fn </span>shift_diff_ops_down&lt;Old, New&gt;(
+    ops: <span class="kw-2">&amp;mut </span>Vec&lt;DiffOp&gt;,
+    old: <span class="kw-2">&amp;</span>Old,
+    new: <span class="kw-2">&amp;</span>New,
+    <span class="kw-2">mut </span>pointer: usize,
+) -&gt; usize
+<span class="kw">where
+    </span>Old: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New: Index&lt;usize&gt; + <span class="question-mark">?</span>Sized,
+    New::Output: PartialEq&lt;Old::Output&gt;,
 {
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">next_op</span>) <span class="op">=</span> <span class="ident">pointer</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">idx</span>)) {
-        <span class="kw">let</span> <span class="ident">this_op</span> <span class="op">=</span> <span class="ident">ops</span>[<span class="ident">pointer</span>];
-        <span class="kw">match</span> (<span class="ident">this_op</span>.<span class="ident">tag</span>(), <span class="ident">next_op</span>.<span class="ident">tag</span>()) {
-            <span class="comment">// Shift Inserts Downwards</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Equal</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prefix_len</span> <span class="op">=</span>
-                    <span class="ident">common_prefix_len</span>(<span class="ident">old</span>, <span class="ident">next_op</span>.<span class="ident">old_range</span>(), <span class="ident">new</span>, <span class="ident">this_op</span>.<span class="ident">new_range</span>());
-                <span class="kw">if</span> <span class="ident">prefix_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DiffTag::Equal</span>) <span class="op">=</span> <span class="ident">pointer</span>
-                        .<span class="ident">checked_sub</span>(<span class="number">1</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">x</span>))
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">tag</span>())
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>next_op) = pointer.checked_add(<span class="number">1</span>).and_then(|idx| ops.get(idx)) {
+        <span class="kw">let </span>this_op = ops[pointer];
+        <span class="kw">match </span>(this_op.tag(), next_op.tag()) {
+            <span class="comment">// Shift Inserts Downwards
+            </span>(DiffTag::Insert, DiffTag::Equal) =&gt; {
+                <span class="kw">let </span>prefix_len =
+                    common_prefix_len(old, next_op.old_range(), new, this_op.new_range());
+                <span class="kw">if </span>prefix_len &gt; <span class="number">0 </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(DiffTag::Equal) = pointer
+                        .checked_sub(<span class="number">1</span>)
+                        .and_then(|x| ops.get(x))
+                        .map(|x| x.tag())
                     {
-                        <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">grow_right</span>(<span class="ident">prefix_len</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">ops</span>.<span class="ident">insert</span>(
-                            <span class="ident">pointer</span>,
-                            <span class="ident">DiffOp::Equal</span> {
-                                <span class="ident">old_index</span>: <span class="ident">next_op</span>.<span class="ident">old_range</span>().<span class="ident">start</span>,
-                                <span class="ident">new_index</span>: <span class="ident">this_op</span>.<span class="ident">new_range</span>().<span class="ident">start</span>,
-                                <span class="ident">len</span>: <span class="ident">prefix_len</span>,
+                        ops[pointer - <span class="number">1</span>].grow_right(prefix_len);
+                    } <span class="kw">else </span>{
+                        ops.insert(
+                            pointer,
+                            DiffOp::Equal {
+                                old_index: next_op.old_range().start,
+                                new_index: this_op.new_range().start,
+                                len: prefix_len,
                             },
                         );
-                        <span class="ident">pointer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        pointer += <span class="number">1</span>;
                     }
-                    <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">shift_right</span>(<span class="ident">prefix_len</span>);
-                    <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">shrink_right</span>(<span class="ident">prefix_len</span>);
+                    ops[pointer].shift_right(prefix_len);
+                    ops[pointer + <span class="number">1</span>].shrink_right(prefix_len);
 
-                    <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                        <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
+                    <span class="kw">if </span>ops[pointer + <span class="number">1</span>].is_empty() {
+                        ops.remove(pointer + <span class="number">1</span>);
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                    <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
-                } <span class="kw">else</span> {
-                    <span class="comment">// We can&#39;t shift upwards anymore</span>
-                    <span class="kw">break</span>;
+                } <span class="kw">else if </span>ops[pointer + <span class="number">1</span>].is_empty() {
+                    ops.remove(pointer + <span class="number">1</span>);
+                } <span class="kw">else </span>{
+                    <span class="comment">// We can&#39;t shift upwards anymore
+                    </span><span class="kw">break</span>;
                 }
             }
-            <span class="comment">// Shift Deletions Downwards</span>
-            (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Equal</span>) =&gt; {
-                <span class="comment">// check common suffix for the amount we can shift</span>
-                <span class="kw">let</span> <span class="ident">prefix_len</span> <span class="op">=</span>
-                    <span class="ident">common_prefix_len</span>(<span class="ident">old</span>, <span class="ident">next_op</span>.<span class="ident">old_range</span>(), <span class="ident">new</span>, <span class="ident">this_op</span>.<span class="ident">new_range</span>());
-                <span class="kw">if</span> <span class="ident">prefix_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">DiffTag::Equal</span>) <span class="op">=</span> <span class="ident">pointer</span>
-                        .<span class="ident">checked_sub</span>(<span class="number">1</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">ops</span>.<span class="ident">get</span>(<span class="ident">x</span>))
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">tag</span>())
+            <span class="comment">// Shift Deletions Downwards
+            </span>(DiffTag::Delete, DiffTag::Equal) =&gt; {
+                <span class="comment">// check common suffix for the amount we can shift
+                </span><span class="kw">let </span>prefix_len =
+                    common_prefix_len(old, next_op.old_range(), new, this_op.new_range());
+                <span class="kw">if </span>prefix_len &gt; <span class="number">0 </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(DiffTag::Equal) = pointer
+                        .checked_sub(<span class="number">1</span>)
+                        .and_then(|x| ops.get(x))
+                        .map(|x| x.tag())
                     {
-                        <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">grow_right</span>(<span class="ident">prefix_len</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">ops</span>.<span class="ident">insert</span>(
-                            <span class="ident">pointer</span>,
-                            <span class="ident">DiffOp::Equal</span> {
-                                <span class="ident">old_index</span>: <span class="ident">next_op</span>.<span class="ident">old_range</span>().<span class="ident">start</span>,
-                                <span class="ident">new_index</span>: <span class="ident">this_op</span>.<span class="ident">new_range</span>().<span class="ident">start</span>,
-                                <span class="ident">len</span>: <span class="ident">prefix_len</span>,
+                        ops[pointer - <span class="number">1</span>].grow_right(prefix_len);
+                    } <span class="kw">else </span>{
+                        ops.insert(
+                            pointer,
+                            DiffOp::Equal {
+                                old_index: next_op.old_range().start,
+                                new_index: this_op.new_range().start,
+                                len: prefix_len,
                             },
                         );
-                        <span class="ident">pointer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        pointer += <span class="number">1</span>;
                     }
-                    <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">shift_right</span>(<span class="ident">prefix_len</span>);
-                    <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">shrink_right</span>(<span class="ident">prefix_len</span>);
+                    ops[pointer].shift_right(prefix_len);
+                    ops[pointer + <span class="number">1</span>].shrink_right(prefix_len);
 
-                    <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                        <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
+                    <span class="kw">if </span>ops[pointer + <span class="number">1</span>].is_empty() {
+                        ops.remove(pointer + <span class="number">1</span>);
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ops</span>[<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>].<span class="ident">is_empty</span>() {
-                    <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
-                } <span class="kw">else</span> {
-                    <span class="comment">// We can&#39;t shift downwards anymore</span>
-                    <span class="kw">break</span>;
+                } <span class="kw">else if </span>ops[pointer + <span class="number">1</span>].is_empty() {
+                    ops.remove(pointer + <span class="number">1</span>);
+                } <span class="kw">else </span>{
+                    <span class="comment">// We can&#39;t shift downwards anymore
+                    </span><span class="kw">break</span>;
                 }
             }
-            <span class="comment">// Swap the Delete and Insert</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Delete</span>) <span class="op">|</span> (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Insert</span>) =&gt; {
-                <span class="ident">ops</span>.<span class="ident">swap</span>(<span class="ident">pointer</span>, <span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
-                <span class="ident">pointer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="comment">// Swap the Delete and Insert
+            </span>(DiffTag::Insert, DiffTag::Delete) | (DiffTag::Delete, DiffTag::Insert) =&gt; {
+                ops.swap(pointer, pointer + <span class="number">1</span>);
+                pointer += <span class="number">1</span>;
             }
-            <span class="comment">// Merge the two ranges</span>
-            (<span class="ident">DiffTag::Insert</span>, <span class="ident">DiffTag::Insert</span>) =&gt; {
-                <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">grow_right</span>(<span class="ident">next_op</span>.<span class="ident">new_range</span>().<span class="ident">len</span>());
-                <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="comment">// Merge the two ranges
+            </span>(DiffTag::Insert, DiffTag::Insert) =&gt; {
+                ops[pointer].grow_right(next_op.new_range().len());
+                ops.remove(pointer + <span class="number">1</span>);
             }
-            (<span class="ident">DiffTag::Delete</span>, <span class="ident">DiffTag::Delete</span>) =&gt; {
-                <span class="ident">ops</span>[<span class="ident">pointer</span>].<span class="ident">grow_right</span>(<span class="ident">next_op</span>.<span class="ident">old_range</span>().<span class="ident">len</span>());
-                <span class="ident">ops</span>.<span class="ident">remove</span>(<span class="ident">pointer</span> <span class="op">+</span> <span class="number">1</span>);
+            (DiffTag::Delete, DiffTag::Delete) =&gt; {
+                ops[pointer].grow_right(next_op.old_range().len());
+                ops.remove(pointer + <span class="number">1</span>);
             }
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unexpected tag&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unexpected tag&quot;</span>),
         }
     }
-    <span class="ident">pointer</span>
+    pointer
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="similar" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

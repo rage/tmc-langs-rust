@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/fd-lock-3.0.6/src/rw_lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rw_lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../fd_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../fd_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../fd_lock/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/fd-lock-3.0.6/src/rw_lock.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rw_lock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../fd_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../fd_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../fd_lock/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -130,132 +124,131 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read_guard::RwLockReadGuard</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sys</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::write_guard::RwLockWriteGuard</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::read_guard::RwLockReadGuard;
+<span class="kw">use </span><span class="kw">crate</span>::sys;
+<span class="kw">use </span><span class="kw">crate</span>::write_guard::RwLockWriteGuard;
+<span class="kw">use </span>std::io;
 
-<span class="doccomment">/// Advisory reader-writer lock for files.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type of lock allows a number of readers or at most one writer at any point</span>
-<span class="doccomment">/// in time. The write portion of this lock typically allows modification of the</span>
-<span class="doccomment">/// underlying data (exclusive access) and the read portion of this lock typically</span>
-<span class="doccomment">/// allows for read-only access (shared access).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">sys::AsRaw</span><span class="op">&gt;</span> {
-    <span class="ident">lock</span>: <span class="ident">sys::RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Advisory reader-writer lock for files.
+///
+/// This type of lock allows a number of readers or at most one writer at any point
+/// in time. The write portion of this lock typically allows modification of the
+/// underlying data (exclusive access) and the read portion of this lock typically
+/// allows for read-only access (shared access).
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>RwLock&lt;T: sys::AsRaw&gt; {
+    lock: sys::RwLock&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">sys::AsRaw</span><span class="op">&gt;</span> <span class="ident">RwLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Create a new instance.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use fd_lock::RwLock;</span>
-    <span class="doccomment">/// use std::fs::File;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// fn main() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">///     let mut f = RwLock::new(File::open(&quot;foo.txt&quot;)?);</span>
-    <span class="doccomment">///     Ok(())</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">lock</span>: <span class="ident">sys::RwLock::new</span>(<span class="ident">inner</span>),
+<span class="kw">impl</span>&lt;T: sys::AsRaw&gt; RwLock&lt;T&gt; {
+    <span class="doccomment">/// Create a new instance.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use fd_lock::RwLock;
+    /// use std::fs::File;
+    ///
+    /// fn main() -&gt; std::io::Result&lt;()&gt; {
+    ///     let mut f = RwLock::new(File::open(&quot;foo.txt&quot;)?);
+    ///     Ok(())
+    /// }
+    /// ```
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>new(inner: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            lock: sys::RwLock::new(inner),
         }
     }
 
-    <span class="doccomment">/// Locks this lock with shared read access, blocking the current thread</span>
-    <span class="doccomment">/// until it can be acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The calling thread will be blocked until there are no more writers which</span>
-    <span class="doccomment">/// hold the lock. There may be other readers currently inside the lock when</span>
-    <span class="doccomment">/// this method returns. This method does not provide any guarantees with</span>
-    <span class="doccomment">/// respect to the ordering of whether contentious readers or writers will</span>
-    <span class="doccomment">/// acquire the lock first.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will release this thread&#39;s shared access</span>
-    <span class="doccomment">/// once it is dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Unix this may return an `ErrorKind::Interrupted` if the operation was</span>
-    <span class="doccomment">/// interrupted by a signal handler.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">RwLockReadGuard::new</span>(<span class="ident">guard</span>))
+    <span class="doccomment">/// Locks this lock with shared read access, blocking the current thread
+    /// until it can be acquired.
+    ///
+    /// The calling thread will be blocked until there are no more writers which
+    /// hold the lock. There may be other readers currently inside the lock when
+    /// this method returns. This method does not provide any guarantees with
+    /// respect to the ordering of whether contentious readers or writers will
+    /// acquire the lock first.
+    ///
+    /// Returns an RAII guard which will release this thread&#39;s shared access
+    /// once it is dropped.
+    ///
+    /// # Errors
+    ///
+    /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
+    /// interrupted by a signal handler.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>guard = <span class="self">self</span>.lock.read()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(RwLockReadGuard::new(guard))
     }
 
-    <span class="doccomment">/// Attempts to acquire this lock with shared read access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the access could not be granted at this time, then `Err` is returned.</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release the shared access</span>
-    <span class="doccomment">/// when it is dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function does not block.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function does not provide any guarantees with respect to the ordering</span>
-    <span class="doccomment">/// of whether contentious readers or writers will acquire the lock first.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the lock is already held and `ErrorKind::WouldBlock` error is returned.</span>
-    <span class="doccomment">/// On Unix this may return an `ErrorKind::Interrupted` if the operation was</span>
-    <span class="doccomment">/// interrupted by a signal handler.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">try_read</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">RwLockReadGuard::new</span>(<span class="ident">guard</span>))
+    <span class="doccomment">/// Attempts to acquire this lock with shared read access.
+    ///
+    /// If the access could not be granted at this time, then `Err` is returned.
+    /// Otherwise, an RAII guard is returned which will release the shared access
+    /// when it is dropped.
+    ///
+    /// This function does not block.
+    ///
+    /// This function does not provide any guarantees with respect to the ordering
+    /// of whether contentious readers or writers will acquire the lock first.
+    ///
+    /// # Errors
+    ///
+    /// If the lock is already held and `ErrorKind::WouldBlock` error is returned.
+    /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
+    /// interrupted by a signal handler.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;RwLockReadGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>guard = <span class="self">self</span>.lock.try_read()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(RwLockReadGuard::new(guard))
     }
 
-    <span class="doccomment">/// Locks this lock with exclusive write access, blocking the current thread</span>
-    <span class="doccomment">/// until it can be acquired.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function will not return while other writers or other readers</span>
-    <span class="doccomment">/// currently have access to the lock.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns an RAII guard which will drop the write access of this rwlock</span>
-    <span class="doccomment">/// when dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On Unix this may return an `ErrorKind::Interrupted` if the operation was</span>
-    <span class="doccomment">/// interrupted by a signal handler.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">write</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">RwLockWriteGuard::new</span>(<span class="ident">guard</span>))
+    <span class="doccomment">/// Locks this lock with exclusive write access, blocking the current thread
+    /// until it can be acquired.
+    ///
+    /// This function will not return while other writers or other readers
+    /// currently have access to the lock.
+    ///
+    /// Returns an RAII guard which will drop the write access of this rwlock
+    /// when dropped.
+    ///
+    /// # Errors
+    ///
+    /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
+    /// interrupted by a signal handler.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>guard = <span class="self">self</span>.lock.write()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(RwLockWriteGuard::new(guard))
     }
 
-    <span class="doccomment">/// Attempts to lock this lock with exclusive write access.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the lock could not be acquired at this time, then `Err` is returned.</span>
-    <span class="doccomment">/// Otherwise, an RAII guard is returned which will release the lock when</span>
-    <span class="doccomment">/// it is dropped.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If the lock is already held and `ErrorKind::WouldBlock` error is returned.</span>
-    <span class="doccomment">/// On Unix this may return an `ErrorKind::Interrupted` if the operation was</span>
-    <span class="doccomment">/// interrupted by a signal handler.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">RwLockWriteGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">try_write</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">RwLockWriteGuard::new</span>(<span class="ident">guard</span>))
+    <span class="doccomment">/// Attempts to lock this lock with exclusive write access.
+    ///
+    /// If the lock could not be acquired at this time, then `Err` is returned.
+    /// Otherwise, an RAII guard is returned which will release the lock when
+    /// it is dropped.
+    ///
+    /// # Errors
+    ///
+    /// If the lock is already held and `ErrorKind::WouldBlock` error is returned.
+    /// On Unix this may return an `ErrorKind::Interrupted` if the operation was
+    /// interrupted by a signal handler.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>try_write(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, T&gt;&gt; {
+        <span class="kw">let </span>guard = <span class="self">self</span>.lock.try_write()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(RwLockWriteGuard::new(guard))
     }
 
-    <span class="doccomment">/// Consumes this `RwLock`, returning the underlying data.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    <span class="doccomment">/// Consumes this `RwLock`, returning the underlying data.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; T
+    <span class="kw">where
+        </span>T: Sized,
     {
-        <span class="self">self</span>.<span class="ident">lock</span>.<span class="ident">into_inner</span>()
+        <span class="self">self</span>.lock.into_inner()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fd_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fd_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/blocking/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.12/src/blocking/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -479,401 +473,401 @@
 <span id="473">473</span>
 <span id="474">474</span>
 <span id="475">475</span>
-</pre><pre class="rust"><code><span class="doccomment">//! multipart/form-data</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! To send a `multipart/form-data` body, a [`Form`](crate::blocking::multipart::Form) is built up, adding</span>
-<span class="doccomment">//! fields or customized [`Part`](crate::blocking::multipart::Part)s, and then calling the</span>
-<span class="doccomment">//! [`multipart`][builder] method on the `RequestBuilder`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use reqwest::blocking::multipart;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # fn run() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {</span>
-<span class="doccomment">//! let form = multipart::Form::new()</span>
-<span class="doccomment">//!     // Adding just a simple text field...</span>
-<span class="doccomment">//!     .text(&quot;username&quot;, &quot;seanmonstar&quot;)</span>
-<span class="doccomment">//!     // And a file...</span>
-<span class="doccomment">//!     .file(&quot;photo&quot;, &quot;/path/to/photo.png&quot;)?;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Customize all the details of a Part if needed...</span>
-<span class="doccomment">//! let bio = multipart::Part::text(&quot;hallo peeps&quot;)</span>
-<span class="doccomment">//!     .file_name(&quot;bio.txt&quot;)</span>
-<span class="doccomment">//!     .mime_str(&quot;text/plain&quot;)?;</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // Add the custom part to our form...</span>
-<span class="doccomment">//! let form = form.part(&quot;biography&quot;, bio);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! // And finally, send the form</span>
-<span class="doccomment">//! let client = reqwest::blocking::Client::new();</span>
-<span class="doccomment">//! let resp = client</span>
-<span class="doccomment">//!     .post(&quot;http://localhost:8080/user&quot;)</span>
-<span class="doccomment">//!     .multipart(form)</span>
-<span class="doccomment">//!     .send()?;</span>
-<span class="doccomment">//! # Ok(())</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! # fn main() {}</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [builder]: ../struct.RequestBuilder.html#method.multipart</span>
-<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::fs::File</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>, <span class="ident">Read</span>};
-<span class="kw">use</span> <span class="ident">std::path::Path</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! multipart/form-data
+//!
+//! To send a `multipart/form-data` body, a [`Form`](crate::blocking::multipart::Form) is built up, adding
+//! fields or customized [`Part`](crate::blocking::multipart::Part)s, and then calling the
+//! [`multipart`][builder] method on the `RequestBuilder`.
+//!
+//! # Example
+//!
+//! ```
+//! use reqwest::blocking::multipart;
+//!
+//! # fn run() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+//! let form = multipart::Form::new()
+//!     // Adding just a simple text field...
+//!     .text(&quot;username&quot;, &quot;seanmonstar&quot;)
+//!     // And a file...
+//!     .file(&quot;photo&quot;, &quot;/path/to/photo.png&quot;)?;
+//!
+//! // Customize all the details of a Part if needed...
+//! let bio = multipart::Part::text(&quot;hallo peeps&quot;)
+//!     .file_name(&quot;bio.txt&quot;)
+//!     .mime_str(&quot;text/plain&quot;)?;
+//!
+//! // Add the custom part to our form...
+//! let form = form.part(&quot;biography&quot;, bio);
+//!
+//! // And finally, send the form
+//! let client = reqwest::blocking::Client::new();
+//! let resp = client
+//!     .post(&quot;http://localhost:8080/user&quot;)
+//!     .multipart(form)
+//!     .send()?;
+//! # Ok(())
+//! # }
+//! # fn main() {}
+//! ```
+//!
+//! [builder]: ../struct.RequestBuilder.html#method.multipart
+</span><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::fs::File;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Cursor, Read};
+<span class="kw">use </span>std::path::Path;
 
-<span class="kw">use</span> <span class="ident">mime_guess</span>::{<span class="self">self</span>, <span class="ident">Mime</span>};
+<span class="kw">use </span>mime_guess::{<span class="self">self</span>, Mime};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Body</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::async_impl::multipart</span>::{<span class="ident">FormParts</span>, <span class="ident">PartMetadata</span>, <span class="ident">PartProps</span>};
+<span class="kw">use </span><span class="kw">super</span>::Body;
+<span class="kw">use </span><span class="kw">crate</span>::async_impl::multipart::{FormParts, PartMetadata, PartProps};
 
-<span class="doccomment">/// A multipart/form-data request.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Form</span> {
-    <span class="ident">inner</span>: <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">Part</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A multipart/form-data request.
+</span><span class="kw">pub struct </span>Form {
+    inner: FormParts&lt;Part&gt;,
 }
 
-<span class="doccomment">/// A field in a multipart form.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Part</span> {
-    <span class="ident">meta</span>: <span class="ident">PartMetadata</span>,
-    <span class="ident">value</span>: <span class="ident">Body</span>,
+<span class="doccomment">/// A field in a multipart form.
+</span><span class="kw">pub struct </span>Part {
+    meta: PartMetadata,
+    value: Body,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Form</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Form {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Form</span> {
-    <span class="doccomment">/// Creates a new Form without any content.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Form</span> {
-        <span class="ident">Form</span> {
-            <span class="ident">inner</span>: <span class="ident">FormParts::new</span>(),
+<span class="kw">impl </span>Form {
+    <span class="doccomment">/// Creates a new Form without any content.
+    </span><span class="kw">pub fn </span>new() -&gt; Form {
+        Form {
+            inner: FormParts::new(),
         }
     }
 
-    <span class="doccomment">/// Get the boundary that this form will use.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boundary</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">boundary</span>()
+    <span class="doccomment">/// Get the boundary that this form will use.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub fn </span>boundary(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.inner.boundary()
     }
 
-    <span class="doccomment">/// Add a data field with supplied name and value.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// let form = reqwest::blocking::multipart::Form::new()</span>
-    <span class="doccomment">///     .text(&quot;username&quot;, &quot;seanmonstar&quot;)</span>
-    <span class="doccomment">///     .text(&quot;password&quot;, &quot;secret&quot;);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">value</span>: <span class="ident">U</span>) -&gt; <span class="ident">Form</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">U</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Add a data field with supplied name and value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let form = reqwest::blocking::multipart::Form::new()
+    ///     .text(&quot;username&quot;, &quot;seanmonstar&quot;)
+    ///     .text(&quot;password&quot;, &quot;secret&quot;);
+    /// ```
+    </span><span class="kw">pub fn </span>text&lt;T, U&gt;(<span class="self">self</span>, name: T, value: U) -&gt; Form
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        U: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
     {
-        <span class="self">self</span>.<span class="ident">part</span>(<span class="ident">name</span>, <span class="ident">Part::text</span>(<span class="ident">value</span>))
+        <span class="self">self</span>.part(name, Part::text(value))
     }
 
-    <span class="doccomment">/// Adds a file field.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The path will be used to try to guess the filename and mime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// # fn run() -&gt; std::io::Result&lt;()&gt; {</span>
-    <span class="doccomment">/// let files = reqwest::blocking::multipart::Form::new()</span>
-    <span class="doccomment">///     .file(&quot;key&quot;, &quot;/path/to/file&quot;)?;</span>
-    <span class="doccomment">/// # Ok(())</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Errors when the file cannot be opened.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">path</span>: <span class="ident">U</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Form</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">U</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a file field.
+    ///
+    /// The path will be used to try to guess the filename and mime.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # fn run() -&gt; std::io::Result&lt;()&gt; {
+    /// let files = reqwest::blocking::multipart::Form::new()
+    ///     .file(&quot;key&quot;, &quot;/path/to/file&quot;)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Errors when the file cannot be opened.
+    </span><span class="kw">pub fn </span>file&lt;T, U&gt;(<span class="self">self</span>, name: T, path: U) -&gt; io::Result&lt;Form&gt;
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        U: AsRef&lt;Path&gt;,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">part</span>(<span class="ident">name</span>, <span class="ident">Part::file</span>(<span class="ident">path</span>)<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.part(name, Part::file(path)<span class="question-mark">?</span>))
     }
 
-    <span class="doccomment">/// Adds a customized Part.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">part</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="ident">T</span>, <span class="ident">part</span>: <span class="ident">Part</span>) -&gt; <span class="ident">Form</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Adds a customized Part.
+    </span><span class="kw">pub fn </span>part&lt;T&gt;(<span class="self">self</span>, name: T, part: Part) -&gt; Form
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
     {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">part</span>(<span class="ident">name</span>, <span class="ident">part</span>))
+        <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.part(name, part))
     }
 
-    <span class="doccomment">/// Configure this `Form` to percent-encode using the `path-segment` rules.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_path_segment</span>(<span class="self">self</span>) -&gt; <span class="ident">Form</span> {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">percent_encode_path_segment</span>())
+    <span class="doccomment">/// Configure this `Form` to percent-encode using the `path-segment` rules.
+    </span><span class="kw">pub fn </span>percent_encode_path_segment(<span class="self">self</span>) -&gt; Form {
+        <span class="self">self</span>.with_inner(|inner| inner.percent_encode_path_segment())
     }
 
-    <span class="doccomment">/// Configure this `Form` to percent-encode using the `attr-char` rules.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_attr_chars</span>(<span class="self">self</span>) -&gt; <span class="ident">Form</span> {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">percent_encode_attr_chars</span>())
+    <span class="doccomment">/// Configure this `Form` to percent-encode using the `attr-char` rules.
+    </span><span class="kw">pub fn </span>percent_encode_attr_chars(<span class="self">self</span>) -&gt; Form {
+        <span class="self">self</span>.with_inner(|inner| inner.percent_encode_attr_chars())
     }
 
-    <span class="doccomment">/// Configure this `Form` to skip percent-encoding</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">percent_encode_noop</span>(<span class="self">self</span>) -&gt; <span class="ident">Form</span> {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">percent_encode_noop</span>())
+    <span class="doccomment">/// Configure this `Form` to skip percent-encoding
+    </span><span class="kw">pub fn </span>percent_encode_noop(<span class="self">self</span>) -&gt; Form {
+        <span class="self">self</span>.with_inner(|inner| inner.percent_encode_noop())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reader</span>(<span class="self">self</span>) -&gt; <span class="ident">Reader</span> {
-        <span class="ident">Reader::new</span>(<span class="self">self</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>reader(<span class="self">self</span>) -&gt; Reader {
+        Reader::new(<span class="self">self</span>)
     }
 
-    <span class="comment">// If predictable, computes the length the request will have</span>
-    <span class="comment">// The length should be preditable if only String and file fields have been added,</span>
-    <span class="comment">// but not if a generic reader has been added;</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compute_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">compute_length</span>()
+    <span class="comment">// If predictable, computes the length the request will have
+    // The length should be preditable if only String and file fields have been added,
+    // but not if a generic reader has been added;
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compute_length(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="self">self</span>.inner.compute_length()
     }
 
-    <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">Part</span><span class="op">&gt;</span>) -&gt; <span class="ident">FormParts</span><span class="op">&lt;</span><span class="ident">Part</span><span class="op">&gt;</span>,
+    <span class="kw">fn </span>with_inner&lt;F&gt;(<span class="self">self</span>, func: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(FormParts&lt;Part&gt;) -&gt; FormParts&lt;Part&gt;,
     {
-        <span class="ident">Form</span> {
-            <span class="ident">inner</span>: <span class="ident">func</span>(<span class="self">self</span>.<span class="ident">inner</span>),
+        Form {
+            inner: func(<span class="self">self</span>.inner),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Form</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fmt_fields</span>(<span class="string">&quot;Form&quot;</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Form {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="self">self</span>.inner.fmt_fields(<span class="string">&quot;Form&quot;</span>, f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Part</span> {
-    <span class="doccomment">/// Makes a text parameter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Part</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">impl </span>Part {
+    <span class="doccomment">/// Makes a text parameter.
+    </span><span class="kw">pub fn </span>text&lt;T&gt;(value: T) -&gt; Part
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
     {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">into</span>() {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<span class="ident">slice</span>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Body::from</span>(<span class="ident">string</span>),
+        <span class="kw">let </span>body = <span class="kw">match </span>value.into() {
+            Cow::Borrowed(slice) =&gt; Body::from(slice),
+            Cow::Owned(string) =&gt; Body::from(string),
         };
-        <span class="ident">Part::new</span>(<span class="ident">body</span>)
+        Part::new(body)
     }
 
-    <span class="doccomment">/// Makes a new parameter from arbitrary bytes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bytes</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Part</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Makes a new parameter from arbitrary bytes.
+    </span><span class="kw">pub fn </span>bytes&lt;T&gt;(value: T) -&gt; Part
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt;,
     {
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">into</span>() {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">slice</span>) =&gt; <span class="ident">Body::from</span>(<span class="ident">slice</span>),
-            <span class="ident">Cow::Owned</span>(<span class="ident">vec</span>) =&gt; <span class="ident">Body::from</span>(<span class="ident">vec</span>),
+        <span class="kw">let </span>body = <span class="kw">match </span>value.into() {
+            Cow::Borrowed(slice) =&gt; Body::from(slice),
+            Cow::Owned(vec) =&gt; Body::from(vec),
         };
-        <span class="ident">Part::new</span>(<span class="ident">body</span>)
+        Part::new(body)
     }
 
-    <span class="doccomment">/// Adds a generic reader.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does not set filename or mime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Part</span> {
-        <span class="ident">Part::new</span>(<span class="ident">Body::new</span>(<span class="ident">value</span>))
+    <span class="doccomment">/// Adds a generic reader.
+    ///
+    /// Does not set filename or mime.
+    </span><span class="kw">pub fn </span>reader&lt;T: Read + Send + <span class="lifetime">&#39;static</span>&gt;(value: T) -&gt; Part {
+        Part::new(Body::new(value))
     }
 
-    <span class="doccomment">/// Adds a generic reader with known length.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Does not set filename or mime.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reader_with_length</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">length</span>: <span class="ident">u64</span>) -&gt; <span class="ident">Part</span> {
-        <span class="ident">Part::new</span>(<span class="ident">Body::sized</span>(<span class="ident">value</span>, <span class="ident">length</span>))
+    <span class="doccomment">/// Adds a generic reader with known length.
+    ///
+    /// Does not set filename or mime.
+    </span><span class="kw">pub fn </span>reader_with_length&lt;T: Read + Send + <span class="lifetime">&#39;static</span>&gt;(value: T, length: u64) -&gt; Part {
+        Part::new(Body::sized(value, length))
     }
 
-    <span class="doccomment">/// Makes a file parameter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Errors when the file cannot be opened.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">T</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Part</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>();
-        <span class="kw">let</span> <span class="ident">file_name</span> <span class="op">=</span> <span class="ident">path</span>
-            .<span class="ident">file_name</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">filename</span><span class="op">|</span> <span class="ident">filename</span>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>());
-        <span class="kw">let</span> <span class="ident">ext</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">extension</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">ext</span><span class="op">|</span> <span class="ident">ext</span>.<span class="ident">to_str</span>()).<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>);
-        <span class="kw">let</span> <span class="ident">mime</span> <span class="op">=</span> <span class="ident">mime_guess::from_ext</span>(<span class="ident">ext</span>).<span class="ident">first_or_octet_stream</span>();
-        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">Part::new</span>(<span class="ident">Body::from</span>(<span class="ident">file</span>)).<span class="ident">mime</span>(<span class="ident">mime</span>);
+    <span class="doccomment">/// Makes a file parameter.
+    ///
+    /// # Errors
+    ///
+    /// Errors when the file cannot be opened.
+    </span><span class="kw">pub fn </span>file&lt;T: AsRef&lt;Path&gt;&gt;(path: T) -&gt; io::Result&lt;Part&gt; {
+        <span class="kw">let </span>path = path.as_ref();
+        <span class="kw">let </span>file_name = path
+            .file_name()
+            .map(|filename| filename.to_string_lossy().into_owned());
+        <span class="kw">let </span>ext = path.extension().and_then(|ext| ext.to_str()).unwrap_or(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>mime = mime_guess::from_ext(ext).first_or_octet_stream();
+        <span class="kw">let </span>file = File::open(path)<span class="question-mark">?</span>;
+        <span class="kw">let </span>field = Part::new(Body::from(file)).mime(mime);
 
-        <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">file_name</span>) <span class="op">=</span> <span class="ident">file_name</span> {
-            <span class="ident">field</span>.<span class="ident">file_name</span>(<span class="ident">file_name</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">field</span>
+        <span class="prelude-val">Ok</span>(<span class="kw">if let </span><span class="prelude-val">Some</span>(file_name) = file_name {
+            field.file_name(file_name)
+        } <span class="kw">else </span>{
+            field
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Body</span>) -&gt; <span class="ident">Part</span> {
-        <span class="ident">Part</span> {
-            <span class="ident">meta</span>: <span class="ident">PartMetadata::new</span>(),
-            <span class="ident">value</span>,
+    <span class="kw">fn </span>new(value: Body) -&gt; Part {
+        Part {
+            meta: PartMetadata::new(),
+            value,
         }
     }
 
-    <span class="doccomment">/// Tries to set the mime of this part.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mime_str</span>(<span class="self">self</span>, <span class="ident">mime</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Part</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">mime</span>(<span class="ident">mime</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>))
+    <span class="doccomment">/// Tries to set the mime of this part.
+    </span><span class="kw">pub fn </span>mime_str(<span class="self">self</span>, mime: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">crate</span>::Result&lt;Part&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.mime(mime.parse().map_err(<span class="kw">crate</span>::error::builder)<span class="question-mark">?</span>))
     }
 
-    <span class="comment">// Re-export when mime 0.4 is available, with split MediaType/MediaRange.</span>
-    <span class="kw">fn</span> <span class="ident">mime</span>(<span class="self">self</span>, <span class="ident">mime</span>: <span class="ident">Mime</span>) -&gt; <span class="ident">Part</span> {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">mime</span>(<span class="ident">mime</span>))
+    <span class="comment">// Re-export when mime 0.4 is available, with split MediaType/MediaRange.
+    </span><span class="kw">fn </span>mime(<span class="self">self</span>, mime: Mime) -&gt; Part {
+        <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.mime(mime))
     }
 
-    <span class="doccomment">/// Sets the filename, builder style.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">file_name</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">filename</span>: <span class="ident">T</span>) -&gt; <span class="ident">Part</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Sets the filename, builder style.
+    </span><span class="kw">pub fn </span>file_name&lt;T&gt;(<span class="self">self</span>, filename: T) -&gt; Part
+    <span class="kw">where
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
     {
-        <span class="self">self</span>.<span class="ident">with_inner</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">file_name</span>(<span class="ident">filename</span>))
+        <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.file_name(filename))
     }
 
-    <span class="kw">fn</span> <span class="ident">with_inner</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">PartMetadata</span>) -&gt; <span class="ident">PartMetadata</span>,
+    <span class="kw">fn </span>with_inner&lt;F&gt;(<span class="self">self</span>, func: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: FnOnce(PartMetadata) -&gt; PartMetadata,
     {
-        <span class="ident">Part</span> {
-            <span class="ident">meta</span>: <span class="ident">func</span>(<span class="self">self</span>.<span class="ident">meta</span>),
-            <span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
+        Part {
+            meta: func(<span class="self">self</span>.meta),
+            value: <span class="self">self</span>.value,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Part</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dbg</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Part&quot;</span>);
-        <span class="ident">dbg</span>.<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>);
-        <span class="self">self</span>.<span class="ident">meta</span>.<span class="ident">fmt_fields</span>(<span class="kw-2">&amp;mut</span> <span class="ident">dbg</span>);
-        <span class="ident">dbg</span>.<span class="ident">finish</span>()
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Part {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span><span class="kw-2">mut </span>dbg = f.debug_struct(<span class="string">&quot;Part&quot;</span>);
+        dbg.field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+        <span class="self">self</span>.meta.fmt_fields(<span class="kw-2">&amp;mut </span>dbg);
+        dbg.finish()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartProps</span> <span class="kw">for</span> <span class="ident">Part</span> {
-    <span class="kw">fn</span> <span class="ident">value_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">len</span>()
+<span class="kw">impl </span>PartProps <span class="kw">for </span>Part {
+    <span class="kw">fn </span>value_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+        <span class="self">self</span>.value.len()
     }
 
-    <span class="kw">fn</span> <span class="ident">metadata</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">PartMetadata</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">meta</span>
-    }
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Reader</span> {
-    <span class="ident">form</span>: <span class="ident">Form</span>,
-    <span class="ident">active_reader</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Read</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Reader&quot;</span>).<span class="ident">field</span>(<span class="string">&quot;form&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">form</span>).<span class="ident">finish</span>()
+    <span class="kw">fn </span>metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PartMetadata {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.meta
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">form</span>: <span class="ident">Form</span>) -&gt; <span class="ident">Reader</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">Reader</span> {
-            <span class="ident">form</span>,
-            <span class="ident">active_reader</span>: <span class="prelude-val">None</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Reader {
+    form: Form,
+    active_reader: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Read + Send&gt;&gt;,
+}
+
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Reader {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;Reader&quot;</span>).field(<span class="string">&quot;form&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.form).finish()
+    }
+}
+
+<span class="kw">impl </span>Reader {
+    <span class="kw">fn </span>new(form: Form) -&gt; Reader {
+        <span class="kw">let </span><span class="kw-2">mut </span>reader = Reader {
+            form,
+            active_reader: <span class="prelude-val">None</span>,
         };
-        <span class="ident">reader</span>.<span class="ident">next_reader</span>();
-        <span class="ident">reader</span>
+        reader.next_reader();
+        reader
     }
 
-    <span class="kw">fn</span> <span class="ident">next_reader</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">active_reader</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// We need to move out of the vector here because we are consuming the field&#39;s reader</span>
-            <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">field</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">remove</span>(<span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">boundary</span> <span class="op">=</span> <span class="ident">Cursor::new</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}\r\n&quot;</span>, <span class="self">self</span>.<span class="ident">form</span>.<span class="ident">boundary</span>()));
-            <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Cursor::new</span>({
-                <span class="comment">// Try to use cached headers created by compute_length</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">computed_headers</span>.<span class="ident">is_empty</span>() {
-                    <span class="self">self</span>.<span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">computed_headers</span>.<span class="ident">remove</span>(<span class="number">0</span>)
-                } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">form</span>
-                        .<span class="ident">inner</span>
-                        .<span class="ident">percent_encoding</span>
-                        .<span class="ident">encode_headers</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="ident">field</span>.<span class="ident">metadata</span>())
+    <span class="kw">fn </span>next_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.active_reader = <span class="kw">if </span>!<span class="self">self</span>.form.inner.fields.is_empty() {
+            <span class="comment">// We need to move out of the vector here because we are consuming the field&#39;s reader
+            </span><span class="kw">let </span>(name, field) = <span class="self">self</span>.form.inner.fields.remove(<span class="number">0</span>);
+            <span class="kw">let </span>boundary = Cursor::new(<span class="macro">format!</span>(<span class="string">&quot;--{}\r\n&quot;</span>, <span class="self">self</span>.form.boundary()));
+            <span class="kw">let </span>header = Cursor::new({
+                <span class="comment">// Try to use cached headers created by compute_length
+                </span><span class="kw">let </span><span class="kw-2">mut </span>h = <span class="kw">if </span>!<span class="self">self</span>.form.inner.computed_headers.is_empty() {
+                    <span class="self">self</span>.form.inner.computed_headers.remove(<span class="number">0</span>)
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.form
+                        .inner
+                        .percent_encoding
+                        .encode_headers(<span class="kw-2">&amp;</span>name, field.metadata())
                 };
-                <span class="ident">h</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>);
-                <span class="ident">h</span>
+                h.extend_from_slice(<span class="string">b&quot;\r\n\r\n&quot;</span>);
+                h
             });
-            <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">boundary</span>
-                .<span class="ident">chain</span>(<span class="ident">header</span>)
-                .<span class="ident">chain</span>(<span class="ident">field</span>.<span class="ident">value</span>.<span class="ident">into_reader</span>())
-                .<span class="ident">chain</span>(<span class="ident">Cursor::new</span>(<span class="string">&quot;\r\n&quot;</span>));
-            <span class="comment">// According to https://tools.ietf.org/html/rfc2046#section-5.1.1</span>
-            <span class="comment">// the very last field has a special boundary</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">fields</span>.<span class="ident">is_empty</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">reader</span>))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">reader</span>.<span class="ident">chain</span>(<span class="ident">Cursor::new</span>(<span class="macro">format!</span>(
+            <span class="kw">let </span>reader = boundary
+                .chain(header)
+                .chain(field.value.into_reader())
+                .chain(Cursor::new(<span class="string">&quot;\r\n&quot;</span>));
+            <span class="comment">// According to https://tools.ietf.org/html/rfc2046#section-5.1.1
+            // the very last field has a special boundary
+            </span><span class="kw">if </span>!<span class="self">self</span>.form.inner.fields.is_empty() {
+                <span class="prelude-val">Some</span>(Box::new(reader))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>(Box::new(reader.chain(Cursor::new(<span class="macro">format!</span>(
                     <span class="string">&quot;--{}--\r\n&quot;</span>,
-                    <span class="self">self</span>.<span class="ident">form</span>.<span class="ident">boundary</span>()
+                    <span class="self">self</span>.form.boundary()
                 )))))
             }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        }
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Read</span> <span class="kw">for</span> <span class="ident">Reader</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total_bytes_read</span> <span class="op">=</span> <span class="number">0usize</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_read_bytes</span>;
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">active_reader</span> {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">reader</span>) =&gt; {
-                    <span class="ident">last_read_bytes</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">total_bytes_read</span>..])<span class="question-mark">?</span>;
-                    <span class="ident">total_bytes_read</span> <span class="op">+</span><span class="op">=</span> <span class="ident">last_read_bytes</span>;
-                    <span class="kw">if</span> <span class="ident">total_bytes_read</span> <span class="op">==</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">total_bytes_read</span>);
+<span class="kw">impl </span>Read <span class="kw">for </span>Reader {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>total_bytes_read = <span class="number">0usize</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_read_bytes;
+        <span class="kw">loop </span>{
+            <span class="kw">match </span><span class="self">self</span>.active_reader {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>reader) =&gt; {
+                    last_read_bytes = reader.read(<span class="kw-2">&amp;mut </span>buf[total_bytes_read..])<span class="question-mark">?</span>;
+                    total_bytes_read += last_read_bytes;
+                    <span class="kw">if </span>total_bytes_read == buf.len() {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(total_bytes_read);
                     }
                 }
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">total_bytes_read</span>),
+                <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(total_bytes_read),
             };
-            <span class="kw">if</span> <span class="ident">last_read_bytes</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-                <span class="self">self</span>.<span class="ident">next_reader</span>();
+            <span class="kw">if </span>last_read_bytes == <span class="number">0 </span>&amp;&amp; !buf.is_empty() {
+                <span class="self">self</span>.next_reader();
             }
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">form_empty</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>();
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">compute_length</span>();
-        <span class="ident">form</span>.<span class="ident">reader</span>().<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq!</span>(<span class="ident">output</span>, <span class="string">b&quot;&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">length</span>.<span class="ident">unwrap</span>(), <span class="number">0</span>);
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>form_empty() {
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new();
+        <span class="kw">let </span>length = form.compute_length();
+        form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
+        <span class="macro">assert_eq!</span>(output, <span class="string">b&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(length.unwrap(), <span class="number">0</span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_to_end</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>()
-            .<span class="ident">part</span>(<span class="string">&quot;reader1&quot;</span>, <span class="ident">Part::reader</span>(<span class="ident">std::io::empty</span>()))
-            .<span class="ident">part</span>(<span class="string">&quot;key1&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value1&quot;</span>))
-            .<span class="ident">part</span>(<span class="string">&quot;key2&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">mime::IMAGE_BMP</span>))
-            .<span class="ident">part</span>(<span class="string">&quot;reader2&quot;</span>, <span class="ident">Part::reader</span>(<span class="ident">std::io::empty</span>()))
-            .<span class="ident">part</span>(<span class="string">&quot;key3&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value3&quot;</span>).<span class="ident">file_name</span>(<span class="string">&quot;filename&quot;</span>));
-        <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">compute_length</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>read_to_end() {
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new()
+            .part(<span class="string">&quot;reader1&quot;</span>, Part::reader(std::io::empty()))
+            .part(<span class="string">&quot;key1&quot;</span>, Part::text(<span class="string">&quot;value1&quot;</span>))
+            .part(<span class="string">&quot;key2&quot;</span>, Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP))
+            .part(<span class="string">&quot;reader2&quot;</span>, Part::reader(std::io::empty()))
+            .part(<span class="string">&quot;key3&quot;</span>, Part::text(<span class="string">&quot;value3&quot;</span>).file_name(<span class="string">&quot;filename&quot;</span>));
+        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
+        <span class="kw">let </span>length = form.compute_length();
+        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
              Content-Disposition: form-data; name=\&quot;reader1\&quot;\r\n\r\n\
              \r\n\
              --boundary\r\n\
@@ -889,27 +883,27 @@
              --boundary\r\n\
              Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
              value3\r\n--boundary--\r\n&quot;</span>;
-        <span class="ident">form</span>.<span class="ident">reader</span>().<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="comment">// These prints are for debug purposes in case the test fails</span>
-        <span class="macro">println!</span>(
+        form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
+        <span class="comment">// These prints are for debug purposes in case the test fails
+        </span><span class="macro">println!</span>(
             <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
-            <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>()
+            std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
-        <span class="macro">assert!</span>(<span class="ident">length</span>.<span class="ident">is_none</span>());
+        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
+        <span class="macro">assert!</span>(length.is_none());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_to_end_with_length</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>()
-            .<span class="ident">text</span>(<span class="string">&quot;key1&quot;</span>, <span class="string">&quot;value1&quot;</span>)
-            .<span class="ident">part</span>(<span class="string">&quot;key2&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">mime::IMAGE_BMP</span>))
-            .<span class="ident">part</span>(<span class="string">&quot;key3&quot;</span>, <span class="ident">Part::text</span>(<span class="string">&quot;value3&quot;</span>).<span class="ident">file_name</span>(<span class="string">&quot;filename&quot;</span>));
-        <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">compute_length</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>read_to_end_with_length() {
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new()
+            .text(<span class="string">&quot;key1&quot;</span>, <span class="string">&quot;value1&quot;</span>)
+            .part(<span class="string">&quot;key2&quot;</span>, Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP))
+            .part(<span class="string">&quot;key3&quot;</span>, Part::text(<span class="string">&quot;value3&quot;</span>).file_name(<span class="string">&quot;filename&quot;</span>));
+        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
+        <span class="kw">let </span>length = form.compute_length();
+        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
              Content-Disposition: form-data; name=\&quot;key1\&quot;\r\n\r\n\
              value1\r\n\
              --boundary\r\n\
@@ -919,41 +913,40 @@
              --boundary\r\n\
              Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
              value3\r\n--boundary--\r\n&quot;</span>;
-        <span class="ident">form</span>.<span class="ident">reader</span>().<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="comment">// These prints are for debug purposes in case the test fails</span>
-        <span class="macro">println!</span>(
+        form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
+        <span class="comment">// These prints are for debug purposes in case the test fails
+        </span><span class="macro">println!</span>(
             <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
-            <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>()
+            std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">length</span>.<span class="ident">unwrap</span>(), <span class="ident">expected</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
+        <span class="macro">assert_eq!</span>(length.unwrap(), expected.len() <span class="kw">as </span>u64);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_to_end_with_header</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">part</span> <span class="op">=</span> <span class="ident">Part::text</span>(<span class="string">&quot;value2&quot;</span>).<span class="ident">mime</span>(<span class="ident">mime::IMAGE_BMP</span>);
-        <span class="ident">part</span>.<span class="ident">meta</span>.<span class="ident">headers</span>.<span class="ident">insert</span>(<span class="string">&quot;Hdr3&quot;</span>, <span class="string">&quot;/a/b/c&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">Form::new</span>().<span class="ident">part</span>(<span class="string">&quot;key2&quot;</span>, <span class="ident">part</span>);
-        <span class="ident">form</span>.<span class="ident">inner</span>.<span class="ident">boundary</span> <span class="op">=</span> <span class="string">&quot;boundary&quot;</span>.<span class="ident">to_string</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">&quot;--boundary\r\n\
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>read_to_end_with_header() {
+        <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>part = Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP);
+        part.meta.headers.insert(<span class="string">&quot;Hdr3&quot;</span>, <span class="string">&quot;/a/b/c&quot;</span>.parse().unwrap());
+        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new().part(<span class="string">&quot;key2&quot;</span>, part);
+        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
+        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
                         Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
                         Content-Type: image/bmp\r\n\
                         hdr3: /a/b/c\r\n\
                         \r\n\
                         value2\r\n\
                         --boundary--\r\n&quot;</span>;
-        <span class="ident">form</span>.<span class="ident">reader</span>().<span class="ident">read_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>).<span class="ident">unwrap</span>();
-        <span class="comment">// These prints are for debug purposes in case the test fails</span>
-        <span class="macro">println!</span>(
+        form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
+        <span class="comment">// These prints are for debug purposes in case the test fails
+        </span><span class="macro">println!</span>(
             <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
-            <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>()
+            std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, <span class="ident">expected</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>).<span class="ident">unwrap</span>(), <span class="ident">expected</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/parser/inside_opening_tag.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inside_opening_tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/xml-rs-0.8.4/src/reader/parser/inside_opening_tag.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inside_opening_tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../xml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -112,106 +106,106 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">common::is_name_start_char</span>;
-<span class="kw">use</span> <span class="ident">attribute::OwnedAttribute</span>;
-<span class="kw">use</span> <span class="ident">namespace</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>common::is_name_start_char;
+<span class="kw">use </span>attribute::OwnedAttribute;
+<span class="kw">use </span>namespace;
 
-<span class="kw">use</span> <span class="ident">reader::lexer::Token</span>;
+<span class="kw">use </span>reader::lexer::Token;
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="prelude-ty">Result</span>, <span class="ident">PullParser</span>, <span class="ident">State</span>, <span class="ident">OpeningTagSubstate</span>, <span class="ident">QualifiedNameTarget</span>};
+<span class="kw">use super</span>::{<span class="prelude-ty">Result</span>, PullParser, State, OpeningTagSubstate, QualifiedNameTarget};
 
-<span class="kw">impl</span> <span class="ident">PullParser</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">inside_opening_tag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">Token</span>, <span class="ident">s</span>: <span class="ident">OpeningTagSubstate</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&gt;</span> {
-        <span class="macro">macro_rules!</span> <span class="ident">unexpected_token</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">expr</span>) =&gt; (<span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="self">self</span>; <span class="string">&quot;Unexpected token inside opening tag: {}&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>))));
-        <span class="kw">match</span> <span class="ident">s</span> {
-            <span class="ident">OpeningTagSubstate::InsideName</span> =&gt; <span class="self">self</span>.<span class="ident">read_qualified_name</span>(<span class="ident">t</span>, <span class="ident">QualifiedNameTarget::OpeningTagNameTarget</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">token</span>, <span class="ident">name</span><span class="op">|</span> {
-                <span class="kw">match</span> <span class="ident">name</span>.<span class="ident">prefix_ref</span>() {
-                    <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="kw">if</span> <span class="ident">prefix</span> <span class="op">==</span> <span class="ident">namespace::NS_XML_PREFIX</span> <span class="op">|</span><span class="op">|</span>
-                                    <span class="ident">prefix</span> <span class="op">==</span> <span class="ident">namespace::NS_XMLNS_PREFIX</span> =&gt;
-                        <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;&#39;{:?}&#39; cannot be an element name prefix&quot;</span>, <span class="ident">name</span>.<span class="ident">prefix</span>)),
-                    <span class="kw">_</span> =&gt; {
-                        <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">element_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>.<span class="ident">clone</span>());
-                        <span class="kw">match</span> <span class="ident">token</span> {
-                            <span class="ident">Token::TagEnd</span> =&gt; <span class="ident">this</span>.<span class="ident">emit_start_element</span>(<span class="bool-val">false</span>),
-                            <span class="ident">Token::EmptyTagEnd</span> =&gt; <span class="ident">this</span>.<span class="ident">emit_start_element</span>(<span class="bool-val">true</span>),
-                            <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideTag</span>)),
-                            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
+<span class="kw">impl </span>PullParser {
+    <span class="kw">pub fn </span>inside_opening_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token, s: OpeningTagSubstate) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+        <span class="macro">macro_rules! </span>unexpected_token((<span class="macro-nonterminal">$t</span>:expr) =&gt; (<span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="self">self</span>; <span class="string">&quot;Unexpected token inside opening tag: {}&quot;</span>, <span class="macro-nonterminal">$t</span>))));
+        <span class="kw">match </span>s {
+            OpeningTagSubstate::InsideName =&gt; <span class="self">self</span>.read_qualified_name(t, QualifiedNameTarget::OpeningTagNameTarget, |this, token, name| {
+                <span class="kw">match </span>name.prefix_ref() {
+                    <span class="prelude-val">Some</span>(prefix) <span class="kw">if </span>prefix == namespace::NS_XML_PREFIX ||
+                                    prefix == namespace::NS_XMLNS_PREFIX =&gt;
+                        <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;&#39;{:?}&#39; cannot be an element name prefix&quot;</span>, name.prefix)),
+                    <span class="kw">_ </span>=&gt; {
+                        this.data.element_name = <span class="prelude-val">Some</span>(name.clone());
+                        <span class="kw">match </span>token {
+                            Token::TagEnd =&gt; this.emit_start_element(<span class="bool-val">false</span>),
+                            Token::EmptyTagEnd =&gt; this.emit_start_element(<span class="bool-val">true</span>),
+                            Token::Whitespace(<span class="kw">_</span>) =&gt; this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideTag)),
+                            <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>()
                         }
                     }
                 }
             }),
 
-            <span class="ident">OpeningTagSubstate::InsideTag</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace</span>
-                <span class="ident">Token::Character</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">is_name_start_char</span>(<span class="ident">c</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span>);
-                    <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideAttributeName</span>))
+            OpeningTagSubstate::InsideTag =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace
+                </span>Token::Character(c) <span class="kw">if </span>is_name_start_char(c) =&gt; {
+                    <span class="self">self</span>.buf.push(c);
+                    <span class="self">self</span>.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideAttributeName))
                 }
-                <span class="ident">Token::TagEnd</span> =&gt; <span class="self">self</span>.<span class="ident">emit_start_element</span>(<span class="bool-val">false</span>),
-                <span class="ident">Token::EmptyTagEnd</span> =&gt; <span class="self">self</span>.<span class="ident">emit_start_element</span>(<span class="bool-val">true</span>),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+                Token::TagEnd =&gt; <span class="self">self</span>.emit_start_element(<span class="bool-val">false</span>),
+                Token::EmptyTagEnd =&gt; <span class="self">self</span>.emit_start_element(<span class="bool-val">true</span>),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">OpeningTagSubstate::InsideAttributeName</span> =&gt; <span class="self">self</span>.<span class="ident">read_qualified_name</span>(<span class="ident">t</span>, <span class="ident">QualifiedNameTarget::AttributeNameTarget</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">token</span>, <span class="ident">name</span><span class="op">|</span> {
-                <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">attr_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>);
-                <span class="kw">match</span> <span class="ident">token</span> {
-                    <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::AfterAttributeName</span>)),
-                    <span class="ident">Token::EqualsSign</span> =&gt; <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideAttributeValue</span>)),
-                    <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>()
+            OpeningTagSubstate::InsideAttributeName =&gt; <span class="self">self</span>.read_qualified_name(t, QualifiedNameTarget::AttributeNameTarget, |this, token, name| {
+                this.data.attr_name = <span class="prelude-val">Some</span>(name);
+                <span class="kw">match </span>token {
+                    Token::Whitespace(<span class="kw">_</span>) =&gt; this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::AfterAttributeName)),
+                    Token::EqualsSign =&gt; this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideAttributeValue)),
+                    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>()
                 }
             }),
 
-            <span class="ident">OpeningTagSubstate::AfterAttributeName</span> =&gt; <span class="kw">match</span> <span class="ident">t</span> {
-                <span class="ident">Token::Whitespace</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-                <span class="ident">Token::EqualsSign</span> =&gt; <span class="self">self</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideAttributeValue</span>)),
-                <span class="kw">_</span> =&gt; <span class="macro">unexpected_token!</span>(<span class="ident">t</span>)
+            OpeningTagSubstate::AfterAttributeName =&gt; <span class="kw">match </span>t {
+                Token::Whitespace(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+                Token::EqualsSign =&gt; <span class="self">self</span>.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideAttributeValue)),
+                <span class="kw">_ </span>=&gt; <span class="macro">unexpected_token!</span>(t)
             },
 
-            <span class="ident">OpeningTagSubstate::InsideAttributeValue</span> =&gt; <span class="self">self</span>.<span class="ident">read_attribute_value</span>(<span class="ident">t</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">value</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">take_attr_name</span>().<span class="ident">unwrap</span>();  <span class="comment">// unwrap() will always succeed here</span>
+            OpeningTagSubstate::InsideAttributeValue =&gt; <span class="self">self</span>.read_attribute_value(t, |this, value| {
+                <span class="kw">let </span>name = this.data.take_attr_name().unwrap();  <span class="comment">// unwrap() will always succeed here
 
-                <span class="comment">// check that no attribute with such name is already present</span>
-                <span class="comment">// if there is one, XML is not well-formed</span>
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">attributes</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">name</span>).<span class="ident">is_some</span>() {  <span class="comment">// TODO: looks bad</span>
-                    <span class="comment">// TODO: ideally this error should point to the beginning of the attribute,</span>
-                    <span class="comment">// TODO: not the end of its value</span>
-                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Attribute &#39;{}&#39; is redefined&quot;</span>, <span class="ident">name</span>))
-                } <span class="kw">else</span> {
-                    <span class="kw">match</span> <span class="ident">name</span>.<span class="ident">prefix_ref</span>() {
-                        <span class="comment">// declaring a new prefix; it is sufficient to check prefix only</span>
-                        <span class="comment">// because &quot;xmlns&quot; prefix is reserved</span>
-                        <span class="prelude-val">Some</span>(<span class="ident">namespace::NS_XMLNS_PREFIX</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">ln</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">local_name</span>[..];
-                            <span class="kw">if</span> <span class="ident">ln</span> <span class="op">==</span> <span class="ident">namespace::NS_XMLNS_PREFIX</span> {
-                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Cannot redefine prefix &#39;{}&#39;&quot;</span>, <span class="ident">namespace::NS_XMLNS_PREFIX</span>))
-                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">ln</span> <span class="op">==</span> <span class="ident">namespace::NS_XML_PREFIX</span> <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">value</span>[..] <span class="op">!</span><span class="op">=</span> <span class="ident">namespace::NS_XML_URI</span> {
-                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Prefix &#39;{}&#39; cannot be rebound to another value&quot;</span>, <span class="ident">namespace::NS_XML_PREFIX</span>))
-                            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_empty</span>() {
-                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Cannot undefine prefix &#39;{}&#39;&quot;</span>, <span class="ident">ln</span>))
-                            } <span class="kw">else</span> {
-                                <span class="ident">this</span>.<span class="ident">nst</span>.<span class="ident">put</span>(<span class="ident">name</span>.<span class="ident">local_name</span>.<span class="ident">clone</span>(), <span class="ident">value</span>);
-                                <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideTag</span>))
+                // check that no attribute with such name is already present
+                // if there is one, XML is not well-formed
+                </span><span class="kw">if </span>this.data.attributes.iter().find(|a| a.name == name).is_some() {  <span class="comment">// TODO: looks bad
+                    // TODO: ideally this error should point to the beginning of the attribute,
+                    // TODO: not the end of its value
+                    </span><span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Attribute &#39;{}&#39; is redefined&quot;</span>, name))
+                } <span class="kw">else </span>{
+                    <span class="kw">match </span>name.prefix_ref() {
+                        <span class="comment">// declaring a new prefix; it is sufficient to check prefix only
+                        // because &quot;xmlns&quot; prefix is reserved
+                        </span><span class="prelude-val">Some</span>(namespace::NS_XMLNS_PREFIX) =&gt; {
+                            <span class="kw">let </span>ln = <span class="kw-2">&amp;</span>name.local_name[..];
+                            <span class="kw">if </span>ln == namespace::NS_XMLNS_PREFIX {
+                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Cannot redefine prefix &#39;{}&#39;&quot;</span>, namespace::NS_XMLNS_PREFIX))
+                            } <span class="kw">else if </span>ln == namespace::NS_XML_PREFIX &amp;&amp; <span class="kw-2">&amp;</span>value[..] != namespace::NS_XML_URI {
+                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Prefix &#39;{}&#39; cannot be rebound to another value&quot;</span>, namespace::NS_XML_PREFIX))
+                            } <span class="kw">else if </span>value.is_empty() {
+                                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Cannot undefine prefix &#39;{}&#39;&quot;</span>, ln))
+                            } <span class="kw">else </span>{
+                                this.nst.put(name.local_name.clone(), value);
+                                this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideTag))
                             }
                         }
 
-                        <span class="comment">// declaring default namespace</span>
-                        <span class="prelude-val">None</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">local_name</span>[..] <span class="op">==</span> <span class="ident">namespace::NS_XMLNS_PREFIX</span> =&gt;
-                            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">value</span>[..] {
-                                <span class="ident">namespace::NS_XMLNS_PREFIX</span> <span class="op">|</span> <span class="ident">namespace::NS_XML_PREFIX</span> =&gt;
-                                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="ident">this</span>; <span class="string">&quot;Namespace &#39;{}&#39; cannot be default&quot;</span>, <span class="ident">value</span>)),
-                                <span class="kw">_</span> =&gt; {
-                                    <span class="ident">this</span>.<span class="ident">nst</span>.<span class="ident">put</span>(<span class="ident">namespace::NS_NO_PREFIX</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
-                                    <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideTag</span>))
+                        <span class="comment">// declaring default namespace
+                        </span><span class="prelude-val">None </span><span class="kw">if </span><span class="kw-2">&amp;</span>name.local_name[..] == namespace::NS_XMLNS_PREFIX =&gt;
+                            <span class="kw">match </span><span class="kw-2">&amp;</span>value[..] {
+                                namespace::NS_XMLNS_PREFIX | namespace::NS_XML_PREFIX =&gt;
+                                    <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(this; <span class="string">&quot;Namespace &#39;{}&#39; cannot be default&quot;</span>, value)),
+                                <span class="kw">_ </span>=&gt; {
+                                    this.nst.put(namespace::NS_NO_PREFIX, value.clone());
+                                    this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideTag))
                                 }
                             },
 
-                        <span class="comment">// regular attribute</span>
-                        <span class="kw">_</span> =&gt; {
-                            <span class="ident">this</span>.<span class="ident">data</span>.<span class="ident">attributes</span>.<span class="ident">push</span>(<span class="ident">OwnedAttribute</span> {
-                                <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
-                                <span class="ident">value</span>: <span class="ident">value</span>
+                        <span class="comment">// regular attribute
+                        </span><span class="kw">_ </span>=&gt; {
+                            this.data.attributes.push(OwnedAttribute {
+                                name: name.clone(),
+                                value: value
                             });
-                            <span class="ident">this</span>.<span class="ident">into_state_continue</span>(<span class="ident">State::InsideOpeningTag</span>(<span class="ident">OpeningTagSubstate::InsideTag</span>))
+                            this.into_state_continue(State::InsideOpeningTag(OpeningTagSubstate::InsideTag))
                         }
                     }
                 }
@@ -221,5 +215,4 @@
 
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="xml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

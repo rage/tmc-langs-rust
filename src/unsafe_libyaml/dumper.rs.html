@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.2/src/dumper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dumper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.4/src/dumper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dumper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -453,455 +447,454 @@
 <span id="447">447</span>
 <span id="448">448</span>
 <span id="449">449</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::api</span>::{<span class="ident">yaml_free</span>, <span class="ident">yaml_malloc</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::externs</span>::{<span class="ident">memset</span>, <span class="ident">strcmp</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fmt::WriteToPtr</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::success</span>::{<span class="ident">Success</span>, <span class="ident">FAIL</span>, <span class="ident">OK</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::yaml</span>::{
-    <span class="ident">yaml_anchors_t</span>, <span class="ident">yaml_char_t</span>, <span class="ident">yaml_document_t</span>, <span class="ident">yaml_emitter_t</span>, <span class="ident">yaml_event_t</span>, <span class="ident">yaml_mark_t</span>,
-    <span class="ident">yaml_node_item_t</span>, <span class="ident">yaml_node_pair_t</span>, <span class="ident">yaml_node_t</span>, <span class="ident">YAML_ALIAS_EVENT</span>, <span class="ident">YAML_ANY_ENCODING</span>,
-    <span class="ident">YAML_DOCUMENT_END_EVENT</span>, <span class="ident">YAML_DOCUMENT_START_EVENT</span>, <span class="ident">YAML_MAPPING_END_EVENT</span>, <span class="ident">YAML_MAPPING_NODE</span>,
-    <span class="ident">YAML_MAPPING_START_EVENT</span>, <span class="ident">YAML_SCALAR_EVENT</span>, <span class="ident">YAML_SCALAR_NODE</span>, <span class="ident">YAML_SEQUENCE_END_EVENT</span>,
-    <span class="ident">YAML_SEQUENCE_NODE</span>, <span class="ident">YAML_SEQUENCE_START_EVENT</span>, <span class="ident">YAML_STREAM_END_EVENT</span>, <span class="ident">YAML_STREAM_START_EVENT</span>,
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::api::{yaml_free, yaml_malloc};
+<span class="kw">use </span><span class="kw">crate</span>::externs::{memset, strcmp};
+<span class="kw">use </span><span class="kw">crate</span>::fmt::WriteToPtr;
+<span class="kw">use </span><span class="kw">crate</span>::success::{Success, FAIL, OK};
+<span class="kw">use </span><span class="kw">crate</span>::yaml::{
+    yaml_anchors_t, yaml_char_t, yaml_document_t, yaml_emitter_t, yaml_event_t, yaml_mark_t,
+    yaml_node_item_t, yaml_node_pair_t, yaml_node_t, YAML_ALIAS_EVENT, YAML_ANY_ENCODING,
+    YAML_DOCUMENT_END_EVENT, YAML_DOCUMENT_START_EVENT, YAML_MAPPING_END_EVENT, YAML_MAPPING_NODE,
+    YAML_MAPPING_START_EVENT, YAML_SCALAR_EVENT, YAML_SCALAR_NODE, YAML_SEQUENCE_END_EVENT,
+    YAML_SEQUENCE_NODE, YAML_SEQUENCE_START_EVENT, YAML_STREAM_END_EVENT, YAML_STREAM_START_EVENT,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">libc</span>, <span class="ident">yaml_document_delete</span>, <span class="ident">yaml_emitter_emit</span>, <span class="ident">PointerExt</span>};
-<span class="kw">use</span> <span class="ident">core::mem</span>::{<span class="ident">size_of</span>, <span class="ident">MaybeUninit</span>};
-<span class="kw">use</span> <span class="ident">core::ptr</span>::{<span class="self">self</span>, <span class="ident">addr_of_mut</span>};
+<span class="kw">use crate</span>::{libc, yaml_document_delete, yaml_emitter_emit, PointerExt};
+<span class="kw">use </span>core::mem::{size_of, MaybeUninit};
+<span class="kw">use </span>core::ptr::{<span class="self">self</span>, addr_of_mut};
 
-<span class="doccomment">/// Start a YAML stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function should be used before yaml_emitter_dump() is called.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_open</span>(<span class="kw-2">mut</span> <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="doccomment">/// Start a YAML stream.
+///
+/// This function should be used before yaml_emitter_dump() is called.
+</span><span class="kw">pub unsafe fn </span>yaml_emitter_open(<span class="kw-2">mut </span>emitter: <span class="kw-2">*mut </span>yaml_emitter_t) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">emitter</span>.<span class="ident">is_null</span>());
-    <span class="macro">__assert!</span>(<span class="op">!</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">opened</span>);
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    <span class="macro">__assert!</span>(!emitter.is_null());
+    <span class="macro">__assert!</span>(!(<span class="kw-2">*</span>emitter).opened);
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_STREAM_START_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">stream_start</span>.<span class="ident">encoding</span> <span class="op">=</span> <span class="ident">YAML_ANY_ENCODING</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
+    (<span class="kw-2">*</span>event).type_ = YAML_STREAM_START_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    (<span class="kw-2">*</span>event).data.stream_start.encoding = YAML_ANY_ENCODING;
+    <span class="kw">if </span>yaml_emitter_emit(emitter, event).fail {
+        <span class="kw">return </span>FAIL;
     }
-    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">opened</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="ident">OK</span>
+    (<span class="kw-2">*</span>emitter).opened = <span class="bool-val">true</span>;
+    OK
 }
 
-<span class="doccomment">/// Finish a YAML stream.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function should be used after yaml_emitter_dump() is called.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_close</span>(<span class="kw-2">mut</span> <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="doccomment">/// Finish a YAML stream.
+///
+/// This function should be used after yaml_emitter_dump() is called.
+</span><span class="kw">pub unsafe fn </span>yaml_emitter_close(<span class="kw-2">mut </span>emitter: <span class="kw-2">*mut </span>yaml_emitter_t) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">emitter</span>.<span class="ident">is_null</span>());
-    <span class="macro">__assert!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">opened</span>);
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">closed</span> {
-        <span class="kw">return</span> <span class="ident">OK</span>;
+    <span class="macro">__assert!</span>(!emitter.is_null());
+    <span class="macro">__assert!</span>((<span class="kw-2">*</span>emitter).opened);
+    <span class="kw">if </span>(<span class="kw-2">*</span>emitter).closed {
+        <span class="kw">return </span>OK;
     }
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_STREAM_END_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
+    (<span class="kw-2">*</span>event).type_ = YAML_STREAM_END_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    <span class="kw">if </span>yaml_emitter_emit(emitter, event).fail {
+        <span class="kw">return </span>FAIL;
     }
-    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="ident">OK</span>
+    (<span class="kw-2">*</span>emitter).closed = <span class="bool-val">true</span>;
+    OK
 }
 
-<span class="doccomment">/// Emit a YAML document.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The documen object may be generated using the yaml_parser_load() function or</span>
-<span class="doccomment">/// the yaml_document_initialize() function. The emitter takes the</span>
-<span class="doccomment">/// responsibility for the document object and destroys its content after it is</span>
-<span class="doccomment">/// emitted. The document object is destroyed even if the function fails.</span>
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump</span>(
-    <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">document</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_document_t</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="ident">current_block</span>: <span class="ident">u64</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="doccomment">/// Emit a YAML document.
+///
+/// The documen object may be generated using the yaml_parser_load() function or
+/// the yaml_document_initialize() function. The emitter takes the
+/// responsibility for the document object and destroys its content after it is
+/// emitted. The document object is destroyed even if the function fails.
+</span><span class="kw">pub unsafe fn </span>yaml_emitter_dump(
+    emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    document: <span class="kw-2">*mut </span>yaml_document_t,
+) -&gt; Success {
+    <span class="kw">let </span>current_block: u64;
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">emitter</span>.<span class="ident">is_null</span>());
-    <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">document</span>.<span class="ident">is_null</span>());
-    <span class="kw">let</span> <span class="ident">fresh0</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>);
-    <span class="kw-2">*</span><span class="ident">fresh0</span> <span class="op">=</span> <span class="ident">document</span>;
-    <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">opened</span> {
-        <span class="kw">if</span> <span class="ident">yaml_emitter_open</span>(<span class="ident">emitter</span>).<span class="ident">fail</span> {
-            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">5018439318894558507</span>;
-        } <span class="kw">else</span> {
-            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">15619007995458559411</span>;
+    <span class="macro">__assert!</span>(!emitter.is_null());
+    <span class="macro">__assert!</span>(!document.is_null());
+    <span class="kw">let </span>fresh0 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).document);
+    <span class="kw-2">*</span>fresh0 = document;
+    <span class="kw">if </span>!(<span class="kw-2">*</span>emitter).opened {
+        <span class="kw">if </span>yaml_emitter_open(emitter).fail {
+            current_block = <span class="number">5018439318894558507</span>;
+        } <span class="kw">else </span>{
+            current_block = <span class="number">15619007995458559411</span>;
         }
-    } <span class="kw">else</span> {
-        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">15619007995458559411</span>;
+    } <span class="kw">else </span>{
+        current_block = <span class="number">15619007995458559411</span>;
     }
-    <span class="kw">match</span> <span class="ident">current_block</span> {
-        <span class="number">15619007995458559411</span> =&gt; {
-            <span class="kw">if</span> <span class="macro">STACK_EMPTY!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>) {
-                <span class="kw">if</span> <span class="ident">yaml_emitter_close</span>(<span class="ident">emitter</span>).<span class="ident">ok</span> {
-                    <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="ident">emitter</span>);
-                    <span class="kw">return</span> <span class="ident">OK</span>;
+    <span class="kw">match </span>current_block {
+        <span class="number">15619007995458559411 </span>=&gt; {
+            <span class="kw">if </span><span class="macro">STACK_EMPTY!</span>((<span class="kw-2">*</span>document).nodes) {
+                <span class="kw">if </span>yaml_emitter_close(emitter).ok {
+                    yaml_emitter_delete_document_and_anchors(emitter);
+                    <span class="kw">return </span>OK;
                 }
-            } <span class="kw">else</span> {
-                <span class="macro">__assert!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">opened</span>);
-                <span class="kw">let</span> <span class="ident">fresh1</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>);
-                <span class="kw-2">*</span><span class="ident">fresh1</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(
-                    (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_anchors_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
-                        .<span class="ident">wrapping_mul</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                            <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
-                ) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_anchors_t</span>;
-                <span class="ident">memset</span>(
-                    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+            } <span class="kw">else </span>{
+                <span class="macro">__assert!</span>((<span class="kw-2">*</span>emitter).opened);
+                <span class="kw">let </span>fresh1 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).anchors);
+                <span class="kw-2">*</span>fresh1 = yaml_malloc(
+                    (size_of::&lt;yaml_anchors_t&gt;() <span class="kw">as </span>libc::c_ulong)
+                        .wrapping_mul((<span class="kw-2">*</span>document).nodes.top.c_offset_from((<span class="kw-2">*</span>document).nodes.start)
+                            <span class="kw">as </span>libc::c_long <span class="kw">as </span>libc::c_ulong),
+                ) <span class="kw">as </span><span class="kw-2">*mut </span>yaml_anchors_t;
+                memset(
+                    (<span class="kw-2">*</span>emitter).anchors <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
                     <span class="number">0</span>,
-                    (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_anchors_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
-                        .<span class="ident">wrapping_mul</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                            <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
+                    (size_of::&lt;yaml_anchors_t&gt;() <span class="kw">as </span>libc::c_ulong)
+                        .wrapping_mul((<span class="kw-2">*</span>document).nodes.top.c_offset_from((<span class="kw-2">*</span>document).nodes.start)
+                            <span class="kw">as </span>libc::c_long <span class="kw">as </span>libc::c_ulong),
                 );
-                <span class="ident">memset</span>(
-                    <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                memset(
+                    event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
                     <span class="number">0</span>,
-                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                    size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
                 );
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_START_EVENT</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">version_directive</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">version_directive</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">start</span> <span class="op">=</span>
-                    (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">start</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">end</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">end</span>;
-                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_implicit</span>;
-                <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
-                    <span class="ident">yaml_emitter_anchor_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>);
-                    <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>).<span class="ident">ok</span> {
-                        <span class="ident">memset</span>(
-                            <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                (<span class="kw-2">*</span>event).type_ = YAML_DOCUMENT_START_EVENT;
+                (<span class="kw-2">*</span>event).start_mark = mark;
+                (<span class="kw-2">*</span>event).end_mark = mark;
+                (<span class="kw-2">*</span>event).data.document_start.version_directive = (<span class="kw-2">*</span>document).version_directive;
+                (<span class="kw-2">*</span>event).data.document_start.tag_directives.start =
+                    (<span class="kw-2">*</span>document).tag_directives.start;
+                (<span class="kw-2">*</span>event).data.document_start.tag_directives.end = (<span class="kw-2">*</span>document).tag_directives.end;
+                (<span class="kw-2">*</span>event).data.document_start.implicit = (<span class="kw-2">*</span>document).start_implicit;
+                <span class="kw">if </span>yaml_emitter_emit(emitter, event).ok {
+                    yaml_emitter_anchor_node(emitter, <span class="number">1</span>);
+                    <span class="kw">if </span>yaml_emitter_dump_node(emitter, <span class="number">1</span>).ok {
+                        memset(
+                            event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
                             <span class="number">0</span>,
-                            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                            size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
                         );
-                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_END_EVENT</span>;
-                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_end</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_implicit</span>;
-                        <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
-                            <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="ident">emitter</span>);
-                            <span class="kw">return</span> <span class="ident">OK</span>;
+                        (<span class="kw-2">*</span>event).type_ = YAML_DOCUMENT_END_EVENT;
+                        (<span class="kw-2">*</span>event).start_mark = mark;
+                        (<span class="kw-2">*</span>event).end_mark = mark;
+                        (<span class="kw-2">*</span>event).data.document_end.implicit = (<span class="kw-2">*</span>document).end_implicit;
+                        <span class="kw">if </span>yaml_emitter_emit(emitter, event).ok {
+                            yaml_emitter_delete_document_and_anchors(emitter);
+                            <span class="kw">return </span>OK;
                         }
                     }
                 }
             }
         }
-        <span class="kw">_</span> =&gt; {}
+        <span class="kw">_ </span>=&gt; {}
     }
-    <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="ident">emitter</span>);
-    <span class="ident">FAIL</span>
+    yaml_emitter_delete_document_and_anchors(emitter);
+    FAIL
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="kw-2">mut</span> <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">libc::c_int</span>;
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">is_null</span>() {
-        <span class="ident">yaml_document_delete</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>);
-        <span class="kw">let</span> <span class="ident">fresh2</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>);
-        <span class="kw-2">*</span><span class="ident">fresh2</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_document_t</span><span class="op">&gt;</span>();
+<span class="kw">unsafe fn </span>yaml_emitter_delete_document_and_anchors(<span class="kw-2">mut </span>emitter: <span class="kw-2">*mut </span>yaml_emitter_t) {
+    <span class="kw">let </span><span class="kw-2">mut </span>index: libc::c_int;
+    <span class="kw">if </span>(<span class="kw-2">*</span>emitter).anchors.is_null() {
+        yaml_document_delete((<span class="kw-2">*</span>emitter).document);
+        <span class="kw">let </span>fresh2 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).document);
+        <span class="kw-2">*</span>fresh2 = ptr::null_mut::&lt;yaml_document_t&gt;();
         <span class="kw">return</span>;
     }
-    <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">while</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>)
-        .<span class="ident">nodes</span>
-        .<span class="ident">start</span>
-        .<span class="ident">wrapping_offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
-        <span class="op">&lt;</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>
+    index = <span class="number">0</span>;
+    <span class="kw">while </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document)
+        .nodes
+        .start
+        .wrapping_offset(index <span class="kw">as </span>isize)
+        &lt; (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document).nodes.top
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">node</span>: <span class="ident">yaml_node_t</span> <span class="op">=</span> <span class="kw-2">*</span>(<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>)
-            .<span class="ident">nodes</span>
-            .<span class="ident">start</span>
-            .<span class="ident">wrapping_offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>);
-        <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">serialized</span> {
-            <span class="ident">yaml_free</span>(<span class="ident">node</span>.<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
-            <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">type_</span> <span class="op">==</span> <span class="ident">YAML_SCALAR_NODE</span> {
-                <span class="ident">yaml_free</span>(<span class="ident">node</span>.<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>node: yaml_node_t = <span class="kw-2">*</span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document)
+            .nodes
+            .start
+            .wrapping_offset(index <span class="kw">as </span>isize);
+        <span class="kw">if </span>!(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset(index <span class="kw">as </span>isize)).serialized {
+            yaml_free(node.tag <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void);
+            <span class="kw">if </span>node.type_ == YAML_SCALAR_NODE {
+                yaml_free(node.data.scalar.value <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void);
             }
         }
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">type_</span> <span class="op">==</span> <span class="ident">YAML_SEQUENCE_NODE</span> {
-            <span class="macro">STACK_DEL!</span>(<span class="ident">node</span>.<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>);
+        <span class="kw">if </span>node.type_ == YAML_SEQUENCE_NODE {
+            <span class="macro">STACK_DEL!</span>(node.data.sequence.items);
         }
-        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">type_</span> <span class="op">==</span> <span class="ident">YAML_MAPPING_NODE</span> {
-            <span class="macro">STACK_DEL!</span>(<span class="ident">node</span>.<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>);
+        <span class="kw">if </span>node.type_ == YAML_MAPPING_NODE {
+            <span class="macro">STACK_DEL!</span>(node.data.mapping.pairs);
         }
-        <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        index += <span class="number">1</span>;
     }
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>).<span class="ident">nodes</span>);
-    <span class="ident">yaml_free</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
-    <span class="kw">let</span> <span class="ident">fresh6</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>);
-    <span class="kw-2">*</span><span class="ident">fresh6</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_anchors_t</span><span class="op">&gt;</span>();
-    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">last_anchor_id</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="ident">fresh7</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>);
-    <span class="kw-2">*</span><span class="ident">fresh7</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_document_t</span><span class="op">&gt;</span>();
+    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document).nodes);
+    yaml_free((<span class="kw-2">*</span>emitter).anchors <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void);
+    <span class="kw">let </span>fresh6 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).anchors);
+    <span class="kw-2">*</span>fresh6 = ptr::null_mut::&lt;yaml_anchors_t&gt;();
+    (<span class="kw-2">*</span>emitter).last_anchor_id = <span class="number">0</span>;
+    <span class="kw">let </span>fresh7 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).document);
+    <span class="kw-2">*</span>fresh7 = ptr::null_mut::&lt;yaml_document_t&gt;();
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_anchor_node_sub</span>(<span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>, <span class="ident">index</span>: <span class="ident">libc::c_int</span>) {
-    (<span class="kw-2">*</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>).<span class="ident">offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">references</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">if</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">references</span> <span class="op">==</span> <span class="number">2</span> {
-        (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">last_anchor_id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">anchor</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">last_anchor_id</span>;
+<span class="kw">unsafe fn </span>yaml_emitter_anchor_node_sub(emitter: <span class="kw-2">*mut </span>yaml_emitter_t, index: libc::c_int) {
+    (<span class="kw-2">*</span>((<span class="kw-2">*</span>emitter).anchors).offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).references += <span class="number">1</span>;
+    <span class="kw">if </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).references == <span class="number">2 </span>{
+        (<span class="kw-2">*</span>emitter).last_anchor_id += <span class="number">1</span>;
+        (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).anchor = (<span class="kw-2">*</span>emitter).last_anchor_id;
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_anchor_node</span>(<span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>, <span class="ident">index</span>: <span class="ident">libc::c_int</span>) {
-    <span class="kw">let</span> <span class="ident">node</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span> <span class="op">=</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>)
-        .<span class="ident">nodes</span>
-        .<span class="ident">start</span>
-        .<span class="ident">wrapping_offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
-        .<span class="ident">wrapping_offset</span>(<span class="op">-</span><span class="number">1_isize</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_item_t</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pair</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_pair_t</span>;
-    <span class="kw">let</span> <span class="ident">fresh8</span> <span class="op">=</span>
-        <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>).<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">references</span>);
-    <span class="kw-2">*</span><span class="ident">fresh8</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">if</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">references</span> <span class="op">==</span> <span class="number">1</span> {
-        <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> {
-            <span class="ident">YAML_SEQUENCE_NODE</span> =&gt; {
-                <span class="ident">item</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">start</span>;
-                <span class="kw">while</span> <span class="ident">item</span> <span class="op">&lt;</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">top</span> {
-                    <span class="ident">yaml_emitter_anchor_node_sub</span>(<span class="ident">emitter</span>, <span class="kw-2">*</span><span class="ident">item</span>);
-                    <span class="ident">item</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+<span class="kw">unsafe fn </span>yaml_emitter_anchor_node(emitter: <span class="kw-2">*mut </span>yaml_emitter_t, index: libc::c_int) {
+    <span class="kw">let </span>node: <span class="kw-2">*mut </span>yaml_node_t = (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document)
+        .nodes
+        .start
+        .wrapping_offset(index <span class="kw">as </span>isize)
+        .wrapping_offset(-<span class="number">1_isize</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>item: <span class="kw-2">*mut </span>yaml_node_item_t;
+    <span class="kw">let </span><span class="kw-2">mut </span>pair: <span class="kw-2">*mut </span>yaml_node_pair_t;
+    <span class="kw">let </span>fresh8 =
+        <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>((<span class="kw-2">*</span>emitter).anchors).wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).references);
+    <span class="kw-2">*</span>fresh8 += <span class="number">1</span>;
+    <span class="kw">if </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).references == <span class="number">1 </span>{
+        <span class="kw">match </span>(<span class="kw-2">*</span>node).type_ {
+            YAML_SEQUENCE_NODE =&gt; {
+                item = (<span class="kw-2">*</span>node).data.sequence.items.start;
+                <span class="kw">while </span>item &lt; (<span class="kw-2">*</span>node).data.sequence.items.top {
+                    yaml_emitter_anchor_node_sub(emitter, <span class="kw-2">*</span>item);
+                    item = item.wrapping_offset(<span class="number">1</span>);
                 }
             }
-            <span class="ident">YAML_MAPPING_NODE</span> =&gt; {
-                <span class="ident">pair</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">start</span>;
-                <span class="kw">while</span> <span class="ident">pair</span> <span class="op">&lt;</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">top</span> {
-                    <span class="ident">yaml_emitter_anchor_node_sub</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">pair</span>).<span class="ident">key</span>);
-                    <span class="ident">yaml_emitter_anchor_node_sub</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">pair</span>).<span class="ident">value</span>);
-                    <span class="ident">pair</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+            YAML_MAPPING_NODE =&gt; {
+                pair = (<span class="kw-2">*</span>node).data.mapping.pairs.start;
+                <span class="kw">while </span>pair &lt; (<span class="kw-2">*</span>node).data.mapping.pairs.top {
+                    yaml_emitter_anchor_node_sub(emitter, (<span class="kw-2">*</span>pair).key);
+                    yaml_emitter_anchor_node_sub(emitter, (<span class="kw-2">*</span>pair).value);
+                    pair = pair.wrapping_offset(<span class="number">1</span>);
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
-    } <span class="kw">else</span> <span class="kw">if</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">references</span> <span class="op">==</span> <span class="number">2</span> {
-        <span class="kw">let</span> <span class="ident">fresh9</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">last_anchor_id</span>);
-        <span class="kw-2">*</span><span class="ident">fresh9</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">anchor</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">fresh9</span>;
+    } <span class="kw">else if </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).references == <span class="number">2 </span>{
+        <span class="kw">let </span>fresh9 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).last_anchor_id);
+        <span class="kw-2">*</span>fresh9 += <span class="number">1</span>;
+        (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).anchor = <span class="kw-2">*</span>fresh9;
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_generate_anchor</span>(
-    <span class="ident">_emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">anchor_id</span>: <span class="ident">libc::c_int</span>,
-) -&gt; <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> {
-    <span class="kw">let</span> <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="number">16_u64</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-    <span class="macro">write!</span>(<span class="ident">WriteToPtr::new</span>(<span class="ident">anchor</span>), <span class="string">&quot;id{:03}\0&quot;</span>, <span class="ident">anchor_id</span>);
-    <span class="ident">anchor</span>
+<span class="kw">unsafe fn </span>yaml_emitter_generate_anchor(
+    _emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    anchor_id: libc::c_int,
+) -&gt; <span class="kw-2">*mut </span>yaml_char_t {
+    <span class="kw">let </span>anchor: <span class="kw-2">*mut </span>yaml_char_t = yaml_malloc(<span class="number">16_u64</span>) <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t;
+    <span class="macro">write!</span>(WriteToPtr::new(anchor), <span class="string">&quot;id{:03}\0&quot;</span>, anchor_id);
+    anchor
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>, <span class="ident">index</span>: <span class="ident">libc::c_int</span>) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="ident">node</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span> <span class="op">=</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">document</span>)
-        .<span class="ident">nodes</span>
-        .<span class="ident">start</span>
-        .<span class="ident">wrapping_offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
-        .<span class="ident">wrapping_offset</span>(<span class="op">-</span><span class="number">1_isize</span>);
-    <span class="kw">let</span> <span class="ident">anchor_id</span>: <span class="ident">libc::c_int</span> <span class="op">=</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">anchor</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-    <span class="kw">if</span> <span class="ident">anchor_id</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="ident">anchor</span> <span class="op">=</span> <span class="ident">yaml_emitter_generate_anchor</span>(<span class="ident">emitter</span>, <span class="ident">anchor_id</span>);
+<span class="kw">unsafe fn </span>yaml_emitter_dump_node(emitter: <span class="kw-2">*mut </span>yaml_emitter_t, index: libc::c_int) -&gt; Success {
+    <span class="kw">let </span>node: <span class="kw-2">*mut </span>yaml_node_t = (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).document)
+        .nodes
+        .start
+        .wrapping_offset(index <span class="kw">as </span>isize)
+        .wrapping_offset(-<span class="number">1_isize</span>);
+    <span class="kw">let </span>anchor_id: libc::c_int = (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).anchor;
+    <span class="kw">let </span><span class="kw-2">mut </span>anchor: <span class="kw-2">*mut </span>yaml_char_t = ptr::null_mut::&lt;yaml_char_t&gt;();
+    <span class="kw">if </span>anchor_id != <span class="number">0 </span>{
+        anchor = yaml_emitter_generate_anchor(emitter, anchor_id);
     }
-    <span class="kw">if</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">serialized</span> {
-        <span class="kw">return</span> <span class="ident">yaml_emitter_dump_alias</span>(<span class="ident">emitter</span>, <span class="ident">anchor</span>);
+    <span class="kw">if </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).serialized {
+        <span class="kw">return </span>yaml_emitter_dump_alias(emitter, anchor);
     }
-    (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">serialized</span> <span class="op">=</span> <span class="bool-val">true</span>;
-    <span class="kw">match</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> {
-        <span class="ident">YAML_SCALAR_NODE</span> =&gt; <span class="ident">yaml_emitter_dump_scalar</span>(<span class="ident">emitter</span>, <span class="ident">node</span>, <span class="ident">anchor</span>),
-        <span class="ident">YAML_SEQUENCE_NODE</span> =&gt; <span class="ident">yaml_emitter_dump_sequence</span>(<span class="ident">emitter</span>, <span class="ident">node</span>, <span class="ident">anchor</span>),
-        <span class="ident">YAML_MAPPING_NODE</span> =&gt; <span class="ident">yaml_emitter_dump_mapping</span>(<span class="ident">emitter</span>, <span class="ident">node</span>, <span class="ident">anchor</span>),
-        <span class="kw">_</span> =&gt; <span class="macro">__assert!</span>(<span class="bool-val">false</span>),
+    (<span class="kw-2">*</span>(<span class="kw-2">*</span>emitter).anchors.wrapping_offset((index - <span class="number">1</span>) <span class="kw">as </span>isize)).serialized = <span class="bool-val">true</span>;
+    <span class="kw">match </span>(<span class="kw-2">*</span>node).type_ {
+        YAML_SCALAR_NODE =&gt; yaml_emitter_dump_scalar(emitter, node, anchor),
+        YAML_SEQUENCE_NODE =&gt; yaml_emitter_dump_sequence(emitter, node, anchor),
+        YAML_MAPPING_NODE =&gt; yaml_emitter_dump_mapping(emitter, node, anchor),
+        <span class="kw">_ </span>=&gt; <span class="macro">__assert!</span>(<span class="bool-val">false</span>),
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_alias</span>(
-    <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="kw">unsafe fn </span>yaml_emitter_dump_alias(
+    emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    anchor: <span class="kw-2">*mut </span>yaml_char_t,
+) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_ALIAS_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">alias</span>.<span class="ident">anchor</span> <span class="op">=</span> <span class="ident">anchor</span>;
-    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
+    (<span class="kw-2">*</span>event).type_ = YAML_ALIAS_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    (<span class="kw-2">*</span>event).data.alias.anchor = anchor;
+    yaml_emitter_emit(emitter, event)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_scalar</span>(
-    <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">node</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span>,
-    <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="kw">unsafe fn </span>yaml_emitter_dump_scalar(
+    emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    node: <span class="kw-2">*mut </span>yaml_node_t,
+    anchor: <span class="kw-2">*mut </span>yaml_char_t,
+) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="kw">let</span> <span class="ident">plain_implicit</span> <span class="op">=</span> <span class="ident">strcmp</span>(
-        (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>,
-        <span class="string">b&quot;tag:yaml.org,2002:str\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
-    ) <span class="op">==</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="ident">quoted_implicit</span> <span class="op">=</span> <span class="ident">strcmp</span>(
-        (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>,
-        <span class="string">b&quot;tag:yaml.org,2002:str\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
-    ) <span class="op">==</span> <span class="number">0</span>;
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    <span class="kw">let </span>plain_implicit = strcmp(
+        (<span class="kw-2">*</span>node).tag <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
+        <span class="string">b&quot;tag:yaml.org,2002:str\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+    ) == <span class="number">0</span>;
+    <span class="kw">let </span>quoted_implicit = strcmp(
+        (<span class="kw-2">*</span>node).tag <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
+        <span class="string">b&quot;tag:yaml.org,2002:str\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+    ) == <span class="number">0</span>;
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SCALAR_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">anchor</span> <span class="op">=</span> <span class="ident">anchor</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">tag</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">plain_implicit</span> <span class="op">=</span> <span class="ident">plain_implicit</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">quoted_implicit</span> <span class="op">=</span> <span class="ident">quoted_implicit</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span>;
-    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
+    (<span class="kw-2">*</span>event).type_ = YAML_SCALAR_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    (<span class="kw-2">*</span>event).data.scalar.anchor = anchor;
+    (<span class="kw-2">*</span>event).data.scalar.tag = (<span class="kw-2">*</span>node).tag;
+    (<span class="kw-2">*</span>event).data.scalar.value = (<span class="kw-2">*</span>node).data.scalar.value;
+    (<span class="kw-2">*</span>event).data.scalar.length = (<span class="kw-2">*</span>node).data.scalar.length;
+    (<span class="kw-2">*</span>event).data.scalar.plain_implicit = plain_implicit;
+    (<span class="kw-2">*</span>event).data.scalar.quoted_implicit = quoted_implicit;
+    (<span class="kw-2">*</span>event).data.scalar.style = (<span class="kw-2">*</span>node).data.scalar.style;
+    yaml_emitter_emit(emitter, event)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_sequence</span>(
-    <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">node</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span>,
-    <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="kw">unsafe fn </span>yaml_emitter_dump_sequence(
+    emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    node: <span class="kw-2">*mut </span>yaml_node_t,
+    anchor: <span class="kw-2">*mut </span>yaml_char_t,
+) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="kw">let</span> <span class="ident">implicit</span> <span class="op">=</span> <span class="ident">strcmp</span>(
-        (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>,
-        <span class="string">b&quot;tag:yaml.org,2002:seq\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
-    ) <span class="op">==</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">item</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_item_t</span>;
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    <span class="kw">let </span>implicit = strcmp(
+        (<span class="kw-2">*</span>node).tag <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
+        <span class="string">b&quot;tag:yaml.org,2002:seq\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+    ) == <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>item: <span class="kw-2">*mut </span>yaml_node_item_t;
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_START_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">anchor</span> <span class="op">=</span> <span class="ident">anchor</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">tag</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">style</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">style</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
+    (<span class="kw-2">*</span>event).type_ = YAML_SEQUENCE_START_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    (<span class="kw-2">*</span>event).data.sequence_start.anchor = anchor;
+    (<span class="kw-2">*</span>event).data.sequence_start.tag = (<span class="kw-2">*</span>node).tag;
+    (<span class="kw-2">*</span>event).data.sequence_start.implicit = implicit;
+    (<span class="kw-2">*</span>event).data.sequence_start.style = (<span class="kw-2">*</span>node).data.sequence.style;
+    <span class="kw">if </span>yaml_emitter_emit(emitter, event).fail {
+        <span class="kw">return </span>FAIL;
     }
-    <span class="ident">item</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">start</span>;
-    <span class="kw">while</span> <span class="ident">item</span> <span class="op">&lt;</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">top</span> {
-        <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, <span class="kw-2">*</span><span class="ident">item</span>).<span class="ident">fail</span> {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
+    item = (<span class="kw-2">*</span>node).data.sequence.items.start;
+    <span class="kw">while </span>item &lt; (<span class="kw-2">*</span>node).data.sequence.items.top {
+        <span class="kw">if </span>yaml_emitter_dump_node(emitter, <span class="kw-2">*</span>item).fail {
+            <span class="kw">return </span>FAIL;
         }
-        <span class="ident">item</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+        item = item.wrapping_offset(<span class="number">1</span>);
     }
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_END_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
+    (<span class="kw-2">*</span>event).type_ = YAML_SEQUENCE_END_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    yaml_emitter_emit(emitter, event)
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_mapping</span>(
-    <span class="ident">emitter</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_emitter_t</span>,
-    <span class="ident">node</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span>,
-    <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">MaybeUninit</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span><span class="ident">::uninit</span>();
-    <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">event</span>.<span class="ident">as_mut_ptr</span>();
-    <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
-        <span class="ident">index</span>: <span class="number">0_u64</span>,
-        <span class="ident">line</span>: <span class="number">0_u64</span>,
-        <span class="ident">column</span>: <span class="number">0_u64</span>,
+<span class="kw">unsafe fn </span>yaml_emitter_dump_mapping(
+    emitter: <span class="kw-2">*mut </span>yaml_emitter_t,
+    node: <span class="kw-2">*mut </span>yaml_node_t,
+    anchor: <span class="kw-2">*mut </span>yaml_char_t,
+) -&gt; Success {
+    <span class="kw">let </span><span class="kw-2">mut </span>event = MaybeUninit::&lt;yaml_event_t&gt;::uninit();
+    <span class="kw">let </span>event = event.as_mut_ptr();
+    <span class="kw">let </span>mark = yaml_mark_t {
+        index: <span class="number">0_u64</span>,
+        line: <span class="number">0_u64</span>,
+        column: <span class="number">0_u64</span>,
     };
-    <span class="kw">let</span> <span class="ident">implicit</span> <span class="op">=</span> <span class="ident">strcmp</span>(
-        (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>,
-        <span class="string">b&quot;tag:yaml.org,2002:map\0&quot;</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_char</span>,
-    ) <span class="op">==</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pair</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_pair_t</span>;
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    <span class="kw">let </span>implicit = strcmp(
+        (<span class="kw-2">*</span>node).tag <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
+        <span class="string">b&quot;tag:yaml.org,2002:map\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+    ) == <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>pair: <span class="kw-2">*mut </span>yaml_node_pair_t;
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_START_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">anchor</span> <span class="op">=</span> <span class="ident">anchor</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">tag</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">style</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">style</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
+    (<span class="kw-2">*</span>event).type_ = YAML_MAPPING_START_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    (<span class="kw-2">*</span>event).data.mapping_start.anchor = anchor;
+    (<span class="kw-2">*</span>event).data.mapping_start.tag = (<span class="kw-2">*</span>node).tag;
+    (<span class="kw-2">*</span>event).data.mapping_start.implicit = implicit;
+    (<span class="kw-2">*</span>event).data.mapping_start.style = (<span class="kw-2">*</span>node).data.mapping.style;
+    <span class="kw">if </span>yaml_emitter_emit(emitter, event).fail {
+        <span class="kw">return </span>FAIL;
     }
-    <span class="ident">pair</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">start</span>;
-    <span class="kw">while</span> <span class="ident">pair</span> <span class="op">&lt;</span> (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">top</span> {
-        <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">pair</span>).<span class="ident">key</span>).<span class="ident">fail</span> {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
+    pair = (<span class="kw-2">*</span>node).data.mapping.pairs.start;
+    <span class="kw">while </span>pair &lt; (<span class="kw-2">*</span>node).data.mapping.pairs.top {
+        <span class="kw">if </span>yaml_emitter_dump_node(emitter, (<span class="kw-2">*</span>pair).key).fail {
+            <span class="kw">return </span>FAIL;
         }
-        <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">pair</span>).<span class="ident">value</span>).<span class="ident">fail</span> {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
+        <span class="kw">if </span>yaml_emitter_dump_node(emitter, (<span class="kw-2">*</span>pair).value).fail {
+            <span class="kw">return </span>FAIL;
         }
-        <span class="ident">pair</span> <span class="op">=</span> <span class="ident">pair</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+        pair = pair.wrapping_offset(<span class="number">1</span>);
     }
-    <span class="ident">memset</span>(
-        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+    memset(
+        event <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
         <span class="number">0</span>,
-        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        size_of::&lt;yaml_event_t&gt;() <span class="kw">as </span>libc::c_ulong,
     );
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_END_EVENT</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
+    (<span class="kw-2">*</span>event).type_ = YAML_MAPPING_END_EVENT;
+    (<span class="kw-2">*</span>event).start_mark = mark;
+    (<span class="kw-2">*</span>event).end_mark = mark;
+    yaml_emitter_emit(emitter, event)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

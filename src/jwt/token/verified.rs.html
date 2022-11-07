@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jwt-0.16.0/src/token/verified.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verified.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../jwt/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../jwt/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../jwt/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/jwt-0.16.0/src/token/verified.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verified.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../jwt/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../jwt/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../jwt/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -293,289 +287,289 @@
 <span id="287">287</span>
 <span id="288">288</span>
 <span id="289">289</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithm::store::Store</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithm::VerifyingAlgorithm</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::header</span>::{<span class="ident">Header</span>, <span class="ident">JoseHeader</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::token</span>::{<span class="ident">Unverified</span>, <span class="ident">Verified</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">FromBase64</span>, <span class="ident">Token</span>, <span class="ident">SEPARATOR</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::algorithm::store::Store;
+<span class="kw">use </span><span class="kw">crate</span>::algorithm::VerifyingAlgorithm;
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::header::{Header, JoseHeader};
+<span class="kw">use </span><span class="kw">crate</span>::token::{Unverified, Verified};
+<span class="kw">use crate</span>::{FromBase64, Token, SEPARATOR};
 
-<span class="doccomment">/// Allow objects to be verified with a key.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VerifyWithKey</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_key</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">VerifyingAlgorithm</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Allow objects to be verified with a key.
+</span><span class="kw">pub trait </span>VerifyWithKey&lt;T&gt; {
+    <span class="kw">fn </span>verify_with_key(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="kw">impl </span>VerifyingAlgorithm) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;;
 }
 
-<span class="doccomment">/// Allow objects to be verified with a store.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">VerifyWithStore</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_store</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">Algorithm</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">VerifyingAlgorithm</span>;
+<span class="doccomment">/// Allow objects to be verified with a store.
+</span><span class="kw">pub trait </span>VerifyWithStore&lt;T&gt; {
+    <span class="kw">fn </span>verify_with_store&lt;S, A&gt;(<span class="self">self</span>, store: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
+    <span class="kw">where
+        </span>S: Store&lt;Algorithm = A&gt;,
+        A: VerifyingAlgorithm;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span>: <span class="ident">JoseHeader</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">VerifyWithKey</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Unverified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_key</span>(
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H: JoseHeader, C&gt; VerifyWithKey&lt;Token&lt;H, C, Verified&gt;&gt; <span class="kw">for </span>Token&lt;H, C, Unverified&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    <span class="kw">fn </span>verify_with_key(
         <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">VerifyingAlgorithm</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>();
-        <span class="kw">let</span> <span class="ident">header_algorithm</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">algorithm_type</span>();
-        <span class="kw">let</span> <span class="ident">key_algorithm</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">algorithm_type</span>();
-        <span class="kw">if</span> <span class="ident">header_algorithm</span> <span class="op">!</span><span class="op">=</span> <span class="ident">key_algorithm</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::AlgorithmMismatch</span>(<span class="ident">header_algorithm</span>, <span class="ident">key_algorithm</span>));
+        key: <span class="kw-2">&amp;</span><span class="kw">impl </span>VerifyingAlgorithm,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;H, C, Verified&gt;, Error&gt; {
+        <span class="kw">let </span>header = <span class="self">self</span>.header();
+        <span class="kw">let </span>header_algorithm = header.algorithm_type();
+        <span class="kw">let </span>key_algorithm = key.algorithm_type();
+        <span class="kw">if </span>header_algorithm != key_algorithm {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::AlgorithmMismatch(header_algorithm, key_algorithm));
         }
 
-        <span class="kw">let</span> <span class="ident">Unverified</span> {
-            <span class="ident">header_str</span>,
-            <span class="ident">claims_str</span>,
-            <span class="ident">signature_str</span>,
-        } <span class="op">=</span> <span class="self">self</span>.<span class="ident">signature</span>;
+        <span class="kw">let </span>Unverified {
+            header_str,
+            claims_str,
+            signature_str,
+        } = <span class="self">self</span>.signature;
 
-        <span class="kw">if</span> <span class="ident">key</span>.<span class="ident">verify</span>(<span class="ident">header_str</span>, <span class="ident">claims_str</span>, <span class="ident">signature_str</span>)<span class="question-mark">?</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Token</span> {
-                <span class="ident">header</span>: <span class="self">self</span>.<span class="ident">header</span>,
-                <span class="ident">claims</span>: <span class="self">self</span>.<span class="ident">claims</span>,
-                <span class="ident">signature</span>: <span class="ident">Verified</span>,
+        <span class="kw">if </span>key.verify(header_str, claims_str, signature_str)<span class="question-mark">? </span>{
+            <span class="prelude-val">Ok</span>(Token {
+                header: <span class="self">self</span>.header,
+                claims: <span class="self">self</span>.claims,
+                signature: Verified,
             })
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::InvalidSignature</span>)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Err</span>(Error::InvalidSignature)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span>: <span class="ident">JoseHeader</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">VerifyWithStore</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Unverified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_store</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">Algorithm</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">VerifyingAlgorithm</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H: JoseHeader, C&gt; VerifyWithStore&lt;Token&lt;H, C, Verified&gt;&gt; <span class="kw">for </span>Token&lt;H, C, Unverified&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    <span class="kw">fn </span>verify_with_store&lt;S, A&gt;(<span class="self">self</span>, store: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;H, C, Verified&gt;, Error&gt;
+    <span class="kw">where
+        </span>S: Store&lt;Algorithm = A&gt;,
+        A: VerifyingAlgorithm,
     {
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">header</span>();
-        <span class="kw">let</span> <span class="ident">key_id</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">key_id</span>().<span class="ident">ok_or</span>(<span class="ident">Error::NoKeyId</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">store</span>
-            .<span class="ident">get</span>(<span class="ident">key_id</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Error::NoKeyWithKeyId</span>(<span class="ident">key_id</span>.<span class="ident">to_owned</span>()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>header = <span class="self">self</span>.header();
+        <span class="kw">let </span>key_id = header.key_id().ok_or(Error::NoKeyId)<span class="question-mark">?</span>;
+        <span class="kw">let </span>key = store
+            .get(key_id)
+            .ok_or_else(|| Error::NoKeyWithKeyId(key_id.to_owned()))<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.<span class="ident">verify_with_key</span>(<span class="ident">key</span>)
+        <span class="self">self</span>.verify_with_key(key)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">VerifyWithKey</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>
-<span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">FromBase64</span> <span class="op">+</span> <span class="ident">JoseHeader</span>,
-    <span class="ident">C</span>: <span class="ident">FromBase64</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H, C&gt; VerifyWithKey&lt;Token&lt;H, C, Verified&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str
+<span class="kw">where
+    </span>H: FromBase64 + JoseHeader,
+    C: FromBase64,
 {
-    <span class="kw">fn</span> <span class="ident">verify_with_key</span>(
+    <span class="kw">fn </span>verify_with_key(
         <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">VerifyingAlgorithm</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">unverified</span> <span class="op">=</span> <span class="ident">Token::parse_unverified</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="ident">unverified</span>.<span class="ident">verify_with_key</span>(<span class="ident">key</span>)
+        key: <span class="kw-2">&amp;</span><span class="kw">impl </span>VerifyingAlgorithm,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;H, C, Verified&gt;, Error&gt; {
+        <span class="kw">let </span>unverified = Token::parse_unverified(<span class="self">self</span>)<span class="question-mark">?</span>;
+        unverified.verify_with_key(key)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">VerifyWithStore</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>
-<span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">FromBase64</span> <span class="op">+</span> <span class="ident">JoseHeader</span>,
-    <span class="ident">C</span>: <span class="ident">FromBase64</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H, C&gt; VerifyWithStore&lt;Token&lt;H, C, Verified&gt;&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str
+<span class="kw">where
+    </span>H: FromBase64 + JoseHeader,
+    C: FromBase64,
 {
-    <span class="kw">fn</span> <span class="ident">verify_with_store</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Verified</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">Algorithm</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">VerifyingAlgorithm</span>,
+    <span class="kw">fn </span>verify_with_store&lt;S, A&gt;(<span class="self">self</span>, store: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;H, C, Verified&gt;, Error&gt;
+    <span class="kw">where
+        </span>S: Store&lt;Algorithm = A&gt;,
+        A: VerifyingAlgorithm,
     {
-        <span class="kw">let</span> <span class="ident">unverified</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Token::parse_unverified</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="ident">unverified</span>.<span class="ident">verify_with_store</span>(<span class="ident">store</span>)
+        <span class="kw">let </span>unverified: Token&lt;H, C, <span class="kw">_</span>&gt; = Token::parse_unverified(<span class="self">self</span>)<span class="question-mark">?</span>;
+        unverified.verify_with_store(store)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">FromBase64</span><span class="op">&gt;</span> <span class="ident">VerifyWithKey</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_key</span>(<span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">VerifyingAlgorithm</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">token</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">C</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">verify_with_key</span>(<span class="ident">key</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">token</span>.<span class="ident">claims</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: FromBase64&gt; VerifyWithKey&lt;C&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+    <span class="kw">fn </span>verify_with_key(<span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="kw">impl </span>VerifyingAlgorithm) -&gt; <span class="prelude-ty">Result</span>&lt;C, Error&gt; {
+        <span class="kw">let </span>token: Token&lt;Header, C, <span class="kw">_</span>&gt; = <span class="self">self</span>.verify_with_key(key)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(token.claims)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>: <span class="ident">FromBase64</span><span class="op">&gt;</span> <span class="ident">VerifyWithStore</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
-    <span class="kw">fn</span> <span class="ident">verify_with_store</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">store</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">Store</span><span class="op">&lt;</span><span class="ident">Algorithm</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span>,
-        <span class="ident">A</span>: <span class="ident">VerifyingAlgorithm</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, C: FromBase64&gt; VerifyWithStore&lt;C&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str {
+    <span class="kw">fn </span>verify_with_store&lt;S, A&gt;(<span class="self">self</span>, store: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;C, Error&gt;
+    <span class="kw">where
+        </span>S: Store&lt;Algorithm = A&gt;,
+        A: VerifyingAlgorithm,
     {
-        <span class="kw">let</span> <span class="ident">token</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">C</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">verify_with_store</span>(<span class="ident">store</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">token</span>.<span class="ident">claims</span>)
+        <span class="kw">let </span>token: Token&lt;Header, C, <span class="kw">_</span>&gt; = <span class="self">self</span>.verify_with_store(store)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(token.claims)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">H</span>: <span class="ident">FromBase64</span>, <span class="ident">C</span>: <span class="ident">FromBase64</span><span class="op">&gt;</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Unverified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Not recommended. Parse the header and claims without checking the validity of the signature.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_unverified</span>(<span class="ident">token_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">C</span>, <span class="ident">Unverified</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> [<span class="ident">header_str</span>, <span class="ident">claims_str</span>, <span class="ident">signature_str</span>] <span class="op">=</span> <span class="ident">split_components</span>(<span class="ident">token_str</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">H::from_base64</span>(<span class="ident">header_str</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">claims</span> <span class="op">=</span> <span class="ident">C::from_base64</span>(<span class="ident">claims_str</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">Unverified</span> {
-            <span class="ident">header_str</span>,
-            <span class="ident">claims_str</span>,
-            <span class="ident">signature_str</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, H: FromBase64, C: FromBase64&gt; Token&lt;H, C, Unverified&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    <span class="doccomment">/// Not recommended. Parse the header and claims without checking the validity of the signature.
+    </span><span class="kw">pub fn </span>parse_unverified(token_str: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Token&lt;H, C, Unverified&gt;, Error&gt; {
+        <span class="kw">let </span>[header_str, claims_str, signature_str] = split_components(token_str)<span class="question-mark">?</span>;
+        <span class="kw">let </span>header = H::from_base64(header_str)<span class="question-mark">?</span>;
+        <span class="kw">let </span>claims = C::from_base64(claims_str)<span class="question-mark">?</span>;
+        <span class="kw">let </span>signature = Unverified {
+            header_str,
+            claims_str,
+            signature_str,
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Token</span> {
-            <span class="ident">header</span>,
-            <span class="ident">claims</span>,
-            <span class="ident">signature</span>,
+        <span class="prelude-val">Ok</span>(Token {
+            header,
+            claims,
+            signature,
         })
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">split_components</span>(<span class="ident">token</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">3</span>], <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">components</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">split</span>(<span class="ident">SEPARATOR</span>);
-    <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">components</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Error::NoHeaderComponent</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">claims</span> <span class="op">=</span> <span class="ident">components</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Error::NoClaimsComponent</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">components</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Error::NoSignatureComponent</span>)<span class="question-mark">?</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>split_components(token: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;[<span class="kw-2">&amp;</span>str; <span class="number">3</span>], Error&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>components = token.split(SEPARATOR);
+    <span class="kw">let </span>header = components.next().ok_or(Error::NoHeaderComponent)<span class="question-mark">?</span>;
+    <span class="kw">let </span>claims = components.next().ok_or(Error::NoClaimsComponent)<span class="question-mark">?</span>;
+    <span class="kw">let </span>signature = components.next().ok_or(Error::NoSignatureComponent)<span class="question-mark">?</span>;
 
-    <span class="kw">if</span> <span class="ident">components</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::TooManyComponents</span>);
+    <span class="kw">if </span>components.next().is_some() {
+        <span class="kw">return </span><span class="prelude-val">Err</span>(Error::TooManyComponents);
     }
 
-    <span class="prelude-val">Ok</span>([<span class="ident">header</span>, <span class="ident">claims</span>, <span class="ident">signature</span>])
+    <span class="prelude-val">Ok</span>([header, claims, signature])
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">HashMap</span>};
-    <span class="kw">use</span> <span class="ident">std::iter::FromIterator</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span>std::collections::{BTreeMap, HashMap};
+    <span class="kw">use </span>std::iter::FromIterator;
 
-    <span class="kw">use</span> <span class="ident">hmac</span>::{<span class="ident">Hmac</span>, <span class="ident">Mac</span>};
-    <span class="kw">use</span> <span class="ident">serde::Deserialize</span>;
-    <span class="kw">use</span> <span class="ident">sha2</span>::{<span class="ident">Sha256</span>, <span class="ident">Sha512</span>};
+    <span class="kw">use </span>hmac::{Hmac, Mac};
+    <span class="kw">use </span>serde::Deserialize;
+    <span class="kw">use </span>sha2::{Sha256, Sha512};
 
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::algorithm::VerifyingAlgorithm</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::token::verified</span>::{<span class="ident">VerifyWithKey</span>, <span class="ident">VerifyWithStore</span>};
+    <span class="kw">use </span><span class="kw">crate</span>::algorithm::VerifyingAlgorithm;
+    <span class="kw">use </span><span class="kw">crate</span>::error::Error;
+    <span class="kw">use </span><span class="kw">crate</span>::token::verified::{VerifyWithKey, VerifyWithStore};
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Deserialize</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">Claims</span> {
-        <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="attribute">#[derive(Debug, Deserialize)]
+    </span><span class="kw">struct </span>Claims {
+        name: String,
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;openssl&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">token_can_not_be_verified_with_a_wrong_key</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">token::signed::SignWithKey</span>, <span class="ident">AlgorithmType</span>, <span class="ident">Header</span>, <span class="ident">PKeyWithDigest</span>, <span class="ident">Token</span>};
-        <span class="kw">use</span> <span class="ident">openssl</span>::{<span class="ident">hash::MessageDigest</span>, <span class="ident">pkey::PKey</span>};
+    <span class="attribute">#[test]
+    #[cfg(feature = <span class="string">&quot;openssl&quot;</span>)]
+    </span><span class="kw">pub fn </span>token_can_not_be_verified_with_a_wrong_key() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">use crate</span>::{token::signed::SignWithKey, AlgorithmType, Header, PKeyWithDigest, Token};
+        <span class="kw">use </span>openssl::{hash::MessageDigest, pkey::PKey};
 
-        <span class="kw">let</span> <span class="ident">private_pem</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../../test/rs256-private.pem&quot;</span>);
-        <span class="kw">let</span> <span class="ident">public_pem</span> <span class="op">=</span> <span class="macro">include_bytes!</span>(<span class="string">&quot;../../test/rs256-public-2.pem&quot;</span>);
+        <span class="kw">let </span>private_pem = <span class="macro">include_bytes!</span>(<span class="string">&quot;../../test/rs256-private.pem&quot;</span>);
+        <span class="kw">let </span>public_pem = <span class="macro">include_bytes!</span>(<span class="string">&quot;../../test/rs256-public-2.pem&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">rs256_private_key</span> <span class="op">=</span> <span class="ident">PKeyWithDigest</span> {
-            <span class="ident">digest</span>: <span class="ident">MessageDigest::sha256</span>(),
-            <span class="ident">key</span>: <span class="ident">PKey::private_key_from_pem</span>(<span class="ident">private_pem</span>).<span class="ident">unwrap</span>(),
+        <span class="kw">let </span>rs256_private_key = PKeyWithDigest {
+            digest: MessageDigest::sha256(),
+            key: PKey::private_key_from_pem(private_pem).unwrap(),
         };
-        <span class="kw">let</span> <span class="ident">rs256_public_key</span> <span class="op">=</span> <span class="ident">PKeyWithDigest</span> {
-            <span class="ident">digest</span>: <span class="ident">MessageDigest::sha256</span>(),
-            <span class="ident">key</span>: <span class="ident">PKey::public_key_from_pem</span>(<span class="ident">public_pem</span>).<span class="ident">unwrap</span>(),
+        <span class="kw">let </span>rs256_public_key = PKeyWithDigest {
+            digest: MessageDigest::sha256(),
+            key: PKey::public_key_from_pem(public_pem).unwrap(),
         };
 
-        <span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="ident">Header</span> {
-            <span class="ident">algorithm</span>: <span class="ident">AlgorithmType::Rs256</span>,
-            ..<span class="ident">Default::default</span>()
+        <span class="kw">let </span>header = Header {
+            algorithm: AlgorithmType::Rs256,
+            ..Default::default()
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">claims</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-        <span class="ident">claims</span>.<span class="ident">insert</span>(<span class="string">&quot;sub&quot;</span>, <span class="string">&quot;someone&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>claims = BTreeMap::new();
+        claims.insert(<span class="string">&quot;sub&quot;</span>, <span class="string">&quot;someone&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">signed_token</span> <span class="op">=</span> <span class="ident">Token::new</span>(<span class="ident">header</span>, <span class="ident">claims</span>).<span class="ident">sign_with_key</span>(<span class="kw-2">&amp;</span><span class="ident">rs256_private_key</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">token_str</span> <span class="op">=</span> <span class="ident">signed_token</span>.<span class="ident">as_str</span>();
-        <span class="kw">let</span> <span class="ident">unverified_token</span>: <span class="ident">Token</span><span class="op">&lt;</span><span class="ident">Header</span>, <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="ident">Token::parse_unverified</span>(<span class="ident">token_str</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">verified_token_result</span> <span class="op">=</span> <span class="ident">unverified_token</span>.<span class="ident">verify_with_key</span>(<span class="kw-2">&amp;</span><span class="ident">rs256_public_key</span>);
-        <span class="macro">assert!</span>(<span class="ident">verified_token_result</span>.<span class="ident">is_err</span>());
-        <span class="kw">match</span> <span class="ident">verified_token_result</span>.<span class="ident">err</span>().<span class="ident">unwrap</span>() {
-            <span class="ident">Error::InvalidSignature</span> =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Wrong error type: {:?}&quot;</span>, <span class="ident">other</span>),
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">component_errors</span>() {
-        <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">Hmac</span><span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Hmac::new_from_slice</span>(<span class="string">b&quot;first&quot;</span>).<span class="ident">unwrap</span>();
-
-        <span class="kw">let</span> <span class="ident">no_claims</span> <span class="op">=</span> <span class="string">&quot;header&quot;</span>;
-        <span class="kw">match</span> <span class="ident">VerifyWithKey</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="ident">::verify_with_key</span>(<span class="ident">no_claims</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::NoClaimsComponent</span>) =&gt; (),
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, <span class="ident">s</span>),
-            <span class="ident">x</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, <span class="ident">x</span>),
-        }
-
-        <span class="kw">let</span> <span class="ident">no_signature</span> <span class="op">=</span> <span class="string">&quot;header.claims&quot;</span>;
-        <span class="kw">match</span> <span class="ident">VerifyWithKey</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="ident">::verify_with_key</span>(<span class="ident">no_signature</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::NoSignatureComponent</span>) =&gt; (),
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, <span class="ident">s</span>),
-            <span class="ident">x</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, <span class="ident">x</span>),
-        }
-
-        <span class="kw">let</span> <span class="ident">too_many</span> <span class="op">=</span> <span class="string">&quot;header.claims.signature.&quot;</span>;
-        <span class="kw">match</span> <span class="ident">VerifyWithKey</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="ident">::verify_with_key</span>(<span class="ident">too_many</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::TooManyComponents</span>) =&gt; (),
-            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, <span class="ident">s</span>),
-            <span class="ident">x</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, <span class="ident">x</span>),
+        <span class="kw">let </span>signed_token = Token::new(header, claims).sign_with_key(<span class="kw-2">&amp;</span>rs256_private_key)<span class="question-mark">?</span>;
+        <span class="kw">let </span>token_str = signed_token.as_str();
+        <span class="kw">let </span>unverified_token: Token&lt;Header, BTreeMap&lt;String, String&gt;, <span class="kw">_</span>&gt; =
+            Token::parse_unverified(token_str)<span class="question-mark">?</span>;
+        <span class="kw">let </span>verified_token_result = unverified_token.verify_with_key(<span class="kw-2">&amp;</span>rs256_public_key);
+        <span class="macro">assert!</span>(verified_token_result.is_err());
+        <span class="kw">match </span>verified_token_result.err().unwrap() {
+            Error::InvalidSignature =&gt; <span class="prelude-val">Ok</span>(()),
+            other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Wrong error type: {:?}&quot;</span>, other),
         }
     }
 
-    <span class="comment">// Test stores</span>
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>component_errors() {
+        <span class="kw">let </span>key: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b&quot;first&quot;</span>).unwrap();
 
-    <span class="kw">fn</span> <span class="ident">create_test_data</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">FromIterator</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">VerifyingAlgorithm</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+        <span class="kw">let </span>no_claims = <span class="string">&quot;header&quot;</span>;
+        <span class="kw">match </span>VerifyWithKey::&lt;String&gt;::verify_with_key(no_claims, <span class="kw-2">&amp;</span>key) {
+            <span class="prelude-val">Err</span>(Error::NoClaimsComponent) =&gt; (),
+            <span class="prelude-val">Ok</span>(s) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, s),
+            x =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, x),
+        }
+
+        <span class="kw">let </span>no_signature = <span class="string">&quot;header.claims&quot;</span>;
+        <span class="kw">match </span>VerifyWithKey::&lt;String&gt;::verify_with_key(no_signature, <span class="kw-2">&amp;</span>key) {
+            <span class="prelude-val">Err</span>(Error::NoSignatureComponent) =&gt; (),
+            <span class="prelude-val">Ok</span>(s) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, s),
+            x =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, x),
+        }
+
+        <span class="kw">let </span>too_many = <span class="string">&quot;header.claims.signature.&quot;</span>;
+        <span class="kw">match </span>VerifyWithKey::&lt;String&gt;::verify_with_key(too_many, <span class="kw-2">&amp;</span>key) {
+            <span class="prelude-val">Err</span>(Error::TooManyComponents) =&gt; (),
+            <span class="prelude-val">Ok</span>(s) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Verify should not have succeeded with output {:?}&quot;</span>, s),
+            x =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incorrect error type {:?}&quot;</span>, x),
+        }
+    }
+
+    <span class="comment">// Test stores
+
+    </span><span class="kw">fn </span>create_test_data&lt;T&gt;() -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
+    <span class="kw">where
+        </span>T: FromIterator&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, Box&lt;<span class="kw">dyn </span>VerifyingAlgorithm&gt;)&gt;,
     {
-        <span class="comment">// Test two different algorithms in the same store</span>
-        <span class="kw">let</span> <span class="ident">key1</span>: <span class="ident">Hmac</span><span class="op">&lt;</span><span class="ident">Sha256</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Hmac::new_from_slice</span>(<span class="string">b&quot;first&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">key2</span>: <span class="ident">Hmac</span><span class="op">&lt;</span><span class="ident">Sha512</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Hmac::new_from_slice</span>(<span class="string">b&quot;second&quot;</span>)<span class="question-mark">?</span>;
+        <span class="comment">// Test two different algorithms in the same store
+        </span><span class="kw">let </span>key1: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b&quot;first&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>key2: Hmac&lt;Sha512&gt; = Hmac::new_from_slice(<span class="string">b&quot;second&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">name_to_key_tuples</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            (<span class="string">&quot;first_key&quot;</span>, <span class="ident">Box::new</span>(<span class="ident">key1</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">VerifyingAlgorithm</span><span class="op">&gt;</span>),
-            (<span class="string">&quot;second_key&quot;</span>, <span class="ident">Box::new</span>(<span class="ident">key2</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">VerifyingAlgorithm</span><span class="op">&gt;</span>),
+        <span class="kw">let </span>name_to_key_tuples = <span class="macro">vec!</span>[
+            (<span class="string">&quot;first_key&quot;</span>, Box::new(key1) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>VerifyingAlgorithm&gt;),
+            (<span class="string">&quot;second_key&quot;</span>, Box::new(key2) <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>VerifyingAlgorithm&gt;),
         ]
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">collect</span>();
+        .into_iter()
+        .collect();
 
-        <span class="prelude-val">Ok</span>(<span class="ident">name_to_key_tuples</span>)
+        <span class="prelude-val">Ok</span>(name_to_key_tuples)
     }
 
-    <span class="comment">// Header   {&quot;alg&quot;:&quot;HS512&quot;,&quot;kid&quot;:&quot;second_key&quot;}</span>
-    <span class="comment">// Claims   {&quot;name&quot;:&quot;Jane Doe&quot;}</span>
-    <span class="kw">const</span> <span class="ident">JANE_DOE_SECOND_KEY_TOKEN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;eyJhbGciOiJIUzUxMiIsImtpZCI6InNlY29uZF9rZXkifQ.eyJuYW1lIjoiSmFuZSBEb2UifQ.t2ON5s8DDb2hefBIWAe0jaEcp-T7b2Wevmj0kKJ8BFxKNQURHpdh4IA-wbmBmqtiCnqTGoRdqK45hhW0AOtz0A&quot;</span>;
+    <span class="comment">// Header   {&quot;alg&quot;:&quot;HS512&quot;,&quot;kid&quot;:&quot;second_key&quot;}
+    // Claims   {&quot;name&quot;:&quot;Jane Doe&quot;}
+    </span><span class="kw">const </span>JANE_DOE_SECOND_KEY_TOKEN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;eyJhbGciOiJIUzUxMiIsImtpZCI6InNlY29uZF9rZXkifQ.eyJuYW1lIjoiSmFuZSBEb2UifQ.t2ON5s8DDb2hefBIWAe0jaEcp-T7b2Wevmj0kKJ8BFxKNQURHpdh4IA-wbmBmqtiCnqTGoRdqK45hhW0AOtz0A&quot;</span>;
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_claims_with_b_tree_map</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key_store</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">create_test_data</span>()<span class="question-mark">?</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>verify_claims_with_b_tree_map() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>key_store: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = create_test_data()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">claims</span>: <span class="ident">Claims</span> <span class="op">=</span> <span class="ident">JANE_DOE_SECOND_KEY_TOKEN</span>.<span class="ident">verify_with_store</span>(<span class="kw-2">&amp;</span><span class="ident">key_store</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>claims: Claims = JANE_DOE_SECOND_KEY_TOKEN.verify_with_store(<span class="kw-2">&amp;</span>key_store)<span class="question-mark">?</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">claims</span>.<span class="ident">name</span>, <span class="string">&quot;Jane Doe&quot;</span>);
+        <span class="macro">assert_eq!</span>(claims.name, <span class="string">&quot;Jane Doe&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_claims_with_hash_map</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key_store</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">create_test_data</span>()<span class="question-mark">?</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>verify_claims_with_hash_map() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>key_store: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = create_test_data()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">claims</span>: <span class="ident">Claims</span> <span class="op">=</span> <span class="ident">JANE_DOE_SECOND_KEY_TOKEN</span>.<span class="ident">verify_with_store</span>(<span class="kw-2">&amp;</span><span class="ident">key_store</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>claims: Claims = JANE_DOE_SECOND_KEY_TOKEN.verify_with_store(<span class="kw-2">&amp;</span>key_store)<span class="question-mark">?</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">claims</span>.<span class="ident">name</span>, <span class="string">&quot;Jane Doe&quot;</span>);
+        <span class="macro">assert_eq!</span>(claims.name, <span class="string">&quot;Jane Doe&quot;</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify_claims_with_missing_key</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key_store</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">create_test_data</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">missing_key_token</span> <span class="op">=</span> <span class="string">&quot;eyJhbGciOiJIUzUxMiIsImtpZCI6Im1pc3Npbmdfa2V5In0.eyJuYW1lIjoiSmFuZSBEb2UifQ.MC9hmBjv9OABdv5bsjVdwUgPOhvpe6a924KU-U7PjVWF2N-f_HXa1PVWtDVJ-dqt1GKutVwixrz7hgVvE_G5_w&quot;</span>;
+    <span class="attribute">#[test]
+    </span><span class="kw">pub fn </span>verify_claims_with_missing_key() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span>key_store: BTreeMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = create_test_data()<span class="question-mark">?</span>;
+        <span class="kw">let </span>missing_key_token = <span class="string">&quot;eyJhbGciOiJIUzUxMiIsImtpZCI6Im1pc3Npbmdfa2V5In0.eyJuYW1lIjoiSmFuZSBEb2UifQ.MC9hmBjv9OABdv5bsjVdwUgPOhvpe6a924KU-U7PjVWF2N-f_HXa1PVWtDVJ-dqt1GKutVwixrz7hgVvE_G5_w&quot;</span>;
 
-        <span class="kw">let</span> <span class="ident">should_fail_claims</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Claims</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">missing_key_token</span>.<span class="ident">verify_with_store</span>(<span class="kw-2">&amp;</span><span class="ident">key_store</span>);
+        <span class="kw">let </span>should_fail_claims: <span class="prelude-ty">Result</span>&lt;Claims, <span class="kw">_</span>&gt; = missing_key_token.verify_with_store(<span class="kw-2">&amp;</span>key_store);
 
-        <span class="kw">match</span> <span class="ident">should_fail_claims</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error::NoKeyWithKeyId</span>(<span class="ident">key_id</span>)) =&gt; <span class="macro">assert_eq!</span>(<span class="ident">key_id</span>, <span class="string">&quot;missing_key&quot;</span>),
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(
+        <span class="kw">match </span>should_fail_claims {
+            <span class="prelude-val">Err</span>(Error::NoKeyWithKeyId(key_id)) =&gt; <span class="macro">assert_eq!</span>(key_id, <span class="string">&quot;missing_key&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(
                 <span class="string">&quot;Missing key should have triggered specific error but returned {:?}&quot;</span>,
-                <span class="ident">should_fail_claims</span>
+                should_fail_claims
             ),
         }
 
@@ -583,5 +577,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="jwt" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="jwt" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

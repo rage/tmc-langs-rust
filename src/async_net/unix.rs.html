@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-net-1.7.0/src/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_net/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../async_net/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_net/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-net-1.7.0/src/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_net/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../async_net/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_net/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -783,785 +777,784 @@
 <span id="777">777</span>
 <span id="778">778</span>
 <span id="779">779</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Unix domain sockets.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module is an async version of [`std::os::unix::net`].</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Unix domain sockets.
+//!
+//! This module is an async version of [`std::os::unix::net`].
 
-<span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Read</span> <span class="kw">as</span> <span class="kw">_</span>, <span class="ident">Write</span> <span class="kw">as</span> <span class="kw">_</span>};
-<span class="kw">use</span> <span class="ident">std::net::Shutdown</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">async_net_no_io_safety</span>))]</span>
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">AsFd</span>, <span class="ident">BorrowedFd</span>, <span class="ident">OwnedFd</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<span class="ident">AsRawFd</span>, <span class="ident">RawFd</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::os::windows::io</span>::{<span class="ident">AsRawSocket</span>, <span class="ident">RawSocket</span>};
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<span class="ident">RefUnwindSafe</span>, <span class="ident">UnwindSafe</span>};
-<span class="kw">use</span> <span class="ident">std::path::Path</span>;
-<span class="kw">use</span> <span class="ident">std::pin::Pin</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">std::task</span>::{<span class="ident">Context</span>, <span class="ident">Poll</span>};
+</span><span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, Read <span class="kw">as _</span>, Write <span class="kw">as _</span>};
+<span class="kw">use </span>std::net::Shutdown;
+<span class="attribute">#[cfg(not(async_net_no_io_safety))]
+</span><span class="kw">use </span>std::os::unix::io::{AsFd, BorrowedFd, OwnedFd};
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">use </span>std::os::unix::io::{AsRawFd, RawFd};
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">use </span>std::os::windows::io::{AsRawSocket, RawSocket};
+<span class="kw">use </span>std::panic::{RefUnwindSafe, UnwindSafe};
+<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::{Context, Poll};
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::os::unix::net::SocketAddr</span>;
+<span class="attribute">#[doc(no_inline)]
+</span><span class="kw">pub use </span>std::os::unix::net::SocketAddr;
 
-<span class="kw">use</span> <span class="ident">async_io::Async</span>;
-<span class="kw">use</span> <span class="ident">futures_lite</span>::{<span class="ident">prelude</span>::<span class="kw-2">*</span>, <span class="ident">ready</span>};
+<span class="kw">use </span>async_io::Async;
+<span class="kw">use </span>futures_lite::{prelude::<span class="kw-2">*</span>, ready};
 
-<span class="doccomment">/// A Unix server, listening for connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// After creating a [`UnixListener`] by [`bind`][`UnixListener::bind()`]ing it to an address, it</span>
-<span class="doccomment">/// listens for incoming connections. These can be accepted by calling</span>
-<span class="doccomment">/// [`accept()`][`UnixListener::accept()`] or by awaiting items from the async stream of</span>
-<span class="doccomment">/// [`incoming`][`UnixListener::incoming()`] connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cloning a [`UnixListener`] creates another handle to the same socket. The socket will be closed</span>
-<span class="doccomment">/// when all handles to it are dropped.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use async_net::unix::UnixListener;</span>
-<span class="doccomment">/// use futures_lite::prelude::*;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-<span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;</span>
-<span class="doccomment">/// let mut incoming = listener.incoming();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// while let Some(stream) = incoming.next().await {</span>
-<span class="doccomment">///     let mut stream = stream?;</span>
-<span class="doccomment">///     stream.write_all(b&quot;hello&quot;).await?;</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixListener</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A Unix server, listening for connections.
+///
+/// After creating a [`UnixListener`] by [`bind`][`UnixListener::bind()`]ing it to an address, it
+/// listens for incoming connections. These can be accepted by calling
+/// [`accept()`][`UnixListener::accept()`] or by awaiting items from the async stream of
+/// [`incoming`][`UnixListener::incoming()`] connections.
+///
+/// Cloning a [`UnixListener`] creates another handle to the same socket. The socket will be closed
+/// when all handles to it are dropped.
+///
+/// # Examples
+///
+/// ```no_run
+/// use async_net::unix::UnixListener;
+/// use futures_lite::prelude::*;
+///
+/// # futures_lite::future::block_on(async {
+/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;
+/// let mut incoming = listener.incoming();
+///
+/// while let Some(stream) = incoming.next().await {
+///     let mut stream = stream?;
+///     stream.write_all(b&quot;hello&quot;).await?;
+/// }
+/// # std::io::Result::Ok(()) });
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>UnixListener {
+    inner: Arc&lt;Async&lt;std::os::unix::net::UnixListener&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">UnixListener</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixListener</span> {
-        <span class="ident">UnixListener</span> { <span class="ident">inner</span> }
+<span class="kw">impl </span>UnixListener {
+    <span class="kw">fn </span>new(inner: Arc&lt;Async&lt;std::os::unix::net::UnixListener&gt;&gt;) -&gt; UnixListener {
+        UnixListener { inner }
     }
 
-    <span class="doccomment">/// Creates a new [`UnixListener`] bound to the given path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixListener;</span>
-    <span class="doccomment">/// use futures_lite::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// let mut incoming = listener.incoming();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(stream) = incoming.next().await {</span>
-    <span class="doccomment">///     let mut stream = stream?;</span>
-    <span class="doccomment">///     stream.write_all(b&quot;hello&quot;).await?;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixListener</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span><span class="ident">::bind</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixListener::new</span>(<span class="ident">Arc::new</span>(<span class="ident">listener</span>)))
+    <span class="doccomment">/// Creates a new [`UnixListener`] bound to the given path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixListener;
+    /// use futures_lite::prelude::*;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;
+    /// let mut incoming = listener.incoming();
+    ///
+    /// while let Some(stream) = incoming.next().await {
+    ///     let mut stream = stream?;
+    ///     stream.write_all(b&quot;hello&quot;).await?;
+    /// }
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>bind&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;UnixListener&gt; {
+        <span class="kw">let </span>listener = Async::&lt;std::os::unix::net::UnixListener&gt;::bind(path)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(UnixListener::new(Arc::new(listener)))
     }
 
-    <span class="doccomment">/// Accepts a new incoming connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns a TCP stream and the address it is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// let (stream, addr) = listener.accept().await?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">accept</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">UnixStream</span>, <span class="ident">SocketAddr</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">accept</span>().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">stream</span>)), <span class="ident">addr</span>))
+    <span class="doccomment">/// Accepts a new incoming connection.
+    ///
+    /// Returns a TCP stream and the address it is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixListener;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;
+    /// let (stream, addr) = listener.accept().await?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>accept(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;(UnixStream, SocketAddr)&gt; {
+        <span class="kw">let </span>(stream, addr) = <span class="self">self</span>.inner.accept().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((UnixStream::new(Arc::new(stream)), addr))
     }
 
-    <span class="doccomment">/// Returns a stream of incoming connections.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Iterating over this stream is equivalent to calling [`accept()`][`UnixListener::accept()`]</span>
-    <span class="doccomment">/// in a loop. The stream of connections is infinite, i.e awaiting the next connection will</span>
-    <span class="doccomment">/// never result in [`None`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixListener;</span>
-    <span class="doccomment">/// use futures_lite::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// let mut incoming = listener.incoming();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// while let Some(stream) = incoming.next().await {</span>
-    <span class="doccomment">///     let mut stream = stream?;</span>
-    <span class="doccomment">///     stream.write_all(b&quot;hello&quot;).await?;</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">incoming</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">Incoming</span> {
-            <span class="ident">incoming</span>: <span class="ident">Box::pin</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">incoming</span>()),
+    <span class="doccomment">/// Returns a stream of incoming connections.
+    ///
+    /// Iterating over this stream is equivalent to calling [`accept()`][`UnixListener::accept()`]
+    /// in a loop. The stream of connections is infinite, i.e awaiting the next connection will
+    /// never result in [`None`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixListener;
+    /// use futures_lite::prelude::*;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;
+    /// let mut incoming = listener.incoming();
+    ///
+    /// while let Some(stream) = incoming.next().await {
+    ///     let mut stream = stream?;
+    ///     stream.write_all(b&quot;hello&quot;).await?;
+    /// }
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>incoming(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+        Incoming {
+            incoming: Box::pin(<span class="self">self</span>.inner.incoming()),
         }
     }
 
-    <span class="doccomment">/// Returns the local address this listener is bound to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixListener;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// println!(&quot;Local address is {:?}&quot;, listener.local_addr()?);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local address this listener is bound to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixListener;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let listener = UnixListener::bind(&quot;/tmp/socket&quot;)?;
+    /// println!(&quot;Local address is {:?}&quot;, listener.local_addr()?);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.get_ref().local_addr()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">listener</span>: <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixListener</span> {
-        <span class="ident">UnixListener::new</span>(<span class="ident">Arc::new</span>(<span class="ident">listener</span>))
+<span class="kw">impl </span>From&lt;Async&lt;std::os::unix::net::UnixListener&gt;&gt; <span class="kw">for </span>UnixListener {
+    <span class="kw">fn </span>from(listener: Async&lt;std::os::unix::net::UnixListener&gt;) -&gt; UnixListener {
+        UnixListener::new(Arc::new(listener))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
+<span class="kw">impl </span>TryFrom&lt;std::os::unix::net::UnixListener&gt; <span class="kw">for </span>UnixListener {
+    <span class="kw">type </span>Error = io::Error;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">listener</span>: <span class="ident">std::os::unix::net::UnixListener</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixListener</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixListener::new</span>(<span class="ident">Arc::new</span>(<span class="ident">Async::new</span>(<span class="ident">listener</span>)<span class="question-mark">?</span>)))
+    <span class="kw">fn </span>try_from(listener: std::os::unix::net::UnixListener) -&gt; io::Result&lt;UnixListener&gt; {
+        <span class="prelude-val">Ok</span>(UnixListener::new(Arc::new(Async::new(listener)<span class="question-mark">?</span>)))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UnixListener</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixListener</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">UnixListener</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">val</span>.<span class="ident">inner</span>
+<span class="kw">impl </span>From&lt;UnixListener&gt; <span class="kw">for </span>Arc&lt;Async&lt;std::os::unix::net::UnixListener&gt;&gt; {
+    <span class="kw">fn </span>from(val: UnixListener) -&gt; <span class="self">Self </span>{
+        val.inner
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawFd</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawFd</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span>AsRawFd <span class="kw">for </span>UnixListener {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.as_raw_fd()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">async_net_no_io_safety</span>), <span class="ident">unix</span>))]</span>
-<span class="kw">impl</span> <span class="ident">AsFd</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">fn</span> <span class="ident">as_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BorrowedFd</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">as_fd</span>()
+<span class="attribute">#[cfg(all(not(async_net_no_io_safety), unix))]
+</span><span class="kw">impl </span>AsFd <span class="kw">for </span>UnixListener {
+    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="self">self</span>.inner.get_ref().as_fd()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">async_net_no_io_safety</span>), <span class="ident">unix</span>))]</span>
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">OwnedFd</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
+<span class="attribute">#[cfg(all(not(async_net_no_io_safety), unix))]
+</span><span class="kw">impl </span>TryFrom&lt;OwnedFd&gt; <span class="kw">for </span>UnixListener {
+    <span class="kw">type </span>Error = io::Error;
 
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">OwnedFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::try_from</span>(<span class="ident">std::os::unix::net::UnixListener::from</span>(<span class="ident">value</span>))
+    <span class="kw">fn </span>try_from(value: OwnedFd) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="self">Self</span>::try_from(std::os::unix::net::UnixListener::from(value))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">UnixListener</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_socket</span>()
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UnixListener {
+    <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+        <span class="self">self</span>.inner.as_raw_socket()
     }
 }
 
-<span class="doccomment">/// A stream of incoming Unix connections.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This stream is infinite, i.e awaiting the next connection will never result in [`None`]. It is</span>
-<span class="doccomment">/// created by the [`UnixListener::incoming()`] method.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">incoming</span>: <span class="ident">Pin</span><span class="op">&lt;</span>
-        <span class="ident">Box</span><span class="op">&lt;</span>
-            <span class="kw">dyn</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-        <span class="op">&gt;</span>,
-    <span class="op">&gt;</span>,
+<span class="doccomment">/// A stream of incoming Unix connections.
+///
+/// This stream is infinite, i.e awaiting the next connection will never result in [`None`]. It is
+/// created by the [`UnixListener::incoming()`] method.
+</span><span class="kw">pub struct </span>Incoming&lt;<span class="lifetime">&#39;a</span>&gt; {
+    incoming: Pin&lt;
+        Box&lt;
+            <span class="kw">dyn </span>Stream&lt;Item = io::Result&lt;Async&lt;std::os::unix::net::UnixStream&gt;&gt;&gt; + Send + Sync + <span class="lifetime">&#39;a</span>,
+        &gt;,
+    &gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixStream</span><span class="op">&gt;</span>;
+<span class="kw">impl </span>Stream <span class="kw">for </span>Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span>Item = io::Result&lt;UnixStream&gt;;
 
-    <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">incoming</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>));
-        <span class="ident">Poll::Ready</span>(<span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="ident">res</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">stream</span>)))))
+    <span class="kw">fn </span>poll_next(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt;&gt; {
+        <span class="kw">let </span>res = <span class="macro">ready!</span>(Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.incoming).poll_next(cx));
+        Poll::Ready(res.map(|res| res.map(|stream| UnixStream::new(Arc::new(stream)))))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Incoming</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Incoming {{ ... }}&quot;</span>)
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Incoming&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;Incoming {{ ... }}&quot;</span>)
     }
 }
 
-<span class="doccomment">/// A Unix connection.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`UnixStream`] can be created by [`connect`][`UnixStream::connect()`]ing to an endpoint or by</span>
-<span class="doccomment">/// [`accept`][`UnixListener::accept()`]ing an incoming connection.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`UnixStream`] is a bidirectional stream that implements traits [`AsyncRead`] and</span>
-<span class="doccomment">/// [`AsyncWrite`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cloning a [`UnixStream`] creates another handle to the same socket. The socket will be closed</span>
-<span class="doccomment">/// when all handles to it are dropped. The reading and writing portions of the connection can also</span>
-<span class="doccomment">/// be shut down individually with the [`shutdown()`][`UnixStream::shutdown()`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use async_net::unix::UnixStream;</span>
-<span class="doccomment">/// use futures_lite::prelude::*;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-<span class="doccomment">/// let mut stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;</span>
-<span class="doccomment">/// stream.write_all(b&quot;hello&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = vec![0u8; 1024];</span>
-<span class="doccomment">/// let n = stream.read(&amp;mut buf).await?;</span>
-<span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixStream</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">readable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">async_io::ReadableOwned</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">writable</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">async_io::WritableOwned</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A Unix connection.
+///
+/// A [`UnixStream`] can be created by [`connect`][`UnixStream::connect()`]ing to an endpoint or by
+/// [`accept`][`UnixListener::accept()`]ing an incoming connection.
+///
+/// [`UnixStream`] is a bidirectional stream that implements traits [`AsyncRead`] and
+/// [`AsyncWrite`].
+///
+/// Cloning a [`UnixStream`] creates another handle to the same socket. The socket will be closed
+/// when all handles to it are dropped. The reading and writing portions of the connection can also
+/// be shut down individually with the [`shutdown()`][`UnixStream::shutdown()`] method.
+///
+/// # Examples
+///
+/// ```no_run
+/// use async_net::unix::UnixStream;
+/// use futures_lite::prelude::*;
+///
+/// # futures_lite::future::block_on(async {
+/// let mut stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;
+/// stream.write_all(b&quot;hello&quot;).await?;
+///
+/// let mut buf = vec![0u8; 1024];
+/// let n = stream.read(&amp;mut buf).await?;
+/// # std::io::Result::Ok(()) });
+/// ```
+</span><span class="kw">pub struct </span>UnixStream {
+    inner: Arc&lt;Async&lt;std::os::unix::net::UnixStream&gt;&gt;,
+    readable: <span class="prelude-ty">Option</span>&lt;async_io::ReadableOwned&lt;std::os::unix::net::UnixStream&gt;&gt;,
+    writable: <span class="prelude-ty">Option</span>&lt;async_io::WritableOwned&lt;std::os::unix::net::UnixStream&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">UnwindSafe</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {}
-<span class="kw">impl</span> <span class="ident">RefUnwindSafe</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {}
+<span class="kw">impl </span>UnwindSafe <span class="kw">for </span>UnixStream {}
+<span class="kw">impl </span>RefUnwindSafe <span class="kw">for </span>UnixStream {}
 
-<span class="kw">impl</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixStream</span> {
-        <span class="ident">UnixStream</span> {
-            <span class="ident">inner</span>,
-            <span class="ident">readable</span>: <span class="prelude-val">None</span>,
-            <span class="ident">writable</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>UnixStream {
+    <span class="kw">fn </span>new(inner: Arc&lt;Async&lt;std::os::unix::net::UnixStream&gt;&gt;) -&gt; UnixStream {
+        UnixStream {
+            inner,
+            readable: <span class="prelude-val">None</span>,
+            writable: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Creates a Unix connection to given path.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixStream</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="ident">::connect</span>(<span class="ident">path</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">stream</span>)))
+    <span class="doccomment">/// Creates a Unix connection to given path.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixStream;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>connect&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;UnixStream&gt; {
+        <span class="kw">let </span>stream = Async::&lt;std::os::unix::net::UnixStream&gt;::connect(path).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(UnixStream::new(Arc::new(stream)))
     }
 
-    <span class="doccomment">/// Creates a pair of connected Unix sockets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let (stream1, stream2) = UnixStream::pair()?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pair</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">UnixStream</span>, <span class="ident">UnixStream</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="ident">::pair</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">a</span>)), <span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">b</span>))))
+    <span class="doccomment">/// Creates a pair of connected Unix sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixStream;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let (stream1, stream2) = UnixStream::pair()?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(UnixStream, UnixStream)&gt; {
+        <span class="kw">let </span>(a, b) = Async::&lt;std::os::unix::net::UnixStream&gt;::pair()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>((UnixStream::new(Arc::new(a)), UnixStream::new(Arc::new(b))))
     }
 
-    <span class="doccomment">/// Returns the local address this socket is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// println!(&quot;Local address is {:?}&quot;, stream.local_addr()?);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local address this socket is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixStream;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;
+    /// println!(&quot;Local address is {:?}&quot;, stream.local_addr()?);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.get_ref().local_addr()
     }
 
-    <span class="doccomment">/// Returns the remote address this socket is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixStream;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// println!(&quot;Connected to {:?}&quot;, stream.peer_addr()?);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">peer_addr</span>()
+    <span class="doccomment">/// Returns the remote address this socket is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixStream;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;
+    /// println!(&quot;Connected to {:?}&quot;, stream.peer_addr()?);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.get_ref().peer_addr()
     }
 
-    <span class="doccomment">/// Shuts down the read half, write half, or both halves of this connection.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will cause all pending and future I/O in the given directions to return</span>
-    <span class="doccomment">/// immediately with an appropriate value (see the documentation of [`Shutdown`]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::{Shutdown, unix::UnixStream};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// stream.shutdown(Shutdown::Both)?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">how</span>: <span class="ident">Shutdown</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">shutdown</span>(<span class="ident">how</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+    <span class="doccomment">/// Shuts down the read half, write half, or both halves of this connection.
+    ///
+    /// This method will cause all pending and future I/O in the given directions to return
+    /// immediately with an appropriate value (see the documentation of [`Shutdown`]).
+    ///
+    /// ```no_run
+    /// use async_net::{Shutdown, unix::UnixStream};
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let stream = UnixStream::connect(&quot;/tmp/socket&quot;).await?;
+    /// stream.shutdown(Shutdown::Both)?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: Shutdown) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.get_ref().shutdown(how)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UnixStream</span> {
-        <span class="ident">UnixStream::new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>())
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="self">self</span>.inner.fmt(f)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stream</span>: <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixStream</span> {
-        <span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">stream</span>))
+<span class="kw">impl </span>Clone <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; UnixStream {
+        UnixStream::new(<span class="self">self</span>.inner.clone())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
-
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">stream</span>: <span class="ident">std::os::unix::net::UnixStream</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixStream</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixStream::new</span>(<span class="ident">Arc::new</span>(<span class="ident">Async::new</span>(<span class="ident">stream</span>)<span class="question-mark">?</span>)))
+<span class="kw">impl </span>From&lt;Async&lt;std::os::unix::net::UnixStream&gt;&gt; <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>from(stream: Async&lt;std::os::unix::net::UnixStream&gt;) -&gt; UnixStream {
+        UnixStream::new(Arc::new(stream))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UnixStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixStream</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">UnixStream</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">val</span>.<span class="ident">inner</span>
+<span class="kw">impl </span>TryFrom&lt;std::os::unix::net::UnixStream&gt; <span class="kw">for </span>UnixStream {
+    <span class="kw">type </span>Error = io::Error;
+
+    <span class="kw">fn </span>try_from(stream: std::os::unix::net::UnixStream) -&gt; io::Result&lt;UnixStream&gt; {
+        <span class="prelude-val">Ok</span>(UnixStream::new(Arc::new(Async::new(stream)<span class="question-mark">?</span>)))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawFd</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawFd</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>()
+<span class="kw">impl </span>From&lt;UnixStream&gt; <span class="kw">for </span>Arc&lt;Async&lt;std::os::unix::net::UnixStream&gt;&gt; {
+    <span class="kw">fn </span>from(val: UnixStream) -&gt; <span class="self">Self </span>{
+        val.inner
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">async_net_no_io_safety</span>), <span class="ident">unix</span>))]</span>
-<span class="kw">impl</span> <span class="ident">AsFd</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">as_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">BorrowedFd</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">as_fd</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span>AsRawFd <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.as_raw_fd()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">async_net_no_io_safety</span>), <span class="ident">unix</span>))]</span>
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">OwnedFd</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
-
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">OwnedFd</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::try_from</span>(<span class="ident">std::os::unix::net::UnixStream::from</span>(<span class="ident">value</span>))
+<span class="attribute">#[cfg(all(not(async_net_no_io_safety), unix))]
+</span><span class="kw">impl </span>AsFd <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>as_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+        <span class="self">self</span>.inner.get_ref().as_fd()
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_socket</span>()
+<span class="attribute">#[cfg(all(not(async_net_no_io_safety), unix))]
+</span><span class="kw">impl </span>TryFrom&lt;OwnedFd&gt; <span class="kw">for </span>UnixStream {
+    <span class="kw">type </span>Error = io::Error;
+
+    <span class="kw">fn </span>try_from(value: OwnedFd) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="self">Self</span>::try_from(std::os::unix::net::UnixStream::from(value))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="comment">// Attempt the non-blocking operation.</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {}
-                <span class="ident">res</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">readable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">res</span>);
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+        <span class="self">self</span>.inner.as_raw_socket()
+    }
+}
+
+<span class="kw">impl </span>AsyncRead <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>poll_read(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="comment">// Attempt the non-blocking operation.
+            </span><span class="kw">match </span><span class="self">self</span>.inner.get_ref().read(buf) {
+                <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::WouldBlock =&gt; {}
+                res =&gt; {
+                    <span class="self">self</span>.readable = <span class="prelude-val">None</span>;
+                    <span class="kw">return </span>Poll::Ready(res);
                 }
             }
 
-            <span class="comment">// Initialize the future to wait for readiness.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">readable</span>.<span class="ident">is_none</span>() {
-                <span class="self">self</span>.<span class="ident">readable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">readable_owned</span>());
+            <span class="comment">// Initialize the future to wait for readiness.
+            </span><span class="kw">if </span><span class="self">self</span>.readable.is_none() {
+                <span class="self">self</span>.readable = <span class="prelude-val">Some</span>(<span class="self">self</span>.inner.clone().readable_owned());
             }
 
-            <span class="comment">// Poll the future for readiness.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">readable</span> {
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">f</span>).<span class="ident">poll</span>(<span class="ident">cx</span>));
-                <span class="self">self</span>.<span class="ident">readable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="ident">res</span><span class="question-mark">?</span>;
+            <span class="comment">// Poll the future for readiness.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.readable {
+                <span class="kw">let </span>res = <span class="macro">ready!</span>(Pin::new(f).poll(cx));
+                <span class="self">self</span>.readable = <span class="prelude-val">None</span>;
+                res<span class="question-mark">?</span>;
             }
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">UnixStream</span> {
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="comment">// Attempt the non-blocking operation.</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {}
-                <span class="ident">res</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">res</span>);
+<span class="kw">impl </span>AsyncWrite <span class="kw">for </span>UnixStream {
+    <span class="kw">fn </span>poll_write(
+        <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        buf: <span class="kw-2">&amp;</span>[u8],
+    ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="comment">// Attempt the non-blocking operation.
+            </span><span class="kw">match </span><span class="self">self</span>.inner.get_ref().write(buf) {
+                <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::WouldBlock =&gt; {}
+                res =&gt; {
+                    <span class="self">self</span>.writable = <span class="prelude-val">None</span>;
+                    <span class="kw">return </span>Poll::Ready(res);
                 }
             }
 
-            <span class="comment">// Initialize the future to wait for readiness.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">writable</span>.<span class="ident">is_none</span>() {
-                <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">writable_owned</span>());
+            <span class="comment">// Initialize the future to wait for readiness.
+            </span><span class="kw">if </span><span class="self">self</span>.writable.is_none() {
+                <span class="self">self</span>.writable = <span class="prelude-val">Some</span>(<span class="self">self</span>.inner.clone().writable_owned());
             }
 
-            <span class="comment">// Poll the future for readiness.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">writable</span> {
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">f</span>).<span class="ident">poll</span>(<span class="ident">cx</span>));
-                <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="ident">res</span><span class="question-mark">?</span>;
+            <span class="comment">// Poll the future for readiness.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.writable {
+                <span class="kw">let </span>res = <span class="macro">ready!</span>(Pin::new(f).poll(cx));
+                <span class="self">self</span>.writable = <span class="prelude-val">None</span>;
+                res<span class="question-mark">?</span>;
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="comment">// Attempt the non-blocking operation.</span>
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">flush</span>() {
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io::ErrorKind::WouldBlock</span> =&gt; {}
-                <span class="ident">res</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                    <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">res</span>);
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        <span class="kw">loop </span>{
+            <span class="comment">// Attempt the non-blocking operation.
+            </span><span class="kw">match </span><span class="self">self</span>.inner.get_ref().flush() {
+                <span class="prelude-val">Err</span>(err) <span class="kw">if </span>err.kind() == io::ErrorKind::WouldBlock =&gt; {}
+                res =&gt; {
+                    <span class="self">self</span>.writable = <span class="prelude-val">None</span>;
+                    <span class="kw">return </span>Poll::Ready(res);
                 }
             }
 
-            <span class="comment">// Initialize the future to wait for readiness.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">writable</span>.<span class="ident">is_none</span>() {
-                <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clone</span>().<span class="ident">writable_owned</span>());
+            <span class="comment">// Initialize the future to wait for readiness.
+            </span><span class="kw">if </span><span class="self">self</span>.writable.is_none() {
+                <span class="self">self</span>.writable = <span class="prelude-val">Some</span>(<span class="self">self</span>.inner.clone().writable_owned());
             }
 
-            <span class="comment">// Poll the future for readiness.</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">writable</span> {
-                <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">f</span>).<span class="ident">poll</span>(<span class="ident">cx</span>));
-                <span class="self">self</span>.<span class="ident">writable</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                <span class="ident">res</span><span class="question-mark">?</span>;
+            <span class="comment">// Poll the future for readiness.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(f) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.writable {
+                <span class="kw">let </span>res = <span class="macro">ready!</span>(Pin::new(f).poll(cx));
+                <span class="self">self</span>.writable = <span class="prelude-val">None</span>;
+                res<span class="question-mark">?</span>;
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Poll::Ready</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">shutdown</span>(<span class="ident">Shutdown::Write</span>))
+    <span class="kw">fn </span>poll_close(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+        Poll::Ready(<span class="self">self</span>.inner.get_ref().shutdown(Shutdown::Write))
     }
 }
 
-<span class="doccomment">/// A Unix datagram socket.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// After creating a [`UnixDatagram`] by [`bind`][`UnixDatagram::bind()`]ing it to a path, data can</span>
-<span class="doccomment">/// be [sent to] and [received from] any other socket address.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Cloning a [`UnixDatagram`] creates another handle to the same socket. The socket will be closed</span>
-<span class="doccomment">/// when all handles to it are dropped. The reading and writing portions of the socket can also be</span>
-<span class="doccomment">/// shut down individually with the [`shutdown()`][`UnixStream::shutdown()`] method.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [received from]: UnixDatagram::recv_from()</span>
-<span class="doccomment">/// [sent to]: UnixDatagram::send_to()</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-<span class="doccomment">/// let socket = UnixDatagram::bind(&quot;/tmp/socket1&quot;)?;</span>
-<span class="doccomment">/// socket.send_to(b&quot;hello&quot;, &quot;/tmp/socket2&quot;).await?;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let mut buf = vec![0u8; 1024];</span>
-<span class="doccomment">/// let (n, addr) = socket.recv_from(&amp;mut buf).await?;</span>
-<span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnixDatagram</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A Unix datagram socket.
+///
+/// After creating a [`UnixDatagram`] by [`bind`][`UnixDatagram::bind()`]ing it to a path, data can
+/// be [sent to] and [received from] any other socket address.
+///
+/// Cloning a [`UnixDatagram`] creates another handle to the same socket. The socket will be closed
+/// when all handles to it are dropped. The reading and writing portions of the socket can also be
+/// shut down individually with the [`shutdown()`][`UnixStream::shutdown()`] method.
+///
+/// [received from]: UnixDatagram::recv_from()
+/// [sent to]: UnixDatagram::send_to()
+///
+/// # Examples
+///
+/// ```no_run
+/// use async_net::unix::UnixDatagram;
+///
+/// # futures_lite::future::block_on(async {
+/// let socket = UnixDatagram::bind(&quot;/tmp/socket1&quot;)?;
+/// socket.send_to(b&quot;hello&quot;, &quot;/tmp/socket2&quot;).await?;
+///
+/// let mut buf = vec![0u8; 1024];
+/// let (n, addr) = socket.recv_from(&amp;mut buf).await?;
+/// # std::io::Result::Ok(()) });
+/// ```
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>UnixDatagram {
+    inner: Arc&lt;Async&lt;std::os::unix::net::UnixDatagram&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">UnixDatagram</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixDatagram</span> {
-        <span class="ident">UnixDatagram</span> { <span class="ident">inner</span> }
+<span class="kw">impl </span>UnixDatagram {
+    <span class="kw">fn </span>new(inner: Arc&lt;Async&lt;std::os::unix::net::UnixDatagram&gt;&gt;) -&gt; UnixDatagram {
+        UnixDatagram { inner }
     }
 
-    <span class="doccomment">/// Creates a new [`UnixDatagram`] bound to the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixDatagram</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="ident">::bind</span>(<span class="ident">path</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">socket</span>)))
+    <span class="doccomment">/// Creates a new [`UnixDatagram`] bound to the given address.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>bind&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; io::Result&lt;UnixDatagram&gt; {
+        <span class="kw">let </span>socket = Async::&lt;std::os::unix::net::UnixDatagram&gt;::bind(path)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(UnixDatagram::new(Arc::new(socket)))
     }
 
-    <span class="doccomment">/// Creates a Unix datagram socket not bound to any address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unbound</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixDatagram</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="ident">::unbound</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">socket</span>)))
+    <span class="doccomment">/// Creates a Unix datagram socket not bound to any address.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>unbound() -&gt; io::Result&lt;UnixDatagram&gt; {
+        <span class="kw">let </span>socket = Async::&lt;std::os::unix::net::UnixDatagram&gt;::unbound()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(UnixDatagram::new(Arc::new(socket)))
     }
 
-    <span class="doccomment">/// Creates a pair of connected Unix datagram sockets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let (socket1, socket2) = UnixDatagram::pair()?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pair</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">UnixDatagram</span>, <span class="ident">UnixDatagram</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="ident">Async</span>::<span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="ident">::pair</span>()<span class="question-mark">?</span>;
+    <span class="doccomment">/// Creates a pair of connected Unix datagram sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let (socket1, socket2) = UnixDatagram::pair()?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>pair() -&gt; io::Result&lt;(UnixDatagram, UnixDatagram)&gt; {
+        <span class="kw">let </span>(a, b) = Async::&lt;std::os::unix::net::UnixDatagram&gt;::pair()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((
-            <span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">a</span>)),
-            <span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">b</span>)),
+            UnixDatagram::new(Arc::new(a)),
+            UnixDatagram::new(Arc::new(b)),
         ))
     }
 
-    <span class="doccomment">/// Connects the Unix datagram socket to the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// When connected, methods [`send()`][`UnixDatagram::send()`] and</span>
-    <span class="doccomment">/// [`recv()`][`UnixDatagram::recv()`] will use the specified address for sending and receiving</span>
-    <span class="doccomment">/// messages. Additionally, a filter will be applied to</span>
-    <span class="doccomment">/// [`recv_from()`][`UnixDatagram::recv_from()`] so that it only receives messages from that</span>
-    <span class="doccomment">/// same address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.connect(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>();
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">connect</span>(<span class="ident">p</span>)
+    <span class="doccomment">/// Connects the Unix datagram socket to the given address.
+    ///
+    /// When connected, methods [`send()`][`UnixDatagram::send()`] and
+    /// [`recv()`][`UnixDatagram::recv()`] will use the specified address for sending and receiving
+    /// messages. Additionally, a filter will be applied to
+    /// [`recv_from()`][`UnixDatagram::recv_from()`] so that it only receives messages from that
+    /// same address.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.connect(&quot;/tmp/socket&quot;)?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>connect&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; io::Result&lt;()&gt; {
+        <span class="kw">let </span>p = path.as_ref();
+        <span class="self">self</span>.inner.get_ref().connect(p)
     }
 
-    <span class="doccomment">/// Returns the local address this socket is bound to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// println!(&quot;Bound to {:?}&quot;, socket.local_addr()?);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">local_addr</span>()
+    <span class="doccomment">/// Returns the local address this socket is bound to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;
+    /// println!(&quot;Bound to {:?}&quot;, socket.local_addr()?);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>local_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.get_ref().local_addr()
     }
 
-    <span class="doccomment">/// Returns the remote address this socket is connected to.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.connect(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// println!(&quot;Connected to {:?}&quot;, socket.peer_addr()?);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">peer_addr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">peer_addr</span>()
+    <span class="doccomment">/// Returns the remote address this socket is connected to.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.connect(&quot;/tmp/socket&quot;)?;
+    /// println!(&quot;Connected to {:?}&quot;, socket.peer_addr()?);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>peer_addr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; io::Result&lt;SocketAddr&gt; {
+        <span class="self">self</span>.inner.get_ref().peer_addr()
     }
 
-    <span class="doccomment">/// Receives data from an address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes received and the address data came from.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let (n, addr) = socket.recv_from(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// println!(&quot;Received {} bytes from {:?}&quot;, n, addr);</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">SocketAddr</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">recv_from</span>(<span class="ident">buf</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Receives data from an address.
+    ///
+    /// On success, returns the number of bytes received and the address data came from.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::bind(&quot;/tmp/socket&quot;)?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let (n, addr) = socket.recv_from(&amp;mut buf).await?;
+    /// println!(&quot;Received {} bytes from {:?}&quot;, n, addr);
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>recv_from(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;(usize, SocketAddr)&gt; {
+        <span class="self">self</span>.inner.recv_from(buf).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Sends data to the given address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes sent.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.send_to(b&quot;hello&quot;, &quot;/tmp/socket&quot;).await?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send_to</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">path</span>: <span class="ident">P</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">send_to</span>(<span class="ident">buf</span>, <span class="ident">path</span>.<span class="ident">as_ref</span>()).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Sends data to the given address.
+    ///
+    /// On success, returns the number of bytes sent.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.send_to(b&quot;hello&quot;, &quot;/tmp/socket&quot;).await?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>send_to&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8], path: P) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.send_to(buf, path.as_ref()).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Receives data from the connected address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes received.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.connect(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut buf = vec![0; 1024];</span>
-    <span class="doccomment">/// let n = socket.recv(&amp;mut buf).await?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">recv</span>(<span class="ident">buf</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Receives data from the connected address.
+    ///
+    /// On success, returns the number of bytes received.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.connect(&quot;/tmp/socket&quot;)?;
+    ///
+    /// let mut buf = vec![0; 1024];
+    /// let n = socket.recv(&amp;mut buf).await?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.recv(buf).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Sends data to the connected address.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On success, returns the number of bytes sent.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::unix::UnixDatagram;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.connect(&quot;/tmp/socket&quot;)?;</span>
-    <span class="doccomment">/// socket.send(b&quot;hello&quot;).await?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">send</span>(<span class="ident">buf</span>).<span class="kw">await</span>
-    }
+    <span class="doccomment">/// Sends data to the connected address.
+    ///
+    /// On success, returns the number of bytes sent.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::unix::UnixDatagram;
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.connect(&quot;/tmp/socket&quot;)?;
+    /// socket.send(b&quot;hello&quot;).await?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub async fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.inner.send(buf).<span class="kw">await
+    </span>}
 
-    <span class="doccomment">/// Shuts down the read half, write half, or both halves of this socket.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method will cause all pending and future I/O in the given directions to return</span>
-    <span class="doccomment">/// immediately with an appropriate value (see the documentation of [`Shutdown`]).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use async_net::{Shutdown, unix::UnixDatagram};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # futures_lite::future::block_on(async {</span>
-    <span class="doccomment">/// let socket = UnixDatagram::unbound()?;</span>
-    <span class="doccomment">/// socket.shutdown(Shutdown::Both)?;</span>
-    <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">how</span>: <span class="ident">Shutdown</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_ref</span>().<span class="ident">shutdown</span>(<span class="ident">how</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixDatagram</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">socket</span>: <span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span>) -&gt; <span class="ident">UnixDatagram</span> {
-        <span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">socket</span>))
+    <span class="doccomment">/// Shuts down the read half, write half, or both halves of this socket.
+    ///
+    /// This method will cause all pending and future I/O in the given directions to return
+    /// immediately with an appropriate value (see the documentation of [`Shutdown`]).
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use async_net::{Shutdown, unix::UnixDatagram};
+    ///
+    /// # futures_lite::future::block_on(async {
+    /// let socket = UnixDatagram::unbound()?;
+    /// socket.shutdown(Shutdown::Both)?;
+    /// # std::io::Result::Ok(()) });
+    /// ```
+    </span><span class="kw">pub fn </span>shutdown(<span class="kw-2">&amp;</span><span class="self">self</span>, how: Shutdown) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.inner.get_ref().shutdown(how)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixDatagram</span> {
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">io::Error</span>;
-
-    <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">socket</span>: <span class="ident">std::os::unix::net::UnixDatagram</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">UnixDatagram</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">UnixDatagram::new</span>(<span class="ident">Arc::new</span>(<span class="ident">Async::new</span>(<span class="ident">socket</span>)<span class="question-mark">?</span>)))
+<span class="kw">impl </span>From&lt;Async&lt;std::os::unix::net::UnixDatagram&gt;&gt; <span class="kw">for </span>UnixDatagram {
+    <span class="kw">fn </span>from(socket: Async&lt;std::os::unix::net::UnixDatagram&gt;) -&gt; UnixDatagram {
+        UnixDatagram::new(Arc::new(socket))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UnixDatagram</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Async</span><span class="op">&lt;</span><span class="ident">std::os::unix::net::UnixDatagram</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <span class="ident">UnixDatagram</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">val</span>.<span class="ident">inner</span>
+<span class="kw">impl </span>TryFrom&lt;std::os::unix::net::UnixDatagram&gt; <span class="kw">for </span>UnixDatagram {
+    <span class="kw">type </span>Error = io::Error;
+
+    <span class="kw">fn </span>try_from(socket: std::os::unix::net::UnixDatagram) -&gt; io::Result&lt;UnixDatagram&gt; {
+        <span class="prelude-val">Ok</span>(UnixDatagram::new(Arc::new(Async::new(socket)<span class="question-mark">?</span>)))
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawFd</span> <span class="kw">for</span> <span class="ident">UnixDatagram</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawFd</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_fd</span>()
+<span class="kw">impl </span>From&lt;UnixDatagram&gt; <span class="kw">for </span>Arc&lt;Async&lt;std::os::unix::net::UnixDatagram&gt;&gt; {
+    <span class="kw">fn </span>from(val: UnixDatagram) -&gt; <span class="self">Self </span>{
+        val.inner
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
-<span class="kw">impl</span> <span class="ident">AsRawSocket</span> <span class="kw">for</span> <span class="ident">UnixDatagram</span> {
-    <span class="kw">fn</span> <span class="ident">as_raw_socket</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RawSocket</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_raw_socket</span>()
+<span class="attribute">#[cfg(unix)]
+</span><span class="kw">impl </span>AsRawFd <span class="kw">for </span>UnixDatagram {
+    <span class="kw">fn </span>as_raw_fd(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawFd {
+        <span class="self">self</span>.inner.as_raw_fd()
+    }
+}
+
+<span class="attribute">#[cfg(windows)]
+</span><span class="kw">impl </span>AsRawSocket <span class="kw">for </span>UnixDatagram {
+    <span class="kw">fn </span>as_raw_socket(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawSocket {
+        <span class="self">self</span>.inner.as_raw_socket()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_net" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_net" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

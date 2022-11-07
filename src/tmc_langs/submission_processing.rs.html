@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs/src/submission_processing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>submission_processing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs/src/submission_processing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>submission_processing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -785,365 +779,365 @@
 <span id="779">779</span>
 <span id="780">780</span>
 <span id="781">781</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Functions for processing submissions.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Functions for processing submissions.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::LangsError</span>;
-<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
-<span class="kw">use</span> <span class="ident">regex::Regex</span>;
-<span class="kw">use</span> <span class="ident">serde_json::Value</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">fs::File</span>,
-    <span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>},
-    <span class="ident">path::Path</span>,
+</span><span class="kw">use </span><span class="kw">crate</span>::error::LangsError;
+<span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>regex::Regex;
+<span class="kw">use </span>serde_json::Value;
+<span class="kw">use </span>std::{
+    fs::File,
+    io::{BufRead, BufReader, BufWriter, Write},
+    path::Path,
 };
-<span class="kw">use</span> <span class="ident">tmc_langs_framework</span>::{<span class="ident">MetaString</span>, <span class="ident">MetaSyntaxParser</span>};
-<span class="kw">use</span> <span class="ident">tmc_langs_util</span>::{<span class="ident">deserialize</span>, <span class="ident">file_util</span>, <span class="ident">FileError</span>};
-<span class="kw">use</span> <span class="ident">walkdir</span>::{<span class="ident">DirEntry</span>, <span class="ident">WalkDir</span>};
+<span class="kw">use </span>tmc_langs_framework::{MetaString, MetaSyntaxParser};
+<span class="kw">use </span>tmc_langs_util::{deserialize, file_util, FileError};
+<span class="kw">use </span>walkdir::{DirEntry, WalkDir};
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-<span class="kw">static</span> <span class="ident">FILES_TO_SKIP_ALWAYS</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Regex</span><span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Regex::new</span>(<span class="string">r&quot;\.tmcrc|^metadata\.yml$&quot;</span>).<span class="ident">unwrap</span>());
+<span class="attribute">#[allow(clippy::unwrap_used)]
+</span><span class="kw">static </span>FILES_TO_SKIP_ALWAYS: Lazy&lt;Regex&gt; =
+    Lazy::new(|| Regex::new(<span class="string">r&quot;\.tmcrc|^metadata\.yml$&quot;</span>).unwrap());
 
-<span class="doccomment">/// Note: used by tmc-server.</span>
-<span class="doccomment">/// Walks through each given path, processing files and copying them into the destination.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as</span>
-<span class="doccomment">/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_solution</span>(<span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
+<span class="doccomment">/// Note: used by tmc-server.
+/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a `.tmcignore` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove solution tags and stubs.
+</span><span class="kw">pub fn </span>prepare_solution(exercise_path: <span class="kw-2">&amp;</span>Path, dest_root: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
     <span class="macro">log::debug!</span>(
         <span class="string">&quot;preparing solution from {} to {}&quot;</span>,
-        <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
-        <span class="ident">dest_root</span>.<span class="ident">display</span>()
+        exercise_path.display(),
+        dest_root.display()
     );
 
-    <span class="kw">let</span> <span class="ident">line_filter</span> <span class="op">=</span> <span class="op">|</span><span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="ident">MetaString</span><span class="op">|</span> {
-        <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">meta</span>, <span class="ident">MetaString::Stub</span>(<span class="kw">_</span>)) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">meta</span>, <span class="ident">MetaString::Hidden</span>(<span class="kw">_</span>))
-        <span class="comment">// hide stub and hidden lines</span>
-    };
-    <span class="kw">let</span> <span class="ident">file_filter</span> <span class="op">=</span> <span class="op">|</span><span class="ident">metas</span>: <span class="kw-2">&amp;</span>[<span class="ident">MetaString</span>]<span class="op">|</span> {
-        <span class="op">!</span><span class="ident">metas</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">ms</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">ms</span>, <span class="ident">MetaString::HiddenFileMarker</span>)) <span class="comment">// exclude hidden files</span>
-    };
-    <span class="ident">process_files</span>(<span class="ident">exercise_path</span>, <span class="ident">dest_root</span>, <span class="ident">line_filter</span>, <span class="ident">file_filter</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>line_filter = |meta: <span class="kw-2">&amp;</span>MetaString| {
+        !<span class="macro">matches!</span>(meta, MetaString::Stub(<span class="kw">_</span>)) &amp;&amp; !<span class="macro">matches!</span>(meta, MetaString::Hidden(<span class="kw">_</span>))
+        <span class="comment">// hide stub and hidden lines
+    </span>};
+    <span class="kw">let </span>file_filter = |metas: <span class="kw-2">&amp;</span>[MetaString]| {
+        !metas
+            .iter()
+            .any(|ms| <span class="macro">matches!</span>(ms, MetaString::HiddenFileMarker)) <span class="comment">// exclude hidden files
+    </span>};
+    process_files(exercise_path, dest_root, line_filter, file_filter)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Walks through each given path, processing files and copying them into the destination.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as</span>
-<span class="doccomment">/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Additionally, copies any shared files with the corresponding language plugins.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">prepare_stub</span>(<span class="ident">exercise_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
+<span class="doccomment">/// Walks through each given path, processing files and copying them into the destination.
+///
+/// Skips hidden directories, directories that contain a ```.tmcignore``` file in their root, as well as
+/// files matching patterns defined in ```FILES_TO_SKIP_ALWAYS``` and directories and files named ```private```.
+///
+/// Binary files are copied without extra processing, while text files are parsed to remove stub tags and solutions.
+///
+/// Additionally, copies any shared files with the corresponding language plugins.
+</span><span class="kw">pub fn </span>prepare_stub(exercise_path: <span class="kw-2">&amp;</span>Path, dest_root: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
     <span class="macro">log::debug!</span>(
         <span class="string">&quot;preparing stub from {} to {}&quot;</span>,
-        <span class="ident">exercise_path</span>.<span class="ident">display</span>(),
-        <span class="ident">dest_root</span>.<span class="ident">display</span>()
+        exercise_path.display(),
+        dest_root.display()
     );
 
-    <span class="kw">let</span> <span class="ident">line_filter</span> <span class="op">=</span> <span class="op">|</span><span class="ident">meta</span>: <span class="kw-2">&amp;</span><span class="ident">MetaString</span><span class="op">|</span> {
-        <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">meta</span>, <span class="ident">MetaString::Solution</span>(<span class="kw">_</span>)) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">meta</span>, <span class="ident">MetaString::Hidden</span>(<span class="kw">_</span>))
-        <span class="comment">// exclude solution and hidden lines</span>
+    <span class="kw">let </span>line_filter = |meta: <span class="kw-2">&amp;</span>MetaString| {
+        !<span class="macro">matches!</span>(meta, MetaString::Solution(<span class="kw">_</span>)) &amp;&amp; !<span class="macro">matches!</span>(meta, MetaString::Hidden(<span class="kw">_</span>))
+        <span class="comment">// exclude solution and hidden lines
+    </span>};
+    <span class="kw">let </span>file_filter = |metas: <span class="kw-2">&amp;</span>[MetaString]| {
+        !metas.iter().any(|ms| {
+            <span class="macro">matches!</span>(ms, MetaString::SolutionFileMarker) <span class="comment">// exclude solution files
+                </span>|| <span class="macro">matches!</span>(ms, MetaString::HiddenFileMarker) <span class="comment">// exclude hidden files
+        </span>})
     };
-    <span class="kw">let</span> <span class="ident">file_filter</span> <span class="op">=</span> <span class="op">|</span><span class="ident">metas</span>: <span class="kw-2">&amp;</span>[<span class="ident">MetaString</span>]<span class="op">|</span> {
-        <span class="op">!</span><span class="ident">metas</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">ms</span><span class="op">|</span> {
-            <span class="macro">matches!</span>(<span class="ident">ms</span>, <span class="ident">MetaString::SolutionFileMarker</span>) <span class="comment">// exclude solution files</span>
-                <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">ms</span>, <span class="ident">MetaString::HiddenFileMarker</span>) <span class="comment">// exclude hidden files</span>
-        })
-    };
-    <span class="ident">process_files</span>(<span class="ident">exercise_path</span>, <span class="ident">dest_root</span>, <span class="ident">line_filter</span>, <span class="ident">file_filter</span>)<span class="question-mark">?</span>;
+    process_files(exercise_path, dest_root, line_filter, file_filter)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// Processes all files in path, copying files in directories that are not skipped.</span>
-<span class="kw">fn</span> <span class="ident">process_files</span>(
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="kw-2">mut</span> <span class="ident">line_filter</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">MetaString</span>) -&gt; <span class="ident">bool</span>,
-    <span class="kw-2">mut</span> <span class="ident">file_filter</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span>[<span class="ident">MetaString</span>]) -&gt; <span class="ident">bool</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
-    <span class="macro">log::info!</span>(<span class="string">&quot;Project: {:?}&quot;</span>, <span class="ident">source</span>);
+<span class="comment">// Processes all files in path, copying files in directories that are not skipped.
+</span><span class="kw">fn </span>process_files(
+    source: <span class="kw-2">&amp;</span>Path,
+    dest_root: <span class="kw-2">&amp;</span>Path,
+    <span class="kw-2">mut </span>line_filter: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>MetaString) -&gt; bool,
+    <span class="kw-2">mut </span>file_filter: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>[MetaString]) -&gt; bool,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
+    <span class="macro">log::info!</span>(<span class="string">&quot;Project: {:?}&quot;</span>, source);
 
-    <span class="kw">let</span> <span class="ident">walker</span> <span class="op">=</span> <span class="ident">WalkDir::new</span>(<span class="ident">source</span>).<span class="ident">min_depth</span>(<span class="number">1</span>).<span class="ident">into_iter</span>();
-    <span class="comment">// silently skips over errors, for example when there&#39;s a directory we don&#39;t have permissions for</span>
-    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">walker</span>
-        .<span class="ident">filter_entry</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="op">!</span><span class="ident">is_hidden_dir</span>(<span class="ident">e</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">on_skip_list</span>(<span class="ident">e</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">contains_tmcignore</span>(<span class="ident">e</span>))
-        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">ok</span>())
+    <span class="kw">let </span>walker = WalkDir::new(source).min_depth(<span class="number">1</span>).into_iter();
+    <span class="comment">// silently skips over errors, for example when there&#39;s a directory we don&#39;t have permissions for
+    </span><span class="kw">for </span>entry <span class="kw">in </span>walker
+        .filter_entry(|e| !is_hidden_dir(e) &amp;&amp; !on_skip_list(e) &amp;&amp; !contains_tmcignore(e))
+        .filter_map(|e| e.ok())
     {
-        <span class="ident">process_file</span>(<span class="ident">entry</span>, <span class="ident">source</span>, <span class="ident">dest_root</span>, <span class="kw-2">&amp;mut</span> <span class="ident">line_filter</span>, <span class="kw-2">&amp;mut</span> <span class="ident">file_filter</span>)<span class="question-mark">?</span>;
+        process_file(entry, source, dest_root, <span class="kw-2">&amp;mut </span>line_filter, <span class="kw-2">&amp;mut </span>file_filter)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn</span> <span class="ident">process_file</span>(
-    <span class="ident">entry</span>: <span class="ident">DirEntry</span>,
-    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">dest_root</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
-    <span class="ident">line_filter</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">MetaString</span>) -&gt; <span class="ident">bool</span>,
-    <span class="ident">file_filter</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span>[<span class="ident">MetaString</span>]) -&gt; <span class="ident">bool</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">LangsError</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_dir</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+<span class="kw">fn </span>process_file(
+    entry: DirEntry,
+    source: <span class="kw-2">&amp;</span>Path,
+    dest_root: <span class="kw-2">&amp;</span>Path,
+    line_filter: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>MetaString) -&gt; bool,
+    file_filter: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>[MetaString]) -&gt; bool,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
+    <span class="kw">if </span>entry.path().is_dir() {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    <span class="kw">let</span> <span class="ident">relative_path</span> <span class="op">=</span> <span class="ident">entry</span>
-        .<span class="ident">path</span>()
-        .<span class="ident">strip_prefix</span>(<span class="ident">source</span>)
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Path::new</span>(<span class="string">&quot;&quot;</span>));
-    <span class="kw">let</span> <span class="ident">dest_path</span> <span class="op">=</span> <span class="ident">dest_root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">relative_path</span>);
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">extension</span>) <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">extension</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">to_str</span>()) {
-        <span class="comment">// todo: stop checking extension twice here and in meta_syntax</span>
-        <span class="comment">// NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well</span>
-        <span class="kw">match</span> <span class="ident">extension</span> {
-            <span class="string">&quot;java&quot;</span> <span class="op">|</span> <span class="string">&quot;c&quot;</span> <span class="op">|</span> <span class="string">&quot;cpp&quot;</span> <span class="op">|</span> <span class="string">&quot;h&quot;</span> <span class="op">|</span> <span class="string">&quot;hpp&quot;</span> <span class="op">|</span> <span class="string">&quot;js&quot;</span> <span class="op">|</span> <span class="string">&quot;css&quot;</span> <span class="op">|</span> <span class="string">&quot;rs&quot;</span> <span class="op">|</span> <span class="string">&quot;qml&quot;</span> <span class="op">|</span> <span class="string">&quot;cs&quot;</span> <span class="op">|</span> <span class="string">&quot;xml&quot;</span>
-            <span class="op">|</span> <span class="string">&quot;http&quot;</span> <span class="op">|</span> <span class="string">&quot;html&quot;</span> <span class="op">|</span> <span class="string">&quot;qrc&quot;</span> <span class="op">|</span> <span class="string">&quot;properties&quot;</span> <span class="op">|</span> <span class="string">&quot;py&quot;</span> <span class="op">|</span> <span class="string">&quot;R&quot;</span> <span class="op">|</span> <span class="string">&quot;pro&quot;</span> =&gt; {
-                <span class="comment">// process line by line</span>
-                <span class="kw">let</span> <span class="ident">source_file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">entry</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">LossyFileIterator</span> {
-                    <span class="ident">file</span>: <span class="ident">BufReader::new</span>(<span class="ident">source_file</span>),
+    <span class="kw">let </span>relative_path = entry
+        .path()
+        .strip_prefix(source)
+        .unwrap_or_else(|<span class="kw">_</span>| Path::new(<span class="string">&quot;&quot;</span>));
+    <span class="kw">let </span>dest_path = dest_root.join(<span class="kw-2">&amp;</span>relative_path);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(extension) = entry.path().extension().and_then(|o| o.to_str()) {
+        <span class="comment">// todo: stop checking extension twice here and in meta_syntax
+        // NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well
+        </span><span class="kw">match </span>extension {
+            <span class="string">&quot;java&quot; </span>| <span class="string">&quot;c&quot; </span>| <span class="string">&quot;cpp&quot; </span>| <span class="string">&quot;h&quot; </span>| <span class="string">&quot;hpp&quot; </span>| <span class="string">&quot;js&quot; </span>| <span class="string">&quot;css&quot; </span>| <span class="string">&quot;rs&quot; </span>| <span class="string">&quot;qml&quot; </span>| <span class="string">&quot;cs&quot; </span>| <span class="string">&quot;xml&quot;
+            </span>| <span class="string">&quot;http&quot; </span>| <span class="string">&quot;html&quot; </span>| <span class="string">&quot;qrc&quot; </span>| <span class="string">&quot;properties&quot; </span>| <span class="string">&quot;py&quot; </span>| <span class="string">&quot;R&quot; </span>| <span class="string">&quot;pro&quot; </span>=&gt; {
+                <span class="comment">// process line by line
+                </span><span class="kw">let </span>source_file = file_util::open_file(entry.path())<span class="question-mark">?</span>;
+                <span class="kw">let </span>iter = LossyFileIterator {
+                    file: BufReader::new(source_file),
                 };
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lines</span>) <span class="op">=</span> <span class="ident">process_lines</span>(<span class="ident">iter</span>, <span class="ident">line_filter</span>, <span class="ident">file_filter</span>, <span class="ident">extension</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FileRead</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>
-                {
-                    <span class="comment">// write all lines to target file</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">dest_path</span>.<span class="ident">parent</span>() {
-                        <span class="ident">file_util::create_dir_all</span>(<span class="ident">parent</span>)<span class="question-mark">?</span>;
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(lines) = process_lines(iter, line_filter, file_filter, extension)
+                    .map_err(|e| FileError::FileRead(entry.path().to_path_buf(), e))<span class="question-mark">?
+                </span>{
+                    <span class="comment">// write all lines to target file
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = dest_path.parent() {
+                        file_util::create_dir_all(parent)<span class="question-mark">?</span>;
                     }
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">file_util::create_file</span>(<span class="kw-2">&amp;</span><span class="ident">dest_path</span>)<span class="question-mark">?</span>);
-                    <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">lines</span> {
-                        <span class="ident">file</span>.<span class="ident">write_all</span>(<span class="ident">line</span>.<span class="ident">as_bytes</span>())
-                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">FileError::FileWrite</span>(<span class="ident">dest_path</span>.<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>file = BufWriter::new(file_util::create_file(<span class="kw-2">&amp;</span>dest_path)<span class="question-mark">?</span>);
+                    <span class="kw">for </span>line <span class="kw">in </span>lines {
+                        file.write_all(line.as_bytes())
+                            .map_err(|e| FileError::FileWrite(dest_path.to_path_buf(), e))<span class="question-mark">?</span>;
                     }
                 }
             }
-            <span class="string">&quot;ipynb&quot;</span> =&gt; {
-                <span class="comment">// process each cell in the notebook</span>
-                <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">file_util::open_file</span>(<span class="ident">entry</span>.<span class="ident">path</span>())<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">json</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(<span class="ident">file</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">LangsError::DeserializeJson</span>(<span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">to_path_buf</span>(), <span class="ident">e</span>))<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">cells</span> <span class="op">=</span> <span class="ident">json</span>
-                    .<span class="ident">get_mut</span>(<span class="string">&quot;cells&quot;</span>)
-                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> <span class="ident">cs</span>.<span class="ident">as_array_mut</span>())
-                    .<span class="ident">ok_or</span>(<span class="ident">LangsError::InvalidNotebook</span>(
+            <span class="string">&quot;ipynb&quot; </span>=&gt; {
+                <span class="comment">// process each cell in the notebook
+                </span><span class="kw">let </span>file = file_util::open_file(entry.path())<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>json: Value = deserialize::json_from_reader(file)
+                    .map_err(|e| LangsError::DeserializeJson(entry.path().to_path_buf(), e))<span class="question-mark">?</span>;
+                <span class="kw">let </span>cells = json
+                    .get_mut(<span class="string">&quot;cells&quot;</span>)
+                    .and_then(|cs| cs.as_array_mut())
+                    .ok_or(LangsError::InvalidNotebook(
                         <span class="string">&quot;Invalid or missing value for &#39;cells&#39;&quot;</span>,
                     ))<span class="question-mark">?</span>;
 
-                <span class="kw">for</span> <span class="ident">cell</span> <span class="kw">in</span> <span class="ident">cells</span> {
-                    <span class="kw">let</span> <span class="ident">is_cell_type_code</span> <span class="op">=</span> <span class="ident">cell</span>
-                        .<span class="ident">get</span>(<span class="string">&quot;cell_type&quot;</span>)
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">as_str</span>())
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&quot;code&quot;</span>)
-                        .<span class="ident">unwrap_or_default</span>();
+                <span class="kw">for </span>cell <span class="kw">in </span>cells {
+                    <span class="kw">let </span>is_cell_type_code = cell
+                        .get(<span class="string">&quot;cell_type&quot;</span>)
+                        .and_then(|c| c.as_str())
+                        .map(|c| c == <span class="string">&quot;code&quot;</span>)
+                        .unwrap_or_default();
 
-                    <span class="kw">if</span> <span class="ident">is_cell_type_code</span> {
-                        <span class="comment">// read the source for each code cell</span>
-                        <span class="kw">let</span> <span class="ident">cell_source</span> <span class="op">=</span> <span class="ident">cell</span>
-                            .<span class="ident">get_mut</span>(<span class="string">&quot;source&quot;</span>)
-                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_array_mut</span>())
-                            .<span class="ident">ok_or</span>(<span class="ident">LangsError::InvalidNotebook</span>(
+                    <span class="kw">if </span>is_cell_type_code {
+                        <span class="comment">// read the source for each code cell
+                        </span><span class="kw">let </span>cell_source = cell
+                            .get_mut(<span class="string">&quot;source&quot;</span>)
+                            .and_then(|s| s.as_array_mut())
+                            .ok_or(LangsError::InvalidNotebook(
                                 <span class="string">&quot;Invalid or missing value for &#39;source&#39;&quot;</span>,
                             ))<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">cell_source</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                            <span class="ident">v</span>.<span class="ident">as_str</span>()
-                                .<span class="ident">map</span>(<span class="ident">String::from</span>)
-                                .<span class="ident">ok_or</span>(<span class="ident">LangsError::InvalidNotebook</span>(<span class="string">&quot;Invalid value in &#39;source&#39;&quot;</span>))
+                        <span class="kw">let </span>source = cell_source.iter().map(|v| {
+                            v.as_str()
+                                .map(String::from)
+                                .ok_or(LangsError::InvalidNotebook(<span class="string">&quot;Invalid value in &#39;source&#39;&quot;</span>))
                         });
 
-                        <span class="kw">let</span> <span class="ident">lines</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-                            <span class="ident">process_lines</span>(<span class="ident">source</span>, <span class="ident">line_filter</span>, <span class="ident">file_filter</span>, <span class="ident">extension</span>)<span class="question-mark">?</span>
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">map</span>(<span class="ident">Value::String</span>).<span class="ident">collect</span>());
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lines</span>) <span class="op">=</span> <span class="ident">lines</span> {
-                            <span class="comment">// replace cell source with filtered output</span>
-                            <span class="kw-2">*</span><span class="ident">cell_source</span> <span class="op">=</span> <span class="ident">lines</span>;
-                        } <span class="kw">else</span> {
-                            <span class="comment">// file should be skipped</span>
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                        <span class="kw">let </span>lines: <span class="prelude-ty">Option</span>&lt;Vec&lt;Value&gt;&gt; =
+                            process_lines(source, line_filter, file_filter, extension)<span class="question-mark">?
+                                </span>.map(|i| i.map(Value::String).collect());
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(lines) = lines {
+                            <span class="comment">// replace cell source with filtered output
+                            </span><span class="kw-2">*</span>cell_source = lines;
+                        } <span class="kw">else </span>{
+                            <span class="comment">// file should be skipped
+                            </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
                         }
                     }
                 }
-                <span class="comment">// writes the JSON with filtered sources to the target path</span>
-                <span class="ident">file_util::write_to_file</span>(<span class="ident">serde_json::to_vec_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">json</span>)<span class="question-mark">?</span>, <span class="kw-2">&amp;</span><span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+                <span class="comment">// writes the JSON with filtered sources to the target path
+                </span>file_util::write_to_file(serde_json::to_vec_pretty(<span class="kw-2">&amp;</span>json)<span class="question-mark">?</span>, <span class="kw-2">&amp;</span>dest_path)<span class="question-mark">?</span>;
                 <span class="macro">log::trace!</span>(
                     <span class="string">&quot;filtered file {} to {}&quot;</span>,
-                    <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">display</span>(),
-                    <span class="ident">dest_path</span>.<span class="ident">display</span>()
+                    entry.path().display(),
+                    dest_path.display()
                 );
             }
-            <span class="kw">_</span> =&gt; {
-                <span class="comment">// copy other files as is</span>
-                <span class="ident">file_util::copy</span>(<span class="ident">entry</span>.<span class="ident">path</span>(), <span class="ident">dest_path</span>)<span class="question-mark">?</span>;
+            <span class="kw">_ </span>=&gt; {
+                <span class="comment">// copy other files as is
+                </span>file_util::copy(entry.path(), dest_path)<span class="question-mark">?</span>;
             }
         }
     }
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// Filter for hidden directories (directories with names starting with &#39;.&#39;)</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_hidden_dir</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_dir</span>()).<span class="ident">unwrap_or_default</span>()
-        <span class="op">&amp;&amp;</span> <span class="ident">entry</span>
-            .<span class="ident">file_name</span>()
-            .<span class="ident">to_str</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&#39;.&#39;</span>))
-            .<span class="ident">unwrap_or_default</span>();
-    <span class="kw">if</span> <span class="ident">skip</span> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;is hidden dir: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
+<span class="comment">// Filter for hidden directories (directories with names starting with &#39;.&#39;)
+</span><span class="kw">pub fn </span>is_hidden_dir(entry: <span class="kw-2">&amp;</span>DirEntry) -&gt; bool {
+    <span class="kw">let </span>skip = entry.metadata().map(|e| e.is_dir()).unwrap_or_default()
+        &amp;&amp; entry
+            .file_name()
+            .to_str()
+            .map(|s| s.starts_with(<span class="string">&#39;.&#39;</span>))
+            .unwrap_or_default();
+    <span class="kw">if </span>skip {
+        <span class="macro">log::debug!</span>(<span class="string">&quot;is hidden dir: {:?}&quot;</span>, entry.path());
     }
-    <span class="ident">skip</span>
+    skip
 }
 
-<span class="comment">// Filter for skipping directories on `FILES_TO_SKIP_ALWAYS` or named &#39;private&#39;, and files in a &#39;test&#39; directory that contain &#39;Hidden&#39; in their name.</span>
-<span class="kw">fn</span> <span class="ident">on_skip_list</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) -&gt; <span class="ident">bool</span> {
-    <span class="comment">// check if entry&#39;s filename matchees the skip list or is &#39;private&#39;</span>
-    <span class="kw">let</span> <span class="ident">entry_file_name</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">file_name</span>().<span class="ident">to_str</span>();
-    <span class="kw">let</span> <span class="ident">on_skip_list</span> <span class="op">=</span> <span class="ident">entry_file_name</span>
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FILES_TO_SKIP_ALWAYS</span>.<span class="ident">is_match</span>(<span class="ident">s</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;private&quot;</span>)
-        .<span class="ident">unwrap_or_default</span>();
+<span class="comment">// Filter for skipping directories on `FILES_TO_SKIP_ALWAYS` or named &#39;private&#39;, and files in a &#39;test&#39; directory that contain &#39;Hidden&#39; in their name.
+</span><span class="kw">fn </span>on_skip_list(entry: <span class="kw-2">&amp;</span>DirEntry) -&gt; bool {
+    <span class="comment">// check if entry&#39;s filename matchees the skip list or is &#39;private&#39;
+    </span><span class="kw">let </span>entry_file_name = entry.file_name().to_str();
+    <span class="kw">let </span>on_skip_list = entry_file_name
+        .map(|s| FILES_TO_SKIP_ALWAYS.is_match(s) || s == <span class="string">&quot;private&quot;</span>)
+        .unwrap_or_default();
 
-    <span class="comment">// check if the current entry is a file that contains &quot;Hidden&quot; in its name in a directory that contains &quot;test&quot; in its name</span>
-    <span class="kw">let</span> <span class="ident">hidden_in_test</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">entry</span>.<span class="ident">path</span>().<span class="ident">is_file</span>() {
-        <span class="kw">let</span> <span class="ident">in_test</span> <span class="op">=</span> <span class="ident">entry</span>
-            .<span class="ident">path</span>()
-            .<span class="ident">parent</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">file_name</span>())
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">to_str</span>())
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">contains</span>(<span class="string">&quot;test&quot;</span>))
-            .<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">contains_hidden</span> <span class="op">=</span> <span class="ident">entry_file_name</span>
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">n</span>.<span class="ident">contains</span>(<span class="string">&quot;Hidden&quot;</span>))
-            .<span class="ident">unwrap_or_default</span>();
-        <span class="ident">in_test</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_hidden</span>
-    } <span class="kw">else</span> {
-        <span class="bool-val">false</span>
-    };
+    <span class="comment">// check if the current entry is a file that contains &quot;Hidden&quot; in its name in a directory that contains &quot;test&quot; in its name
+    </span><span class="kw">let </span>hidden_in_test = <span class="kw">if </span>entry.path().is_file() {
+        <span class="kw">let </span>in_test = entry
+            .path()
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|f| f.to_str())
+            .map(|f| f.contains(<span class="string">&quot;test&quot;</span>))
+            .unwrap_or_default();
+        <span class="kw">let </span>contains_hidden = entry_file_name
+            .map(|n| n.contains(<span class="string">&quot;Hidden&quot;</span>))
+            .unwrap_or_default();
+        in_test &amp;&amp; contains_hidden
+    } <span class="kw">else </span>{
+        <span class="bool-val">false
+    </span>};
 
-    <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">on_skip_list</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hidden_in_test</span>;
-    <span class="kw">if</span> <span class="ident">skip</span> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;on skip list: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
+    <span class="kw">let </span>skip = on_skip_list || hidden_in_test;
+    <span class="kw">if </span>skip {
+        <span class="macro">log::debug!</span>(<span class="string">&quot;on skip list: {:?}&quot;</span>, entry.path());
     }
-    <span class="ident">skip</span>
+    skip
 }
 
-<span class="comment">// Filter for skipping directories that contain a &#39;.tmcignore&#39; file</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_tmcignore</span>(<span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">DirEntry</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">for</span> <span class="ident">entry</span> <span class="kw">in</span> <span class="ident">WalkDir::new</span>(<span class="ident">entry</span>.<span class="ident">path</span>())
-        .<span class="ident">max_depth</span>(<span class="number">1</span>)
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">ok</span>())
+<span class="comment">// Filter for skipping directories that contain a &#39;.tmcignore&#39; file
+</span><span class="kw">pub fn </span>contains_tmcignore(entry: <span class="kw-2">&amp;</span>DirEntry) -&gt; bool {
+    <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(entry.path())
+        .max_depth(<span class="number">1</span>)
+        .into_iter()
+        .filter_map(|e| e.ok())
     {
-        <span class="kw">let</span> <span class="ident">is_file</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">metadata</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_file</span>()).<span class="ident">unwrap_or_default</span>();
-        <span class="kw">if</span> <span class="ident">is_file</span> <span class="op">&amp;&amp;</span> <span class="ident">entry</span>.<span class="ident">file_name</span>() <span class="op">==</span> <span class="string">&quot;.tmcignore&quot;</span> {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;contains .tmcignore: {:?}&quot;</span>, <span class="ident">entry</span>.<span class="ident">path</span>());
-            <span class="kw">return</span> <span class="bool-val">true</span>;
+        <span class="kw">let </span>is_file = entry.metadata().map(|e| e.is_file()).unwrap_or_default();
+        <span class="kw">if </span>is_file &amp;&amp; entry.file_name() == <span class="string">&quot;.tmcignore&quot; </span>{
+            <span class="macro">log::debug!</span>(<span class="string">&quot;contains .tmcignore: {:?}&quot;</span>, entry.path());
+            <span class="kw">return </span><span class="bool-val">true</span>;
         }
     }
-    <span class="bool-val">false</span>
+    <span class="bool-val">false
+</span>}
+
+<span class="doccomment">/// Serves the same functionality as BufRead::lines, but uses lossy string conversion.
+</span><span class="kw">struct </span>LossyFileIterator {
+    file: BufReader&lt;File&gt;,
 }
 
-<span class="doccomment">/// Serves the same functionality as BufRead::lines, but uses lossy string conversion.</span>
-<span class="kw">struct</span> <span class="ident">LossyFileIterator</span> {
-    <span class="ident">file</span>: <span class="ident">BufReader</span><span class="op">&lt;</span><span class="ident">File</span><span class="op">&gt;</span>,
-}
+<span class="kw">impl </span>Iterator <span class="kw">for </span>LossyFileIterator {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;String, std::io::Error&gt;;
 
-<span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">LossyFileIterator</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">std::io::Error</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">file</span>.<span class="ident">read_until</span>(<span class="string">b&#39;\n&#39;</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>) {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
+        <span class="kw">match </span><span class="self">self</span>.file.read_until(<span class="string">b&#39;\n&#39;</span>, <span class="kw-2">&amp;mut </span>buf) {
             <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">None</span>,
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>).<span class="ident">into_owned</span>())),
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(String::from_utf8_lossy(<span class="kw-2">&amp;</span>buf).into_owned())),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)),
         }
     }
 }
 
-<span class="doccomment">/// Processes the lines from the given iterator according to the filters and extension given.</span>
-<span class="doccomment">/// Returns None if the file should be skipped.</span>
-<span class="kw">fn</span> <span class="ident">process_lines</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-    <span class="ident">line_iterator</span>: <span class="ident">I</span>,
-    <span class="ident">line_filter</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">MetaString</span>) -&gt; <span class="ident">bool</span>,
-    <span class="ident">file_filter</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span>[<span class="ident">MetaString</span>]) -&gt; <span class="ident">bool</span>,
-    <span class="ident">extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">String</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Processes the lines from the given iterator according to the filters and extension given.
+/// Returns None if the file should be skipped.
+</span><span class="kw">fn </span>process_lines&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, I, E&gt;(
+    line_iterator: I,
+    line_filter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>MetaString) -&gt; bool,
+    file_filter: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>[MetaString]) -&gt; bool,
+    extension: <span class="kw-2">&amp;</span>str,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Iterator&lt;Item = String&gt; + <span class="lifetime">&#39;a</span>&gt;, E&gt;
+<span class="kw">where
+    </span>I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, E&gt;&gt;,
     <span class="lifetime">&#39;b</span>: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">let</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">MetaSyntaxParser::new</span>(<span class="ident">line_iterator</span>, <span class="ident">extension</span>);
-    <span class="kw">let</span> <span class="ident">parse_result</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">parser</span>.<span class="ident">collect</span>();
-    <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">parse_result</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>parser = MetaSyntaxParser::new(line_iterator, extension);
+    <span class="kw">let </span>parse_result: <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, <span class="kw">_</span>&gt; = parser.collect();
+    <span class="kw">let </span>parsed = parse_result<span class="question-mark">?</span>;
 
-    <span class="comment">// files that don&#39;t pass the filter are skipped</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">file_filter</span>(<span class="kw-2">&amp;</span><span class="ident">parsed</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+    <span class="comment">// files that don&#39;t pass the filter are skipped
+    </span><span class="kw">if </span>!file_filter(<span class="kw-2">&amp;</span>parsed) {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     }
 
-    <span class="comment">// filter into iterator of strings</span>
-    <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">into_iter</span>().<span class="ident">filter</span>(<span class="ident">line_filter</span>).<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">ms</span><span class="op">|</span> {
-        <span class="kw">match</span> <span class="ident">ms</span> {
-            <span class="ident">MetaString::Solution</span>(<span class="ident">s</span>) <span class="op">|</span> <span class="ident">MetaString::String</span>(<span class="ident">s</span>) <span class="op">|</span> <span class="ident">MetaString::Stub</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>),
-            <span class="ident">MetaString::SolutionFileMarker</span> <span class="op">|</span> <span class="ident">MetaString::HiddenFileMarker</span> =&gt; <span class="prelude-val">None</span>, <span class="comment">// write nothing for file markers</span>
-            <span class="ident">MetaString::Hidden</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// write nothing for hidden text</span>
-        }
+    <span class="comment">// filter into iterator of strings
+    </span><span class="kw">let </span>iter = parsed.into_iter().filter(line_filter).filter_map(|ms| {
+        <span class="kw">match </span>ms {
+            MetaString::Solution(s) | MetaString::String(s) | MetaString::Stub(s) =&gt; <span class="prelude-val">Some</span>(s),
+            MetaString::SolutionFileMarker | MetaString::HiddenFileMarker =&gt; <span class="prelude-val">None</span>, <span class="comment">// write nothing for file markers
+            </span>MetaString::Hidden(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// write nothing for hidden text
+        </span>}
     });
-    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">iter</span>))
+    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(iter))
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fs::File</span>, <span class="ident">io::Write</span>, <span class="ident">path::PathBuf</span>};
-    <span class="kw">use</span> <span class="ident">tmc_langs_framework::TmcProjectYml</span>;
+<span class="attribute">#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::{fs::File, io::Write, path::PathBuf};
+    <span class="kw">use </span>tmc_langs_framework::TmcProjectYml;
 
-    <span class="kw">fn</span> <span class="ident">init</span>() {
-        <span class="kw">use</span> <span class="ident">log</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="ident">simple_logger</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">SimpleLogger::new</span>().<span class="ident">with_level</span>(<span class="ident">LevelFilter::Trace</span>).<span class="ident">init</span>();
+    <span class="kw">fn </span>init() {
+        <span class="kw">use </span>log::<span class="kw-2">*</span>;
+        <span class="kw">use </span>simple_logger::<span class="kw-2">*</span>;
+        <span class="kw">let _ </span>= SimpleLogger::new().with_level(LevelFilter::Trace).init();
     }
 
-    <span class="kw">fn</span> <span class="ident">file_to</span>(
-        <span class="ident">target_dir</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">std::path::Path</span><span class="op">&gt;</span>,
-        <span class="ident">target_relative</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">std::path::Path</span><span class="op">&gt;</span>,
-        <span class="ident">contents</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">PathBuf</span> {
-        <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">target_dir</span>.<span class="ident">as_ref</span>().<span class="ident">join</span>(<span class="ident">target_relative</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent</span>) <span class="op">=</span> <span class="ident">target</span>.<span class="ident">parent</span>() {
-            <span class="ident">std::fs::create_dir_all</span>(<span class="ident">parent</span>).<span class="ident">unwrap</span>();
+    <span class="kw">fn </span>file_to(
+        target_dir: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;,
+        target_relative: <span class="kw">impl </span>AsRef&lt;std::path::Path&gt;,
+        contents: <span class="kw">impl </span>AsRef&lt;[u8]&gt;,
+    ) -&gt; PathBuf {
+        <span class="kw">let </span>target = target_dir.as_ref().join(target_relative);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = target.parent() {
+            std::fs::create_dir_all(parent).unwrap();
         }
-        <span class="ident">std::fs::write</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>, <span class="ident">contents</span>.<span class="ident">as_ref</span>()).<span class="ident">unwrap</span>();
-        <span class="ident">target</span>
+        std::fs::write(<span class="kw-2">&amp;</span>target, contents.as_ref()).unwrap();
+        target
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_solutions_preserves_structure</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepare_solutions_preserves_structure() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;inner/binary.bin&quot;</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;File.java&quot;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;inner/binary.bin&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;File.java&quot;</span>, <span class="string">&quot;&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;inner/binary.bin&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;File.java&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(temp_target.path().join(<span class="string">&quot;inner/binary.bin&quot;</span>).exists());
+        <span class="macro">assert!</span>(temp_target.path().join(<span class="string">&quot;File.java&quot;</span>).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_solutions_filters_text_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepare_solutions_filters_text_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;Test.java&quot;</span>,
             <span class="string">r#&quot;public class JavaTestCase {
     // BEGIN SOLUTION
@@ -1168,12 +1162,12 @@
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">file_util::read_file_to_string</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;Test.java&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
+        <span class="kw">let </span>s = file_util::read_file_to_string(temp_target.path().join(<span class="string">&quot;Test.java&quot;</span>)).unwrap();
+        <span class="kw">let </span>expected = <span class="string">r#&quot;public class JavaTestCase {
     public int foo() {
         return 3;
     }
@@ -1188,16 +1182,16 @@
 }
 &quot;#</span>;
 
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="ident">expected</span>, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, <span class="ident">expected</span>, <span class="ident">s</span>);
+        <span class="macro">assert_eq!</span>(s, expected, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, expected, s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_solutions_does_not_filter_binary_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepare_solutions_does_not_filter_binary_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
 
-        <span class="kw">let</span> <span class="ident">contents</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
+        <span class="kw">let </span>contents = <span class="string">r#&quot;public class JavaTestCase {
     // BEGIN SOLUTION
     public int foo() {
         return 3;
@@ -1219,52 +1213,52 @@
 }
 &quot;#</span>;
 
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;Test.bin&quot;</span>, <span class="ident">contents</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;Test.bin&quot;</span>, contents);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">file_util::read_file_to_string</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;Test.bin&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>s = file_util::read_file_to_string(temp_target.path().join(<span class="string">&quot;Test.bin&quot;</span>)).unwrap();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="ident">contents</span>, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, <span class="ident">contents</span>, <span class="ident">s</span>);
+        <span class="macro">assert_eq!</span>(s, contents, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, contents, s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_solutions_does_not_filter_solution_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepare_solutions_does_not_filter_solution_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;Solution.java&quot;</span>,
             <span class="string">r#&quot;// SOLUTION FILE
 class SomeClass {}
 &quot;#</span>,
         );
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;NonSolution.java&quot;</span>,
             <span class="string">r#&quot;
 class SomeClass {}
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;Solution.java&quot;</span>)).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;NonSolution.java&quot;</span>)).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(temp_source.path().join(<span class="string">&quot;Solution.java&quot;</span>)).exists());
+        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(temp_source.path().join(<span class="string">&quot;NonSolution.java&quot;</span>)).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepares_stubs</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepares_stubs() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;Test.java&quot;</span>,
             <span class="string">r#&quot;public class JavaTestCase {
     // BEGIN SOLUTION
@@ -1289,12 +1283,12 @@ class SomeClass {}
 &quot;#</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">file_util::read_file_to_string</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;Test.java&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="string">r#&quot;public class JavaTestCase {
+        <span class="kw">let </span>s = file_util::read_file_to_string(temp_target.path().join(<span class="string">&quot;Test.java&quot;</span>)).unwrap();
+        <span class="kw">let </span>expected = <span class="string">r#&quot;public class JavaTestCase {
 
     public void bar() {
     }
@@ -1303,113 +1297,113 @@ class SomeClass {}
         return 0;
     }
 }
-&quot;#</span>
-        .<span class="ident">to_string</span>();
+&quot;#
+        </span>.to_string();
 
-        <span class="macro">assert_eq!</span>(<span class="ident">s</span>, <span class="ident">expected</span>, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, <span class="ident">expected</span>, <span class="ident">s</span>);
+        <span class="macro">assert_eq!</span>(s, expected, <span class="string">&quot;expected:\n{:#}\nfound:\n{:#}&quot;</span>, expected, s);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">prepare_stubs_filters_solution_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>prepare_stubs_filters_solution_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;NonSolution.java&quot;</span>, <span class="string">&quot;something something&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;SolutionFile.java&quot;</span>, <span class="string">&quot;// SOLUTION FILE&quot;</span>);
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;NonSolution.java&quot;</span>, <span class="string">&quot;something something&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;SolutionFile.java&quot;</span>, <span class="string">&quot;// SOLUTION FILE&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;NonSolution.java&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;SolutionFile.java&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(temp_target.path().join(<span class="string">&quot;NonSolution.java&quot;</span>).exists());
+        <span class="macro">assert!</span>(!temp_target.path().join(<span class="string">&quot;SolutionFile.java&quot;</span>).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tmc_project_yml_parses</span>() {
-        <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">temp</span>.<span class="ident">path</span>().<span class="ident">to_owned</span>();
-        <span class="ident">path</span>.<span class="ident">push</span>(<span class="string">&quot;.tmcproject.yml&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">unwrap</span>();
-        <span class="ident">file</span>.<span class="ident">write_all</span>(
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>tmc_project_yml_parses() {
+        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>path = temp.path().to_owned();
+        path.push(<span class="string">&quot;.tmcproject.yml&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>file = File::create(<span class="kw-2">&amp;</span>path).unwrap();
+        file.write_all(
             <span class="string">r#&quot;
 extra_student_files:
   - test/StudentTest.java
   - test/OtherTest.java
-&quot;#</span>
-            .<span class="ident">as_bytes</span>(),
+&quot;#
+            </span>.as_bytes(),
         )
-        .<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="ident">TmcProjectYml::load_or_default</span>(<span class="ident">temp</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
-        <span class="macro">assert!</span>(<span class="ident">conf</span>.<span class="ident">extra_student_files</span>[<span class="number">0</span>] <span class="op">==</span> <span class="ident">PathBuf::from</span>(<span class="string">&quot;test/StudentTest.java&quot;</span>));
-        <span class="macro">assert!</span>(<span class="ident">conf</span>.<span class="ident">extra_student_files</span>[<span class="number">1</span>] <span class="op">==</span> <span class="ident">PathBuf::from</span>(<span class="string">&quot;test/OtherTest.java&quot;</span>));
+        .unwrap();
+        <span class="kw">let </span>conf = TmcProjectYml::load_or_default(temp.path()).unwrap();
+        <span class="macro">assert!</span>(conf.extra_student_files[<span class="number">0</span>] == PathBuf::from(<span class="string">&quot;test/StudentTest.java&quot;</span>));
+        <span class="macro">assert!</span>(conf.extra_student_files[<span class="number">1</span>] == PathBuf::from(<span class="string">&quot;test/OtherTest.java&quot;</span>));
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hides_test_hidden_files_in_test</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>hides_test_hidden_files_in_test() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;NotHidden&quot;</span>, <span class="string">&quot;&quot;</span>);
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;test/ActuallyHidden&quot;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;NotHidden&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;test/ActuallyHidden&quot;</span>, <span class="string">&quot;&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;NotHidden&quot;</span>)).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="macro">dbg!</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;ActuallyHidden&quot;</span>)).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(<span class="macro">dbg!</span>(temp_source.path().join(<span class="string">&quot;NotHidden&quot;</span>)).exists());
+        <span class="macro">assert!</span>(!<span class="macro">dbg!</span>(temp_source.path().join(<span class="string">&quot;ActuallyHidden&quot;</span>)).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">solution_filters_hidden_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>solution_filters_hidden_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;H.java&quot;</span>,
             <span class="string">r&quot;// HIDDEN FILE
 etc etc&quot;</span>,
         );
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;NonH.java&quot;</span>, <span class="string">&quot;etc etc&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;NonH.java&quot;</span>, <span class="string">&quot;etc etc&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;H.java&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;NonH.java&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(!temp_target.path().join(<span class="string">&quot;H.java&quot;</span>).exists());
+        <span class="macro">assert!</span>(temp_target.path().join(<span class="string">&quot;NonH.java&quot;</span>).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">stub_filters_hidden_files</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>stub_filters_hidden_files() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;H.java&quot;</span>,
             <span class="string">r&quot;// HIDDEN FILE
 etc etc&quot;</span>,
         );
-        <span class="ident">file_to</span>(<span class="kw-2">&amp;</span><span class="ident">temp_source</span>, <span class="string">&quot;NonH.java&quot;</span>, <span class="string">&quot;etc etc&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_source, <span class="string">&quot;NonH.java&quot;</span>, <span class="string">&quot;etc etc&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;H.java&quot;</span>).<span class="ident">exists</span>());
-        <span class="macro">assert!</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;NonH.java&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(!temp_target.path().join(<span class="string">&quot;H.java&quot;</span>).exists());
+        <span class="macro">assert!</span>(temp_target.path().join(<span class="string">&quot;NonH.java&quot;</span>).exists());
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">solution_filters_hidden_lines</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>solution_filters_hidden_lines() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;ContainsHidden.java&quot;</span>,
             <span class="string">r&quot;etc etc
 // BEGIN HIDDEN
@@ -1418,27 +1412,27 @@ hidden!
 etc etc&quot;</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_solution</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_solution(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span>
-            <span class="ident">file_util::read_file_to_string</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;ContainsHidden.java&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>s =
+            file_util::read_file_to_string(temp_target.path().join(<span class="string">&quot;ContainsHidden.java&quot;</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">s</span>,
+            s,
             <span class="string">r&quot;etc etc
-etc etc&quot;</span>
-        );
+etc etc&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">stub_filters_hidden_lines</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>stub_filters_hidden_lines() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;ContainsHidden.java&quot;</span>,
             <span class="string">r&quot;etc etc
 // BEGIN HIDDEN
@@ -1447,48 +1441,48 @@ hidden!
 etc etc&quot;</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span>
-            <span class="ident">file_util::read_file_to_string</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;ContainsHidden.java&quot;</span>)).<span class="ident">unwrap</span>();
+        <span class="kw">let </span>s =
+            file_util::read_file_to_string(temp_target.path().join(<span class="string">&quot;ContainsHidden.java&quot;</span>)).unwrap();
 
         <span class="macro">assert_eq!</span>(
-            <span class="ident">s</span>,
+            s,
             <span class="string">r&quot;etc etc
-etc etc&quot;</span>
-        );
+etc etc&quot;
+        </span>);
     }
 
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">filters_notebooks</span>() {
-        <span class="ident">init</span>();
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>filters_notebooks() {
+        init();
 
-        <span class="kw">let</span> <span class="ident">temp_source</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        <span class="kw">let </span>temp_source = tempfile::tempdir().unwrap();
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;hidden.ipynb&quot;</span>,
             <span class="macro">serde_json::json!</span>({
                 <span class="string">&quot;cells&quot;</span>: [
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
                         <span class="string">&quot;source&quot;</span>: [
-                            <span class="string">&quot;code&quot;</span>
-                        ]
+                            <span class="string">&quot;code&quot;
+                        </span>]
                     },
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
                         <span class="string">&quot;source&quot;</span>: [
-                            <span class="string">&quot;# HIDDEN FILE&quot;</span>
-                        ]
+                            <span class="string">&quot;# HIDDEN FILE&quot;
+                        </span>]
                     },
                 ]
             })
-            .<span class="ident">to_string</span>(),
+            .to_string(),
         );
-        <span class="ident">file_to</span>(
-            <span class="kw-2">&amp;</span><span class="ident">temp_source</span>,
+        file_to(
+            <span class="kw-2">&amp;</span>temp_source,
             <span class="string">&quot;notebook.ipynb&quot;</span>,
             <span class="macro">serde_json::json!</span>({
                 <span class="string">&quot;cells&quot;</span>: [
@@ -1504,8 +1498,8 @@ etc etc&quot;</span>
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
                         <span class="string">&quot;source&quot;</span>: [
-                            <span class="string">&quot;code&quot;</span>
-                        ]
+                            <span class="string">&quot;code&quot;
+                        </span>]
                     },
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
@@ -1521,21 +1515,21 @@ etc etc&quot;</span>
                 ],
                 <span class="string">&quot;some other key&quot;</span>: <span class="string">&quot;some other value&quot;</span>,
             })
-            .<span class="ident">to_string</span>(),
+            .to_string(),
         );
 
-        <span class="kw">let</span> <span class="ident">temp_target</span> <span class="op">=</span> <span class="ident">tempfile::tempdir</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>temp_target = tempfile::tempdir().unwrap();
 
-        <span class="ident">prepare_stub</span>(<span class="ident">temp_source</span>.<span class="ident">path</span>(), <span class="ident">temp_target</span>.<span class="ident">path</span>()).<span class="ident">unwrap</span>();
+        prepare_stub(temp_source.path(), temp_target.path()).unwrap();
 
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;hidden.ipynb&quot;</span>).<span class="ident">exists</span>());
+        <span class="macro">assert!</span>(!temp_target.path().join(<span class="string">&quot;hidden.ipynb&quot;</span>).exists());
 
-        <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">serde_json::Value</span> <span class="op">=</span> <span class="ident">deserialize::json_from_reader</span>(
-            <span class="ident">file_util::open_file</span>(<span class="ident">temp_target</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;notebook.ipynb&quot;</span>)).<span class="ident">unwrap</span>(),
+        <span class="kw">let </span>val: serde_json::Value = deserialize::json_from_reader(
+            file_util::open_file(temp_target.path().join(<span class="string">&quot;notebook.ipynb&quot;</span>)).unwrap(),
         )
-        .<span class="ident">unwrap</span>();
+        .unwrap();
         <span class="macro">assert_eq!</span>(
-            <span class="ident">val</span>,
+            val,
             <span class="macro">serde_json::json!</span>({
                 <span class="string">&quot;cells&quot;</span>: [
                     {
@@ -1550,8 +1544,8 @@ etc etc&quot;</span>
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
                         <span class="string">&quot;source&quot;</span>: [
-                            <span class="string">&quot;code&quot;</span>
-                        ]
+                            <span class="string">&quot;code&quot;
+                        </span>]
                     },
                     {
                         <span class="string">&quot;cell_type&quot;</span>: <span class="string">&quot;code&quot;</span>,
@@ -1567,5 +1561,4 @@ etc etc&quot;</span>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tmc_langs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

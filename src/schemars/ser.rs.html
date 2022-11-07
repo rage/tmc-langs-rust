@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars-0.8.10/src/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../schemars/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/schemars-0.8.11/src/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../schemars/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../schemars/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -513,363 +507,363 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::schema</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::JsonSchema</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">gen::SchemaGenerator</span>, <span class="ident">Map</span>};
-<span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="ident">Error</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">fmt::Display</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::schema::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::JsonSchema;
+<span class="kw">use crate</span>::{gen::SchemaGenerator, Map};
+<span class="kw">use </span>serde_json::{Error, Value};
+<span class="kw">use </span>std::{convert::TryInto, fmt::Display};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">include_title</span>: <span class="ident">bool</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Serializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) gen: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SchemaGenerator,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) include_title: bool,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SerializeSeq</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>,
-    <span class="ident">items</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Schema</span><span class="op">&gt;</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SerializeSeq&lt;<span class="lifetime">&#39;a</span>&gt; {
+    gen: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SchemaGenerator,
+    items: <span class="prelude-ty">Option</span>&lt;Schema&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SerializeTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>,
-    <span class="ident">items</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Schema</span><span class="op">&gt;</span>,
-    <span class="ident">title</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SerializeTuple&lt;<span class="lifetime">&#39;a</span>&gt; {
+    gen: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SchemaGenerator,
+    items: Vec&lt;Schema&gt;,
+    title: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SerializeMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">gen</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">SchemaGenerator</span>,
-    <span class="ident">properties</span>: <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Schema</span><span class="op">&gt;</span>,
-    <span class="ident">current_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="ident">title</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SerializeMap&lt;<span class="lifetime">&#39;a</span>&gt; {
+    gen: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>SchemaGenerator,
+    properties: Map&lt;String, Schema&gt;,
+    current_key: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    title: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">forward_to_subschema_for</span> {
-    (<span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) =&gt; {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, <span class="ident">_value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">subschema_for</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>())
+<span class="macro">macro_rules! </span>forward_to_subschema_for {
+    (<span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$ty</span>:ty) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, _value: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+            <span class="prelude-val">Ok</span>(<span class="self">self</span>.gen.subschema_for::&lt;<span class="macro-nonterminal">$ty</span>&gt;())
         }
     };
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">return_instance_type</span> {
-    (<span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance_type</span>:<span class="ident">ident</span>) =&gt; {
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, <span class="ident">_value</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">SchemaObject</span> {
-                <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance_type</span>.<span class="ident">into</span>()),
-                ..<span class="ident">Default::default</span>()
+<span class="macro">macro_rules! </span>return_instance_type {
+    (<span class="macro-nonterminal">$</span><span class="kw">fn</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$ty</span>:ty, <span class="macro-nonterminal">$instance_type</span>:ident) =&gt; {
+        <span class="kw">fn </span><span class="macro-nonterminal">$</span><span class="kw">fn</span>(<span class="macro-nonterminal">self</span>, _value: <span class="macro-nonterminal">$ty</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+            <span class="prelude-val">Ok</span>(SchemaObject {
+                instance_type: <span class="prelude-val">Some</span>(InstanceType::<span class="macro-nonterminal">$instance_type</span>.into()),
+                ..Default::default()
             }
-            .<span class="ident">into</span>())
+            .into())
         }
     };
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">serde::Serializer</span> <span class="kw">for</span> <span class="ident">Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; serde::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">type</span> <span class="ident">SerializeSeq</span> <span class="op">=</span> <span class="ident">SerializeSeq</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTuple</span> <span class="op">=</span> <span class="ident">SerializeTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTupleStruct</span> <span class="op">=</span> <span class="ident">SerializeTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTupleVariant</span> <span class="op">=</span> <span class="self">Self</span>;
-    <span class="kw">type</span> <span class="ident">SerializeMap</span> <span class="op">=</span> <span class="ident">SerializeMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SerializeStruct</span> <span class="op">=</span> <span class="ident">SerializeMap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">SerializeStructVariant</span> <span class="op">=</span> <span class="self">Self</span>;
+    <span class="kw">type </span>SerializeSeq = SerializeSeq&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>SerializeTuple = SerializeTuple&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = SerializeTuple&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = <span class="self">Self</span>;
+    <span class="kw">type </span>SerializeMap = SerializeMap&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>SerializeStruct = SerializeMap&lt;<span class="lifetime">&#39;a</span>&gt;;
+    <span class="kw">type </span>SerializeStructVariant = <span class="self">Self</span>;
 
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_i8</span>, <span class="ident">i8</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_i16</span>, <span class="ident">i16</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_i32</span>, <span class="ident">i32</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_i64</span>, <span class="ident">i64</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_i128</span>, <span class="ident">i128</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_u8</span>, <span class="ident">u8</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_u16</span>, <span class="ident">u16</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_u32</span>, <span class="ident">u32</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_u64</span>, <span class="ident">u64</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_u128</span>, <span class="ident">u128</span>, <span class="ident">Integer</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_f32</span>, <span class="ident">f32</span>, <span class="ident">Number</span>);
-    <span class="macro">return_instance_type!</span>(<span class="ident">serialize_f64</span>, <span class="ident">f64</span>, <span class="ident">Number</span>);
+    <span class="macro">return_instance_type!</span>(serialize_i8, i8, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_i16, i16, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_i32, i32, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_i64, i64, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_i128, i128, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_u8, u8, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_u16, u16, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_u32, u32, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_u64, u64, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_u128, u128, Integer);
+    <span class="macro">return_instance_type!</span>(serialize_f32, f32, Number);
+    <span class="macro">return_instance_type!</span>(serialize_f64, f64, Number);
 
-    <span class="macro">forward_to_subschema_for!</span>(<span class="ident">serialize_bool</span>, <span class="ident">bool</span>);
-    <span class="macro">forward_to_subschema_for!</span>(<span class="ident">serialize_char</span>, <span class="ident">char</span>);
-    <span class="macro">forward_to_subschema_for!</span>(<span class="ident">serialize_str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>);
-    <span class="macro">forward_to_subschema_for!</span>(<span class="ident">serialize_bytes</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]);
+    <span class="macro">forward_to_subschema_for!</span>(serialize_bool, bool);
+    <span class="macro">forward_to_subschema_for!</span>(serialize_char, char);
+    <span class="macro">forward_to_subschema_for!</span>(serialize_str, <span class="kw-2">&amp;</span>str);
+    <span class="macro">forward_to_subschema_for!</span>(serialize_bytes, <span class="kw-2">&amp;</span>[u8]);
 
-    <span class="kw">fn</span> <span class="ident">collect_str</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">_value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">Display</span>,
+    <span class="kw">fn </span>collect_str&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, _value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: Display,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">subschema_for</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.gen.subschema_for::&lt;<span class="kw-2">&amp;</span>str&gt;())
     }
 
-    <span class="kw">fn</span> <span class="ident">collect_map</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">serde::Serialize</span>,
-        <span class="ident">V</span>: <span class="ident">serde::Serialize</span>,
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
+    <span class="kw">fn </span>collect_map&lt;K, V, I&gt;(<span class="self">self</span>, iter: I) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>K: serde::Serialize,
+        V: serde::Serialize,
+        I: IntoIterator&lt;Item = (K, V)&gt;,
     {
-        <span class="kw">let</span> <span class="ident">value_schema</span> <span class="op">=</span> <span class="ident">iter</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">try_fold</span>(<span class="prelude-val">None</span>, <span class="op">|</span><span class="ident">acc</span>, (<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">acc</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>)) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">acc</span>);
+        <span class="kw">let </span>value_schema = iter
+            .into_iter()
+            .try_fold(<span class="prelude-val">None</span>, |acc, (<span class="kw">_</span>, v)| {
+                <span class="kw">if </span>acc == <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>)) {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(acc);
                 }
 
-                <span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-                    <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-                    <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+                <span class="kw">let </span>schema = v.serialize(Serializer {
+                    gen: <span class="self">self</span>.gen,
+                    include_title: <span class="bool-val">false</span>,
                 })<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">acc</span> {
-                    <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">schema</span>),
-                    <span class="prelude-val">Some</span>(<span class="ident">items</span>) <span class="kw">if</span> <span class="ident">items</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">schema</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>)),
-                    <span class="kw">_</span> =&gt; <span class="ident">acc</span>,
+                <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>acc {
+                    <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(schema),
+                    <span class="prelude-val">Some</span>(items) <span class="kw">if </span>items != <span class="kw-2">&amp;</span>schema =&gt; <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>)),
+                    <span class="kw">_ </span>=&gt; acc,
                 })
-            })<span class="question-mark">?</span>
-            .<span class="ident">unwrap_or</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>));
+            })<span class="question-mark">?
+            </span>.unwrap_or(Schema::Bool(<span class="bool-val">true</span>));
 
-        <span class="prelude-val">Ok</span>(<span class="ident">SchemaObject</span> {
-            <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Object</span>.<span class="ident">into</span>()),
-            <span class="ident">object</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">ObjectValidation</span> {
-                <span class="ident">additional_properties</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">value_schema</span>)),
-                ..<span class="ident">ObjectValidation::default</span>()
+        <span class="prelude-val">Ok</span>(SchemaObject {
+            instance_type: <span class="prelude-val">Some</span>(InstanceType::Object.into()),
+            object: <span class="prelude-val">Some</span>(Box::new(ObjectValidation {
+                additional_properties: <span class="prelude-val">Some</span>(Box::new(value_schema)),
+                ..ObjectValidation::default()
             })),
-            ..<span class="ident">SchemaObject::default</span>()
+            ..SchemaObject::default()
         }
-        .<span class="ident">into</span>())
+        .into())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_none</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">subschema_for</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span>())
+    <span class="kw">fn </span>serialize_none(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.gen.subschema_for::&lt;<span class="prelude-ty">Option</span>&lt;Value&gt;&gt;())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">serialize_none</span>()
+    <span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="self">self</span>.serialize_none()
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_some</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_some&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="comment">// FIXME nasty duplication of `impl JsonSchema for Option&lt;T&gt;`</span>
-        <span class="kw">fn</span> <span class="ident">add_null_type</span>(<span class="ident">instance_type</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SingleOrVec</span><span class="op">&lt;</span><span class="ident">InstanceType</span><span class="op">&gt;</span>) {
-            <span class="kw">match</span> <span class="ident">instance_type</span> {
-                <span class="ident">SingleOrVec::Single</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">ty</span> <span class="op">!</span><span class="op">=</span> <span class="ident">InstanceType::Null</span> =&gt; {
-                    <span class="kw-2">*</span><span class="ident">instance_type</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">ty</span>, <span class="ident">InstanceType::Null</span>].<span class="ident">into</span>()
+        <span class="comment">// FIXME nasty duplication of `impl JsonSchema for Option&lt;T&gt;`
+        </span><span class="kw">fn </span>add_null_type(instance_type: <span class="kw-2">&amp;mut </span>SingleOrVec&lt;InstanceType&gt;) {
+            <span class="kw">match </span>instance_type {
+                SingleOrVec::Single(ty) <span class="kw">if </span><span class="kw-2">**</span>ty != InstanceType::Null =&gt; {
+                    <span class="kw-2">*</span>instance_type = <span class="macro">vec!</span>[<span class="kw-2">**</span>ty, InstanceType::Null].into()
                 }
-                <span class="ident">SingleOrVec::Vec</span>(<span class="ident">ty</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">ty</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">InstanceType::Null</span>) =&gt; {
-                    <span class="ident">ty</span>.<span class="ident">push</span>(<span class="ident">InstanceType::Null</span>)
+                SingleOrVec::Vec(ty) <span class="kw">if </span>!ty.contains(<span class="kw-2">&amp;</span>InstanceType::Null) =&gt; {
+                    ty.push(InstanceType::Null)
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             };
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>schema = value.serialize(Serializer {
+            gen: <span class="self">self</span>.gen,
+            include_title: <span class="bool-val">false</span>,
         })<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">settings</span>().<span class="ident">option_add_null_type</span> {
-            <span class="ident">schema</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">schema</span> {
-                <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>) =&gt; <span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>),
-                <span class="ident">Schema::Bool</span>(<span class="bool-val">false</span>) =&gt; <span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">gen</span>),
-                <span class="ident">Schema::Object</span>(<span class="ident">SchemaObject</span> {
-                    <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">instance_type</span>),
+        <span class="kw">if </span><span class="self">self</span>.gen.settings().option_add_null_type {
+            schema = <span class="kw">match </span>schema {
+                Schema::Bool(<span class="bool-val">true</span>) =&gt; Schema::Bool(<span class="bool-val">true</span>),
+                Schema::Bool(<span class="bool-val">false</span>) =&gt; &lt;()&gt;::json_schema(<span class="kw-2">&amp;mut </span><span class="self">self</span>.gen),
+                Schema::Object(SchemaObject {
+                    instance_type: <span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>instance_type),
                     ..
                 }) =&gt; {
-                    <span class="ident">add_null_type</span>(<span class="ident">instance_type</span>);
-                    <span class="ident">schema</span>
+                    add_null_type(instance_type);
+                    schema
                 }
-                <span class="ident">schema</span> =&gt; <span class="ident">SchemaObject</span> {
-                    <span class="ident">subschemas</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">SubschemaValidation</span> {
-                        <span class="ident">any_of</span>: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[<span class="ident">schema</span>, <span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::json_schema</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">gen</span>)]),
-                        ..<span class="ident">Default::default</span>()
+                schema =&gt; SchemaObject {
+                    subschemas: <span class="prelude-val">Some</span>(Box::new(SubschemaValidation {
+                        any_of: <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[schema, &lt;()&gt;::json_schema(<span class="kw-2">&amp;mut </span><span class="self">self</span>.gen)]),
+                        ..Default::default()
                     })),
-                    ..<span class="ident">Default::default</span>()
+                    ..Default::default()
                 }
-                .<span class="ident">into</span>(),
+                .into(),
             }
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">settings</span>().<span class="ident">option_nullable</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema_obj</span> <span class="op">=</span> <span class="ident">schema</span>.<span class="ident">into_object</span>();
-            <span class="ident">schema_obj</span>
-                .<span class="ident">extensions</span>
-                .<span class="ident">insert</span>(<span class="string">&quot;nullable&quot;</span>.<span class="ident">to_owned</span>(), <span class="macro">serde_json::json!</span>(<span class="bool-val">true</span>));
-            <span class="ident">schema</span> <span class="op">=</span> <span class="ident">Schema::Object</span>(<span class="ident">schema_obj</span>);
+        <span class="kw">if </span><span class="self">self</span>.gen.settings().option_nullable {
+            <span class="kw">let </span><span class="kw-2">mut </span>schema_obj = schema.into_object();
+            schema_obj
+                .extensions
+                .insert(<span class="string">&quot;nullable&quot;</span>.to_owned(), <span class="macro">serde_json::json!</span>(<span class="bool-val">true</span>));
+            schema = Schema::Object(schema_obj);
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">schema</span>)
+        <span class="prelude-val">Ok</span>(schema)
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit_struct</span>(<span class="self">self</span>, <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">gen</span>.<span class="ident">subschema_for</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>())
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.gen.subschema_for::&lt;()&gt;())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit_variant</span>(
+    <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">_variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant_index: u32,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Schema::Bool(<span class="bool-val">true</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_newtype_struct</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="kw">let</span> <span class="ident">include_title</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">include_title</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="self">self</span>);
+        <span class="kw">let </span>include_title = <span class="self">self</span>.include_title;
+        <span class="kw">let </span><span class="kw-2">mut </span>result = value.serialize(<span class="self">self</span>);
 
-        <span class="kw">if</span> <span class="ident">include_title</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">Schema::Object</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">object</span>)) <span class="op">=</span> <span class="ident">result</span> {
-                <span class="ident">object</span>.<span class="ident">metadata</span>().<span class="ident">title</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>.<span class="ident">to_string</span>());
+        <span class="kw">if </span>include_title {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(Schema::Object(<span class="kw-2">ref mut </span>object)) = result {
+                object.metadata().title = <span class="prelude-val">Some</span>(name.to_string());
             }
         }
 
-        <span class="ident">result</span>
+        result
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_newtype_variant</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">_variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant_index: u32,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="prelude-val">Ok</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))
+        <span class="prelude-val">Ok</span>(Schema::Bool(<span class="bool-val">true</span>))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_seq</span>(<span class="self">self</span>, <span class="ident">_len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeSeq</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeSeq</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">items</span>: <span class="prelude-val">None</span>,
+    <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeSeq, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(SerializeSeq {
+            gen: <span class="self">self</span>.gen,
+            items: <span class="prelude-val">None</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTuple</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeTuple</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">items</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span>),
-            <span class="ident">title</span>: <span class="string">&quot;&quot;</span>,
+    <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTuple, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(SerializeTuple {
+            gen: <span class="self">self</span>.gen,
+            items: Vec::with_capacity(len),
+            title: <span class="string">&quot;&quot;</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple_struct</span>(
+    <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTupleStruct</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">include_title</span> { <span class="ident">name</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> };
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeTuple</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">items</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span>),
-            <span class="ident">title</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span>title = <span class="kw">if </span><span class="self">self</span>.include_title { name } <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>};
+        <span class="prelude-val">Ok</span>(SerializeTuple {
+            gen: <span class="self">self</span>.gen,
+            items: Vec::with_capacity(len),
+            title,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple_variant</span>(
+    <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">_variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTupleVariant</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant_index: u32,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_map</span>(<span class="self">self</span>, <span class="ident">_len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeMap</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeMap</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">properties</span>: <span class="ident">Map::new</span>(),
-            <span class="ident">current_key</span>: <span class="prelude-val">None</span>,
-            <span class="ident">title</span>: <span class="string">&quot;&quot;</span>,
+    <span class="kw">fn </span>serialize_map(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(SerializeMap {
+            gen: <span class="self">self</span>.gen,
+            properties: Map::new(),
+            current_key: <span class="prelude-val">None</span>,
+            title: <span class="string">&quot;&quot;</span>,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_struct</span>(
+    <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeStruct</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">include_title</span> { <span class="ident">name</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> };
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeMap</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">properties</span>: <span class="ident">Map::new</span>(),
-            <span class="ident">current_key</span>: <span class="prelude-val">None</span>,
-            <span class="ident">title</span>,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span>title = <span class="kw">if </span><span class="self">self</span>.include_title { name } <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>};
+        <span class="prelude-val">Ok</span>(SerializeMap {
+            gen: <span class="self">self</span>.gen,
+            properties: Map::new(),
+            current_key: <span class="prelude-val">None</span>,
+            title,
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_struct_variant</span>(
+    <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">_variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeStructVariant</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant_index: u32,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeTupleVariant</span> <span class="kw">for</span> <span class="ident">Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeTupleVariant <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Schema::Bool(<span class="bool-val">true</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeStructVariant</span> <span class="kw">for</span> <span class="ident">Serializer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeStructVariant <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="prelude-val">Ok</span>(Schema::Bool(<span class="bool-val">true</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeSeq</span> <span class="kw">for</span> <span class="ident">SerializeSeq</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeSeq <span class="kw">for </span>SerializeSeq&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">items</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>)) {
-            <span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-                <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-                <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+        <span class="kw">if </span><span class="self">self</span>.items != <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>)) {
+            <span class="kw">let </span>schema = value.serialize(Serializer {
+                gen: <span class="self">self</span>.gen,
+                include_title: <span class="bool-val">false</span>,
             })<span class="question-mark">?</span>;
-            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">items</span> {
-                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">items</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">schema</span>),
-                <span class="prelude-val">Some</span>(<span class="ident">items</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">items</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">schema</span> {
-                        <span class="self">self</span>.<span class="ident">items</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>))
+            <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.items {
+                <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.items = <span class="prelude-val">Some</span>(schema),
+                <span class="prelude-val">Some</span>(items) =&gt; {
+                    <span class="kw">if </span>items != <span class="kw-2">&amp;</span>schema {
+                        <span class="self">self</span>.items = <span class="prelude-val">Some</span>(Schema::Bool(<span class="bool-val">true</span>))
                     }
                 }
             }
@@ -878,150 +872,149 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">items</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">unwrap_or</span>(<span class="ident">Schema::Bool</span>(<span class="bool-val">true</span>));
-        <span class="prelude-val">Ok</span>(<span class="ident">SchemaObject</span> {
-            <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Array</span>.<span class="ident">into</span>()),
-            <span class="ident">array</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">ArrayValidation</span> {
-                <span class="ident">items</span>: <span class="prelude-val">Some</span>(<span class="ident">items</span>.<span class="ident">into</span>()),
-                ..<span class="ident">ArrayValidation::default</span>()
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span>items = <span class="self">self</span>.items.unwrap_or(Schema::Bool(<span class="bool-val">true</span>));
+        <span class="prelude-val">Ok</span>(SchemaObject {
+            instance_type: <span class="prelude-val">Some</span>(InstanceType::Array.into()),
+            array: <span class="prelude-val">Some</span>(Box::new(ArrayValidation {
+                items: <span class="prelude-val">Some</span>(items.into()),
+                ..ArrayValidation::default()
             })),
-            ..<span class="ident">SchemaObject::default</span>()
+            ..SchemaObject::default()
         }
-        .<span class="ident">into</span>())
+        .into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeTuple</span> <span class="kw">for</span> <span class="ident">SerializeTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeTuple <span class="kw">for </span>SerializeTuple&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+        <span class="kw">let </span>schema = value.serialize(Serializer {
+            gen: <span class="self">self</span>.gen,
+            include_title: <span class="bool-val">false</span>,
         })<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">push</span>(<span class="ident">schema</span>);
+        <span class="self">self</span>.items.push(schema);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">ok</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">SchemaObject</span> {
-            <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Array</span>.<span class="ident">into</span>()),
-            <span class="ident">array</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">ArrayValidation</span> {
-                <span class="ident">items</span>: <span class="prelude-val">Some</span>(<span class="ident">SingleOrVec::Vec</span>(<span class="self">self</span>.<span class="ident">items</span>)),
-                <span class="ident">max_items</span>: <span class="ident">len</span>,
-                <span class="ident">min_items</span>: <span class="ident">len</span>,
-                ..<span class="ident">ArrayValidation::default</span>()
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span>len = <span class="self">self</span>.items.len().try_into().ok();
+        <span class="kw">let </span><span class="kw-2">mut </span>schema = SchemaObject {
+            instance_type: <span class="prelude-val">Some</span>(InstanceType::Array.into()),
+            array: <span class="prelude-val">Some</span>(Box::new(ArrayValidation {
+                items: <span class="prelude-val">Some</span>(SingleOrVec::Vec(<span class="self">self</span>.items)),
+                max_items: len,
+                min_items: len,
+                ..ArrayValidation::default()
             })),
-            ..<span class="ident">SchemaObject::default</span>()
+            ..SchemaObject::default()
         };
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">title</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">schema</span>.<span class="ident">metadata</span>().<span class="ident">title</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">title</span>.<span class="ident">to_owned</span>());
+        <span class="kw">if </span>!<span class="self">self</span>.title.is_empty() {
+            schema.metadata().title = <span class="prelude-val">Some</span>(<span class="self">self</span>.title.to_owned());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">schema</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(schema.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeTupleStruct</span> <span class="kw">for</span> <span class="ident">SerializeTuple</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeTuple&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="ident">serde::ser::SerializeTuple::serialize_element</span>(<span class="self">self</span>, <span class="ident">value</span>)
+        serde::ser::SerializeTuple::serialize_element(<span class="self">self</span>, value)
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">serde::ser::SerializeTuple::end</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        serde::ser::SerializeTuple::end(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeMap</span> <span class="kw">for</span> <span class="ident">SerializeMap</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeMap <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_key</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="comment">// FIXME this is too lenient - we should return an error if serde_json</span>
-        <span class="comment">// doesn&#39;t allow T to be a key of a map.</span>
-        <span class="kw">let</span> <span class="ident">json</span> <span class="op">=</span> <span class="ident">serde_json::to_string</span>(<span class="ident">key</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">current_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-            <span class="ident">json</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39;&quot;&#39;</span>)
-                .<span class="ident">trim_end_matches</span>(<span class="string">&#39;&quot;&#39;</span>)
-                .<span class="ident">to_string</span>(),
+        <span class="comment">// FIXME this is too lenient - we should return an error if serde_json
+        // doesn&#39;t allow T to be a key of a map.
+        </span><span class="kw">let </span>json = serde_json::to_string(key)<span class="question-mark">?</span>;
+        <span class="self">self</span>.current_key = <span class="prelude-val">Some</span>(
+            json.trim_start_matches(<span class="string">&#39;&quot;&#39;</span>)
+                .trim_end_matches(<span class="string">&#39;&quot;&#39;</span>)
+                .to_string(),
         );
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_value</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_value&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_key</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_default</span>();
-        <span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+        <span class="kw">let </span>key = <span class="self">self</span>.current_key.take().unwrap_or_default();
+        <span class="kw">let </span>schema = value.serialize(Serializer {
+            gen: <span class="self">self</span>.gen,
+            include_title: <span class="bool-val">false</span>,
         })<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">schema</span>);
+        <span class="self">self</span>.properties.insert(key, schema);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">SchemaObject</span> {
-            <span class="ident">instance_type</span>: <span class="prelude-val">Some</span>(<span class="ident">InstanceType::Object</span>.<span class="ident">into</span>()),
-            <span class="ident">object</span>: <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">ObjectValidation</span> {
-                <span class="ident">properties</span>: <span class="self">self</span>.<span class="ident">properties</span>,
-                ..<span class="ident">ObjectValidation::default</span>()
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>schema = SchemaObject {
+            instance_type: <span class="prelude-val">Some</span>(InstanceType::Object.into()),
+            object: <span class="prelude-val">Some</span>(Box::new(ObjectValidation {
+                properties: <span class="self">self</span>.properties,
+                ..ObjectValidation::default()
             })),
-            ..<span class="ident">SchemaObject::default</span>()
+            ..SchemaObject::default()
         };
 
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">title</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">schema</span>.<span class="ident">metadata</span>().<span class="ident">title</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">title</span>.<span class="ident">to_owned</span>());
+        <span class="kw">if </span>!<span class="self">self</span>.title.is_empty() {
+            schema.metadata().title = <span class="prelude-val">Some</span>(<span class="self">self</span>.title.to_owned());
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">schema</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(schema.into())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">serde::ser::SerializeStruct</span> <span class="kw">for</span> <span class="ident">SerializeMap</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Schema</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>serde::ser::SerializeStruct <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Schema;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">serde::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
+    <span class="kw">where
+        </span>T: serde::Serialize,
     {
-        <span class="kw">let</span> <span class="ident">prop_schema</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">Serializer</span> {
-            <span class="ident">gen</span>: <span class="self">self</span>.<span class="ident">gen</span>,
-            <span class="ident">include_title</span>: <span class="bool-val">false</span>,
+        <span class="kw">let </span>prop_schema = value.serialize(Serializer {
+            gen: <span class="self">self</span>.gen,
+            include_title: <span class="bool-val">false</span>,
         })<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">to_string</span>(), <span class="ident">prop_schema</span>);
+        <span class="self">self</span>.properties.insert(key.to_string(), prop_schema);
 
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="ident">serde::ser::SerializeMap::end</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+        serde::ser::SerializeMap::end(<span class="self">self</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="schemars" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="schemars" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

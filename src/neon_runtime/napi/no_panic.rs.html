@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/no_panic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>no_panic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/neon-runtime-0.10.1/src/napi/no_panic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>no_panic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../neon_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../neon_runtime/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -285,287 +279,286 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Utilities that _will_ not panic for use in contexts where unwinding would be</span>
-<span class="doccomment">//! undefined behavior.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The following helpers do not panic and instead use `napi_fatal_error`</span>
-<span class="doccomment">//! to crash the process in a controlled way, making them safe for use in FFI</span>
-<span class="doccomment">//! callbacks.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! `#[track_caller]` is used on these helpers to ensure `fatal_error` reports</span>
-<span class="doccomment">//! the calling location instead of the helpers defined here.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Utilities that _will_ not panic for use in contexts where unwinding would be
+//! undefined behavior.
+//!
+//! The following helpers do not panic and instead use `napi_fatal_error`
+//! to crash the process in a controlled way, making them safe for use in FFI
+//! callbacks.
+//!
+//! `#[track_caller]` is used on these helpers to ensure `fatal_error` reports
+//! the calling location instead of the helpers defined here.
 
-<span class="kw">use</span> <span class="ident">std::any::Any</span>;
-<span class="kw">use</span> <span class="ident">std::ffi::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
-<span class="kw">use</span> <span class="ident">std::panic</span>::{<span class="ident">catch_unwind</span>, <span class="ident">AssertUnwindSafe</span>};
-<span class="kw">use</span> <span class="ident">std::ptr</span>;
+</span><span class="kw">use </span>std::any::Any;
+<span class="kw">use </span>std::ffi::c_void;
+<span class="kw">use </span>std::mem::MaybeUninit;
+<span class="kw">use </span>std::panic::{catch_unwind, AssertUnwindSafe};
+<span class="kw">use </span>std::ptr;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::bindings</span> <span class="kw">as</span> <span class="ident">napi</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::error::fatal_error</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::raw</span>::{<span class="ident">Env</span>, <span class="ident">Local</span>};
+<span class="kw">use </span><span class="kw">super</span>::bindings <span class="kw">as </span>napi;
+<span class="kw">use </span><span class="kw">super</span>::error::fatal_error;
+<span class="kw">use </span><span class="kw">super</span>::raw::{Env, Local};
 
-<span class="kw">type</span> <span class="ident">Panic</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>;
+<span class="kw">type </span>Panic = Box&lt;<span class="kw">dyn </span>Any + Send + <span class="lifetime">&#39;static</span>&gt;;
 
-<span class="kw">const</span> <span class="ident">UNKNOWN_PANIC_MESSAGE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Unknown panic&quot;</span>;
+<span class="kw">const </span>UNKNOWN_PANIC_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Unknown panic&quot;</span>;
 
-<span class="doccomment">/// `FailureBoundary`] acts as boundary between Rust and FFI code, protecting</span>
-<span class="doccomment">/// a critical section of code from unhandled failure. It will catch both Rust</span>
-<span class="doccomment">/// panics and JavaScript exceptions. Attempts to handle failures are executed</span>
-<span class="doccomment">/// in order of ascending severity:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 1. Reject a `Promise` if a `Deferred` was provided</span>
-<span class="doccomment">/// 2. Emit a fatal exception</span>
-<span class="doccomment">/// 3. Abort the process with a message and location</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This process will be aborted if any step unrecoverably fails. For example,</span>
-<span class="doccomment">/// if a `napi::Env` is unavailable, it is impossible to reject a `Promise` or</span>
-<span class="doccomment">/// emit a fatal exception.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FailureBoundary</span> {
-    <span class="kw">pub</span> <span class="ident">both</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="kw">pub</span> <span class="ident">exception</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="kw">pub</span> <span class="ident">panic</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+<span class="doccomment">/// `FailureBoundary`] acts as boundary between Rust and FFI code, protecting
+/// a critical section of code from unhandled failure. It will catch both Rust
+/// panics and JavaScript exceptions. Attempts to handle failures are executed
+/// in order of ascending severity:
+///
+/// 1. Reject a `Promise` if a `Deferred` was provided
+/// 2. Emit a fatal exception
+/// 3. Abort the process with a message and location
+///
+/// This process will be aborted if any step unrecoverably fails. For example,
+/// if a `napi::Env` is unavailable, it is impossible to reject a `Promise` or
+/// emit a fatal exception.
+</span><span class="kw">pub struct </span>FailureBoundary {
+    <span class="kw">pub </span>both: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    <span class="kw">pub </span>exception: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    <span class="kw">pub </span>panic: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
 }
 
-<span class="kw">impl</span> <span class="ident">FailureBoundary</span> {
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">catch_failure</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">deferred</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">napi::Deferred</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>)
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Env</span><span class="op">&gt;</span>) -&gt; <span class="ident">Local</span>,
+<span class="kw">impl </span>FailureBoundary {
+    <span class="attribute">#[track_caller]
+    </span><span class="kw">pub unsafe fn </span>catch_failure&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, env: Env, deferred: <span class="prelude-ty">Option</span>&lt;napi::Deferred&gt;, f: F)
+    <span class="kw">where
+        </span>F: FnOnce(<span class="prelude-ty">Option</span>&lt;Env&gt;) -&gt; Local,
     {
-        <span class="comment">// Event loop has terminated if `null`</span>
-        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env</span>.<span class="ident">is_null</span>() { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">env</span>) };
+        <span class="comment">// Event loop has terminated if `null`
+        </span><span class="kw">let </span>env = <span class="kw">if </span>env.is_null() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(env) };
 
-        <span class="comment">// Run the user supplied callback, catching panics</span>
-        <span class="comment">// This is unwind safe because control is never yielded back to the caller</span>
-        <span class="kw">let</span> <span class="ident">panic</span> <span class="op">=</span> <span class="ident">catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">env</span>)));
+        <span class="comment">// Run the user supplied callback, catching panics
+        // This is unwind safe because control is never yielded back to the caller
+        </span><span class="kw">let </span>panic = catch_unwind(AssertUnwindSafe(<span class="kw">move </span>|| f(env)));
 
-        <span class="comment">// Unwrap the `Env`</span>
-        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span> <span class="ident">env</span> {
-            <span class="ident">env</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// If there was a panic and we don&#39;t have an `Env`, crash the process</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">panic</span>) <span class="op">=</span> <span class="ident">panic</span> {
-                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">panic_msg</span>(<span class="kw-2">&amp;</span><span class="ident">panic</span>).<span class="ident">unwrap_or</span>(<span class="ident">UNKNOWN_PANIC_MESSAGE</span>);
+        <span class="comment">// Unwrap the `Env`
+        </span><span class="kw">let </span>env = <span class="kw">if let </span><span class="prelude-val">Some</span>(env) = env {
+            env
+        } <span class="kw">else </span>{
+            <span class="comment">// If there was a panic and we don&#39;t have an `Env`, crash the process
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(panic) = panic {
+                <span class="kw">let </span>msg = panic_msg(<span class="kw-2">&amp;</span>panic).unwrap_or(UNKNOWN_PANIC_MESSAGE);
 
-                <span class="ident">fatal_error</span>(<span class="ident">msg</span>);
+                fatal_error(msg);
             }
 
-            <span class="comment">// If we don&#39;t have an `Env`, we can&#39;t catch an exception, nothing more to try</span>
-            <span class="kw">return</span>;
+            <span class="comment">// If we don&#39;t have an `Env`, we can&#39;t catch an exception, nothing more to try
+            </span><span class="kw">return</span>;
         };
 
-        <span class="comment">// Check and catch a thrown exception</span>
-        <span class="kw">let</span> <span class="ident">exception</span> <span class="op">=</span> <span class="ident">catch_exception</span>(<span class="ident">env</span>);
+        <span class="comment">// Check and catch a thrown exception
+        </span><span class="kw">let </span>exception = catch_exception(env);
 
-        <span class="comment">// Create an error message or return if there wasn&#39;t a panic or exception</span>
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">exception</span>, <span class="ident">panic</span>.<span class="ident">as_ref</span>()) {
-            <span class="comment">// Exception and a panic</span>
-            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="self">self</span>.<span class="ident">both</span>,
+        <span class="comment">// Create an error message or return if there wasn&#39;t a panic or exception
+        </span><span class="kw">let </span>msg = <span class="kw">match </span>(exception, panic.as_ref()) {
+            <span class="comment">// Exception and a panic
+            </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="self">self</span>.both,
 
-            <span class="comment">// Exception, but not a panic</span>
-            (<span class="prelude-val">Some</span>(<span class="ident">err</span>), <span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
-                <span class="comment">// Reject the promise without wrapping</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deferred</span>) <span class="op">=</span> <span class="ident">deferred</span> {
-                    <span class="ident">reject_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="ident">err</span>);
+            <span class="comment">// Exception, but not a panic
+            </span>(<span class="prelude-val">Some</span>(err), <span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; {
+                <span class="comment">// Reject the promise without wrapping
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(deferred) = deferred {
+                    reject_deferred(env, deferred, err);
 
                     <span class="kw">return</span>;
                 }
 
-                <span class="self">self</span>.<span class="ident">exception</span>
+                <span class="self">self</span>.exception
             }
 
-            <span class="comment">// Panic, but not an exception</span>
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="self">self</span>.<span class="ident">panic</span>,
+            <span class="comment">// Panic, but not an exception
+            </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)) =&gt; <span class="self">self</span>.panic,
 
-            <span class="comment">// No errors occurred! We&#39;re done!</span>
-            (<span class="prelude-val">None</span>, <span class="prelude-val">Ok</span>(<span class="ident">value</span>)) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deferred</span>) <span class="op">=</span> <span class="ident">deferred</span> {
-                    <span class="ident">resolve_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="kw-2">*</span><span class="ident">value</span>);
+            <span class="comment">// No errors occurred! We&#39;re done!
+            </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Ok</span>(value)) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(deferred) = deferred {
+                    resolve_deferred(env, deferred, <span class="kw-2">*</span>value);
                 }
 
                 <span class="kw">return</span>;
             }
         };
 
-        <span class="comment">// Reject the promise</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deferred</span>) <span class="op">=</span> <span class="ident">deferred</span> {
-            <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">create_error</span>(<span class="ident">env</span>, <span class="ident">msg</span>, <span class="ident">exception</span>, <span class="ident">panic</span>.<span class="ident">err</span>());
+        <span class="comment">// Reject the promise
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(deferred) = deferred {
+            <span class="kw">let </span>error = create_error(env, msg, exception, panic.err());
 
-            <span class="ident">reject_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="ident">error</span>);
+            reject_deferred(env, deferred, error);
 
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">create_error</span>(<span class="ident">env</span>, <span class="ident">msg</span>, <span class="ident">exception</span>, <span class="ident">panic</span>.<span class="ident">err</span>());
+        <span class="kw">let </span>error = create_error(env, msg, exception, panic.err());
 
-        <span class="comment">// Trigger a fatal exception</span>
-        <span class="ident">fatal_exception</span>(<span class="ident">env</span>, <span class="ident">error</span>);
+        <span class="comment">// Trigger a fatal exception
+        </span>fatal_exception(env, error);
     }
 }
 
-<span class="comment">// We cannot use `napi_fatal_exception` because of this bug; instead, cause an</span>
-<span class="comment">// unhandled rejection which has similar behavior on recent versions of Node.</span>
-<span class="comment">// https://github.com/nodejs/node/issues/33771</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">fatal_exception</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">error</span>: <span class="ident">Local</span>) {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deferred</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">promise</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
+<span class="comment">// We cannot use `napi_fatal_exception` because of this bug; instead, cause an
+// unhandled rejection which has similar behavior on recent versions of Node.
+// https://github.com/nodejs/node/issues/33771
+</span><span class="kw">unsafe fn </span>fatal_exception(env: Env, error: Local) {
+    <span class="kw">let </span><span class="kw-2">mut </span>deferred = MaybeUninit::uninit();
+    <span class="kw">let </span><span class="kw-2">mut </span>promise = MaybeUninit::uninit();
 
-    <span class="kw">let</span> <span class="ident">deferred</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">napi::create_promise</span>(<span class="ident">env</span>, <span class="ident">deferred</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">promise</span>.<span class="ident">as_mut_ptr</span>()) {
-        <span class="ident">napi::Status::Ok</span> =&gt; <span class="ident">deferred</span>.<span class="ident">assume_init</span>(),
-        <span class="kw">_</span> =&gt; <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to create a promise&quot;</span>),
+    <span class="kw">let </span>deferred = <span class="kw">match </span>napi::create_promise(env, deferred.as_mut_ptr(), promise.as_mut_ptr()) {
+        napi::Status::Ok =&gt; deferred.assume_init(),
+        <span class="kw">_ </span>=&gt; fatal_error(<span class="string">&quot;Failed to create a promise&quot;</span>),
     };
 
-    <span class="kw">if</span> <span class="ident">napi::reject_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="ident">error</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to reject a promise&quot;</span>);
+    <span class="kw">if </span>napi::reject_deferred(env, deferred, error) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to reject a promise&quot;</span>);
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">create_error</span>(
-    <span class="ident">env</span>: <span class="ident">Env</span>,
-    <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">exception</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span>,
-    <span class="ident">panic</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Panic</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">Local</span> {
-    <span class="comment">// Construct the `uncaughtException` Error object</span>
-    <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">error_from_message</span>(<span class="ident">env</span>, <span class="ident">msg</span>);
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>create_error(
+    env: Env,
+    msg: <span class="kw-2">&amp;</span>str,
+    exception: <span class="prelude-ty">Option</span>&lt;Local&gt;,
+    panic: <span class="prelude-ty">Option</span>&lt;Panic&gt;,
+) -&gt; Local {
+    <span class="comment">// Construct the `uncaughtException` Error object
+    </span><span class="kw">let </span>error = error_from_message(env, msg);
 
-    <span class="comment">// Add the exception to the error</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exception</span>) <span class="op">=</span> <span class="ident">exception</span> {
-        <span class="ident">set_property</span>(<span class="ident">env</span>, <span class="ident">error</span>, <span class="string">&quot;cause&quot;</span>, <span class="ident">exception</span>);
+    <span class="comment">// Add the exception to the error
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(exception) = exception {
+        set_property(env, error, <span class="string">&quot;cause&quot;</span>, exception);
     };
 
-    <span class="comment">// Add the panic to the error</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">panic</span>) <span class="op">=</span> <span class="ident">panic</span> {
-        <span class="ident">set_property</span>(<span class="ident">env</span>, <span class="ident">error</span>, <span class="string">&quot;panic&quot;</span>, <span class="ident">error_from_panic</span>(<span class="ident">env</span>, <span class="ident">panic</span>));
+    <span class="comment">// Add the panic to the error
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(panic) = panic {
+        set_property(env, error, <span class="string">&quot;panic&quot;</span>, error_from_panic(env, panic));
     }
 
-    <span class="ident">error</span>
+    error
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">resolve_deferred</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">deferred</span>: <span class="ident">napi::Deferred</span>, <span class="ident">value</span>: <span class="ident">Local</span>) {
-    <span class="kw">if</span> <span class="ident">napi::resolve_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="ident">value</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to resolve promise&quot;</span>);
-    }
-}
-
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">reject_deferred</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">deferred</span>: <span class="ident">napi::Deferred</span>, <span class="ident">value</span>: <span class="ident">Local</span>) {
-    <span class="kw">if</span> <span class="ident">napi::reject_deferred</span>(<span class="ident">env</span>, <span class="ident">deferred</span>, <span class="ident">value</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to reject promise&quot;</span>);
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>resolve_deferred(env: Env, deferred: napi::Deferred, value: Local) {
+    <span class="kw">if </span>napi::resolve_deferred(env, deferred, value) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to resolve promise&quot;</span>);
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">catch_exception</span>(<span class="ident">env</span>: <span class="ident">Env</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Local</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_exception_pending</span>(<span class="ident">env</span>) {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>reject_deferred(env: Env, deferred: napi::Deferred, value: Local) {
+    <span class="kw">if </span>napi::reject_deferred(env, deferred, value) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to reject promise&quot;</span>);
     }
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-
-    <span class="kw">if</span> <span class="ident">napi::get_and_clear_last_exception</span>(<span class="ident">env</span>, <span class="ident">error</span>.<span class="ident">as_mut_ptr</span>()) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to get and clear the last exception&quot;</span>);
-    }
-
-    <span class="prelude-val">Some</span>(<span class="ident">error</span>.<span class="ident">assume_init</span>())
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">error_from_message</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Local</span> {
-    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">create_string</span>(<span class="ident">env</span>, <span class="ident">msg</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>catch_exception(env: Env) -&gt; <span class="prelude-ty">Option</span>&lt;Local&gt; {
+    <span class="kw">if </span>!is_exception_pending(env) {
+        <span class="kw">return </span><span class="prelude-val">None</span>;
+    }
 
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::create_error</span>(<span class="ident">env</span>, <span class="ident">ptr::null_mut</span>(), <span class="ident">msg</span>, <span class="ident">err</span>.<span class="ident">as_mut_ptr</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>error = MaybeUninit::uninit();
 
-    <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">status</span> <span class="op">==</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">err</span>.<span class="ident">assume_init</span>()
-    } <span class="kw">else</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to create an Error&quot;</span>);
+    <span class="kw">if </span>napi::get_and_clear_last_exception(env, error.as_mut_ptr()) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to get and clear the last exception&quot;</span>);
+    }
+
+    <span class="prelude-val">Some</span>(error.assume_init())
+}
+
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>error_from_message(env: Env, msg: <span class="kw-2">&amp;</span>str) -&gt; Local {
+    <span class="kw">let </span>msg = create_string(env, msg);
+    <span class="kw">let </span><span class="kw-2">mut </span>err = MaybeUninit::uninit();
+
+    <span class="kw">let </span>status = napi::create_error(env, ptr::null_mut(), msg, err.as_mut_ptr());
+
+    <span class="kw">let </span>err = <span class="kw">if </span>status == napi::Status::Ok {
+        err.assume_init()
+    } <span class="kw">else </span>{
+        fatal_error(<span class="string">&quot;Failed to create an Error&quot;</span>);
     };
 
-    <span class="ident">err</span>
+    err
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">error_from_panic</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">panic</span>: <span class="ident">Panic</span>) -&gt; <span class="ident">Local</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">panic_msg</span>(<span class="kw-2">&amp;</span><span class="ident">panic</span>) {
-        <span class="ident">error_from_message</span>(<span class="ident">env</span>, <span class="ident">msg</span>)
-    } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">error_from_message</span>(<span class="ident">env</span>, <span class="ident">UNKNOWN_PANIC_MESSAGE</span>);
-        <span class="kw">let</span> <span class="ident">panic</span> <span class="op">=</span> <span class="ident">external_from_panic</span>(<span class="ident">env</span>, <span class="ident">panic</span>);
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>error_from_panic(env: Env, panic: Panic) -&gt; Local {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = panic_msg(<span class="kw-2">&amp;</span>panic) {
+        error_from_message(env, msg)
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>error = error_from_message(env, UNKNOWN_PANIC_MESSAGE);
+        <span class="kw">let </span>panic = external_from_panic(env, panic);
 
-        <span class="ident">set_property</span>(<span class="ident">env</span>, <span class="ident">error</span>, <span class="string">&quot;cause&quot;</span>, <span class="ident">panic</span>);
-        <span class="ident">error</span>
+        set_property(env, error, <span class="string">&quot;cause&quot;</span>, panic);
+        error
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_property</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">object</span>: <span class="ident">Local</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Local</span>) {
-    <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">create_string</span>(<span class="ident">env</span>, <span class="ident">key</span>);
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>set_property(env: Env, object: Local, key: <span class="kw-2">&amp;</span>str, value: Local) {
+    <span class="kw">let </span>key = create_string(env, key);
 
-    <span class="kw">if</span> <span class="ident">napi::set_property</span>(<span class="ident">env</span>, <span class="ident">object</span>, <span class="ident">key</span>, <span class="ident">value</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to set an object property&quot;</span>);
+    <span class="kw">if </span>napi::set_property(env, object, key, value) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to set an object property&quot;</span>);
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">panic_msg</span>(<span class="ident">panic</span>: <span class="kw-2">&amp;</span><span class="ident">Panic</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">panic</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>() {
-        <span class="prelude-val">Some</span>(<span class="ident">msg</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">panic</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>() {
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>)
-    } <span class="kw">else</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>panic_msg(panic: <span class="kw-2">&amp;</span>Panic) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(msg) = panic.downcast_ref::&lt;<span class="kw-2">&amp;</span>str&gt;() {
+        <span class="prelude-val">Some</span>(msg)
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(msg) = panic.downcast_ref::&lt;String&gt;() {
+        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>msg)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>}
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">external_from_panic</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">panic</span>: <span class="ident">Panic</span>) -&gt; <span class="ident">Local</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::create_external</span>(
-        <span class="ident">env</span>,
-        <span class="ident">Box::into_raw</span>(<span class="ident">Box::new</span>(<span class="ident">panic</span>)).<span class="ident">cast</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">finalize_panic</span>),
-        <span class="ident">ptr::null_mut</span>(),
-        <span class="ident">result</span>.<span class="ident">as_mut_ptr</span>(),
+<span class="kw">unsafe fn </span>external_from_panic(env: Env, panic: Panic) -&gt; Local {
+    <span class="kw">let </span><span class="kw-2">mut </span>result = MaybeUninit::uninit();
+    <span class="kw">let </span>status = napi::create_external(
+        env,
+        Box::into_raw(Box::new(panic)).cast(),
+        <span class="prelude-val">Some</span>(finalize_panic),
+        ptr::null_mut(),
+        result.as_mut_ptr(),
     );
 
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to create a neon::types::JsBox from a panic&quot;</span>);
+    <span class="kw">if </span>status != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to create a neon::types::JsBox from a panic&quot;</span>);
     }
 
-    <span class="ident">result</span>.<span class="ident">assume_init</span>()
+    result.assume_init()
 }
 
-<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">finalize_panic</span>(<span class="ident">_env</span>: <span class="ident">Env</span>, <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>, <span class="ident">_hint</span>: <span class="kw-2">*mut</span> <span class="ident">c_void</span>) {
-    <span class="kw">unsafe</span> {
-        <span class="ident">Box::from_raw</span>(<span class="ident">data</span>.<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">Panic</span><span class="op">&gt;</span>());
+<span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>finalize_panic(_env: Env, data: <span class="kw-2">*mut </span>c_void, _hint: <span class="kw-2">*mut </span>c_void) {
+    <span class="kw">unsafe </span>{
+        Box::from_raw(data.cast::&lt;Panic&gt;());
     }
 }
 
-<span class="attribute">#[<span class="ident">track_caller</span>]</span>
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">create_string</span>(<span class="ident">env</span>: <span class="ident">Env</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Local</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">MaybeUninit::uninit</span>();
-    <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">napi::create_string_utf8</span>(<span class="ident">env</span>, <span class="ident">msg</span>.<span class="ident">as_ptr</span>().<span class="ident">cast</span>(), <span class="ident">msg</span>.<span class="ident">len</span>(), <span class="ident">string</span>.<span class="ident">as_mut_ptr</span>());
+<span class="attribute">#[track_caller]
+</span><span class="kw">unsafe fn </span>create_string(env: Env, msg: <span class="kw-2">&amp;</span>str) -&gt; Local {
+    <span class="kw">let </span><span class="kw-2">mut </span>string = MaybeUninit::uninit();
+    <span class="kw">let </span>status = napi::create_string_utf8(env, msg.as_ptr().cast(), msg.len(), string.as_mut_ptr());
 
-    <span class="kw">if</span> <span class="ident">status</span> <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to create a String&quot;</span>);
+    <span class="kw">if </span>status != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to create a String&quot;</span>);
     }
 
-    <span class="ident">string</span>.<span class="ident">assume_init</span>()
+    string.assume_init()
 }
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">is_exception_pending</span>(<span class="ident">env</span>: <span class="ident">Env</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">throwing</span> <span class="op">=</span> <span class="bool-val">false</span>;
+<span class="kw">unsafe fn </span>is_exception_pending(env: Env) -&gt; bool {
+    <span class="kw">let </span><span class="kw-2">mut </span>throwing = <span class="bool-val">false</span>;
 
-    <span class="kw">if</span> <span class="ident">napi::is_exception_pending</span>(<span class="ident">env</span>, <span class="kw-2">&amp;mut</span> <span class="ident">throwing</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">napi::Status::Ok</span> {
-        <span class="ident">fatal_error</span>(<span class="string">&quot;Failed to check if an exception is pending&quot;</span>);
+    <span class="kw">if </span>napi::is_exception_pending(env, <span class="kw-2">&amp;mut </span>throwing) != napi::Status::Ok {
+        fatal_error(<span class="string">&quot;Failed to check if an exception is pending&quot;</span>);
     }
 
-    <span class="ident">throwing</span>
+    throwing
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="neon_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

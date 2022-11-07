@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustix-0.35.9/src/backend/linux_raw/conv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conv.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../rustix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../../rustix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../rustix/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rustix-0.35.12/src/backend/linux_raw/conv.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conv.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../rustix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../rustix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../rustix/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -778,780 +772,779 @@
 <span id="772">772</span>
 <span id="773">773</span>
 <span id="774">774</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Convert values to [`ArgReg`] and from [`RetReg`].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! System call arguments and return values are all communicated with inline</span>
-<span class="doccomment">//! asm and FFI as `*mut Opaque`. To protect these raw pointers from escaping</span>
-<span class="doccomment">//! or being accidentally misused as they travel through the code, we wrap</span>
-<span class="doccomment">//! them in [`ArgReg`] and [`RetReg`] structs. This file provides `From`</span>
-<span class="doccomment">//! implementations and explicit conversion functions for converting values</span>
-<span class="doccomment">//! into and out of these wrapper structs.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Safety</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Some of this code is `unsafe` in order to work with raw file descriptors,</span>
-<span class="doccomment">//! and some is `unsafe` to interpret the values in a `RetReg`.</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Convert values to [`ArgReg`] and from [`RetReg`].
+//!
+//! System call arguments and return values are all communicated with inline
+//! asm and FFI as `*mut Opaque`. To protect these raw pointers from escaping
+//! or being accidentally misused as they travel through the code, we wrap
+//! them in [`ArgReg`] and [`RetReg`] structs. This file provides `From`
+//! implementations and explicit conversion functions for converting values
+//! into and out of these wrapper structs.
+//!
+//! # Safety
+//!
+//! Some of this code is `unsafe` in order to work with raw file descriptors,
+//! and some is `unsafe` to interpret the values in a `RetReg`.
+</span><span class="attribute">#![allow(unsafe_code)]
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::c</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::fd</span>::{<span class="ident">AsRawFd</span>, <span class="ident">BorrowedFd</span>, <span class="ident">FromRawFd</span>, <span class="ident">RawFd</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::io::errno::decode_usize_infallible</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::io::errno::try_decode_error</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::io::errno::try_decode_u64</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::io::errno</span>::{
-    <span class="ident">try_decode_c_int</span>, <span class="ident">try_decode_c_uint</span>, <span class="ident">try_decode_raw_fd</span>, <span class="ident">try_decode_usize</span>, <span class="ident">try_decode_void</span>,
-    <span class="ident">try_decode_void_star</span>,
+</span><span class="kw">use </span><span class="kw">super</span>::c;
+<span class="kw">use </span><span class="kw">super</span>::fd::{AsRawFd, BorrowedFd, FromRawFd, RawFd};
+<span class="attribute">#[cfg(not(debug_assertions))]
+</span><span class="kw">use </span><span class="kw">super</span>::io::errno::decode_usize_infallible;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">super</span>::io::errno::try_decode_error;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">super</span>::io::errno::try_decode_u64;
+<span class="kw">use </span><span class="kw">super</span>::io::errno::{
+    try_decode_c_int, try_decode_c_uint, try_decode_raw_fd, try_decode_usize, try_decode_void,
+    try_decode_void_star,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::reg</span>::{<span class="ident">raw_arg</span>, <span class="ident">ArgNumber</span>, <span class="ident">ArgReg</span>, <span class="ident">RetReg</span>, <span class="ident">R0</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;thread&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::time::types::ClockId</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::time::types::TimerfdClockId</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ffi::CStr</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fs</span>::{<span class="ident">FileType</span>, <span class="ident">Mode</span>, <span class="ident">OFlags</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<span class="self">self</span>, <span class="ident">OwnedFd</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::process</span>::{<span class="ident">Pid</span>, <span class="ident">Resource</span>, <span class="ident">Signal</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::utils</span>::{<span class="ident">as_mut_ptr</span>, <span class="ident">as_ptr</span>};
-<span class="kw">use</span> <span class="ident">core::mem::MaybeUninit</span>;
-<span class="kw">use</span> <span class="ident">core::ptr::null_mut</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;thread&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">linux_raw_sys::general::__kernel_clockid_t</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">linux_raw_sys::general::__kernel_loff_t</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">linux_raw_sys::general::socklen_t</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">linux_raw_sys::general::O_LARGEFILE</span>;
+<span class="kw">use </span><span class="kw">super</span>::reg::{raw_arg, ArgNumber, ArgReg, RetReg, R0};
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">super</span>::time::types::ClockId;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+</span><span class="kw">use </span><span class="kw">super</span>::time::types::TimerfdClockId;
+<span class="kw">use </span><span class="kw">crate</span>::ffi::CStr;
+<span class="kw">use </span><span class="kw">crate</span>::fs::{FileType, Mode, OFlags};
+<span class="kw">use </span><span class="kw">crate</span>::io::{<span class="self">self</span>, OwnedFd};
+<span class="kw">use </span><span class="kw">crate</span>::process::{Pid, Resource, Signal};
+<span class="kw">use </span><span class="kw">crate</span>::utils::{as_mut_ptr, as_ptr};
+<span class="kw">use </span>core::mem::MaybeUninit;
+<span class="kw">use </span>core::ptr::null_mut;
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">use </span>linux_raw_sys::general::__kernel_clockid_t;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+</span><span class="kw">use </span>linux_raw_sys::general::__kernel_loff_t;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">use </span>linux_raw_sys::general::socklen_t;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+</span><span class="kw">use </span>linux_raw_sys::general::O_LARGEFILE;
 
-<span class="doccomment">/// Convert `SYS_*` constants for socketcall.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">x86_sys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">sys</span>: <span class="ident">u32</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">sys</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="doccomment">/// Convert `SYS_*` constants for socketcall.
+</span><span class="attribute">#[cfg(target_arch = <span class="string">&quot;x86&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>x86_sys&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(sys: u32) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(sys <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Pass the &quot;low&quot; half of the endian-specific memory encoding of a `u64`, for</span>
-<span class="doccomment">/// 32-bit architectures.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">lo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">u64</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>;
+<span class="doccomment">/// Pass the &quot;low&quot; half of the endian-specific memory encoding of a `u64`, for
+/// 32-bit architectures.
+</span><span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>lo&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(x: u64) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+    </span><span class="kw">let </span>x = x &gt;&gt; <span class="number">32</span>;
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+    </span><span class="kw">let </span>x = x &amp; <span class="number">0xffff_ffff</span>;
 
-    <span class="ident">pass_usize</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>)
+    pass_usize(x <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Pass the &quot;high&quot; half of the endian-specific memory encoding of a `u64`, for</span>
-<span class="doccomment">/// 32-bit architectures.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">hi</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">u64</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>;
+<span class="doccomment">/// Pass the &quot;high&quot; half of the endian-specific memory encoding of a `u64`, for
+/// 32-bit architectures.
+</span><span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>hi&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(x: u64) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;little&quot;</span>)]
+    </span><span class="kw">let </span>x = x &amp; <span class="number">0xffff_ffff</span>;
+    <span class="attribute">#[cfg(target_endian = <span class="string">&quot;big&quot;</span>)]
+    </span><span class="kw">let </span>x = x &gt;&gt; <span class="number">32</span>;
 
-    <span class="ident">pass_usize</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>)
+    pass_usize(x <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Pass a zero, or null, argument.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">zero</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>() -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">raw_arg</span>(<span class="ident">null_mut</span>())
+<span class="doccomment">/// Pass a zero, or null, argument.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>zero&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;() -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    raw_arg(null_mut())
 }
 
-<span class="doccomment">/// Pass the `mem::size_of` of a type.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">size_of</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>() -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>())
+<span class="doccomment">/// Pass the `mem::size_of` of a type.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>size_of&lt;<span class="lifetime">&#39;a</span>, T: Sized, Num: ArgNumber&gt;() -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(core::mem::size_of::&lt;T&gt;())
 }
 
-<span class="doccomment">/// Pass an arbitrary `usize` value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For passing pointers, use `void_star` or other functions which take a raw</span>
-<span class="doccomment">/// pointer instead of casting to `usize`, so that provenance is preserved.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">pass_usize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">usize</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">raw_arg</span>(<span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)
+<span class="doccomment">/// Pass an arbitrary `usize` value.
+///
+/// For passing pointers, use `void_star` or other functions which take a raw
+/// pointer instead of casting to `usize`, so that provenance is preserved.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>pass_usize&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(t: usize) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    raw_arg(t <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">c</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-        <span class="ident">raw_arg</span>(<span class="ident">c</span>.<span class="ident">cast</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber, T&gt; From&lt;<span class="kw-2">*mut </span>T&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(c: <span class="kw-2">*mut </span>T) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+        raw_arg(c.cast())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">c</span>: <span class="kw-2">*const</span> <span class="ident">T</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">mut_ptr</span> <span class="op">=</span> <span class="ident">c</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>;
-        <span class="ident">raw_arg</span>(<span class="ident">mut_ptr</span>.<span class="ident">cast</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber, T&gt; From&lt;<span class="kw-2">*const </span>T&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(c: <span class="kw-2">*const </span>T) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+        <span class="kw">let </span>mut_ptr = c <span class="kw">as </span><span class="kw-2">*mut </span>T;
+        raw_arg(mut_ptr.cast())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CStr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CStr</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">mut_ptr</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
-        <span class="ident">raw_arg</span>(<span class="ident">mut_ptr</span>.<span class="ident">cast</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CStr&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(c: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CStr) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>mut_ptr = c.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8;
+        raw_arg(mut_ptr.cast())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CStr</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CStr</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">raw_arg</span>(<span class="kw">match</span> <span class="ident">t</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">s</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">mut_ptr</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>;
-                <span class="ident">mut_ptr</span>.<span class="ident">cast</span>()
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CStr&gt;&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(t: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>CStr&gt;) -&gt; <span class="self">Self </span>{
+        raw_arg(<span class="kw">match </span>t {
+            <span class="prelude-val">Some</span>(s) =&gt; {
+                <span class="kw">let </span>mut_ptr = s.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>u8;
+                mut_ptr.cast()
             }
-            <span class="prelude-val">None</span> =&gt; <span class="ident">null_mut</span>(),
+            <span class="prelude-val">None </span>=&gt; null_mut(),
         })
     }
 }
 
-<span class="doccomment">/// Pass a borrowed file-descriptor argument.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BorrowedFd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">fd</span>: <span class="ident">BorrowedFd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="comment">// Safety: `BorrowedFd` ensures that the file descriptor is valid, and the</span>
-        <span class="comment">// lifetime parameter on the resulting `ArgReg` ensures that the result is</span>
-        <span class="comment">// bounded by the `BorrowedFd`&#39;s lifetime.</span>
-        <span class="kw">unsafe</span> { <span class="ident">raw_fd</span>(<span class="ident">fd</span>.<span class="ident">as_raw_fd</span>()) }
+<span class="doccomment">/// Pass a borrowed file-descriptor argument.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(fd: BorrowedFd&lt;<span class="lifetime">&#39;a</span>&gt;) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Safety: `BorrowedFd` ensures that the file descriptor is valid, and the
+        // lifetime parameter on the resulting `ArgReg` ensures that the result is
+        // bounded by the `BorrowedFd`&#39;s lifetime.
+        </span><span class="kw">unsafe </span>{ raw_fd(fd.as_raw_fd()) }
     }
 }
 
-<span class="doccomment">/// Pass a raw file-descriptor argument. Most users should use [`ArgReg::from`]</span>
-<span class="doccomment">/// instead, to preserve I/O safety as long as possible.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `fd` must be a valid open file descriptor.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">raw_fd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">fd</span>: <span class="ident">RawFd</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="comment">// Use `no_fd` when passing `-1` is intended.</span>
-    <span class="macro">debug_assert!</span>(<span class="ident">fd</span> <span class="op">==</span> <span class="ident"><span class="kw">crate</span>::fs::cwd</span>().<span class="ident">as_raw_fd</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">fd</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
+<span class="doccomment">/// Pass a raw file-descriptor argument. Most users should use [`ArgReg::from`]
+/// instead, to preserve I/O safety as long as possible.
+///
+/// # Safety
+///
+/// `fd` must be a valid open file descriptor.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>raw_fd&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(fd: RawFd) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="comment">// Use `no_fd` when passing `-1` is intended.
+    </span><span class="macro">debug_assert!</span>(fd == <span class="kw">crate</span>::fs::cwd().as_raw_fd() || fd &gt;= <span class="number">0</span>);
 
-    <span class="comment">// Don&#39;t pass the `io_uring_register_files_skip` sentry value this way.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io_uring&quot;</span>)]</span>
-    <span class="macro">debug_assert_ne!</span>(
-        <span class="ident">fd</span>,
-        <span class="ident"><span class="kw">crate</span>::io_uring::io_uring_register_files_skip</span>().<span class="ident">as_raw_fd</span>()
+    <span class="comment">// Don&#39;t pass the `io_uring_register_files_skip` sentry value this way.
+    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;io_uring&quot;</span>)]
+    </span><span class="macro">debug_assert_ne!</span>(
+        fd,
+        <span class="kw">crate</span>::io_uring::io_uring_register_files_skip().as_raw_fd()
     );
 
-    <span class="comment">// Linux doesn&#39;t look at the high bits beyond the `c_int`, so use</span>
-    <span class="comment">// zero-extension rather than sign-extension because it&#39;s a smaller</span>
-    <span class="comment">// instruction.</span>
-    <span class="kw">let</span> <span class="ident">fd</span>: <span class="ident">c::c_int</span> <span class="op">=</span> <span class="ident">fd</span>;
-    <span class="ident">pass_usize</span>(<span class="ident">fd</span> <span class="kw">as</span> <span class="ident">c::c_uint</span> <span class="kw">as</span> <span class="ident">usize</span>)
+    <span class="comment">// Linux doesn&#39;t look at the high bits beyond the `c_int`, so use
+    // zero-extension rather than sign-extension because it&#39;s a smaller
+    // instruction.
+    </span><span class="kw">let </span>fd: c::c_int = fd;
+    pass_usize(fd <span class="kw">as </span>c::c_uint <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Deliberately pass `-1` to a file-descriptor argument, for system calls</span>
-<span class="doccomment">/// like `mmap` where this indicates the argument is omitted.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">no_fd</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>() -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="op">!</span><span class="number">0_usize</span>)
+<span class="doccomment">/// Deliberately pass `-1` to a file-descriptor argument, for system calls
+/// like `mmap` where this indicates the argument is omitted.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>no_fd&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;() -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(!<span class="number">0_usize</span>)
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slice_just_addr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">mut_ptr</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>;
-    <span class="ident">raw_arg</span>(<span class="ident">mut_ptr</span>.<span class="ident">cast</span>())
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>slice_just_addr&lt;T: Sized, Num: ArgNumber&gt;(v: <span class="kw-2">&amp;</span>[T]) -&gt; ArgReg&lt;Num&gt; {
+    <span class="kw">let </span>mut_ptr = v.as_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>T;
+    raw_arg(mut_ptr.cast())
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slice</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num0</span>: <span class="ident">ArgNumber</span>, <span class="ident">Num1</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(
-    <span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>],
-) -&gt; (<span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num0</span><span class="op">&gt;</span>, <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num1</span><span class="op">&gt;</span>) {
-    (<span class="ident">slice_just_addr</span>(<span class="ident">v</span>), <span class="ident">pass_usize</span>(<span class="ident">v</span>.<span class="ident">len</span>()))
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>slice&lt;T: Sized, Num0: ArgNumber, Num1: ArgNumber&gt;(
+    v: <span class="kw-2">&amp;</span>[T],
+) -&gt; (ArgReg&lt;Num0&gt;, ArgReg&lt;Num1&gt;) {
+    (slice_just_addr(v), pass_usize(v.len()))
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">slice_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num0</span>: <span class="ident">ArgNumber</span>, <span class="ident">Num1</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(
-    <span class="ident">v</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>],
-) -&gt; (<span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num0</span><span class="op">&gt;</span>, <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num1</span><span class="op">&gt;</span>) {
-    (<span class="ident">raw_arg</span>(<span class="ident">v</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">cast</span>()), <span class="ident">pass_usize</span>(<span class="ident">v</span>.<span class="ident">len</span>()))
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>slice_mut&lt;T: Sized, Num0: ArgNumber, Num1: ArgNumber&gt;(
+    v: <span class="kw-2">&amp;mut </span>[T],
+) -&gt; (ArgReg&lt;Num0&gt;, ArgReg&lt;Num1&gt;) {
+    (raw_arg(v.as_mut_ptr().cast()), pass_usize(v.len()))
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">by_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">mut_ptr</span> <span class="op">=</span> <span class="ident">as_ptr</span>(<span class="ident">t</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>;
-    <span class="ident">raw_arg</span>(<span class="ident">mut_ptr</span>.<span class="ident">cast</span>())
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>by_ref&lt;T: Sized, Num: ArgNumber&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; ArgReg&lt;Num&gt; {
+    <span class="kw">let </span>mut_ptr = as_ptr(t) <span class="kw">as </span><span class="kw-2">*mut </span>T;
+    raw_arg(mut_ptr.cast())
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">by_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;mut</span> <span class="ident">T</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">raw_arg</span>(<span class="ident">as_mut_ptr</span>(<span class="ident">t</span>).<span class="ident">cast</span>())
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>by_mut&lt;T: Sized, Num: ArgNumber&gt;(t: <span class="kw-2">&amp;mut </span>T) -&gt; ArgReg&lt;Num&gt; {
+    raw_arg(as_mut_ptr(t).cast())
 }
 
-<span class="doccomment">/// Convert an optional mutable reference into a `usize` for passing to a</span>
-<span class="doccomment">/// syscall.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">opt_mut</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="comment">// This optimizes into the equivalent of `transmute(t)`, and has the</span>
-    <span class="comment">// advantage of not requiring `unsafe`.</span>
-    <span class="kw">match</span> <span class="ident">t</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; <span class="ident">by_mut</span>(<span class="ident">t</span>),
-        <span class="prelude-val">None</span> =&gt; <span class="ident">raw_arg</span>(<span class="ident">null_mut</span>()),
+<span class="doccomment">/// Convert an optional mutable reference into a `usize` for passing to a
+/// syscall.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>opt_mut&lt;T: Sized, Num: ArgNumber&gt;(t: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt;) -&gt; ArgReg&lt;Num&gt; {
+    <span class="comment">// This optimizes into the equivalent of `transmute(t)`, and has the
+    // advantage of not requiring `unsafe`.
+    </span><span class="kw">match </span>t {
+        <span class="prelude-val">Some</span>(t) =&gt; by_mut(t),
+        <span class="prelude-val">None </span>=&gt; raw_arg(null_mut()),
     }
 }
 
-<span class="doccomment">/// Convert an optional immutable reference into a `usize` for passing to a</span>
-<span class="doccomment">/// syscall.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;aarch64&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;riscv64&quot;</span>))]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">opt_ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Sized</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="comment">// This optimizes into the equivalent of `transmute(t)`, and has the</span>
-    <span class="comment">// advantage of not requiring `unsafe`.</span>
-    <span class="kw">match</span> <span class="ident">t</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">t</span>) =&gt; <span class="ident">by_ref</span>(<span class="ident">t</span>),
-        <span class="prelude-val">None</span> =&gt; <span class="ident">raw_arg</span>(<span class="ident">null_mut</span>()),
+<span class="doccomment">/// Convert an optional immutable reference into a `usize` for passing to a
+/// syscall.
+</span><span class="attribute">#[cfg(any(target_arch = <span class="string">&quot;aarch64&quot;</span>, target_arch = <span class="string">&quot;riscv64&quot;</span>))]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>opt_ref&lt;<span class="lifetime">&#39;a</span>, T: Sized, Num: ArgNumber&gt;(t: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt;) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="comment">// This optimizes into the equivalent of `transmute(t)`, and has the
+    // advantage of not requiring `unsafe`.
+    </span><span class="kw">match </span>t {
+        <span class="prelude-val">Some</span>(t) =&gt; by_ref(t),
+        <span class="prelude-val">None </span>=&gt; raw_arg(null_mut()),
     }
 }
 
-<span class="doccomment">/// Convert a `c_int` into an `ArgReg`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Be sure to use `raw_fd` to pass `RawFd` values.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">c_int</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">c::c_int</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="doccomment">/// Convert a `c_int` into an `ArgReg`.
+///
+/// Be sure to use `raw_fd` to pass `RawFd` values.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>c_int&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(i: c::c_int) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(i <span class="kw">as </span>usize)
 }
 
-<span class="doccomment">/// Convert a `c_uint` into an `ArgReg`.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">c_uint</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">c::c_uint</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="doccomment">/// Convert a `c_uint` into an `ArgReg`.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>c_uint&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(i: c::c_uint) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(i <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">loff_t</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">__kernel_loff_t</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>loff_t&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(i: __kernel_loff_t) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(i <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">loff_t_from_u64</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">u64</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="comment">// `loff_t` is signed, but syscalls which expect `loff_t` return `EINVAL`</span>
-    <span class="comment">// if it&#39;s outside the signed `i64` range, so we can silently cast.</span>
-    <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>loff_t_from_u64&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(i: u64) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="comment">// `loff_t` is signed, but syscalls which expect `loff_t` return `EINVAL`
+    // if it&#39;s outside the signed `i64` range, so we can silently cast.
+    </span>pass_usize(i <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;thread&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>))]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ClockId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">ClockId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">__kernel_clockid_t</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(any(feature = <span class="string">&quot;thread&quot;</span>, feature = <span class="string">&quot;time&quot;</span>, target_arch = <span class="string">&quot;x86&quot;</span>))]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;ClockId&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(i: ClockId) -&gt; <span class="self">Self </span>{
+        pass_usize(i <span class="kw">as </span>__kernel_clockid_t <span class="kw">as </span>usize)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TimerfdClockId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">TimerfdClockId</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">__kernel_clockid_t</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;TimerfdClockId&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(i: TimerfdClockId) -&gt; <span class="self">Self </span>{
+        pass_usize(i <span class="kw">as </span>__kernel_clockid_t <span class="kw">as </span>usize)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">socklen_t</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="ident">socklen_t</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>socklen_t&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(i: socklen_t) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(i <span class="kw">as </span>usize)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Mode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">mode</span>: <span class="ident">Mode</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">mode</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;Mode&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(mode: Mode) -&gt; <span class="self">Self </span>{
+        pass_usize(mode.bits() <span class="kw">as </span>usize)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident">Mode</span>, <span class="ident">FileType</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pair</span>: (<span class="ident">Mode</span>, <span class="ident">FileType</span>)) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">pair</span>.<span class="number">0</span>.<span class="ident">as_raw_mode</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">|</span> <span class="ident">pair</span>.<span class="number">1</span>.<span class="ident">as_raw_mode</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;(Mode, FileType)&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(pair: (Mode, FileType)) -&gt; <span class="self">Self </span>{
+        pass_usize(pair.<span class="number">0</span>.as_raw_mode() <span class="kw">as </span>usize | pair.<span class="number">1</span>.as_raw_mode() <span class="kw">as </span>usize)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::AtFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::AtFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::AtFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::AtFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::MemfdFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::MemfdFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::MemfdFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::MemfdFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::RenameFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::RenameFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::RenameFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::RenameFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::StatxFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::StatxFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::StatxFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::StatxFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::FdFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::FdFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::FdFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::FdFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io::PipeFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io::PipeFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io::PipeFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io::PipeFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io::DupFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io::DupFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io::DupFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io::DupFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io::ReadWriteFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io::ReadWriteFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io::ReadWriteFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io::ReadWriteFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io::EventfdFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io::EventfdFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io::EventfdFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io::EventfdFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io::epoll::CreateFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io::epoll::CreateFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io::epoll::CreateFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io::epoll::CreateFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::ProtFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::ProtFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::ProtFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::ProtFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::MsyncFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::MsyncFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::MsyncFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::MsyncFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::MremapFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::MremapFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::MremapFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::MremapFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::MlockFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::MlockFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::MlockFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::MlockFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::MapFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::MapFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::MapFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::MapFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::MprotectFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::MprotectFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::MprotectFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::MprotectFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mm&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::mm::types::UserfaultfdFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::backend::mm::types::UserfaultfdFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;mm&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::mm::types::UserfaultfdFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::backend::mm::types::UserfaultfdFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::backend::process::types::MembarrierCommand</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::backend::process::types::MembarrierCommand&gt;
+    <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt;
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cmd</span>: <span class="ident"><span class="kw">crate</span>::backend::process::types::MembarrierCommand</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">cmd</span> <span class="kw">as</span> <span class="ident">u32</span>)
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(cmd: <span class="kw">crate</span>::backend::process::types::MembarrierCommand) -&gt; <span class="self">Self </span>{
+        c_uint(cmd <span class="kw">as </span>u32)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::process::Cpuid</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">cpuid</span>: <span class="ident"><span class="kw">crate</span>::process::Cpuid</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">cpuid</span>.<span class="ident">as_raw</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::process::Cpuid&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(cpuid: <span class="kw">crate</span>::process::Cpuid) -&gt; <span class="self">Self </span>{
+        c_uint(cpuid.as_raw())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">dev_t</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">dev</span>: <span class="ident">u64</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">dev</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dev_t&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(dev: u64) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(dev <span class="kw">as </span>usize)
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">dev_t</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">dev</span>: <span class="ident">u64</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">core::convert::TryInto</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">pass_usize</span>(<span class="ident">dev</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">_err</span><span class="op">|</span> <span class="ident">io::Errno::INVAL</span>)<span class="question-mark">?</span>))
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dev_t&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(dev: u64) -&gt; io::Result&lt;ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt;&gt; {
+    <span class="kw">use </span>core::convert::TryInto;
+    <span class="prelude-val">Ok</span>(pass_usize(dev.try_into().map_err(|_err| io::Errno::INVAL)<span class="question-mark">?</span>))
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">oflags_bits</span>(<span class="ident">oflags</span>: <span class="ident">OFlags</span>) -&gt; <span class="ident">c::c_uint</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bits</span> <span class="op">=</span> <span class="ident">oflags</span>.<span class="ident">bits</span>();
-    <span class="comment">// Add `O_LARGEFILE`, unless `O_PATH` is set, as Linux returns `EINVAL`</span>
-    <span class="comment">// when both are set.</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">oflags</span>.<span class="ident">contains</span>(<span class="ident">OFlags::PATH</span>) {
-        <span class="ident">bits</span> <span class="op">|</span><span class="op">=</span> <span class="ident">O_LARGEFILE</span>;
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;32&quot;</span>)]
+#[inline]
+</span><span class="kw">fn </span>oflags_bits(oflags: OFlags) -&gt; c::c_uint {
+    <span class="kw">let </span><span class="kw-2">mut </span>bits = oflags.bits();
+    <span class="comment">// Add `O_LARGEFILE`, unless `O_PATH` is set, as Linux returns `EINVAL`
+    // when both are set.
+    </span><span class="kw">if </span>!oflags.contains(OFlags::PATH) {
+        bits |= O_LARGEFILE;
     }
-    <span class="ident">bits</span>
+    bits
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">const</span> <span class="kw">fn</span> <span class="ident">oflags_bits</span>(<span class="ident">oflags</span>: <span class="ident">OFlags</span>) -&gt; <span class="ident">c::c_uint</span> {
-    <span class="ident">oflags</span>.<span class="ident">bits</span>()
+<span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+#[inline]
+</span><span class="kw">const fn </span>oflags_bits(oflags: OFlags) -&gt; c::c_uint {
+    oflags.bits()
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">OFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">oflags</span>: <span class="ident">OFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">oflags_bits</span>(<span class="ident">oflags</span>) <span class="kw">as</span> <span class="ident">usize</span>)
-    }
-}
-
-<span class="doccomment">/// Convert an `OFlags` into a `u64` for use in the `open_how` struct.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">oflags_for_open_how</span>(<span class="ident">oflags</span>: <span class="ident">OFlags</span>) -&gt; <span class="ident">u64</span> {
-    <span class="ident">u64::from</span>(<span class="ident">oflags_bits</span>(<span class="ident">oflags</span>))
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::FallocateFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::FallocateFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;OFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(oflags: OFlags) -&gt; <span class="self">Self </span>{
+        pass_usize(oflags_bits(oflags) <span class="kw">as </span>usize)
     }
 }
 
-<span class="doccomment">/// Convert a `Resource` into a syscall argument.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Resource</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">resource</span>: <span class="ident">Resource</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">resource</span> <span class="kw">as</span> <span class="ident">c::c_uint</span>)
+<span class="doccomment">/// Convert an `OFlags` into a `u64` for use in the `open_how` struct.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>oflags_for_open_how(oflags: OFlags) -&gt; u64 {
+    u64::from(oflags_bits(oflags))
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::FallocateFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::FallocateFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Pid</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pid</span>: <span class="ident">Pid</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">pid</span>.<span class="ident">as_raw_nonzero</span>().<span class="ident">get</span>() <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="doccomment">/// Convert a `Resource` into a syscall argument.
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;Resource&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(resource: Resource) -&gt; <span class="self">Self </span>{
+        c_uint(resource <span class="kw">as </span>c::c_uint)
     }
 }
 
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">negative_pid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span>(<span class="ident">pid</span>: <span class="ident">Pid</span>) -&gt; <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="ident">pass_usize</span>(<span class="ident">pid</span>.<span class="ident">as_raw_nonzero</span>().<span class="ident">get</span>().<span class="ident">wrapping_neg</span>() <span class="kw">as</span> <span class="ident">usize</span>)
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Signal</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">sig</span>: <span class="ident">Signal</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">pass_usize</span>(<span class="ident">sig</span> <span class="kw">as</span> <span class="ident">usize</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;Pid&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(pid: Pid) -&gt; <span class="self">Self </span>{
+        pass_usize(pid.as_raw_nonzero().get() <span class="kw">as </span>usize)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::Advice</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">advice</span>: <span class="ident"><span class="kw">crate</span>::fs::Advice</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">advice</span> <span class="kw">as</span> <span class="ident">c::c_uint</span>)
+<span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>negative_pid&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt;(pid: Pid) -&gt; ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    pass_usize(pid.as_raw_nonzero().get().wrapping_neg() <span class="kw">as </span>usize)
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;Signal&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(sig: Signal) -&gt; <span class="self">Self </span>{
+        pass_usize(sig <span class="kw">as </span>usize)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::SealFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::fs::SealFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::Advice&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(advice: <span class="kw">crate</span>::fs::Advice) -&gt; <span class="self">Self </span>{
+        c_uint(advice <span class="kw">as </span>c::c_uint)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io_uring&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::io_uring::IoringEnterFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::io_uring::IoringEnterFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::SealFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::fs::SealFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::time::TimerfdFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::time::TimerfdFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;io_uring&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::io_uring::IoringEnterFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::io_uring::IoringEnterFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;time&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::time::TimerfdTimerFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::time::TimerfdTimerFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::time::TimerfdFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::time::TimerfdFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rand&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::rand::GetRandomFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::rand::GetRandomFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::time::TimerfdTimerFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::time::TimerfdTimerFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::RecvFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::net::RecvFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;rand&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::rand::GetRandomFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::rand::GetRandomFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::SendFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::net::SendFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::RecvFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::net::RecvFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::AcceptFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">flags</span>: <span class="ident"><span class="kw">crate</span>::net::AcceptFlags</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">flags</span>.<span class="ident">bits</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::SendFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::net::SendFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::AddressFamily</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">family</span>: <span class="ident"><span class="kw">crate</span>::net::AddressFamily</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">family</span>.<span class="number">0</span>.<span class="ident">into</span>())
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::AcceptFlags&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(flags: <span class="kw">crate</span>::net::AcceptFlags) -&gt; <span class="self">Self </span>{
+        c_uint(flags.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident"><span class="kw">crate</span>::net::SocketType</span>, <span class="ident"><span class="kw">crate</span>::net::SocketFlags</span>)<span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span>
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::AddressFamily&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(family: <span class="kw">crate</span>::net::AddressFamily) -&gt; <span class="self">Self </span>{
+        c_uint(family.<span class="number">0</span>.into())
+    }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;(<span class="kw">crate</span>::net::SocketType, <span class="kw">crate</span>::net::SocketFlags)&gt;
+    <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt;
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pair</span>: (<span class="ident"><span class="kw">crate</span>::net::SocketType</span>, <span class="ident"><span class="kw">crate</span>::net::SocketFlags</span>)) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">pair</span>.<span class="number">0</span> .<span class="number">0</span> <span class="op">|</span> <span class="ident">pair</span>.<span class="number">1</span>.<span class="ident">bits</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(pair: (<span class="kw">crate</span>::net::SocketType, <span class="kw">crate</span>::net::SocketFlags)) -&gt; <span class="self">Self </span>{
+        c_uint(pair.<span class="number">0 </span>.<span class="number">0 </span>| pair.<span class="number">1</span>.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;thread&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>(<span class="ident"><span class="kw">crate</span>::thread::FutexOperation</span>, <span class="ident"><span class="kw">crate</span>::thread::FutexFlags</span>)<span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span>
+<span class="attribute">#[cfg(feature = <span class="string">&quot;thread&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;(<span class="kw">crate</span>::thread::FutexOperation, <span class="kw">crate</span>::thread::FutexFlags)&gt;
+    <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt;
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pair</span>: (<span class="ident"><span class="kw">crate</span>::thread::FutexOperation</span>, <span class="ident"><span class="kw">crate</span>::thread::FutexFlags</span>)) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">pair</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">|</span> <span class="ident">pair</span>.<span class="number">1</span>.<span class="ident">bits</span>())
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(pair: (<span class="kw">crate</span>::thread::FutexOperation, <span class="kw">crate</span>::thread::FutexFlags)) -&gt; <span class="self">Self </span>{
+        c_uint(pair.<span class="number">0 </span><span class="kw">as </span>u32 | pair.<span class="number">1</span>.bits())
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::fs::Access</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident"><span class="kw">crate</span>::fs::Access</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">access</span>.<span class="ident">bits</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::fs::Access&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(access: <span class="kw">crate</span>::fs::Access) -&gt; <span class="self">Self </span>{
+        c_uint(access.bits())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::SocketType</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">type_</span>: <span class="ident"><span class="kw">crate</span>::net::SocketType</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">type_</span>.<span class="number">0</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::SocketType&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(type_: <span class="kw">crate</span>::net::SocketType) -&gt; <span class="self">Self </span>{
+        c_uint(type_.<span class="number">0</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::net::Protocol</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">protocol</span>: <span class="ident"><span class="kw">crate</span>::net::Protocol</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">c_uint</span>(<span class="ident">protocol</span>.<span class="number">0</span>)
+<span class="attribute">#[cfg(feature = <span class="string">&quot;net&quot;</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber&gt; From&lt;<span class="kw">crate</span>::net::Protocol&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(protocol: <span class="kw">crate</span>::net::Protocol) -&gt; <span class="self">Self </span>{
+        c_uint(protocol.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span>: <span class="ident">ArgNumber</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArgReg</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Num</span><span class="op">&gt;</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">raw_arg</span>(<span class="ident">t</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">cast</span>())
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Num: ArgNumber, T&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>MaybeUninit&lt;T&gt;&gt; <span class="kw">for </span>ArgReg&lt;<span class="lifetime">&#39;a</span>, Num&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>from(t: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>MaybeUninit&lt;T&gt;) -&gt; <span class="self">Self </span>{
+        raw_arg(t.as_mut_ptr().cast())
     }
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns `()` on</span>
-<span class="doccomment">/// success.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The caller must ensure that this is the return value of a syscall which</span>
-<span class="doccomment">/// just returns 0 on success.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="ident">try_decode_void</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns `()` on
+/// success.
+///
+/// # Safety
+///
+/// The caller must ensure that this is the return value of a syscall which
+/// just returns 0 on success.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;()&gt; {
+    try_decode_void(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that doesn&#39;t return on success.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The caller must ensure that this is the return value of a syscall which</span>
-<span class="doccomment">/// doesn&#39;t return on success.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret_error</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Errno</span> {
-    <span class="ident">try_decode_error</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that doesn&#39;t return on success.
+///
+/// # Safety
+///
+/// The caller must ensure that this is the return value of a syscall which
+/// doesn&#39;t return on success.
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;runtime&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_error(raw: RetReg&lt;R0&gt;) -&gt; io::Errno {
+    try_decode_error(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively always returns</span>
-<span class="doccomment">/// `()`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The caller must ensure that this is the return value of a syscall which</span>
-<span class="doccomment">/// always returns `()`.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret_infallible</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    {
-        <span class="ident">try_decode_void</span>(<span class="ident">raw</span>).<span class="ident">unwrap</span>()
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively always returns
+/// `()`.
+///
+/// # Safety
+///
+/// The caller must ensure that this is the return value of a syscall which
+/// always returns `()`.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_infallible(raw: RetReg&lt;R0&gt;) {
+    <span class="attribute">#[cfg(debug_assertions)]
+    </span>{
+        try_decode_void(raw).unwrap()
     }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
-    <span class="ident">drop</span>(<span class="ident">raw</span>);
+    <span class="attribute">#[cfg(not(debug_assertions))]
+    </span>drop(raw);
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a</span>
-<span class="doccomment">/// `c_int` on success.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ret_c_int</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">c::c_int</span><span class="op">&gt;</span> {
-    <span class="ident">try_decode_c_int</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a
+/// `c_int` on success.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_c_int(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;c::c_int&gt; {
+    try_decode_c_int(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a</span>
-<span class="doccomment">/// `c_uint` on success.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ret_c_uint</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">c::c_uint</span><span class="op">&gt;</span> {
-    <span class="ident">try_decode_c_uint</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a
+/// `c_uint` on success.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_c_uint(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;c::c_uint&gt; {
+    try_decode_c_uint(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a `u64`</span>
-<span class="doccomment">/// on success.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ret_u64</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-    <span class="ident">try_decode_u64</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a `u64`
+/// on success.
+</span><span class="attribute">#[cfg(target_pointer_width = <span class="string">&quot;64&quot;</span>)]
+#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_u64(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;u64&gt; {
+    try_decode_u64(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a</span>
-<span class="doccomment">/// `usize` on success.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ret_usize</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="ident">try_decode_usize</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a
+/// `usize` on success.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_usize(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;usize&gt; {
+    try_decode_usize(raw)
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively always</span>
-<span class="doccomment">/// returns a `usize`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This function must only be used with return values from infallible</span>
-<span class="doccomment">/// syscalls.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret_usize_infallible</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">usize</span> {
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-    {
-        <span class="ident">try_decode_usize</span>(<span class="ident">raw</span>).<span class="ident">unwrap</span>()
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively always
+/// returns a `usize`.
+///
+/// # Safety
+///
+/// This function must only be used with return values from infallible
+/// syscalls.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_usize_infallible(raw: RetReg&lt;R0&gt;) -&gt; usize {
+    <span class="attribute">#[cfg(debug_assertions)]
+    </span>{
+        try_decode_usize(raw).unwrap()
     }
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">debug_assertions</span>))]</span>
-    {
-        <span class="ident">decode_usize_infallible</span>(<span class="ident">raw</span>)
+    <span class="attribute">#[cfg(not(debug_assertions))]
+    </span>{
+        decode_usize_infallible(raw)
     }
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns an</span>
-<span class="doccomment">/// `OwnedFd` on success.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The caller must ensure that this is the return value of a syscall which</span>
-<span class="doccomment">/// returns an owned file descriptor.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret_owned_fd</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">OwnedFd</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">raw_fd</span> <span class="op">=</span> <span class="ident">try_decode_raw_fd</span>(<span class="ident">raw</span>)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(<span class="ident">OwnedFd::from</span>(<span class="ident"><span class="kw">crate</span>::backend::fd::OwnedFd::from_raw_fd</span>(
-        <span class="ident">raw_fd</span>,
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns an
+/// `OwnedFd` on success.
+///
+/// # Safety
+///
+/// The caller must ensure that this is the return value of a syscall which
+/// returns an owned file descriptor.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_owned_fd(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;OwnedFd&gt; {
+    <span class="kw">let </span>raw_fd = try_decode_raw_fd(raw)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(OwnedFd::from(<span class="kw">crate</span>::backend::fd::OwnedFd::from_raw_fd(
+        raw_fd,
     )))
 }
 
-<span class="doccomment">/// Convert the return value of `dup2` and `dup3`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// When these functions succeed, they return the same value as their second</span>
-<span class="doccomment">/// argument, so we don&#39;t construct a new `OwnedFd`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Safety</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The caller must ensure that this is the return value of a syscall which</span>
-<span class="doccomment">/// returns a file descriptor.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ret_discarded_fd</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">_raw_fd</span> <span class="op">=</span> <span class="ident">try_decode_raw_fd</span>(<span class="ident">raw</span>)<span class="question-mark">?</span>;
+<span class="doccomment">/// Convert the return value of `dup2` and `dup3`.
+///
+/// When these functions succeed, they return the same value as their second
+/// argument, so we don&#39;t construct a new `OwnedFd`.
+///
+/// # Safety
+///
+/// The caller must ensure that this is the return value of a syscall which
+/// returns a file descriptor.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe fn </span>ret_discarded_fd(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;()&gt; {
+    <span class="kw">let </span>_raw_fd = try_decode_raw_fd(raw)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a</span>
-<span class="doccomment">/// `*mut c_void` on success.</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ret_void_star</span>(<span class="ident">raw</span>: <span class="ident">RetReg</span><span class="op">&lt;</span><span class="ident">R0</span><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">c::c_void</span><span class="op">&gt;</span> {
-    <span class="ident">try_decode_void_star</span>(<span class="ident">raw</span>)
+<span class="doccomment">/// Convert a `usize` returned from a syscall that effectively returns a
+/// `*mut c_void` on success.
+</span><span class="attribute">#[inline]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>ret_void_star(raw: RetReg&lt;R0&gt;) -&gt; io::Result&lt;<span class="kw-2">*mut </span>c::c_void&gt; {
+    try_decode_void_star(raw)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rustix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="rustix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

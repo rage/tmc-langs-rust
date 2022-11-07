@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.11/src/value/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.14/src/value/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -835,837 +829,836 @@
 <span id="829">829</span>
 <span id="830">830</span>
 <span id="831">831</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value::tagged</span>::{<span class="self">self</span>, <span class="ident">MaybeTag</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value</span>::{<span class="ident">to_value</span>, <span class="ident">Mapping</span>, <span class="ident">Number</span>, <span class="ident">Sequence</span>, <span class="ident">Tag</span>, <span class="ident">TaggedValue</span>, <span class="ident">Value</span>};
-<span class="kw">use</span> <span class="ident">serde::ser</span>::{<span class="self">self</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">std::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">std::mem</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::value::tagged::{<span class="self">self</span>, MaybeTag};
+<span class="kw">use </span><span class="kw">crate</span>::value::{to_value, Mapping, Number, Sequence, Tag, TaggedValue, Value};
+<span class="kw">use </span>serde::ser::{<span class="self">self</span>, Serialize};
+<span class="kw">use </span>std::fmt::Display;
+<span class="kw">use </span>std::mem;
 
-<span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span> <span class="op">=</span> <span class="ident">Error</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+<span class="kw">type </span><span class="prelude-ty">Result</span>&lt;T, E = Error&gt; = std::result::Result&lt;T, E&gt;;
 
-<span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">Value</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">S</span>: <span class="ident">serde::Serializer</span>,
+<span class="kw">impl </span>Serialize <span class="kw">for </span>Value {
+    <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+    <span class="kw">where
+        </span>S: serde::Serializer,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Value::Null</span> =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_unit</span>(),
-            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_bool</span>(<span class="kw-2">*</span><span class="ident">b</span>),
-            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
-            <span class="ident">Value::String</span>(<span class="ident">s</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_str</span>(<span class="ident">s</span>),
-            <span class="ident">Value::Sequence</span>(<span class="ident">seq</span>) =&gt; <span class="ident">seq</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
-            <span class="ident">Value::Mapping</span>(<span class="ident">mapping</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">serde::ser::SerializeMap</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">serializer</span>.<span class="ident">serialize_map</span>(<span class="prelude-val">Some</span>(<span class="ident">mapping</span>.<span class="ident">len</span>()))<span class="question-mark">?</span>;
-                <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">mapping</span> {
-                    <span class="ident">map</span>.<span class="ident">serialize_entry</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="question-mark">?</span>;
+        <span class="kw">match </span><span class="self">self </span>{
+            Value::Null =&gt; serializer.serialize_unit(),
+            Value::Bool(b) =&gt; serializer.serialize_bool(<span class="kw-2">*</span>b),
+            Value::Number(n) =&gt; n.serialize(serializer),
+            Value::String(s) =&gt; serializer.serialize_str(s),
+            Value::Sequence(seq) =&gt; seq.serialize(serializer),
+            Value::Mapping(mapping) =&gt; {
+                <span class="kw">use </span>serde::ser::SerializeMap;
+                <span class="kw">let </span><span class="kw-2">mut </span>map = serializer.serialize_map(<span class="prelude-val">Some</span>(mapping.len()))<span class="question-mark">?</span>;
+                <span class="kw">for </span>(k, v) <span class="kw">in </span>mapping {
+                    map.serialize_entry(k, v)<span class="question-mark">?</span>;
                 }
-                <span class="ident">map</span>.<span class="ident">end</span>()
+                map.end()
             }
-            <span class="ident">Value::Tagged</span>(<span class="ident">tagged</span>) =&gt; <span class="ident">tagged</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
+            Value::Tagged(tagged) =&gt; tagged.serialize(serializer),
         }
     }
 }
 
-<span class="doccomment">/// Serializer whose output is a `Value`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is the serializer that backs [`serde_yaml::to_value`][crate::to_value].</span>
-<span class="doccomment">/// Unlike the main serde_yaml serializer which goes from some serializable</span>
-<span class="doccomment">/// value of type `T` to YAML text, this one goes from `T` to</span>
-<span class="doccomment">/// `serde_yaml::Value`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The `to_value` function is implementable as:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use serde::Serialize;</span>
-<span class="doccomment">/// use serde_yaml::{Error, Value};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// pub fn to_value&lt;T&gt;(input: T) -&gt; Result&lt;Value, Error&gt;</span>
-<span class="doccomment">/// where</span>
-<span class="doccomment">///     T: Serialize,</span>
-<span class="doccomment">/// {</span>
-<span class="doccomment">///     input.serialize(serde_yaml::value::Serializer)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Serializer</span>;
+<span class="doccomment">/// Serializer whose output is a `Value`.
+///
+/// This is the serializer that backs [`serde_yaml::to_value`][crate::to_value].
+/// Unlike the main serde_yaml serializer which goes from some serializable
+/// value of type `T` to YAML text, this one goes from `T` to
+/// `serde_yaml::Value`.
+///
+/// The `to_value` function is implementable as:
+///
+/// ```
+/// use serde::Serialize;
+/// use serde_yaml::{Error, Value};
+///
+/// pub fn to_value&lt;T&gt;(input: T) -&gt; Result&lt;Value, Error&gt;
+/// where
+///     T: Serialize,
+/// {
+///     input.serialize(serde_yaml::value::Serializer)
+/// }
+/// ```
+</span><span class="kw">pub struct </span>Serializer;
 
-<span class="kw">impl</span> <span class="ident">ser::Serializer</span> <span class="kw">for</span> <span class="ident">Serializer</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::Serializer <span class="kw">for </span>Serializer {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">type</span> <span class="ident">SerializeSeq</span> <span class="op">=</span> <span class="ident">SerializeArray</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTuple</span> <span class="op">=</span> <span class="ident">SerializeArray</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTupleStruct</span> <span class="op">=</span> <span class="ident">SerializeArray</span>;
-    <span class="kw">type</span> <span class="ident">SerializeTupleVariant</span> <span class="op">=</span> <span class="ident">SerializeTupleVariant</span>;
-    <span class="kw">type</span> <span class="ident">SerializeMap</span> <span class="op">=</span> <span class="ident">SerializeMap</span>;
-    <span class="kw">type</span> <span class="ident">SerializeStruct</span> <span class="op">=</span> <span class="ident">SerializeStruct</span>;
-    <span class="kw">type</span> <span class="ident">SerializeStructVariant</span> <span class="op">=</span> <span class="ident">SerializeStructVariant</span>;
+    <span class="kw">type </span>SerializeSeq = SerializeArray;
+    <span class="kw">type </span>SerializeTuple = SerializeArray;
+    <span class="kw">type </span>SerializeTupleStruct = SerializeArray;
+    <span class="kw">type </span>SerializeTupleVariant = SerializeTupleVariant;
+    <span class="kw">type </span>SerializeMap = SerializeMap;
+    <span class="kw">type </span>SerializeStruct = SerializeStruct;
+    <span class="kw">type </span>SerializeStructVariant = SerializeStructVariant;
 
-    <span class="kw">fn</span> <span class="ident">serialize_bool</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Bool</span>(<span class="ident">v</span>))
+    <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Bool(v))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_i8</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_i8(<span class="self">self</span>, v: i8) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_i16</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i16</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_i16(<span class="self">self</span>, v: i16) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_i32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_i32(<span class="self">self</span>, v: i32) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_i64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_i64(<span class="self">self</span>, v: i64) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_i128</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i128</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">v</span>) {
-            <span class="self">self</span>.<span class="ident">serialize_u64</span>(<span class="ident">v</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">i64::try_from</span>(<span class="ident">v</span>) {
-            <span class="self">self</span>.<span class="ident">serialize_i64</span>(<span class="ident">v</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::String</span>(<span class="ident">v</span>.<span class="ident">to_string</span>()))
+    <span class="kw">fn </span>serialize_i128(<span class="self">self</span>, v: i128) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = u64::try_from(v) {
+            <span class="self">self</span>.serialize_u64(v)
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(v) = i64::try_from(v) {
+            <span class="self">self</span>.serialize_i64(v)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(Value::String(v.to_string()))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_u8</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_u8(<span class="self">self</span>, v: u8) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_u16</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u16</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_u16(<span class="self">self</span>, v: u16) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_u32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_u32(<span class="self">self</span>, v: u32) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_u64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_u64(<span class="self">self</span>, v: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_u128</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u128</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">u64::try_from</span>(<span class="ident">v</span>) {
-            <span class="self">self</span>.<span class="ident">serialize_u64</span>(<span class="ident">v</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::String</span>(<span class="ident">v</span>.<span class="ident">to_string</span>()))
+    <span class="kw">fn </span>serialize_u128(<span class="self">self</span>, v: u128) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(v) = u64::try_from(v) {
+            <span class="self">self</span>.serialize_u64(v)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(Value::String(v.to_string()))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_f32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">f32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_f32(<span class="self">self</span>, v: f32) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_f64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">f64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">v</span>)))
+    <span class="kw">fn </span>serialize_f64(<span class="self">self</span>, v: f64) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Number(Number::from(v)))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_char</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::String</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+    <span class="kw">fn </span>serialize_char(<span class="self">self</span>, value: char) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::String(value.to_string()))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_str</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::String</span>(<span class="ident">value</span>.<span class="ident">to_owned</span>()))
+    <span class="kw">fn </span>serialize_str(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::String(value.to_owned()))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_bytes</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="ident">value</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">b</span><span class="op">|</span> <span class="ident">Value::Number</span>(<span class="ident">Number::from</span>(<span class="ident">b</span>)))
-            .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Sequence</span>(<span class="ident">vec</span>))
+    <span class="kw">fn </span>serialize_bytes(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="kw">let </span>vec = value
+            .iter()
+            .map(|<span class="kw-2">&amp;</span>b| Value::Number(Number::from(b)))
+            .collect();
+        <span class="prelude-val">Ok</span>(Value::Sequence(vec))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Null</span>)
+    <span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Null)
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit_struct</span>(<span class="self">self</span>, <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">serialize_unit</span>()
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="self">self</span>.serialize_unit()
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_unit_variant</span>(
+    <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::String</span>(<span class="ident">variant</span>.<span class="ident">to_owned</span>()))
+        _name: <span class="kw-2">&amp;</span>str,
+        _variant_index: u32,
+        variant: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::String(variant.to_owned()))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_newtype_struct</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_newtype_struct&lt;T&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="self">self</span>)
+        value.serialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_newtype_variant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>serialize_newtype_variant&lt;T&gt;(
         <span class="self">self</span>,
-        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">_variant_index</span>: <span class="ident">u32</span>,
-        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+        _name: <span class="kw-2">&amp;</span>str,
+        _variant_index: u32,
+        variant: <span class="kw-2">&amp;</span>str,
+        value: <span class="kw-2">&amp;</span>T,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Tagged</span>(<span class="ident">Box::new</span>(<span class="ident">TaggedValue</span> {
-            <span class="ident">tag</span>: <span class="ident">Tag::new</span>(<span class="ident">variant</span>),
-            <span class="ident">value</span>: <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>,
+        <span class="prelude-val">Ok</span>(Value::Tagged(Box::new(TaggedValue {
+            tag: Tag::new(variant),
+            value: to_value(value)<span class="question-mark">?</span>,
         })))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_none</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">serialize_unit</span>()
+    <span class="kw">fn </span>serialize_none(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="self">self</span>.serialize_unit()
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_some</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_some&lt;V&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt;
+    <span class="kw">where
+        </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="ident">value</span>.<span class="ident">serialize</span>(<span class="self">self</span>)
+        value.serialize(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_seq</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sequence</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">len</span> {
-            <span class="prelude-val">None</span> =&gt; <span class="ident">Sequence::new</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">len</span>) =&gt; <span class="ident">Sequence::with_capacity</span>(<span class="ident">len</span>),
+    <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeArray&gt; {
+        <span class="kw">let </span>sequence = <span class="kw">match </span>len {
+            <span class="prelude-val">None </span>=&gt; Sequence::new(),
+            <span class="prelude-val">Some</span>(len) =&gt; Sequence::with_capacity(len),
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeArray</span> { <span class="ident">sequence</span> })
+        <span class="prelude-val">Ok</span>(SerializeArray { sequence })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">serialize_seq</span>(<span class="prelude-val">Some</span>(<span class="ident">len</span>))
+    <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeArray&gt; {
+        <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple_struct</span>(<span class="self">self</span>, <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">serialize_seq</span>(<span class="prelude-val">Some</span>(<span class="ident">len</span>))
+    <span class="kw">fn </span>serialize_tuple_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeArray&gt; {
+        <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_tuple_variant</span>(
+    <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        <span class="ident">_enum</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_idx</span>: <span class="ident">u32</span>,
-        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeTupleVariant</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeTupleVariant</span> {
-            <span class="ident">tag</span>: <span class="ident">variant</span>,
-            <span class="ident">sequence</span>: <span class="ident">Sequence::with_capacity</span>(<span class="ident">len</span>),
+        _enum: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _idx: u32,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeTupleVariant&gt; {
+        <span class="prelude-val">Ok</span>(SerializeTupleVariant {
+            tag: variant,
+            sequence: Sequence::with_capacity(len),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_map</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeMap</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">SerializeMap::CheckForTag</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">SerializeMap::Untagged</span> {
-                <span class="ident">mapping</span>: <span class="ident">Mapping::new</span>(),
-                <span class="ident">next_key</span>: <span class="prelude-val">None</span>,
+    <span class="kw">fn </span>serialize_map(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeMap&gt; {
+        <span class="kw">if </span>len == <span class="prelude-val">Some</span>(<span class="number">1</span>) {
+            <span class="prelude-val">Ok</span>(SerializeMap::CheckForTag)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(SerializeMap::Untagged {
+                mapping: Mapping::new(),
+                next_key: <span class="prelude-val">None</span>,
             })
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_struct</span>(<span class="self">self</span>, <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">_len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeStruct</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeStruct</span> {
-            <span class="ident">mapping</span>: <span class="ident">Mapping::new</span>(),
+    <span class="kw">fn </span>serialize_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, _len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeStruct&gt; {
+        <span class="prelude-val">Ok</span>(SerializeStruct {
+            mapping: Mapping::new(),
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_struct_variant</span>(
+    <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        <span class="ident">_enum</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_idx</span>: <span class="ident">u32</span>,
-        <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">_len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SerializeStructVariant</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">SerializeStructVariant</span> {
-            <span class="ident">tag</span>: <span class="ident">variant</span>,
-            <span class="ident">mapping</span>: <span class="ident">Mapping::new</span>(),
+        _enum: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _idx: u32,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _len: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SerializeStructVariant&gt; {
+        <span class="prelude-val">Ok</span>(SerializeStructVariant {
+            tag: variant,
+            mapping: Mapping::new(),
         })
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SerializeArray</span> {
-    <span class="ident">sequence</span>: <span class="ident">Sequence</span>,
+<span class="kw">pub struct </span>SerializeArray {
+    sequence: Sequence,
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeSeq</span> <span class="kw">for</span> <span class="ident">SerializeArray</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeSeq <span class="kw">for </span>SerializeArray {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elem</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elem: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="self">self</span>.<span class="ident">sequence</span>.<span class="ident">push</span>(<span class="ident">to_value</span>(<span class="ident">elem</span>)<span class="question-mark">?</span>);
+        <span class="self">self</span>.sequence.push(to_value(elem)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Sequence</span>(<span class="self">self</span>.<span class="ident">sequence</span>))
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Sequence(<span class="self">self</span>.sequence))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeTuple</span> <span class="kw">for</span> <span class="ident">SerializeArray</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeTuple <span class="kw">for </span>SerializeArray {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elem</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elem: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="ident">ser::SerializeSeq::serialize_element</span>(<span class="self">self</span>, <span class="ident">elem</span>)
+        ser::SerializeSeq::serialize_element(<span class="self">self</span>, elem)
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="ident">ser::SerializeSeq::end</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        ser::SerializeSeq::end(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeTupleStruct</span> <span class="kw">for</span> <span class="ident">SerializeArray</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeTupleStruct <span class="kw">for </span>SerializeArray {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="ident">ser::SerializeSeq::serialize_element</span>(<span class="self">self</span>, <span class="ident">value</span>)
+        ser::SerializeSeq::serialize_element(<span class="self">self</span>, value)
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="ident">ser::SerializeSeq::end</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        ser::SerializeSeq::end(<span class="self">self</span>)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SerializeTupleVariant</span> {
-    <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">sequence</span>: <span class="ident">Sequence</span>,
+<span class="kw">pub struct </span>SerializeTupleVariant {
+    tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    sequence: Sequence,
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeTupleVariant</span> <span class="kw">for</span> <span class="ident">SerializeTupleVariant</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeTupleVariant <span class="kw">for </span>SerializeTupleVariant {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="self">self</span>.<span class="ident">sequence</span>.<span class="ident">push</span>(<span class="ident">to_value</span>(<span class="ident">v</span>)<span class="question-mark">?</span>);
+        <span class="self">self</span>.sequence.push(to_value(v)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Tagged</span>(<span class="ident">Box::new</span>(<span class="ident">TaggedValue</span> {
-            <span class="ident">tag</span>: <span class="ident">Tag::new</span>(<span class="self">self</span>.<span class="ident">tag</span>),
-            <span class="ident">value</span>: <span class="ident">Value::Sequence</span>(<span class="self">self</span>.<span class="ident">sequence</span>),
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Tagged(Box::new(TaggedValue {
+            tag: Tag::new(<span class="self">self</span>.tag),
+            value: Value::Sequence(<span class="self">self</span>.sequence),
         })))
     }
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SerializeMap</span> {
-    <span class="ident">CheckForTag</span>,
-    <span class="ident">Tagged</span>(<span class="ident">TaggedValue</span>),
-    <span class="ident">Untagged</span> {
-        <span class="ident">mapping</span>: <span class="ident">Mapping</span>,
-        <span class="ident">next_key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+<span class="kw">pub enum </span>SerializeMap {
+    CheckForTag,
+    Tagged(TaggedValue),
+    Untagged {
+        mapping: Mapping,
+        next_key: <span class="prelude-ty">Option</span>&lt;Value&gt;,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeMap</span> <span class="kw">for</span> <span class="ident">SerializeMap</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeMap <span class="kw">for </span>SerializeMap {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_key</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">to_value</span>(<span class="ident">key</span>)<span class="question-mark">?</span>);
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SerializeMap::CheckForTag</span> =&gt; {
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">SerializeMap::Untagged</span> {
-                    <span class="ident">mapping</span>: <span class="ident">Mapping::new</span>(),
-                    <span class="ident">next_key</span>: <span class="ident">key</span>,
+        <span class="kw">let </span>key = <span class="prelude-val">Some</span>(to_value(key)<span class="question-mark">?</span>);
+        <span class="kw">match </span><span class="self">self </span>{
+            SerializeMap::CheckForTag =&gt; {
+                <span class="kw-2">*</span><span class="self">self </span>= SerializeMap::Untagged {
+                    mapping: Mapping::new(),
+                    next_key: key,
                 };
             }
-            <span class="ident">SerializeMap::Tagged</span>(<span class="ident">tagged</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">Mapping::new</span>();
-                <span class="ident">mapping</span>.<span class="ident">insert</span>(
-                    <span class="ident">Value::String</span>(<span class="ident">tagged</span>.<span class="ident">tag</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tagged</span>.<span class="ident">value</span>),
+            SerializeMap::Tagged(tagged) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>mapping = Mapping::new();
+                mapping.insert(
+                    Value::String(tagged.tag.to_string()),
+                    mem::take(<span class="kw-2">&amp;mut </span>tagged.value),
                 );
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">SerializeMap::Untagged</span> {
-                    <span class="ident">mapping</span>,
-                    <span class="ident">next_key</span>: <span class="ident">key</span>,
+                <span class="kw-2">*</span><span class="self">self </span>= SerializeMap::Untagged {
+                    mapping,
+                    next_key: key,
                 };
             }
-            <span class="ident">SerializeMap::Untagged</span> { <span class="ident">next_key</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">next_key</span> <span class="op">=</span> <span class="ident">key</span>,
+            SerializeMap::Untagged { next_key, .. } =&gt; <span class="kw-2">*</span>next_key = key,
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="kw">let</span> (<span class="ident">mapping</span>, <span class="ident">key</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SerializeMap::CheckForTag</span> <span class="op">|</span> <span class="ident">SerializeMap::Tagged</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-            <span class="ident">SerializeMap::Untagged</span> { <span class="ident">mapping</span>, <span class="ident">next_key</span> } =&gt; (<span class="ident">mapping</span>, <span class="ident">next_key</span>),
+        <span class="kw">let </span>(mapping, key) = <span class="kw">match </span><span class="self">self </span>{
+            SerializeMap::CheckForTag | SerializeMap::Tagged(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            SerializeMap::Untagged { mapping, next_key } =&gt; (mapping, next_key),
         };
-        <span class="kw">match</span> <span class="ident">key</span>.<span class="ident">take</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">key</span>) =&gt; <span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>),
-            <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;serialize_value called before serialize_key&quot;</span>),
+        <span class="kw">match </span>key.take() {
+            <span class="prelude-val">Some</span>(key) =&gt; mapping.insert(key, to_value(value)<span class="question-mark">?</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;serialize_value called before serialize_key&quot;</span>),
         };
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">serialize_entry</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_entry&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>K: <span class="question-mark">?</span>Sized + ser::Serialize,
+        V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="kw">struct</span> <span class="ident">CheckForTag</span>;
-        <span class="kw">struct</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="ident">delegate</span>: <span class="ident">T</span>,
+        <span class="kw">struct </span>CheckForTag;
+        <span class="kw">struct </span>NotTag&lt;T&gt; {
+            delegate: T,
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::Serializer</span> <span class="kw">for</span> <span class="ident">CheckForTag</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::Serializer <span class="kw">for </span>CheckForTag {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">type</span> <span class="ident">SerializeSeq</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeTuple</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeTupleStruct</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeTupleVariant</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeTupleVariant</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeMap</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeMap</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeStruct</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeStruct</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">SerializeStructVariant</span> <span class="op">=</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeStructVariant</span><span class="op">&gt;</span>;
+            <span class="kw">type </span>SerializeSeq = NotTag&lt;SerializeArray&gt;;
+            <span class="kw">type </span>SerializeTuple = NotTag&lt;SerializeArray&gt;;
+            <span class="kw">type </span>SerializeTupleStruct = NotTag&lt;SerializeArray&gt;;
+            <span class="kw">type </span>SerializeTupleVariant = NotTag&lt;SerializeTupleVariant&gt;;
+            <span class="kw">type </span>SerializeMap = NotTag&lt;SerializeMap&gt;;
+            <span class="kw">type </span>SerializeStruct = NotTag&lt;SerializeStruct&gt;;
+            <span class="kw">type </span>SerializeStructVariant = NotTag&lt;SerializeStructVariant&gt;;
 
-            <span class="kw">fn</span> <span class="ident">serialize_bool</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_bool</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_bool(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_i8</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_i8</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_i8(<span class="self">self</span>, v: i8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_i8(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_i16</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i16</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_i16</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_i16(<span class="self">self</span>, v: i16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_i16(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_i32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_i32</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_i32(<span class="self">self</span>, v: i32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_i32(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_i64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_i64(<span class="self">self</span>, v: i64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_i64(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_i128</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i128</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_i128</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_i128(<span class="self">self</span>, v: i128) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_i128(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_u8</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_u8</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_u8(<span class="self">self</span>, v: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_u8(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_u16</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u16</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_u16</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_u16(<span class="self">self</span>, v: u16) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_u16(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_u32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_u32</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_u32(<span class="self">self</span>, v: u32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_u32(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_u64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_u64</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_u64(<span class="self">self</span>, v: u64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_u64(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_u128</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u128</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_u128</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_u128(<span class="self">self</span>, v: u128) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_u128(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_f32</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">f32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_f32</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_f32(<span class="self">self</span>, v: f32) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_f32(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_f64</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">f64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_f64</span>(<span class="ident">v</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_f64(<span class="self">self</span>, v: f64) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_f64(v).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_char</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">char</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_char</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_char(<span class="self">self</span>, value: char) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_char(value).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_str</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_str</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_str(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_str(value).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_bytes</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_bytes</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_bytes(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_bytes(value).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_unit</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_unit</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_unit().map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_unit_struct</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_unit_struct</span>(<span class="ident">name</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_unit_struct(name).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_unit_variant</span>(
+            <span class="kw">fn </span>serialize_unit_variant(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">variant_index</span>: <span class="ident">u32</span>,
-                <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>
-                    .<span class="ident">serialize_unit_variant</span>(<span class="ident">name</span>, <span class="ident">variant_index</span>, <span class="ident">variant</span>)
-                    .<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                variant_index: u32,
+                variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer
+                    .serialize_unit_variant(name, variant_index, variant)
+                    .map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_newtype_struct</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_newtype_struct&lt;T&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="ident">Serializer</span>
-                    .<span class="ident">serialize_newtype_struct</span>(<span class="ident">name</span>, <span class="ident">value</span>)
-                    .<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+                Serializer
+                    .serialize_newtype_struct(name, value)
+                    .map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_newtype_variant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+            <span class="kw">fn </span>serialize_newtype_variant&lt;T&gt;(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">variant_index</span>: <span class="ident">u32</span>,
-                <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                variant_index: u32,
+                variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                value: <span class="kw-2">&amp;</span>T,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="ident">Serializer</span>
-                    .<span class="ident">serialize_newtype_variant</span>(<span class="ident">name</span>, <span class="ident">variant_index</span>, <span class="ident">variant</span>, <span class="ident">value</span>)
-                    .<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+                Serializer
+                    .serialize_newtype_variant(name, variant_index, variant, value)
+                    .map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_none</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_none</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>serialize_none(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                Serializer.serialize_none().map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_some</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_some&lt;V&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
+            <span class="kw">where
+                </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="ident">Serializer</span>.<span class="ident">serialize_some</span>(<span class="ident">value</span>).<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+                Serializer.serialize_some(value).map(MaybeTag::NotTag)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_seq</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeSeq</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_seq</span>(<span class="ident">len</span>)<span class="question-mark">?</span>,
+            <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeSeq&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_seq(len)<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_tuple</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTuple</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_tuple</span>(<span class="ident">len</span>)<span class="question-mark">?</span>,
+            <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTuple&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_tuple(len)<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_tuple_struct</span>(
+            <span class="kw">fn </span>serialize_tuple_struct(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">len</span>: <span class="ident">usize</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTupleStruct</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_tuple_struct</span>(<span class="ident">name</span>, <span class="ident">len</span>)<span class="question-mark">?</span>,
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                len: usize,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_tuple_struct(name, len)<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_tuple_variant</span>(
+            <span class="kw">fn </span>serialize_tuple_variant(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">variant_index</span>: <span class="ident">u32</span>,
-                <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">len</span>: <span class="ident">usize</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeTupleVariant</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_tuple_variant</span>(
-                        <span class="ident">name</span>,
-                        <span class="ident">variant_index</span>,
-                        <span class="ident">variant</span>,
-                        <span class="ident">len</span>,
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                variant_index: u32,
+                variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                len: usize,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_tuple_variant(
+                        name,
+                        variant_index,
+                        variant,
+                        len,
                     )<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_map</span>(<span class="self">self</span>, <span class="ident">len</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeMap</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_map</span>(<span class="ident">len</span>)<span class="question-mark">?</span>,
+            <span class="kw">fn </span>serialize_map(<span class="self">self</span>, len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeMap&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_map(len)<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_struct</span>(
+            <span class="kw">fn </span>serialize_struct(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">len</span>: <span class="ident">usize</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeStruct</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_struct</span>(<span class="ident">name</span>, <span class="ident">len</span>)<span class="question-mark">?</span>,
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                len: usize,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_struct(name, len)<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_struct_variant</span>(
+            <span class="kw">fn </span>serialize_struct_variant(
                 <span class="self">self</span>,
-                <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">variant_index</span>: <span class="ident">u32</span>,
-                <span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-                <span class="ident">len</span>: <span class="ident">usize</span>,
-            ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::SerializeStructVariant</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">NotTag</span> {
-                    <span class="ident">delegate</span>: <span class="ident">Serializer</span>.<span class="ident">serialize_struct_variant</span>(
-                        <span class="ident">name</span>,
-                        <span class="ident">variant_index</span>,
-                        <span class="ident">variant</span>,
-                        <span class="ident">len</span>,
+                name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                variant_index: u32,
+                variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+                len: usize,
+            ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant&gt; {
+                <span class="prelude-val">Ok</span>(NotTag {
+                    delegate: Serializer.serialize_struct_variant(
+                        name,
+                        variant_index,
+                        variant,
+                        len,
                     )<span class="question-mark">?</span>,
                 })
             }
 
-            <span class="kw">fn</span> <span class="ident">collect_str</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Display</span>,
+            <span class="kw">fn </span>collect_str&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + Display,
             {
-                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">tagged::check_for_tag</span>(<span class="ident">value</span>) {
-                    <span class="ident">MaybeTag::Tag</span>(<span class="ident">tag</span>) =&gt; <span class="ident">MaybeTag::Tag</span>(<span class="ident">tag</span>),
-                    <span class="ident">MaybeTag::NotTag</span>(<span class="ident">string</span>) =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="ident">Value::String</span>(<span class="ident">string</span>)),
+                <span class="prelude-val">Ok</span>(<span class="kw">match </span>tagged::check_for_tag(value) {
+                    MaybeTag::Tag(tag) =&gt; MaybeTag::Tag(tag),
+                    MaybeTag::NotTag(string) =&gt; MaybeTag::NotTag(Value::String(string)),
                 })
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeSeq</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeSeq <span class="kw">for </span>NotTag&lt;SerializeArray&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elem</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elem: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_element</span>(<span class="ident">elem</span>)
+                <span class="self">self</span>.delegate.serialize_element(elem)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeTuple</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeTuple <span class="kw">for </span>NotTag&lt;SerializeArray&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_element</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">elem</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, elem: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_element</span>(<span class="ident">elem</span>)
+                <span class="self">self</span>.delegate.serialize_element(elem)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeTupleStruct</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeArray</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeTupleStruct <span class="kw">for </span>NotTag&lt;SerializeArray&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_field</span>(<span class="ident">value</span>)
+                <span class="self">self</span>.delegate.serialize_field(value)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeTupleVariant</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeTupleVariant</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeTupleVariant <span class="kw">for </span>NotTag&lt;SerializeTupleVariant&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, v: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_field</span>(<span class="ident">v</span>)
+                <span class="self">self</span>.delegate.serialize_field(v)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeMap</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeMap</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeMap <span class="kw">for </span>NotTag&lt;SerializeMap&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_key</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_key</span>(<span class="ident">key</span>)
+                <span class="self">self</span>.delegate.serialize_key(key)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_value</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>T: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_value</span>(<span class="ident">value</span>)
+                <span class="self">self</span>.delegate.serialize_value(value)
             }
 
-            <span class="kw">fn</span> <span class="ident">serialize_entry</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">K</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_entry&lt;K, V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>K, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>K: <span class="question-mark">?</span>Sized + ser::Serialize,
+                V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_entry</span>(<span class="ident">key</span>, <span class="ident">value</span>)
+                <span class="self">self</span>.delegate.serialize_entry(key, value)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeStruct</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeStruct</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeStruct <span class="kw">for </span>NotTag&lt;SerializeStruct&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_field</span>(<span class="ident">key</span>, <span class="ident">value</span>)
+                <span class="self">self</span>.delegate.serialize_field(key, value)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">impl</span> <span class="ident">ser::SerializeStructVariant</span> <span class="kw">for</span> <span class="ident">NotTag</span><span class="op">&lt;</span><span class="ident">SerializeStructVariant</span><span class="op">&gt;</span> {
-            <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+        <span class="kw">impl </span>ser::SerializeStructVariant <span class="kw">for </span>NotTag&lt;SerializeStructVariant&gt; {
+            <span class="kw">type </span><span class="prelude-val">Ok </span>= MaybeTag&lt;Value&gt;;
+            <span class="kw">type </span>Error = Error;
 
-            <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+            <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, v: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+            <span class="kw">where
+                </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
             {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">serialize_field</span>(<span class="ident">field</span>, <span class="ident">v</span>)
+                <span class="self">self</span>.delegate.serialize_field(field, v)
             }
 
-            <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">delegate</span>.<span class="ident">end</span>().<span class="ident">map</span>(<span class="ident">MaybeTag::NotTag</span>)
+            <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+                <span class="self">self</span>.delegate.end().map(MaybeTag::NotTag)
             }
         }
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SerializeMap::CheckForTag</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">serialize</span>(<span class="ident">CheckForTag</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">Mapping::new</span>();
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-                    <span class="ident">MaybeTag::Tag</span>(<span class="ident">string</span>) =&gt; <span class="ident">SerializeMap::Tagged</span>(<span class="ident">TaggedValue</span> {
-                        <span class="ident">tag</span>: <span class="ident">Tag::new</span>(<span class="ident">string</span>),
-                        <span class="ident">value</span>: <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            SerializeMap::CheckForTag =&gt; {
+                <span class="kw">let </span>key = key.serialize(CheckForTag)<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>mapping = Mapping::new();
+                <span class="kw-2">*</span><span class="self">self </span>= <span class="kw">match </span>key {
+                    MaybeTag::Tag(string) =&gt; SerializeMap::Tagged(TaggedValue {
+                        tag: Tag::new(string),
+                        value: to_value(value)<span class="question-mark">?</span>,
                     }),
-                    <span class="ident">MaybeTag::NotTag</span>(<span class="ident">key</span>) =&gt; {
-                        <span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
-                        <span class="ident">SerializeMap::Untagged</span> {
-                            <span class="ident">mapping</span>,
-                            <span class="ident">next_key</span>: <span class="prelude-val">None</span>,
+                    MaybeTag::NotTag(key) =&gt; {
+                        mapping.insert(key, to_value(value)<span class="question-mark">?</span>);
+                        SerializeMap::Untagged {
+                            mapping,
+                            next_key: <span class="prelude-val">None</span>,
                         }
                     }
                 };
             }
-            <span class="ident">SerializeMap::Tagged</span>(<span class="ident">tagged</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="ident">Mapping::new</span>();
-                <span class="ident">mapping</span>.<span class="ident">insert</span>(
-                    <span class="ident">Value::String</span>(<span class="ident">tagged</span>.<span class="ident">tag</span>.<span class="ident">to_string</span>()),
-                    <span class="ident">mem::take</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tagged</span>.<span class="ident">value</span>),
+            SerializeMap::Tagged(tagged) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>mapping = Mapping::new();
+                mapping.insert(
+                    Value::String(tagged.tag.to_string()),
+                    mem::take(<span class="kw-2">&amp;mut </span>tagged.value),
                 );
-                <span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">to_value</span>(<span class="ident">key</span>)<span class="question-mark">?</span>, <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
-                <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">SerializeMap::Untagged</span> {
-                    <span class="ident">mapping</span>,
-                    <span class="ident">next_key</span>: <span class="prelude-val">None</span>,
+                mapping.insert(to_value(key)<span class="question-mark">?</span>, to_value(value)<span class="question-mark">?</span>);
+                <span class="kw-2">*</span><span class="self">self </span>= SerializeMap::Untagged {
+                    mapping,
+                    next_key: <span class="prelude-val">None</span>,
                 };
             }
-            <span class="ident">SerializeMap::Untagged</span> { <span class="ident">mapping</span>, .. } =&gt; {
-                <span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">to_value</span>(<span class="ident">key</span>)<span class="question-mark">?</span>, <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
+            SerializeMap::Untagged { mapping, .. } =&gt; {
+                mapping.insert(to_value(key)<span class="question-mark">?</span>, to_value(value)<span class="question-mark">?</span>);
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SerializeMap::CheckForTag</span> =&gt; <span class="ident">Value::Mapping</span>(<span class="ident">Mapping::new</span>()),
-            <span class="ident">SerializeMap::Tagged</span>(<span class="ident">tagged</span>) =&gt; <span class="ident">Value::Tagged</span>(<span class="ident">Box::new</span>(<span class="ident">tagged</span>)),
-            <span class="ident">SerializeMap::Untagged</span> { <span class="ident">mapping</span>, .. } =&gt; <span class="ident">Value::Mapping</span>(<span class="ident">mapping</span>),
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
+            SerializeMap::CheckForTag =&gt; Value::Mapping(Mapping::new()),
+            SerializeMap::Tagged(tagged) =&gt; Value::Tagged(Box::new(tagged)),
+            SerializeMap::Untagged { mapping, .. } =&gt; Value::Mapping(mapping),
         })
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SerializeStruct</span> {
-    <span class="ident">mapping</span>: <span class="ident">Mapping</span>,
+<span class="kw">pub struct </span>SerializeStruct {
+    mapping: Mapping,
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeStruct</span> <span class="kw">for</span> <span class="ident">SerializeStruct</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeStruct <span class="kw">for </span>SerializeStruct {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="self">self</span>.<span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">to_value</span>(<span class="ident">key</span>)<span class="question-mark">?</span>, <span class="ident">to_value</span>(<span class="ident">value</span>)<span class="question-mark">?</span>);
+        <span class="self">self</span>.mapping.insert(to_value(key)<span class="question-mark">?</span>, to_value(value)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Mapping</span>(<span class="self">self</span>.<span class="ident">mapping</span>))
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Mapping(<span class="self">self</span>.mapping))
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SerializeStructVariant</span> {
-    <span class="ident">tag</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">mapping</span>: <span class="ident">Mapping</span>,
+<span class="kw">pub struct </span>SerializeStructVariant {
+    tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    mapping: Mapping,
 }
 
-<span class="kw">impl</span> <span class="ident">ser::SerializeStructVariant</span> <span class="kw">for</span> <span class="ident">SerializeStructVariant</span> {
-    <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">Value</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+<span class="kw">impl </span>ser::SerializeStructVariant <span class="kw">for </span>SerializeStructVariant {
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Value;
+    <span class="kw">type </span>Error = Error;
 
-    <span class="kw">fn</span> <span class="ident">serialize_field</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">ser::Serialize</span>,
+    <span class="kw">fn </span>serialize_field&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, v: <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt;
+    <span class="kw">where
+        </span>V: <span class="question-mark">?</span>Sized + ser::Serialize,
     {
-        <span class="self">self</span>.<span class="ident">mapping</span>.<span class="ident">insert</span>(<span class="ident">to_value</span>(<span class="ident">field</span>)<span class="question-mark">?</span>, <span class="ident">to_value</span>(<span class="ident">v</span>)<span class="question-mark">?</span>);
+        <span class="self">self</span>.mapping.insert(to_value(field)<span class="question-mark">?</span>, to_value(v)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">end</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::Tagged</span>(<span class="ident">Box::new</span>(<span class="ident">TaggedValue</span> {
-            <span class="ident">tag</span>: <span class="ident">Tag::new</span>(<span class="self">self</span>.<span class="ident">tag</span>),
-            <span class="ident">value</span>: <span class="ident">Value::Mapping</span>(<span class="self">self</span>.<span class="ident">mapping</span>),
+    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Value&gt; {
+        <span class="prelude-val">Ok</span>(Value::Tagged(Box::new(TaggedValue {
+            tag: Tag::new(<span class="self">self</span>.tag),
+            value: Value::Mapping(<span class="self">self</span>.mapping),
         })))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_yaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="serde_yaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>
