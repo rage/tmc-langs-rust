@@ -210,14 +210,15 @@ pub trait LanguagePlugin {
     /// Overwrites all files.
     fn extract_student_files(
         compressed_project: impl Read + Seek,
+        compression: Compression,
         target_location: &Path,
     ) -> Result<(), TmcError> {
         log::debug!("Extracting student files to {}", target_location.display());
 
-        let mut zip_archive = Archive::zip(compressed_project)?;
+        let mut archive = Archive::new(compressed_project, compression)?;
 
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_archive(&mut zip_archive)?;
+        let project_dir = Self::find_project_dir_in_archive(&mut archive)?;
         log::debug!("Project directory in archive: {}", project_dir.display());
 
         // extract config file if any
@@ -225,13 +226,13 @@ pub trait LanguagePlugin {
         let tmc_project_yml_path = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = zip_archive.by_path(tmc_project_yml_path) {
+        if let Ok(mut file) = archive.by_path(tmc_project_yml_path) {
             let target_path = target_location.join(".tmcproject.yml");
             file_util::read_to_file(&mut file, target_path)?;
         }
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
-        let mut iter = zip_archive.iter()?;
+        let mut iter = archive.iter()?;
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 // get the path where the file should be extracted
@@ -767,6 +768,7 @@ def f():
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
+            Compression::Zip,
             &temp.path().join("extracted"),
         )
         .unwrap();
@@ -790,6 +792,7 @@ def f():
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
+            Compression::Zip,
             &temp.path().join("extracted"),
         )
         .unwrap();
@@ -825,6 +828,7 @@ def f():
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
+            Compression::Zip,
             &temp.path().join("extracted"),
         )
         .unwrap();
@@ -1077,7 +1081,7 @@ force_update:
             .unwrap();
         let buf = zw.finish().unwrap();
 
-        MockPlugin::extract_student_files(buf, temp.path()).unwrap();
+        MockPlugin::extract_student_files(buf, Compression::Zip, temp.path()).unwrap();
         assert!(temp.path().join("src/file").exists());
     }
 }

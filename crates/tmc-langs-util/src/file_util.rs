@@ -218,7 +218,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
 
     if source.is_file() {
         if target.is_dir() {
-            log::debug!(
+            log::trace!(
                 "copying into dir {} -> {}",
                 source.display(),
                 target.display()
@@ -235,7 +235,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
                 source: e,
             })?;
         } else {
-            log::debug!("copying file {} -> {}", source.display(), target.display());
+            log::trace!("copying file {} -> {}", source.display(), target.display());
             if let Some(parent) = target.parent() {
                 if !parent.exists() {
                     create_dir_all(parent)?;
@@ -248,7 +248,7 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
             })?;
         }
     } else {
-        log::debug!(
+        log::trace!(
             "recursively copying {} -> {}",
             source.display(),
             target.display()

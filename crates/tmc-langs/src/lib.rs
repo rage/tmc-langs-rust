@@ -21,7 +21,7 @@ pub use crate::{
         ExerciseDownload, LocalExercise, TmcParams,
     },
     error::{LangsError, ParamError},
-    submission_packaging::prepare_submission,
+    submission_packaging::{prepare_submission, PrepareSubmission},
     submission_processing::prepare_solution,
 };
 use hmac::{Hmac, Mac};
@@ -167,7 +167,7 @@ pub fn download_old_submission(
     log::debug!("downloaded old submission");
 
     // extract submission
-    extract_student_files(Cursor::new(buf), output_path)?;
+    extract_student_files(Cursor::new(buf), Compression::Zip, output_path)?;
     log::debug!("extracted project");
     Ok(())
 }
@@ -403,6 +403,7 @@ pub fn download_or_update_course_exercises(
                             client.download_old_submission(*submission_id, &mut buf)?;
                             if let Err(err) = plugin.extract_student_files(
                                 Cursor::new(buf),
+                                Compression::Zip,
                                 &download_target.target.path,
                             ) {
                                 log::error!(
@@ -904,6 +905,7 @@ pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc,
 /// Extracts student files from the compressed exercise.
 pub fn extract_student_files(
     compressed_project: impl std::io::Read + std::io::Seek,
+    compression: Compression,
     target_location: &Path,
 ) -> Result<(), LangsError> {
     log::debug!(
@@ -912,7 +914,7 @@ pub fn extract_student_files(
     );
 
     if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
-        plugin.extract_student_files(compressed_project, target_location)?;
+        plugin.extract_student_files(compressed_project, compression, target_location)?;
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",

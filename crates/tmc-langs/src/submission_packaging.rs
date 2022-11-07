@@ -1,6 +1,6 @@
 //! Submission packaging.
 
-use crate::{data::TmcParams, error::LangsError, Compression};
+use crate::{data::TmcParams, error::LangsError, extract_project_overwrite, Compression};
 use once_cell::sync::Lazy;
 use std::{
     io::{Cursor, Write},
@@ -16,9 +16,15 @@ use zip::{write::FileOptions, ZipWriter};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
+pub struct PrepareSubmission<'a> {
+    pub archive: &'a Path,
+    pub compression: Compression,
+    pub extract_naively: bool,
+}
+
 /// Prepares a submission for further processing.
 pub fn prepare_submission(
-    (submission_archive, submission_compression): (&Path, Compression),
+    submission: PrepareSubmission,
     target_path: &Path,
     toplevel_dir_name: Option<String>,
     tmc_params: TmcParams,
@@ -28,7 +34,7 @@ pub fn prepare_submission(
 ) -> Result<(), LangsError> {
     // FIXME: workaround for unknown issues when prepare_submission is ran multiple times in parallel
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
-    log::debug!("preparing submission for {}", submission_archive.display());
+    log::debug!("preparing submission for {}", submission.archive.display());
 
     let plugin = tmc_langs_plugins::get_language_plugin(stub_clone_path)?;
 
@@ -59,6 +65,7 @@ pub fn prepare_submission(
                 })
             },
             &extract_dest_path,
+            false,
         )?;
     } else {
         // else, copy clone path
@@ -90,8 +97,12 @@ pub fn prepare_submission(
 
     // extract student files from submission over base
     log::debug!("extracting student files");
-    let file = file_util::open_file(submission_archive)?;
-    plugin.extract_student_files(file, &extract_dest_path)?;
+    let file = file_util::open_file(submission.archive)?;
+    if submission.extract_naively {
+        extract_project_overwrite(file, &extract_dest_path, submission.compression)?;
+    } else {
+        plugin.extract_student_files(file, submission.compression, &extract_dest_path)?;
+    }
 
     // extract ide files
     log::debug!("extracting ide files");
@@ -107,8 +118,8 @@ pub fn prepare_submission(
     ];
     extract_with_filter(
         &plugin,
-        submission_archive,
-        submission_compression,
+        submission.archive,
+        submission.compression,
         |path| {
             path.components().all(|c| {
                 c.as_os_str()
@@ -118,6 +129,7 @@ pub fn prepare_submission(
             })
         },
         &extract_dest_path,
+        submission.extract_naively,
     )?;
 
     // write tmc params
@@ -229,16 +241,21 @@ fn extract_with_filter<F: Fn(&Path) -> bool>(
     compression: Compression,
     exclude_filter: F,
     dest: &Path,
+    naive: bool,
 ) -> Result<(), LangsError> {
     let file = file_util::open_file(archive)?;
     let mut zip = Archive::new(file, compression)?;
-    let project_dir_in_stub = plugin.find_project_dir_in_archive(&mut zip)?;
+    let project_dir_in_archive = if naive {
+        PathBuf::new()
+    } else {
+        plugin.find_project_dir_in_archive(&mut zip)?
+    };
 
     let mut iter = zip.iter()?;
     loop {
         let next = iter.with_next::<(), _>(|mut file| {
             if file.is_file() {
-                if let Ok(path) = file.path()?.strip_prefix(&project_dir_in_stub) {
+                if let Ok(path) = file.path()?.strip_prefix(&project_dir_in_archive) {
                     if exclude_filter(path) {
                         // path component on ignore list
                         return Ok(Continue(()));
@@ -294,7 +311,11 @@ mod test {
             .insert_array("param_two", vec!["value_two", "value_three"])
             .unwrap();
         prepare_submission(
-            (Path::new(zip), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(zip),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output_archive,
             None,
             tmc_params,
@@ -391,7 +412,11 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            (Path::new(MAVEN_ZIP), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(MAVEN_ZIP),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output,
             Some("toplevel".to_string()),
             TmcParams::new(),
@@ -426,7 +451,11 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            (Path::new(MAVEN_ZIP), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(MAVEN_ZIP),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output,
             None,
             TmcParams::new(),
@@ -460,7 +489,11 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            (Path::new(MAVEN_ZIP), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(MAVEN_ZIP),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output,
             None,
             TmcParams::new(),
@@ -487,7 +520,11 @@ mod test {
 
         assert!(!output.exists());
         prepare_submission(
-            (Path::new(MAVEN_ZIP), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(MAVEN_ZIP),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output,
             Some("toplevel".to_string()),
             TmcParams::new(),
@@ -517,7 +554,11 @@ mod test {
 
         assert!(!output_arch.exists());
         prepare_submission(
-            (Path::new(MAVEN_ZIP), Compression::Zip),
+            PrepareSubmission {
+                archive: Path::new(MAVEN_ZIP),
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
             &output_arch,
             None,
             TmcParams::new(),

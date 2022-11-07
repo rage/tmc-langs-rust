@@ -65,7 +65,8 @@ pub fn run() {
                 result: OutputResult::Error,
                 data: None,
             }));
-            print_output(&output, false).expect("this should never fail");
+            let pretty = std::env::args().find(|arg| arg == "--pretty").is_some();
+            print_output(&output, pretty).expect("this should never fail");
 
             quit::with_code(1);
         }
@@ -89,7 +90,8 @@ fn run_inner() -> Result<(), ()> {
                     trace: causes,
                 }),
             }));
-            print_output(&error_output, false).expect("failed to print output");
+            let pretty = std::env::args().find(|arg| arg == "--pretty").is_some();
+            print_output(&error_output, pretty).expect("failed to print output");
             return Err(());
         }
     };
@@ -383,6 +385,7 @@ fn run_app(matches: Opt) -> Result<()> {
             stub_compression,
             submission_path,
             submission_compression,
+            extract_submission_naively,
             tmc_param,
             top_level_dir_name,
         } => {
@@ -418,7 +421,11 @@ fn run_app(matches: Opt) -> Result<()> {
             }
 
             tmc_langs::prepare_submission(
-                (&submission_path, submission_compression),
+                tmc_langs::PrepareSubmission {
+                    archive: &submission_path,
+                    compression: submission_compression,
+                    extract_naively: extract_submission_naively,
+                },
                 &output_path,
                 top_level_dir_name,
                 tmc_params,

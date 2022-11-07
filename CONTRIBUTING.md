@@ -37,13 +37,17 @@ cargo test
 ```
 
 ## Building and testing with Docker
+
 Build the binary in Docker and copy it to the current directory (this can be useful to create a binary linked with an older glibc):
+
 ```bash
 export DOCKER_BUILDKIT=1
 docker build . -f docker/Dockerfile -t tmc-langs-rust
-docker run --rm -v $PWD:/build/out tmc-langs-rust bash -c "cargo build && cp /build/target/debug/tmc-langs-cli /build/out/"
+docker run --rm -v "$PWD":/build/out tmc-langs-rust bash -c "cargo build && cp /build/target/debug/tmc-langs-cli /build/out/"
 ```
+
 Run tests in Docker:
+
 ```bash
 export DOCKER_BUILDKIT=1
 docker build . -f docker/Dockerfile -t tmc-langs-rust

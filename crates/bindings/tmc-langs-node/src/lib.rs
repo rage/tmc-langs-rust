@@ -14,7 +14,8 @@ use std::{
 use thiserror::Error;
 use tmc_langs::{
     file_util, ClientError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult,
-    FeedbackAnswer, LangsError, Language, NewSubmission, SubmissionFinished, TmcClient, TmcConfig,
+    FeedbackAnswer, LangsError, Language, NewSubmission, PrepareSubmission, SubmissionFinished,
+    TmcClient, TmcConfig,
 };
 
 #[derive(Debug, Error)]
@@ -185,6 +186,7 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
         stub_compression: Compression,
         submission_path: PathBuf,
         submission_compression: Compression,
+        extract_submission_naively: bool,
         tmc_param: Vec<(String, Vec<String>)>,
         top_level_dir_name: Option<String>
     );
@@ -210,7 +212,11 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
     };
 
     let res = tmc_langs::prepare_submission(
-        (&submission_path, submission_compression),
+        PrepareSubmission {
+            archive: &submission_path,
+            compression: submission_compression,
+            extract_naively: extract_submission_naively,
+        },
         &output_path,
         top_level_dir_name,
         tmc_params,

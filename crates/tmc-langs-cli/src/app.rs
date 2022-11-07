@@ -182,6 +182,9 @@ pub enum Command {
         /// Compression algorithm used for the submission.
         #[clap(long, default_value_t = Compression::Zip)]
         submission_compression: Compression,
+        /// If set, the submission is extracted without trying to find a project directory inside it. This can be useful if the submission is minimal and doesn't contain enough files to detect the project.
+        #[clap(long)]
+        extract_submission_naively: bool,
         /// A key-value pair in the form key=value to be written into .tmcparams. If multiple pairs with the same key are given, the values are collected into an array.
         #[clap(long)]
         tmc_param: Vec<String>,
