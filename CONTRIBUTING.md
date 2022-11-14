@@ -38,26 +38,11 @@ cargo test
 
 ## Building and testing with Docker
 
-Build the binary in Docker and copy it to the current directory (this can be useful to create a binary linked with an older glibc):
-
-```bash
-export DOCKER_BUILDKIT=1
-docker build . -f docker/Dockerfile -t tmc-langs-rust
-docker run --rm -v "$PWD":/build/out tmc-langs-rust bash -c "cargo build && cp /build/target/debug/tmc-langs-cli /build/out/"
-```
-
-Run tests in Docker:
-
-```bash
-export DOCKER_BUILDKIT=1
-docker build . -f docker/Dockerfile -t tmc-langs-rust
-docker run --rm -it tmc-langs-rust bash
-cargo test
-```
+The `docker.sh` script can be conveniently used to build and test the project. To build the binary and copy it out of the container to the project root, simply run `docker.sh`. To run tests, you can run `docker.sh "cargo test"`, or `docker.sh "cargo test -p tmc-langs-r"` and so on. The script also supports the special argument `interactive` to launch into an interactive bash shell inside the Docker container.
 
 ## Formatting and linting
 
-Use `cargo fmt` and `cargo clippy` for formatting and linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny to allow the CLI to have total control over stdout and stderr. The CLI has one function where writing to stdout is allowed.
+Use `cargo +nightly fmt` and `cargo clippy` for formatting and linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny to allow the CLI to have total control over stdout and stderr. The CLI has one function where writing to stdout is allowed.
 
 ## Updating dependencies
 

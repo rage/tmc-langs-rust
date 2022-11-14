@@ -13,9 +13,10 @@ pub use self::{
     ant_plugin::AntPlugin, ant_policy::AntStudentFilePolicy, error::JavaError,
     maven_plugin::MavenPlugin, maven_policy::MavenStudentFilePolicy,
 };
-use j4rs::{ClasspathEntry, Jvm, JvmBuilder};
+use j4rs::{errors::J4RsError, ClasspathEntry, Instance, InvocationArg, Jvm, JvmBuilder};
 use serde::Deserialize;
 use std::{fmt::Display, path::PathBuf};
+use tempfile::TempPath;
 use tmc_langs_framework::ExitStatus;
 use tmc_langs_util::file_util;
 
@@ -28,7 +29,34 @@ const SEPARATOR: &str = ":";
 const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../deps/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.13.0-jar-with-dependencies.jar");
+const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.14.0-jar-with-dependencies.jar");
+
+struct JvmWrapper {
+    jvm: Jvm,
+    stdout_path: TempPath,
+    stderr_path: TempPath,
+}
+
+impl JvmWrapper {
+    pub fn with<R>(&self, f: impl FnOnce(&Jvm) -> Result<R, J4RsError>) -> Result<R, JavaError> {
+        let res = match f(&self.jvm) {
+            Ok(res) => res,
+            Err(err) => {
+                let stdout = file_util::read_file_to_string_lossy(&self.stdout_path)?;
+                let stderr = file_util::read_file_to_string_lossy(&self.stderr_path)?;
+                // truncate log files, not a big deal if it fails for whatever reason
+                let _ = file_util::create_file(&self.stdout_path);
+                let _ = file_util::create_file(&self.stderr_path);
+                return Err(JavaError::J4rs {
+                    stdout: Some(stdout),
+                    stderr: Some(stderr),
+                    source: err,
+                });
+            }
+        };
+        Ok(res)
+    }
+}
 
 fn tmc_dir() -> Result<PathBuf, JavaError> {
     let home_dir = dirs::cache_dir().ok_or(JavaError::HomeDir)?;
@@ -89,7 +117,7 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
 }
 
 /// Initializes the J4RS JVM.
-fn instantiate_jvm() -> Result<Jvm, JavaError> {
+fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
     let junit_runner_path = crate::get_junit_runner_path()?;
     log::debug!("junit runner at {}", junit_runner_path.display());
     let junit_runner_path = junit_runner_path
@@ -121,7 +149,8 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
             .classpath_entry(checkstyle_runner)
             .skip_setting_native_lib()
             .java_opt(j4rs::JavaOpt::new("-Dfile.encoding=UTF-8"))
-            .build()?;
+            .build()
+            .map_err(JavaError::j4rs)?;
         Ok(jvm)
     }) {
         Ok(jvm_result) => jvm_result?,
@@ -138,7 +167,51 @@ fn instantiate_jvm() -> Result<Jvm, JavaError> {
         }
     };
 
-    Ok(jvm)
+    // redirect output to files
+    let stdout_path = file_util::named_temp_file()?.into_temp_path();
+    let out = create_print_stream(
+        &jvm,
+        stdout_path
+            .to_str()
+            .expect("Temp path shouldn't contain invalid UTF-8"),
+    )?;
+    jvm.invoke_static("java.lang.System", "setOut", &[InvocationArg::from(out)])
+        .map_err(JavaError::j4rs)?;
+    let stderr_path = file_util::named_temp_file()?.into_temp_path();
+    let err = create_print_stream(
+        &jvm,
+        stderr_path
+            .to_str()
+            .expect("Temp path shouldn't contain invalid UTF-8"),
+    )?;
+    jvm.invoke_static("java.lang.System", "setErr", &[InvocationArg::from(err)])
+        .map_err(JavaError::j4rs)?;
+    Ok(JvmWrapper {
+        jvm,
+        stdout_path,
+        stderr_path,
+    })
+}
+
+fn create_print_stream(jvm: &Jvm, path: &str) -> Result<Instance, JavaError> {
+    let file = jvm
+        .create_instance(
+            "java.io.File",
+            &[InvocationArg::try_from(path).map_err(JavaError::j4rs)?],
+        )
+        .map_err(JavaError::j4rs)?;
+    jvm.invoke(&file, "createNewFile", &[])
+        .map_err(JavaError::j4rs)?;
+    let file_output_stream = jvm
+        .create_instance("java.io.FileOutputStream", &[InvocationArg::from(file)])
+        .map_err(JavaError::j4rs)?;
+    let print_stream = jvm
+        .create_instance(
+            "java.io.PrintStream",
+            &[InvocationArg::from(file_output_stream)],
+        )
+        .map_err(JavaError::j4rs)?;
+    Ok(print_stream)
 }
 
 #[derive(Deserialize, Debug)]

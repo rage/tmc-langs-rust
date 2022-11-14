@@ -43,6 +43,8 @@ pub enum FileError {
     UnexpectedFile(PathBuf),
     #[error("Failed to write data")]
     WriteError(#[source] std::io::Error),
+    #[error("Failed to canonicalize path {0}")]
+    Canonicalize(PathBuf, #[source] std::io::Error),
 
     // lock errors
     #[error("Failed to lock file at path {0}")]

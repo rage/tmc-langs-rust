@@ -140,7 +140,7 @@ pub trait LanguagePlugin {
                         return Ok(Continue(()));
                     }
                 };
-                let path_in_target = target_location.join(&relative);
+                let path_in_target = target_location.join(relative);
                 log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
                 files_from_zip.insert(path_in_target.clone());
@@ -244,7 +244,7 @@ pub trait LanguagePlugin {
                         return Ok(Continue(()));
                     }
                 };
-                let path_in_target = target_location.join(&relative);
+                let path_in_target = target_location.join(relative);
                 log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
                 if policy.would_be_student_file(&path_in_target, target_location)? {

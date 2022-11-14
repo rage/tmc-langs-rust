@@ -70,7 +70,7 @@ pub trait StudentFilePolicy {
         }
 
         // strip root directory from file path
-        let relative = file_path.strip_prefix(&project_root_path).map_err(|_| {
+        let relative = file_path.strip_prefix(project_root_path).map_err(|_| {
             TmcError::FileNotInProject(file_path.to_path_buf(), project_root_path.to_path_buf())
         })?;
 

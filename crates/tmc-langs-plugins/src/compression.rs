@@ -77,7 +77,7 @@ pub fn unzip(zip: impl std::io::Read + std::io::Seek, target: &Path) -> Result<(
                 continue;
             }
         };
-        let path_in_target = target.join(&relative);
+        let path_in_target = target.join(relative);
         log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
         if file.is_dir() {

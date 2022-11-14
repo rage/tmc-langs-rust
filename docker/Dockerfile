@@ -1,4 +1,5 @@
-FROM rust:slim-buster AS base
+FROM rust:slim-bullseye AS base
+RUN rustup component add clippy
 # C# https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian
 RUN apt update \
     && apt install -y wget \
@@ -13,12 +14,14 @@ RUN apt update \
         # languages
         npm \
         python3 \
-        openjdk-11-jdk \
+        openjdk-11-jdk ant \
         dotnet-sdk-6.0 \
         check valgrind \
-        r-base r-cran-devtools \
-    # https://github.com/testmycode/tmc-r-tester/
-    && R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'
+        r-base r-cran-devtools locales \
+    # set up for https://github.com/testmycode/tmc-r-tester/
+    && R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)' \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen
 RUN cargo install cargo-chef --locked
 WORKDIR /build
 
@@ -32,4 +35,3 @@ COPY --from=chef /build/recipe.json recipe.json
 RUN cargo chef cook --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build

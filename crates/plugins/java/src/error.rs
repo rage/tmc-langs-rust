@@ -25,9 +25,21 @@ pub enum JavaError {
     CacheDir,
     #[error("Failed to compile")]
     Compilation { stdout: String, stderr: String },
+    #[error("Error while executing Java code")]
+    Jvm { stdout: String, stderr: String },
 
-    #[error("J4rs error")]
-    J4rs(#[from] j4rs::errors::J4RsError),
+    #[error("J4rs error
+stdout: {}
+stderr: {}
+",
+        stdout.as_deref().unwrap_or("none"),
+        stderr.as_deref().unwrap_or("none")
+    )]
+    J4rs {
+        stdout: Option<String>,
+        stderr: Option<String>,
+        source: j4rs::errors::J4RsError,
+    },
     #[error("J4rs panicked: {0}")]
     J4rsPanic(String),
     #[error(transparent)]
@@ -38,6 +50,16 @@ pub enum JavaError {
     FileError(#[from] FileError),
     #[error("Error")]
     Tmc(#[from] TmcError),
+}
+
+impl JavaError {
+    pub fn j4rs(source: j4rs::errors::J4RsError) -> Self {
+        Self::J4rs {
+            stdout: None,
+            stderr: None,
+            source,
+        }
+    }
 }
 
 // conversion from plugin error to TmcError::Plugin

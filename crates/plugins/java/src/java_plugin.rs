@@ -1,7 +1,9 @@
 //! Common functionality for all Java plugins
 
-use crate::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
-use j4rs::{InvocationArg, Jvm};
+use crate::{
+    error::JavaError, CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun,
+};
+use j4rs::InvocationArg;
 use std::{
     collections::HashMap,
     convert::TryFrom,
@@ -21,7 +23,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     const TEST_DIR: &'static str;
 
     /// Returns a reference to the inner Jvm.
-    fn jvm(&self) -> &Jvm;
+    fn jvm(&self) -> &JvmWrapper;
 
     /// Constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html).
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError>;
@@ -48,7 +50,9 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         let test_result =
             self.create_run_result_file(project_root_path, timeout, compile_result)?;
         let result = self.parse_test_result(&test_result);
-        file_util::remove_file(&test_result.test_results)?;
+        if let Err(err) = file_util::remove_file(&test_result.test_results) {
+            log::warn!("Failed to remove test results file: {err}");
+        }
         result
     }
 
@@ -174,28 +178,29 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         log::info!("class path: {}", class_path);
         log::info!("source files: {:?}", source_files);
 
-        let test_scanner = self
-            .jvm()
-            .create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])?;
+        let scan_results = self.jvm().with(|jvm| {
+            let test_scanner =
+                jvm.create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])?;
 
-        self.jvm().invoke(
-            &test_scanner,
-            "setClassPath",
-            &[InvocationArg::try_from(class_path)?],
-        )?;
-
-        for source_file in source_files {
-            let file = self.jvm().create_instance(
-                "java.io.File",
-                &[InvocationArg::try_from(&*source_file.to_string_lossy())?],
+            jvm.invoke(
+                &test_scanner,
+                "setClassPath",
+                &[InvocationArg::try_from(class_path)?],
             )?;
-            self.jvm()
-                .invoke(&test_scanner, "addSource", &[InvocationArg::from(file)])?;
-        }
-        let scan_results = self.jvm().invoke(&test_scanner, "findTests", &[])?;
-        self.jvm().invoke(&test_scanner, "clearSources", &[])?;
 
-        let scan_results: Vec<TestMethod> = self.jvm().to_rust(scan_results)?;
+            for source_file in source_files {
+                let file = jvm.create_instance(
+                    "java.io.File",
+                    &[InvocationArg::try_from(&*source_file.to_string_lossy())?],
+                )?;
+                jvm.invoke(&test_scanner, "addSource", &[InvocationArg::from(file)])?;
+            }
+            let scan_results = jvm.invoke(&test_scanner, "findTests", &[])?;
+            jvm.invoke(&test_scanner, "clearSources", &[])?;
+
+            let scan_results: Vec<TestMethod> = jvm.to_rust(scan_results)?;
+            Ok(scan_results)
+        })?;
 
         let tests = scan_results
             .into_iter()
@@ -236,19 +241,20 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         path: &Path,
     ) -> Result<StyleValidationResult, JavaError> {
         let path = path.to_string_lossy();
-        let file = self
-            .jvm()
-            .create_instance("java.io.File", &[InvocationArg::try_from(path.as_ref())?])?;
-        let locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); // Java requires 639-1 if one exists
-        let locale = self
-            .jvm()
-            .create_instance("java.util.Locale", &[InvocationArg::try_from(locale_code)?])?;
-        let checkstyle_runner = self.jvm().create_instance(
-            "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
-            &[InvocationArg::from(file), InvocationArg::from(locale)],
-        )?;
-        let result = self.jvm().invoke(&checkstyle_runner, "run", &[])?;
-        let result: StyleValidationResult = self.jvm().to_rust(result)?;
+        let result = self.jvm().with(|jvm| {
+            let file =
+                jvm.create_instance("java.io.File", &[InvocationArg::try_from(path.as_ref())?])?;
+            let locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); // Java requires 639-1 if one exists
+            let locale =
+                jvm.create_instance("java.util.Locale", &[InvocationArg::try_from(locale_code)?])?;
+            let checkstyle_runner = jvm.create_instance(
+                "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
+                &[InvocationArg::from(file), InvocationArg::from(locale)],
+            )?;
+            let result = jvm.invoke(&checkstyle_runner, "run", &[])?;
+            let result: StyleValidationResult = jvm.to_rust(result)?;
+            Ok(result)
+        })?;
 
         log::debug!("Validation result: {:?}", result);
         Ok(result)
@@ -316,7 +322,7 @@ mod test {
     }
 
     struct Stub {
-        jvm: Jvm,
+        jvm: JvmWrapper,
     }
 
     impl Stub {
@@ -379,7 +385,7 @@ mod test {
     impl JavaPlugin for Stub {
         const TEST_DIR: &'static str = "test";
 
-        fn jvm(&self) -> &Jvm {
+        fn jvm(&self) -> &JvmWrapper {
             &self.jvm
         }
         fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {

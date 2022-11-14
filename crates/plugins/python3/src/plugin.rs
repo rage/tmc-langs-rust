@@ -170,7 +170,7 @@ impl Python3Plugin {
         available_points_json: &Path,
     ) -> Result<Vec<TestDesc>, PythonError> {
         let mut test_descs = vec![];
-        let file = file_util::open_file(&available_points_json)?;
+        let file = file_util::open_file(available_points_json)?;
         // TODO: deserialize directly into Vec<TestDesc>?
         let json: HashMap<String, Vec<String>> =
             deserialize::json_from_reader(BufReader::new(file))
@@ -186,7 +186,7 @@ impl Python3Plugin {
         test_results_json: &Path,
         hmac_data: Option<(String, String)>,
     ) -> Result<(RunStatus, Vec<TestResult>), PythonError> {
-        let results = file_util::read_file_to_string(&test_results_json)?;
+        let results = file_util::read_file_to_string(test_results_json)?;
 
         // verify test results
         if let Some((hmac_secret, test_runner_hmac_hex)) = hmac_data {

@@ -108,7 +108,7 @@ fn process_file(
         .path()
         .strip_prefix(source)
         .unwrap_or_else(|_| Path::new(""));
-    let dest_path = dest_root.join(&relative_path);
+    let dest_path = dest_root.join(relative_path);
     if let Some(extension) = entry.path().extension().and_then(|o| o.to_str()) {
         // todo: stop checking extension twice here and in meta_syntax
         // NOTE: if you change these extensions make sure to change them in meta_syntax.rs as well

@@ -1256,7 +1256,8 @@ checksum = 'new checksum'
             id: 1,
             user_id: 1,
             pretest_error: None,
-            created_at: chrono::Utc::now().with_timezone(&chrono::FixedOffset::east(0)),
+            created_at: chrono::Utc::now()
+                .with_timezone(&chrono::FixedOffset::east_opt(0).unwrap()),
             exercise_name: "e1".to_string(),
             course_id: 1,
             processed: true,
@@ -1267,7 +1268,7 @@ checksum = 'new checksum'
             processing_completed_at: None,
             times_sent_to_sandbox: 1,
             processing_attempts_started_at: chrono::Utc::now()
-                .with_timezone(&chrono::FixedOffset::east(0)),
+                .with_timezone(&chrono::FixedOffset::east_opt(0).unwrap()),
             params_json: None,
             requires_review: false,
             requests_review: false,

@@ -67,7 +67,7 @@ impl TmcConfig {
         if let Some(parent) = path.parent() {
             file_util::create_dir_all(parent)?;
         }
-        let mut lock = file_util::create_file_locked(&path)?;
+        let mut lock = file_util::create_file_locked(path)?;
         let mut guard = lock
             .write()
             .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;

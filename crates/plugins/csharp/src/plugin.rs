@@ -40,7 +40,7 @@ impl CSharpPlugin {
             if file.is_file() {
                 let target_file_path = target.join(Path::new(file.name()));
                 if let Some(parent) = target_file_path.parent() {
-                    file_util::create_dir_all(&parent)?;
+                    file_util::create_dir_all(parent)?;
                 }
 
                 let file_path = PathBuf::from(file.name());
@@ -48,7 +48,7 @@ impl CSharpPlugin {
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| FileError::FileRead(file_path, e))?;
-                file_util::write_to_file(&mut bytes.as_slice(), target_file_path)?;
+                file_util::write_to_file(&bytes, target_file_path)?;
             }
         }
         Ok(())

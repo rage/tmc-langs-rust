@@ -7,16 +7,15 @@ pub use lock_unix::*;
 
 #[cfg(windows)]
 mod lock_windows;
-#[cfg(windows)]
-pub use lock_windows::*;
-
 use crate::error::FileError;
 use fd_lock::RwLock;
+#[cfg(windows)]
+pub use lock_windows::*;
 use std::{
     fs::{self, File, ReadDir},
     io::{Read, Write},
     ops::{Deref, DerefMut},
-    path::Path,
+    path::{Path, PathBuf},
 };
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
@@ -281,6 +280,12 @@ pub fn copy<P: AsRef<Path>, Q: AsRef<Path>>(source: P, target: Q) -> Result<(), 
         }
     }
     Ok(())
+}
+
+pub fn canonicalize(path: &Path) -> Result<PathBuf, FileError> {
+    let canon =
+        dunce::canonicalize(path).map_err(|e| FileError::Canonicalize(path.to_path_buf(), e))?;
+    Ok(canon)
 }
 
 #[cfg(test)]

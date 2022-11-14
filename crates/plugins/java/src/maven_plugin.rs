@@ -1,11 +1,10 @@
 //! Java Maven plugin.
 
 use crate::{
-    error::JavaError, java_plugin::JavaPlugin, CompileResult, MavenStudentFilePolicy, TestRun,
-    SEPARATOR,
+    error::JavaError, java_plugin::JavaPlugin, CompileResult, JvmWrapper, MavenStudentFilePolicy,
+    TestRun, SEPARATOR,
 };
 use flate2::read::GzDecoder;
-use j4rs::Jvm;
 use std::{
     ffi::OsString,
     io::{Cursor, Read, Seek},
@@ -26,7 +25,7 @@ const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base 
 const MVN_VERSION: &str = "3.8.1";
 
 pub struct MavenPlugin {
-    jvm: Jvm,
+    jvm: JvmWrapper,
 }
 
 impl MavenPlugin {
@@ -190,11 +189,13 @@ impl LanguagePlugin for MavenPlugin {
 impl JavaPlugin for MavenPlugin {
     const TEST_DIR: &'static str = "src";
 
-    fn jvm(&self) -> &Jvm {
+    fn jvm(&self) -> &JvmWrapper {
         &self.jvm
     }
 
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
+        // canonicalize root path to avoid issues where the cwd and project root are different directories
+        let path = file_util::canonicalize(path)?;
         log::info!("Building classpath for maven project at {}", path.display());
 
         let temp = tempfile::tempdir().map_err(JavaError::TempDir)?;
@@ -204,7 +205,7 @@ impl JavaPlugin for MavenPlugin {
         let mvn_path = Self::get_mvn_command()?;
         let _output = TmcCommand::piped(mvn_path)
             .with(|e| {
-                e.cwd(path)
+                e.cwd(&path)
                     .arg("--batch-mode")
                     .arg("dependency:build-classpath")
                     .arg(output_arg)

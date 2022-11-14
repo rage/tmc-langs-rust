@@ -65,7 +65,7 @@ pub fn run() {
                 result: OutputResult::Error,
                 data: None,
             }));
-            let pretty = std::env::args().find(|arg| arg == "--pretty").is_some();
+            let pretty = std::env::args().any(|arg| arg == "--pretty");
             print_output(&output, pretty).expect("this should never fail");
 
             quit::with_code(1);
@@ -90,7 +90,7 @@ fn run_inner() -> Result<(), ()> {
                     trace: causes,
                 }),
             }));
-            let pretty = std::env::args().find(|arg| arg == "--pretty").is_some();
+            let pretty = std::env::args().any(|arg| arg == "--pretty");
             print_output(&error_output, pretty).expect("failed to print output");
             return Err(());
         }

@@ -1,10 +1,9 @@
 //! Java Ant plugin.
 
 use crate::{
-    error::JavaError, java_plugin::JavaPlugin, AntStudentFilePolicy, CompileResult, TestRun,
-    SEPARATOR,
+    error::JavaError, java_plugin::JavaPlugin, AntStudentFilePolicy, CompileResult, JvmWrapper,
+    TestRun, SEPARATOR,
 };
-use j4rs::Jvm;
 use std::{
     env,
     ffi::OsStr,
@@ -22,7 +21,7 @@ use tmc_langs_util::{file_util, path_util};
 use walkdir::WalkDir;
 
 pub struct AntPlugin {
-    jvm: Jvm,
+    jvm: JvmWrapper,
 }
 
 impl AntPlugin {
@@ -195,12 +194,14 @@ impl LanguagePlugin for AntPlugin {
 impl JavaPlugin for AntPlugin {
     const TEST_DIR: &'static str = "test";
 
-    fn jvm(&self) -> &Jvm {
+    fn jvm(&self) -> &JvmWrapper {
         &self.jvm
     }
 
     /// Constructs the class path for the given path.
     fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
+        // canonicalize root path to avoid issues where the cwd and project root are different directories
+        let path = file_util::canonicalize(path)?;
         let mut paths = vec![];
 
         // add all .jar files in lib
@@ -232,7 +233,7 @@ impl JavaPlugin for AntPlugin {
             .collect::<Vec<_>>();
 
         // TODO: is it OK to not include the runner in the classpath?
-        Self::copy_tmc_junit_runner(path)?;
+        Self::copy_tmc_junit_runner(&path)?;
         Ok(paths.join(SEPARATOR))
     }
 
@@ -249,8 +250,8 @@ impl JavaPlugin for AntPlugin {
         log::debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
         let stdout_path = project_root_path.join("build_log.txt");
         let stderr_path = project_root_path.join("build_errors.txt");
-        file_util::write_to_file(&mut output.stdout.as_slice(), stdout_path)?;
-        file_util::write_to_file(&mut output.stderr.as_slice(), stderr_path)?;
+        file_util::write_to_file(&output.stdout, stdout_path)?;
+        file_util::write_to_file(&output.stderr, stderr_path)?;
 
         Ok(CompileResult {
             status_code: output.status,
@@ -281,9 +282,12 @@ impl JavaPlugin for AntPlugin {
         }
         // TMC args
         let test_dir = path.join("test");
-        let result_file = path.join("results.txt");
+        let result_file_name = "results.txt";
+        let result_file = path.join(result_file_name);
         arguments.push(format!("-Dtmc.test_class_dir={}", test_dir.display()));
-        arguments.push(format!("-Dtmc.results_file={}", result_file.display()));
+        // we want to use path relative to the exercise path for the java command,
+        // and a path relative to the current directory for the rest of the program
+        arguments.push(format!("-Dtmc.results_file={}", result_file_name));
         // TODO: endorsed libs?
         let endorsed_libs_path = path.join("lib/endorsed");
         if endorsed_libs_path.exists() {
