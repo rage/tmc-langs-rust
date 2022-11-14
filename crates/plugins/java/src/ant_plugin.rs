@@ -447,38 +447,30 @@ mod test {
         let cp = plugin.get_project_class_path(&test_path).unwrap();
 
         let sep = std::path::MAIN_SEPARATOR;
+        let expected_junit = format!("{0}{1}lib{1}junit-4.10.jar", test_path.display(), sep);
         assert!(
-            cp.contains(&format!(
-                "{0}{1}lib{1}junit-4.10.jar",
-                test_path.display(),
-                sep
-            )),
-            "Classpath {} did not contain junit",
-            cp
+            cp.contains(&expected_junit),
+            "Classpath {cp} did not contain junit (looked for {expected_junit})",
         );
-        assert!(
-            cp.contains(&format!(
-                "{0}{1}lib{1}edu-test-utils-0.4.1.jar",
-                test_path.display(),
-                sep
-            )),
-            "Classpath {} did not contain edu-test-utils",
-            cp
-        );
-        assert!(
-            cp.contains(&format!("{0}{1}build{1}classes", test_path.display(), sep)),
-            "Classpath {} did not contain build{}classes",
-            cp,
+        let expected_utils = format!(
+            "{0}{1}lib{1}edu-test-utils-0.4.1.jar",
+            test_path.display(),
             sep
         );
         assert!(
-            cp.contains(&format!(
-                "{0}{1}build{1}test{1}classes",
-                test_path.display(),
-                sep
-            )),
-            "Classpath {} did not contain build/test/classes",
-            cp
+            cp.contains(&expected_utils),
+            "Classpath {cp} did not contain edu-test-utils (looked for {expected_utils}",
+        );
+        let expected_classes = format!("{0}{1}build{1}classes", test_path.display(), sep);
+        assert!(
+            cp.contains(&expected_classes),
+            "Classpath {cp} did not contain build{sep}classes (looked for {expected_classes}",
+        );
+        let expected_test_classes =
+            format!("{0}{1}build{1}test{1}classes", test_path.display(), sep);
+        assert!(
+            cp.contains(&expected_test_classes),
+            "Classpath {cp} did not contain build/test/classes (looked for {expected_test_classes}",
         );
         // tools.jar is in java home, tricky to test
         /*
