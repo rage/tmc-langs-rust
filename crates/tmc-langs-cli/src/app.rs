@@ -11,7 +11,6 @@ use tmc_langs::{
     RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
     UpdateResult, UpdatedExercise,
 };
-// use tmc_langs_util::task_executor::RefreshData;
 
 #[derive(Parser)]
 #[clap(
