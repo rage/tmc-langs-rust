@@ -1,3 +1,5 @@
+//! Contains the Error type.
+
 use serde::{de, ser};
 use std::{convert::From, fmt::Display};
 

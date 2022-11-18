@@ -1,6 +1,6 @@
 #![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
-//! CLI client for TMC
+//! CLI client for TMC.
 
 mod app;
 mod error;

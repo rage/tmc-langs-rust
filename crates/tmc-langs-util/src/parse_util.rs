@@ -1,4 +1,5 @@
 //! Contains parse functions that may be convenient for implementing language plugins.
+
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
 
 /// Parses a string delimited by double quotes. Trims.

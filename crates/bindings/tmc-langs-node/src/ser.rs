@@ -1,6 +1,4 @@
-//!
 //! Serialize a Rust data structure into a `JsValue`
-//!
 
 use crate::error::{Error, Result as LibResult};
 use neon::{prelude::*, types::buffer::TypedArray};

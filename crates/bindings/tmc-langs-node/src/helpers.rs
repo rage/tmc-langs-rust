@@ -1,3 +1,5 @@
+//! Contains helper functions for getting Rust types from neon arguments.
+
 use neon::{prelude::*, result::Throw};
 use serde::Serialize;
 use std::error::Error;

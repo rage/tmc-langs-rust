@@ -1,4 +1,5 @@
 //! Contains the TmcClient struct for communicating with the TMC server.
+
 pub mod api_v8;
 
 use self::api_v8::{PasteData, ReviewData};

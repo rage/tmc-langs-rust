@@ -7,10 +7,11 @@ pub use lock_unix::*;
 
 #[cfg(windows)]
 mod lock_windows;
-use crate::error::FileError;
-use fd_lock::RwLock;
 #[cfg(windows)]
 pub use lock_windows::*;
+
+use crate::error::FileError;
+use fd_lock::RwLock;
 use std::{
     fs::{self, File, ReadDir},
     io::{Read, Write},

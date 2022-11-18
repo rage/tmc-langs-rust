@@ -1,3 +1,5 @@
+//! Node bindings to tmc-langs-rust.
+
 mod de;
 mod error;
 mod helpers;

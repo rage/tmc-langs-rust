@@ -1,5 +1,7 @@
 #![deny(clippy::print_stdout, clippy::print_stderr, clippy::unwrap_used)]
 
+//! Abstracts over the various language plugins.
+
 pub mod archive;
 pub mod compression;
 mod error;

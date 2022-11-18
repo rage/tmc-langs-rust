@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+//! Models the API of https://tmc.mooc.fi (https://testmycode.github.io/tmc-server/).
+
 use crate::{request::*, response::*, ClientError, TmcClient};
 use http::Method;
 use oauth2::TokenResponse;

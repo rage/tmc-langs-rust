@@ -1,4 +1,4 @@
-// Python plugin error type
+//! Python plugin error type
 
 use std::path::PathBuf;
 use thiserror::Error;

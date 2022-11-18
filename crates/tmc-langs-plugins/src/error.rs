@@ -1,3 +1,5 @@
+//! Contains the PluginError type.
+
 use std::path::PathBuf;
 use tmc_langs_java::JavaError;
 

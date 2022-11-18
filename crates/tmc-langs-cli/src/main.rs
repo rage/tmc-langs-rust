@@ -1,4 +1,4 @@
-//! CLI client for TMC
+//! CLI client for TMC.
 
 #[quit::main]
 fn main() {

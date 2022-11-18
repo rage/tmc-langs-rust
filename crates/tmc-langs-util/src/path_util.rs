@@ -1,3 +1,5 @@
+//! Utility functions for manipulating paths.
+
 use std::{
     ffi::OsStr,
     path::{Path, PathBuf},

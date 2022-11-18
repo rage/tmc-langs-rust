@@ -1,4 +1,4 @@
-//! Output format
+//! Contains the type definition for the output format of the CLI.
 
 use serde::Serialize;
 use std::path::PathBuf;

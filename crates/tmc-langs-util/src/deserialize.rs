@@ -1,3 +1,5 @@
+//! Utility functions for de/serializing data wrapped with serde_path_to_error for better errors.
+
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::io::Read;

@@ -1,3 +1,5 @@
+//! Contains the PythonTestResult type.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use tmc_langs_framework::TestResult;

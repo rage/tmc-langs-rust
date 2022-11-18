@@ -1,3 +1,5 @@
+//! Contains various error types.
+
 use std::path::PathBuf;
 use thiserror::Error;
 use tmc_langs::ExerciseDownload;

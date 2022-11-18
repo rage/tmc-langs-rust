@@ -1,3 +1,5 @@
+//! Exports TypeScript bindings.
+
 use std::fs::File;
 
 fn main() {
