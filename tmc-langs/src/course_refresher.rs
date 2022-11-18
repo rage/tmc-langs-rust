@@ -352,27 +352,7 @@ fn execute_zip(
 
         let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
 
-        // hidden files are filtered, so we handle .tmcproject.yml here
-        let tmcproject_yml_path = exercise_root.join(".tmcproject.yml");
-        if tmcproject_yml_path.exists() {
-            let tmcproject_yml = file_util::read_file(&tmcproject_yml_path)?;
-            let relative_path = tmcproject_yml_path.strip_prefix(&root_path).unwrap(); // safe
-            writer.start_file(
-                relative_path.to_string_lossy(),
-                zip::write::FileOptions::default(),
-            )?;
-            writer
-                .write_all(&tmcproject_yml)
-                .map_err(LangsError::ZipWrite)?;
-        }
-        for entry in WalkDir::new(&exercise_root).into_iter().filter_entry(|e| {
-            !e.file_name()
-                .to_str()
-                .map(|e| e.starts_with('.'))
-                .unwrap_or_default()
-        })
-        // filter hidden
-        {
+        for entry in WalkDir::new(&exercise_root) {
             let entry = entry?;
             let relative_path = entry.path().strip_prefix(&root_path).unwrap(); // safe
 
@@ -543,14 +523,12 @@ mod test {
         file_to(&temp, "clone/part2/ex1/setup.py", "");
         file_to(&temp, "clone/part2/ex2/setup.py", "");
         file_to(&temp, "clone/part2/ex2/dir/subdir/file", "");
-        file_to(&temp, "clone/part2/ex2/dir/subdir/.hidden", "");
         file_to(&temp, "clone/part2/ex2/.tmcproject.yml", "some: 'yaml'");
         file_to(&temp, "stub/part1/ex1/setup.py", "");
         file_to(&temp, "stub/part1/ex2/setup.py", "");
         file_to(&temp, "stub/part2/ex1/setup.py", "");
         file_to(&temp, "stub/part2/ex2/setup.py", "");
         file_to(&temp, "stub/part2/ex2/dir/subdir/file", "some file");
-        file_to(&temp, "stub/part2/ex2/dir/subdir/.hidden", "hidden file");
         file_to(&temp, "stub/part2/ex2/.tmcproject.yml", "some: 'yaml'");
 
         let exercise_dirs = find_exercise_directories(&temp.path().join("clone"))
@@ -587,16 +565,6 @@ mod test {
         for i in fz.file_names() {
             log::debug!("{}", i);
         }
-        assert!(fz
-            .by_name(
-                &Path::new("part2")
-                    .join("ex2")
-                    .join("dir")
-                    .join("subdir")
-                    .join(".hidden")
-                    .to_string_lossy()
-            )
-            .is_err()); // hidden files filtered
         assert!(fz
             .by_name(
                 &Path::new("part2")
