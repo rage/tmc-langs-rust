@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.11.2+zstd.1.5.2/src/stream/zio/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.6.1+zstd.1.4.9/src/stream/zio/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -195,40 +195,6 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead, Read};
 
 <span class="kw">use </span><span class="kw">crate</span>::stream::raw::{InBuffer, Operation, OutBuffer};
@@ -244,19 +210,10 @@
     reader: R,
     operation: D,
 
-    state: State,
+    finished: bool,
 
     single_frame: bool,
     finished_frame: bool,
-}
-
-<span class="kw">enum </span>State {
-    <span class="comment">// Still actively reading from the inner `Read`
-    </span>Reading,
-    <span class="comment">// We reached EOF from the inner `Read`, now flushing.
-    </span>PastEof,
-    <span class="comment">// We are fully done, nothing can be read.
-    </span>Finished,
 }
 
 <span class="kw">impl</span>&lt;R, D&gt; Reader&lt;R, D&gt; {
@@ -267,7 +224,7 @@
         Reader {
             reader,
             operation,
-            state: State::Reading,
+            finished: <span class="bool-val">false</span>,
             single_frame: <span class="bool-val">false</span>,
             finished_frame: <span class="bool-val">false</span>,
         }
@@ -316,11 +273,7 @@
     */
 
     // Workaround for now
-    </span><span class="kw">let </span>res = reader.fill_buf()<span class="question-mark">?</span>;
-
-    <span class="comment">// eprintln!(&quot;Filled buffer: {:?}&quot;, res);
-
-    </span><span class="prelude-val">Ok</span>(res)
+    </span>reader.fill_buf()
 }
 
 <span class="kw">impl</span>&lt;R, D&gt; Read <span class="kw">for </span>Reader&lt;R, D&gt;
@@ -329,96 +282,75 @@
     D: Operation,
 {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="kw">if </span><span class="self">self</span>.finished {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+        }
+
         <span class="comment">// Keep trying until _something_ has been written.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>first = <span class="bool-val">true</span>;
-        <span class="kw">loop </span>{
-            <span class="kw">match </span><span class="self">self</span>.state {
-                State::Reading =&gt; {
-                    <span class="kw">let </span>(bytes_read, bytes_written) = {
-                        <span class="comment">// Start with a fresh pool of un-processed data.
-                        // This is the only line that can return an interruption error.
-                        </span><span class="kw">let </span>input = <span class="kw">if </span>first {
-                            <span class="comment">// eprintln!(&quot;First run, no input coming.&quot;);
-                            </span><span class="string">b&quot;&quot;
-                        </span>} <span class="kw">else </span>{
-                            fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>.reader)<span class="question-mark">?
-                        </span>};
+        </span><span class="kw">loop </span>{
+            <span class="kw">let </span>(bytes_read, bytes_written) = {
+                <span class="comment">// Start with a fresh pool of un-processed data.
+                // This is the only line that can return an interuption error.
+                </span><span class="kw">let </span>input = fill_buf(<span class="kw-2">&amp;mut </span><span class="self">self</span>.reader)<span class="question-mark">?</span>;
 
-                        <span class="comment">// eprintln!(&quot;Input = {:?}&quot;, input);
+                <span class="comment">// println!(&quot;{:?}&quot;, input);
 
-                        // It&#39;s possible we don&#39;t have any new data to read.
-                        // (In this case we may still have zstd&#39;s own buffer to clear.)
-                        </span><span class="kw">if </span>!first &amp;&amp; input.is_empty() {
-                            <span class="self">self</span>.state = State::PastEof;
-                            <span class="kw">continue</span>;
-                        }
-                        first = <span class="bool-val">false</span>;
+                // It&#39;s possible we don&#39;t have any new data to read.
+                // (In this case we may still have zstd&#39;s own buffer to clear.)
+                </span><span class="kw">let </span>eof = input.is_empty();
 
-                        <span class="kw">let </span><span class="kw-2">mut </span>src = InBuffer::around(input);
-                        <span class="kw">let </span><span class="kw-2">mut </span>dst = OutBuffer::around(buf);
+                <span class="kw">let </span><span class="kw-2">mut </span>src = InBuffer::around(input);
+                <span class="kw">let </span><span class="kw-2">mut </span>dst = OutBuffer::around(buf);
 
-                        <span class="comment">// We don&#39;t want empty input (from first=true) to cause a frame
-                        // re-initialization.
-                        </span><span class="kw">if </span><span class="self">self</span>.finished_frame &amp;&amp; !input.is_empty() {
-                            <span class="comment">// eprintln!(&quot;!! Reigniting !!&quot;);
-                            </span><span class="self">self</span>.operation.reinit()<span class="question-mark">?</span>;
-                            <span class="self">self</span>.finished_frame = <span class="bool-val">false</span>;
-                        }
-
-                        <span class="comment">// Phase 1: feed input to the operation
-                        </span><span class="kw">let </span>hint = <span class="self">self</span>.operation.run(<span class="kw-2">&amp;mut </span>src, <span class="kw-2">&amp;mut </span>dst)<span class="question-mark">?</span>;
-                        <span class="comment">// eprintln!(
-                        //     &quot;Hint={} Just run our operation:\n In={:?}\n Out={:?}&quot;,
-                        //     hint, src, dst
-                        // );
-
-                        </span><span class="kw">if </span>hint == <span class="number">0 </span>{
-                            <span class="comment">// In practice this only happens when decoding, when we just finished
-                            // reading a frame.
-                            </span><span class="self">self</span>.finished_frame = <span class="bool-val">true</span>;
-                            <span class="kw">if </span><span class="self">self</span>.single_frame {
-                                <span class="self">self</span>.state = State::Finished;
-                            }
-                        }
-
-                        <span class="comment">// eprintln!(&quot;Output: {:?}&quot;, dst);
-
-                        </span>(src.pos(), dst.pos())
-                    };
-
-                    <span class="self">self</span>.reader.consume(bytes_read);
-
-                    <span class="kw">if </span>bytes_written &gt; <span class="number">0 </span>{
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(bytes_written);
+                <span class="comment">// This can only fail with invalid data.
+                // The return value is a hint for the next input size,
+                // but it&#39;s safe to ignore.
+                </span><span class="kw">if </span>!eof {
+                    <span class="kw">if </span><span class="self">self</span>.finished_frame {
+                        <span class="self">self</span>.operation.reinit()<span class="question-mark">?</span>;
+                        <span class="self">self</span>.finished_frame = <span class="bool-val">false</span>;
                     }
 
-                    <span class="comment">// We need more data! Try again!
-                </span>}
-                State::PastEof =&gt; {
-                    <span class="kw">let </span><span class="kw-2">mut </span>dst = OutBuffer::around(buf);
+                    <span class="comment">// Phase 1: feed input to the operation
+                    </span><span class="kw">let </span>hint = <span class="self">self</span>.operation.run(<span class="kw-2">&amp;mut </span>src, <span class="kw-2">&amp;mut </span>dst)<span class="question-mark">?</span>;
 
-                    <span class="comment">// We already sent all the input we could get to zstd. Time to flush out the
-                    // buffer and be done with it.
+                    <span class="kw">if </span>hint == <span class="number">0 </span>{
+                        <span class="comment">// We just finished a frame.
+                        </span><span class="self">self</span>.finished_frame = <span class="bool-val">true</span>;
+                        <span class="kw">if </span><span class="self">self</span>.single_frame {
+                            <span class="self">self</span>.finished = <span class="bool-val">true</span>;
+                        }
+                    }
+                } <span class="kw">else </span>{
+                    <span class="comment">// TODO: Make it Work!
 
                     // Phase 2: flush out the operation&#39;s buffer
                     // Keep calling `finish()` until the buffer is empty.
                     </span><span class="kw">let </span>hint = <span class="self">self
                         </span>.operation
                         .finish(<span class="kw-2">&amp;mut </span>dst, <span class="self">self</span>.finished_frame)<span class="question-mark">?</span>;
-                    <span class="comment">// eprintln!(&quot;Hint: {} ; Output: {:?}&quot;, hint, dst);
+                    <span class="comment">// println!(&quot;Hint: {}\nOutput: {:?}&quot;, hint, dst);
                     </span><span class="kw">if </span>hint == <span class="number">0 </span>{
                         <span class="comment">// This indicates that the footer is complete.
                         // This is the only way to terminate the stream cleanly.
-                        </span><span class="self">self</span>.state = State::Finished;
+                        </span><span class="self">self</span>.finished = <span class="bool-val">true</span>;
+                        <span class="kw">if </span>dst.pos == <span class="number">0 </span>{
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
+                        }
                     }
+                }
 
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(dst.pos());
-                }
-                State::Finished =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
-                }
+                <span class="comment">// println!(&quot;{:?}&quot;, dst);
+
+                </span>(src.pos, dst.pos)
+            };
+            <span class="self">self</span>.reader.consume(bytes_read);
+
+            <span class="kw">if </span>bytes_written &gt; <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(bytes_written);
             }
-        }
+            <span class="comment">// We need more data! Try again!
+        </span>}
     }
 }
 
@@ -455,7 +387,7 @@
                 Reader::new(Cursor::new(input), Encoder::new(<span class="number">1</span>).unwrap());
             reader.read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
         }
-        <span class="comment">// eprintln!(&quot;{:?}&quot;, output);
+        <span class="comment">// println!(&quot;{:?}&quot;, output);
         </span><span class="kw">let </span>decoded = <span class="kw">crate</span>::decode_all(<span class="kw-2">&amp;</span>output[..]).unwrap();
         <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>decoded, input);
     }

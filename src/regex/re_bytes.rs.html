@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/re_bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.6/src/re_bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1266,13 +1266,13 @@
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span><span class="kw">crate</span>::find_byte::find_byte;
+<span class="kw">use </span>find_byte::find_byte;
 
-<span class="kw">use </span><span class="kw">crate</span>::error::Error;
-<span class="kw">use </span><span class="kw">crate</span>::exec::{Exec, ExecNoSync};
-<span class="kw">use </span><span class="kw">crate</span>::expand::expand_bytes;
-<span class="kw">use </span><span class="kw">crate</span>::re_builder::bytes::RegexBuilder;
-<span class="kw">use </span><span class="kw">crate</span>::re_trait::{<span class="self">self</span>, RegularExpression, SubCapturesPosIter};
+<span class="kw">use </span>error::Error;
+<span class="kw">use </span>exec::{Exec, ExecNoSync};
+<span class="kw">use </span>expand::expand_bytes;
+<span class="kw">use </span>re_builder::bytes::RegexBuilder;
+<span class="kw">use </span>re_trait::{<span class="self">self</span>, RegularExpression, SubCapturesPosIter};
 
 <span class="doccomment">/// Match represents a single match of a regex in a haystack.
 ///
@@ -1313,7 +1313,7 @@
     <span class="doccomment">/// Creates a new match from the given haystack and byte offsets.
     </span><span class="attribute">#[inline]
     </span><span class="kw">fn </span>new(haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8], start: usize, end: usize) -&gt; Match&lt;<span class="lifetime">&#39;t</span>&gt; {
-        Match { text: haystack, start, end }
+        Match { text: haystack, start: start, end: end }
     }
 }
 
@@ -1339,14 +1339,14 @@
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.as_str())
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Regex {
     <span class="doccomment">/// Shows the original regular expression.
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         fmt::Display::fmt(<span class="self">self</span>, f)
     }
 }
@@ -1393,7 +1393,7 @@
     /// bytes:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let text = b&quot;I categorically deny having triskaidekaphobia.&quot;;
     /// assert!(Regex::new(r&quot;\b\w{13}\b&quot;).unwrap().is_match(text));
@@ -1416,7 +1416,7 @@
     /// ASCII word bytes:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let text = b&quot;I categorically deny having triskaidekaphobia.&quot;;
     /// let mat = Regex::new(r&quot;\b\w{13}\b&quot;).unwrap().find(text).unwrap();
@@ -1437,7 +1437,7 @@
     /// word bytes:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let text = b&quot;Retroactively relinquishing remunerations is reprehensible.&quot;;
     /// for mat in Regex::new(r&quot;\b\w{13}\b&quot;).unwrap().find_iter(text) {
@@ -1465,7 +1465,7 @@
     /// year separately.
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;&#39;([^&#39;]+)&#39;\s+\((\d{4})\)&quot;).unwrap();
     /// let text = b&quot;Not my favorite movie: &#39;Citizen Kane&#39; (1941).&quot;;
@@ -1487,7 +1487,7 @@
     /// We can make this example a bit clearer by using *named* capture groups:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;&#39;(?P&lt;title&gt;[^&#39;]+)&#39;\s+\((?P&lt;year&gt;\d{4})\)&quot;)
     ///                .unwrap();
@@ -1515,7 +1515,7 @@
     </span><span class="kw">pub fn </span>captures&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>locs = <span class="self">self</span>.capture_locations();
         <span class="self">self</span>.captures_read_at(<span class="kw-2">&amp;mut </span>locs, text, <span class="number">0</span>).map(<span class="kw">move </span>|<span class="kw">_</span>| Captures {
-            text,
+            text: text,
             locs: locs.<span class="number">0</span>,
             named_groups: <span class="self">self</span>.<span class="number">0</span>.capture_name_idx().clone(),
         })
@@ -1531,7 +1531,7 @@
     /// some text, where the movie is formatted like &quot;&#39;Title&#39; (xxxx)&quot;:
     ///
     /// ```rust
-    /// # use std::str; use regex::bytes::Regex;
+    /// # extern crate regex; use std::str; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;&#39;(?P&lt;title&gt;[^&#39;]+)&#39;\s+\((?P&lt;year&gt;\d{4})\)&quot;)
     ///                .unwrap();
@@ -1565,7 +1565,7 @@
     /// To split a string delimited by arbitrary amounts of spaces or tabs:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;[ \t]+&quot;).unwrap();
     /// let fields: Vec&lt;&amp;[u8]&gt; = re.split(b&quot;a b \t  c\td    e&quot;).collect();
@@ -1591,7 +1591,7 @@
     /// Get the first two words in some text:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;\W+&quot;).unwrap();
     /// let fields: Vec&lt;&amp;[u8]&gt; = re.splitn(b&quot;Hey! How are you?&quot;, 3).collect();
@@ -1639,7 +1639,7 @@
     /// In typical usage, this can just be a normal byte string:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(&quot;[^01]+&quot;).unwrap();
     /// assert_eq!(re.replace(b&quot;1078910&quot;, &amp;b&quot;&quot;[..]), &amp;b&quot;1010&quot;[..]);
@@ -1652,7 +1652,7 @@
     /// group matches easily:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # use regex::bytes::Captures; fn main() {
     /// let re = Regex::new(r&quot;([^,\s]+),\s+(\S+)&quot;).unwrap();
     /// let result = re.replace(b&quot;Springsteen, Bruce&quot;, |caps: &amp;Captures| {
@@ -1671,7 +1671,7 @@
     /// with named capture groups:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;(?P&lt;last&gt;[^,\s]+),\s+(?P&lt;first&gt;\S+)&quot;).unwrap();
     /// let result = re.replace(b&quot;Springsteen, Bruce&quot;, &amp;b&quot;$first $last&quot;[..]);
@@ -1688,7 +1688,7 @@
     /// underscore:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let re = Regex::new(r&quot;(?P&lt;first&gt;\w+)\s+(?P&lt;second&gt;\w+)&quot;).unwrap();
     /// let result = re.replace(b&quot;deep fried&quot;, &amp;b&quot;${first}_$second&quot;[..]);
@@ -1705,7 +1705,7 @@
     /// byte string with `NoExpand`:
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// use regex::bytes::NoExpand;
     ///
@@ -1806,7 +1806,7 @@
     /// `a`.
     ///
     /// ```rust
-    /// # use regex::bytes::Regex;
+    /// # extern crate regex; use regex::bytes::Regex;
     /// # fn main() {
     /// let text = b&quot;aaaaa&quot;;
     /// let pos = Regex::new(r&quot;a+&quot;).unwrap().shortest_match(text);
@@ -1838,7 +1838,7 @@
     /// context into consideration. For example, the `\A` anchor can only
     /// match when `start == 0`.
     </span><span class="kw">pub fn </span>is_match_at(<span class="kw-2">&amp;</span><span class="self">self</span>, text: <span class="kw-2">&amp;</span>[u8], start: usize) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0</span>.searcher().is_match_at(text, start)
+        <span class="self">self</span>.shortest_match_at(text, start).is_some()
     }
 
     <span class="doccomment">/// Returns the same as find, but starts the search at the given
@@ -1918,7 +1918,7 @@
     }
 
     <span class="doccomment">/// Returns an iterator over the capture names.
-    </span><span class="kw">pub fn </span>capture_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CaptureNames&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>capture_names(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; CaptureNames {
         CaptureNames(<span class="self">self</span>.<span class="number">0</span>.capture_names().iter())
     }
 
@@ -1983,7 +1983,7 @@
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Captures&lt;<span class="lifetime">&#39;t</span>&gt;&gt; {
         <span class="self">self</span>.<span class="number">0</span>.next().map(|locs| Captures {
             text: <span class="self">self</span>.<span class="number">0</span>.text(),
-            locs,
+            locs: locs,
             named_groups: <span class="self">self</span>.<span class="number">0</span>.regex().capture_name_idx().clone(),
         })
     }
@@ -2137,7 +2137,7 @@
         <span class="self">self</span>.<span class="number">0</span>.pos(i)
     }
 
-    <span class="doccomment">/// Returns the total number of capture groups (even if they didn&#39;t match).
+    <span class="doccomment">/// Returns the total number of capturing groups.
     ///
     /// This is always at least `1` since every regex has at least `1`
     /// capturing group that corresponds to the entire match.
@@ -2239,7 +2239,7 @@
         expand_bytes(<span class="self">self</span>, replacement, dst)
     }
 
-    <span class="doccomment">/// Returns the total number of capture groups (even if they didn&#39;t match).
+    <span class="doccomment">/// Returns the number of captured groups.
     ///
     /// This is always at least `1`, since every regex has at least one capture
     /// group that corresponds to the full match.
@@ -2250,15 +2250,15 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; fmt::Debug <span class="kw">for </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         f.debug_tuple(<span class="string">&quot;Captures&quot;</span>).field(<span class="kw-2">&amp;</span>CapturesDebug(<span class="self">self</span>)).finish()
     }
 }
 
-<span class="kw">struct </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt;);
+<span class="kw">struct </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>: <span class="lifetime">&#39;c</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt;);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; fmt::Debug <span class="kw">for </span>CapturesDebug&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">fn </span>escape_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; String {
             <span class="kw">let </span><span class="kw-2">mut </span>s = String::new();
             <span class="kw">for </span><span class="kw-2">&amp;</span>b <span class="kw">in </span>bytes {
@@ -2344,7 +2344,7 @@
 /// The lifetime `&#39;c` corresponds to the lifetime of the `Captures` value, and
 /// the lifetime `&#39;t` corresponds to the originally matched text.
 </span><span class="attribute">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>&gt; {
+</span><span class="kw">pub struct </span>SubCaptureMatches&lt;<span class="lifetime">&#39;c</span>, <span class="lifetime">&#39;t</span>: <span class="lifetime">&#39;c</span>&gt; {
     caps: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span>Captures&lt;<span class="lifetime">&#39;t</span>&gt;,
     it: SubCapturesPosIter&lt;<span class="lifetime">&#39;c</span>&gt;,
 }
@@ -2376,7 +2376,7 @@
     ///
     /// For example, a no-op replacement would be
     /// `dst.extend(&amp;caps[0])`.
-    </span><span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;);
+    </span><span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;);
 
     <span class="doccomment">/// Return a fixed unchanging replacement byte string.
     ///
@@ -2419,10 +2419,10 @@
 ///
 /// Returned by [`Replacer::by_ref`](trait.Replacer.html#method.by_ref).
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R);
+</span><span class="kw">pub struct </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R: <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, R: Replacer + <span class="question-mark">?</span>Sized + <span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span>ReplacerRef&lt;<span class="lifetime">&#39;a</span>, R&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         <span class="self">self</span>.<span class="number">0</span>.replace_append(caps, dst)
     }
     <span class="kw">fn </span>no_expansion&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;r</span>, [u8]&gt;&gt; {
@@ -2431,56 +2431,56 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8] {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         caps.expand(<span class="kw-2">*</span><span class="self">self</span>, dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         no_expansion(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Vec&lt;u8&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         caps.expand(<span class="kw-2">*</span><span class="self">self</span>, dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         no_expansion(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl </span>Replacer <span class="kw">for </span>Vec&lt;u8&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         caps.expand(<span class="self">self</span>, dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         no_expansion(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span>Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         caps.expand(<span class="self">self</span>.as_ref(), dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         no_expansion(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Replacer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cow&lt;<span class="lifetime">&#39;a</span>, [u8]&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         caps.expand(<span class="self">self</span>.as_ref(), dst);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         no_expansion(<span class="self">self</span>)
     }
 }
 
-<span class="kw">fn </span>no_expansion&lt;T: AsRef&lt;[u8]&gt;&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+<span class="kw">fn </span>no_expansion&lt;T: AsRef&lt;[u8]&gt;&gt;(t: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
     <span class="kw">let </span>s = t.as_ref();
     <span class="kw">match </span>find_byte(<span class="string">b&#39;$&#39;</span>, s) {
         <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
@@ -2490,10 +2490,10 @@
 
 <span class="kw">impl</span>&lt;F, T&gt; Replacer <span class="kw">for </span>F
 <span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; T,
+    </span>F: FnMut(<span class="kw-2">&amp;</span>Captures) -&gt; T,
     T: AsRef&lt;[u8]&gt;,
 {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, caps: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         dst.extend_from_slice((<span class="kw-2">*</span><span class="self">self</span>)(caps).as_ref());
     }
 }
@@ -2510,11 +2510,11 @@
 </span><span class="kw">pub struct </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>[u8]);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;t</span>&gt; Replacer <span class="kw">for </span>NoExpand&lt;<span class="lifetime">&#39;t</span>&gt; {
-    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Captures&lt;<span class="lifetime">&#39;_</span>&gt;, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+    <span class="kw">fn </span>replace_append(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>Captures, dst: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         dst.extend_from_slice(<span class="self">self</span>.<span class="number">0</span>);
     }
 
-    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">&#39;_</span>, [u8]&gt;&gt; {
+    <span class="kw">fn </span>no_expansion(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Cow&lt;[u8]&gt;&gt; {
         <span class="prelude-val">Some</span>(Cow::Borrowed(<span class="self">self</span>.<span class="number">0</span>))
     }
 }

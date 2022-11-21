@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.20.2/src/sys/select.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>select.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -412,29 +412,7 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Portably monitor a group of file descriptors for readiness.
-</span><span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::iter::FusedIterator;
+</pre><pre class="rust"><code><span class="kw">use </span>std::iter::FusedIterator;
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::ops::Range;
 <span class="kw">use </span>std::os::unix::io::RawFd;
@@ -442,25 +420,17 @@
 <span class="kw">use </span>libc::{<span class="self">self</span>, c_int};
 <span class="kw">use </span><span class="kw">crate</span>::Result;
 <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+<span class="kw">use </span><span class="kw">crate</span>::sys::signal::SigSet;
 <span class="kw">use </span><span class="kw">crate</span>::sys::time::{TimeSpec, TimeVal};
 
 <span class="kw">pub use </span>libc::FD_SETSIZE;
 
-<span class="doccomment">/// Contains a set of file descriptors used by [`select`]
-</span><span class="attribute">#[repr(transparent)]
+<span class="attribute">#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub struct </span>FdSet(libc::fd_set);
 
-<span class="kw">fn </span>assert_fd_valid(fd: RawFd) {
-    <span class="macro">assert!</span>(
-        usize::try_from(fd).map_or(<span class="bool-val">false</span>, |fd| fd &lt; FD_SETSIZE),
-        <span class="string">&quot;fd must be in the range 0..FD_SETSIZE&quot;</span>,
-    );
-}
-
 <span class="kw">impl </span>FdSet {
-    <span class="doccomment">/// Create an empty `FdSet`
-    </span><span class="kw">pub fn </span>new() -&gt; FdSet {
+    <span class="kw">pub fn </span>new() -&gt; FdSet {
         <span class="kw">let </span><span class="kw-2">mut </span>fdset = mem::MaybeUninit::uninit();
         <span class="kw">unsafe </span>{
             libc::FD_ZERO(fdset.as_mut_ptr());
@@ -468,26 +438,19 @@
         }
     }
 
-    <span class="doccomment">/// Add a file descriptor to an `FdSet`
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
-        assert_fd_valid(fd);
+    <span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
         <span class="kw">unsafe </span>{ libc::FD_SET(fd, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
-    <span class="doccomment">/// Remove a file descriptor from an `FdSet`
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
-        assert_fd_valid(fd);
+    <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) {
         <span class="kw">unsafe </span>{ libc::FD_CLR(fd, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
-    <span class="doccomment">/// Test an `FdSet` for the presence of a certain file descriptor.
-    </span><span class="kw">pub fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, fd: RawFd) -&gt; bool {
-        assert_fd_valid(fd);
-        <span class="kw">unsafe </span>{ libc::FD_ISSET(fd, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>) }
+    <span class="kw">pub fn </span>contains(<span class="kw-2">&amp;mut </span><span class="self">self</span>, fd: RawFd) -&gt; bool {
+        <span class="kw">unsafe </span>{ libc::FD_ISSET(fd, <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) }
     }
 
-    <span class="doccomment">/// Remove all file descriptors from this `FdSet`.
-    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">unsafe </span>{ libc::FD_ZERO(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>) };
     }
 
@@ -501,19 +464,21 @@
     ///
     /// ```
     /// # use nix::sys::select::FdSet;
+    /// # fn main() {
     /// let mut set = FdSet::new();
     /// set.insert(4);
     /// set.insert(9);
     /// assert_eq!(set.highest(), Some(9));
+    /// # }
     /// ```
     ///
     /// [`select`]: fn.select.html
-    </span><span class="kw">pub fn </span>highest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
+    </span><span class="kw">pub fn </span>highest(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
         <span class="self">self</span>.fds(<span class="prelude-val">None</span>).next_back()
     }
 
     <span class="doccomment">/// Returns an iterator over the file descriptors in the set.
-    ///
+    /// 
     /// For performance, it takes an optional higher bound: the iterator will
     /// not return any elements of the set greater than the given file
     /// descriptor.
@@ -530,7 +495,7 @@
     /// assert_eq!(fds, vec![4, 9]);
     /// ```
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>fds(<span class="kw-2">&amp;</span><span class="self">self</span>, highest: <span class="prelude-ty">Option</span>&lt;RawFd&gt;) -&gt; Fds {
+    </span><span class="kw">pub fn </span>fds(<span class="kw-2">&amp;mut </span><span class="self">self</span>, highest: <span class="prelude-ty">Option</span>&lt;RawFd&gt;) -&gt; Fds {
         Fds {
             set: <span class="self">self</span>,
             range: <span class="number">0</span>..highest.map(|h| h <span class="kw">as </span>usize + <span class="number">1</span>).unwrap_or(FD_SETSIZE),
@@ -547,7 +512,7 @@
 <span class="doccomment">/// Iterator over `FdSet`.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Fds&lt;<span class="lifetime">&#39;a</span>&gt; {
-    set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FdSet,
+    set: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>FdSet,
     range: Range&lt;usize&gt;,
 }
 
@@ -555,7 +520,7 @@
     <span class="kw">type </span>Item = RawFd;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;RawFd&gt; {
-        <span class="kw">for </span>i <span class="kw">in </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.range {
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(i) = <span class="self">self</span>.range.next() {
             <span class="kw">if </span><span class="self">self</span>.set.contains(i <span class="kw">as </span>RawFd) {
                 <span class="kw">return </span><span class="prelude-val">Some</span>(i <span class="kw">as </span>RawFd);
             }
@@ -604,7 +569,7 @@
 ///
 /// # References
 ///
-/// [select(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/select.html)
+/// [select(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/select.html)
 ///
 /// [`FdSet::highest`]: struct.FdSet.html#method.highest
 </span><span class="kw">pub fn </span>select&lt;<span class="lifetime">&#39;a</span>, N, R, W, E, T&gt;(nfds: N,
@@ -646,11 +611,6 @@
     Errno::result(res)
 }
 
-<span class="macro">feature! </span>{
-<span class="attribute">#![feature = <span class="string">&quot;signal&quot;</span>]
-
-</span><span class="kw">use </span><span class="kw">crate</span>::sys::signal::SigSet;
-
 <span class="doccomment">/// Monitors file descriptors for readiness with an altered signal mask.
 ///
 /// Returns the total number of ready file descriptors in all sets. The sets are changed so that all
@@ -675,7 +635,7 @@
 ///
 /// # References
 ///
-/// [pselect(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/pselect.html)
+/// [pselect(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/pselect.html)
 ///
 /// [The new pselect() system call](https://lwn.net/Articles/176911/)
 ///
@@ -721,7 +681,7 @@
 
     Errno::result(res)
 }
-}
+
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {

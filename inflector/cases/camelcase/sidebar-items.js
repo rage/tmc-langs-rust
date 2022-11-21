@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["is_camel_case","Determines if a `&str` is camelCase bool``"],["to_camel_case","Converts a `&str` to camelCase `String`"]]};

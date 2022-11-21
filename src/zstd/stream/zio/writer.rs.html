@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.11.2+zstd.1.5.2/src/stream/zio/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.6.1+zstd.1.4.9/src/stream/zio/writer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>writer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -292,6 +292,10 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io::{<span class="self">self</span>, Write};
 
 <span class="kw">use </span><span class="kw">crate</span>::stream::raw::{InBuffer, Operation, OutBuffer};
@@ -363,8 +367,9 @@
             <span class="comment">// Let&#39;s fill this buffer again!
 
             </span><span class="kw">let </span>finished_frame = <span class="self">self</span>.finished_frame;
-            <span class="kw">let </span>hint =
-                <span class="self">self</span>.with_buffer(|dst, op| op.finish(dst, finished_frame));
+            <span class="kw">let </span>hint = <span class="kw">unsafe </span>{
+                <span class="self">self</span>.with_full_buffer(|dst, op| op.finish(dst, finished_frame))
+            };
             <span class="self">self</span>.offset = <span class="number">0</span>;
             <span class="comment">// println!(&quot;Hint: {:?}\nOut:{:?}&quot;, hint, &amp;self.buffer);
 
@@ -388,15 +393,24 @@
 
     <span class="doccomment">/// Run the given closure on `self.buffer`.
     ///
-    /// The buffer will be cleared, and made available wrapped in an `OutBuffer`.
-    </span><span class="kw">fn </span>with_buffer&lt;F, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; T
+    /// Before running it, the buffer will look as big as its capacity,
+    /// but the memory there may be uninitialized.
+    ///
+    /// It is only safe to write in this buffer, not to read from there.
+    </span><span class="kw">unsafe fn </span>with_full_buffer&lt;F, T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; T
     <span class="kw">where
-        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, Vec&lt;u8&gt;&gt;, <span class="kw-2">&amp;mut </span>D) -&gt; T,
+        </span>F: FnOnce(<span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;, <span class="kw-2">&amp;mut </span>D) -&gt; T,
     {
-        <span class="self">self</span>.buffer.clear();
-        <span class="kw">let </span><span class="kw-2">mut </span>output = OutBuffer::around(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer);
-        <span class="comment">// eprintln!(&quot;Output: {:?}&quot;, output);
-        </span>f(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;mut </span><span class="self">self</span>.operation)
+        <span class="kw">let </span>capacity = <span class="self">self</span>.buffer.capacity();
+        <span class="self">self</span>.buffer.set_len(capacity);
+
+        <span class="kw">let </span>(bytes_written, result) = {
+            <span class="kw">let </span><span class="kw-2">mut </span>output = OutBuffer::around(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer);
+            <span class="kw">let </span>result = f(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;mut </span><span class="self">self</span>.operation);
+            (output.pos, result)
+        };
+        <span class="self">self</span>.buffer.set_len(bytes_written);
+        result
     }
 
     <span class="doccomment">/// Attempt to write `self.buffer` to the wrapped writer.
@@ -407,12 +421,6 @@
         // been written in case we&#39;re interrupted.
         </span><span class="kw">while </span><span class="self">self</span>.offset &lt; <span class="self">self</span>.buffer.len() {
             <span class="kw">match </span><span class="self">self</span>.writer.write(<span class="kw-2">&amp;</span><span class="self">self</span>.buffer[<span class="self">self</span>.offset..]) {
-                <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(
-                        io::ErrorKind::WriteZero,
-                        <span class="string">&quot;writer will not accept any more data&quot;</span>,
-                    ))
-                }
                 <span class="prelude-val">Ok</span>(n) =&gt; <span class="self">self</span>.offset += n,
                 <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) <span class="kw">if </span>e.kind() == io::ErrorKind::Interrupted =&gt; (),
                 <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
@@ -485,13 +493,12 @@
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>src = InBuffer::around(buf);
-            <span class="kw">let </span>hint = <span class="self">self</span>.with_buffer(|dst, op| op.run(<span class="kw-2">&amp;mut </span>src, dst));
+            <span class="kw">let </span>hint = <span class="kw">unsafe </span>{
+                <span class="self">self</span>.with_full_buffer(|dst, op| op.run(<span class="kw-2">&amp;mut </span>src, dst))
+            };
             <span class="kw">let </span>bytes_read = src.pos;
 
-            <span class="comment">// eprintln!(
-            //     &quot;Write Hint: {:?}\n src: {:?}\n dst: {:?}&quot;,
-            //     hint, src, self.buffer
-            // );
+            <span class="comment">// println!(&quot;Hint: {:?}\nRead {}&quot;, hint, bytes_read);
 
             </span><span class="self">self</span>.offset = <span class="number">0</span>;
             <span class="kw">let </span>hint = hint<span class="question-mark">?</span>;
@@ -518,7 +525,8 @@
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(());
             }
 
-            <span class="kw">let </span>hint = <span class="self">self</span>.with_buffer(|dst, op| op.flush(dst));
+            <span class="kw">let </span>hint =
+                <span class="kw">unsafe </span>{ <span class="self">self</span>.with_full_buffer(|dst, op| op.flush(dst)) };
 
             <span class="self">self</span>.offset = <span class="number">0</span>;
             <span class="kw">let </span>hint = hint<span class="question-mark">?</span>;

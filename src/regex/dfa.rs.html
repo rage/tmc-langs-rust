@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.6/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1943,6 +1943,13 @@
 <span id="1943">1943</span>
 <span id="1944">1944</span>
 <span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 The DFA matching engine.
 
@@ -1976,7 +1983,7 @@ considerably more complex than one might expect out of a DFA. A number of
 tricks are employed to make it fast. Tread carefully.
 
 N.B. While this implementation is heavily commented, Russ Cox&#39;s series of
-articles on regexes is strongly recommended: &lt;https://swtch.com/~rsc/regexp/&gt;
+articles on regexes is strongly recommended: https://swtch.com/~rsc/regexp/
 (As is the DFA implementation in RE2, which heavily influenced this
 implementation.)
 */
@@ -1987,9 +1994,9 @@ implementation.)
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span><span class="kw">crate</span>::exec::ProgramCache;
-<span class="kw">use </span><span class="kw">crate</span>::prog::{Inst, Program};
-<span class="kw">use </span><span class="kw">crate</span>::sparse::SparseSet;
+<span class="kw">use </span>exec::ProgramCache;
+<span class="kw">use </span>prog::{Inst, Program};
+<span class="kw">use </span>sparse::SparseSet;
 
 <span class="doccomment">/// Return true if and only if the given program can be executed by a DFA.
 ///
@@ -2000,7 +2007,7 @@ implementation.)
 /// This function will also return false if the given program has any Unicode
 /// instructions (Char or Ranges) since the DFA operates on bytes only.
 </span><span class="kw">pub fn </span>can_exec(insts: <span class="kw-2">&amp;</span>Program) -&gt; bool {
-    <span class="kw">use </span><span class="kw">crate</span>::prog::Inst::<span class="kw-2">*</span>;
+    <span class="kw">use </span>prog::Inst::<span class="kw-2">*</span>;
     <span class="comment">// If for some reason we manage to allocate a regex program with more
     // than i32::MAX instructions, then we can&#39;t execute the DFA because we
     // use 32 bit instruction pointer deltas for memory savings.
@@ -2251,7 +2258,7 @@ implementation.)
         StateFlags(<span class="self">self</span>.data[<span class="number">0</span>])
     }
 
-    <span class="kw">fn </span>inst_ptrs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InstPtrs&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>inst_ptrs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InstPtrs {
         InstPtrs { base: <span class="number">0</span>, data: <span class="kw-2">&amp;</span><span class="self">self</span>.data[<span class="number">1</span>..] }
     }
 }
@@ -2399,10 +2406,10 @@ implementation.)
         <span class="kw">let </span><span class="kw-2">mut </span>cache = cache.borrow_mut();
         <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span>cache.dfa;
         <span class="kw">let </span><span class="kw-2">mut </span>dfa = Fsm {
-            prog,
+            prog: prog,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span>at,
-            quit_after_match,
+            </span>at: at,
+            quit_after_match: quit_after_match,
             last_match_si: STATE_UNKNOWN,
             last_cache_flush: at,
             cache: <span class="kw-2">&amp;mut </span>cache.inner,
@@ -2429,10 +2436,10 @@ implementation.)
         <span class="kw">let </span><span class="kw-2">mut </span>cache = cache.borrow_mut();
         <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span>cache.dfa_reverse;
         <span class="kw">let </span><span class="kw-2">mut </span>dfa = Fsm {
-            prog,
+            prog: prog,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span>at,
-            quit_after_match,
+            </span>at: at,
+            quit_after_match: quit_after_match,
             last_match_si: STATE_UNKNOWN,
             last_cache_flush: at,
             cache: <span class="kw-2">&amp;mut </span>cache.inner,
@@ -2460,9 +2467,9 @@ implementation.)
         <span class="kw">let </span><span class="kw-2">mut </span>cache = cache.borrow_mut();
         <span class="kw">let </span>cache = <span class="kw-2">&amp;mut </span>cache.dfa;
         <span class="kw">let </span><span class="kw-2">mut </span>dfa = Fsm {
-            prog,
+            prog: prog,
             start: <span class="number">0</span>, <span class="comment">// filled in below
-            </span>at,
+            </span>at: at,
             quit_after_match: <span class="bool-val">false</span>,
             last_match_si: STATE_UNKNOWN,
             last_cache_flush: at,
@@ -2839,7 +2846,7 @@ implementation.)
         <span class="kw-2">mut </span>si: StatePtr,
         b: Byte,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;StatePtr&gt; {
-        <span class="kw">use </span><span class="kw">crate</span>::prog::Inst::<span class="kw-2">*</span>;
+        <span class="kw">use </span>prog::Inst::<span class="kw-2">*</span>;
 
         <span class="comment">// Initialize a queue with the current DFA state&#39;s NFA states.
         </span>qcur.clear();
@@ -3001,8 +3008,8 @@ implementation.)
         q: <span class="kw-2">&amp;mut </span>SparseSet,
         flags: EmptyFlags,
     ) {
-        <span class="kw">use </span><span class="kw">crate</span>::prog::EmptyLook::<span class="kw-2">*</span>;
-        <span class="kw">use </span><span class="kw">crate</span>::prog::Inst::<span class="kw-2">*</span>;
+        <span class="kw">use </span>prog::EmptyLook::<span class="kw-2">*</span>;
+        <span class="kw">use </span>prog::Inst::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to traverse the NFA to follow epsilon transitions, so avoid
         // recursion with an explicit stack.
@@ -3135,7 +3142,7 @@ implementation.)
         q: <span class="kw-2">&amp;</span>SparseSet,
         state_flags: <span class="kw-2">&amp;mut </span>StateFlags,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;State&gt; {
-        <span class="kw">use </span><span class="kw">crate</span>::prog::Inst::<span class="kw-2">*</span>;
+        <span class="kw">use </span>prog::Inst::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to build up enough information to recognize pre-built states
         // in the DFA. Generally speaking, this includes every instruction
@@ -3298,6 +3305,7 @@ implementation.)
         <span class="kw">match </span><span class="self">self</span>.cache.trans.next(si, <span class="self">self</span>.byte_class(b)) {
             STATE_UNKNOWN =&gt; <span class="self">self</span>.exec_byte(qcur, qnext, si, b),
             STATE_QUIT =&gt; <span class="prelude-val">None</span>,
+            STATE_DEAD =&gt; <span class="prelude-val">Some</span>(STATE_DEAD),
             nsi =&gt; <span class="prelude-val">Some</span>(nsi),
         }
     }
@@ -3331,6 +3339,7 @@ implementation.)
         };
         <span class="kw">match </span><span class="self">self</span>.cache.start_states[flagi] {
             STATE_UNKNOWN =&gt; {}
+            STATE_DEAD =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(STATE_DEAD),
             si =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(si),
         }
         q.clear();
@@ -3551,7 +3560,11 @@ implementation.)
 
 <span class="kw">impl </span>StateMap {
     <span class="kw">fn </span>new(num_byte_classes: usize) -&gt; StateMap {
-        StateMap { map: HashMap::new(), states: <span class="macro">vec!</span>[], num_byte_classes }
+        StateMap {
+            map: HashMap::new(),
+            states: <span class="macro">vec!</span>[],
+            num_byte_classes: num_byte_classes,
+        }
     }
 
     <span class="kw">fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -3587,7 +3600,7 @@ implementation.)
     /// The number of byte classes corresponds to the stride. Every state will
     /// have `num_byte_classes` slots for transitions.
     </span><span class="kw">fn </span>new(num_byte_classes: usize) -&gt; Transitions {
-        Transitions { table: <span class="macro">vec!</span>[], num_byte_classes }
+        Transitions { table: <span class="macro">vec!</span>[], num_byte_classes: num_byte_classes }
     }
 
     <span class="doccomment">/// Returns the total number of states currently in this table.
@@ -3637,27 +3650,27 @@ implementation.)
 
 <span class="kw">impl </span>StateFlags {
     <span class="kw">fn </span>is_match(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b0000_0001 </span>&gt; <span class="number">0
+        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b0000000_1 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_match(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b0000_0001</span>;
+        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b0000000_1</span>;
     }
 
     <span class="kw">fn </span>is_word(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b0000_0010 </span>&gt; <span class="number">0
+        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b000000_1_0 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_word(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b0000_0010</span>;
+        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b000000_1_0</span>;
     }
 
     <span class="kw">fn </span>has_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b0000_0100 </span>&gt; <span class="number">0
+        <span class="self">self</span>.<span class="number">0 </span>&amp; <span class="number">0b00000_1_00 </span>&gt; <span class="number">0
     </span>}
 
     <span class="kw">fn </span>set_empty(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b0000_0100</span>;
+        <span class="self">self</span>.<span class="number">0 </span>|= <span class="number">0b00000_1_00</span>;
     }
 }
 
@@ -3693,7 +3706,7 @@ implementation.)
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>State {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span>ips: Vec&lt;usize&gt; = <span class="self">self</span>.inst_ptrs().collect();
         f.debug_struct(<span class="string">&quot;State&quot;</span>)
             .field(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.flags())
@@ -3703,7 +3716,7 @@ implementation.)
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Transitions {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>fmtd = f.debug_map();
         <span class="kw">for </span>si <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.num_states() {
             <span class="kw">let </span>s = si * <span class="self">self</span>.num_byte_classes;
@@ -3717,7 +3730,7 @@ implementation.)
 <span class="kw">struct </span>TransitionsRow&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[StatePtr]);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Debug <span class="kw">for </span>TransitionsRow&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>fmtd = f.debug_map();
         <span class="kw">for </span>(b, si) <span class="kw">in </span><span class="self">self</span>.<span class="number">0</span>.iter().enumerate() {
             <span class="kw">match </span><span class="kw-2">*</span>si {
@@ -3735,7 +3748,7 @@ implementation.)
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>StateFlags {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         f.debug_struct(<span class="string">&quot;StateFlags&quot;</span>)
             .field(<span class="string">&quot;is_match&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_match())
             .field(<span class="string">&quot;is_word&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_word())
@@ -3828,6 +3841,7 @@ implementation.)
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
+    <span class="kw">extern crate </span>rand;
 
     <span class="kw">use super</span>::{
         push_inst_ptr, read_vari32, read_varu32, write_vari32, write_varu32,

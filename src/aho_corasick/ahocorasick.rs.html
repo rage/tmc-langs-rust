@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.19/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.15/src/ahocorasick.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ahocorasick.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2136,17 +2136,26 @@
 <span id="2136">2136</span>
 <span id="2137">2137</span>
 <span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::io;
 
-<span class="kw">use </span><span class="kw">crate</span>::automaton::Automaton;
-<span class="kw">use </span><span class="kw">crate</span>::buffer::Buffer;
-<span class="kw">use </span><span class="kw">crate</span>::dfa::{<span class="self">self</span>, DFA};
-<span class="kw">use </span><span class="kw">crate</span>::error::Result;
-<span class="kw">use </span><span class="kw">crate</span>::nfa::{<span class="self">self</span>, NFA};
-<span class="kw">use </span><span class="kw">crate</span>::packed;
-<span class="kw">use </span><span class="kw">crate</span>::prefilter::{Prefilter, PrefilterState};
-<span class="kw">use </span><span class="kw">crate</span>::state_id::StateID;
-<span class="kw">use </span><span class="kw">crate</span>::Match;
+<span class="kw">use </span>automaton::Automaton;
+<span class="kw">use </span>buffer::Buffer;
+<span class="kw">use </span>dfa::{<span class="self">self</span>, DFA};
+<span class="kw">use </span>error::Result;
+<span class="kw">use </span>nfa::{<span class="self">self</span>, NFA};
+<span class="kw">use </span>packed;
+<span class="kw">use </span>prefilter::{Prefilter, PrefilterState};
+<span class="kw">use </span>state_id::StateID;
+<span class="kw">use </span>Match;
 
 <span class="doccomment">/// An automaton for searching multiple strings in linear time.
 ///
@@ -3143,6 +3152,18 @@
     ///
     /// let ac = AhoCorasickBuilder::new()
     ///     .dfa(true)
+    ///     .byte_classes(false)
+    ///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);
+    /// assert_eq!(20_768, ac.heap_bytes());
+    ///
+    /// let ac = AhoCorasickBuilder::new()
+    ///     .dfa(true)
+    ///     .byte_classes(true) // default
+    ///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);
+    /// assert_eq!(1_248, ac.heap_bytes());
+    ///
+    /// let ac = AhoCorasickBuilder::new()
+    ///     .dfa(true)
     ///     .ascii_case_insensitive(true)
     ///     .build(&amp;[&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]);
     /// assert_eq!(1_248, ac.heap_bytes());
@@ -3295,7 +3316,7 @@
 ///
 /// The lifetime `&#39;b` refers to the lifetime of the haystack being searched.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FindIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, S: StateID&gt; {
+</span><span class="kw">pub struct </span>FindIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, S: <span class="lifetime">&#39;a </span>+ StateID&gt; {
     fsm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Imp&lt;S&gt;,
     prestate: PrefilterState,
     haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u8],
@@ -3352,11 +3373,12 @@
 ///
 /// The lifetime `&#39;b` refers to the lifetime of the haystack being searched.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>FindOverlappingIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, S: StateID&gt; {
+</span><span class="kw">pub struct </span>FindOverlappingIter&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, S: <span class="lifetime">&#39;a </span>+ StateID&gt; {
     fsm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Imp&lt;S&gt;,
     prestate: PrefilterState,
     haystack: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>[u8],
     pos: usize,
+    last_match_end: usize,
     state_id: S,
     match_index: usize,
 }
@@ -3376,6 +3398,7 @@
             prestate,
             haystack,
             pos: <span class="number">0</span>,
+            last_match_end: <span class="number">0</span>,
             state_id: ac.imp.start_state(),
             match_index: <span class="number">0</span>,
         }
@@ -3421,7 +3444,7 @@
 ///
 /// The lifetime `&#39;a` refers to the lifetime of the `AhoCorasick` automaton.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">pub struct </span>StreamFindIter&lt;<span class="lifetime">&#39;a</span>, R, S: StateID&gt; {
+</span><span class="kw">pub struct </span>StreamFindIter&lt;<span class="lifetime">&#39;a</span>, R, S: <span class="lifetime">&#39;a </span>+ StateID&gt; {
     it: StreamChunkIter&lt;<span class="lifetime">&#39;a</span>, R, S&gt;,
 }
 
@@ -3456,7 +3479,7 @@
 /// N.B. This does not actually implement Iterator because we need to borrow
 /// from the underlying reader. But conceptually, it&#39;s still an iterator.
 </span><span class="attribute">#[derive(Debug)]
-</span><span class="kw">struct </span>StreamChunkIter&lt;<span class="lifetime">&#39;a</span>, R, S: StateID&gt; {
+</span><span class="kw">struct </span>StreamChunkIter&lt;<span class="lifetime">&#39;a</span>, R, S: <span class="lifetime">&#39;a </span>+ StateID&gt; {
     <span class="doccomment">/// The AC automaton.
     </span>fsm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Imp&lt;S&gt;,
     <span class="doccomment">/// State associated with this automaton&#39;s prefilter. It is a heuristic
@@ -3493,7 +3516,7 @@
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">enum </span>StreamChunk&lt;<span class="lifetime">&#39;r</span>&gt; {
     <span class="doccomment">/// A chunk that does not contain any matches.
-    </span>NonMatch { bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8] },
+    </span>NonMatch { bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], start: usize },
     <span class="doccomment">/// A chunk that precisely contains a match.
     </span>Match { bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span>[u8], mat: Match },
 }
@@ -3526,7 +3549,7 @@
         }
     }
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;StreamChunk&gt;&gt; {
+    <span class="kw">fn </span>next&lt;<span class="lifetime">&#39;r</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;r </span><span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;io::Result&lt;StreamChunk&lt;<span class="lifetime">&#39;r</span>&gt;&gt;&gt; {
         <span class="kw">loop </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>mat) = <span class="self">self</span>.pending_match.take() {
                 <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.buf.buffer()[mat.start()..mat.end()];
@@ -3537,8 +3560,9 @@
             <span class="kw">if </span><span class="self">self</span>.search_pos &gt;= <span class="self">self</span>.buf.len() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(end) = <span class="self">self</span>.unreported() {
                     <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.buf.buffer()[<span class="self">self</span>.report_pos..end];
+                    <span class="kw">let </span>start = <span class="self">self</span>.absolute_pos + <span class="self">self</span>.report_pos;
                     <span class="self">self</span>.report_pos = end;
-                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(StreamChunk::NonMatch { bytes }));
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(StreamChunk::NonMatch { bytes, start }));
                 }
                 <span class="kw">if </span><span class="self">self</span>.buf.len() &gt;= <span class="self">self</span>.buf.min_buffer_len() {
                     <span class="comment">// This is the point at which we roll our buffer, which we
@@ -3561,9 +3585,10 @@
                         // unreported bytes remaining, return them now.
                         </span><span class="kw">if </span><span class="self">self</span>.report_pos &lt; <span class="self">self</span>.buf.len() {
                             <span class="kw">let </span>bytes = <span class="kw-2">&amp;</span><span class="self">self</span>.buf.buffer()[<span class="self">self</span>.report_pos..];
+                            <span class="kw">let </span>start = <span class="self">self</span>.absolute_pos + <span class="self">self</span>.report_pos;
                             <span class="self">self</span>.report_pos = <span class="self">self</span>.buf.len();
 
-                            <span class="kw">let </span>chunk = StreamChunk::NonMatch { bytes };
+                            <span class="kw">let </span>chunk = StreamChunk::NonMatch { bytes, start };
                             <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk));
                         } <span class="kw">else </span>{
                             <span class="comment">// We&#39;ve reported everything, but there might still
@@ -3603,9 +3628,10 @@
                     <span class="kw">if </span><span class="self">self</span>.report_pos &lt; mat.start() {
                         <span class="kw">let </span>bytes =
                             <span class="kw-2">&amp;</span><span class="self">self</span>.buf.buffer()[<span class="self">self</span>.report_pos..mat.start()];
+                        <span class="kw">let </span>start = <span class="self">self</span>.absolute_pos + <span class="self">self</span>.report_pos;
                         <span class="self">self</span>.report_pos = mat.start();
 
-                        <span class="kw">let </span>chunk = StreamChunk::NonMatch { bytes };
+                        <span class="kw">let </span>chunk = StreamChunk::NonMatch { bytes, start };
                         <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(chunk));
                     }
                 }
@@ -3802,7 +3828,7 @@
             <span class="comment">// N.B. Using byte classes can actually be faster by improving
             // locality, but this only really applies for multi-megabyte
             // automata (i.e., automata that don&#39;t fit in your CPU&#39;s cache).
-            </span><span class="self">self</span>.dfa(<span class="bool-val">true</span>);
+            </span><span class="self">self</span>.dfa(<span class="bool-val">true</span>).byte_classes(<span class="bool-val">false</span>);
         } <span class="kw">else if </span>patterns.len() &lt;= <span class="number">5000 </span>{
             <span class="self">self</span>.dfa(<span class="bool-val">true</span>);
         }
@@ -4049,10 +4075,6 @@
     /// overall performance.
     ///
     /// This option is enabled by default.
-    </span><span class="attribute">#[deprecated(
-        since = <span class="string">&quot;0.7.16&quot;</span>,
-        note = <span class="string">&quot;not carrying its weight, will be always enabled, see: https://github.com/BurntSushi/aho-corasick/issues/57&quot;
-    </span>)]
     </span><span class="kw">pub fn </span>byte_classes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>AhoCorasickBuilder {
         <span class="self">self</span>.dfa_builder.byte_classes(yes);
         <span class="self">self
@@ -4081,10 +4103,6 @@
     /// non-premultiplied form only requires 8 bits.
     ///
     /// This option is enabled by default.
-    </span><span class="attribute">#[deprecated(
-        since = <span class="string">&quot;0.7.16&quot;</span>,
-        note = <span class="string">&quot;not carrying its weight, will be always enabled, see: https://github.com/BurntSushi/aho-corasick/issues/57&quot;
-    </span>)]
     </span><span class="kw">pub fn </span>premultiply(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) -&gt; <span class="kw-2">&amp;mut </span>AhoCorasickBuilder {
         <span class="self">self</span>.dfa_builder.premultiply(yes);
         <span class="self">self

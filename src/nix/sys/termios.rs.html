@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/termios.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>termios.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.20.2/src/sys/termios.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>termios.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1090,28 +1090,6 @@
 <span id="1090">1090</span>
 <span id="1091">1091</span>
 <span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An interface for controlling asynchronous communication ports
 //!
 //! This interface provides a safe wrapper around the termios subsystem defined by POSIX. The
@@ -1119,7 +1097,7 @@
 //! types here or exported directly.
 //!
 //! If you are unfamiliar with the `termios` API, you should first read the
-//! [API documentation](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/termios.h.html) and
+//! [API documentation](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/termios.h.html) and
 //! then come back to understand how `nix` safely wraps it.
 //!
 //! It should be noted that this API incurs some runtime overhead above the base `libc` definitions.
@@ -1178,9 +1156,9 @@
 //! # use nix::sys::termios::{BaudRate, cfsetispeed, cfsetospeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
-//! cfsetispeed(&amp;mut t, BaudRate::B9600).unwrap();
-//! cfsetospeed(&amp;mut t, BaudRate::B9600).unwrap();
-//! cfsetspeed(&amp;mut t, BaudRate::B9600).unwrap();
+//! cfsetispeed(&amp;mut t, BaudRate::B9600);
+//! cfsetospeed(&amp;mut t, BaudRate::B9600);
+//! cfsetspeed(&amp;mut t, BaudRate::B9600);
 //! # }
 //! ```
 //!
@@ -1190,10 +1168,10 @@
 //! # use nix::sys::termios::{BaudRate, cfgetispeed, cfgetospeed, cfsetispeed, cfsetspeed, Termios};
 //! # fn main() {
 //! # let mut t: Termios = unsafe { std::mem::zeroed() };
-//! # cfsetspeed(&amp;mut t, BaudRate::B9600).unwrap();
+//! # cfsetspeed(&amp;mut t, BaudRate::B9600);
 //! let speed = cfgetispeed(&amp;t);
 //! assert_eq!(speed, cfgetospeed(&amp;t));
-//! cfsetispeed(&amp;mut t, speed).unwrap();
+//! cfsetispeed(&amp;mut t, speed);
 //! # }
 //! ```
 //!
@@ -1266,16 +1244,15 @@
 //! # }
 //! ```
 </span><span class="kw">use </span>cfg_if::cfg_if;
-<span class="kw">use </span><span class="kw">crate</span>::Result;
+<span class="kw">use crate</span>::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
 <span class="kw">use </span>libc::{<span class="self">self</span>, c_int, tcflag_t};
 <span class="kw">use </span>std::cell::{Ref, RefCell};
-<span class="kw">use </span>std::convert::From;
+<span class="kw">use </span>std::convert::{From, TryFrom};
 <span class="kw">use </span>std::mem;
 <span class="kw">use </span>std::os::unix::io::RawFd;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;process&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::unistd::Pid;
+<span class="kw">use </span><span class="kw">crate</span>::unistd::Pid;
 
 <span class="doccomment">/// Stores settings for the termios API
 ///
@@ -1369,10 +1346,8 @@
     /// enum.
     ///
     /// B0 is special and will disable the port.
-    </span><span class="attribute">#[cfg_attr(all(any(target_os = <span class="string">&quot;haiku&quot;</span>), target_pointer_width = <span class="string">&quot;64&quot;</span>), repr(u8))]
-    #[cfg_attr(all(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>), target_pointer_width = <span class="string">&quot;64&quot;</span>), repr(u64))]
-    #[cfg_attr(not(all(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>), target_pointer_width = <span class="string">&quot;64&quot;</span>)), repr(u32))]
-    #[non_exhaustive]
+    </span><span class="attribute">#[cfg_attr(all(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>), target_pointer_width = <span class="string">&quot;64&quot;</span>), repr(u64))]
+    #[cfg_attr(not(all(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>), target_pointer_width = <span class="string">&quot;64&quot;</span>)), repr(u32))]
     </span><span class="kw">pub enum </span>BaudRate {
         B0,
         B50,
@@ -1392,7 +1367,6 @@
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B7200,
         B9600,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -1400,7 +1374,6 @@
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B14400,
         B19200,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -1408,7 +1381,6 @@
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B28800,
         B38400,
         B57600,
@@ -1417,64 +1389,141 @@
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
                 target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B76800,
         B115200,
-        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
-        </span>B153600,
         B230400,
-        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
-        </span>B307200,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;netbsd&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
         </span>B460800,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B500000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B576000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;netbsd&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
         </span>B921600,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B1000000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B1152000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B1500000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B2000000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B2500000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B3000000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B3500000,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>B4000000,
     }
-    <span class="kw">impl </span>TryFrom&lt;libc::speed_t&gt;
+}
+
+<span class="kw">impl </span>TryFrom&lt;libc::speed_t&gt; <span class="kw">for </span>BaudRate {
+    <span class="kw">type </span>Error = Error;
+
+    <span class="kw">fn </span>try_from(s: libc::speed_t) -&gt; <span class="prelude-ty">Result</span>&lt;BaudRate&gt; {
+        <span class="kw">use </span>libc::{B0, B50, B75, B110, B134, B150, B200, B300, B600, B1200, B1800, B2400, B4800,
+                   B9600, B19200, B38400, B57600, B115200, B230400};
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span><span class="kw">use </span>libc::{B500000, B576000, B1000000, B1152000, B1500000, B2000000};
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
+        </span><span class="kw">use </span>libc::{B2500000, B3000000, B3500000, B4000000};
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;macos&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>,
+                  target_os = <span class="string">&quot;openbsd&quot;</span>))]
+        </span><span class="kw">use </span>libc::{B7200, B14400, B28800, B76800};
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                  target_os = <span class="string">&quot;freebsd&quot;</span>,
+                  target_os = <span class="string">&quot;linux&quot;</span>,
+                  target_os = <span class="string">&quot;netbsd&quot;</span>))]
+        </span><span class="kw">use </span>libc::{B460800, B921600};
+
+        <span class="kw">match </span>s {
+            B0 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B0),
+            B50 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B50),
+            B75 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B75),
+            B110 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B110),
+            B134 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B134),
+            B150 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B150),
+            B200 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B200),
+            B300 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B300),
+            B600 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B600),
+            B1200 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B1200),
+            B1800 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B1800),
+            B2400 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B2400),
+            B4800 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B4800),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;macos&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>,
+                      target_os = <span class="string">&quot;openbsd&quot;</span>))]
+            </span>B7200 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B7200),
+            B9600 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B9600),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;macos&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>,
+                      target_os = <span class="string">&quot;openbsd&quot;</span>))]
+            </span>B14400 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B14400),
+            B19200 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B19200),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;macos&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>,
+                      target_os = <span class="string">&quot;openbsd&quot;</span>))]
+            </span>B28800 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B28800),
+            B38400 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B38400),
+            B57600 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B57600),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;macos&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>,
+                      target_os = <span class="string">&quot;openbsd&quot;</span>))]
+            </span>B76800 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B76800),
+            B115200 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B115200),
+            B230400 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B230400),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;linux&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>))]
+            </span>B460800 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B460800),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B500000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B500000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B576000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B576000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
+                      target_os = <span class="string">&quot;freebsd&quot;</span>,
+                      target_os = <span class="string">&quot;linux&quot;</span>,
+                      target_os = <span class="string">&quot;netbsd&quot;</span>))]
+            </span>B921600 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B921600),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B1000000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B1000000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B1152000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B1152000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B1500000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B1500000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+            </span>B2000000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B2000000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
+            </span>B2500000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B2500000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
+            </span>B3000000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B3000000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
+            </span>B3500000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B3500000),
+            <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;sparc64&quot;</span>))))]
+            </span>B4000000 =&gt; <span class="prelude-val">Ok</span>(BaudRate::B4000000),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(Error::invalid_argument())
+        }
+    }
 }
 
 <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
@@ -1489,21 +1538,12 @@
     }
 }
 
-<span class="attribute">#[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
-</span><span class="kw">impl </span>From&lt;BaudRate&gt; <span class="kw">for </span>u8 {
-    <span class="kw">fn </span>from(b: BaudRate) -&gt; u8 {
-        b <span class="kw">as </span>u8
-    }
-}
-
-
 <span class="comment">// TODO: Add TCSASOFT, which will require treating this as a bitfield.
 </span><span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Specify when a port configuration change should occur.
     ///
     /// Used as an argument to `tcsetattr()`
     </span><span class="attribute">#[repr(i32)]
-    #[non_exhaustive]
     </span><span class="kw">pub enum </span>SetArg {
         <span class="doccomment">/// The change will occur immediately
         </span>TCSANOW,
@@ -1519,7 +1559,6 @@
     ///
     /// Used as an argument to `tcflush()`.
     </span><span class="attribute">#[repr(i32)]
-    #[non_exhaustive]
     </span><span class="kw">pub enum </span>FlushArg {
         <span class="doccomment">/// Flush data that was received but not read
         </span>TCIFLUSH,
@@ -1535,7 +1574,6 @@
     ///
     /// Used as an argument to `tcflow()`.
     </span><span class="attribute">#[repr(i32)]
-    #[non_exhaustive]
     </span><span class="kw">pub enum </span>FlowArg {
         <span class="doccomment">/// Suspend transmission
         </span>TCOOFF,
@@ -1549,86 +1587,64 @@
 }
 
 <span class="comment">// TODO: Make this usable directly as a slice index.
-</span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
 </span><span class="macro">libc_enum! </span>{
     <span class="doccomment">/// Indices into the `termios.c_cc` array for special characters.
     </span><span class="attribute">#[repr(usize)]
-    #[non_exhaustive]
     </span><span class="kw">pub enum </span>SpecialCharacterIndices {
         VDISCARD,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;freebsd&quot;</span>,
-                target_os = <span class="string">&quot;illumos&quot;</span>,
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
-                target_os = <span class="string">&quot;openbsd&quot;</span>,
-                target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+                target_os = <span class="string">&quot;openbsd&quot;</span>))]
         </span>VDSUSP,
         VEOF,
         VEOL,
         VEOL2,
         VERASE,
-        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
-                  target_os = <span class="string">&quot;freebsd&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>))]
         </span>VERASE2,
         VINTR,
         VKILL,
         VLNEXT,
-        <span class="attribute">#[cfg(not(any(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>),
-                target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(not(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>)))]
         </span>VMIN,
         VQUIT,
         VREPRINT,
         VSTART,
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                 target_os = <span class="string">&quot;freebsd&quot;</span>,
-                target_os = <span class="string">&quot;illumos&quot;</span>,
                 target_os = <span class="string">&quot;macos&quot;</span>,
                 target_os = <span class="string">&quot;netbsd&quot;</span>,
-                target_os = <span class="string">&quot;openbsd&quot;</span>,
-                target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+                target_os = <span class="string">&quot;openbsd&quot;</span>))]
         </span>VSTATUS,
         VSTOP,
         VSUSP,
         <span class="attribute">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>VSWTC,
-        <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
         </span>VSWTCH,
-        <span class="attribute">#[cfg(not(any(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>),
-                target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>)))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(not(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>)))]
         </span>VTIME,
         VWERASE,
         <span class="attribute">#[cfg(target_os = <span class="string">&quot;dragonfly&quot;</span>)]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>VCHECKPT,
     }
 }
 
-<span class="attribute">#[cfg(any(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>),
-        target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+<span class="attribute">#[cfg(all(target_os = <span class="string">&quot;linux&quot;</span>, target_arch = <span class="string">&quot;sparc64&quot;</span>))]
 </span><span class="kw">impl </span>SpecialCharacterIndices {
     <span class="kw">pub const </span>VMIN: SpecialCharacterIndices = SpecialCharacterIndices::VEOF;
     <span class="kw">pub const </span>VTIME: SpecialCharacterIndices = SpecialCharacterIndices::VEOL;
 }
 
 <span class="kw">pub use </span>libc::NCCS;
-<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
+<span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
           target_os = <span class="string">&quot;freebsd&quot;</span>,
           target_os = <span class="string">&quot;linux&quot;</span>,
           target_os = <span class="string">&quot;macos&quot;</span>,
           target_os = <span class="string">&quot;netbsd&quot;</span>,
           target_os = <span class="string">&quot;openbsd&quot;</span>))]
-#[cfg_attr(docsrs, doc(cfg(all())))]
 </span><span class="kw">pub use </span>libc::_POSIX_VDISABLE;
 
 <span class="macro">libc_bitflags! </span>{
@@ -1646,13 +1662,10 @@
         IXON;
         IXOFF;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>IXANY;
-        <span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
         </span>IMAXBEL;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>IUTF8;
     }
 }
@@ -1665,7 +1678,6 @@
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>OLCUC;
         ONLCR;
         OCRNL <span class="kw">as </span>tcflag_t;
@@ -1676,56 +1688,48 @@
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>OFILL <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>OFDEL <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>NL0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>NL1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CR0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CR1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CR2 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CR3 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
@@ -1733,21 +1737,18 @@
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>TAB0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>TAB1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>TAB2 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
@@ -1755,52 +1756,44 @@
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>TAB3 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>XTABS;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>BS0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>BS1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>VT0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>VT1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>FF0 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>FF1 <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -1808,14 +1801,12 @@
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>OXTABS;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ONOEOT <span class="kw">as </span>tcflag_t;
 
         <span class="comment">// Bitmasks for use with OutputFlags to select specific settings
@@ -1827,14 +1818,12 @@
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>NLDLY <span class="kw">as </span>tcflag_t; <span class="comment">// FIXME: Datatype needs to be corrected in libc for mac
         </span><span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CRDLY <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
@@ -1842,28 +1831,24 @@
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>TABDLY <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>BSDLY <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>VTDLY <span class="kw">as </span>tcflag_t;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   target_os = <span class="string">&quot;haiku&quot;</span>,
                   target_os = <span class="string">&quot;ios&quot;</span>,
                   target_os = <span class="string">&quot;linux&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>FFDLY <span class="kw">as </span>tcflag_t;
     }
 }
@@ -1877,7 +1862,6 @@
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CIGNORE;
         CS5;
         CS6;
@@ -1890,54 +1874,43 @@
         HUPCL;
         CLOCAL;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CRTSCTS;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CBAUD;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, all(target_os = <span class="string">&quot;linux&quot;</span>, not(target_arch = <span class="string">&quot;mips&quot;</span>))))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CMSPAR;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
                   all(target_os = <span class="string">&quot;linux&quot;</span>,
                       not(any(target_arch = <span class="string">&quot;powerpc&quot;</span>, target_arch = <span class="string">&quot;powerpc64&quot;</span>)))))]
         </span>CIBAUD;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CBAUDEX;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>MDMBUF;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CHWFLOW;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CCTS_OFLOW;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CRTS_IFLOW;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CDTR_IFLOW;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CDSR_OFLOW;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
                   target_os = <span class="string">&quot;freebsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>CCAR_OFLOW;
 
         <span class="comment">// Bitmasks for use with ControlFlags to select specific settings
@@ -1952,17 +1925,14 @@
     <span class="doccomment">/// Flags for setting any local modes
     </span><span class="kw">pub struct </span>LocalFlags: tcflag_t {
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ECHOKE;
         ECHOE;
         ECHOK;
         ECHO;
         ECHONL;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ECHOPRT;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ECHOCTL;
         ISIG;
         ICANON;
@@ -1972,15 +1942,12 @@
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>ALTWERASE;
         IEXTEN;
-        <span class="attribute">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
+        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
         </span>EXTPROC;
         TOSTOP;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>FLUSHO;
         <span class="attribute">#[cfg(any(target_os = <span class="string">&quot;freebsd&quot;</span>,
                   target_os = <span class="string">&quot;dragonfly&quot;</span>,
@@ -1988,10 +1955,8 @@
                   target_os = <span class="string">&quot;macos&quot;</span>,
                   target_os = <span class="string">&quot;netbsd&quot;</span>,
                   target_os = <span class="string">&quot;openbsd&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>NOKERNINFO;
         <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-        #[cfg_attr(docsrs, doc(cfg(all())))]
         </span>PENDIN;
         NOFLSH;
     }
@@ -2005,7 +1970,7 @@
                  target_os = <span class="string">&quot;netbsd&quot;</span>,
                  target_os = <span class="string">&quot;openbsd&quot;</span>))] </span>{
         <span class="doccomment">/// Get input baud rate (see
-        /// [cfgetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
+        /// [cfgetispeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
         ///
         /// `cfgetispeed()` extracts the input baud rate from the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfgetispeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; u32 {
@@ -2014,7 +1979,7 @@
         }
 
         <span class="doccomment">/// Get output baud rate (see
-        /// [cfgetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
+        /// [cfgetospeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
         ///
         /// `cfgetospeed()` extracts the output baud rate from the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfgetospeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; u32 {
@@ -2023,7 +1988,7 @@
         }
 
         <span class="doccomment">/// Set input baud rate (see
-        /// [cfsetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetispeed.html)).
+        /// [cfsetispeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetispeed.html)).
         ///
         /// `cfsetispeed()` sets the intput baud rate in the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfsetispeed&lt;T: Into&lt;u32&gt;&gt;(termios: <span class="kw-2">&amp;mut </span>Termios, baud: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -2034,7 +1999,7 @@
         }
 
         <span class="doccomment">/// Set output baud rate (see
-        /// [cfsetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetospeed.html)).
+        /// [cfsetospeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetospeed.html)).
         ///
         /// `cfsetospeed()` sets the output baud rate in the given termios structure.
         </span><span class="kw">pub fn </span>cfsetospeed&lt;T: Into&lt;u32&gt;&gt;(termios: <span class="kw-2">&amp;mut </span>Termios, baud: T) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -2059,7 +2024,7 @@
         <span class="kw">use </span>std::convert::TryInto;
 
         <span class="doccomment">/// Get input baud rate (see
-        /// [cfgetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
+        /// [cfgetispeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetispeed.html)).
         ///
         /// `cfgetispeed()` extracts the input baud rate from the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfgetispeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; BaudRate {
@@ -2068,7 +2033,7 @@
         }
 
         <span class="doccomment">/// Get output baud rate (see
-        /// [cfgetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
+        /// [cfgetospeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfgetospeed.html)).
         ///
         /// `cfgetospeed()` extracts the output baud rate from the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfgetospeed(termios: <span class="kw-2">&amp;</span>Termios) -&gt; BaudRate {
@@ -2077,7 +2042,7 @@
         }
 
         <span class="doccomment">/// Set input baud rate (see
-        /// [cfsetispeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetispeed.html)).
+        /// [cfsetispeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetispeed.html)).
         ///
         /// `cfsetispeed()` sets the intput baud rate in the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfsetispeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -2088,7 +2053,7 @@
         }
 
         <span class="doccomment">/// Set output baud rate (see
-        /// [cfsetospeed(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetospeed.html)).
+        /// [cfsetospeed(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/cfsetospeed.html)).
         ///
         /// `cfsetospeed()` sets the output baud rate in the given `Termios` structure.
         </span><span class="kw">pub fn </span>cfsetospeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -2103,7 +2068,6 @@
         ///
         /// `cfsetspeed()` sets the input and output baud rate in the given `Termios` structure. Note that
         /// this is part of the 4.4BSD standard and not part of POSIX.
-        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
         </span><span class="kw">pub fn </span>cfsetspeed(termios: <span class="kw-2">&amp;mut </span>Termios, baud: BaudRate) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
             <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
             <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::cfsetspeed(inner_termios, baud <span class="kw">as </span>libc::speed_t) };
@@ -2114,7 +2078,7 @@
 }
 
 <span class="doccomment">/// Configures the port to something like the &quot;raw&quot; mode of the old Version 7 terminal driver (see
-/// [termios(3)](https://man7.org/linux/man-pages/man3/termios.3.html)).
+/// [termios(3)](http://man7.org/linux/man-pages/man3/termios.3.html)).
 ///
 /// `cfmakeraw()` configures the termios structure such that input is available character-by-
 /// character, echoing is disabled, and all special input and output processing is disabled. Note
@@ -2132,7 +2096,6 @@
 ///
 /// Note that this is a non-standard function, available on FreeBSD.
 </span><span class="attribute">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
-#[cfg_attr(docsrs, doc(cfg(all())))]
 </span><span class="kw">pub fn </span>cfmakesane(termios: <span class="kw-2">&amp;mut </span>Termios) {
     <span class="kw">let </span>inner_termios = <span class="kw">unsafe </span>{ termios.get_libc_termios_mut() };
     <span class="kw">unsafe </span>{
@@ -2142,7 +2105,7 @@
 }
 
 <span class="doccomment">/// Return the configuration of a port
-/// [tcgetattr(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetattr.html)).
+/// [tcgetattr(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetattr.html)).
 ///
 /// `tcgetattr()` returns a `Termios` structure with the current configuration for a port. Modifying
 /// this structure *will not* reconfigure the port, instead the modifications should be done to
@@ -2158,7 +2121,7 @@
 }
 
 <span class="doccomment">/// Set the configuration for a terminal (see
-/// [tcsetattr(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsetattr.html)).
+/// [tcsetattr(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsetattr.html)).
 ///
 /// `tcsetattr()` reconfigures the given port based on a given `Termios` structure. This change
 /// takes affect at a time specified by `actions`. Note that this function may return success if
@@ -2169,13 +2132,13 @@
 }
 
 <span class="doccomment">/// Block until all output data is written (see
-/// [tcdrain(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcdrain.html)).
+/// [tcdrain(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcdrain.html)).
 </span><span class="kw">pub fn </span>tcdrain(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     Errno::result(<span class="kw">unsafe </span>{ libc::tcdrain(fd) }).map(drop)
 }
 
 <span class="doccomment">/// Suspend or resume the transmission or reception of data (see
-/// [tcflow(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcflow.html)).
+/// [tcflow(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcflow.html)).
 ///
 /// `tcflow()` suspends of resumes the transmission or reception of data for the given port
 /// depending on the value of `action`.
@@ -2184,7 +2147,7 @@
 }
 
 <span class="doccomment">/// Discard data in the output or input queue (see
-/// [tcflush(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcflush.html)).
+/// [tcflush(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcflush.html)).
 ///
 /// `tcflush()` will discard data for a terminal port in the input queue, output queue, or both
 /// depending on the value of `action`.
@@ -2193,7 +2156,7 @@
 }
 
 <span class="doccomment">/// Send a break for a specific duration (see
-/// [tcsendbreak(3p)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsendbreak.html)).
+/// [tcsendbreak(3p)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcsendbreak.html)).
 ///
 /// When using asynchronous data transmission `tcsendbreak()` will transmit a continuous stream
 /// of zero-valued bits for an implementation-defined duration.
@@ -2201,29 +2164,22 @@
     Errno::result(<span class="kw">unsafe </span>{ libc::tcsendbreak(fd, duration) }).map(drop)
 }
 
-<span class="macro">feature! </span>{
-<span class="attribute">#![feature = <span class="string">&quot;process&quot;</span>]
-</span><span class="doccomment">/// Get the session controlled by the given terminal (see
-/// [tcgetsid(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetsid.html)).
+<span class="doccomment">/// Get the session controlled by the given terminal (see
+/// [tcgetsid(3)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/tcgetsid.html)).
 </span><span class="kw">pub fn </span>tcgetsid(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;Pid&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::tcgetsid(fd) };
 
     Errno::result(res).map(Pid::from_raw)
 }
-}
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>std::convert::TryFrom;
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>try_from() {
         <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(BaudRate::B0), BaudRate::try_from(libc::B0));
-        <span class="attribute">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
-        </span>BaudRate::try_from(<span class="number">999999999</span>).expect_err(<span class="string">&quot;assertion failed&quot;</span>);
-        <span class="attribute">#[cfg(target_os = <span class="string">&quot;haiku&quot;</span>)]
-        </span>BaudRate::try_from(<span class="number">99</span>).expect_err(<span class="string">&quot;assertion failed&quot;</span>);
+        <span class="macro">assert!</span>(BaudRate::try_from(<span class="number">999999999</span>).is_err());
     }
 }
 </code></pre></div>

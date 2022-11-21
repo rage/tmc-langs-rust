@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["FeedbackAnswer","Used to respond to feedback questions. See TmcClient::send_feedback."]]};

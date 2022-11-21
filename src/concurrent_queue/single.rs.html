@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/single.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/single.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>single.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -127,12 +127,21 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
-<span class="kw">use </span>std::mem::MaybeUninit;
-<span class="kw">use </span>std::sync::atomic::{AtomicUsize, Ordering};
-<span class="kw">use </span>std::thread;
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+</pre><pre class="rust"><code><span class="kw">use </span>core::mem::MaybeUninit;
 
-<span class="kw">use crate</span>::{PopError, PushError};
+<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicUsize, Ordering};
+<span class="kw">use </span><span class="kw">crate</span>::sync::cell::UnsafeCell;
+<span class="attribute">#[allow(unused_imports)]
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::prelude::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{busy_wait, PopError, PushError};
 
 <span class="kw">const </span>LOCKED: usize = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
 <span class="kw">const </span>PUSHED: usize = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
@@ -163,7 +172,9 @@
 
         <span class="kw">if </span>state == <span class="number">0 </span>{
             <span class="comment">// Write the value and unlock.
-            </span><span class="kw">unsafe </span>{ <span class="self">self</span>.slot.get().write(MaybeUninit::new(value)) }
+            </span><span class="self">self</span>.slot.with_mut(|slot| <span class="kw">unsafe </span>{
+                slot.write(MaybeUninit::new(value));
+            });
             <span class="self">self</span>.state.fetch_and(!LOCKED, Ordering::Release);
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else if </span>state &amp; CLOSED != <span class="number">0 </span>{
@@ -190,7 +201,9 @@
 
             <span class="kw">if </span>prev == state {
                 <span class="comment">// Read the value and unlock.
-                </span><span class="kw">let </span>value = <span class="kw">unsafe </span>{ <span class="self">self</span>.slot.get().read().assume_init() };
+                </span><span class="kw">let </span>value = <span class="self">self
+                    </span>.slot
+                    .with_mut(|slot| <span class="kw">unsafe </span>{ slot.read().assume_init() });
                 <span class="self">self</span>.state.fetch_and(!LOCKED, Ordering::Release);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(value);
             }
@@ -206,7 +219,7 @@
             <span class="kw">if </span>prev &amp; LOCKED == <span class="number">0 </span>{
                 state = prev;
             } <span class="kw">else </span>{
-                thread::yield_now();
+                busy_wait();
                 state = prev &amp; !LOCKED;
             }
         }
@@ -248,12 +261,15 @@
 <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Single&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// Drop the value in the slot.
-        </span><span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.state.get_mut() &amp; PUSHED != <span class="number">0 </span>{
-            <span class="kw">unsafe </span>{
-                <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span><span class="self">self</span>.slot.get();
-                value.as_mut_ptr().drop_in_place();
+        </span><span class="kw">let </span><span class="self">Self </span>{ state, slot } = <span class="self">self</span>;
+        state.with_mut(|state| {
+            <span class="kw">if </span><span class="kw-2">*</span>state &amp; PUSHED != <span class="number">0 </span>{
+                slot.with_mut(|slot| <span class="kw">unsafe </span>{
+                    <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span>slot;
+                    value.as_mut_ptr().drop_in_place();
+                });
             }
-        }
+        });
     }
 }
 </code></pre></div>

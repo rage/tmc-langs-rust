@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.11.2+zstd.1.5.2/src/stream/raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../zstd/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.6.1+zstd.1.4.9/src/stream/raw.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../zstd/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -321,36 +321,6 @@
 <span id="321">321</span>
 <span id="322">322</span>
 <span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Raw in-memory stream compression/decompression.
 //!
 //! This module defines a `Decoder` and an `Encoder` to decode/encode streams
@@ -359,7 +329,7 @@
 //! They are mostly thin wrappers around `zstd_safe::{DCtx, CCtx}`.
 </span><span class="kw">use </span>std::io;
 
-<span class="kw">pub use </span>zstd_safe::{CParameter, DParameter, InBuffer, OutBuffer, WriteBuf};
+<span class="kw">pub use </span>zstd_safe::{CParameter, DParameter, InBuffer, OutBuffer};
 
 <span class="kw">use </span><span class="kw">crate</span>::dict::{DecoderDictionary, EncoderDictionary};
 <span class="kw">use </span><span class="kw">crate</span>::map_error_code;
@@ -374,10 +344,10 @@
     ///
     /// If the result is `Ok(0)`, it may indicate that a frame was just
     /// finished.
-    </span><span class="kw">fn </span>run&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>InBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; io::Result&lt;usize&gt;;
 
     <span class="doccomment">/// Performs a single step of this operation.
@@ -396,8 +366,8 @@
 
         <span class="prelude-val">Ok</span>(Status {
             remaining,
-            bytes_read: input.pos(),
-            bytes_written: output.pos(),
+            bytes_read: input.pos,
+            bytes_written: output.pos,
         })
     }
 
@@ -405,10 +375,7 @@
     ///
     /// Returns the number of bytes still in the buffer.
     /// To flush entirely, keep calling until it returns `Ok(0)`.
-    </span><span class="kw">fn </span>flush&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
-    ) -&gt; io::Result&lt;usize&gt; {
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">let _ </span>= output;
         <span class="prelude-val">Ok</span>(<span class="number">0</span>)
     }
@@ -426,9 +393,9 @@
     ///
     /// Keep calling this method until it returns `Ok(0)`,
     /// and then don&#39;t ever call this method.
-    </span><span class="kw">fn </span>finish&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    </span><span class="kw">fn </span>finish(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
         finished_frame: bool,
     ) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">let _ </span>= output;
@@ -441,26 +408,21 @@
 </span><span class="kw">pub struct </span>NoOp;
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>NoOp {
-    <span class="kw">fn </span>run&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>InBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; io::Result&lt;usize&gt; {
-        <span class="comment">// Skip the prelude
-        </span><span class="kw">let </span>src = <span class="kw-2">&amp;</span>input.src[input.pos..];
-        <span class="comment">// Safe because `output.pos() &lt;= output.dst.capacity()`.
-        </span><span class="kw">let </span>dst = <span class="kw">unsafe </span>{ output.dst.as_mut_ptr().add(output.pos()) };
+        <span class="kw">let </span>src = <span class="kw-2">&amp;</span>input.src[input.pos..];
+        <span class="kw">let </span>dst = <span class="kw-2">&amp;mut </span>output.dst[output.pos..];
 
-        <span class="comment">// Ignore anything past the end
-        </span><span class="kw">let </span>len = usize::min(src.len(), output.dst.capacity());
+        <span class="kw">let </span>len = usize::min(src.len(), dst.len());
         <span class="kw">let </span>src = <span class="kw-2">&amp;</span>src[..len];
+        <span class="kw">let </span>dst = <span class="kw-2">&amp;mut </span>dst[..len];
 
-        <span class="comment">// Safe because:
-        // * `len` is less than either of the two lengths
-        // * `src` and `dst` do not overlap because we have `&amp;mut` to each.
-        </span><span class="kw">unsafe </span>{ std::ptr::copy_nonoverlapping(src.as_ptr(), dst, len) };
-        input.set_pos(input.pos() + len);
-        <span class="kw">unsafe </span>{ output.set_pos(output.pos() + len) };
+        dst.copy_from_slice(src);
+        input.pos += len;
+        output.pos += len;
 
         <span class="prelude-val">Ok</span>(<span class="number">0</span>)
     }
@@ -527,10 +489,10 @@
 }
 
 <span class="kw">impl </span>Operation <span class="kw">for </span>Decoder&lt;<span class="lifetime">&#39;_</span>&gt; {
-    <span class="kw">fn </span>run&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>InBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.context
             .decompress_stream(output, input)
@@ -541,10 +503,9 @@
         <span class="self">self</span>.context.reset().map_err(map_error_code)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
-
-    <span class="kw">fn </span>finish&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>finish(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        _output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
         finished_frame: bool,
     ) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">if </span>finished_frame {
@@ -607,45 +568,26 @@
             .map_err(map_error_code)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
-
-    <span class="doccomment">/// Sets the size of the input expected by zstd.
-    ///
-    /// May affect compression ratio.
-    ///
-    /// It is an error to give an incorrect size (an error _will_ be returned when closing the
-    /// stream).
-    </span><span class="kw">pub fn </span>set_pledged_src_size(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        pledged_src_size: u64,
-    ) -&gt; io::Result&lt;()&gt; {
-        <span class="self">self</span>.context
-            .set_pledged_src_size(pledged_src_size)
-            .map_err(map_error_code)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Operation <span class="kw">for </span>Encoder&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>run&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>run(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         input: <span class="kw-2">&amp;mut </span>InBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
     ) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.context
             .compress_stream(output, input)
             .map_err(map_error_code)
     }
 
-    <span class="kw">fn </span>flush&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
-    ) -&gt; io::Result&lt;usize&gt; {
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.context.flush_stream(output).map_err(map_error_code)
     }
 
-    <span class="kw">fn </span>finish&lt;C: WriteBuf + <span class="question-mark">?</span>Sized&gt;(
+    <span class="kw">fn </span>finish(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>, C&gt;,
+        output: <span class="kw-2">&amp;mut </span>OutBuffer&lt;<span class="lifetime">&#39;_</span>&gt;,
         _finished_frame: bool,
     ) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.context.end_stream(output).map_err(map_error_code)
@@ -661,13 +603,10 @@
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::{Decoder, Encoder, InBuffer, Operation, OutBuffer};
 
-    <span class="comment">// This requires impl for [u8; N] which is currently behind a feature.
-    </span><span class="attribute">#[cfg(feature = <span class="string">&quot;arrays&quot;</span>)]
-    #[test]
+    <span class="attribute">#[test]
     </span><span class="kw">fn </span>test_cycle() {
-        <span class="kw">use super</span>::{Decoder, Encoder, InBuffer, Operation, OutBuffer};
-
         <span class="kw">let </span><span class="kw-2">mut </span>encoder = Encoder::new(<span class="number">1</span>).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>decoder = Decoder::new().unwrap();
 
@@ -689,6 +628,7 @@
         <span class="kw">let </span>initial_data = input.src;
 
         <span class="comment">// Step 2: decompress
+
         </span><span class="kw">let </span><span class="kw-2">mut </span>input = InBuffer::around(output.as_slice());
         <span class="kw">let </span><span class="kw-2">mut </span>output = [<span class="number">0u8</span>; <span class="number">128</span>];
         <span class="kw">let </span><span class="kw-2">mut </span>output = OutBuffer::around(<span class="kw-2">&amp;mut </span>output);

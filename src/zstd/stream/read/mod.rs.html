@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.11.2+zstd.1.5.2/src/stream/read/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zstd-0.6.1+zstd.1.4.9/src/stream/read/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../zstd/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../zstd/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -196,12 +196,53 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Implement pull-based [`Read`] trait for both compressing and decompressing.
 </span><span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead, BufReader, Read};
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">use </span>tokio_io::AsyncRead;
 
 <span class="kw">use </span><span class="kw">crate</span>::dict::{DecoderDictionary, EncoderDictionary};
 <span class="kw">use </span><span class="kw">crate</span>::stream::{raw, zio};
 <span class="kw">use </span>zstd_safe;
+
+<span class="attribute">#[cfg(test)]
+#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">mod </span>async_tests;
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -247,7 +288,6 @@
     <span class="doccomment">/// Sets this `Decoder` to stop after the first frame.
     ///
     /// By default, it keeps concatenating frames until EOF is reached.
-    </span><span class="attribute">#[must_use]
     </span><span class="kw">pub fn </span>single_frame(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.reader.set_single_frame();
         <span class="self">self
@@ -274,6 +314,22 @@
         zstd_safe::DCtx::out_size()
     }
 
+    <span class="doccomment">/// Enables or disabled expecting the 4-byte magic header
+    </span><span class="kw">pub fn </span>include_magicbytes(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        include_magicbytes: bool,
+    ) -&gt; io::Result&lt;()&gt; {
+        <span class="self">self</span>.reader
+            .operation_mut()
+            .set_parameter(<span class="kw">if </span>include_magicbytes {
+                zstd_safe::DParameter::Format(zstd_safe::FrameFormat::One)
+            } <span class="kw">else </span>{
+                zstd_safe::DParameter::Format(
+                    zstd_safe::FrameFormat::Magicless,
+                )
+            })
+    }
+
     <span class="doccomment">/// Acquire a reference to the underlying reader.
     </span><span class="kw">pub fn </span>get_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>R {
         <span class="self">self</span>.reader.reader()
@@ -294,14 +350,19 @@
     </span><span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; R {
         <span class="self">self</span>.reader.into_inner()
     }
-
-    <span class="macro">crate::decoder_common!</span>(reader);
 }
 
 <span class="kw">impl</span>&lt;R: BufRead&gt; Read <span class="kw">for </span>Decoder&lt;<span class="lifetime">&#39;_</span>, R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.reader.read(buf)
     }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncRead + BufRead&gt; AsyncRead <span class="kw">for </span>Decoder&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+    <span class="kw">unsafe fn </span>prepare_uninitialized_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, _buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;R: Read&gt; Encoder&lt;<span class="lifetime">&#39;static</span>, BufReader&lt;R&gt;&gt; {
@@ -377,13 +438,20 @@
         <span class="self">self</span>.reader.into_inner()
     }
 
-    <span class="macro">crate::encoder_common!</span>(reader);
+    <span class="macro">crate::readwritecommon!</span>(reader);
 }
 
 <span class="kw">impl</span>&lt;R: BufRead&gt; Read <span class="kw">for </span>Encoder&lt;<span class="lifetime">&#39;_</span>, R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.reader.read(buf)
     }
+}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;tokio&quot;</span>)]
+</span><span class="kw">impl</span>&lt;R: AsyncRead + BufRead&gt; AsyncRead <span class="kw">for </span>Encoder&lt;<span class="lifetime">&#39;_</span>, R&gt; {
+    <span class="kw">unsafe fn </span>prepare_uninitialized_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, _buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
 }
 
 <span class="kw">fn </span>_assert_traits() {

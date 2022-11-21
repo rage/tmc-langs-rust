@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-client/src/tmc_client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tmc_client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_client/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_client/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_client/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-client/src/tmc_client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tmc_client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_client/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_client/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_client/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -821,29 +821,367 @@
 <span id="821">821</span>
 <span id="822">822</span>
 <span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the TmcClient struct for communicating with the TMC server.
-</span><span class="kw">pub mod </span>api_v8;
+</span><span class="kw">mod </span>api;
 
-<span class="kw">use </span><span class="self">self</span>::api_v8::{PasteData, ReviewData};
-<span class="kw">use crate</span>::{error::ClientError, request::<span class="kw-2">*</span>, response::<span class="kw-2">*</span>};
+<span class="kw">use </span><span class="kw">crate</span>::error::ClientError;
+<span class="kw">use </span><span class="kw">crate</span>::request::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::response::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::Language;
 <span class="kw">use </span>oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
 };
 <span class="kw">use </span>reqwest::{blocking::Client, Url};
-<span class="kw">use </span>schemars::JsonSchema;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::{
-    collections::HashMap,
-    io::{Cursor, Write},
-    path::{Path, PathBuf},
-    sync::Arc,
-    thread,
-    time::Duration,
-    u32,
-};
-<span class="kw">use </span>tmc_langs_plugins::{Compression, Language};
-<span class="kw">use </span>tmc_langs_util::progress_reporter;
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::io::Write;
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::thread;
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>tempfile::NamedTempFile;
+<span class="kw">use </span>tmc_langs_util::{progress_reporter, FileError};
 
 <span class="doccomment">/// Authentication token.
 </span><span class="kw">pub type </span>Token =
@@ -853,18 +1191,9 @@
 </span><span class="attribute">#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;kebab-case&quot;</span>)]
 #[serde(tag = <span class="string">&quot;client-update-data-kind&quot;</span>)]
-#[cfg_attr(feature = <span class="string">&quot;ts-rs&quot;</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub enum </span>ClientUpdateData {
-    ExerciseDownload { id: u32, path: PathBuf },
+    ExerciseDownload { id: usize, path: PathBuf },
     PostedSubmission(NewSubmission),
-}
-
-<span class="doccomment">/// Updated exercises.
-</span><span class="attribute">#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = <span class="string">&quot;ts-rs&quot;</span>, derive(ts_rs::TS))]
-</span><span class="kw">pub struct </span>UpdateResult {
-    <span class="kw">pub </span>created: Vec&lt;Exercise&gt;,
-    <span class="kw">pub </span>updated: Vec&lt;Exercise&gt;,
 }
 
 <span class="doccomment">/// A struct for interacting with the TestMyCode service, including authentication.
@@ -873,7 +1202,10 @@
 
 <span class="kw">struct </span>TmcCore {
     client: Client,
-    root_url: Url,
+    <span class="attribute">#[allow(dead_code)]
+    </span>config_dir: PathBuf, <span class="comment">// not used yet
+    </span>api_url: Url,
+    auth_url: String,
     token: <span class="prelude-ty">Option</span>&lt;Token&gt;,
     client_name: String,
     client_version: String,
@@ -881,51 +1213,72 @@
 
 <span class="comment">// TODO: cache API results?
 </span><span class="kw">impl </span>TmcClient {
-    <span class="doccomment">/// Convenience function for checking authentication.
-    </span><span class="kw">pub fn </span>require_authentication(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
-        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_some() {
-            <span class="prelude-val">Ok</span>(())
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(ClientError::NotAuthenticated)
-        }
-    }
-
     <span class="doccomment">/// Creates a new TmcClient with the given config directory and root URL.
     ///
-    /// # Panics
-    /// If the root URL does not have a trailing slash and is not a valid URL with an appended trailing slash.
+    /// # Errors
+    /// This function will return an error if parsing the root_url fails.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_client::TmcClient;
+    /// use std::path::PathBuf;
+    ///
+    /// let client = TmcClient::new(PathBuf::from(&quot;./config&quot;), &quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>new(
+        config_dir: PathBuf,
+        root_url: String,
+        client_name: String,
+        client_version: String,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ClientError&gt; {
+        <span class="comment">// guarantee a trailing slash, otherwise join will drop the last component
+        </span><span class="kw">let </span>root_url = <span class="kw">if </span>root_url.ends_with(<span class="string">&#39;/&#39;</span>) {
+            root_url
+        } <span class="kw">else </span>{
+            <span class="macro">format!</span>(<span class="string">&quot;{}/&quot;</span>, root_url)
+        };
+        <span class="kw">let </span>tmc_url = Url::parse(<span class="kw-2">&amp;</span>root_url).map_err(|e| ClientError::UrlParse(root_url, e))<span class="question-mark">?</span>;
+        <span class="kw">let </span>api_url = tmc_url.join(<span class="string">&quot;api/v8/&quot;</span>).expect(<span class="string">&quot;failed to join api/v8/&quot;</span>);
+        <span class="kw">let </span>auth_url = tmc_url
+            .join(<span class="string">&quot;oauth/token&quot;</span>)
+            .expect(<span class="string">&quot;failed to join oauth/token&quot;</span>)
+            .to_string();
+        <span class="prelude-val">Ok</span>(TmcClient(Arc::new(TmcCore {
+            client: Client::new(),
+            config_dir,
+            api_url,
+            auth_url,
+            token: <span class="prelude-val">None</span>,
+            client_name,
+            client_version,
+        })))
+    }
+
+    <span class="doccomment">/// Creates a new TmcClient with the given root URL. The config directory is set according to dirs::cache_dir.
+    ///
+    /// # Errors
+    /// This function will return an error if parsing the root_url fails, or if fetching the cache directory fails (see dirs::cache_dir()).
     ///
     /// # Examples
     /// ```rust,no_run
     /// use tmc_client::TmcClient;
     ///
-    /// let client = TmcClient::new(&quot;https://tmc.mooc.fi&quot;.parse().unwrap(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string());
+    /// let client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_ver&quot;.to_string()).unwrap();
     /// ```
-    </span><span class="kw">pub fn </span>new(root_url: Url, client_name: String, client_version: String) -&gt; <span class="self">Self </span>{
-        <span class="comment">// guarantee a trailing slash, otherwise join will drop the last component
-        </span><span class="kw">let </span>root_url = <span class="kw">if </span>root_url.as_str().ends_with(<span class="string">&#39;/&#39;</span>) {
-            root_url
-        } <span class="kw">else </span>{
-            <span class="macro">format!</span>(<span class="string">&quot;{}/&quot;</span>, root_url).parse().expect(<span class="string">&quot;invalid root url&quot;</span>)
-        };
-
-        TmcClient(Arc::new(TmcCore {
-            client: Client::new(),
-            root_url,
-            token: <span class="prelude-val">None</span>,
-            client_name,
-            client_version,
-        }))
+    </span><span class="kw">pub fn </span>new_in_config(
+        root_url: String,
+        client_name: String,
+        client_version: String,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ClientError&gt; {
+        <span class="kw">let </span>config_dir = dirs::cache_dir().ok_or(ClientError::CacheDir)<span class="question-mark">?</span>;
+        <span class="self">Self</span>::new(config_dir, root_url, client_name, client_version)
     }
 
-    <span class="doccomment">/// Sets the authentication token, which may for example have been read from a file.
-    ///
-    /// # Panics
-    /// If called when multiple clones of the client exist. Call this function before cloning.
-    </span><span class="kw">pub fn </span>set_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) {
+    <span class="kw">pub fn </span>set_token(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token: Token) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
         Arc::get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
-            .expect(<span class="string">&quot;called when multiple clones exist&quot;</span>)
-            .token = <span class="prelude-val">Some</span>(token);
+            .ok_or(ClientError::ArcBorrowed)<span class="question-mark">?
+            </span>.token = <span class="prelude-val">Some</span>(token);
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
@@ -936,14 +1289,11 @@
     /// if the client_name is malformed and leads to a malformed URL,
     /// or if there is some error during the token exchange (see oauth2::Client::excange_password).
     ///
-    /// # Panics
-    /// If called when multiple clones exist. Call this function before cloning.
-    ///
     /// # Examples
     /// ```rust,no_run
     /// use tmc_client::TmcClient;
     ///
-    /// let mut client = TmcClient::new(&quot;https://tmc.mooc.fi&quot;.parse().unwrap(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string());
+    /// let mut client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
     /// client.authenticate(&quot;client&quot;, &quot;user&quot;.to_string(), &quot;pass&quot;.to_string()).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>authenticate(
@@ -956,20 +1306,24 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::AlreadyAuthenticated);
         }
 
-        <span class="kw">let </span>auth_url = <span class="self">self
+        <span class="kw">let </span>tail = <span class="macro">format!</span>(<span class="string">&quot;application/{}/credentials&quot;</span>, client_name);
+        <span class="kw">let </span>url = <span class="self">self
             </span>.<span class="number">0
-            </span>.root_url
-            .join(<span class="string">&quot;/oauth/token&quot;</span>)
-            .map_err(|e| ClientError::UrlParse(<span class="string">&quot;oauth/token&quot;</span>.to_string(), e))<span class="question-mark">?</span>;
+            </span>.api_url
+            .join(<span class="kw-2">&amp;</span>tail)
+            .map_err(|e| ClientError::UrlParse(tail, e))<span class="question-mark">?</span>;
+        <span class="kw">let </span>credentials: Credentials = <span class="self">self</span>.get_json_from_url(url, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>credentials = api_v8::get_credentials(<span class="self">self</span>, client_name)<span class="question-mark">?</span>;
-
-        <span class="macro">log::debug!</span>(<span class="string">&quot;authenticating at {}&quot;</span>, auth_url);
+        <span class="macro">log::debug!</span>(<span class="string">&quot;authenticating at {}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.auth_url);
         <span class="kw">let </span>client = BasicClient::new(
             ClientId::new(credentials.application_id),
             <span class="prelude-val">Some</span>(ClientSecret::new(credentials.secret)),
-            AuthUrl::from_url(auth_url.clone()),
-            <span class="prelude-val">Some</span>(TokenUrl::from_url(auth_url)),
+            AuthUrl::new(<span class="self">self</span>.<span class="number">0</span>.auth_url.clone())
+                .map_err(|e| ClientError::UrlParse(<span class="self">self</span>.<span class="number">0</span>.auth_url.clone(), e))<span class="question-mark">?</span>, <span class="comment">// not used in the Resource Owner Password Credentials Grant
+            </span><span class="prelude-val">Some</span>(
+                TokenUrl::new(<span class="self">self</span>.<span class="number">0</span>.auth_url.clone())
+                    .map_err(|e| ClientError::UrlParse(<span class="self">self</span>.<span class="number">0</span>.auth_url.clone(), e))<span class="question-mark">?</span>,
+            ),
         );
 
         <span class="kw">let </span>token = client
@@ -979,88 +1333,101 @@
             )
             .request(oauth2::reqwest::http_client)<span class="question-mark">?</span>;
         Arc::get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)
-            .expect(<span class="string">&quot;called when multiple clones exist&quot;</span>)
-            .token = <span class="prelude-val">Some</span>(token.clone());
+            .ok_or(ClientError::ArcBorrowed)<span class="question-mark">?
+            </span>.token = <span class="prelude-val">Some</span>(token.clone());
         <span class="macro">log::debug!</span>(<span class="string">&quot;authenticated&quot;</span>);
         <span class="prelude-val">Ok</span>(token)
     }
 
-    <span class="doccomment">/// Fetches all organizations. Does not require authentication.
+    <span class="doccomment">/// Fetches all organizations.
     ///
     /// # Errors
     /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     </span><span class="kw">pub fn </span>get_organizations(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Organization&gt;, ClientError&gt; {
-        api_v8::organization::get_organizations(<span class="self">self</span>)
+        <span class="self">self</span>.organizations()
     }
 
-    <span class="doccomment">/// Fetches an organization. Does not require authentication.
+    <span class="doccomment">/// Fetches an organization.
     ///
     /// # Errors
     /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     </span><span class="kw">pub fn </span>get_organization(<span class="kw-2">&amp;</span><span class="self">self</span>, organization_slug: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Organization, ClientError&gt; {
-        api_v8::organization::get_organization(<span class="self">self</span>, organization_slug)
+        <span class="self">self</span>.organization(organization_slug)
     }
 
-    <span class="doccomment">/// Fetches the course&#39;s information. Requires authentication.
+    <span class="doccomment">/// Fetches the course&#39;s information.
     ///
     /// # Errors
-    /// If not authenticated, or if there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_course_details(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;CourseDetails, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::get_course(<span class="self">self</span>, course_id)
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_client::TmcClient;
+    ///
+    /// let client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
+    /// // authenticate
+    /// let course_details = client.get_course_details(600).unwrap();
+    /// ```
+    </span><span class="kw">pub fn </span>get_course_details(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: usize) -&gt; <span class="prelude-ty">Result</span>&lt;CourseDetails, ClientError&gt; {
+        <span class="self">self</span>.core_course(course_id)
     }
 
-    <span class="doccomment">/// Fetches the exercise&#39;s details. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, or if there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_exercise_details(<span class="kw-2">&amp;</span><span class="self">self</span>, exercise_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;ExerciseDetails, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::get_exercise(<span class="self">self</span>, exercise_id)
+    <span class="kw">pub fn </span>get_exercise_details(<span class="kw-2">&amp;</span><span class="self">self</span>, exercise_id: usize) -&gt; <span class="prelude-ty">Result</span>&lt;ExerciseDetails, ClientError&gt; {
+        <span class="self">self</span>.core_exercise(exercise_id)
     }
 
-    <span class="doccomment">/// Fetches the course&#39;s information. Does not require authentication.
-    ///
-    /// # Errors
-    /// If there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_exercises_details(
+    <span class="kw">pub fn </span>get_exercises_details(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_ids: <span class="kw-2">&amp;</span>[u32],
+        exercise_ids: <span class="kw-2">&amp;</span>[usize],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ExercisesDetails&gt;, ClientError&gt; {
-        api_v8::core::get_exercise_details(<span class="self">self</span>, exercise_ids)
+        <span class="self">self</span>.core_exercise_details(exercise_ids)
     }
 
-    <span class="doccomment">/// Fetches all courses under the given organization. Requires authentication.
+    <span class="kw">pub fn </span>get_course_submissions(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: usize) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Submission&gt;, ClientError&gt; {
+        <span class="self">self</span>.course_submissions(course_id)
+    }
+
+    <span class="doccomment">/// Fetches all courses under the given organization.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_client::TmcClient;
+    ///
+    /// let client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
+    /// // authenticate
+    /// let courses = client.list_courses(&quot;hy&quot;).unwrap();
+    /// ```
     </span><span class="kw">pub fn </span>list_courses(<span class="kw-2">&amp;</span><span class="self">self</span>, organization_slug: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Course&gt;, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::get_organization_courses(<span class="self">self</span>, organization_slug)
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::NotLoggedIn);
+        }
+        <span class="self">self</span>.organization_courses(organization_slug)
     }
 
-    <span class="doccomment">/// Fetches the given course&#39;s data. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_course(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;CourseData, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::course::get_by_id(<span class="self">self</span>, course_id)
+    <span class="kw">pub fn </span>get_course(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: usize) -&gt; <span class="prelude-ty">Result</span>&lt;CourseData, ClientError&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::NotLoggedIn);
+        }
+        <span class="self">self</span>.course(course_id)
     }
 
-    <span class="doccomment">/// Fetches the given course&#39;s exercises. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_course_exercises(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;CourseExercise&gt;, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::exercise::get_course_exercises_by_id(<span class="self">self</span>, course_id)
+    <span class="kw">pub fn </span>get_course_exercises(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        course_id: usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;CourseExercise&gt;, ClientError&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::NotLoggedIn);
+        }
+        <span class="self">self</span>.exercises(course_id)
     }
 
-    <span class="doccomment">/// Sends the given submission as a paste. Requires authentication.
+    <span class="doccomment">/// Sends the given submission as a paste.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     ///
     /// # Examples
     /// ```rust,no_run
@@ -1068,106 +1435,70 @@
     /// use url::Url;
     /// use std::path::Path;
     ///
-    /// let client = TmcClient::new(&quot;https://tmc.mooc.fi&quot;.parse().unwrap(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string());
+    /// let client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
     /// // authenticate
+    /// let course_details = client.get_course_details(600).unwrap();
+    /// let submission_url = &amp;course_details.exercises[0].return_url;
+    /// let submission_url = Url::parse(&amp;submission_url).unwrap();
     /// let new_submission = client.paste(
-    ///     123,
+    ///     submission_url,
     ///     Path::new(&quot;./exercises/python/123&quot;),
     ///     Some(&quot;my python solution&quot;.to_string()),
     ///     Some(Language::Eng)).unwrap();
     /// ```
     </span><span class="kw">pub fn </span>paste(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
+        submission_url: Url,
         submission_path: <span class="kw-2">&amp;</span>Path,
         paste_message: <span class="prelude-ty">Option</span>&lt;String&gt;,
         locale: <span class="prelude-ty">Option</span>&lt;Language&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NewSubmission, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-
         <span class="comment">// compress
-        </span>start_stage(<span class="number">2</span>, <span class="string">&quot;Compressing paste submission...&quot;</span>, <span class="prelude-val">None</span>);
-        <span class="kw">let </span>compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        progress_stage(
-            <span class="string">&quot;Compressed paste submission. Posting paste submission...&quot;</span>,
-            <span class="prelude-val">None</span>,
-        );
+        </span><span class="kw">let </span>compressed = tmc_langs_plugins::compress_project(submission_path)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>file = NamedTempFile::new().map_err(ClientError::TempFile)<span class="question-mark">?</span>;
+        file.write_all(<span class="kw-2">&amp;</span>compressed).map_err(|e| {
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
+        })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>paste = <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = paste_message {
-            PasteData::WithMessage(message)
-        } <span class="kw">else </span>{
-            PasteData::WithoutMessage
-        };
-
-        <span class="kw">let </span>result = api_v8::core::submit_exercise(
-            <span class="self">self</span>,
-            exercise_id,
-            Cursor::new(compressed),
-            <span class="prelude-val">Some</span>(paste),
-            <span class="prelude-val">None</span>,
-            locale,
-        )<span class="question-mark">?</span>;
-
-        finish_stage(
-            <span class="macro">format!</span>(<span class="string">&quot;Paste finished, running at {0}&quot;</span>, result.paste_url),
-            ClientUpdateData::PostedSubmission(result.clone()),
-        );
-        <span class="prelude-val">Ok</span>(result)
+        <span class="self">self</span>.post_submission_to_paste(submission_url, file.path(), paste_message, locale)
     }
 
-    <span class="doccomment">/// Sends feedback. Requires authentication.
+    <span class="doccomment">/// Sends feedback.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     </span><span class="kw">pub fn </span>send_feedback(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        submission_id: u32,
-        feedback: Vec&lt;FeedbackAnswer&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionFeedbackResponse, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::post_submission_feedback(<span class="self">self</span>, submission_id, feedback)
-    }
-
-    <span class="doccomment">/// Posts feedback to the given URL. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>send_feedback_to_url(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         feedback_url: Url,
         feedback: Vec&lt;FeedbackAnswer&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionFeedbackResponse, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        <span class="kw">let </span>form = api_v8::prepare_feedback_form(feedback);
-        api_v8::post_form(<span class="self">self</span>, feedback_url, <span class="kw-2">&amp;</span>form)
+        <span class="self">self</span>.post_feedback(feedback_url, feedback)
     }
 
-    <span class="doccomment">/// Sends the submission to the server. Requires authentication.
+    <span class="doccomment">/// Sends the submission to the server.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    /// The method compresses the submission and writes it into a temporary archive, which may fail.
     </span><span class="kw">pub fn </span>submit(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
+        submission_url: Url,
         submission_path: <span class="kw-2">&amp;</span>Path,
         locale: <span class="prelude-ty">Option</span>&lt;Language&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NewSubmission, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::NotLoggedIn);
+        }
 
         start_stage(<span class="number">2</span>, <span class="string">&quot;Compressing submission...&quot;</span>, <span class="prelude-val">None</span>);
-        <span class="kw">let </span>compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>compressed = tmc_langs_plugins::compress_project(submission_path)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>file = NamedTempFile::new().map_err(ClientError::TempFile)<span class="question-mark">?</span>;
+        file.write_all(<span class="kw-2">&amp;</span>compressed).map_err(|e| {
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
+        })<span class="question-mark">?</span>;
         progress_stage(<span class="string">&quot;Compressed submission. Posting submission...&quot;</span>, <span class="prelude-val">None</span>);
 
-        <span class="kw">let </span>result = api_v8::core::submit_exercise(
-            <span class="self">self</span>,
-            exercise_id,
-            Cursor::new(compressed),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">None</span>,
-            locale,
-        )<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = <span class="self">self</span>.post_submission(submission_url, file.path(), locale)<span class="question-mark">?</span>;
         finish_stage(
             <span class="macro">format!</span>(
                 <span class="string">&quot;Submission finished, running at {0}&quot;</span>,
@@ -1178,42 +1509,30 @@
         <span class="prelude-val">Ok</span>(result)
     }
 
-    <span class="doccomment">/// Downloads an old submission. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>download_old_submission(
+    <span class="kw">pub fn </span>download_old_submission(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        submission_id: u32,
-        target: <span class="kw">impl </span>Write,
+        submission_id: usize,
+        target: <span class="kw-2">&amp;</span>Path,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        <span class="macro">log::info!</span>(<span class="string">&quot;downloading old submission {}&quot;</span>, submission_id);
-        api_v8::core::download_submission(<span class="self">self</span>, submission_id, target)
+        <span class="self">self</span>.download_submission(submission_id, target)
     }
 
-    <span class="doccomment">/// Fetches exercise submissions for the authenticated user. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_exercise_submissions_for_current_user(
+    <span class="kw">pub fn </span>get_exercise_submissions_for_current_user(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
+        exercise_id: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Submission&gt;, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::submission::get_exercise_submissions_for_current_user(<span class="self">self</span>, exercise_id)
+        <span class="self">self</span>.exercise_submissions_for_current_user(exercise_id)
     }
 
-    <span class="comment">// abstracts waiting for submission over different functions for getting the submission status
-    </span><span class="kw">fn </span>wait_for_submission_inner(
+    <span class="kw">pub fn </span>wait_for_submission(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        f: <span class="kw">impl </span>Fn() -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionProcessingStatus, ClientError&gt;,
+        submission_url: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionFinished, ClientError&gt; {
         start_stage(<span class="number">4</span>, <span class="string">&quot;Waiting for submission&quot;</span>, <span class="prelude-val">None</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>previous_status = <span class="prelude-val">None</span>;
         <span class="kw">loop </span>{
-            <span class="kw">match </span>f()<span class="question-mark">? </span>{
+            <span class="kw">match </span><span class="self">self</span>.check_submission(submission_url)<span class="question-mark">? </span>{
                 SubmissionProcessingStatus::Finished(f) =&gt; {
                     finish_stage(<span class="string">&quot;Submission finished processing!&quot;</span>, <span class="prelude-val">None</span>);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>f);
@@ -1280,42 +1599,20 @@
         }
     }
 
-    <span class="doccomment">/// Waits for a submission to finish at the given URL. May require authentication
-    ///
-    /// # Errors
-    /// If authentication is required but the client is not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>wait_for_submission_at(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        submission_url: Url,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionFinished, ClientError&gt; {
-        <span class="self">self</span>.wait_for_submission_inner(|| api_v8::get_json(<span class="self">self</span>, submission_url.clone(), <span class="kw-2">&amp;</span>[]))
-    }
-
-    <span class="doccomment">/// Waits for a submission to finish. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>wait_for_submission(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        submission_id: u32,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionFinished, ClientError&gt; {
-        <span class="self">self</span>.wait_for_submission_inner(|| api_v8::get_submission(<span class="self">self</span>, submission_id))
-    }
-
     <span class="doccomment">/// Fetches the course&#39;s exercises from the server,
-    /// and finds new or updated exercises. Requires authentication.
+    /// and finds new or updated exercises.
     /// If an exercise&#39;s id is not found in the checksum map, it is considered new.
     /// If an id is found, it is compared to the current one. If they are different,
     /// it is considered updated.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     ///
     /// # Examples
     /// ```rust,no_run
     /// use tmc_client::TmcClient;
     ///
-    /// let client = TmcClient::new(&quot;https://tmc.mooc.fi&quot;.parse().unwrap(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string());
+    /// let client = TmcClient::new_in_config(&quot;https://tmc.mooc.fi&quot;.to_string(), &quot;some_client&quot;.to_string(), &quot;some_version&quot;.to_string()).unwrap();
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
     /// checksums.insert(1234, &quot;exercisechecksum&quot;.to_string());
@@ -1323,15 +1620,13 @@
     /// ```
     </span><span class="kw">pub fn </span>get_exercise_updates(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        course_id: u32,
-        checksums: HashMap&lt;u32, String&gt;,
+        course_id: usize,
+        checksums: HashMap&lt;usize, String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;UpdateResult, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-
         <span class="kw">let </span><span class="kw-2">mut </span>new_exercises = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>updated_exercises = <span class="macro">vec!</span>[];
 
-        <span class="kw">let </span>course = <span class="self">self</span>.get_course_details(course_id)<span class="question-mark">?</span>;
+        <span class="kw">let </span>course = <span class="self">self</span>.core_course(course_id)<span class="question-mark">?</span>;
         <span class="kw">for </span>exercise <span class="kw">in </span>course.exercises {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(old_checksum) = checksums.get(<span class="kw-2">&amp;</span>exercise.id) {
                 <span class="kw">if </span><span class="kw-2">&amp;</span>exercise.checksum != old_checksum {
@@ -1349,88 +1644,91 @@
         })
     }
 
-    <span class="doccomment">/// Mark the review as read on the server. Requires authentication.
+    <span class="doccomment">/// Mark the review as read on the server.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>mark_review_as_read(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: u32, review_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::update_course_review(<span class="self">self</span>, course_id, review_id, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>))
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    </span><span class="kw">pub fn </span>mark_review_as_read(<span class="kw-2">&amp;</span><span class="self">self</span>, review_update_url: String) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
+        <span class="self">self</span>.mark_review(review_update_url, <span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Fetches unread reviews. Requires authentication.
+    <span class="doccomment">/// Fetches all reviews.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>get_unread_reviews(<span class="kw-2">&amp;</span><span class="self">self</span>, course_id: u32) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Review&gt;, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::get_course_reviews(<span class="self">self</span>, course_id)
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    </span><span class="kw">pub fn </span>get_unread_reviews(<span class="kw-2">&amp;</span><span class="self">self</span>, reviews_url: Url) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Review&gt;, ClientError&gt; {
+        <span class="self">self</span>.get_json_from_url(reviews_url, <span class="kw-2">&amp;</span>[])
     }
 
-    <span class="doccomment">/// Request code review. Requires authentication.
+    <span class="doccomment">/// Request code review.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
+    /// The method compresses the project and writes a temporary archive, which may fail.
     </span><span class="kw">pub fn </span>request_code_review(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
+        submission_url: Url,
         submission_path: <span class="kw-2">&amp;</span>Path,
-        message_for_reviewer: <span class="prelude-ty">Option</span>&lt;String&gt;,
+        message_for_reviewer: String,
         locale: <span class="prelude-ty">Option</span>&lt;Language&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;NewSubmission, ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
+        <span class="comment">// compress
+        </span><span class="kw">let </span>compressed = tmc_langs_plugins::compress_project(submission_path)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>file = NamedTempFile::new().map_err(ClientError::TempFile)<span class="question-mark">?</span>;
+        file.write_all(<span class="kw-2">&amp;</span>compressed).map_err(|e| {
+            ClientError::FileError(FileError::FileWrite(file.path().to_path_buf(), e))
+        })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>review = <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message_for_reviewer {
-            ReviewData::WithMessage(message)
-        } <span class="kw">else </span>{
-            ReviewData::WithoutMessage
-        };
-        api_v8::core::submit_exercise(
-            <span class="self">self</span>,
-            exercise_id,
-            Cursor::new(compressed),
-            <span class="prelude-val">None</span>,
-            <span class="prelude-val">Some</span>(review),
-            locale,
-        )
+        <span class="self">self</span>.post_submission_for_review(submission_url, file.path(), message_for_reviewer, locale)
     }
 
-    <span class="doccomment">/// Downloads the model solution from the given url. Requires authentication.
+    <span class="doccomment">/// Downloads the model solution from the given url.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
+    /// Returns an error if there&#39;s some problem reaching the API, or if the API returns an error.
     /// The method extracts the downloaded model solution archive, which may fail.
     </span><span class="kw">pub fn </span>download_model_solution(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
+        solution_download_url: Url,
         target: <span class="kw-2">&amp;</span>Path,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
-        api_v8::core::download_exercise_solution(<span class="self">self</span>, exercise_id, <span class="kw-2">&amp;mut </span>buf)<span class="question-mark">?</span>;
-        tmc_langs_plugins::extract_project(Cursor::new(buf), target, Compression::Zip, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>zip_file = NamedTempFile::new().map_err(ClientError::TempFile)<span class="question-mark">?</span>;
+        <span class="self">self</span>.download_from(solution_download_url, zip_file.path())<span class="question-mark">?</span>;
+        tmc_langs_plugins::extract_project(zip_file, target, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Request code review. Requires authentication.
+    <span class="doccomment">/// Checks the status of a submission on the server.
     ///
     /// # Errors
-    /// If not authenticated, there&#39;s some problem reaching the API, or if the API returns an error.
-    </span><span class="kw">pub fn </span>download_exercise(
+    /// Returns an error if the client has not been authenticated,
+    /// or if there&#39;s some problem reaching the API, or if the API returns an error.
+    </span><span class="kw">pub fn </span>check_submission(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        exercise_id: u32,
-        target: <span class="kw">impl </span>Write,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ClientError&gt; {
-        <span class="self">self</span>.require_authentication()<span class="question-mark">?</span>;
-        api_v8::core::download_exercise(<span class="self">self</span>, exercise_id, target)
+        submission_url: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;SubmissionProcessingStatus, ClientError&gt; {
+        <span class="kw">if </span><span class="self">self</span>.<span class="number">0</span>.token.is_none() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(ClientError::NotLoggedIn);
+        }
+
+        <span class="kw">let </span>url = Url::parse(submission_url)
+            .map_err(|e| ClientError::UrlParse(submission_url.to_string(), e))<span class="question-mark">?</span>;
+        <span class="kw">let </span>res: SubmissionProcessingStatus = <span class="self">self</span>.get_json_from_url(url, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(res)
     }
 }
 
-<span class="comment">// convenience functions to make sure the progress report type is correct for tmc-client
-</span><span class="kw">fn </span>start_stage(steps: u32, message: <span class="kw">impl </span>Into&lt;String&gt;, data: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;ClientUpdateData&gt;&gt;) {
+<span class="kw">impl </span>AsRef&lt;TmcCore&gt; <span class="kw">for </span>TmcClient {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TmcCore {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">fn </span>start_stage(
+    steps: usize,
+    message: <span class="kw">impl </span>Into&lt;String&gt;,
+    data: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;ClientUpdateData&gt;&gt;,
+) {
     progress_reporter::start_stage(steps, message.into(), data.into())
 }
 
@@ -1443,16 +1741,12 @@
 }
 
 <span class="attribute">#[cfg(test)]
-#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
-    <span class="comment">// many of TmcClient&#39;s functions simply call already tested functions from api_v8 and don&#39;t need testing
-    </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>mockito::Matcher;
-    <span class="kw">use </span>oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
-    <span class="kw">use </span>std::sync::atomic::AtomicBool;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>mockito::{mock, Matcher};
 
     <span class="comment">// sets up mock-authenticated TmcClient and logging
-    </span><span class="kw">fn </span>init() {
+    </span><span class="kw">fn </span>init() -&gt; (TmcClient, String) {
         <span class="kw">use </span>log::<span class="kw-2">*</span>;
         <span class="kw">use </span>simple_logger::<span class="kw-2">*</span>;
 
@@ -1465,28 +1759,269 @@
             <span class="comment">// hyper does a lot of logging
             </span>.with_module_level(<span class="string">&quot;hyper&quot;</span>, LevelFilter::Warn)
             .init();
-    }
 
-    <span class="kw">fn </span>make_client() -&gt; TmcClient {
-        <span class="kw">let </span><span class="kw-2">mut </span>client = TmcClient::new(
-            mockito::server_url().parse().unwrap(),
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/application/client_name/credentials&quot;</span>)
+            .match_query(Matcher::Any)
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;application_id&quot;</span>: <span class="string">&quot;id&quot;</span>,
+                    <span class="string">&quot;secret&quot;</span>: <span class="string">&quot;secret&quot;</span>,
+                })
+                .to_string(),
+            )
+            .create();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/oauth/token&quot;</span>)
+            .match_query(Matcher::Any)
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;access_token&quot;</span>: <span class="string">&quot;token&quot;</span>,
+                    <span class="string">&quot;token_type&quot;</span>: <span class="string">&quot;bearer&quot;</span>,
+                })
+                .to_string(),
+            )
+            .create();
+        <span class="kw">let </span>local_server = mockito::server_url();
+        <span class="macro">log::debug!</span>(<span class="string">&quot;local {}&quot;</span>, local_server);
+        <span class="kw">let </span><span class="kw-2">mut </span>client = TmcClient::new_in_config(
+            local_server.to_string(),
             <span class="string">&quot;some_client&quot;</span>.to_string(),
             <span class="string">&quot;some_ver&quot;</span>.to_string(),
-        );
-        <span class="kw">let </span>token = Token::new(
-            AccessToken::new(<span class="string">&quot;&quot;</span>.to_string()),
-            BasicTokenType::Bearer,
-            EmptyExtraTokenFields {},
-        );
-        client.set_token(token);
+        )
+        .unwrap();
         client
+            .authenticate(<span class="string">&quot;client_name&quot;</span>, <span class="string">&quot;email&quot;</span>.to_string(), <span class="string">&quot;password&quot;</span>.to_string())
+            .unwrap();
+        (client, local_server)
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>gets_organizations() {
+        <span class="kw">let </span>(client, _addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/org.json&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body(
+                <span class="macro">serde_json::json!</span>([
+                    {
+                        <span class="string">&quot;information&quot;</span>: <span class="string">&quot;University of Helsinki&#39;s Massive Open Online Courses. All new courses from mooc.fi live here.&quot;</span>,
+                        <span class="string">&quot;logo_path&quot;</span>: <span class="string">&quot;/system/organizations/logos/000/000/021/original/mooc-logo.png?1513356394&quot;</span>,
+                        <span class="string">&quot;name&quot;</span>: <span class="string">&quot;MOOC&quot;</span>,
+                        <span class="string">&quot;pinned&quot;</span>: <span class="bool-val">true</span>,
+                        <span class="string">&quot;slug&quot;</span>: <span class="string">&quot;mooc&quot;
+                    </span>}
+                ]).to_string()
+            )
+            .create();
+
+        <span class="kw">let </span>orgs = client.get_organizations().unwrap();
+        <span class="macro">assert_eq!</span>(orgs[<span class="number">0</span>].name, <span class="string">&quot;MOOC&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>gets_course_details() {
+        <span class="kw">let </span>(client, _addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body(<span class="macro">serde_json::json!</span>({
+                <span class="string">&quot;course&quot;</span>: {
+                    <span class="string">&quot;id&quot;</span>: <span class="number">588</span>,
+                    <span class="string">&quot;name&quot;</span>: <span class="string">&quot;mooc-2020-ohjelmointi&quot;</span>,
+                    <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Ohjelmoinnin MOOC 2020, Ohjelmoinnin perusteet&quot;</span>,
+                    <span class="string">&quot;description&quot;</span>: <span class="string">&quot;Aikataulutettu Ohjelmoinnin MOOC 2020. Kurssin ensimmäinen puolisko. Tästä kurssista voi hakea opinto-oikeutta Helsingin yliopiston tietojenkäsittelytieteen osastolle.&quot;</span>,
+                    <span class="string">&quot;details_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/588&quot;</span>,
+                    <span class="string">&quot;unlock_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/588/unlock&quot;</span>,
+                    <span class="string">&quot;reviews_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/588/reviews&quot;</span>,
+                    <span class="string">&quot;comet_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi:8443/comet&quot;</span>,
+                    <span class="string">&quot;spyware_urls&quot;</span>: [
+                    <span class="string">&quot;http://snapshots01.mooc.fi/&quot;
+                    </span>],
+                    <span class="string">&quot;unlockables&quot;</span>: [],
+                    <span class="string">&quot;exercises&quot;</span>: [
+                    {
+                        <span class="string">&quot;id&quot;</span>: <span class="number">81842</span>,
+                        <span class="string">&quot;name&quot;</span>: <span class="string">&quot;osa01-Osa01_01.Hiekkalaatikko&quot;</span>,
+                        <span class="string">&quot;locked&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;deadline_description&quot;</span>: <span class="string">&quot;2020-01-20 23:59:59 +0200&quot;</span>,
+                        <span class="string">&quot;deadline&quot;</span>: <span class="string">&quot;2020-01-20T23:59:59.999+02:00&quot;</span>,
+                        <span class="string">&quot;soft_deadline&quot;</span>: null,
+                        <span class="string">&quot;soft_deadline_description&quot;</span>: null,
+                        <span class="string">&quot;checksum&quot;</span>: <span class="string">&quot;cb78336824109de610ce3d91d43a9954&quot;</span>,
+                        <span class="string">&quot;return_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/exercises/81842/submissions&quot;</span>,
+                        <span class="string">&quot;zip_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/exercises/81842/download&quot;</span>,
+                        <span class="string">&quot;returnable&quot;</span>: <span class="bool-val">true</span>,
+                        <span class="string">&quot;requires_review&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;attempted&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;completed&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;reviewed&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;all_review_points_given&quot;</span>: <span class="bool-val">true</span>,
+                        <span class="string">&quot;memory_limit&quot;</span>: null,
+                        <span class="string">&quot;runtime_params&quot;</span>: [],
+                        <span class="string">&quot;valgrind_strategy&quot;</span>: <span class="string">&quot;fail&quot;</span>,
+                        <span class="string">&quot;code_review_requests_enabled&quot;</span>: <span class="bool-val">false</span>,
+                        <span class="string">&quot;run_tests_locally_action_enabled&quot;</span>: <span class="bool-val">true
+                    </span>}]
+                }
+            }).to_string())
+            .create();
+
+        <span class="kw">let </span>course_details = client.get_course_details(<span class="number">1234</span>).unwrap();
+        <span class="macro">assert_eq!</span>(course_details.course.name, <span class="string">&quot;mooc-2020-ohjelmointi&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>lists_courses() {
+        <span class="kw">let </span>(client, _addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/org/slug/courses&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body(<span class="macro">serde_json::json!</span>([
+                    {
+                        <span class="string">&quot;id&quot;</span>: <span class="number">277</span>,
+                        <span class="string">&quot;name&quot;</span>: <span class="string">&quot;mooc-2013-OOProgrammingWithJava-PART1&quot;</span>,
+                        <span class="string">&quot;title&quot;</span>: <span class="string">&quot;2013 Object-oriented programming, part 1&quot;</span>,
+                        <span class="string">&quot;description&quot;</span>: <span class="string">&quot;2013 Object Oriented Programming with Java.  If you&#39;re not finding your old submissions, they&#39;re probably on our old server https://tmc.mooc.fi/mooc.&quot;</span>,
+                        <span class="string">&quot;details_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/277&quot;</span>,
+                        <span class="string">&quot;unlock_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/277/unlock&quot;</span>,
+                        <span class="string">&quot;reviews_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/courses/277/reviews&quot;</span>,
+                        <span class="string">&quot;comet_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi:8443/comet&quot;</span>,
+                        <span class="string">&quot;spyware_urls&quot;</span>: [
+                        <span class="string">&quot;http://snapshots01.mooc.fi/&quot;
+                        </span>]
+                    },
+                ]).to_string())
+            .create();
+
+        <span class="kw">let </span>courses = client.list_courses(<span class="string">&quot;slug&quot;</span>).unwrap();
+        <span class="macro">assert_eq!</span>(courses.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(courses[<span class="number">0</span>].name, <span class="string">&quot;mooc-2013-OOProgrammingWithJava-PART1&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>pastes_with_comment() {
+        <span class="kw">let </span>(client, url) = init();
+        <span class="kw">let </span>submission_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/submission&quot;</span>, url)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .match_body(Matcher::Regex(<span class="string">&quot;paste&quot;</span>.to_string()))
+            .match_body(Matcher::Regex(<span class="string">&quot;message_for_paste&quot;</span>.to_string()))
+            .match_body(Matcher::Regex(<span class="string">&quot;abcdefg&quot;</span>.to_string()))
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7399658&quot;</span>,
+                    <span class="string">&quot;paste_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/paste/dYbznt87x_00deB9LBSuNQ&quot;</span>,
+                    <span class="string">&quot;show_submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/submissions/7399658&quot;
+                </span>})
+                .to_string(),
+            )
+            .create();
+
+        <span class="kw">let </span>new_submission = client
+            .paste(
+                submission_url,
+                Path::new(<span class="string">&quot;tests/data/exercise&quot;</span>),
+                <span class="prelude-val">Some</span>(<span class="string">&quot;abcdefg&quot;</span>.to_string()),
+                <span class="prelude-val">Some</span>(Language::Eng),
+            )
+            .unwrap();
+        <span class="macro">assert_eq!</span>(
+            new_submission.submission_url,
+            <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7399658&quot;
+        </span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>sends_feedback() {
+        <span class="kw">let </span>(client, url) = init();
+        <span class="kw">let </span>feedback_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/feedback&quot;</span>, url)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/feedback&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .match_body(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::Regex(<span class="string">r#&quot;answers\[0\]\[question_id\]&quot;#</span>.to_string()),
+                Matcher::Regex(<span class="string">r#&quot;answers\[0\]\[answer\]&quot;#</span>.to_string()),
+                Matcher::Regex(<span class="string">r#&quot;answers\[1\]\[question_id\]&quot;#</span>.to_string()),
+                Matcher::Regex(<span class="string">r#&quot;answers\[1\]\[answer\]&quot;#</span>.to_string()),
+                Matcher::Regex(<span class="string">&quot;1234&quot;</span>.to_string()),
+                Matcher::Regex(<span class="string">&quot;5678&quot;</span>.to_string()),
+                Matcher::Regex(<span class="string">&quot;ans0&quot;</span>.to_string()),
+                Matcher::Regex(<span class="string">&quot;ans1&quot;</span>.to_string()),
+            ]))
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;api_version&quot;</span>: <span class="number">8</span>,
+                    <span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>,
+                })
+                .to_string(),
+            )
+            .create();
+
+        <span class="kw">let </span>submission_feedback_response = client
+            .send_feedback(
+                feedback_url,
+                <span class="macro">vec!</span>[
+                    FeedbackAnswer {
+                        question_id: <span class="number">1234</span>,
+                        answer: <span class="string">&quot;ans0&quot;</span>.to_string(),
+                    },
+                    FeedbackAnswer {
+                        question_id: <span class="number">5678</span>,
+                        answer: <span class="string">&quot;ans1&quot;</span>.to_string(),
+                    },
+                ],
+            )
+            .unwrap();
+        <span class="macro">assert_eq!</span>(submission_feedback_response.api_version, <span class="number">8</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>submits() {
+        <span class="kw">let </span>(client, url) = init();
+        <span class="kw">let </span>submission_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/submission&quot;</span>, url)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .match_body(Matcher::Regex(<span class="string">r#&quot;submission\[file\]&quot;#</span>.to_string()))
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7400888&quot;</span>,
+                    <span class="string">&quot;paste_url&quot;</span>: <span class="string">&quot;&quot;</span>,
+                    <span class="string">&quot;show_submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/submissions/7400888&quot;
+                </span>})
+                .to_string(),
+            )
+            .create();
+
+        <span class="kw">let </span>new_submission = client
+            .submit(
+                submission_url,
+                Path::new(<span class="string">&quot;tests/data/exercise&quot;</span>),
+                <span class="prelude-val">Some</span>(Language::Eng),
+            )
+            .unwrap();
+        <span class="macro">assert_eq!</span>(
+            new_submission.submission_url,
+            <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7400888&quot;
+        </span>);
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>gets_exercise_updates() {
-        init();
-        <span class="kw">let </span>client = make_client();
-        <span class="kw">let </span>_m = mockito::mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
+        <span class="kw">let </span>(client, _addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/courses/1234&quot;</span>)
             .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
                 Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
                 Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
@@ -1592,56 +2127,201 @@
     }
 
     <span class="attribute">#[test]
-    </span><span class="kw">fn </span>waits_for_submission() {
-        init();
+    #[ignore]
+    </span><span class="kw">fn </span>marks_review_as_read() {
+        <span class="comment">// todo
+        </span><span class="kw">let </span>(client, addr) = init();
+        <span class="kw">let </span>update_url = Url::parse(<span class="kw-2">&amp;</span>addr).unwrap().join(<span class="string">&quot;update-url&quot;</span>).unwrap();
 
-        <span class="kw">let </span>client = make_client();
-        <span class="kw">let </span>m = mockito::mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/api/v8/core/submission/0&quot;</span>)
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/update-url.json&quot;</span>).create();
+
+        client.mark_review_as_read(update_url.to_string()).unwrap();
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>gets_unread_reviews() {
+        <span class="kw">let </span>(client, addr) = init();
+        <span class="kw">let </span>reviews_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/reviews&quot;</span>, addr)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/reviews&quot;</span>)
             .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
                 Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
                 Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
             ]))
-            .with_body_from_fn(|w| {
-                <span class="kw">static </span>CALLED: AtomicBool = AtomicBool::new(<span class="bool-val">false</span>);
-                <span class="kw">if </span>!CALLED.load(std::sync::atomic::Ordering::SeqCst) {
-                    CALLED.store(<span class="bool-val">true</span>, std::sync::atomic::Ordering::SeqCst);
-                    w.write_all(
-                        <span class="string">br#&quot;
+            .with_body(
+                <span class="macro">serde_json::json!</span>([
                     {
-                        &quot;status&quot;: &quot;processing&quot;,
-                        &quot;sandbox_status&quot;: &quot;created&quot;
+                        <span class="string">&quot;submission_id&quot;</span>: <span class="string">&quot;5678&quot;</span>,
+                        <span class="string">&quot;exercise_name&quot;</span>: <span class="string">&quot;en&quot;</span>,
+                        <span class="string">&quot;id&quot;</span>: <span class="number">90</span>,
+                        <span class="string">&quot;marked_as_read&quot;</span>: <span class="bool-val">true</span>,
+                        <span class="string">&quot;reviewer_name&quot;</span>: <span class="string">&quot;rn&quot;</span>,
+                        <span class="string">&quot;review_body&quot;</span>: <span class="string">&quot;rb&quot;</span>,
+                        <span class="string">&quot;points&quot;</span>: [<span class="string">&quot;1.1&quot;</span>, <span class="string">&quot;1.2&quot;</span>],
+                        <span class="string">&quot;points_not_awarded&quot;</span>: [<span class="string">&quot;1.3&quot;</span>],
+                        <span class="string">&quot;url&quot;</span>: <span class="string">&quot;ur&quot;</span>,
+                        <span class="string">&quot;update_url&quot;</span>: <span class="string">&quot;uu&quot;</span>,
+                        <span class="string">&quot;created_at&quot;</span>: <span class="string">&quot;2021-03-24T11:31:55+00:00&quot;</span>,
+                        <span class="string">&quot;updated_at&quot;</span>: <span class="string">&quot;2021-03-24T11:31:55+00:00&quot;</span>,
                     }
-                    &quot;#</span>,
-                    )
-                    .unwrap();
-                } <span class="kw">else </span>{
-                    w.write_all(
-                        <span class="string">br#&quot;
-                    {
-                        &quot;api_version&quot;: 0,
-                        &quot;user_id&quot;: 1,
-                        &quot;login&quot;: &quot;&quot;,
-                        &quot;course&quot;: &quot;&quot;,
-                        &quot;exercise_name&quot;: &quot;&quot;,
-                        &quot;status&quot;: &quot;processing&quot;,
-                        &quot;points&quot;: [],
-                        &quot;submission_url&quot;: &quot;&quot;,
-                        &quot;submitted_at&quot;: &quot;&quot;,
-                        &quot;reviewed&quot;: false,
-                        &quot;requests_review&quot;: false,
-                        &quot;missing_review_points&quot;: []
-                    }
-                    &quot;#</span>,
-                    )
-                    .unwrap();
-                }
-                <span class="prelude-val">Ok</span>(())
-            })
-            .expect(<span class="number">2</span>)
+                ])
+                .to_string(),
+            )
             .create();
 
-        <span class="kw">let </span>_res = client.wait_for_submission(<span class="number">0</span>).unwrap();
-        m.assert();
+        <span class="kw">let </span>reviews = client.get_unread_reviews(reviews_url).unwrap();
+        <span class="macro">assert_eq!</span>(reviews.len(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(reviews[<span class="number">0</span>].submission_id, <span class="string">&quot;5678&quot;</span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>requests_code_review() {
+        <span class="kw">let </span>(client, url) = init();
+        <span class="kw">let </span>submission_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/submission&quot;</span>, url)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/submission&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .match_body(Matcher::Regex(<span class="string">&quot;request_review&quot;</span>.to_string()))
+            .match_body(Matcher::Regex(<span class="string">&quot;message_for_reviewer&quot;</span>.to_string()))
+            .match_body(Matcher::Regex(<span class="string">&quot;abcdefg&quot;</span>.to_string()))
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                    <span class="string">&quot;submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7402793&quot;</span>,
+                    <span class="string">&quot;paste_url&quot;</span>: <span class="string">&quot;&quot;</span>,
+                    <span class="string">&quot;show_submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/submissions/7402793&quot;
+                </span>})
+                .to_string(),
+            )
+            .create();
+
+        <span class="kw">let </span>new_submission = client
+            .request_code_review(
+                submission_url,
+                Path::new(<span class="string">&quot;tests/data/exercise&quot;</span>),
+                <span class="string">&quot;abcdefg&quot;</span>.to_string(),
+                <span class="prelude-val">Some</span>(Language::Eng),
+            )
+            .unwrap();
+        <span class="macro">assert_eq!</span>(
+            new_submission.submission_url,
+            <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7402793&quot;
+        </span>);
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>downloads_model_solution() {
+        <span class="kw">let </span>(client, addr) = init();
+        <span class="kw">let </span>solution_url = Url::parse(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/solution&quot;</span>, addr)).unwrap();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/solution&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body_from_file(Path::new(<span class="string">&quot;tests/data/81842.zip&quot;</span>))
+            .create();
+
+        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
+        <span class="kw">let </span>target = temp.path().join(<span class="string">&quot;temp&quot;</span>);
+        <span class="macro">assert!</span>(!target.exists());
+        client
+            .download_model_solution(solution_url, <span class="kw-2">&amp;</span>target)
+            .unwrap();
+        <span class="macro">assert!</span>(target.join(<span class="string">&quot;src/main/java/Hiekkalaatikko.java&quot;</span>).exists());
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>checks_submission_processing() {
+        <span class="kw">let </span>(client, addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body(
+                <span class="macro">serde_json::json!</span>({
+                  <span class="string">&quot;status&quot;</span>: <span class="string">&quot;processing&quot;</span>,
+                  <span class="string">&quot;sandbox_status&quot;</span>: <span class="string">&quot;processing_on_sandbox&quot;
+                </span>})
+                .to_string(),
+            )
+            .create();
+
+        <span class="kw">let </span>sub_url = <span class="macro">format!</span>(<span class="string">&quot;{}/submission-url&quot;</span>, addr);
+        <span class="kw">let </span>submission_processing_status = client.check_submission(<span class="kw-2">&amp;</span>sub_url).unwrap();
+        <span class="kw">match </span>submission_processing_status {
+            SubmissionProcessingStatus::Finished(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;wrong status&quot;</span>),
+            SubmissionProcessingStatus::Processing(p) =&gt; {
+                <span class="macro">assert_eq!</span>(p.sandbox_status, SandboxStatus::ProcessingOnSandbox)
+            }
+        }
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>checks_submission_finished() {
+        <span class="kw">let </span>(client, addr) = init();
+        <span class="kw">let </span>_m = mock(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/submission-url&quot;</span>)
+            .match_query(Matcher::AllOf(<span class="macro">vec!</span>[
+                Matcher::UrlEncoded(<span class="string">&quot;client&quot;</span>.into(), <span class="string">&quot;some_client&quot;</span>.into()),
+                Matcher::UrlEncoded(<span class="string">&quot;client_version&quot;</span>.into(), <span class="string">&quot;some_ver&quot;</span>.into()),
+            ]))
+            .with_body(<span class="macro">serde_json::json!</span>({
+            <span class="string">&quot;api_version&quot;</span>: <span class="number">7</span>,
+            <span class="string">&quot;all_tests_passed&quot;</span>: <span class="bool-val">true</span>,
+            <span class="string">&quot;user_id&quot;</span>: <span class="number">3232</span>,
+            <span class="string">&quot;login&quot;</span>: <span class="string">&quot;014464865&quot;</span>,
+            <span class="string">&quot;course&quot;</span>: <span class="string">&quot;mooc-java-programming-i&quot;</span>,
+            <span class="string">&quot;exercise_name&quot;</span>: <span class="string">&quot;part01-Part01_01.Sandbox&quot;</span>,
+            <span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>,
+            <span class="string">&quot;points&quot;</span>: [
+                <span class="string">&quot;01-01&quot;
+            </span>],
+            <span class="string">&quot;validations&quot;</span>: {
+                <span class="string">&quot;strategy&quot;</span>: <span class="string">&quot;DISABLED&quot;</span>,
+                <span class="string">&quot;validationErrors&quot;</span>: {}
+            },
+            <span class="string">&quot;valgrind&quot;</span>: <span class="string">&quot;&quot;</span>,
+            <span class="string">&quot;submission_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/submissions/7402793&quot;</span>,
+            <span class="string">&quot;solution_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/exercises/83113/solution&quot;</span>,
+            <span class="string">&quot;submitted_at&quot;</span>: <span class="string">&quot;2020-06-15T16:05:08.105+03:00&quot;</span>,
+            <span class="string">&quot;processing_time&quot;</span>: <span class="number">13</span>,
+            <span class="string">&quot;reviewed&quot;</span>: <span class="bool-val">false</span>,
+            <span class="string">&quot;requests_review&quot;</span>: <span class="bool-val">true</span>,
+            <span class="string">&quot;paste_url&quot;</span>: null,
+            <span class="string">&quot;message_for_paste&quot;</span>: null,
+            <span class="string">&quot;missing_review_points&quot;</span>: [],
+            <span class="string">&quot;test_cases&quot;</span>: [
+                {
+                    <span class="string">&quot;name&quot;</span>: <span class="string">&quot;SandboxTest freePoints&quot;</span>,
+                    <span class="string">&quot;successful&quot;</span>: <span class="bool-val">true</span>,
+                    <span class="string">&quot;message&quot;</span>: <span class="string">&quot;&quot;</span>,
+                    <span class="string">&quot;exception&quot;</span>: [],
+                    <span class="string">&quot;detailed_message&quot;</span>: null
+                }
+            ],
+            <span class="string">&quot;feedback_questions&quot;</span>: [
+                {
+                    <span class="string">&quot;id&quot;</span>: <span class="number">389</span>,
+                    <span class="string">&quot;question&quot;</span>: <span class="string">&quot;How well did you concentrate doing this exercise? (1: not at all, 5: very well)&quot;</span>,
+                    <span class="string">&quot;kind&quot;</span>: <span class="string">&quot;intrange[1..5]&quot;
+                </span>},
+                {
+                    <span class="string">&quot;id&quot;</span>: <span class="number">390</span>,
+                    <span class="string">&quot;question&quot;</span>: <span class="string">&quot;How much do you feel you learned doing this exercise? (1: Did not learn anything, 5: Learned a lot)&quot;</span>,
+                    <span class="string">&quot;kind&quot;</span>: <span class="string">&quot;intrange[1..5]&quot;
+                </span>},
+            ],
+            <span class="string">&quot;feedback_answer_url&quot;</span>: <span class="string">&quot;https://tmc.mooc.fi/api/v8/core/submissions/7402793/feedback&quot;
+        </span>}).to_string()).create();
+
+        <span class="kw">let </span>sub_url = <span class="macro">format!</span>(<span class="string">&quot;{}/submission-url&quot;</span>, addr);
+        <span class="kw">let </span>submission_processing_status = client.check_submission(<span class="kw-2">&amp;</span>sub_url).unwrap();
+        <span class="kw">match </span>submission_processing_status {
+            SubmissionProcessingStatus::Finished(f) =&gt; {
+                <span class="macro">assert_eq!</span>(f.all_tests_passed, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
+            }
+            SubmissionProcessingStatus::Processing(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;wrong status&quot;</span>),
+        }
     }
 }
 </code></pre></div>

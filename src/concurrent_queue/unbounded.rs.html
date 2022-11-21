@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-2.0.0/src/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -406,15 +406,57 @@
 <span id="406">406</span>
 <span id="407">407</span>
 <span id="408">408</span>
-</pre><pre class="rust"><code><span class="kw">use </span>std::cell::UnsafeCell;
-<span class="kw">use </span>std::mem::MaybeUninit;
-<span class="kw">use </span>std::ptr;
-<span class="kw">use </span>std::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
-<span class="kw">use </span>std::thread;
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+</pre><pre class="rust"><code><span class="kw">use </span>alloc::boxed::Box;
+<span class="kw">use </span>core::mem::MaybeUninit;
+<span class="kw">use </span>core::ptr;
 
-<span class="kw">use </span>cache_padded::CachePadded;
+<span class="kw">use </span>crossbeam_utils::CachePadded;
 
-<span class="kw">use crate</span>::{PopError, PushError};
+<span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
+<span class="kw">use </span><span class="kw">crate</span>::sync::cell::UnsafeCell;
+<span class="attribute">#[allow(unused_imports)]
+</span><span class="kw">use </span><span class="kw">crate</span>::sync::prelude::<span class="kw-2">*</span>;
+<span class="kw">use crate</span>::{busy_wait, PopError, PushError};
 
 <span class="comment">// Bits indicating the state of a slot:
 // * If a value has been written into the slot, `WRITE` is set.
@@ -445,15 +487,40 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Slot&lt;T&gt; {
-    <span class="kw">const </span>UNINIT: Slot&lt;T&gt; = Slot {
+    <span class="attribute">#[cfg(not(loom))]
+    </span><span class="kw">const </span>UNINIT: Slot&lt;T&gt; = Slot {
         value: UnsafeCell::new(MaybeUninit::uninit()),
         state: AtomicUsize::new(<span class="number">0</span>),
     };
 
+    <span class="attribute">#[cfg(not(loom))]
+    </span><span class="kw">fn </span>uninit_block() -&gt; [Slot&lt;T&gt;; BLOCK_CAP] {
+        [<span class="self">Self</span>::UNINIT; BLOCK_CAP]
+    }
+
+    <span class="attribute">#[cfg(loom)]
+    </span><span class="kw">fn </span>uninit_block() -&gt; [Slot&lt;T&gt;; BLOCK_CAP] {
+        <span class="comment">// Repeat this expression 31 times.
+        // Update if we change BLOCK_CAP
+        </span><span class="macro">macro_rules! </span>repeat_31 {
+            (<span class="macro-nonterminal">$e</span>: expr) =&gt; {
+                [
+                    <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>,
+                    <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>, <span class="macro-nonterminal">$e</span>,
+                ]
+            };
+        }
+
+        <span class="macro">repeat_31!</span>(Slot {
+            value: UnsafeCell::new(MaybeUninit::uninit()),
+            state: AtomicUsize::new(<span class="number">0</span>),
+        })
+    }
+
     <span class="doccomment">/// Waits until a value is written into the slot.
     </span><span class="kw">fn </span>wait_write(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">while </span><span class="self">self</span>.state.load(Ordering::Acquire) &amp; WRITE == <span class="number">0 </span>{
-            thread::yield_now();
+            busy_wait();
         }
     }
 }
@@ -474,7 +541,7 @@
     </span><span class="kw">fn </span>new() -&gt; Block&lt;T&gt; {
         Block {
             next: AtomicPtr::new(ptr::null_mut()),
-            slots: [Slot::UNINIT; BLOCK_CAP],
+            slots: Slot::uninit_block(),
         }
     }
 
@@ -485,7 +552,7 @@
             <span class="kw">if </span>!next.is_null() {
                 <span class="kw">return </span>next;
             }
-            thread::yield_now();
+            busy_wait();
         }
     }
 
@@ -560,7 +627,7 @@
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.
             </span><span class="kw">if </span>offset == BLOCK_CAP {
-                thread::yield_now();
+                busy_wait();
                 tail = <span class="self">self</span>.tail.index.load(Ordering::Acquire);
                 block = <span class="self">self</span>.tail.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
@@ -613,7 +680,9 @@
 
                     <span class="comment">// Write the value into the slot.
                     </span><span class="kw">let </span>slot = (<span class="kw-2">*</span>block).slots.get_unchecked(offset);
-                    slot.value.get().write(MaybeUninit::new(value));
+                    slot.value.with_mut(|slot| {
+                        slot.write(MaybeUninit::new(value));
+                    });
                     slot.state.fetch_or(WRITE, Ordering::Release);
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 },
@@ -636,7 +705,7 @@
 
             <span class="comment">// If we reached the end of the block, wait until the next one is installed.
             </span><span class="kw">if </span>offset == BLOCK_CAP {
-                thread::yield_now();
+                busy_wait();
                 head = <span class="self">self</span>.head.index.load(Ordering::Acquire);
                 block = <span class="self">self</span>.head.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
@@ -666,7 +735,7 @@
 
             <span class="comment">// The block can be null here only if the first push operation is in progress.
             </span><span class="kw">if </span>block.is_null() {
-                thread::yield_now();
+                busy_wait();
                 head = <span class="self">self</span>.head.index.load(Ordering::Acquire);
                 block = <span class="self">self</span>.head.block.load(Ordering::Acquire);
                 <span class="kw">continue</span>;
@@ -695,7 +764,7 @@
                     <span class="comment">// Read the value.
                     </span><span class="kw">let </span>slot = (<span class="kw-2">*</span>block).slots.get_unchecked(offset);
                     slot.wait_write();
-                    <span class="kw">let </span>value = slot.value.get().read().assume_init();
+                    <span class="kw">let </span>value = slot.value.with_mut(|slot| slot.read().assume_init());
 
                     <span class="comment">// Destroy the block if we&#39;ve reached the end, or if another thread wanted to
                     // destroy but couldn&#39;t because we were busy reading from the slot.
@@ -779,39 +848,50 @@
 
 <span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Unbounded&lt;T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>head = <span class="kw-2">*</span><span class="self">self</span>.head.index.get_mut();
-        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="kw-2">*</span><span class="self">self</span>.tail.index.get_mut();
-        <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw-2">*</span><span class="self">self</span>.head.block.get_mut();
+        <span class="kw">let </span><span class="self">Self </span>{ head, tail } = <span class="self">self</span>;
+        <span class="kw">let </span>Position { index: head, block } = <span class="kw-2">&amp;mut **</span>head;
 
-        <span class="comment">// Erase the lower bits.
-        </span>head &amp;= !((<span class="number">1 </span>&lt;&lt; SHIFT) - <span class="number">1</span>);
-        tail &amp;= !((<span class="number">1 </span>&lt;&lt; SHIFT) - <span class="number">1</span>);
+        head.with_mut(|<span class="kw-2">&amp;mut mut </span>head| {
+            tail.index.with_mut(|<span class="kw-2">&amp;mut mut </span>tail| {
+                <span class="comment">// Erase the lower bits.
+                </span>head &amp;= !((<span class="number">1 </span>&lt;&lt; SHIFT) - <span class="number">1</span>);
+                tail &amp;= !((<span class="number">1 </span>&lt;&lt; SHIFT) - <span class="number">1</span>);
 
-        <span class="kw">unsafe </span>{
-            <span class="comment">// Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
-            </span><span class="kw">while </span>head != tail {
-                <span class="kw">let </span>offset = (head &gt;&gt; SHIFT) % LAP;
+                <span class="kw">unsafe </span>{
+                    <span class="comment">// Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
+                    </span><span class="kw">while </span>head != tail {
+                        <span class="kw">let </span>offset = (head &gt;&gt; SHIFT) % LAP;
 
-                <span class="kw">if </span>offset &lt; BLOCK_CAP {
-                    <span class="comment">// Drop the value in the slot.
-                    </span><span class="kw">let </span>slot = (<span class="kw-2">*</span>block).slots.get_unchecked(offset);
-                    <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span>slot.value.get();
-                    value.as_mut_ptr().drop_in_place();
-                } <span class="kw">else </span>{
-                    <span class="comment">// Deallocate the block and move to the next one.
-                    </span><span class="kw">let </span>next = <span class="kw-2">*</span>(<span class="kw-2">*</span>block).next.get_mut();
-                    drop(Box::from_raw(block));
-                    block = next;
+                        <span class="kw">if </span>offset &lt; BLOCK_CAP {
+                            <span class="comment">// Drop the value in the slot.
+                            </span>block.with_mut(|block| {
+                                <span class="kw">let </span>slot = (<span class="kw-2">**</span>block).slots.get_unchecked(offset);
+                                slot.value.with_mut(|slot| {
+                                    <span class="kw">let </span>value = <span class="kw-2">&amp;mut *</span>slot;
+                                    value.as_mut_ptr().drop_in_place();
+                                });
+                            });
+                        } <span class="kw">else </span>{
+                            <span class="comment">// Deallocate the block and move to the next one.
+                            </span>block.with_mut(|block| {
+                                <span class="kw">let </span>next_block = (<span class="kw-2">**</span>block).next.with_mut(|next| <span class="kw-2">*</span>next);
+                                drop(Box::from_raw(<span class="kw-2">*</span>block));
+                                <span class="kw-2">*</span>block = next_block;
+                            });
+                        }
+
+                        head = head.wrapping_add(<span class="number">1 </span>&lt;&lt; SHIFT);
+                    }
+
+                    <span class="comment">// Deallocate the last remaining block.
+                    </span>block.with_mut(|block| {
+                        <span class="kw">if </span>!block.is_null() {
+                            drop(Box::from_raw(<span class="kw-2">*</span>block));
+                        }
+                    });
                 }
-
-                head = head.wrapping_add(<span class="number">1 </span>&lt;&lt; SHIFT);
-            }
-
-            <span class="comment">// Deallocate the last remaining block.
-            </span><span class="kw">if </span>!block.is_null() {
-                drop(Box::from_raw(block));
-            }
-        }
+            });
+        });
     }
 }
 </code></pre></div>

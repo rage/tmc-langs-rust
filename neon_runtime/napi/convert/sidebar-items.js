@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["to_object","This API is currently unused, see https://github.com/neon-bindings/neon/issues/572"],["to_string",""]]};

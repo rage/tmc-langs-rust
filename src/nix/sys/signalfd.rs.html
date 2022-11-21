@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.25.0/src/sys/signalfd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signalfd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.20.2/src/sys/signalfd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>signalfd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nix/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -169,6 +169,13 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Interface for the `signalfd` syscall.
 //!
 //! # Signal discarding
@@ -186,8 +193,9 @@
 //!
 //! Please note that signal discarding is not specific to `signalfd`, but also happens with regular
 //! signal handlers.
-</span><span class="kw">use </span><span class="kw">crate</span>::unistd;
-<span class="kw">use </span><span class="kw">crate</span>::Result;
+</span><span class="kw">use </span>libc;
+<span class="kw">use </span><span class="kw">crate</span>::unistd;
+<span class="kw">use crate</span>::{Error, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
 <span class="kw">pub use </span><span class="kw">crate</span>::sys::signal::{<span class="self">self</span>, SigSet};
 <span class="kw">pub use </span>libc::signalfd_siginfo <span class="kw">as </span>siginfo;
@@ -204,8 +212,7 @@
 }
 
 <span class="kw">pub const </span>SIGNALFD_NEW: RawFd = -<span class="number">1</span>;
-<span class="attribute">#[deprecated(since = <span class="string">&quot;0.23.0&quot;</span>, note = <span class="string">&quot;use mem::size_of::&lt;siginfo&gt;() instead&quot;</span>)]
-</span><span class="kw">pub const </span>SIGNALFD_SIGINFO_SIZE: usize = mem::size_of::&lt;siginfo&gt;();
+<span class="kw">pub const </span>SIGNALFD_SIGINFO_SIZE: usize = <span class="number">128</span>;
 
 <span class="doccomment">/// Creates a new file descriptor for reading signals.
 ///
@@ -217,7 +224,7 @@
 /// A signal must be blocked on every thread in a process, otherwise it won&#39;t be visible from
 /// signalfd (the default handler will be invoked instead).
 ///
-/// See [the signalfd man page for more information](https://man7.org/linux/man-pages/man2/signalfd.2.html)
+/// See [the signalfd man page for more information](http://man7.org/linux/man-pages/man2/signalfd.2.html)
 </span><span class="kw">pub fn </span>signalfd(fd: RawFd, mask: <span class="kw-2">&amp;</span>SigSet, flags: SfdFlags) -&gt; <span class="prelude-ty">Result</span>&lt;RawFd&gt; {
     <span class="kw">unsafe </span>{
         Errno::result(libc::signalfd(fd <span class="kw">as </span>libc::c_int, mask.as_ref(), flags.bits()))
@@ -269,16 +276,17 @@
     }
 
     <span class="kw">pub fn </span>read_signal(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;siginfo&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = mem::MaybeUninit::&lt;siginfo&gt;::uninit();
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = mem::MaybeUninit::&lt;[u8; SIGNALFD_SIGINFO_SIZE]&gt;::uninit();
 
-        <span class="kw">let </span>size = mem::size_of_val(<span class="kw-2">&amp;</span>buffer);
         <span class="kw">let </span>res = Errno::result(<span class="kw">unsafe </span>{
-            libc::read(<span class="self">self</span>.<span class="number">0</span>, buffer.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void, size)
+            libc::read(<span class="self">self</span>.<span class="number">0</span>,
+                       buffer.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
+                       SIGNALFD_SIGINFO_SIZE <span class="kw">as </span>libc::size_t)
         }).map(|r| r <span class="kw">as </span>usize);
         <span class="kw">match </span>res {
-            <span class="prelude-val">Ok</span>(x) <span class="kw">if </span>x == size =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ buffer.assume_init() })),
+            <span class="prelude-val">Ok</span>(SIGNALFD_SIGINFO_SIZE) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ mem::transmute(buffer.assume_init()) })),
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;partial read on signalfd&quot;</span>),
-            <span class="prelude-val">Err</span>(Errno::EAGAIN) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            <span class="prelude-val">Err</span>(Error::Sys(Errno::EAGAIN)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="prelude-val">Err</span>(error) =&gt; <span class="prelude-val">Err</span>(error)
         }
     }
@@ -287,7 +295,7 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>SignalFd {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span>e = unistd::close(<span class="self">self</span>.<span class="number">0</span>);
-        <span class="kw">if </span>!std::thread::panicking() &amp;&amp; e == <span class="prelude-val">Err</span>(Errno::EBADF) {
+        <span class="kw">if </span>!std::thread::panicking() &amp;&amp; e == <span class="prelude-val">Err</span>(Error::Sys(Errno::EBADF)) {
             <span class="macro">panic!</span>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
         };
     }
@@ -314,21 +322,27 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::mem;
+    <span class="kw">use </span>libc;
+
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>check_siginfo_size() {
+        <span class="macro">assert_eq!</span>(mem::size_of::&lt;libc::signalfd_siginfo&gt;(), SIGNALFD_SIGINFO_SIZE);
+    }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>create_signalfd() {
         <span class="kw">let </span>mask = SigSet::empty();
-        SignalFd::new(<span class="kw-2">&amp;</span>mask).unwrap();
+        <span class="kw">let </span>fd = SignalFd::new(<span class="kw-2">&amp;</span>mask);
+        <span class="macro">assert!</span>(fd.is_ok());
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>create_signalfd_with_opts() {
         <span class="kw">let </span>mask = SigSet::empty();
-        SignalFd::with_flags(
-            <span class="kw-2">&amp;</span>mask,
-            SfdFlags::SFD_CLOEXEC | SfdFlags::SFD_NONBLOCK,
-        )
-        .unwrap();
+        <span class="kw">let </span>fd = SignalFd::with_flags(<span class="kw-2">&amp;</span>mask, SfdFlags::SFD_CLOEXEC | SfdFlags::SFD_NONBLOCK);
+        <span class="macro">assert!</span>(fd.is_ok());
     }
 
     <span class="attribute">#[test]

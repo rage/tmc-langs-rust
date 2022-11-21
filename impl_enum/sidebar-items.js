@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":[["as_dyn","Generates methods for an enum that match on the enum and return the variant’s first field as a trait object."],["with_methods","Generates methods for an enum that match on the enum and call given the method with the variant’s first field."]]};
+window.SIDEBAR_ITEMS = {"attr":[["with_methods","Generates an impl block for an enum containing the given methods, where the method is a simple match over all the variants, calling the same method on the matched variant’s first field."]]};

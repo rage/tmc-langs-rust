@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-framework/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_framework/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_framework/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_framework/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-framework/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_framework/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_framework/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_framework/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1085,28 +1085,61 @@
 <span id="1085">1085</span>
 <span id="1086">1086</span>
 <span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains LanguagePlugin.
 
-</span><span class="kw">use crate</span>::{
-    domain::{
-        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
-        TestResult,
-    },
-    error::TmcError,
-    policy::StudentFilePolicy,
-    Archive, Compression, TmcProjectYml,
+</span><span class="kw">pub use </span>isolang::Language;
+
+<span class="kw">use </span><span class="kw">crate</span>::domain::{
+    ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
+    TestResult,
 };
-<span class="kw">pub use </span>isolang::Language;
+<span class="kw">use </span><span class="kw">crate</span>::error::TmcError;
+<span class="kw">use </span><span class="kw">crate</span>::policy::StudentFilePolicy;
+<span class="kw">use </span><span class="kw">crate</span>::TmcProjectYml;
 <span class="kw">use </span>nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
-<span class="kw">use </span>std::{
-    collections::HashSet,
-    io::{Read, Seek},
-    ops::ControlFlow::{Break, Continue},
-    path::{Path, PathBuf},
-    time::Duration,
-};
+<span class="kw">use </span>std::collections::HashSet;
+<span class="kw">use </span>std::io::{Read, Seek, Write};
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tmc_langs_util::file_util;
 <span class="kw">use </span>walkdir::WalkDir;
+<span class="kw">use </span>zip::ZipArchive;
 
 <span class="doccomment">/// The trait that each language plug-in must implement.
 ///
@@ -1183,18 +1216,18 @@
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
+    </span><span class="comment">// TODO: look at removing or relocating
     </span><span class="kw">fn </span>extract_project(
         compressed_project: <span class="kw">impl </span>std::io::Read + std::io::Seek,
         target_location: <span class="kw-2">&amp;</span>Path,
-        compression: Compression,
         clean: bool,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), TmcError&gt; {
         <span class="macro">log::debug!</span>(<span class="string">&quot;Unzipping to {}&quot;</span>, target_location.display());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>archive = Archive::new(compressed_project, compression)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>zip_archive = ZipArchive::new(compressed_project)<span class="question-mark">?</span>;
 
         <span class="comment">// find the exercise root directory inside the archive
-        </span><span class="kw">let </span>project_dir = <span class="self">Self</span>::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>archive)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>project_dir = <span class="self">Self</span>::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip_archive)<span class="question-mark">?</span>;
         <span class="macro">log::debug!</span>(<span class="string">&quot;Project dir in zip: {}&quot;</span>, project_dir.display());
 
         <span class="comment">// extract config file if any
@@ -1202,73 +1235,118 @@
         <span class="kw">let </span>tmc_project_yml_path_s = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>file) = archive.by_path(tmc_project_yml_path_s) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>file) = zip_archive.by_name(tmc_project_yml_path_s) {
             <span class="kw">let </span>target_path = target_location.join(<span class="string">&quot;.tmcproject.yml&quot;</span>);
             file_util::read_to_file(<span class="kw-2">&amp;mut </span>file, target_path)<span class="question-mark">?</span>;
         }
         <span class="kw">let </span>policy = <span class="self">Self</span>::StudentFilePolicy::new(target_location)<span class="question-mark">?</span>;
 
         <span class="comment">// used to clean non-student files not in the zip later
-        </span><span class="kw">let </span><span class="kw-2">mut </span>files_from_zip = HashSet::new();
+        </span><span class="kw">let </span><span class="kw-2">mut </span>unzip_paths = HashSet::new();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = archive.iter()<span class="question-mark">?</span>;
-        <span class="kw">loop </span>{
-            <span class="kw">let </span>next = iter.with_next::&lt;(), <span class="kw">_</span>&gt;(|<span class="kw-2">mut </span>file| {
-                <span class="kw">let </span>file_path = file.path()<span class="question-mark">?</span>;
-                <span class="kw">if </span>file_path == Path::new(tmc_project_yml_path_s) {
-                    <span class="comment">// already extracted
-                    </span><span class="kw">return </span><span class="prelude-val">Ok</span>(Continue(()));
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip_archive.len() {
+            <span class="kw">let </span><span class="kw-2">mut </span>file = zip_archive.by_index(i)<span class="question-mark">?</span>;
+            <span class="kw">let </span>file_path = PathBuf::from(file.name());
+            <span class="kw">if </span>file_path == tmc_project_yml_path {
+                <span class="comment">// already extracted
+                </span><span class="kw">continue</span>;
+            }
+
+            <span class="kw">let </span>relative = <span class="kw">match </span>file_path.strip_prefix(<span class="kw-2">&amp;</span>project_dir) {
+                <span class="prelude-val">Ok</span>(relative) =&gt; relative,
+                <span class="kw">_ </span>=&gt; {
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;skip {}, not in project dir&quot;</span>, file.name());
+                    <span class="kw">continue</span>;
                 }
+            };
+            <span class="kw">let </span>path_in_target = target_location.join(<span class="kw-2">&amp;</span>relative);
+            <span class="macro">log::trace!</span>(<span class="string">&quot;processing {:?} -&gt; {:?}&quot;</span>, file_path, path_in_target);
+            unzip_paths.insert(path_in_target.clone());
 
-                <span class="kw">let </span>relative = <span class="kw">match </span>file_path.strip_prefix(<span class="kw-2">&amp;</span>project_dir) {
-                    <span class="prelude-val">Ok</span>(relative) =&gt; relative,
-                    <span class="kw">_ </span>=&gt; {
-                        <span class="macro">log::trace!</span>(<span class="string">&quot;skip {}, not in project dir&quot;</span>, file_path.display());
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(Continue(()));
-                    }
-                };
-                <span class="kw">let </span>path_in_target = target_location.join(<span class="kw-2">&amp;</span>relative);
-                <span class="macro">log::trace!</span>(<span class="string">&quot;processing {:?} -&gt; {:?}&quot;</span>, file_path, path_in_target);
-
-                files_from_zip.insert(path_in_target.clone());
-
+            <span class="comment">// not student file, or forced update
+            </span><span class="kw">let </span>overwrite = {
                 <span class="kw">if </span>!path_in_target.exists() {
-                    <span class="comment">// just extract
-                    </span><span class="kw">if </span>file.is_dir() {
-                        file_util::create_dir_all(path_in_target)<span class="question-mark">?</span>;
-                    } <span class="kw">else </span>{
-                        file_util::read_to_file(<span class="kw-2">&amp;mut </span>file, path_in_target)<span class="question-mark">?</span>;
-                    }
-                } <span class="kw">else if </span>!policy.is_student_file(<span class="kw-2">&amp;</span>path_in_target, target_location)<span class="question-mark">?
-                    </span>|| policy.is_updating_forced(relative)<span class="question-mark">?
-                </span>{
-                    <span class="comment">// not student file, or forced update
-                    </span><span class="kw">if </span>file.is_file() {
-                        <span class="comment">// remove old if dir
-                        </span><span class="kw">if </span>path_in_target.is_dir() {
-                            file_util::remove_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    <span class="comment">// currently policies do not consider nonexistent files to ever be student files
+                    // this is a not-so-nice hack around that, TODO: fix properly
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>created_dirs = <span class="macro">vec!</span>[];
+                    <span class="kw">for </span>dir <span class="kw">in </span>path_in_target
+                        .ancestors()
+                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                        .into_iter()
+                        .rev()
+                    {
+                        <span class="kw">if </span>!dir.exists() {
+                            file_util::create_dir(dir)<span class="question-mark">?</span>;
+                            created_dirs.push(dir.to_path_buf());
                         }
-                        file_util::read_to_file(<span class="kw-2">&amp;mut </span>file, path_in_target)<span class="question-mark">?</span>;
                     }
+                    <span class="kw">let </span>write = !policy.is_student_file(<span class="kw-2">&amp;</span>path_in_target, <span class="kw-2">&amp;</span>target_location)<span class="question-mark">?
+                        </span>|| policy.is_updating_forced(<span class="kw-2">&amp;</span>relative)<span class="question-mark">?</span>;
+                    <span class="kw">for </span>dir <span class="kw">in </span>created_dirs.into_iter().rev() {
+                        file_util::remove_dir_empty(<span class="kw-2">&amp;</span>dir)<span class="question-mark">?</span>;
+                    }
+                    write
+                } <span class="kw">else </span>{
+                    !policy.is_student_file(<span class="kw-2">&amp;</span>path_in_target, <span class="kw-2">&amp;</span>target_location)<span class="question-mark">?
+                        </span>|| policy.is_updating_forced(<span class="kw-2">&amp;</span>relative)<span class="question-mark">?
+                </span>}
+            };
+
+            <span class="kw">if </span>!path_in_target.exists() {
+                <span class="comment">// just extract
+                </span><span class="kw">if </span>file.is_dir() {
+                    file_util::create_dir_all(path_in_target)<span class="question-mark">?</span>;
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span><span class="kw-2">mut </span>overwrite_target = file_util::create_file(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>file_contents = <span class="macro">vec!</span>[];
+                    file.read_to_end(<span class="kw-2">&amp;mut </span>file_contents)
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))<span class="question-mark">?</span>;
+                    overwrite_target
+                        .write_all(<span class="kw-2">&amp;</span>file_contents)
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Ok</span>(Continue(()))
-            });
-            <span class="kw">match </span>next<span class="question-mark">? </span>{
-                Continue(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
-                Break(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+            } <span class="kw">else if </span>overwrite {
+                <span class="comment">// overwrite existing
+                </span><span class="kw">if </span>file.is_dir() {
+                    <span class="comment">// remove old and overwrite
+                    </span><span class="kw">if </span>path_in_target.is_dir() {
+                        file_util::remove_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    } <span class="kw">else if </span>path_in_target.is_file() {
+                        file_util::remove_file(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    }
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;creating {:?}&quot;</span>, path_in_target);
+                    file_util::create_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                } <span class="kw">else </span>{
+                    <span class="comment">// remove old if dir
+                    </span><span class="kw">if </span>path_in_target.is_dir() {
+                        file_util::remove_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    }
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;writing to {}&quot;</span>, path_in_target.display());
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_in_target.parent() {
+                        file_util::create_dir_all(parent)<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">let </span><span class="kw-2">mut </span>overwrite_target = file_util::create_file(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>file_contents = <span class="macro">vec!</span>[];
+                    file.read_to_end(<span class="kw-2">&amp;mut </span>file_contents)
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))<span class="question-mark">?</span>;
+                    overwrite_target
+                        .write_all(<span class="kw-2">&amp;</span>file_contents)
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))<span class="question-mark">?</span>;
+                }
             }
         }
 
         <span class="kw">if </span>clean {
             <span class="comment">// delete non-student files that were not in zip
             </span><span class="macro">log::debug!</span>(<span class="string">&quot;deleting non-student files not in zip&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">&quot;{:?}&quot;</span>, unzip_paths);
             <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(target_location)
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
-                <span class="kw">if </span>!files_from_zip.contains(entry.path())
+                <span class="kw">if </span>!unzip_paths.contains(entry.path())
                     &amp;&amp; (policy.is_updating_forced(entry.path())<span class="question-mark">?
-                        </span>|| !policy.is_student_file(entry.path(), target_location)<span class="question-mark">?</span>)
+                        </span>|| !policy.is_student_file(entry.path(), <span class="kw-2">&amp;</span>target_location)<span class="question-mark">?</span>)
                 {
                     <span class="macro">log::debug!</span>(
                         <span class="string">&quot;rm {} {}&quot;</span>,
@@ -1294,64 +1372,95 @@
 
     <span class="doccomment">/// Extracts student files from the compressed project.
     /// It finds the project dir from the zip and extracts the student files from there.
-    /// Overwrites all files.
+    /// Overwrites all files/directories.
+    </span><span class="comment">// todo: DRY, very similar to extract_project
     </span><span class="kw">fn </span>extract_student_files(
         compressed_project: <span class="kw">impl </span>Read + Seek,
-        compression: Compression,
         target_location: <span class="kw-2">&amp;</span>Path,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), TmcError&gt; {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Extracting student files to {}&quot;</span>, target_location.display());
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Unzipping student files to {}&quot;</span>, target_location.display());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>archive = Archive::new(compressed_project, compression)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>zip_archive = ZipArchive::new(compressed_project)<span class="question-mark">?</span>;
 
         <span class="comment">// find the exercise root directory inside the archive
-        </span><span class="kw">let </span>project_dir = <span class="self">Self</span>::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>archive)<span class="question-mark">?</span>;
-        <span class="macro">log::debug!</span>(<span class="string">&quot;Project directory in archive: {}&quot;</span>, project_dir.display());
+        </span><span class="kw">let </span>project_dir = <span class="self">Self</span>::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip_archive)<span class="question-mark">?</span>;
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Project dir in zip: {}&quot;</span>, project_dir.display());
 
         <span class="comment">// extract config file if any
         </span><span class="kw">let </span>tmc_project_yml_path = project_dir.join(<span class="string">&quot;.tmcproject.yml&quot;</span>);
         <span class="kw">let </span>tmc_project_yml_path = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>file) = archive.by_path(tmc_project_yml_path) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>file) = zip_archive.by_name(tmc_project_yml_path) {
             <span class="kw">let </span>target_path = target_location.join(<span class="string">&quot;.tmcproject.yml&quot;</span>);
             file_util::read_to_file(<span class="kw-2">&amp;mut </span>file, target_path)<span class="question-mark">?</span>;
         }
         <span class="kw">let </span>policy = <span class="self">Self</span>::StudentFilePolicy::new(target_location)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>iter = archive.iter()<span class="question-mark">?</span>;
-        <span class="kw">loop </span>{
-            <span class="kw">let </span>next = iter.with_next::&lt;(), <span class="kw">_</span>&gt;(|<span class="kw-2">mut </span>file| {
-                <span class="comment">// get the path where the file should be extracted
-                </span><span class="kw">let </span>file_path = file.path()<span class="question-mark">?</span>;
-                <span class="kw">let </span>relative = <span class="kw">match </span>file_path.strip_prefix(<span class="kw-2">&amp;</span>project_dir) {
-                    <span class="prelude-val">Ok</span>(relative) =&gt; relative,
-                    <span class="kw">_ </span>=&gt; {
-                        <span class="macro">log::trace!</span>(<span class="string">&quot;skip {}, not in project dir&quot;</span>, file_path.display());
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(Continue(()));
-                    }
-                };
-                <span class="kw">let </span>path_in_target = target_location.join(<span class="kw-2">&amp;</span>relative);
-                <span class="macro">log::trace!</span>(<span class="string">&quot;processing {:?} -&gt; {:?}&quot;</span>, file_path, path_in_target);
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip_archive.len() {
+            <span class="kw">let </span><span class="kw-2">mut </span>file = zip_archive.by_index(i)<span class="question-mark">?</span>;
+            <span class="kw">let </span>file_path = PathBuf::from(file.name());
+            <span class="kw">let </span>relative = <span class="kw">match </span>file_path.strip_prefix(<span class="kw-2">&amp;</span>project_dir) {
+                <span class="prelude-val">Ok</span>(relative) =&gt; relative,
+                <span class="kw">_ </span>=&gt; {
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;skip {}, not in project dir&quot;</span>, file.name());
+                    <span class="kw">continue</span>;
+                }
+            };
+            <span class="kw">let </span>path_in_target = target_location.join(<span class="kw-2">&amp;</span>relative);
+            <span class="macro">log::trace!</span>(<span class="string">&quot;processing {:?} -&gt; {:?}&quot;</span>, file_path, path_in_target);
 
-                <span class="kw">if </span>policy.would_be_student_file(<span class="kw-2">&amp;</span>path_in_target, target_location)<span class="question-mark">? </span>{
-                    <span class="kw">if </span>file.is_file() {
-                        <span class="comment">// for files, everything should be removed out of the way
-                        </span>file_util::remove_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
-                        file_util::read_to_file(<span class="kw-2">&amp;mut </span>file, <span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
-                    } <span class="kw">else </span>{
-                        <span class="comment">// for directories, we should keep existing directories but delete files at the same path
-                        </span><span class="kw">if </span>path_in_target.is_file() {
+            <span class="kw">let </span>write = {
+                <span class="kw">if </span>!path_in_target.exists() {
+                    <span class="comment">// currently policies do not consider nonexistent files to ever be student files
+                    // this is a not-so-nice hack around that, TODO: fix properly
+                    </span><span class="kw">let </span><span class="kw-2">mut </span>created_dirs = <span class="macro">vec!</span>[];
+                    <span class="kw">for </span>dir <span class="kw">in </span>path_in_target
+                        .ancestors()
+                        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+                        .into_iter()
+                        .rev()
+                    {
+                        <span class="kw">if </span>!dir.exists() {
+                            file_util::create_dir(dir)<span class="question-mark">?</span>;
+                            created_dirs.push(dir.to_path_buf());
+                        }
+                    }
+                    <span class="kw">let </span>is_student_file =
+                        policy.is_student_file(<span class="kw-2">&amp;</span>path_in_target, <span class="kw-2">&amp;</span>target_location)<span class="question-mark">?</span>;
+                    <span class="kw">for </span>dir <span class="kw">in </span>created_dirs.into_iter().rev() {
+                        file_util::remove_dir_empty(<span class="kw-2">&amp;</span>dir)<span class="question-mark">?</span>;
+                    }
+                    is_student_file
+                } <span class="kw">else </span>{
+                    policy.is_student_file(<span class="kw-2">&amp;</span>path_in_target, <span class="kw-2">&amp;</span>target_location)<span class="question-mark">?
+                </span>}
+            };
+
+            <span class="kw">if </span>write {
+                <span class="kw">if </span>file.is_dir() {
+                    <span class="kw">if </span>path_in_target.exists() {
+                        <span class="comment">// remove old and overwrite
+                        </span><span class="kw">if </span>path_in_target.is_dir() {
+                            file_util::remove_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                        } <span class="kw">else </span>{
                             file_util::remove_file(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
                         }
-                        file_util::create_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
                     }
+                    <span class="macro">log::trace!</span>(<span class="string">&quot;creating {:?}&quot;</span>, path_in_target);
+                    file_util::create_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                } <span class="kw">else if </span>file.is_file() {
+                    <span class="kw">let </span><span class="kw-2">mut </span>file_contents = <span class="macro">vec!</span>[];
+                    file.read_to_end(<span class="kw-2">&amp;mut </span>file_contents)
+                        .map_err(|e| TmcError::ZipRead(file_path.clone(), e))<span class="question-mark">?</span>;
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_in_target.parent() {
+                        file_util::create_dir_all(parent)<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">let </span><span class="kw-2">mut </span>overwrite_target = file_util::create_file(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
+                    overwrite_target
+                        .write_all(<span class="kw-2">&amp;</span>file_contents)
+                        .map_err(|e| TmcError::ZipWrite(path_in_target.clone(), e))<span class="question-mark">?</span>;
                 }
-                <span class="prelude-val">Ok</span>(Continue(()))
-            });
-            <span class="kw">match </span>next<span class="question-mark">? </span>{
-                Continue(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
-                Break(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
             }
         }
 
@@ -1360,18 +1469,35 @@
 
     <span class="doccomment">/// Searches the zip for a valid project directory.
     /// Note that the returned path may not actually have an entry in the zip.
-    </span><span class="kw">fn </span>find_project_dir_in_archive&lt;R: Read + Seek&gt;(
-        archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt;;
+    /// The default implementation tries to find a directory that contains a &quot;src&quot; directory,
+    /// which may be sufficient for some languages.
+    /// Ignores everything in a __MACOSX directory.
+    </span><span class="kw">fn </span>find_project_dir_in_zip&lt;R: Read + Seek&gt;(
+        zip_archive: <span class="kw-2">&amp;mut </span>ZipArchive&lt;R&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip_archive.len() {
+            <span class="comment">// zips don&#39;t necessarily contain entries for intermediate directories,
+            // so we need to check every path for src
+            </span><span class="kw">let </span>file = zip_archive.by_index(i)<span class="question-mark">?</span>;
+            <span class="kw">let </span>file_path = Path::new(file.name());
 
-    <span class="doccomment">/// Tells if there&#39;s a valid exercise in this archive.
-    /// Unlike `is_exercise_type_correct`, searches the entire archive.
-    </span><span class="kw">fn </span>is_archive_type_correct&lt;R: Read + Seek&gt;(archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;) -&gt; bool {
-        <span class="self">Self</span>::find_project_dir_in_archive(archive).is_ok()
+            <span class="comment">// todo: do in one pass somehow
+            </span><span class="kw">if </span>file_path.components().any(|c| c.as_os_str() == <span class="string">&quot;src&quot;</span>) {
+                <span class="kw">let </span>path: PathBuf = file_path
+                    .components()
+                    .take_while(|c| c.as_os_str() != <span class="string">&quot;src&quot;</span>)
+                    .collect();
+
+                <span class="kw">if </span>path.components().any(|p| p.as_os_str() == <span class="string">&quot;__MACOSX&quot;</span>) {
+                    <span class="kw">continue</span>;
+                }
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(path);
+            }
+        }
+        <span class="prelude-val">Err</span>(TmcError::NoProjectDirInZip)
     }
 
-    <span class="doccomment">/// Tells if there&#39;s a valid exercise in this path. Delegates to `find_project_dir_in_archive` by default.
-    /// Unlike `is_archive_type_correct`, only checks the root directory.
+    <span class="doccomment">/// Tells if there&#39;s a valid exercise in this path.
     </span><span class="kw">fn </span>is_exercise_type_correct(path: <span class="kw-2">&amp;</span>Path) -&gt; bool;
 
     <span class="doccomment">/// Returns configuration which is used to package submission on tmc-server.
@@ -1516,13 +1642,9 @@
 }
 
 <span class="attribute">#[cfg(test)]
-#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>nom::character;
-    <span class="kw">use </span>std::io::Write;
-    <span class="kw">use </span>tmc_langs_util::path_util;
-    <span class="kw">use </span>zip::ZipWriter;
 
     <span class="kw">fn </span>init() {
         <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -1599,7 +1721,7 @@
         <span class="kw">fn </span>get_project_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TmcProjectYml {
             <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
         }
-        <span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+        <span class="kw">fn </span>is_student_source_file(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
             path.starts_with(<span class="string">&quot;src&quot;</span>)
         }
     }
@@ -1628,33 +1750,6 @@
                 test_results: <span class="macro">vec!</span>[],
                 logs: std::collections::HashMap::new(),
             })
-        }
-
-        <span class="kw">fn </span>find_project_dir_in_archive&lt;R: Read + Seek&gt;(
-            archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;,
-        ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = archive.iter()<span class="question-mark">?</span>;
-            <span class="kw">let </span>project_dir = <span class="kw">loop </span>{
-                <span class="kw">let </span>next = iter.with_next(|file| {
-                    <span class="kw">let </span>file_path = file.path()<span class="question-mark">?</span>;
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) =
-                        path_util::get_parent_of_component_in_path(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;src&quot;</span>)
-                    {
-                        <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
-                    }
-                    <span class="prelude-val">Ok</span>(Continue(()))
-                });
-                <span class="kw">match </span>next<span class="question-mark">? </span>{
-                    Continue(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
-                    Break(project_dir) =&gt; <span class="kw">break </span>project_dir,
-                }
-            };
-
-            <span class="kw">match </span>project_dir {
-                <span class="prelude-val">Some</span>(project_dir) =&gt; <span class="prelude-val">Ok</span>(project_dir),
-                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(TmcError::NoProjectDirInArchive),
-            }
         }
 
         <span class="kw">fn </span>is_exercise_type_correct(_path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
@@ -1753,7 +1848,7 @@
 @Points(&quot;1.1&quot;)
 &quot;#</span>,
         );
-        <span class="kw">let </span>points = MockPlugin::get_available_points(temp.path()).unwrap();
+        <span class="kw">let </span>points = MockPlugin::get_available_points(<span class="kw-2">&amp;</span>temp.path()).unwrap();
         <span class="macro">assert!</span>(points.is_empty());
 
         <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
@@ -1777,7 +1872,7 @@ def d():
     pass
 &quot;#</span>,
         );
-        <span class="kw">let </span>points = MockPlugin::get_available_points(temp.path()).unwrap();
+        <span class="kw">let </span>points = MockPlugin::get_available_points(<span class="kw-2">&amp;</span>temp.path()).unwrap();
         <span class="macro">assert_eq!</span>(points, <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;2&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;4&quot;</span>]);
 
         <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
@@ -1812,7 +1907,7 @@ def f():
     pass
 &quot;#</span>,
         );
-        <span class="kw">let </span>points = MockPlugin::get_available_points(temp.path()).unwrap();
+        <span class="kw">let </span>points = MockPlugin::get_available_points(<span class="kw-2">&amp;</span>temp.path()).unwrap();
         <span class="macro">assert_eq!</span>(points, <span class="kw-2">&amp;</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;3&quot;</span>]);
     }
 
@@ -1824,8 +1919,8 @@ def f():
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir1/dir2/dir3/src/file&quot;</span>, <span class="string">&quot;&quot;</span>);
         <span class="kw">let </span>zip = dir_to_zip(<span class="kw-2">&amp;</span>temp);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(zip)).unwrap();
-        <span class="kw">let </span>dir = MockPlugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
+        <span class="kw">let </span>dir = MockPlugin::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip).unwrap();
         <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">&quot;dir1&quot;</span>).join(<span class="string">&quot;dir2&quot;</span>).join(<span class="string">&quot;dir3&quot;</span>));
     }
 
@@ -1838,8 +1933,8 @@ def f():
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir1/__MACOSX/dir2/dir3/src/file&quot;</span>, <span class="string">&quot;&quot;</span>);
         <span class="kw">let </span>zip = dir_to_zip(<span class="kw-2">&amp;</span>temp);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(zip)).unwrap();
-        <span class="kw">let </span>dir = MockPlugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip);
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = ZipArchive::new(std::io::Cursor::new(zip)).unwrap();
+        <span class="kw">let </span>dir = MockPlugin::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip);
         <span class="macro">assert!</span>(dir.is_err());
     }
 
@@ -1855,10 +1950,15 @@ def f():
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
-            Compression::Zip,
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
         )
         .unwrap();
+
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
+        }
 
         <span class="macro">assert!</span>(temp
             .path()
@@ -1879,16 +1979,14 @@ def f():
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
-            Compression::Zip,
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="macro">assert!</span>(temp.path().join(<span class="string">&quot;extracted/src&quot;</span>).exists());
@@ -1904,6 +2002,7 @@ def f():
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir/src/file overwrites file&quot;</span>, <span class="string">&quot;new&quot;</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir/src/file overwrites dir&quot;</span>, <span class="string">&quot;data&quot;</span>);
         dir_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir/src/dir overwrites file&quot;</span>);
+        dir_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;dir/src/dir overwrites dir&quot;</span>);
         <span class="kw">let </span>zip = dir_to_zip(<span class="kw-2">&amp;</span>temp);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;extracted/src/file overwrites file&quot;</span>, <span class="string">&quot;old&quot;</span>);
         file_to(
@@ -1912,19 +2011,22 @@ def f():
             <span class="string">&quot;&quot;</span>,
         );
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;extracted/src/dir overwrites file&quot;</span>, <span class="string">&quot;old&quot;</span>);
+        file_to(
+            <span class="kw-2">&amp;</span>temp,
+            <span class="string">&quot;extracted/src/dir overwrites dir/another dir/another file&quot;</span>,
+            <span class="string">&quot;&quot;</span>,
+        );
 
         MockPlugin::extract_student_files(
             std::io::Cursor::new(zip),
-            Compression::Zip,
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="kw">let </span>path = temp.path().join(<span class="string">&quot;extracted/src/file overwrites file&quot;</span>);
@@ -1939,6 +2041,10 @@ def f():
 
         <span class="kw">let </span>path = temp.path().join(<span class="string">&quot;extracted/src/dir overwrites file&quot;</span>);
         <span class="macro">assert!</span>(path.is_dir());
+
+        <span class="kw">let </span>path = temp.path().join(<span class="string">&quot;extracted/src/dir overwrites dir&quot;</span>);
+        <span class="macro">assert!</span>(path.is_dir());
+        <span class="macro">assert!</span>(!path.join(<span class="string">&quot;another dir&quot;</span>).exists())
     }
 
     <span class="attribute">#[test]
@@ -1954,16 +2060,14 @@ def f():
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
-            Compression::Zip,
             <span class="bool-val">false</span>,
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="macro">assert!</span>(temp
@@ -1988,16 +2092,14 @@ def f():
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
-            Compression::Zip,
             <span class="bool-val">false</span>,
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="kw">let </span>s = std::fs::read_to_string(temp.path().join(<span class="string">&quot;extracted/src/student file&quot;</span>)).unwrap();
@@ -2030,16 +2132,14 @@ force_update:
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
-            Compression::Zip,
             <span class="bool-val">false</span>,
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="kw">let </span>s = std::fs::read_to_string(temp.path().join(<span class="string">&quot;extracted/src/forced update&quot;</span>)).unwrap();
@@ -2057,26 +2157,17 @@ force_update:
         <span class="kw">let </span>zip = dir_to_zip(<span class="kw-2">&amp;</span>temp);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;extracted/test/some existing non-student file&quot;</span>, <span class="string">&quot;&quot;</span>);
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
-        }
-
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
-            Compression::Zip,
             <span class="bool-val">false</span>,
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="macro">assert!</span>(temp
@@ -2097,16 +2188,14 @@ force_update:
         MockPlugin::extract_project(
             std::io::Cursor::new(zip),
             <span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;extracted&quot;</span>),
-            Compression::Zip,
             <span class="bool-val">true</span>,
         )
         .unwrap();
 
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>))
-            .into_iter()
-            .flatten()
-        {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(temp.path().join(<span class="string">&quot;extracted&quot;</span>)) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(entry) = entry {
+                <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, entry.path().display());
+            }
         }
 
         <span class="macro">assert!</span>(!temp
@@ -2153,23 +2242,6 @@ force_update:
 
         <span class="kw">let </span>points = MockPlugin::get_available_points(temp.path()).unwrap();
         <span class="macro">assert!</span>(points.is_empty());
-    }
-
-    <span class="attribute">#[test]
-    </span><span class="kw">fn </span>extract_student_files_does_not_clean_directories_incorrectly() {
-        init();
-
-        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
-        file_to(<span class="kw-2">&amp;</span>temp, <span class="string">&quot;src/file&quot;</span>, <span class="string">&quot;&quot;</span>);
-
-        <span class="kw">let </span>buf = <span class="macro">vec!</span>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>zw = ZipWriter::new(std::io::Cursor::new(buf));
-        zw.add_directory(<span class="string">&quot;src&quot;</span>, zip::write::FileOptions::default())
-            .unwrap();
-        <span class="kw">let </span>buf = zw.finish().unwrap();
-
-        MockPlugin::extract_student_files(buf, Compression::Zip, temp.path()).unwrap();
-        <span class="macro">assert!</span>(temp.path().join(<span class="string">&quot;src/file&quot;</span>).exists());
     }
 }
 </code></pre></div>
