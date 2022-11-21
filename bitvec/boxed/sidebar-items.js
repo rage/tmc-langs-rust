@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["BitBox","A frozen heap-allocated buffer of individual bits."]]};

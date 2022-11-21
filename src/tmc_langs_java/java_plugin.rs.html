@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `plugins/java/src/java_plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>java_plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_java/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_java/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_java/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/java/src/java_plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>java_plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_java/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_java/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_java/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -588,28 +588,46 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Common functionality for all Java plugins
 
-</span><span class="kw">use crate</span>::{error::JavaError, CompileResult, TestCase, TestCaseStatus, TestMethod, TestRun};
-<span class="kw">use </span>j4rs::{InvocationArg, Jvm};
-<span class="kw">use </span>std::collections::HashMap;
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::ffi::OsStr;
-<span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>std::time::Duration;
+</span><span class="kw">use crate</span>::{
+    error::JavaError, CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun,
+};
+<span class="kw">use </span>j4rs::InvocationArg;
+<span class="kw">use </span>std::{
+    collections::HashMap,
+    convert::TryFrom,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 <span class="kw">use </span>tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
     ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
     TestResult, TmcCommand,
 };
-<span class="kw">use </span>tmc_langs_util::{file_util, parse_util};
+<span class="kw">use </span>tmc_langs_util::{deserialize, file_util, parse_util};
 <span class="kw">use </span>walkdir::WalkDir;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>JavaPlugin: LanguagePlugin {
     <span class="kw">const </span>TEST_DIR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
 
     <span class="doccomment">/// Returns a reference to the inner Jvm.
-    </span><span class="kw">fn </span>jvm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Jvm;
+    </span><span class="kw">fn </span>jvm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JvmWrapper;
 
     <span class="doccomment">/// Constructs a CLASSPATH for the given path (see https://docs.oracle.com/javase/tutorial/essential/environment/paths.html).
     </span><span class="kw">fn </span>get_project_class_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;String, JavaError&gt;;
@@ -636,14 +654,16 @@
         <span class="kw">let </span>test_result =
             <span class="self">self</span>.create_run_result_file(project_root_path, timeout, compile_result)<span class="question-mark">?</span>;
         <span class="kw">let </span>result = <span class="self">self</span>.parse_test_result(<span class="kw-2">&amp;</span>test_result);
-        file_util::remove_file(<span class="kw-2">&amp;</span>test_result.test_results)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(result<span class="question-mark">?</span>)
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = file_util::remove_file(<span class="kw-2">&amp;</span>test_result.test_results) {
+            <span class="macro">log::warn!</span>(<span class="string">&quot;Failed to remove test results file: {err}&quot;</span>);
+        }
+        result
     }
 
     <span class="doccomment">/// Parses test results.
     </span><span class="kw">fn </span>parse_test_result(<span class="kw-2">&amp;</span><span class="self">self</span>, results: <span class="kw-2">&amp;</span>TestRun) -&gt; <span class="prelude-ty">Result</span>&lt;RunResult, JavaError&gt; {
         <span class="kw">let </span>result_file = file_util::open_file(<span class="kw-2">&amp;</span>results.test_results)<span class="question-mark">?</span>;
-        <span class="kw">let </span>test_case_records: Vec&lt;TestCase&gt; = serde_json::from_reader(<span class="kw-2">&amp;</span>result_file)<span class="question-mark">?</span>;
+        <span class="kw">let </span>test_case_records: Vec&lt;TestCase&gt; = deserialize::json_from_reader(<span class="kw-2">&amp;</span>result_file)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>test_results: Vec&lt;TestResult&gt; = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>status = RunStatus::Passed;
@@ -762,28 +782,29 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;class path: {}&quot;</span>, class_path);
         <span class="macro">log::info!</span>(<span class="string">&quot;source files: {:?}&quot;</span>, source_files);
 
-        <span class="kw">let </span>test_scanner = <span class="self">self
-            </span>.jvm()
-            .create_instance(<span class="string">&quot;fi.helsinki.cs.tmc.testscanner.TestScanner&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+        <span class="kw">let </span>scan_results = <span class="self">self</span>.jvm().with(|jvm| {
+            <span class="kw">let </span>test_scanner =
+                jvm.create_instance(<span class="string">&quot;fi.helsinki.cs.tmc.testscanner.TestScanner&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.jvm().invoke(
-            <span class="kw-2">&amp;</span>test_scanner,
-            <span class="string">&quot;setClassPath&quot;</span>,
-            <span class="kw-2">&amp;</span>[InvocationArg::try_from(class_path)<span class="question-mark">?</span>],
-        )<span class="question-mark">?</span>;
-
-        <span class="kw">for </span>source_file <span class="kw">in </span>source_files {
-            <span class="kw">let </span>file = <span class="self">self</span>.jvm().create_instance(
-                <span class="string">&quot;java.io.File&quot;</span>,
-                <span class="kw-2">&amp;</span>[InvocationArg::try_from(<span class="kw-2">&amp;*</span>source_file.to_string_lossy())<span class="question-mark">?</span>],
+            jvm.invoke(
+                <span class="kw-2">&amp;</span>test_scanner,
+                <span class="string">&quot;setClassPath&quot;</span>,
+                <span class="kw-2">&amp;</span>[InvocationArg::try_from(class_path)<span class="question-mark">?</span>],
             )<span class="question-mark">?</span>;
-            <span class="self">self</span>.jvm()
-                .invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;addSource&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::from(file)])<span class="question-mark">?</span>;
-        }
-        <span class="kw">let </span>scan_results = <span class="self">self</span>.jvm().invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;findTests&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
-        <span class="self">self</span>.jvm().invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;clearSources&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>scan_results: Vec&lt;TestMethod&gt; = <span class="self">self</span>.jvm().to_rust(scan_results)<span class="question-mark">?</span>;
+            <span class="kw">for </span>source_file <span class="kw">in </span>source_files {
+                <span class="kw">let </span>file = jvm.create_instance(
+                    <span class="string">&quot;java.io.File&quot;</span>,
+                    <span class="kw-2">&amp;</span>[InvocationArg::try_from(<span class="kw-2">&amp;*</span>source_file.to_string_lossy())<span class="question-mark">?</span>],
+                )<span class="question-mark">?</span>;
+                jvm.invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;addSource&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::from(file)])<span class="question-mark">?</span>;
+            }
+            <span class="kw">let </span>scan_results = jvm.invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;findTests&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+            jvm.invoke(<span class="kw-2">&amp;</span>test_scanner, <span class="string">&quot;clearSources&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+
+            <span class="kw">let </span>scan_results: Vec&lt;TestMethod&gt; = jvm.to_rust(scan_results)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(scan_results)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>tests = scan_results
             .into_iter()
@@ -824,19 +845,20 @@
         path: <span class="kw-2">&amp;</span>Path,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;StyleValidationResult, JavaError&gt; {
         <span class="kw">let </span>path = path.to_string_lossy();
-        <span class="kw">let </span>file = <span class="self">self
-            </span>.jvm()
-            .create_instance(<span class="string">&quot;java.io.File&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::try_from(path.as_ref())<span class="question-mark">?</span>])<span class="question-mark">?</span>;
-        <span class="kw">let </span>locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); <span class="comment">// Java requires 639-1 if one exists
-        </span><span class="kw">let </span>locale = <span class="self">self
-            </span>.jvm()
-            .create_instance(<span class="string">&quot;java.util.Locale&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::try_from(locale_code)<span class="question-mark">?</span>])<span class="question-mark">?</span>;
-        <span class="kw">let </span>checkstyle_runner = <span class="self">self</span>.jvm().create_instance(
-            <span class="string">&quot;fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner&quot;</span>,
-            <span class="kw-2">&amp;</span>[InvocationArg::from(file), InvocationArg::from(locale)],
-        )<span class="question-mark">?</span>;
-        <span class="kw">let </span>result = <span class="self">self</span>.jvm().invoke(<span class="kw-2">&amp;</span>checkstyle_runner, <span class="string">&quot;run&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
-        <span class="kw">let </span>result: StyleValidationResult = <span class="self">self</span>.jvm().to_rust(result)<span class="question-mark">?</span>;
+        <span class="kw">let </span>result = <span class="self">self</span>.jvm().with(|jvm| {
+            <span class="kw">let </span>file =
+                jvm.create_instance(<span class="string">&quot;java.io.File&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::try_from(path.as_ref())<span class="question-mark">?</span>])<span class="question-mark">?</span>;
+            <span class="kw">let </span>locale_code = locale.to_639_1().unwrap_or_else(|| locale.to_639_3()); <span class="comment">// Java requires 639-1 if one exists
+            </span><span class="kw">let </span>locale =
+                jvm.create_instance(<span class="string">&quot;java.util.Locale&quot;</span>, <span class="kw-2">&amp;</span>[InvocationArg::try_from(locale_code)<span class="question-mark">?</span>])<span class="question-mark">?</span>;
+            <span class="kw">let </span>checkstyle_runner = jvm.create_instance(
+                <span class="string">&quot;fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner&quot;</span>,
+                <span class="kw-2">&amp;</span>[InvocationArg::from(file), InvocationArg::from(locale)],
+            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>result = jvm.invoke(<span class="kw-2">&amp;</span>checkstyle_runner, <span class="string">&quot;run&quot;</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
+            <span class="kw">let </span>result: StyleValidationResult = jvm.to_rust(result)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(result)
+        })<span class="question-mark">?</span>;
 
         <span class="macro">log::debug!</span>(<span class="string">&quot;Validation result: {:?}&quot;</span>, result);
         <span class="prelude-val">Ok</span>(result)
@@ -864,8 +886,7 @@
             </span>|points| {
                 points
                     .into_iter()
-                    .map(|p| p.split_whitespace())
-                    .flatten()
+                    .flat_map(|p| p.split_whitespace())
                     .collect()
             },
         )(i)
@@ -873,11 +894,12 @@
 }
 
 <span class="attribute">#[cfg(test)]
+#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
-    <span class="kw">use </span><span class="kw">crate</span>::SEPARATOR;
-
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>tmc_langs_framework::{nom, TmcError};
+    <span class="kw">use </span><span class="kw">crate</span>::SEPARATOR;
+    <span class="kw">use </span>std::io::{Read, Seek};
+    <span class="kw">use </span>tmc_langs_framework::{nom, Archive, TmcError};
 
     <span class="kw">fn </span>init() {
         <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -904,7 +926,7 @@
     }
 
     <span class="kw">struct </span>Stub {
-        jvm: Jvm,
+        jvm: JvmWrapper,
     }
 
     <span class="kw">impl </span>Stub {
@@ -937,6 +959,12 @@
             <span class="macro">unimplemented!</span>()
         }
 
+        <span class="kw">fn </span>find_project_dir_in_archive&lt;R: Read + Seek&gt;(
+            _archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;,
+        ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
+            <span class="macro">unimplemented!</span>()
+        }
+
         <span class="kw">fn </span>is_exercise_type_correct(_path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
             <span class="bool-val">true
         </span>}
@@ -961,7 +989,7 @@
     <span class="kw">impl </span>JavaPlugin <span class="kw">for </span>Stub {
         <span class="kw">const </span>TEST_DIR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;test&quot;</span>;
 
-        <span class="kw">fn </span>jvm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Jvm {
+        <span class="kw">fn </span>jvm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JvmWrapper {
             <span class="kw-2">&amp;</span><span class="self">self</span>.jvm
         }
         <span class="kw">fn </span>get_project_class_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;String, JavaError&gt; {

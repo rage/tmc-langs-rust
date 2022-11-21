@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/j4rs-0.13.0/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../j4rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../j4rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../j4rs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/j4rs-0.14.0/src/cache.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../j4rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../j4rs/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../j4rs/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1789,6 +1789,31 @@
 <span id="1789">1789</span>
 <span id="1790">1790</span>
 <span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 astonbitecode
 //
 // Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -1932,8 +1957,8 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CAST_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="comment">// The get json method
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_JSON_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="comment">// The get object class method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_CLASS_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    <span class="comment">// The get object class name method
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_CLASS_NAME_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="comment">// The get object method
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="comment">// The invstatic ocation argument constructor method for objects created by Java
@@ -1962,6 +1987,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_TO_DOUBLE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOCATION_EXCEPTION_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>STRING_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
 }
 
 <span class="macro">macro_rules! </span>get_cached {
@@ -2855,22 +2881,22 @@
         set_get_json_method)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_object_class_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_get_object_class_method&quot;</span>);
-    GET_OBJECT_CLASS_METHOD.with(|opt| {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_object_class_name_method(j: jmethodID) {
+    debug(<span class="string">&quot;Called set_get_object_class_name_method&quot;</span>);
+    GET_OBJECT_CLASS_NAME_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_get_object_class_method() -&gt; errors::Result&lt;jmethodID&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_get_object_class_name_method() -&gt; errors::Result&lt;jmethodID&gt; {
     <span class="macro">get_cached!</span>(
-        GET_OBJECT_CLASS_METHOD,
+        GET_OBJECT_CLASS_NAME_METHOD,
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>get_object_class_method_signature = <span class="string">&quot;()Ljava/lang/Class;&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;getObjectClass&quot;</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_class_method_signature.as_ref());
+            <span class="kw">let </span>get_object_class_name_method_signature = <span class="string">&quot;()Ljava/lang/String;&quot;</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;getObjectClassName&quot;</span>);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_class_name_method_signature.as_ref());
 
             <span class="comment">// Get the method ID for the `Instance.getObjectClass`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -2886,7 +2912,7 @@
 
             j
         },
-        set_get_object_class_method)
+        set_get_object_class_name_method)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_object_method(j: jmethodID) {
@@ -3579,5 +3605,29 @@
             j
         },
         set_double_to_double_method)
+}
+
+<span class="attribute">#[allow(dead_code)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_string_class(j: jclass) {
+    debug(<span class="string">&quot;Called set_string_class&quot;</span>);
+    STRING_CLASS.with(|opt| {
+        <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
+    });
+}
+
+<span class="attribute">#[allow(dead_code)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_string_class() -&gt; errors::Result&lt;jclass&gt; {
+    <span class="macro">get_cached!</span>(
+        STRING_CLASS,
+        {
+            <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
+
+            <span class="kw">let </span>c = tweaks::find_class(
+                env,
+                <span class="string">&quot;java/lang/String&quot;</span>,
+            )<span class="question-mark">?</span>;
+            jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
+        </span>},
+        set_string_class)
 }</code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="j4rs" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

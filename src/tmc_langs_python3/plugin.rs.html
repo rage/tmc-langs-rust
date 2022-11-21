@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `plugins/python3/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_python3/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_python3/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_python3/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/python3/src/plugin.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tmc_langs_python3/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tmc_langs_python3/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tmc_langs_python3/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -888,32 +888,100 @@
 <span id="888">888</span>
 <span id="889">889</span>
 <span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the Python3Plugin struct
 
-</span><span class="kw">use </span><span class="kw">crate</span>::error::PythonError;
-<span class="kw">use </span><span class="kw">crate</span>::policy::Python3StudentFilePolicy;
-<span class="kw">use </span><span class="kw">crate</span>::python_test_result::PythonTestResult;
-<span class="kw">use </span>hmac::{Hmac, Mac, NewMac};
-<span class="kw">use </span>lazy_static::lazy_static;
+</span><span class="kw">use crate</span>::{
+    error::PythonError, policy::Python3StudentFilePolicy, python_test_result::PythonTestResult,
+};
+<span class="kw">use </span>hmac::{Hmac, Mac};
+<span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>rand::Rng;
 <span class="kw">use </span>sha2::Sha256;
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
-<span class="kw">use </span>std::env;
-<span class="kw">use </span>std::io::{BufReader, Read, Seek};
-<span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{
+    collections::{HashMap, HashSet},
+    env,
+    ffi::OsStr,
+    io::{BufReader, Read, Seek},
+    ops::ControlFlow::{Break, Continue},
+    path::{Path, PathBuf},
+    time::Duration,
+};
 <span class="kw">use </span>tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc, TestResult,
-    TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
+    TestResult, TmcCommand, TmcError, TmcProjectYml,
 };
 <span class="kw">use </span>tmc_langs_util::{
-    file_util,
+    deserialize, file_util,
     notification_reporter::{<span class="self">self</span>, Notification},
-    parse_util,
+    parse_util, path_util,
 };
 <span class="kw">use </span>walkdir::WalkDir;
-<span class="kw">use </span>zip::ZipArchive;
 
 <span class="kw">pub struct </span>Python3Plugin {}
 
@@ -923,31 +991,32 @@
     }
 
     <span class="kw">fn </span>get_local_python_command() -&gt; TmcCommand {
-        <span class="macro">lazy_static! </span>{
-            <span class="comment">// the correct python command is platform-dependent
-            </span><span class="kw">static </span><span class="kw-2">ref </span>LOCAL_PY: LocalPy = {
-                <span class="kw">if let </span><span class="prelude-val">Ok</span>(python_exec) = env::var(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
-                    <span class="macro">log::debug!</span>(<span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>, python_exec);
-                    <span class="kw">return </span>LocalPy::Custom { python_exec };
-                }
+        <span class="comment">// the correct python command is platform-dependent
+        </span><span class="kw">static </span>LOCAL_PY: Lazy&lt;LocalPy&gt; = Lazy::new(|| {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(python_exec) = env::var(<span class="string">&quot;TMC_LANGS_PYTHON_EXEC&quot;</span>) {
+                <span class="macro">log::debug!</span>(
+                    <span class="string">&quot;using Python from environment variable TMC_LANGS_PYTHON_EXEC={}&quot;</span>,
+                    python_exec
+                );
+                <span class="kw">return </span>LocalPy::Custom { python_exec };
+            }
 
-                <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
-                    <span class="comment">// Check for Conda
-                    </span><span class="kw">let </span>conda = env::var(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(conda_path) = conda {
-                        <span class="kw">if </span>PathBuf::from(<span class="kw-2">&amp;</span>conda_path).exists() {
-                            <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
-                            <span class="kw">return </span>LocalPy::WindowsConda { conda_path };
-                        }
+            <span class="kw">if </span><span class="macro">cfg!</span>(windows) {
+                <span class="comment">// Check for Conda
+                </span><span class="kw">let </span>conda = env::var(<span class="string">&quot;CONDA_PYTHON_EXE&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Ok</span>(conda_path) = conda {
+                    <span class="kw">if </span>PathBuf::from(<span class="kw-2">&amp;</span>conda_path).exists() {
+                        <span class="macro">log::debug!</span>(<span class="string">&quot;detected conda on windows&quot;</span>);
+                        <span class="kw">return </span>LocalPy::WindowsConda { conda_path };
                     }
-                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
-                    LocalPy::Windows
-                } <span class="kw">else </span>{
-                    <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
-                    LocalPy::Unix
                 }
-            };
-        }
+                <span class="macro">log::debug!</span>(<span class="string">&quot;detected windows&quot;</span>);
+                LocalPy::Windows
+            } <span class="kw">else </span>{
+                <span class="macro">log::debug!</span>(<span class="string">&quot;detected unix&quot;</span>);
+                LocalPy::Unix
+            }
+        });
 
         <span class="kw">enum </span>LocalPy {
             Unix,
@@ -964,25 +1033,25 @@
         }
     }
 
-    <span class="kw">fn </span>get_local_python_ver() -&gt; <span class="prelude-ty">Result</span>&lt;(usize, usize, usize), PythonError&gt; {
+    <span class="kw">fn </span>get_local_python_ver() -&gt; <span class="prelude-ty">Result</span>&lt;(u32, u32, u32), PythonError&gt; {
         <span class="kw">let </span>output = <span class="self">Self</span>::get_local_python_command()
         .with(|e| e.args(<span class="kw-2">&amp;</span>[<span class="string">&quot;-c&quot;</span>, <span class="string">&quot;import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);&quot;</span>]))
         .output_checked()<span class="question-mark">?</span>;
         <span class="kw">let </span>stdout = String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stdout);
         <span class="kw">let </span><span class="kw-2">mut </span>lines = stdout.lines();
-        <span class="kw">let </span>major: usize = lines
+        <span class="kw">let </span>major: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))<span class="question-mark">?
             </span>.trim()
             .parse()
             .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))<span class="question-mark">?</span>;
-        <span class="kw">let </span>minor: usize = lines
+        <span class="kw">let </span>minor: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))<span class="question-mark">?
             </span>.trim()
             .parse()
             .map_err(|e| PythonError::VersionParseError(stdout.clone().into_owned(), e))<span class="question-mark">?</span>;
-        <span class="kw">let </span>patch: usize = lines
+        <span class="kw">let </span>patch: u32 = lines
             .next()
             .ok_or_else(|| PythonError::VersionPrintError(stdout.clone().into_owned()))<span class="question-mark">?
             </span>.trim()
@@ -1056,10 +1125,11 @@
         available_points_json: <span class="kw-2">&amp;</span>Path,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;TestDesc&gt;, PythonError&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>test_descs = <span class="macro">vec!</span>[];
-        <span class="kw">let </span>file = file_util::open_file(<span class="kw-2">&amp;</span>available_points_json)<span class="question-mark">?</span>;
+        <span class="kw">let </span>file = file_util::open_file(available_points_json)<span class="question-mark">?</span>;
         <span class="comment">// TODO: deserialize directly into Vec&lt;TestDesc&gt;?
-        </span><span class="kw">let </span>json: HashMap&lt;String, Vec&lt;String&gt;&gt; = serde_json::from_reader(BufReader::new(file))
-            .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>json: HashMap&lt;String, Vec&lt;String&gt;&gt; =
+            deserialize::json_from_reader(BufReader::new(file))
+                .map_err(|e| PythonError::Deserialize(available_points_json.to_path_buf(), e))<span class="question-mark">?</span>;
         <span class="kw">for </span>(key, value) <span class="kw">in </span>json {
             test_descs.push(TestDesc::new(key, value));
         }
@@ -1069,22 +1139,22 @@
     <span class="doccomment">/// Parse test result file
     </span><span class="kw">fn </span>parse_and_verify_test_result(
         test_results_json: <span class="kw-2">&amp;</span>Path,
-        logs: HashMap&lt;String, String&gt;,
         hmac_data: <span class="prelude-ty">Option</span>&lt;(String, String)&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;RunResult, PythonError&gt; {
-        <span class="kw">let </span>results = file_util::read_file_to_string(<span class="kw-2">&amp;</span>test_results_json)<span class="question-mark">?</span>;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(RunStatus, Vec&lt;TestResult&gt;), PythonError&gt; {
+        <span class="kw">let </span>results = file_util::read_file_to_string(test_results_json)<span class="question-mark">?</span>;
 
         <span class="comment">// verify test results
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>((hmac_secret, test_runner_hmac_hex)) = hmac_data {
-            <span class="kw">let </span><span class="kw-2">mut </span>mac = Hmac::&lt;Sha256&gt;::new_varkey(hmac_secret.as_bytes())
+            <span class="kw">let </span><span class="kw-2">mut </span>mac = Hmac::&lt;Sha256&gt;::new_from_slice(hmac_secret.as_bytes())
                 .expect(<span class="string">&quot;HMAC can take key of any size&quot;</span>);
             mac.update(results.as_bytes());
             <span class="kw">let </span>bytes =
                 hex::decode(<span class="kw-2">&amp;</span>test_runner_hmac_hex).map_err(|<span class="kw">_</span>| PythonError::UnexpectedHmac)<span class="question-mark">?</span>;
-            mac.verify(<span class="kw-2">&amp;</span>bytes).map_err(|<span class="kw">_</span>| PythonError::InvalidHmac)<span class="question-mark">?</span>;
+            mac.verify_slice(<span class="kw-2">&amp;</span>bytes)
+                .map_err(|<span class="kw">_</span>| PythonError::InvalidHmac)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>test_results: Vec&lt;PythonTestResult&gt; = serde_json::from_str(<span class="kw-2">&amp;</span>results)
+        <span class="kw">let </span>test_results: Vec&lt;PythonTestResult&gt; = deserialize::json_from_str(<span class="kw-2">&amp;</span>results)
             .map_err(|e| PythonError::Deserialize(test_results_json.to_path_buf(), e))<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>status = RunStatus::Passed;
@@ -1100,11 +1170,15 @@
             .into_iter()
             .map(|r| r.into_test_result(<span class="kw-2">&amp;</span>failed_points))
             .collect();
-        <span class="prelude-val">Ok</span>(RunResult::new(status, test_results, logs))
+        <span class="prelude-val">Ok</span>((status, test_results))
     }
 }
 
-<span class="kw">impl </span>LanguagePlugin <span class="kw">for </span>Python3Plugin {
+<span class="doccomment">/// Project directory:
+/// Contains setup.py, requirements.txt, test/__init__.py, or tmc/__main__.py
+/// OR
+/// Contains an .ipynb file. This is given lower priority than the prior rule, and if there are multiple .ipynb files, the shallowest directory is returned.
+</span><span class="kw">impl </span>LanguagePlugin <span class="kw">for </span>Python3Plugin {
     <span class="kw">const </span>PLUGIN_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;python3&quot;</span>;
     <span class="kw">const </span>LINE_COMMENT: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;#&quot;</span>;
     <span class="kw">const </span>BLOCK_COMMENT: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str)&gt; = <span class="prelude-val">Some</span>((<span class="string">&quot;\&quot;\&quot;\&quot;&quot;</span>, <span class="string">&quot;\&quot;\&quot;\&quot;&quot;</span>));
@@ -1121,9 +1195,9 @@
             file_util::remove_file(<span class="kw-2">&amp;</span>available_points_json)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>run_result =
-            <span class="self">Self</span>::run_tmc_command(exercise_directory, <span class="kw-2">&amp;</span>[<span class="string">&quot;available_points&quot;</span>], <span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = run_result {
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(error) =
+            <span class="self">Self</span>::run_tmc_command(exercise_directory, <span class="kw-2">&amp;</span>[<span class="string">&quot;available_points&quot;</span>], <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+        {
             <span class="macro">log::error!</span>(<span class="string">&quot;Failed to scan exercise. {}&quot;</span>, error);
         }
 
@@ -1167,17 +1241,14 @@
 
         <span class="kw">match </span>output {
             <span class="prelude-val">Ok</span>(output) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>logs = HashMap::new();
-                logs.insert(
-                    <span class="string">&quot;stdout&quot;</span>.to_string(),
-                    String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stdout).into_owned(),
-                );
-                logs.insert(
-                    <span class="string">&quot;stderr&quot;</span>.to_string(),
-                    String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stderr).into_owned(),
-                );
+                <span class="kw">let </span>stdout = String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stdout);
+                <span class="kw">let </span>stderr = String::from_utf8_lossy(<span class="kw-2">&amp;</span>output.stderr);
+                <span class="macro">log::trace!</span>(<span class="string">&quot;stdout: {}&quot;</span>, stdout);
+                <span class="macro">log::debug!</span>(<span class="string">&quot;stderr: {}&quot;</span>, stderr);
 
-                <span class="kw">let </span>hmac_data = <span class="kw">if let </span><span class="prelude-val">Some</span>(random_string) = random_string {
+                <span class="comment">// TODO: is it OK to not check output.status.success()?
+
+                </span><span class="kw">let </span>hmac_data = <span class="kw">if let </span><span class="prelude-val">Some</span>(random_string) = random_string {
                     <span class="kw">let </span>hmac_result_path = exercise_directory.join(<span class="string">&quot;.tmc_test_results.hmac.sha256&quot;</span>);
                     <span class="kw">let </span>test_runner_hmac = file_util::read_file_to_string(hmac_result_path)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>((random_string, test_runner_hmac))
@@ -1185,27 +1256,37 @@
                     <span class="prelude-val">None
                 </span>};
 
-                <span class="kw">let </span>parse_res =
-                    <span class="self">Self</span>::parse_and_verify_test_result(<span class="kw-2">&amp;</span>test_results_json, logs, hmac_data);
-                <span class="comment">// remove file regardless of parse success
-                </span><span class="kw">if </span>test_results_json.exists() {
-                    file_util::remove_file(<span class="kw-2">&amp;</span>test_results_json)<span class="question-mark">?</span>;
+                <span class="kw">if </span>!test_results_json.exists() {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(PythonError::MissingTestResults {
+                        path: test_results_json,
+                        stdout: stdout.into_owned(),
+                        stderr: stderr.into_owned(),
+                    }
+                    .into());
                 }
-
-                <span class="kw">let </span><span class="kw-2">mut </span>run_result = parse_res<span class="question-mark">?</span>;
+                <span class="kw">let </span>(status, <span class="kw-2">mut </span>test_results) =
+                    <span class="self">Self</span>::parse_and_verify_test_result(<span class="kw-2">&amp;</span>test_results_json, hmac_data)<span class="question-mark">?</span>;
+                file_util::remove_file(<span class="kw-2">&amp;</span>test_results_json)<span class="question-mark">?</span>;
 
                 <span class="comment">// remove points associated with any failed tests
                 </span><span class="kw">let </span><span class="kw-2">mut </span>failed_points = HashSet::new();
-                <span class="kw">for </span>test_result <span class="kw">in </span><span class="kw-2">&amp;</span>run_result.test_results {
+                <span class="kw">for </span>test_result <span class="kw">in </span><span class="kw-2">&amp;</span>test_results {
                     <span class="kw">if </span>!test_result.successful {
                         failed_points.extend(test_result.points.iter().cloned());
                     }
                 }
-                <span class="kw">for </span>test_result <span class="kw">in </span><span class="kw-2">&amp;mut </span>run_result.test_results {
+                <span class="kw">for </span>test_result <span class="kw">in </span><span class="kw-2">&amp;mut </span>test_results {
                     test_result.points.retain(|p| !failed_points.contains(p));
                 }
 
-                <span class="prelude-val">Ok</span>(run_result)
+                <span class="kw">let </span><span class="kw-2">mut </span>logs = HashMap::new();
+                logs.insert(<span class="string">&quot;stdout&quot;</span>.to_string(), stdout.into_owned());
+                logs.insert(<span class="string">&quot;stderr&quot;</span>.to_string(), stderr.into_owned());
+                <span class="prelude-val">Ok</span>(RunResult {
+                    status,
+                    test_results,
+                    logs,
+                })
             }
             <span class="prelude-val">Err</span>(PythonError::Tmc(TmcError::Command(CommandError::TimeOut {
                 stdout,
@@ -1233,8 +1314,83 @@
         }
     }
 
-    <span class="doccomment">/// Checks if the directory has one of setup.py, requirements.txt., test/__init__.py, or tmc/__main__.py
-    </span><span class="kw">fn </span>is_exercise_type_correct(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">fn </span>find_project_dir_in_archive&lt;R: Read + Seek&gt;(
+        archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>iter = archive.iter()<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>shallowest_ipynb_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt; = <span class="prelude-val">None</span>;
+
+        <span class="kw">let </span>project_dir = <span class="kw">loop </span>{
+            <span class="kw">let </span>next = iter.with_next(|file| {
+                <span class="comment">// zips don&#39;t necessarily contain entries for intermediate directories,
+                // so we need to check every path for src
+                </span><span class="kw">let </span>file_path = file.path()<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>file.is_file() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;setup.py&quot;</span>) {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
+                    }
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) =
+                        path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;requirements.txt&quot;</span>)
+                    {
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
+                    }
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;__init__.py&quot;</span>)
+                    {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>parent, <span class="string">&quot;test&quot;</span>) {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
+                        }
+                    }
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;__main__.py&quot;</span>)
+                    {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>parent, <span class="string">&quot;tmc&quot;</span>) {
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
+                        }
+                    }
+                    <span class="comment">// check for .ipynb file, ignore __MACOSX
+                    </span><span class="kw">if </span>file_path.extension() == <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;ipynb&quot;</span>))
+                        &amp;&amp; !file_path.components().any(|c| c.as_os_str() == <span class="string">&quot;__MACOSX&quot;</span>)
+                    {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(ipynb_path) = shallowest_ipynb_path.as_mut() {
+                            <span class="comment">// make sure we maintain the shallowest ipynb path in the archive
+                            </span><span class="kw">if </span>ipynb_path.components().count() &gt; file_path.components().count() {
+                                <span class="kw-2">*</span>ipynb_path = file_path
+                                    .parent()
+                                    .map(PathBuf::from)
+                                    .unwrap_or_else(|| PathBuf::from(<span class="string">&quot;&quot;</span>));
+                            }
+                        } <span class="kw">else </span>{
+                            shallowest_ipynb_path = <span class="prelude-val">Some</span>(
+                                file_path
+                                    .parent()
+                                    .map(PathBuf::from)
+                                    .unwrap_or_else(|| PathBuf::from(<span class="string">&quot;&quot;</span>)),
+                            );
+                        }
+                    }
+                }
+                <span class="prelude-val">Ok</span>(Continue(()))
+            });
+            <span class="kw">match </span>next<span class="question-mark">? </span>{
+                Continue(<span class="kw">_</span>) =&gt; <span class="kw">continue</span>,
+                Break(project_dir) =&gt; <span class="kw">break </span>project_dir,
+            }
+        };
+
+        <span class="kw">match </span>project_dir {
+            <span class="prelude-val">Some</span>(project_dir) =&gt; <span class="prelude-val">Ok</span>(project_dir),
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// no src found, use shallowest ipynb path if any
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ipynb_path) = shallowest_ipynb_path {
+                    <span class="prelude-val">Ok</span>(ipynb_path)
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Err</span>(TmcError::NoProjectDirInArchive)
+                }
+            }
+        }
+    }
+
+    <span class="kw">fn </span>is_exercise_type_correct(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
         <span class="kw">let </span>setup = path.join(<span class="string">&quot;setup.py&quot;</span>);
         <span class="kw">let </span>requirements = path.join(<span class="string">&quot;requirements.txt&quot;</span>);
         <span class="kw">let </span>test = path.join(<span class="string">&quot;test&quot;</span>).join(<span class="string">&quot;__init__.py&quot;</span>);
@@ -1291,61 +1447,15 @@
             </span>|points| {
                 points
                     .into_iter()
-                    .map(|p| p.split_whitespace())
-                    .flatten()
+                    .flat_map(|p| p.split_whitespace())
                     .collect()
             },
         )(i)
     }
-
-    <span class="kw">fn </span>find_project_dir_in_zip&lt;R: Read + Seek&gt;(
-        zip_archive: <span class="kw-2">&amp;mut </span>ZipArchive&lt;R&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>lowest_ipynb_dir = <span class="prelude-val">None</span>::&lt;PathBuf&gt;;
-
-        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip_archive.len() {
-            <span class="comment">// zips don&#39;t necessarily contain entries for intermediate directories,
-            // so we need to check every path for src
-            </span><span class="kw">let </span>file = zip_archive.by_index(i)<span class="question-mark">?</span>;
-            <span class="kw">let </span>file_path = Path::new(file.name());
-
-            <span class="kw">if </span>file_path.components().any(|c| c.as_os_str() == <span class="string">&quot;src&quot;</span>) {
-                <span class="kw">let </span>path: PathBuf = file_path
-                    .components()
-                    .take_while(|c| c.as_os_str() != <span class="string">&quot;src&quot;</span>)
-                    .collect();
-
-                <span class="kw">if </span>path.components().any(|p| p.as_os_str() == <span class="string">&quot;__MACOSX&quot;</span>) {
-                    <span class="kw">continue</span>;
-                }
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(path);
-            }
-
-            <span class="kw">if </span>file_path
-                .extension()
-                .map(|ext| ext == <span class="string">&quot;ipynb&quot;</span>)
-                .unwrap_or_default()
-            {
-                <span class="kw">let </span>parent = file_path.parent().unwrap_or(Path::new(<span class="string">&quot;./&quot;</span>));
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(lowest_ipynb_dir) = lowest_ipynb_dir.as_mut() {
-                    <span class="kw">if </span>lowest_ipynb_dir.components().count() &gt; parent.components().count() {
-                        <span class="kw-2">*</span>lowest_ipynb_dir = parent.to_path_buf();
-                    }
-                } <span class="kw">else </span>{
-                    lowest_ipynb_dir = <span class="prelude-val">Some</span>(parent.to_path_buf());
-                }
-            }
-        }
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(lowest_ipynb_dir) = lowest_ipynb_dir {
-            <span class="prelude-val">Ok</span>(lowest_ipynb_dir)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(TmcError::NoProjectDirInZip)
-        }
-    }
 }
 
 <span class="attribute">#[cfg(test)]
+#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::{
@@ -1353,7 +1463,6 @@
         path::{Path, PathBuf},
     };
     <span class="kw">use </span>tmc_langs_framework::{LanguagePlugin, RunStatus};
-    <span class="kw">use </span>zip::ZipArchive;
 
     <span class="kw">fn </span>init() {
         <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -1683,11 +1792,11 @@ class TestErroring(unittest.TestCase):
         init();
 
         <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
-        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;Outer/Inner/project/src/main.py&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;Outer/Inner/project/setup.py&quot;</span>, <span class="string">&quot;&quot;</span>);
 
         <span class="kw">let </span>bytes = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
-        <span class="kw">let </span><span class="kw-2">mut </span>zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        <span class="kw">let </span>dir = Python3Plugin::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip).unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        <span class="kw">let </span>dir = Python3Plugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip).unwrap();
         <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">&quot;Outer/Inner/project&quot;</span>));
     }
 
@@ -1699,9 +1808,32 @@ class TestErroring(unittest.TestCase):
         file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;Outer/Inner/project/srcb/main.py&quot;</span>, <span class="string">&quot;&quot;</span>);
 
         <span class="kw">let </span>bytes = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
-        <span class="kw">let </span><span class="kw-2">mut </span>zip = ZipArchive::new(std::io::Cursor::new(bytes)).unwrap();
-        <span class="kw">let </span>res = Python3Plugin::find_project_dir_in_zip(<span class="kw-2">&amp;mut </span>zip);
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        <span class="kw">let </span>res = Python3Plugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip);
         <span class="macro">assert!</span>(res.is_err());
+    }
+
+    <span class="attribute">#[test]
+    </span><span class="kw">fn </span>finds_project_dir_from_ipynb() {
+        init();
+
+        <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;inner/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
+
+        <span class="kw">let </span>bytes = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        <span class="kw">let </span>dir = Python3Plugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip).unwrap();
+        <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">&quot;&quot;</span>));
+
+        <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;dir/inner/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;dir/file.ipynb&quot;</span>, <span class="string">&quot;&quot;</span>);
+
+        <span class="kw">let </span>bytes = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
+        <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        <span class="kw">let </span>dir = Python3Plugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip).unwrap();
+        <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">&quot;dir&quot;</span>));
     }
 
     <span class="attribute">#[test]
@@ -1754,7 +1886,6 @@ class TestClass(unittest.TestCase):
             <span class="string">&quot;b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be21&quot;</span>.to_string();
         Python3Plugin::parse_and_verify_test_result(
             temp.path(),
-            HashMap::new(),
             <span class="prelude-val">Some</span>((hmac_secret, test_runner_hmac)),
         )
         .unwrap();
@@ -1772,7 +1903,6 @@ class TestClass(unittest.TestCase):
             <span class="string">&quot;b379817c66cc7b1610d03ac263f02fa11f7b0153e6aeff3262ecc0598bf0be22&quot;</span>.to_string();
         <span class="kw">let </span>res = Python3Plugin::parse_and_verify_test_result(
             temp.path(),
-            HashMap::new(),
             <span class="prelude-val">Some</span>((hmac_secret, test_runner_hmac)),
         );
         <span class="macro">assert!</span>(res.is_err());

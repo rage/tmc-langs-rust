@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-6.2.1/src/sequence/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nom-7.1.1/src/sequence/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../nom/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../nom/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -268,97 +268,10 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Combinators applying parsers in sequence
 
-</span><span class="attribute">#[macro_use]
-</span><span class="kw">mod </span>macros;
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
 <span class="kw">use </span><span class="kw">crate</span>::error::ParseError;
 <span class="kw">use </span><span class="kw">crate</span>::internal::{IResult, Parser};
@@ -369,6 +282,7 @@
 /// # Arguments
 /// * `first` The first parser to apply.
 /// * `second` The second parser to apply.
+///
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed};
 /// # use nom::Needed::Size;
@@ -396,26 +310,13 @@
   }
 }
 
-<span class="comment">// this implementation is used for type inference issues in macros
-</span><span class="attribute">#[doc(hidden)]
-</span><span class="kw">pub fn </span>pairc&lt;I, O1, O2, E: ParseError&lt;I&gt;, F, G&gt;(
-  input: I,
-  first: F,
-  second: G,
-) -&gt; IResult&lt;I, (O1, O2), E&gt;
-<span class="kw">where
-  </span>F: Fn(I) -&gt; IResult&lt;I, O1, E&gt;,
-  G: Fn(I) -&gt; IResult&lt;I, O2, E&gt;,
-{
-  pair(first, second)(input)
-}
-
 <span class="doccomment">/// Matches an object from the first parser and discards it,
 /// then gets an object from the second parser.
 ///
 /// # Arguments
 /// * `first` The opening parser.
 /// * `second` The second parser to get object.
+///
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed};
 /// # use nom::Needed::Size;
@@ -443,26 +344,13 @@
   }
 }
 
-<span class="comment">// this implementation is used for type inference issues in macros
-</span><span class="attribute">#[doc(hidden)]
-</span><span class="kw">pub fn </span>precededc&lt;I, O1, O2, E: ParseError&lt;I&gt;, F, G&gt;(
-  input: I,
-  first: F,
-  second: G,
-) -&gt; IResult&lt;I, O2, E&gt;
-<span class="kw">where
-  </span>F: Fn(I) -&gt; IResult&lt;I, O1, E&gt;,
-  G: Fn(I) -&gt; IResult&lt;I, O2, E&gt;,
-{
-  preceded(first, second)(input)
-}
-
 <span class="doccomment">/// Gets an object from the first parser,
 /// then matches an object from the second parser and discards it.
 ///
 /// # Arguments
 /// * `first` The first parser to apply.
 /// * `second` The second parser to match an object.
+///
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed};
 /// # use nom::Needed::Size;
@@ -490,20 +378,6 @@
   }
 }
 
-<span class="comment">// this implementation is used for type inference issues in macros
-</span><span class="attribute">#[doc(hidden)]
-</span><span class="kw">pub fn </span>terminatedc&lt;I, O1, O2, E: ParseError&lt;I&gt;, F, G&gt;(
-  input: I,
-  first: F,
-  second: G,
-) -&gt; IResult&lt;I, O1, E&gt;
-<span class="kw">where
-  </span>F: Fn(I) -&gt; IResult&lt;I, O1, E&gt;,
-  G: Fn(I) -&gt; IResult&lt;I, O2, E&gt;,
-{
-  terminated(first, second)(input)
-}
-
 <span class="doccomment">/// Gets an object from the first parser,
 /// then matches an object from the sep_parser and discards it,
 /// then gets another object from the second parser.
@@ -512,6 +386,7 @@
 /// * `first` The first parser to apply.
 /// * `sep` The separator parser to apply.
 /// * `second` The second parser to apply.
+///
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed};
 /// # use nom::Needed::Size;
@@ -542,22 +417,6 @@
   }
 }
 
-<span class="comment">// this implementation is used for type inference issues in macros
-</span><span class="attribute">#[doc(hidden)]
-</span><span class="kw">pub fn </span>separated_pairc&lt;I, O1, O2, O3, E: ParseError&lt;I&gt;, F, G, H&gt;(
-  input: I,
-  first: F,
-  sep: G,
-  second: H,
-) -&gt; IResult&lt;I, (O1, O3), E&gt;
-<span class="kw">where
-  </span>F: Fn(I) -&gt; IResult&lt;I, O1, E&gt;,
-  G: Fn(I) -&gt; IResult&lt;I, O2, E&gt;,
-  H: Fn(I) -&gt; IResult&lt;I, O3, E&gt;,
-{
-  separated_pair(first, sep, second)(input)
-}
-
 <span class="doccomment">/// Matches an object from the first parser and discards it,
 /// then gets an object from the second parser,
 /// and finally matches an object from the third parser and discards it.
@@ -566,6 +425,7 @@
 /// * `first` The first parser to apply and discard.
 /// * `second` The second parser to apply.
 /// * `third` The third parser to apply and discard.
+///
 /// ```rust
 /// # use nom::{Err, error::ErrorKind, Needed};
 /// # use nom::Needed::Size;
@@ -594,22 +454,6 @@
     <span class="kw">let </span>(input, o2) = second.parse(input)<span class="question-mark">?</span>;
     third.parse(input).map(|(i, <span class="kw">_</span>)| (i, o2))
   }
-}
-
-<span class="comment">// this implementation is used for type inference issues in macros
-</span><span class="attribute">#[doc(hidden)]
-</span><span class="kw">pub fn </span>delimitedc&lt;I, O1, O2, O3, E: ParseError&lt;I&gt;, F, G, H&gt;(
-  input: I,
-  first: F,
-  second: G,
-  third: H,
-) -&gt; IResult&lt;I, O2, E&gt;
-<span class="kw">where
-  </span>F: Fn(I) -&gt; IResult&lt;I, O1, E&gt;,
-  G: Fn(I) -&gt; IResult&lt;I, O2, E&gt;,
-  H: Fn(I) -&gt; IResult&lt;I, O3, E&gt;,
-{
-  delimited(first, second, third)(input)
 }
 
 <span class="doccomment">/// Helper trait for the tuple combinator.
@@ -679,7 +523,7 @@
   FnM M, FnN N, FnO O, FnP P, FnQ Q, FnR R, FnS S, FnT T, FnU U);
 
 <span class="doccomment">///Applies a tuple of parsers one by one and returns their results as a tuple.
-///
+///There is a maximum of 21 parsers
 /// ```rust
 /// # use nom::{Err, error::ErrorKind};
 /// use nom::sequence::tuple;
@@ -693,24 +537,6 @@
   <span class="kw-2">mut </span>l: List,
 ) -&gt; <span class="kw">impl </span>FnMut(I) -&gt; IResult&lt;I, O, E&gt; {
   <span class="kw">move </span>|i: I| l.parse(i)
-}
-
-<span class="attribute">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-  <span class="kw">use super</span>::<span class="kw-2">*</span>;
-
-  <span class="attribute">#[test]
-  </span><span class="kw">fn </span>single_element_tuples() {
-    <span class="kw">use </span><span class="kw">crate</span>::character::complete::alpha1;
-    <span class="kw">use crate</span>::{error::ErrorKind, <span class="prelude-val">Err</span>};
-
-    <span class="kw">let </span><span class="kw-2">mut </span>parser = tuple((alpha1,));
-    <span class="macro">assert_eq!</span>(parser(<span class="string">&quot;abc123def&quot;</span>), <span class="prelude-val">Ok</span>((<span class="string">&quot;123def&quot;</span>, (<span class="string">&quot;abc&quot;</span>,))));
-    <span class="macro">assert_eq!</span>(
-      parser(<span class="string">&quot;123def&quot;</span>),
-      <span class="prelude-val">Err</span>(Err::Error((<span class="string">&quot;123def&quot;</span>, ErrorKind::Alpha)))
-    );
-  }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nom" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

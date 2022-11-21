@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["ZipError","Error type for Zip"]],"fn":[["unzip","Finds a project directory in the given zip and unzips it according to the given student policy. Also cleans unnecessary non-student files."],["zip","Zips the given directory, only including student files according to the given policy."]]};

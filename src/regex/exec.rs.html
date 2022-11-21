@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.6/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1653,9 +1653,6 @@
 <span id="1653">1653</span>
 <span id="1654">1654</span>
 <span id="1655">1655</span>
-<span id="1656">1656</span>
-<span id="1657">1657</span>
-<span id="1658">1658</span>
 </pre><pre class="rust"><code><span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::panic::AssertUnwindSafe;
@@ -1663,26 +1660,26 @@
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
 </span><span class="kw">use </span>aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
-<span class="kw">use </span>syntax::hir::literal::Literals;
-<span class="kw">use </span>syntax::hir::Hir;
-<span class="kw">use </span>syntax::ParserBuilder;
+<span class="kw">use </span>regex_syntax::hir::literal::Literals;
+<span class="kw">use </span>regex_syntax::hir::Hir;
+<span class="kw">use </span>regex_syntax::ParserBuilder;
 
-<span class="kw">use </span>backtrack;
-<span class="kw">use </span>compile::Compiler;
+<span class="kw">use </span><span class="kw">crate</span>::backtrack;
+<span class="kw">use </span><span class="kw">crate</span>::compile::Compiler;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;perf-dfa&quot;</span>)]
-</span><span class="kw">use </span>dfa;
-<span class="kw">use </span>error::Error;
-<span class="kw">use </span>input::{ByteInput, CharInput};
-<span class="kw">use </span>literal::LiteralSearcher;
-<span class="kw">use </span>pikevm;
-<span class="kw">use </span>pool::{Pool, PoolGuard};
-<span class="kw">use </span>prog::Program;
-<span class="kw">use </span>re_builder::RegexOptions;
-<span class="kw">use </span>re_bytes;
-<span class="kw">use </span>re_set;
-<span class="kw">use </span>re_trait::{Locations, RegularExpression, Slot};
-<span class="kw">use </span>re_unicode;
-<span class="kw">use </span>utf8::next_utf8;
+</span><span class="kw">use </span><span class="kw">crate</span>::dfa;
+<span class="kw">use </span><span class="kw">crate</span>::error::Error;
+<span class="kw">use </span><span class="kw">crate</span>::input::{ByteInput, CharInput};
+<span class="kw">use </span><span class="kw">crate</span>::literal::LiteralSearcher;
+<span class="kw">use </span><span class="kw">crate</span>::pikevm;
+<span class="kw">use </span><span class="kw">crate</span>::pool::{Pool, PoolGuard};
+<span class="kw">use </span><span class="kw">crate</span>::prog::Program;
+<span class="kw">use </span><span class="kw">crate</span>::re_builder::RegexOptions;
+<span class="kw">use </span><span class="kw">crate</span>::re_bytes;
+<span class="kw">use </span><span class="kw">crate</span>::re_set;
+<span class="kw">use </span><span class="kw">crate</span>::re_trait::{Locations, RegularExpression, Slot};
+<span class="kw">use </span><span class="kw">crate</span>::re_unicode;
+<span class="kw">use </span><span class="kw">crate</span>::utf8::next_utf8;
 
 <span class="doccomment">/// `Exec` manages the execution of a regular expression.
 ///
@@ -1798,7 +1795,7 @@
     ///
     /// Note that when compiling 2 or more regular expressions, capture groups
     /// are completely unsupported. (This means both `find` and `captures`
-    /// wont work.)
+    /// won&#39;t work.)
     </span><span class="kw">pub fn </span>new_many&lt;I, S&gt;(res: I) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>S: AsRef&lt;str&gt;,
@@ -1946,10 +1943,10 @@
             exprs.push(expr);
         }
         <span class="prelude-val">Ok</span>(Parsed {
-            exprs: exprs,
+            exprs,
             prefixes: prefixes.unwrap_or_else(Literals::empty),
             suffixes: suffixes.unwrap_or_else(Literals::empty),
-            bytes: bytes,
+            bytes,
         })
     }
 
@@ -1969,7 +1966,7 @@
                 match_type: MatchType::Nothing,
             });
             <span class="kw">let </span>pool = ExecReadOnly::new_pool(<span class="kw-2">&amp;</span>ro);
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(Exec { ro: ro, pool });
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Exec { ro, pool });
         }
         <span class="kw">let </span>parsed = <span class="self">self</span>.parse()<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>nfa = Compiler::new()
@@ -1998,12 +1995,12 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>ro = ExecReadOnly {
             res: <span class="self">self</span>.options.pats,
-            nfa: nfa,
-            dfa: dfa,
-            dfa_reverse: dfa_reverse,
+            nfa,
+            dfa,
+            dfa_reverse,
             suffixes: LiteralSearcher::suffixes(parsed.suffixes),
             <span class="attribute">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
-            </span>ac: ac,
+            </span>ac,
             match_type: MatchType::Nothing,
         };
         ro.match_type = ro.choose_match_type(<span class="self">self</span>.match_type);
@@ -2031,9 +2028,6 @@
             AhoCorasickBuilder::new()
                 .match_kind(MatchKind::LeftmostFirst)
                 .auto_configure(<span class="kw-2">&amp;</span>lits)
-                <span class="comment">// We always want this to reduce size, regardless
-                // of what auto-configure does.
-                </span>.byte_classes(<span class="bool-val">true</span>)
                 .build_with_size::&lt;u32, <span class="kw">_</span>, <span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>lits)
                 <span class="comment">// This should never happen because we&#39;d long exceed the
                 // compilation limit for regexes first.
@@ -2397,7 +2391,7 @@
         text: <span class="kw-2">&amp;</span>[u8],
         start: usize,
     ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
-        <span class="kw">use </span>dfa::Result::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
         <span class="kw">let </span>end = <span class="kw">match </span>dfa::Fsm::forward(
             <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa,
             <span class="self">self</span>.cache.value(),
@@ -2437,7 +2431,7 @@
         text: <span class="kw-2">&amp;</span>[u8],
         start: usize,
     ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
-        <span class="kw">use </span>dfa::Result::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
         <span class="kw">match </span>dfa::Fsm::reverse(
             <span class="kw-2">&amp;</span><span class="self">self</span>.ro.dfa_reverse,
             <span class="self">self</span>.cache.value(),
@@ -2493,7 +2487,7 @@
         text: <span class="kw-2">&amp;</span>[u8],
         original_start: usize,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;dfa::Result&lt;(usize, usize)&gt;&gt; {
-        <span class="kw">use </span>dfa::Result::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
 
         <span class="kw">let </span>lcs = <span class="self">self</span>.ro.suffixes.lcs();
         <span class="macro">debug_assert!</span>(lcs.len() &gt;= <span class="number">1</span>);
@@ -2538,7 +2532,7 @@
         text: <span class="kw-2">&amp;</span>[u8],
         start: usize,
     ) -&gt; dfa::Result&lt;(usize, usize)&gt; {
-        <span class="kw">use </span>dfa::Result::<span class="kw-2">*</span>;
+        <span class="kw">use </span><span class="kw">crate</span>::dfa::Result::<span class="kw-2">*</span>;
 
         <span class="kw">let </span>match_start = <span class="kw">match </span><span class="self">self</span>.exec_dfa_reverse_suffix(text, start) {
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="self">self</span>.find_dfa_forward(text, start),
@@ -2921,7 +2915,7 @@
 <span class="kw">impl </span>Exec {
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">pub fn </span>searcher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSync {
+    </span><span class="kw">pub fn </span>searcher(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSync&lt;<span class="lifetime">&#39;_</span>&gt; {
         ExecNoSync {
             ro: <span class="kw-2">&amp;</span><span class="self">self</span>.ro, <span class="comment">// a clone is too expensive here! (and not needed)
             </span>cache: <span class="self">self</span>.pool.get(),
@@ -2930,7 +2924,7 @@
 
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync and can match on &amp;str.
     </span><span class="attribute">#[cfg_attr(feature = <span class="string">&quot;perf-inline&quot;</span>, inline(always))]
-    </span><span class="kw">pub fn </span>searcher_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSyncStr {
+    </span><span class="kw">pub fn </span>searcher_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ExecNoSyncStr&lt;<span class="lifetime">&#39;_</span>&gt; {
         ExecNoSyncStr(<span class="self">self</span>.searcher())
     }
 
@@ -3208,7 +3202,7 @@
 /// literals, and if so, returns them. Otherwise, this returns None.
 </span><span class="attribute">#[cfg(feature = <span class="string">&quot;perf-literal&quot;</span>)]
 </span><span class="kw">fn </span>alternation_literals(expr: <span class="kw-2">&amp;</span>Hir) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;Vec&lt;u8&gt;&gt;&gt; {
-    <span class="kw">use </span>syntax::hir::{HirKind, Literal};
+    <span class="kw">use </span>regex_syntax::hir::{HirKind, Literal};
 
     <span class="comment">// This is pretty hacky, but basically, if `is_alternation_literal` is
     // true, then we can make several assumptions about the structure of our
@@ -3260,7 +3254,7 @@
 </span><span class="kw">mod </span>test {
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>uppercut_s_backtracking_bytes_default_bytes_mismatch() {
-        <span class="kw">use </span>internal::ExecBuilder;
+        <span class="kw">use </span><span class="kw">crate</span>::internal::ExecBuilder;
 
         <span class="kw">let </span>backtrack_bytes_re = ExecBuilder::new(<span class="string">&quot;^S&quot;</span>)
             .bounded_backtracking()
@@ -3288,7 +3282,7 @@
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>unicode_lit_star_backtracking_utf8bytes_default_utf8bytes_mismatch() {
-        <span class="kw">use </span>internal::ExecBuilder;
+        <span class="kw">use </span><span class="kw">crate</span>::internal::ExecBuilder;
 
         <span class="kw">let </span>backtrack_bytes_re = ExecBuilder::new(<span class="string">r&quot;^(?u:\*)&quot;</span>)
             .bounded_backtracking()

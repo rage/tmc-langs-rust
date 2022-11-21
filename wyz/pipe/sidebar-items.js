@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["Pipe","Permit suffixed call of any function on a value."],["PipeAsRef","Calls the `AsRef` or `AsMut` traits before piping."],["PipeBorrow","Calls the `Borrow` or `BorrowMut` traits before piping."],["PipeDeref","Calls the `Deref` or `DerefMut` traits before piping."],["PipeRef","Referential piping."]]};

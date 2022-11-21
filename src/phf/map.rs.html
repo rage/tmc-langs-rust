@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/phf-0.7.24/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../phf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../phf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../phf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/phf-0.10.1/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../phf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../phf/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../phf/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -196,14 +196,118 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><pre class="rust"><code><span class="doccomment">//! An immutable map constructed at compile time.
-</span><span class="kw">use </span>core::borrow::Borrow;
+</span><span class="kw">use </span>core::fmt;
+<span class="kw">use </span>core::iter::FusedIterator;
+<span class="kw">use </span>core::iter::IntoIterator;
 <span class="kw">use </span>core::ops::Index;
 <span class="kw">use </span>core::slice;
-<span class="kw">use </span>core::fmt;
-<span class="kw">use </span>core::iter::IntoIterator;
-<span class="kw">use </span>phf_shared::{<span class="self">self</span>, PhfHash};
-<span class="kw">use </span>Slice;
+<span class="kw">use </span>phf_shared::{<span class="self">self</span>, HashKey, PhfBorrow, PhfHash};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+</span><span class="kw">use </span>serde::ser::{Serialize, SerializeMap, Serializer};
 
 <span class="doccomment">/// An immutable map constructed at compile time.
 ///
@@ -214,20 +318,28 @@
 /// time and should never be accessed directly.
 </span><span class="kw">pub struct </span>Map&lt;K: <span class="lifetime">&#39;static</span>, V: <span class="lifetime">&#39;static</span>&gt; {
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">pub </span>key: u64,
+    </span><span class="kw">pub </span>key: HashKey,
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">pub </span>disps: Slice&lt;(u32, u32)&gt;,
+    </span><span class="kw">pub </span>disps: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(u32, u32)],
     <span class="attribute">#[doc(hidden)]
-    </span><span class="kw">pub </span>entries: Slice&lt;(K, V)&gt;,
+    </span><span class="kw">pub </span>entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[(K, V)],
 }
 
-<span class="kw">impl</span>&lt;K, V&gt; fmt::Debug <span class="kw">for </span>Map&lt;K, V&gt; <span class="kw">where </span>K: fmt::Debug, V: fmt::Debug {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+<span class="kw">impl</span>&lt;K, V&gt; fmt::Debug <span class="kw">for </span>Map&lt;K, V&gt;
+<span class="kw">where
+    </span>K: fmt::Debug,
+    V: fmt::Debug,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         fmt.debug_map().entries(<span class="self">self</span>.entries()).finish()
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V, T: <span class="question-mark">?</span>Sized&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>Map&lt;K, V&gt; <span class="kw">where </span>T: Eq + PhfHash, K: Borrow&lt;T&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V, T: <span class="question-mark">?</span>Sized&gt; Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T&gt; <span class="kw">for </span>Map&lt;K, V&gt;
+<span class="kw">where
+    </span>T: Eq + PhfHash,
+    K: PhfBorrow&lt;T&gt;,
+{
     <span class="kw">type </span>Output = V;
 
     <span class="kw">fn </span>index(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; <span class="kw-2">&amp;</span>V {
@@ -236,28 +348,32 @@
 }
 
 <span class="kw">impl</span>&lt;K, V&gt; Map&lt;K, V&gt; {
-    <span class="doccomment">/// Returns true if the `Map` is empty.
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.len() == <span class="number">0
-    </span>}
-
     <span class="doccomment">/// Returns the number of entries in the `Map`.
-    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.entries.len()
     }
 
+    <span class="doccomment">/// Returns true if the `Map` is empty.
+    </span><span class="attribute">#[inline]
+    </span><span class="kw">pub const fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.len() == <span class="number">0
+    </span>}
+
     <span class="doccomment">/// Determines if `key` is in the `Map`.
     </span><span class="kw">pub fn </span>contains_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; bool
-        <span class="kw">where </span>T: Eq + PhfHash,
-              K: Borrow&lt;T&gt;
+    <span class="kw">where
+        </span>T: Eq + PhfHash,
+        K: PhfBorrow&lt;T&gt;,
     {
         <span class="self">self</span>.get(key).is_some()
     }
 
     <span class="doccomment">/// Returns a reference to the value that `key` maps to.
     </span><span class="kw">pub fn </span>get&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>V&gt;
-        <span class="kw">where </span>T: Eq + PhfHash,
-              K: Borrow&lt;T&gt;
+    <span class="kw">where
+        </span>T: Eq + PhfHash,
+        K: PhfBorrow&lt;T&gt;,
     {
         <span class="self">self</span>.get_entry(key).map(|e| e.<span class="number">1</span>)
     }
@@ -267,19 +383,24 @@
     ///
     /// This can be useful for interning schemes.
     </span><span class="kw">pub fn </span>get_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>K&gt;
-        <span class="kw">where </span>T: Eq + PhfHash,
-              K: Borrow&lt;T&gt;
+    <span class="kw">where
+        </span>T: Eq + PhfHash,
+        K: PhfBorrow&lt;T&gt;,
     {
         <span class="self">self</span>.get_entry(key).map(|e| e.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Like `get`, but returns both the key and the value.
     </span><span class="kw">pub fn </span>get_entry&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span>K, <span class="kw-2">&amp;</span>V)&gt;
-        <span class="kw">where </span>T: Eq + PhfHash,
-              K: Borrow&lt;T&gt;
+    <span class="kw">where
+        </span>T: Eq + PhfHash,
+        K: PhfBorrow&lt;T&gt;,
     {
-        <span class="kw">let </span>hash = phf_shared::hash(key, <span class="self">self</span>.key);
-        <span class="kw">let </span>index = phf_shared::get_index(hash, <span class="kw-2">&amp;*</span><span class="self">self</span>.disps, <span class="self">self</span>.entries.len());
+        <span class="kw">if </span><span class="self">self</span>.disps.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        } <span class="comment">//Prevent panic on empty map
+        </span><span class="kw">let </span>hashes = phf_shared::hash(key, <span class="kw-2">&amp;</span><span class="self">self</span>.key);
+        <span class="kw">let </span>index = phf_shared::get_index(<span class="kw-2">&amp;</span>hashes, <span class="kw-2">&amp;*</span><span class="self">self</span>.disps, <span class="self">self</span>.entries.len());
         <span class="kw">let </span>entry = <span class="kw-2">&amp;</span><span class="self">self</span>.entries[index <span class="kw">as </span>usize];
         <span class="kw">let </span>b: <span class="kw-2">&amp;</span>T = entry.<span class="number">0</span>.borrow();
         <span class="kw">if </span>b == key {
@@ -292,22 +413,28 @@
     <span class="doccomment">/// Returns an iterator over the key/value pairs in the map.
     ///
     /// Entries are returned in an arbitrary but fixed order.
-    </span><span class="kw">pub fn </span>entries&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-        Entries { iter: <span class="self">self</span>.entries.iter() }
+    </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Entries&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
+        Entries {
+            iter: <span class="self">self</span>.entries.iter(),
+        }
     }
 
     <span class="doccomment">/// Returns an iterator over the keys in the map.
     ///
     /// Keys are returned in an arbitrary but fixed order.
-    </span><span class="kw">pub fn </span>keys&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-        Keys { iter: <span class="self">self</span>.entries() }
+    </span><span class="kw">pub fn </span>keys(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Keys&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
+        Keys {
+            iter: <span class="self">self</span>.entries(),
+        }
     }
 
     <span class="doccomment">/// Returns an iterator over the values in the map.
     ///
     /// Values are returned in an arbitrary but fixed order.
-    </span><span class="kw">pub fn </span>values&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
-        Values { iter: <span class="self">self</span>.entries() }
+    </span><span class="kw">pub fn </span>values(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Values&lt;<span class="lifetime">&#39;_</span>, K, V&gt; {
+        Values {
+            iter: <span class="self">self</span>.entries(),
+        }
     }
 }
 
@@ -321,8 +448,27 @@
 }
 
 <span class="doccomment">/// An iterator over the key/value pairs in a `Map`.
-</span><span class="kw">pub struct </span>Entries&lt;<span class="lifetime">&#39;a</span>, K: <span class="lifetime">&#39;a</span>, V: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
     iter: slice::Iter&lt;<span class="lifetime">&#39;a</span>, (K, V)&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Clone <span class="kw">for </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter: <span class="self">self</span>.iter.clone(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; fmt::Debug <span class="kw">for </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt;
+<span class="kw">where
+    </span>K: fmt::Debug,
+    V: fmt::Debug,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Iterator <span class="kw">for </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
@@ -345,9 +491,29 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; ExactSizeIterator <span class="kw">for </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
 
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; FusedIterator <span class="kw">for </span>Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
+
 <span class="doccomment">/// An iterator over the keys in a `Map`.
-</span><span class="kw">pub struct </span>Keys&lt;<span class="lifetime">&#39;a</span>, K: <span class="lifetime">&#39;a</span>, V: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
     iter: Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Clone <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter: <span class="self">self</span>.iter.clone(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; fmt::Debug <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt;
+<span class="kw">where
+    </span>K: fmt::Debug,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Iterator <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
@@ -370,9 +536,29 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; ExactSizeIterator <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
 
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; FusedIterator <span class="kw">for </span>Keys&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
+
 <span class="doccomment">/// An iterator over the values in a `Map`.
-</span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">&#39;a</span>, K: <span class="lifetime">&#39;a</span>, V: <span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
     iter: Entries&lt;<span class="lifetime">&#39;a</span>, K, V&gt;,
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Clone <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
+    <span class="attribute">#[inline]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            iter: <span class="self">self</span>.iter.clone(),
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; fmt::Debug <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt;
+<span class="kw">where
+    </span>V: fmt::Debug,
+{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        f.debug_list().entries(<span class="self">self</span>.clone()).finish()
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; Iterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {
@@ -394,5 +580,25 @@
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; ExactSizeIterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, K, V&gt; FusedIterator <span class="kw">for </span>Values&lt;<span class="lifetime">&#39;a</span>, K, V&gt; {}
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+</span><span class="kw">impl</span>&lt;K, V&gt; Serialize <span class="kw">for </span>Map&lt;K, V&gt;
+<span class="kw">where
+    </span>K: Serialize,
+    V: Serialize,
+{
+    <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
+    <span class="kw">where
+        </span>S: Serializer,
+    {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = serializer.serialize_map(<span class="prelude-val">Some</span>(<span class="self">self</span>.len()))<span class="question-mark">?</span>;
+        <span class="kw">for </span>(k, v) <span class="kw">in </span><span class="self">self</span>.entries() {
+            map.serialize_entry(k, v)<span class="question-mark">?</span>;
+        }
+        map.end()
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="phf" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0 (897e37553 2022-11-02)" ></div></body></html>

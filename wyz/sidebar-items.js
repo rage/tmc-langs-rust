@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["conv","Directed Type Conversion"],["fmt","Format forwarding"],["pipe","Pipe objects into functions, even those not available for dot-call."],["tap","Object Tapping"]]};

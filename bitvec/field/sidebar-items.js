@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["BitField","Performs C-style bitfield access through a `BitSlice`."]]};

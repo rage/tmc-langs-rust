@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.6/src/re_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.7.0/src/re_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>re_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -473,6 +473,38 @@
 <span id="473">473</span>
 <span id="474">474</span>
 <span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
 </pre><pre class="rust"><code><span class="macro">macro_rules! </span>define_set {
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$builder_mod</span>:ident, <span class="macro-nonterminal">$text_ty</span>:ty, <span class="macro-nonterminal">$as_bytes</span>:expr,
      $(<span class="attribute">#[<span class="macro-nonterminal">$doc_regexset_example</span>:meta]</span>)* ) =&gt; {
@@ -482,10 +514,10 @@
             <span class="kw">use </span>std::slice;
             <span class="kw">use </span>std::vec;
 
-            <span class="kw">use </span>error::Error;
-            <span class="kw">use </span>exec::Exec;
-            <span class="kw">use </span>re_builder::<span class="macro-nonterminal">$builder_mod::RegexSetBuilder</span>;
-            <span class="kw">use </span>re_trait::RegularExpression;
+            <span class="kw">use </span><span class="kw">crate</span>::error::Error;
+            <span class="kw">use </span><span class="kw">crate</span>::exec::Exec;
+            <span class="kw">use </span><span class="kw">crate</span>::re_builder::<span class="macro-nonterminal">$builder_mod::RegexSetBuilder</span>;
+            <span class="kw">use </span><span class="kw">crate</span>::re_trait::RegularExpression;
 
 <span class="doccomment">/// Match multiple (possibly overlapping) regular expressions in a single scan.
 ///
@@ -534,13 +566,45 @@
 /// 1. Does any regex in the set match?
 /// 2. If so, which regexes in the set match?
 ///
-/// As with the main `Regex` type, it is cheaper to ask (1) instead of (2)
-/// since the matching engines can stop after the first match is found.
+/// As with the main [`Regex`][crate::Regex] type, it is cheaper to ask (1)
+/// instead of (2) since the matching engines can stop after the first match
+/// is found.
 ///
-/// Other features like finding the location of successive matches or their
-/// sub-captures aren&#39;t supported. If you need this functionality, the
-/// recommended approach is to compile each regex in the set independently and
-/// selectively match them based on which regexes in the set matched.
+/// You cannot directly extract [`Match`][crate::Match] or
+/// [`Captures`][crate::Captures] objects from a regex set. If you need these
+/// operations, the recommended approach is to compile each pattern in the set
+/// independently and scan the exact same input a second time with those
+/// independently compiled patterns:
+///
+/// ```rust
+/// use regex::{Regex, RegexSet};
+///
+/// let patterns = [&quot;foo&quot;, &quot;bar&quot;];
+/// // Both patterns will match different ranges of this string.
+/// let text = &quot;barfoo&quot;;
+///
+/// // Compile a set matching any of our patterns.
+/// let set = RegexSet::new(&amp;patterns).unwrap();
+/// // Compile each pattern independently.
+/// let regexes: Vec&lt;_&gt; = set.patterns().iter()
+///     .map(|pat| Regex::new(pat).unwrap())
+///     .collect();
+///
+/// // Match against the whole set first and identify the individual
+/// // matching patterns.
+/// let matches: Vec&lt;&amp;str&gt; = set.matches(text).into_iter()
+///     // Dereference the match index to get the corresponding
+///     // compiled pattern.
+///     .map(|match_idx| &amp;regexes[match_idx])
+///     // To get match locations or any other info, we then have to search
+///     // the exact same text again, using our separately-compiled pattern.
+///     .map(|pat| pat.find(text).unwrap().as_str())
+///     .collect();
+///
+/// // Matches arrive in the order the constituent patterns were declared,
+/// // not the order they appear in the input.
+/// assert_eq!(vec![&quot;foo&quot;, &quot;bar&quot;], matches);
+/// ```
 ///
 /// # Performance
 ///
@@ -767,7 +831,7 @@
     /// This will always produces matches in ascending order of index, where
     /// the index corresponds to the index of the regex that matched with
     /// respect to its position when initially building the set.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SetMatchesIter {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SetMatchesIter&lt;<span class="lifetime">&#39;_</span>&gt; {
         SetMatchesIter((<span class="kw-2">&amp;*</span><span class="self">self</span>.matches).into_iter().enumerate())
     }
 }
@@ -880,7 +944,7 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>RegexSet {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">&quot;RegexSet({:?})&quot;</span>, <span class="self">self</span>.<span class="number">0</span>.regex_strings())
     }
 }

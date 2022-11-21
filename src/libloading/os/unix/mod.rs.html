@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libloading-0.6.7/src/os/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../libloading/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../libloading/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../libloading/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libloading-0.7.4/src/os/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../libloading/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../libloading/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../libloading/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -424,22 +424,39 @@
 <span id="424">424</span>
 <span id="425">425</span>
 <span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
 </pre><pre class="rust"><code><span class="comment">// A hack for docs.rs to build documentation that has both windows and linux documentation in the
 // same rustdoc build visible.
-</span><span class="attribute">#[cfg(all(docsrs, not(unix)))]
-</span><span class="kw">mod </span>unix_imports {
-}
-<span class="attribute">#[cfg(any(not(docsrs), unix))]
+</span><span class="attribute">#[cfg(all(libloading_docs, not(unix)))]
+</span><span class="kw">mod </span>unix_imports {}
+<span class="attribute">#[cfg(any(not(libloading_docs), unix))]
 </span><span class="kw">mod </span>unix_imports {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 }
 
-<span class="kw">use </span><span class="self">self</span>::unix_imports::<span class="kw-2">*</span>;
-<span class="kw">use </span>util::{ensure_compatible_types, cstr_cow_from_bytes};
-<span class="kw">use </span>std::ffi::{CStr, OsStr};
-<span class="kw">use </span>std::{fmt, marker, mem, ptr};
-<span class="kw">use </span>std::os::raw;
 <span class="kw">pub use </span><span class="self">self</span>::consts::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="self">self</span>::unix_imports::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::ffi::{CStr, OsStr};
+<span class="kw">use </span>std::os::raw;
+<span class="kw">use </span>std::{fmt, marker, mem, ptr};
+<span class="kw">use </span>util::{cstr_cow_from_bytes, ensure_compatible_types};
 
 <span class="kw">mod </span>consts;
 
@@ -529,57 +546,80 @@
     /// a file. Otherwise, platform-specific algorithms are employed to find a library with a
     /// matching file name.
     ///
-    /// This is equivalent to [`Library::open`]`(filename, RTLD_NOW)`.
+    /// This is equivalent to &lt;code&gt;[Library::open](filename, [RTLD_LAZY] | [RTLD_LOCAL])&lt;/code&gt;.
     ///
     /// [path separator]: std::path::MAIN_SEPARATOR
+    ///
+    /// # Safety
+    ///
+    /// When a library is loaded, initialisation routines contained within the library are executed.
+    /// For the purposes of safety, the execution of these routines is conceptually the same calling an
+    /// unknown foreign function and may impose arbitrary requirements on the caller for the call
+    /// to be sound.
+    ///
+    /// Additionally, the callers of this function must also ensure that execution of the
+    /// termination routines contained within the library is safe as well. These routines may be
+    /// executed when the library is unloaded.
     </span><span class="attribute">#[inline]
-    </span><span class="kw">pub fn </span>new&lt;P: AsRef&lt;OsStr&gt;&gt;(filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;Library, <span class="kw">crate</span>::Error&gt; {
-        Library::open(<span class="prelude-val">Some</span>(filename), RTLD_NOW)
+    </span><span class="kw">pub unsafe fn </span>new&lt;P: AsRef&lt;OsStr&gt;&gt;(filename: P) -&gt; <span class="prelude-ty">Result</span>&lt;Library, <span class="kw">crate</span>::Error&gt; {
+        Library::open(<span class="prelude-val">Some</span>(filename), RTLD_LAZY | RTLD_LOCAL)
     }
 
-    <span class="doccomment">/// Eagerly load the `Library` representing the current executable.
+    <span class="doccomment">/// Load the `Library` representing the current executable.
     ///
     /// [`Library::get`] calls of the returned `Library` will look for symbols in following
     /// locations in order:
     ///
-    /// 1. Original program image;
+    /// 1. The original program image;
     /// 2. Any executable object files (e.g. shared libraries) loaded at program startup;
-    /// 3. Executable object files loaded at runtime (e.g. via other `Library::new` calls or via
-    ///    calls to the `dlopen` function)
+    /// 3. Any executable object files loaded at runtime (e.g. via other `Library::new` calls or via
+    ///    calls to the `dlopen` function).
     ///
-    /// Note that behaviour of `Library` loaded with this method is different from
+    /// Note that the behaviour of a `Library` loaded with this method is different from that of
     /// Libraries loaded with [`os::windows::Library::this`].
     ///
-    /// This is equivalent to [`Library::open`]`(None, RTLD_NOW)`.
+    /// This is equivalent to &lt;code&gt;[Library::open](None, [RTLD_LAZY] | [RTLD_LOCAL])&lt;/code&gt;.
     ///
     /// [`os::windows::Library::this`]: crate::os::windows::Library::this
     </span><span class="attribute">#[inline]
     </span><span class="kw">pub fn </span>this() -&gt; Library {
-        Library::open(<span class="prelude-val">None</span>::&lt;<span class="kw-2">&amp;</span>OsStr&gt;, RTLD_NOW).expect(<span class="string">&quot;this should never fail&quot;</span>)
+        <span class="kw">unsafe </span>{
+            <span class="comment">// SAFE: this does not load any new shared library images, no danger in it executing
+            // initialiser routines.
+            </span>Library::open(<span class="prelude-val">None</span>::&lt;<span class="kw-2">&amp;</span>OsStr&gt;, RTLD_LAZY | RTLD_LOCAL).expect(<span class="string">&quot;this should never fail&quot;</span>)
+        }
     }
 
     <span class="doccomment">/// Find and load an executable object file (shared library).
     ///
-    /// See documentation for [`Library::this`] for further description of behaviour
+    /// See documentation for [`Library::this`] for further description of the behaviour
     /// when the `filename` is `None`. Otherwise see [`Library::new`].
     ///
     /// Corresponds to `dlopen(filename, flags)`.
-    </span><span class="kw">pub fn </span>open&lt;P&gt;(filename: <span class="prelude-ty">Option</span>&lt;P&gt;, flags: raw::c_int) -&gt; <span class="prelude-ty">Result</span>&lt;Library, <span class="kw">crate</span>::Error&gt;
+    ///
+    /// # Safety
+    ///
+    /// When a library is loaded, initialisation routines contained within the library are executed.
+    /// For the purposes of safety, the execution of these routines is conceptually the same calling an
+    /// unknown foreign function and may impose arbitrary requirements on the caller for the call
+    /// to be sound.
+    ///
+    /// Additionally, the callers of this function must also ensure that execution of the
+    /// termination routines contained within the library is safe as well. These routines may be
+    /// executed when the library is unloaded.
+    </span><span class="kw">pub unsafe fn </span>open&lt;P&gt;(filename: <span class="prelude-ty">Option</span>&lt;P&gt;, flags: raw::c_int) -&gt; <span class="prelude-ty">Result</span>&lt;Library, <span class="kw">crate</span>::Error&gt;
     <span class="kw">where </span>P: AsRef&lt;OsStr&gt; {
         <span class="kw">let </span>filename = <span class="kw">match </span>filename {
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>f) =&gt; <span class="prelude-val">Some</span>(cstr_cow_from_bytes(f.as_ref().as_bytes())<span class="question-mark">?</span>),
         };
         with_dlerror(|desc| <span class="kw">crate</span>::Error::DlOpen { desc }, <span class="kw">move </span>|| {
-            <span class="kw">let </span>result = <span class="kw">unsafe </span>{
-                <span class="kw">let </span>r = dlopen(<span class="kw">match </span>filename {
-                    <span class="prelude-val">None </span>=&gt; ptr::null(),
-                    <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>f) =&gt; f.as_ptr()
-                }, flags);
-                <span class="comment">// ensure filename lives until dlopen completes
-                </span>drop(filename);
-                r
-            };
+            <span class="kw">let </span>result = dlopen(<span class="kw">match </span>filename {
+                <span class="prelude-val">None </span>=&gt; ptr::null(),
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>f) =&gt; f.as_ptr()
+            }, flags);
+            <span class="comment">// ensure filename lives until dlopen completes
+            </span>drop(filename);
             <span class="kw">if </span>result.is_null() {
                 <span class="prelude-val">None
             </span>} <span class="kw">else </span>{
@@ -620,30 +660,29 @@
 
     }
 
-    <span class="doccomment">/// Get a pointer to function or static variable by symbol name.
+    <span class="doccomment">/// Get a pointer to a function or static variable by symbol name.
     ///
-    /// The `symbol` may not contain any null bytes, with an exception of last byte. A null
-    /// terminated `symbol` may avoid an allocation in some cases.
+    /// The `symbol` may not contain any null bytes, with the exception of the last byte. Providing a
+    /// null terminated `symbol` may help to avoid an allocation.
     ///
     /// Symbol is interpreted as-is; no mangling is done. This means that symbols like `x::y` are
     /// most likely invalid.
     ///
     /// # Safety
     ///
-    /// This function does not validate the type `T`. It is up to the user of this function to
-    /// ensure that the loaded symbol is in fact a `T`. Using a value with a wrong type has no
-    /// defined behaviour.
+    /// Users of this API must specify the correct type of the function or variable loaded. Using a
+    /// `Symbol` with a wrong type is undefined.
     ///
     /// # Platform-specific behaviour
     ///
-    /// Implementation of thread local variables is extremely platform specific and uses of these
-    /// variables that work on e.g. Linux may have unintended behaviour on other POSIX systems.
+    /// Implementation of thread local variables is extremely platform specific and uses of such
+    /// variables that work on e.g. Linux may have unintended behaviour on other targets.
     ///
     /// On POSIX implementations where the `dlerror` function is not confirmed to be MT-safe (such
     /// as FreeBSD), this function will unconditionally return an error when the underlying `dlsym`
     /// call returns a null pointer. There are rare situations where `dlsym` returns a genuine null
-    /// pointer without it being an error. If loading a symbol at null address is something you
-    /// care about, consider using the [`Library::get_singlethreaded`] call.
+    /// pointer without it being an error. If loading a null pointer is something you care about,
+    /// consider using the [`Library::get_singlethreaded`] call.
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">pub unsafe fn </span>get&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;T&gt;, <span class="kw">crate</span>::Error&gt; {
         <span class="kw">extern crate </span>cfg_if;
@@ -669,26 +708,24 @@
 
     <span class="doccomment">/// Get a pointer to function or static variable by symbol name.
     ///
-    /// The `symbol` may not contain any null bytes, with an exception of last byte. A null
-    /// terminated `symbol` may avoid a string allocation in some cases.
+    /// The `symbol` may not contain any null bytes, with the exception of the last byte. Providing a
+    /// null terminated `symbol` may help to avoid an allocation.
     ///
     /// Symbol is interpreted as-is; no mangling is done. This means that symbols like `x::y` are
     /// most likely invalid.
     ///
     /// # Safety
     ///
-    /// This function does not validate the type `T`. It is up to the user of this function to
-    /// ensure that the loaded symbol is in fact a `T`. Using a value with a wrong type has no
-    /// defined behaviour.
+    /// Users of this API must specify the correct type of the function or variable loaded.
     ///
     /// It is up to the user of this library to ensure that no other calls to an MT-unsafe
-    /// implementation of `dlerror` occur during execution of this function. Failing that, the
+    /// implementation of `dlerror` occur during the execution of this function. Failing that, the
     /// behaviour of this function is not defined.
     ///
     /// # Platform-specific behaviour
     ///
-    /// Implementation of thread local variables is extremely platform specific and uses of these
-    /// variables that work on e.g. Linux may have unintended behaviour on other POSIX systems.
+    /// The implementation of thread-local variables is extremely platform specific and uses of such
+    /// variables that work on e.g. Linux may have unintended behaviour on other targets.
     </span><span class="attribute">#[inline(always)]
     </span><span class="kw">pub unsafe fn </span>get_singlethreaded&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;T&gt;, <span class="kw">crate</span>::Error&gt; {
         <span class="self">self</span>.get_impl(symbol, || <span class="prelude-val">Ok</span>(Symbol {
@@ -726,7 +763,8 @@
     /// what library was opened or other platform specifics.
     ///
     /// You only need to call this if you are interested in handling any errors that may arise when
-    /// library is unloaded. Otherwise this will be done when `Library` is dropped.
+    /// library is unloaded. Otherwise the implementation of `Drop` for `Library` will close the
+    /// library and ignore the errors were they arise.
     ///
     /// The underlying data structures may still get leaked if an error does occur.
     </span><span class="kw">pub fn </span>close(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">crate</span>::Error&gt; {
@@ -738,7 +776,7 @@
             </span>}
         }).map_err(|e| e.unwrap_or(<span class="kw">crate</span>::Error::DlCloseUnknown));
         <span class="comment">// While the library is not free&#39;d yet in case of an error, there is no reason to try
-        // dropping it again, because all that will do is try calling `FreeLibrary` again. only
+        // dropping it again, because all that will do is try calling `dlclose` again. only
         // this time it would ignore the return result, which we already seen failing…
         </span>std::mem::forget(<span class="self">self</span>);
         result
@@ -761,19 +799,17 @@
 
 <span class="doccomment">/// Symbol from a library.
 ///
-/// A major difference compared to the cross-platform `Symbol` is that this does not ensure the
-/// `Symbol` does not outlive `Library` it comes from.
+/// A major difference compared to the cross-platform `Symbol` is that this does not ensure that the
+/// `Symbol` does not outlive the `Library` it comes from.
 </span><span class="kw">pub struct </span>Symbol&lt;T&gt; {
     pointer: <span class="kw-2">*mut </span>raw::c_void,
     pd: marker::PhantomData&lt;T&gt;
 }
 
 <span class="kw">impl</span>&lt;T&gt; Symbol&lt;T&gt; {
-    <span class="doccomment">/// Convert the loaded Symbol into a raw pointer.
+    <span class="doccomment">/// Convert the loaded `Symbol` into a raw pointer.
     </span><span class="kw">pub fn </span>into_raw(<span class="self">self</span>) -&gt; <span class="kw-2">*mut </span>raw::c_void {
-        <span class="kw">let </span>pointer = <span class="self">self</span>.pointer;
-        mem::forget(<span class="self">self</span>);
-        pointer
+        <span class="self">self</span>.pointer
     }
 }
 

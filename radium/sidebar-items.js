@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["marker","Marker traits used by [`Radium`]."],["types","Best-effort atomic types"]],"trait":[["Radium","A maybe-atomic shared mutable fundamental type `T`."]]};
