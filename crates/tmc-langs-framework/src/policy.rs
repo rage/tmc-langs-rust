@@ -43,8 +43,6 @@ pub trait StudentFilePolicy {
 
         // check extra student files
         let config = self.get_project_config();
-        println!("{:#}", file_path.display());
-        println!("{:#?}", config.extra_student_files);
         let is_extra_student_file = config
             .extra_student_files
             .iter()

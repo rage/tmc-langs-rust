@@ -35,13 +35,11 @@ pub fn extract_project(
     let mut archive = Archive::new(compressed_project, compression)?;
     if let Ok(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_project(&mut archive, target_location, clean)?;
+    } else if let Ok(plugin) = PluginType::from_archive(&mut archive) {
+        plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
-        if let Ok(plugin) = PluginType::from_archive(&mut archive) {
-            plugin.extract_project(&mut archive, target_location, clean)?;
-        } else {
-            log::debug!("no matching language plugin found",);
-            archive.extract(target_location)?;
-        }
+        log::debug!("no matching language plugin found",);
+        archive.extract(target_location)?;
     }
     Ok(())
 }
