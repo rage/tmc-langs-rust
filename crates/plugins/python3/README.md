@@ -1,6 +1,6 @@
 ## Oldest maintained Python version
 
-The plugin creates a warning when the Python used is detected to be older than the oldest maintained Python release as per https://devguide.python.org/#branchstatus. The minimum version is hard-coded and needs to be maintained manually. Next EOL: 3.6 in 2021-12-23.
+The plugin creates a warning when the Python used is detected to be older than the oldest maintained Python release as per https://devguide.python.org/versions/#versions. The minimum version is hard-coded and needs to be maintained manually. Next EOL: 3.7 in 2023-06-27.
 
 ## Updating tmc-python-tester
 

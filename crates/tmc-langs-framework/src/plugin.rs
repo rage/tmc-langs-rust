@@ -299,6 +299,7 @@ pub trait LanguagePlugin {
         let extra_student_files = configuration.extra_student_files;
         let extra_test_files = configuration.extra_exercise_files;
 
+        // NOTE: extra student files should have precedence over extra exercise files
         let student_files = Self::get_default_student_file_paths()
             .into_iter()
             .chain(extra_student_files)

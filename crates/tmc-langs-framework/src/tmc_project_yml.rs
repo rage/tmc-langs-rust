@@ -6,58 +6,67 @@ use serde::{
     Deserialize, Deserializer, Serialize,
 };
 use std::{
-    fmt,
+    fmt::{self, Display},
     ops::Deref,
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{deserialize, file_util, FileError};
 
 /// Extra data from a `.tmcproject.yml` file.
-// NOTE: when adding fields, remember to update the merge function as well
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TmcProjectYml {
+    /// A list of files or directories that will always be considered student files.
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub extra_student_files: Vec<PathBuf>,
 
+    /// A list of files or directories that will always be considered exercise files.
+    /// `extra_student_files` takes precedence if a file is both an extra student file and an extra exercise file.
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub extra_exercise_files: Vec<PathBuf>,
 
+    /// A list of files that should always be overwritten by updates even if they are student files.
     #[serde(default)]
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub force_update: Vec<PathBuf>,
 
+    /// If set, tests are forcibly stopped after this duration.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tests_timeout_ms: Option<u64>,
 
+    /// Marks the exercise as not containing any tests.
     #[serde(rename = "no-tests")]
     #[cfg_attr(feature = "ts-rs", ts(skip))]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub no_tests: Option<NoTests>,
 
+    /// If set, Valgrind errors will be considered test errors.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub fail_on_valgrind_error: Option<bool>,
 
+    /// If set, will cause an error telling the student to update their Python if their version is older than the minimum.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub minimum_python_version: Option<PythonVer>,
 
+    /// Overrides the default sandbox image. e.g. `eu.gcr.io/moocfi-public/tmc-sandbox-python:latest`
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sandbox_image: Option<String>,
 }
 
 impl TmcProjectYml {
+    /// Returns the path of the TmcProjectYml file in the given directory.
     fn path_in_dir(dir: &Path) -> PathBuf {
         dir.join(".tmcproject.yml")
     }
 
-    /// Tries to load a
+    /// Loads a TmcProjectYml either from the directory or the default if there is none.
     pub fn load_or_default(project_dir: &Path) -> Result<Self, TmcError> {
         if let Some(config) = Self::load(project_dir)? {
             Ok(config)
@@ -66,6 +75,7 @@ impl TmcProjectYml {
         }
     }
 
+    /// Loads a TmcProjectYml from the given directory. Returns None if no such file exists.
     pub fn load(project_dir: &Path) -> Result<Option<Self>, TmcError> {
         let mut config_path = project_dir.to_owned();
         config_path.push(".tmcproject.yml");
@@ -84,33 +94,35 @@ impl TmcProjectYml {
 
     /// Merges the contents of `with` with `self`.
     /// Empty or missing values in self are replaced with those from with. Other values are left unchanged.
+    /// Notably it does not merge lists together.
     pub fn merge(&mut self, with: Self) {
-        if self.extra_student_files.is_empty() {
-            self.extra_student_files = with.extra_student_files;
-        }
-        if self.extra_exercise_files.is_empty() {
-            self.extra_exercise_files = with.extra_exercise_files;
-        }
-        if self.force_update.is_empty() {
-            self.force_update = with.force_update;
-        }
-        if self.tests_timeout_ms.is_none() {
-            self.tests_timeout_ms = with.tests_timeout_ms;
-        }
-        if self.no_tests.is_none() {
-            self.no_tests = with.no_tests;
-        }
-        if self.fail_on_valgrind_error.is_none() {
-            self.fail_on_valgrind_error = with.fail_on_valgrind_error;
-        }
-        if self.minimum_python_version.is_none() {
-            self.minimum_python_version = with.minimum_python_version;
-        }
-        if self.sandbox_image.is_none() {
-            self.sandbox_image = with.sandbox_image;
-        }
+        let old = std::mem::take(self);
+        let new = Self {
+            extra_student_files: if self.extra_student_files.is_empty() {
+                with.extra_student_files
+            } else {
+                old.extra_student_files
+            },
+            extra_exercise_files: if self.extra_exercise_files.is_empty() {
+                with.extra_exercise_files
+            } else {
+                old.extra_exercise_files
+            },
+            force_update: if self.force_update.is_empty() {
+                with.force_update
+            } else {
+                old.force_update
+            },
+            tests_timeout_ms: old.tests_timeout_ms.or(with.tests_timeout_ms),
+            fail_on_valgrind_error: old.fail_on_valgrind_error.or(with.fail_on_valgrind_error),
+            minimum_python_version: old.minimum_python_version.or(with.minimum_python_version),
+            sandbox_image: old.sandbox_image.or(with.sandbox_image),
+            no_tests: old.no_tests.or(with.no_tests),
+        };
+        *self = new;
     }
 
+    /// Saves the TmcProjectYml to the given directory.
     pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
         let config_path = Self::path_in_dir(dir);
         let mut file = file_util::create_file_locked(&config_path)?;
@@ -122,14 +134,40 @@ impl TmcProjectYml {
     }
 }
 
-/// Minimum Python version requirement.
-/// TODO: if patch is Some minor is also guaranteed to be Some etc. encode this in the type system
-#[derive(Debug, Default, Clone, Copy, Serialize)]
+/// Python version from TmcProjectYml.
+#[derive(Debug, Default, Clone, Copy, Serialize, PartialEq, Eq)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct PythonVer {
-    pub major: Option<u32>,
-    pub minor: Option<u32>,
-    pub patch: Option<u32>,
+    major: u32,
+    minor: Option<u32>,
+    patch: Option<u32>,
+}
+
+impl PythonVer {
+    // Try to keep up to date with https://devguide.python.org/versions/#versions
+    // As of writing, 3.7 is the oldest maintained release and its EOL 2023-06-27
+    pub fn recommended() -> (u32, u32, u32) {
+        (3, 7, 0)
+    }
+
+    /// Returns the Python version as a (major, minor, patch) tuple.
+    /// Defaults None values to to 3.0.0.
+    pub fn min(self) -> (u32, u32, u32) {
+        let major = self.major;
+        let minor = self.minor.unwrap_or(0);
+        let patch = self.patch.unwrap_or(0);
+        (major, minor, patch)
+    }
+}
+
+impl Display for PythonVer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match (self.major, self.minor, self.patch) {
+            (major, Some(minor), Some(patch)) => write!(f, "{major}.{minor}.{patch}"),
+            (major, Some(minor), None) => write!(f, "{major}.{minor}"),
+            (major, None, _) => write!(f, "{major}"),
+        }
+    }
 }
 
 /// Deserializes a major.minor?.patch? version into a PythonVer.
@@ -152,12 +190,10 @@ impl<'de> Deserialize<'de> for PythonVer {
                 E: Error,
             {
                 let mut parts = v.split('.');
-                let major = if let Some(major) = parts.next() {
-                    let parsed: u32 = major.parse().map_err(Error::custom)?;
-                    Some(parsed)
-                } else {
-                    None
-                };
+                let major = parts
+                    .next()
+                    .expect("split always yields at least one value");
+                let major: u32 = major.parse().map_err(Error::custom)?;
                 let minor = if let Some(minor) = parts.next() {
                     let parsed: u32 = minor.parse().map_err(Error::custom)?;
                     Some(parsed)
@@ -269,17 +305,17 @@ mod test {
         init();
 
         let python_ver: PythonVer = deserialize::yaml_from_str("1.2.3").unwrap();
-        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.major, 1);
         assert_eq!(python_ver.minor, Some(2));
         assert_eq!(python_ver.patch, Some(3));
 
         let python_ver: PythonVer = deserialize::yaml_from_str("1.2").unwrap();
-        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.major, 1);
         assert_eq!(python_ver.minor, Some(2));
         assert_eq!(python_ver.patch, None);
 
         let python_ver: PythonVer = deserialize::yaml_from_str("1").unwrap();
-        assert_eq!(python_ver.major, Some(1));
+        assert_eq!(python_ver.major, 1);
         assert_eq!(python_ver.minor, None);
         assert_eq!(python_ver.patch, None);
 

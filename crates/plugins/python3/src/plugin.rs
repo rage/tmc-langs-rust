@@ -18,8 +18,8 @@ use std::{
 };
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
-    TestResult, TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PythonVer, RunResult, RunStatus,
+    TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml,
 };
 use tmc_langs_util::{
     deserialize, file_util,
@@ -28,11 +28,11 @@ use tmc_langs_util::{
 };
 use walkdir::WalkDir;
 
-pub struct Python3Plugin {}
+pub struct Python3Plugin;
 
 impl Python3Plugin {
     pub const fn new() -> Self {
-        Self {}
+        Self
     }
 
     fn get_local_python_command() -> TmcCommand {
@@ -112,32 +112,24 @@ impl Python3Plugin {
         timeout: Option<Duration>,
         stdin: Option<String>,
     ) -> Result<Output, PythonError> {
-        let minimum_python_version = TmcProjectYml::load_or_default(path)?
+        let minimum = TmcProjectYml::load_or_default(path)?
             .minimum_python_version
-            .unwrap_or_default();
-        // default minimum version is 3.0.0
-        let minimum_major = minimum_python_version.major.unwrap_or(3);
-        let minimum_minor = minimum_python_version.minor.unwrap_or(0);
-        let minimum_patch = minimum_python_version.patch.unwrap_or(0);
+            .unwrap_or_default()
+            .min();
+        let recommended = PythonVer::recommended();
+        let local = Self::get_local_python_ver()?;
 
-        // Try to keep up to date with https://devguide.python.org/#branchstatus
-        // As of writing, 3.6 is the oldest maintained release and its EOL 2021-12-23
-        let recommended_major = 3;
-        let recommended_minor = 6;
-
-        let (major, minor, patch) = Self::get_local_python_ver()?;
-
-        if major < recommended_major || major == recommended_major && minor < recommended_minor {
-            notification_reporter::notify(Notification::warning(format!("Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.", recommended_major, recommended_minor, major, minor)));
+        if local < recommended {
+            notification_reporter::notify(Notification::warning(format!(
+                "Your Python is out of date. Minimum maintained release is {}.{}.{},\
+                your Python version was detected as {}.{}.{}. Updating to a newer release is recommended.",
+                minimum.0, minimum.1, minimum.2, local.0, local.1, local.2
+            )));
         }
-
-        if major < minimum_major
-            || major == minimum_major && minor < minimum_minor
-            || major == minimum_major && minor == minimum_minor && patch < minimum_patch
-        {
+        if local < minimum {
             return Err(PythonError::OldPythonVersion {
-                found: format!("{}.{}.{}", major, minor, patch),
-                minimum_required: format!("{}.{}.{}", minimum_major, minimum_minor, minimum_patch),
+                found: format!("{}.{}.{}", local.0, local.1, local.2),
+                minimum_required: format!("{}.{}.{}", minimum.0, minimum.1, minimum.2),
             });
         }
 
