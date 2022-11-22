@@ -9,7 +9,7 @@ use std::{
     sync::Mutex,
 };
 use tmc_langs_framework::Archive;
-use tmc_langs_plugins::Plugin;
+use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
 use zip::{write::FileOptions, ZipWriter};
@@ -36,7 +36,7 @@ pub fn prepare_submission(
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
     log::debug!("preparing submission for {}", submission.archive.display());
 
-    let plugin = tmc_langs_plugins::get_language_plugin(stub_clone_path)?;
+    let plugin = PluginType::from_exercise(stub_clone_path)?;
 
     let extract_dest = tempfile::tempdir().map_err(LangsError::TempDir)?;
     let extract_dest_path = extract_dest.path().to_path_buf();
@@ -53,7 +53,7 @@ pub fn prepare_submission(
     if let Some((stub_zip, compression)) = stub_archive {
         // if defined, extract and use as the base
         extract_with_filter(
-            &plugin,
+            plugin,
             stub_zip,
             compression,
             |path| {
@@ -117,7 +117,7 @@ pub fn prepare_submission(
         ".idea",
     ];
     extract_with_filter(
-        &plugin,
+        plugin,
         submission.archive,
         submission.compression,
         |path| {
@@ -236,7 +236,7 @@ pub fn prepare_submission(
 }
 
 fn extract_with_filter<F: Fn(&Path) -> bool>(
-    plugin: &Plugin,
+    plugin: PluginType,
     archive: &Path,
     compression: Compression,
     exclude_filter: F,

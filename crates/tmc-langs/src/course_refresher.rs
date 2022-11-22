@@ -330,16 +330,13 @@ fn get_exercises(
 }
 
 fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
-    let url = match tmc_langs_plugins::get_language_plugin_type(path) {
-        Some(PluginType::CSharp) => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
-        Some(PluginType::Make) => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
-        Some(PluginType::Maven) | Some(PluginType::Ant) => {
-            "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest"
-        }
-        Some(PluginType::NoTests) => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest", // doesn't really matter, just use Python image
-        Some(PluginType::Python3) => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest",
-        Some(PluginType::R) => "eu.gcr.io/moocfi-public/tmc-sandbox-r:latest",
-        None => return Err(LangsError::NoPlugin),
+    let url = match PluginType::from_exercise(path)? {
+        PluginType::CSharp => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
+        PluginType::Make => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
+        PluginType::Maven | PluginType::Ant => "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest",
+        PluginType::NoTests => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest", // doesn't really matter, just use Python image
+        PluginType::Python3 => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest",
+        PluginType::R => "eu.gcr.io/moocfi-public/tmc-sandbox-r:latest",
     };
     Ok(url)
 }

@@ -57,7 +57,7 @@ pub use tmc_langs_framework::{
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
-use tmc_langs_plugins::{compression, get_language_plugin, AntPlugin, PluginType};
+use tmc_langs_plugins::{compression, AntPlugin, Plugin, PluginType};
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
@@ -385,7 +385,7 @@ pub fn download_or_update_course_exercises(
                                 false,
                             )?;
 
-                            let plugin = get_language_plugin(&download_target.target.path)?;
+                            let plugin = PluginType::from_exercise(&download_target.target.path)?;
                             let tmc_project_yml =
                                 TmcProjectYml::load_or_default(&download_target.target.path)?;
                             let config =
@@ -741,8 +741,8 @@ pub fn checkstyle(
 ) -> Result<Option<StyleValidationResult>, LangsError> {
     log::debug!("checking code style in {}", exercise_path.display());
 
-    let style_validation_result = tmc_langs_plugins::get_language_plugin(exercise_path)?
-        .check_code_style(exercise_path, locale)?;
+    let style_validation_result =
+        Plugin::from_exercise(exercise_path)?.check_code_style(exercise_path, locale)?;
     Ok(style_validation_result)
 }
 
@@ -750,7 +750,7 @@ pub fn checkstyle(
 pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
     log::debug!("cleaning {}", exercise_path.display());
 
-    tmc_langs_plugins::get_language_plugin(exercise_path)?.clean(exercise_path)?;
+    Plugin::from_exercise(exercise_path)?.clean(exercise_path)?;
     Ok(())
 }
 
@@ -818,7 +818,7 @@ pub fn extract_project(
 
     if naive {
         extract_project_overwrite(compressed_project, target_location, compression)?;
-    } else if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
+    } else if let Ok(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_project(compressed_project, target_location, compression, clean)?;
     } else {
         log::debug!(
@@ -834,8 +834,7 @@ pub fn extract_project(
 pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, LangsError> {
     log::debug!("parsing available points in {}", exercise_path.display());
 
-    let points = tmc_langs_plugins::get_language_plugin(exercise_path)?
-        .get_available_points(exercise_path)?;
+    let points = PluginType::from_exercise(exercise_path)?.get_available_points(exercise_path)?;
     Ok(points)
 }
 
@@ -854,7 +853,7 @@ pub fn find_exercise_directories(exercise_path: &Path) -> Result<Vec<PathBuf>, L
     }) {
         let entry = entry?;
         // check if the path contains a valid exercise for some plugin
-        if tmc_langs_plugins::get_language_plugin(entry.path()).is_ok() {
+        if Plugin::from_exercise(entry.path()).is_ok() {
             paths.push(entry.into_path())
         }
     }
@@ -882,7 +881,7 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
     submission_processing::prepare_stub(exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
-    if let Some(PluginType::Ant) = tmc_langs_plugins::get_language_plugin_type(exercise_path) {
+    if let Ok(PluginType::Ant) = PluginType::from_exercise(exercise_path) {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
     Ok(())
@@ -892,14 +891,14 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
 pub fn run_tests(path: &Path) -> Result<RunResult, LangsError> {
     log::debug!("running tests in {}", path.display());
 
-    Ok(tmc_langs_plugins::get_language_plugin(path)?.run_tests(path)?)
+    Ok(Plugin::from_exercise(path)?.run_tests(path)?)
 }
 
 /// Scans the exercise.
 pub fn scan_exercise(path: &Path, exercise_name: String) -> Result<ExerciseDesc, LangsError> {
     log::debug!("scanning exercise in {}", path.display());
 
-    Ok(tmc_langs_plugins::get_language_plugin(path)?.scan_exercise(path, exercise_name)?)
+    Ok(Plugin::from_exercise(path)?.scan_exercise(path, exercise_name)?)
 }
 
 /// Extracts student files from the compressed exercise.
@@ -913,7 +912,7 @@ pub fn extract_student_files(
         target_location.display()
     );
 
-    if let Ok(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
+    if let Ok(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_student_files(compressed_project, compression, target_location)?;
     } else {
         log::debug!(

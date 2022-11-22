@@ -34,7 +34,7 @@ pub fn extract_project(
     compression: Compression,
     clean: bool,
 ) -> Result<(), PluginError> {
-    if let Ok(plugin) = get_language_plugin(target_location) {
+    if let Ok(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_project(compressed_project, target_location, compression, clean)?;
     } else {
         log::debug!(
@@ -101,17 +101,12 @@ pub fn get_exercise_packaging_configuration(
     Ok(config)
 }
 
-// enum containing all the plugins
+/// Enum containing variants for each language plugin.
 #[impl_enum::with_methods(
     pub fn clean(&self, path: &Path) -> Result<(), TmcError>
-    pub fn get_exercise_packaging_configuration(config: TmcProjectYml) -> Result<ExercisePackagingConfiguration, TmcError>
-    pub fn extract_project(compressed_project: impl std::io::Read + std::io::Seek, target_location: &Path, compression: Compression, clean: bool) -> Result<(), TmcError>
-    pub fn extract_student_files(compressed_project: impl std::io::Read + std::io::Seek, compression: Compression, target_location: &Path) -> Result<(), TmcError>
     pub fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>
     pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError>
     pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError>
-    pub fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError>
-    pub fn find_project_dir_in_archive<R: Read + Seek>(archive: &mut Archive<R>) -> Result<PathBuf, TmcError>
 )]
 pub enum Plugin {
     CSharp(CSharpPlugin),
@@ -123,6 +118,24 @@ pub enum Plugin {
     Ant(AntPlugin),
 }
 
+impl Plugin {
+    // Get language plugin for the given path.
+    pub fn from_exercise(path: &Path) -> Result<Self, PluginError> {
+        let plugin = match PluginType::from_exercise(path)? {
+            PluginType::NoTests => Plugin::NoTests(NoTestsPlugin::new()),
+            PluginType::CSharp => Plugin::CSharp(CSharpPlugin::new()),
+            PluginType::Make => Plugin::Make(MakePlugin::new()),
+            PluginType::Python3 => Plugin::Python3(Python3Plugin::new()),
+            PluginType::R => Plugin::R(RPlugin::new()),
+            PluginType::Maven => Plugin::Maven(MavenPlugin::new()?),
+            PluginType::Ant => Plugin::Ant(AntPlugin::new()?),
+        };
+        Ok(plugin)
+    }
+}
+
+/// Allows calling LanguagePlugin functions without constructing the plugin.
+#[derive(Clone, Copy)]
 pub enum PluginType {
     CSharp,
     Make,
@@ -133,117 +146,107 @@ pub enum PluginType {
     Ant,
 }
 
+macro_rules! delegate_plugin_type {
+    ($self:ident, $($args:tt)*) => {
+        match $self {
+            Self::CSharp => CSharpPlugin::$($args)*,
+            Self::Make => MakePlugin::$($args)*,
+            Self::Maven => MavenPlugin::$($args)*,
+            Self::NoTests => NoTestsPlugin::$($args)*,
+            Self::Python3 => Python3Plugin::$($args)*,
+            Self::R => RPlugin::$($args)*,
+            Self::Ant => AntPlugin::$($args)*,
+        }
+    };
+}
+
 impl PluginType {
+    pub fn from_exercise(path: &Path) -> Result<Self, PluginError> {
+        let (plugin_name, plugin_type) = if NoTestsPlugin::is_exercise_type_correct(path) {
+            (NoTestsPlugin::PLUGIN_NAME, PluginType::NoTests)
+        } else if CSharpPlugin::is_exercise_type_correct(path) {
+            (CSharpPlugin::PLUGIN_NAME, PluginType::CSharp)
+        } else if MakePlugin::is_exercise_type_correct(path) {
+            (MakePlugin::PLUGIN_NAME, PluginType::Make)
+        } else if Python3Plugin::is_exercise_type_correct(path) {
+            (Python3Plugin::PLUGIN_NAME, PluginType::Python3)
+        } else if RPlugin::is_exercise_type_correct(path) {
+            (RPlugin::PLUGIN_NAME, PluginType::R)
+        } else if MavenPlugin::is_exercise_type_correct(path) {
+            (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
+        } else if AntPlugin::is_exercise_type_correct(path) {
+            // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
+            (AntPlugin::PLUGIN_NAME, PluginType::Ant)
+        } else {
+            return Err(PluginError::PluginNotFound(path.to_path_buf()));
+        };
+        log::info!("Detected project at {} as {}", path.display(), plugin_name);
+        Ok(plugin_type)
+    }
+
     pub fn get_exercise_packaging_configuration(
         self,
         config: TmcProjectYml,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
-        match self {
-            Self::CSharp => CSharpPlugin::get_exercise_packaging_configuration(config),
-            Self::Make => MakePlugin::get_exercise_packaging_configuration(config),
-            Self::Maven => MavenPlugin::get_exercise_packaging_configuration(config),
-            Self::NoTests => NoTestsPlugin::get_exercise_packaging_configuration(config),
-            Self::Python3 => Python3Plugin::get_exercise_packaging_configuration(config),
-            Self::R => RPlugin::get_exercise_packaging_configuration(config),
-            Self::Ant => AntPlugin::get_exercise_packaging_configuration(config),
-        }
+        delegate_plugin_type!(self, get_exercise_packaging_configuration(config))
+    }
+
+    pub fn extract_project(
+        self,
+        compressed_project: impl std::io::Read + std::io::Seek,
+        target_location: &Path,
+        compression: Compression,
+        clean: bool,
+    ) -> Result<(), TmcError> {
+        delegate_plugin_type!(
+            self,
+            extract_project(compressed_project, target_location, compression, clean)
+        )
+    }
+
+    pub fn extract_student_files(
+        self,
+        compressed_project: impl std::io::Read + std::io::Seek,
+        compression: Compression,
+        target_location: &Path,
+    ) -> Result<(), TmcError> {
+        delegate_plugin_type!(
+            self,
+            extract_student_files(compressed_project, compression, target_location)
+        )
+    }
+
+    pub fn find_project_dir_in_archive<R: Read + Seek>(
+        self,
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        delegate_plugin_type!(self, find_project_dir_in_archive(archive))
+    }
+
+    pub fn get_available_points(self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {
+        delegate_plugin_type!(self, get_available_points(exercise_path))
     }
 }
 
-pub fn get_language_plugin_type(path: &Path) -> Option<PluginType> {
-    let plugin_type = if NoTestsPlugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            NoTestsPlugin::PLUGIN_NAME
-        );
-        PluginType::NoTests
-    } else if CSharpPlugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            CSharpPlugin::PLUGIN_NAME
-        );
-        PluginType::CSharp
-    } else if MakePlugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            MakePlugin::PLUGIN_NAME
-        );
-        PluginType::Make
-    } else if Python3Plugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            Python3Plugin::PLUGIN_NAME
-        );
-        PluginType::Python3
-    } else if RPlugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            RPlugin::PLUGIN_NAME
-        );
-        PluginType::R
-    } else if MavenPlugin::is_exercise_type_correct(path) {
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            MavenPlugin::PLUGIN_NAME
-        );
-        PluginType::Maven
-    } else if AntPlugin::is_exercise_type_correct(path) {
-        // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
-        log::info!(
-            "Detected project at {} as {}",
-            path.display(),
-            AntPlugin::PLUGIN_NAME
-        );
-        PluginType::Ant
-    } else {
-        return None;
-    };
-    Some(plugin_type)
-}
-
-// Get language plugin for the given path.
-pub fn get_language_plugin(path: &Path) -> Result<Plugin, PluginError> {
-    let plugin = match get_language_plugin_type(path) {
-        Some(PluginType::NoTests) => Plugin::NoTests(NoTestsPlugin::new()),
-        Some(PluginType::CSharp) => Plugin::CSharp(CSharpPlugin::new()),
-        Some(PluginType::Make) => Plugin::Make(MakePlugin::new()),
-        Some(PluginType::Python3) => Plugin::Python3(Python3Plugin::new()),
-        Some(PluginType::R) => Plugin::R(RPlugin::new()),
-        Some(PluginType::Maven) => Plugin::Maven(MavenPlugin::new()?),
-        Some(PluginType::Ant) => Plugin::Ant(AntPlugin::new()?),
-        None => return Err(PluginError::PluginNotFound(path.to_path_buf())),
-    };
-    Ok(plugin)
-}
-
 pub fn get_student_file_policy(path: &Path) -> Result<Box<dyn StudentFilePolicy>, PluginError> {
-    let policy: Box<dyn StudentFilePolicy> = match get_language_plugin_type(path) {
-        Some(PluginType::NoTests) => Box::new(
-            <NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-        ),
-        Some(PluginType::CSharp) => Box::new(
-            <CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-        ),
-        Some(PluginType::Make) => Box::new(<MakePlugin as LanguagePlugin>::StudentFilePolicy::new(
+    let policy: Box<dyn StudentFilePolicy> = match PluginType::from_exercise(path)? {
+        PluginType::NoTests => Box::new(<NoTestsPlugin as LanguagePlugin>::StudentFilePolicy::new(
             path,
         )?),
-        Some(PluginType::Python3) => Box::new(
-            <Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-        ),
-        Some(PluginType::R) => Box::new(<RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
-        Some(PluginType::Maven) => Box::new(
-            <MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?,
-        ),
-        Some(PluginType::Ant) => {
-            Box::new(<AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?)
-        }
-        None => return Err(PluginError::PluginNotFound(path.to_path_buf())),
+        PluginType::CSharp => Box::new(<CSharpPlugin as LanguagePlugin>::StudentFilePolicy::new(
+            path,
+        )?),
+        PluginType::Make => Box::new(<MakePlugin as LanguagePlugin>::StudentFilePolicy::new(
+            path,
+        )?),
+        PluginType::Python3 => Box::new(<Python3Plugin as LanguagePlugin>::StudentFilePolicy::new(
+            path,
+        )?),
+        PluginType::R => Box::new(<RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
+        PluginType::Maven => Box::new(<MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(
+            path,
+        )?),
+        PluginType::Ant => Box::new(<AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
     };
     Ok(policy)
 }
