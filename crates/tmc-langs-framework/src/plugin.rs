@@ -7,7 +7,7 @@ use crate::{
     },
     error::TmcError,
     policy::StudentFilePolicy,
-    Archive, Compression, TmcProjectYml,
+    Archive, Compression,
 };
 pub use isolang::Language;
 use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
@@ -292,27 +292,33 @@ pub trait LanguagePlugin {
     fn is_exercise_type_correct(path: &Path) -> bool;
 
     /// Returns configuration which is used to package submission on tmc-server.
-    // TODO: rethink
     fn get_exercise_packaging_configuration(
-        configuration: TmcProjectYml,
+        path: &Path,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
-        let extra_student_files = configuration.extra_student_files;
-        let extra_test_files = configuration.extra_exercise_files;
+        let policy = Self::StudentFilePolicy::new(path)?;
+        let mut config = ExercisePackagingConfiguration {
+            student_file_paths: HashSet::new(),
+            exercise_file_paths: HashSet::new(),
+        };
+        for entry in WalkDir::new(path) {
+            let entry = entry?;
+            if entry.metadata()?.is_dir() {
+                continue;
+            }
 
-        // NOTE: extra student files should have precedence over extra exercise files
-        let student_files = Self::get_default_student_file_paths()
-            .into_iter()
-            .chain(extra_student_files)
-            .collect::<HashSet<_>>();
-        let exercise_files_without_student_files = Self::get_default_exercise_file_paths()
-            .into_iter()
-            .chain(extra_test_files)
-            .filter(|e| !student_files.contains(e))
-            .collect();
-        Ok(ExercisePackagingConfiguration::new(
-            student_files,
-            exercise_files_without_student_files,
-        ))
+            let path = entry
+                .path()
+                .strip_prefix(path)
+                .expect("All entries are within path")
+                .to_path_buf();
+            if policy.is_student_source_file(&path) {
+                config.student_file_paths.insert(path);
+            } else {
+                config.exercise_file_paths.insert(path);
+            }
+        }
+
+        Ok(config)
     }
 
     /// Runs clean command e.g `make clean` for make or `mvn clean` for maven.
@@ -324,8 +330,7 @@ pub trait LanguagePlugin {
 
     /// Parses exercise files using Self::LINE_COMMENT and Self::BLOCK_COMMENT to filter out comments and Self::points_parser to parse points from the actual code.
     fn get_available_points(exercise_path: &Path) -> Result<Vec<String>, TmcError> {
-        let config = TmcProjectYml::load_or_default(exercise_path)?;
-        let config = Self::get_exercise_packaging_configuration(config)?;
+        let config = Self::get_exercise_packaging_configuration(exercise_path)?;
 
         let mut points = Vec::new();
         for exercise_file_path in config.exercise_file_paths {
@@ -436,6 +441,8 @@ enum Parse {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
+    use crate::TmcProjectYml;
+
     use super::*;
     use nom::character;
     use std::io::Write;
@@ -628,26 +635,46 @@ mod test {
     fn gets_exercise_packaging_configuration() {
         init();
 
-        let config = TmcProjectYml {
-            extra_student_files: vec!["test/StudentTest.java".into(), "test/OtherTest.java".into()],
-            extra_exercise_files: vec!["test/SomeFile.java".into(), "OtherTest.java".into()],
-            ..Default::default()
-        };
-        let conf = MockPlugin::get_exercise_packaging_configuration(config).unwrap();
-        assert!(conf.student_file_paths.contains(&PathBuf::from("src")));
+        let temp = tempfile::tempdir().unwrap();
+        let path = file_to(
+            &temp,
+            ".tmcproject.yml",
+            r#"
+extra_student_files:
+  - "test/StudentTest.java"
+  - "test/OtherTest.java"
+  - "InBothLists.java"
+extra_exercise_files:
+  - "src/SomeFile.java"
+  - "src/OtherTest.java"
+  - "InBothLists.java"
+"#,
+        );
+        file_to(&temp, "test/StudentTest.java", "");
+        file_to(&temp, "test/OtherTest.java", "");
+        file_to(&temp, "src/SomeFile.java", "");
+        file_to(&temp, "src/OtherTest.java", "");
+        file_to(&temp, "src/InBothLists.java", "");
+        let conf = MockPlugin::get_exercise_packaging_configuration(&path).unwrap();
         assert!(conf
             .student_file_paths
             .contains(&PathBuf::from("test/StudentTest.java")));
         assert!(conf
             .student_file_paths
             .contains(&PathBuf::from("test/OtherTest.java")));
-        assert!(conf.exercise_file_paths.contains(&PathBuf::from("test")));
         assert!(conf
             .exercise_file_paths
-            .contains(&PathBuf::from("test/SomeFile.java")));
+            .contains(&PathBuf::from("src/SomeFile.java")));
         assert!(!conf
             .exercise_file_paths
             .contains(&PathBuf::from("test/OtherTest.java")));
+
+        assert!(conf
+            .student_file_paths
+            .contains(&PathBuf::from("InBothLists.java")));
+        assert!(!conf
+            .exercise_file_paths
+            .contains(&PathBuf::from("InBothLists.java")));
     }
 
     #[test]

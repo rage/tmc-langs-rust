@@ -8,12 +8,11 @@ mod error;
 
 pub use error::PluginError;
 use std::{
-    collections::HashSet,
     io::{Read, Seek},
     path::{Path, PathBuf},
 };
 use tmc_langs_csharp::CSharpPlugin;
-use tmc_langs_framework::{Archive, LanguagePlugin, TmcError, TmcProjectYml};
+use tmc_langs_framework::{Archive, LanguagePlugin, TmcError};
 pub use tmc_langs_framework::{
     Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     NothingIsStudentFilePolicy, RunResult, StudentFilePolicy, StyleValidationResult,
@@ -24,7 +23,6 @@ pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
 pub use tmc_langs_python3::Python3Plugin;
 pub use tmc_langs_r::RPlugin;
-use walkdir::WalkDir;
 
 /// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
 /// If no language plugin matches, see `extract_project_overwrite`.
@@ -61,35 +59,6 @@ pub fn compress_project(
     };
 
     Ok(compressed)
-}
-
-pub fn get_exercise_packaging_configuration(
-    path: &Path,
-) -> Result<ExercisePackagingConfiguration, PluginError> {
-    let policy = get_student_file_policy(path)?;
-    let mut config = ExercisePackagingConfiguration {
-        student_file_paths: HashSet::new(),
-        exercise_file_paths: HashSet::new(),
-    };
-    for entry in WalkDir::new(path) {
-        let entry = entry?;
-        if entry.metadata()?.is_dir() {
-            continue;
-        }
-
-        let path = entry
-            .path()
-            .strip_prefix(path)
-            .expect("All entries are within path")
-            .to_path_buf();
-        if policy.is_student_source_file(&path) {
-            config.student_file_paths.insert(path);
-        } else {
-            config.exercise_file_paths.insert(path);
-        }
-    }
-
-    Ok(config)
 }
 
 /// Enum containing variants for each language plugin.
@@ -177,9 +146,9 @@ impl PluginType {
 
     pub fn get_exercise_packaging_configuration(
         self,
-        config: TmcProjectYml,
+        exercise_path: &Path,
     ) -> Result<ExercisePackagingConfiguration, TmcError> {
-        delegate_plugin_type!(self, get_exercise_packaging_configuration(config))
+        delegate_plugin_type!(self, get_exercise_packaging_configuration(exercise_path))
     }
 
     pub fn extract_project(
