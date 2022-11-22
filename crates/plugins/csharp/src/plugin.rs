@@ -48,7 +48,7 @@ impl CSharpPlugin {
                     .bytes()
                     .collect::<Result<Vec<_>, _>>()
                     .map_err(|e| FileError::FileRead(file_path, e))?;
-                file_util::write_to_file(&bytes, target_file_path)?;
+                file_util::write_to_file(bytes, target_file_path)?;
             }
         }
         Ok(())

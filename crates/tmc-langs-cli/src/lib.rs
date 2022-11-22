@@ -1052,7 +1052,7 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<CliOutput> {
             } else {
                 deserialize::json_from_str(&json)?
             };
-            tmc_langs::set_setting(client_name, &key, &json)?;
+            tmc_langs::set_setting(client_name, &key, json)?;
             CliOutput::finished("set setting")
         }
 

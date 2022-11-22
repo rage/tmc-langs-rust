@@ -126,7 +126,7 @@ impl CourseConfig {
         }
         let target = course_dir.join("course_config.toml");
         let s = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(s.as_bytes(), &target)?;
+        file_util::write_to_file(s.as_bytes(), target)?;
         Ok(())
     }
 

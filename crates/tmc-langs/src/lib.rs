@@ -391,7 +391,7 @@ pub fn download_or_update_course_exercises(
                             let config =
                                 plugin.get_exercise_packaging_configuration(tmc_project_yml)?;
                             for student_file in config.student_file_paths {
-                                let student_file = download_target.target.path.join(&student_file);
+                                let student_file = download_target.target.path.join(student_file);
                                 if student_file.is_file() {
                                     file_util::remove_file(&student_file)?;
                                 } else {
@@ -769,7 +769,7 @@ pub fn compress_project_to(
     );
 
     let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
-    file_util::write_to_file(&data, target)?;
+    file_util::write_to_file(data, target)?;
     Ok(())
 }
 

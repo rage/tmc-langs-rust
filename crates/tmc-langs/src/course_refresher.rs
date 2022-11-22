@@ -384,7 +384,7 @@ fn execute_zip(
         let zip_file_path = zip_dir.join(format!("{}.zip", exercise.name));
 
         let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
-        for entry in WalkDir::new(&exercise_root) {
+        for entry in WalkDir::new(exercise_root) {
             let entry = entry?;
             let relative_path = entry
                 .path()

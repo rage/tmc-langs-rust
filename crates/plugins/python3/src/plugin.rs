@@ -194,7 +194,7 @@ impl Python3Plugin {
                 .expect("HMAC can take key of any size");
             mac.update(results.as_bytes());
             let bytes =
-                hex::decode(&test_runner_hmac_hex).map_err(|_| PythonError::UnexpectedHmac)?;
+                hex::decode(test_runner_hmac_hex).map_err(|_| PythonError::UnexpectedHmac)?;
             mac.verify_slice(&bytes)
                 .map_err(|_| PythonError::InvalidHmac)?;
         }
