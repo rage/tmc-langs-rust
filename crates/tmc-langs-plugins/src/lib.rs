@@ -41,18 +41,9 @@ pub fn extract_project(
             "no matching language plugin found for {}, overwriting",
             target_location.display()
         );
-        extract_project_overwrite(compressed_project, target_location)?;
+        let archive = Archive::new(compressed_project, compression)?;
+        archive.extract(target_location)?;
     }
-    Ok(())
-}
-
-/// Extract a given archive file containing a compressed project to a target location.
-/// This will overwrite any existing files.
-pub fn extract_project_overwrite(
-    compressed_project: impl std::io::Read + std::io::Seek,
-    target_location: &Path,
-) -> Result<(), PluginError> {
-    compression::unzip(compressed_project, target_location)?;
     Ok(())
 }
 

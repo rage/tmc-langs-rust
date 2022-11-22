@@ -102,7 +102,11 @@ pub trait LanguagePlugin {
         compression: Compression,
         clean: bool,
     ) -> Result<(), TmcError> {
-        log::debug!("Unzipping to {}", target_location.display());
+        log::debug!(
+            "Extracting to {} ({})",
+            target_location.display(),
+            compression
+        );
 
         let mut archive = Archive::new(compressed_project, compression)?;
 

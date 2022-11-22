@@ -44,6 +44,15 @@ impl<T: Read + Seek> Archive<T> {
         Ok(Self::Zip(archive))
     }
 
+    pub fn extract(self, target_directory: &Path) -> Result<(), TmcError> {
+        match self {
+            Self::Tar(mut tar) => tar.unpack(target_directory).map_err(TmcError::TarRead)?,
+            Self::TarZstd(mut zstd) => zstd.unpack(target_directory).map_err(TmcError::TarRead)?,
+            Self::Zip(mut zip) => zip.extract(target_directory)?,
+        }
+        Ok(())
+    }
+
     /// a
     pub fn iter(&mut self) -> Result<ArchiveIterator<'_, T>, TmcError> {
         match self {
