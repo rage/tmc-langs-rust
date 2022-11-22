@@ -24,8 +24,12 @@ pub fn compress_student_files(
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
+        let relative = entry
+            .path()
+            .strip_prefix(root_directory)
+            .expect("all entries are inside root");
         log::trace!("processing {}", entry.path().display());
-        if policy.is_student_file(entry.path(), root_directory)? {
+        if policy.is_student_file(relative) {
             let path = root_directory
                 .parent()
                 .map(|p| {

@@ -156,7 +156,7 @@ pub trait LanguagePlugin {
                     } else {
                         file_util::read_to_file(&mut file, path_in_target)?;
                     }
-                } else if !policy.is_student_file(&path_in_target, target_location)?
+                } else if !policy.is_student_file(relative)
                     || policy.is_updating_forced(relative)?
                 {
                     // not student file, or forced update
@@ -183,9 +183,13 @@ pub trait LanguagePlugin {
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
+                let relative = entry
+                    .path()
+                    .strip_prefix(target_location)
+                    .expect("all entries are inside target");
                 if !files_from_zip.contains(entry.path())
                     && (policy.is_updating_forced(entry.path())?
-                        || !policy.is_student_file(entry.path(), target_location)?)
+                        || !policy.is_student_file(relative))
                 {
                     log::debug!(
                         "rm {} {}",
@@ -251,7 +255,7 @@ pub trait LanguagePlugin {
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
-                if policy.would_be_student_file(&path_in_target, target_location)? {
+                if policy.is_student_file(relative) {
                     if file.is_file() {
                         // for files, everything should be removed out of the way
                         file_util::remove_all(&path_in_target)?;
@@ -300,7 +304,7 @@ pub trait LanguagePlugin {
             student_file_paths: HashSet::new(),
             exercise_file_paths: HashSet::new(),
         };
-        for entry in WalkDir::new(path) {
+        for entry in WalkDir::new(path).min_depth(1) {
             let entry = entry?;
             if entry.metadata()?.is_dir() {
                 continue;
@@ -311,7 +315,7 @@ pub trait LanguagePlugin {
                 .strip_prefix(path)
                 .expect("All entries are within path")
                 .to_path_buf();
-            if policy.is_student_source_file(&path) {
+            if policy.is_student_file(&path) {
                 config.student_file_paths.insert(path);
             } else {
                 config.exercise_file_paths.insert(path);
@@ -524,7 +528,7 @@ mod test {
         fn get_project_config(&self) -> &TmcProjectYml {
             &self.project_config
         }
-        fn is_student_source_file(&self, path: &Path) -> bool {
+        fn is_non_extra_student_file(&self, path: &Path) -> bool {
             path.starts_with("src")
         }
     }
@@ -636,7 +640,7 @@ mod test {
         init();
 
         let temp = tempfile::tempdir().unwrap();
-        let path = file_to(
+        file_to(
             &temp,
             ".tmcproject.yml",
             r#"
@@ -654,27 +658,27 @@ extra_exercise_files:
         file_to(&temp, "test/OtherTest.java", "");
         file_to(&temp, "src/SomeFile.java", "");
         file_to(&temp, "src/OtherTest.java", "");
-        file_to(&temp, "src/InBothLists.java", "");
-        let conf = MockPlugin::get_exercise_packaging_configuration(&path).unwrap();
+        file_to(&temp, "InBothLists.java", "");
+        let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
         assert!(conf
             .student_file_paths
-            .contains(&PathBuf::from("test/StudentTest.java")));
+            .contains(Path::new("test/StudentTest.java")));
         assert!(conf
             .student_file_paths
-            .contains(&PathBuf::from("test/OtherTest.java")));
+            .contains(Path::new("test/OtherTest.java")));
         assert!(conf
             .exercise_file_paths
-            .contains(&PathBuf::from("src/SomeFile.java")));
+            .contains(Path::new("src/SomeFile.java")));
         assert!(!conf
             .exercise_file_paths
-            .contains(&PathBuf::from("test/OtherTest.java")));
+            .contains(Path::new("test/OtherTest.java")));
 
         assert!(conf
             .student_file_paths
-            .contains(&PathBuf::from("InBothLists.java")));
+            .contains(Path::new("InBothLists.java")));
         assert!(!conf
             .exercise_file_paths
-            .contains(&PathBuf::from("InBothLists.java")));
+            .contains(Path::new("InBothLists.java")));
     }
 
     #[test]
@@ -693,7 +697,7 @@ extra_exercise_files:
         let temp = tempfile::tempdir().unwrap();
         file_to(
             &temp,
-            "non_test_dir/file.py",
+            "src/student_file.py",
             r#"
 @Points("1.1")
 "#,
@@ -704,7 +708,7 @@ extra_exercise_files:
         let temp = tempfile::tempdir().unwrap();
         file_to(
             &temp,
-            "test/file.py",
+            "test/exercise_file.py",
             r#"
 @Points("1")
 def a():
@@ -728,7 +732,7 @@ def d():
         let temp = tempfile::tempdir().unwrap();
         file_to(
             &temp,
-            "test/file.py",
+            "test/exercise_file.py",
             r#"
 @Points("1")
 def a():

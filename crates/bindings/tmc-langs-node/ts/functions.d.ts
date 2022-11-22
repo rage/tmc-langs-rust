@@ -14,8 +14,17 @@ export function checkstyle(
   locale: string
 ): types.StyleValidationResult | null;
 export function clean(exercisePath: string): void;
-export function compressProject(exercisePath: string, outputPath: string, compression: Compression, naive: boolean): void;
-export function extractProject(archivePath: string, outputPath: string, compression: Compression): void;
+export function compressProject(
+  exercisePath: string,
+  outputPath: string,
+  compression: Compression,
+  naive: boolean
+): void;
+export function extractProject(
+  archivePath: string,
+  outputPath: string,
+  compression: Compression
+): void;
 export function fastAvailablePoints(exercisePath: string): Array<string>;
 export function findExercises(exercisePath: string): Array<string>;
 export function getExercisePackagingConfiguration(
@@ -25,10 +34,7 @@ export function listLocalCourseExercises(
   clientName: string,
   courseSlug: string
 ): Array<types.LocalExercise>;
-export function prepareSolution(
-  exercisePath: string,
-  outputPath: string
-): void;
+export function prepareSolution(exercisePath: string, outputPath: string): void;
 export function prepareStub(exercisePath: string, outputPath: string): void;
 export function prepareSubmission(
   outputFormat: types.Compression,
@@ -195,7 +201,10 @@ export function waitForSubmission(
   clientVersion: string,
   submissionId: number
 ): types.SubmissionFinished;
-export function getSetting(clientName: string, setting: string): object | string | null;
+export function getSetting(
+  clientName: string,
+  setting: string
+): object | string | null;
 export function listSettings(clientName: string): Record<string, object>;
 export function migrateExercise(
   clientName: string,

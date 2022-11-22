@@ -10,7 +10,13 @@ export class Tmc {
   public configDir: string | null = null;
   public defaultProjectsDir: string | null = null;
 
-  constructor(clientName: string, clientVersion: string, rootUrl?: string, configDir?: string, defaultProjectsDir?: string) {
+  constructor(
+    clientName: string,
+    clientVersion: string,
+    rootUrl?: string,
+    configDir?: string,
+    defaultProjectsDir?: string
+  ) {
     this.clientName = clientName;
     this.clientVersion = clientVersion;
     if (rootUrl) {
@@ -38,11 +44,20 @@ export class Tmc {
     return tmc.clean(exercisePath);
   }
 
-  compressProject(exercisePath: string, outputPath: string, compression: Compression, naive: boolean): void {
+  compressProject(
+    exercisePath: string,
+    outputPath: string,
+    compression: Compression,
+    naive: boolean
+  ): void {
     return tmc.compressProject(exercisePath, outputPath, compression, naive);
   }
 
-  extractProject(archivePath: string, outputPath: string, compression: Compression): void {
+  extractProject(
+    archivePath: string,
+    outputPath: string,
+    compression: Compression
+  ): void {
     return tmc.extractProject(archivePath, outputPath, compression);
   }
 
@@ -76,8 +91,10 @@ export class Tmc {
     outputFormat: types.Compression,
     clonePath: string,
     outputPath: string,
-    stubZipPath: string | null,
+    stubArchivePath: string | null,
+    stubCompression: Compression,
     submissionPath: string,
+    submissionCompression: Compression,
     tmcParam: Array<[string, Array<string>]>,
     topLevelDirName: string | null
   ): void {
@@ -85,8 +102,10 @@ export class Tmc {
       outputFormat,
       clonePath,
       outputPath,
-      stubZipPath,
+      stubArchivePath,
+      stubCompression,
       submissionPath,
+      submissionCompression,
       tmcParam,
       topLevelDirName
     );
@@ -229,11 +248,7 @@ export class Tmc {
     return tmc.loggedIn(this.clientName, this.clientVersion);
   }
 
-  login(
-    base64: boolean,
-    email: string,
-    password: string,
-  ): void {
+  login(base64: boolean, email: string, password: string): void {
     return tmc.login(
       this.clientName,
       this.clientVersion,
@@ -243,9 +258,7 @@ export class Tmc {
     );
   }
 
-  loginWithToken(
-    accessToken: string,
-  ): void {
+  loginWithToken(accessToken: string): void {
     return tmc.loginWithToken(this.clientName, this.clientVersion, accessToken);
   }
 

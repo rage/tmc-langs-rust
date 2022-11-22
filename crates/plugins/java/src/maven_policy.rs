@@ -19,7 +19,7 @@ impl StudentFilePolicy for MavenStudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_source_file(&self, path: &Path) -> bool {
+    fn is_non_extra_student_file(&self, path: &Path) -> bool {
         path.starts_with("src/main")
     }
 }
@@ -29,18 +29,18 @@ mod test {
     use super::*;
 
     #[test]
-    fn is_student_source_file() {
+    fn is_student_file() {
         let policy = MavenStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_source_file(Path::new("src/main/file")));
-        assert!(policy.is_student_source_file(Path::new("src/main/dir/file")));
+        assert!(policy.is_student_file(Path::new("src/main/file")));
+        assert!(policy.is_student_file(Path::new("src/main/dir/file")));
     }
 
     #[test]
     fn is_not_student_source_file() {
         let policy = MavenStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(!policy.is_student_source_file(Path::new("file")));
-        assert!(!policy.is_student_source_file(Path::new("dir/src/main/file")));
-        assert!(!policy.is_student_source_file(Path::new("srca/main/file")));
-        assert!(!policy.is_student_source_file(Path::new("src/mainc/file")));
+        assert!(!policy.is_student_file(Path::new("file")));
+        assert!(!policy.is_student_file(Path::new("dir/src/main/file")));
+        assert!(!policy.is_student_file(Path::new("srca/main/file")));
+        assert!(!policy.is_student_file(Path::new("src/mainc/file")));
     }
 }

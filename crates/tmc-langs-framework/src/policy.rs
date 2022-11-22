@@ -1,7 +1,7 @@
 //! Contains StudentFilePolicy.
 
 use crate::{TmcError, TmcProjectYml};
-use std::{ffi::OsStr, path::Path};
+use std::path::Path;
 
 /// Specifies which files are student files. A single StudentFilePolicy is only valid for a single project as it uses a config file to determine its output.
 ///
@@ -26,9 +26,6 @@ pub trait StudentFilePolicy {
     /// The policy should contain a TmcProjectYml parsed from the project this policy was created for.
     fn get_project_config(&self) -> &TmcProjectYml;
 
-    /// Checks whether the path is considered a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
-    fn is_student_source_file(&self, file_path: &Path) -> bool;
-
     /// Determines whether a file is a student source file.
     ///
     /// A file should be considered a student source file if it resides in a location the student
@@ -37,52 +34,35 @@ pub trait StudentFilePolicy {
     ///
     /// For example in a Java project that uses Apache Ant, should return `true` for any files in the `src` directory.
     ///
-    /// The file_path should be some file inside project_root_path.
-    ///
-    /// # Errors
-    /// Returns an error if project_root_path doesn't exist, or if file_path is not in project_root_path.
-    // TODO: look at removing project_root_path and just requiring file_path to be relative
-    fn is_student_file(
-        &self,
-        file_path: &Path,
-        project_root_path: &Path,
-    ) -> Result<bool, TmcError> {
-        // non-existent files should never be considered student files
-        Ok(file_path.exists() && self.would_be_student_file(file_path, project_root_path)?)
-    }
-
-    /// Same as is_student_file, except allows for non-existent student files.
-    /// This can be useful for checking if a file would be a student file if extracted from an archive, for example.
-    /// The arguments should be absolute or relative from the same base.
-    fn would_be_student_file(
-        &self,
-        file_path: &Path,
-        project_root_path: &Path,
-    ) -> Result<bool, TmcError> {
-        // .tmcproject.yml should never be considered student files
-        if file_path.file_name() == Some(OsStr::new(".tmcproject.yml")) {
-            return Ok(false);
+    /// The file_path should be relative to the project root path.
+    fn is_student_file(&self, file_path: &Path) -> bool {
+        // .tmcproject.yml should never be considered a student file
+        if file_path == Path::new(".tmcproject.yml") {
+            return false;
         }
-
-        // the project root path should be considered a student file
-        if file_path == project_root_path {
-            return Ok(true);
-        }
-
-        // strip root directory from file path
-        let relative = file_path.strip_prefix(project_root_path).map_err(|_| {
-            TmcError::FileNotInProject(file_path.to_path_buf(), project_root_path.to_path_buf())
-        })?;
 
         // check extra student files
-        let is_extra_student_file = self
-            .get_project_config()
+        let config = self.get_project_config();
+        println!("{:#}", file_path.display());
+        println!("{:#?}", config.extra_student_files);
+        let is_extra_student_file = config
             .extra_student_files
             .iter()
-            .any(|f| relative.starts_with(f));
+            .any(|f| file_path.starts_with(f));
 
-        Ok(is_extra_student_file || self.is_student_source_file(relative))
+        let is_extra_exercise_file = config
+            .extra_exercise_files
+            .iter()
+            .any(|f| file_path.starts_with(f));
+
+        // extra student files take precedence, otherwise check if it's a non-extra student file and not an extra exercise file
+        is_extra_student_file
+            || (self.is_non_extra_student_file(file_path) && !is_extra_exercise_file)
     }
+
+    /// Used by is_student_file.
+    /// Defines a language plugin policy's rules for determining whether a file is a student file or not.
+    fn is_non_extra_student_file(&self, file_path: &Path) -> bool;
 
     /// Used to check for files which should always be overwritten.
     ///
@@ -128,11 +108,7 @@ impl StudentFilePolicy for NothingIsStudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool, TmcError> {
-        Ok(false)
-    }
-
-    fn is_student_source_file(&self, _path: &Path) -> bool {
+    fn is_non_extra_student_file(&self, _path: &Path) -> bool {
         false
     }
 }
@@ -169,11 +145,7 @@ impl StudentFilePolicy for EverythingIsStudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_file(&self, _path: &Path, _project_root_path: &Path) -> Result<bool, TmcError> {
-        Ok(true)
-    }
-
-    fn is_student_source_file(&self, _path: &Path) -> bool {
+    fn is_non_extra_student_file(&self, _path: &Path) -> bool {
         true
     }
 }
@@ -219,7 +191,7 @@ mod test {
             &self.project_config
         }
 
-        fn is_student_source_file(&self, file_path: &Path) -> bool {
+        fn is_non_extra_student_file(&self, file_path: &Path) -> bool {
             file_path
                 .components()
                 .any(|c| c.as_os_str() == "student_file")
@@ -238,18 +210,10 @@ mod test {
 
         let project_config = TmcProjectYml::default();
         let policy = MockPolicy { project_config };
-        assert!(policy
-            .is_student_file(&temp.path().join("dir/student_file/some file"), temp.path())
-            .unwrap());
-        assert!(policy
-            .is_student_file(&temp.path().join("other dir/student_file"), temp.path())
-            .unwrap());
-        assert!(!policy
-            .is_student_file(&temp.path().join("other dir/other file"), temp.path())
-            .unwrap());
-        assert!(!policy
-            .is_student_file(&temp.path().join("other file"), temp.path())
-            .unwrap());
+        assert!(policy.is_student_file(Path::new("dir/student_file/some file")));
+        assert!(policy.is_student_file(Path::new("other dir/student_file")));
+        assert!(!policy.is_student_file(Path::new("other dir/other file")));
+        assert!(!policy.is_student_file(Path::new("other file")));
     }
 
     #[test]
@@ -267,18 +231,10 @@ mod test {
             ..Default::default()
         };
         let policy = MockPolicy { project_config };
-        assert!(policy
-            .is_student_file(&temp.path().join("sdir/some file"), temp.path())
-            .unwrap());
-        assert!(policy
-            .is_student_file(&temp.path().join("other dir/sfile"), temp.path())
-            .unwrap());
-        assert!(!policy
-            .is_student_file(&temp.path().join("other dir/other file"), temp.path())
-            .unwrap());
-        assert!(!policy
-            .is_student_file(&temp.path().join("other file"), temp.path())
-            .unwrap());
+        assert!(policy.is_student_file(Path::new("sdir/some file")));
+        assert!(policy.is_student_file(Path::new("other dir/sfile")));
+        assert!(!policy.is_student_file(Path::new("other dir/other file")));
+        assert!(!policy.is_student_file(Path::new("other file")));
     }
 
     #[test]

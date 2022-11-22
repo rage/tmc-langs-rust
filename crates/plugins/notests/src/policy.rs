@@ -20,7 +20,7 @@ impl StudentFilePolicy for NoTestsStudentFilePolicy {
         &self.project_config
     }
 
-    fn is_student_source_file(&self, _file_path: &Path) -> bool {
+    fn is_non_extra_student_file(&self, _file_path: &Path) -> bool {
         true
     }
 }

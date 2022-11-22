@@ -64,7 +64,9 @@ async function writeFiles(
 }
 
 async function tempdir(): Promise<string> {
-  return fs.promises.mkdtemp([os.tmpdir().split("\\").join("/"), "langs_jest_"].join("/"));
+  return fs.promises.mkdtemp(
+    [os.tmpdir().split("\\").join("/"), "langs_jest_"].join("/")
+  );
 }
 
 async function mockEnvironment(tmc: Tmc) {
@@ -72,11 +74,14 @@ async function mockEnvironment(tmc: Tmc) {
   const clientProjectsDir = [tmc.defaultProjectsDir!, tmc.clientName].join("/");
   console.log("creating mock config at " + clientConfigDir);
   await writeFiles(clientConfigDir, [
-    ["config.toml", `
+    [
+      "config.toml",
+      `
 projects_dir = "${clientProjectsDir}"
 setting = "value"
-`]
-  ])
+`,
+    ],
+  ]);
 
   console.log("creating mock projects dir at " + clientProjectsDir);
   await writeFiles(clientProjectsDir, [
@@ -95,8 +100,15 @@ checksum = 'new checksum'
 `,
     ],
   ]);
-  await mockExercise([clientProjectsDir, "some course/on disk exercise with update and submission"].join("/"));
-  await mockExercise([clientProjectsDir, "some course/on disk exercise without update"].join("/"));
+  await mockExercise(
+    [
+      clientProjectsDir,
+      "some course/on disk exercise with update and submission",
+    ].join("/")
+  );
+  await mockExercise(
+    [clientProjectsDir, "some course/on disk exercise without update"].join("/")
+  );
 }
 
 async function mockExercise(dir?: string): Promise<string> {
@@ -315,7 +327,10 @@ test("gets exercise submissions", async () => {
 test("gets exercise updates", async () => {
   const tmc = init();
 
-  const map: [number, string][] = [[1, "old checksum"], [9999, "old checksum"]];
+  const map: [number, string][] = [
+    [1, "old checksum"],
+    [9999, "old checksum"],
+  ];
   const exerciseUpdates = tmc.getExerciseUpdates(1, map);
   expect(exerciseUpdates.created.length).toBeGreaterThan(0);
   expect(exerciseUpdates.updated.length).toBeGreaterThan(0);
