@@ -32,15 +32,16 @@ pub fn extract_project(
     compression: Compression,
     clean: bool,
 ) -> Result<(), PluginError> {
+    let mut archive = Archive::new(compressed_project, compression)?;
     if let Ok(plugin) = PluginType::from_exercise(target_location) {
-        plugin.extract_project(compressed_project, target_location, compression, clean)?;
+        plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
-        log::debug!(
-            "no matching language plugin found for {}, overwriting",
-            target_location.display()
-        );
-        let archive = Archive::new(compressed_project, compression)?;
-        archive.extract(target_location)?;
+        if let Ok(plugin) = PluginType::from_archive(&mut archive) {
+            plugin.extract_project(&mut archive, target_location, clean)?;
+        } else {
+            log::debug!("no matching language plugin found",);
+            archive.extract(target_location)?;
+        }
     }
     Ok(())
 }
@@ -144,6 +145,29 @@ impl PluginType {
         Ok(plugin_type)
     }
 
+    pub fn from_archive<R: Read + Seek>(archive: &mut Archive<R>) -> Result<Self, PluginError> {
+        let (plugin_name, plugin_type) = if NoTestsPlugin::is_archive_type_correct(archive) {
+            (NoTestsPlugin::PLUGIN_NAME, PluginType::NoTests)
+        } else if CSharpPlugin::is_archive_type_correct(archive) {
+            (CSharpPlugin::PLUGIN_NAME, PluginType::CSharp)
+        } else if MakePlugin::is_archive_type_correct(archive) {
+            (MakePlugin::PLUGIN_NAME, PluginType::Make)
+        } else if Python3Plugin::is_archive_type_correct(archive) {
+            (Python3Plugin::PLUGIN_NAME, PluginType::Python3)
+        } else if RPlugin::is_archive_type_correct(archive) {
+            (RPlugin::PLUGIN_NAME, PluginType::R)
+        } else if MavenPlugin::is_archive_type_correct(archive) {
+            (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
+        } else if AntPlugin::is_archive_type_correct(archive) {
+            // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
+            (AntPlugin::PLUGIN_NAME, PluginType::Ant)
+        } else {
+            return Err(PluginError::PluginNotFoundInArchive);
+        };
+        log::info!("Detected project in archive as {}", plugin_name);
+        Ok(plugin_type)
+    }
+
     pub fn get_exercise_packaging_configuration(
         self,
         exercise_path: &Path,
@@ -151,17 +175,13 @@ impl PluginType {
         delegate_plugin_type!(self, get_exercise_packaging_configuration(exercise_path))
     }
 
-    pub fn extract_project(
+    pub fn extract_project<R: Read + Seek>(
         self,
-        compressed_project: impl std::io::Read + std::io::Seek,
+        archive: &mut Archive<R>,
         target_location: &Path,
-        compression: Compression,
         clean: bool,
     ) -> Result<(), TmcError> {
-        delegate_plugin_type!(
-            self,
-            extract_project(compressed_project, target_location, compression, clean)
-        )
+        delegate_plugin_type!(self, extract_project(archive, target_location, clean))
     }
 
     pub fn extract_student_files(

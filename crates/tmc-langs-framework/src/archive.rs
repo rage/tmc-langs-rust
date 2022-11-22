@@ -103,6 +103,14 @@ impl<T: Read + Seek> Archive<T> {
             Self::Zip(archive) => archive.by_name(path).map(Entry::Zip).map_err(Into::into),
         }
     }
+
+    pub fn compression(&self) -> Compression {
+        match self {
+            Self::Tar(_) => Compression::Tar,
+            Self::TarZstd(_) => Compression::TarZstd,
+            Self::Zip(_) => Compression::Zip,
+        }
+    }
 }
 
 pub enum ArchiveIterator<'a, T: Read + Seek> {

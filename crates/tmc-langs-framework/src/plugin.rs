@@ -96,22 +96,19 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
-    fn extract_project(
-        compressed_project: impl std::io::Read + std::io::Seek,
+    fn extract_project<R: Read + Seek>(
+        archive: &mut Archive<R>,
         target_location: &Path,
-        compression: Compression,
         clean: bool,
     ) -> Result<(), TmcError> {
         log::debug!(
             "Extracting to {} ({})",
             target_location.display(),
-            compression
+            archive.compression()
         );
 
-        let mut archive = Archive::new(compressed_project, compression)?;
-
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_archive(&mut archive)?;
+        let project_dir = Self::find_project_dir_in_archive(archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
         // extract config file if any
@@ -900,13 +897,8 @@ def f():
         file_to(&temp, "not in project dir", "");
         let zip = dir_to_zip(&temp);
 
-        MockPlugin::extract_project(
-            std::io::Cursor::new(zip),
-            &temp.path().join("extracted"),
-            Compression::Zip,
-            false,
-        )
-        .unwrap();
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), false).unwrap();
 
         for entry in WalkDir::new(temp.path().join("extracted"))
             .into_iter()
@@ -934,13 +926,8 @@ def f():
         file_to(&temp, "extracted/src/student file", "old");
         file_to(&temp, "extracted/test/exercise file", "old");
 
-        MockPlugin::extract_project(
-            std::io::Cursor::new(zip),
-            &temp.path().join("extracted"),
-            Compression::Zip,
-            false,
-        )
-        .unwrap();
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), false).unwrap();
 
         for entry in WalkDir::new(temp.path().join("extracted"))
             .into_iter()
@@ -976,13 +963,8 @@ force_update:
         file_to(&temp, "extracted/src/forced update", "old");
         file_to(&temp, "extracted/extra student file", "old");
 
-        MockPlugin::extract_project(
-            std::io::Cursor::new(zip),
-            &temp.path().join("extracted"),
-            Compression::Zip,
-            false,
-        )
-        .unwrap();
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), false).unwrap();
 
         for entry in WalkDir::new(temp.path().join("extracted"))
             .into_iter()
@@ -1013,13 +995,8 @@ force_update:
             log::debug!("{}", entry.path().display());
         }
 
-        MockPlugin::extract_project(
-            std::io::Cursor::new(zip),
-            &temp.path().join("extracted"),
-            Compression::Zip,
-            false,
-        )
-        .unwrap();
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), false).unwrap();
 
         for entry in WalkDir::new(temp.path().join("extracted"))
             .into_iter()
@@ -1043,13 +1020,8 @@ force_update:
         let zip = dir_to_zip(&temp);
         file_to(&temp, "extracted/test/some existing non-student file", "");
 
-        MockPlugin::extract_project(
-            std::io::Cursor::new(zip),
-            &temp.path().join("extracted"),
-            Compression::Zip,
-            true,
-        )
-        .unwrap();
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), true).unwrap();
 
         for entry in WalkDir::new(temp.path().join("extracted"))
             .into_iter()

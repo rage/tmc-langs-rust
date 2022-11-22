@@ -7,6 +7,8 @@ use tmc_langs_java::JavaError;
 pub enum PluginError {
     #[error("No matching plugin found for {0}")]
     PluginNotFound(PathBuf),
+    #[error("No matching plugin found in archive")]
+    PluginNotFoundInArchive,
     #[error(transparent)]
     Tmc(#[from] tmc_langs_framework::TmcError),
     #[error(transparent)]

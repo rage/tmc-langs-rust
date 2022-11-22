@@ -51,7 +51,7 @@ pub use tmc_client::{
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{Archive, TmcError};
 pub use tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
@@ -818,7 +818,8 @@ pub fn extract_project(
     if naive {
         extract_project_overwrite(compressed_project, target_location, compression)?;
     } else if let Ok(plugin) = PluginType::from_exercise(target_location) {
-        plugin.extract_project(compressed_project, target_location, compression, clean)?;
+        let mut archive = Archive::new(compressed_project, compression)?;
+        plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
         log::debug!(
             "no matching language plugin found for {}, overwriting",
