@@ -6,17 +6,17 @@ export type StyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
 
 export interface ExercisePackagingConfiguration { student_file_paths: Array<string>, exercise_file_paths: Array<string>, }
 
-export interface LocalExercise { exercise_slug: string, exercise_path: string, }
+export interface LocalExercise { "exercise-slug": string, "exercise-path": string, }
 
 export type Compression = "tar" | "zip" | "zstd";
 
-export interface RefreshData { new_cache_path: string, course_options: object, exercises: Array<RefreshExercise>, }
+export interface RefreshData { "new-cache-path": string, "course-options": object, exercises: Array<RefreshExercise>, }
 
-export interface RefreshExercise { name: string, checksum: string, points: Array<string>, sandbox_image: string, tmcproject_yml: TmcProjectYml | null, }
+export interface RefreshExercise { name: string, checksum: string, points: Array<string>, "sandbox-image": string, "tmcproject-yml": TmcProjectYml | null, }
 
 export interface TmcProjectYml { extra_student_files: Array<string>, extra_exercise_files: Array<string>, force_update: Array<string>, tests_timeout_ms?: bigint, fail_on_valgrind_error?: boolean, minimum_python_version?: PythonVer, sandbox_image?: string, }
 
-export interface PythonVer { major: number | null, minor: number | null, patch: number | null, }
+export interface PythonVer { major: number, minor: number | null, patch: number | null, }
 
 export interface RunResult { status: RunStatus, testResults: Array<TestResult>, logs: Record<string, string>, }
 
@@ -32,7 +32,7 @@ export interface UpdatedExercise { id: number, }
 
 export interface DownloadOrUpdateCourseExercisesResult { downloaded: Array<ExerciseDownload>, skipped: Array<ExerciseDownload>, failed?: Array<[ExerciseDownload, Array<string>]>, }
 
-export interface ExerciseDownload { id: number, course_slug: string, exercise_slug: string, path: string, }
+export interface ExerciseDownload { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
 export interface CombinedCourseData { details: CourseDetails, exercises: Array<CourseExercise>, settings: CourseData, }
 
@@ -70,7 +70,7 @@ export interface TestCase { name: string, successful: boolean, message: string |
 
 export interface SubmissionFeedbackQuestion { id: number, question: string, kind: SubmissionFeedbackKind, }
 
-export type SubmissionFeedbackKind = "Text" | { IntRange: { lower: number, upper: number, } };
+export type SubmissionFeedbackKind = "Text" | { "IntRange": { lower: number, upper: number, } };
 
 export interface TmcConfig { projects_dir: string, }
 
