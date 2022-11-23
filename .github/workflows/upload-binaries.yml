@@ -59,12 +59,12 @@ jobs:
 
           # build and deploy CLI
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
-          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+          gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
 
           # build and deploy Node module
-          npm --prefix ./bindings/tmc-langs-node install
-          npm --prefix ./bindings/tmc-langs-node run build -- --release --target ${{ matrix.target }}
-          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
+          npm --prefix ./crates/bindings/tmc-langs-node install
+          npm --prefix ./crates/bindings/tmc-langs-node run build -- --release --target ${{ matrix.target }}
+          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
 
   windows:
     runs-on: windows-2022
@@ -103,8 +103,8 @@ jobs:
         run: |
           $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')
           $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
-          gsutil cp target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
-          gsutil cp bindings/tmc-langs-node/ts/functions.node             gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
+          gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
+          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node             gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
 
   macos-11:
     runs-on: macos-11
@@ -136,12 +136,12 @@ jobs:
       - name: Cargo build
         run: |
           cargo build -p tmc-langs-cli --release
-          npm --prefix ./bindings/tmc-langs-node install
-          npm run --prefix ./bindings/tmc-langs-node build -- --release
+          npm --prefix ./crates/bindings/tmc-langs-node install
+          npm run --prefix ./crates/bindings/tmc-langs-node build -- --release
       - name: Sign
         run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
         run: |
           rustup target add ${{ matrix.target }}
-          gsutil cp target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
-          gsutil cp bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
+          gsutil cp ./target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
+          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
