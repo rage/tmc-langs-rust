@@ -119,7 +119,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
     }
 
-    <span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
         <span class="comment">// all non-pyc or __pycache__ files in src are student source files
         </span><span class="kw">let </span>in_src = path.starts_with(<span class="string">&quot;src&quot;</span>);
         <span class="kw">let </span>is_cache_file = path.extension() == <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;pyc&quot;</span>))
@@ -152,50 +152,50 @@
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>in_src_is_source_file() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(policy.is_student_source_file(Path::new(<span class="string">&quot;src/some_file.py&quot;</span>)));
-        <span class="macro">assert!</span>(policy.is_student_source_file(Path::new(<span class="string">&quot;src/some_dir/some_file.py&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;src/some_file.py&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;src/some_dir/some_file.py&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>in_root_is_source_file() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(policy.is_student_source_file(Path::new(<span class="string">&quot;some_file.py&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;some_file.py&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>pycache_is_not_source_file() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;__pycache__&quot;</span>)));
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;__pycache__/cachefile&quot;</span>)));
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;src/__pycache__&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;__pycache__&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;__pycache__/cachefile&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;src/__pycache__&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>pyc_is_not_source_file() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;some.pyc&quot;</span>)));
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;src/other.pyc&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;some.pyc&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;src/other.pyc&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>subdirs_are_student_files() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(policy.is_student_source_file(Path::new(<span class="string">&quot;subdir/something&quot;</span>)));
-        <span class="macro">assert!</span>(policy.is_student_source_file(Path::new(<span class="string">&quot;another/mid/else&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;subdir/something&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;another/mid/else&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>tmc_and_test_are_not_student_files() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;test/something.py&quot;</span>)));
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;tmc/mid/else.py&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;test/something.py&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;tmc/mid/else.py&quot;</span>)));
     }
 
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>non_py_file_in_root_is_not_student_file() {
         <span class="kw">let </span>policy = Python3StudentFilePolicy::new(Path::new(<span class="string">&quot;.&quot;</span>)).unwrap();
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;test&quot;</span>)));
-        <span class="macro">assert!</span>(!policy.is_student_source_file(Path::new(<span class="string">&quot;root_file&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;test&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;root_file&quot;</span>)));
     }
 }
 </code></pre></div>

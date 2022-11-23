@@ -277,6 +277,10 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains functions for compressing and uncompressing projects.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::archive::ArchiveBuilder;
@@ -303,8 +307,12 @@
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
     {
+        <span class="kw">let </span>relative = entry
+            .path()
+            .strip_prefix(root_directory)
+            .expect(<span class="string">&quot;all entries are inside root&quot;</span>);
         <span class="macro">log::trace!</span>(<span class="string">&quot;processing {}&quot;</span>, entry.path().display());
-        <span class="kw">if </span>policy.is_student_file(entry.path(), root_directory)<span class="question-mark">? </span>{
+        <span class="kw">if </span>policy.is_student_file(relative) {
             <span class="kw">let </span>path = root_directory
                 .parent()
                 .map(|p| {

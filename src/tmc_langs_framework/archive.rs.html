@@ -278,6 +278,23 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains types that abstract over the various archive formats.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::TmcError;
@@ -322,6 +339,15 @@
     <span class="kw">pub fn </span>zip(archive: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, TmcError&gt; {
         <span class="kw">let </span>archive = zip::ZipArchive::new(archive)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::Zip(archive))
+    }
+
+    <span class="kw">pub fn </span>extract(<span class="self">self</span>, target_directory: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), TmcError&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Tar(<span class="kw-2">mut </span>tar) =&gt; tar.unpack(target_directory).map_err(TmcError::TarRead)<span class="question-mark">?</span>,
+            <span class="self">Self</span>::TarZstd(<span class="kw-2">mut </span>zstd) =&gt; zstd.unpack(target_directory).map_err(TmcError::TarRead)<span class="question-mark">?</span>,
+            <span class="self">Self</span>::Zip(<span class="kw-2">mut </span>zip) =&gt; zip.extract(target_directory)<span class="question-mark">?</span>,
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// a
@@ -372,6 +398,14 @@
                 )))
             }
             <span class="self">Self</span>::Zip(archive) =&gt; archive.by_name(path).map(Entry::Zip).map_err(Into::into),
+        }
+    }
+
+    <span class="kw">pub fn </span>compression(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Compression {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Tar(<span class="kw">_</span>) =&gt; Compression::Tar,
+            <span class="self">Self</span>::TarZstd(<span class="kw">_</span>) =&gt; Compression::TarZstd,
+            <span class="self">Self</span>::Zip(<span class="kw">_</span>) =&gt; Compression::Zip,
         }
     }
 }

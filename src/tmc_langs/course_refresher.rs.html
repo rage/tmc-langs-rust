@@ -722,9 +722,6 @@
 <span id="722">722</span>
 <span id="723">723</span>
 <span id="724">724</span>
-<span id="725">725</span>
-<span id="726">726</span>
-<span id="727">727</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Course refresher.
 
 </span><span class="kw">use crate</span>::{error::LangsError, progress_reporter};
@@ -1057,16 +1054,13 @@
 }
 
 <span class="kw">fn </span>get_default_sandbox_image(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, LangsError&gt; {
-    <span class="kw">let </span>url = <span class="kw">match </span>tmc_langs_plugins::get_language_plugin_type(path) {
-        <span class="prelude-val">Some</span>(PluginType::CSharp) =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest&quot;</span>,
-        <span class="prelude-val">Some</span>(PluginType::Make) =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-make:latest&quot;</span>,
-        <span class="prelude-val">Some</span>(PluginType::Maven) | <span class="prelude-val">Some</span>(PluginType::Ant) =&gt; {
-            <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-java:latest&quot;
-        </span>}
-        <span class="prelude-val">Some</span>(PluginType::NoTests) =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-python:latest&quot;</span>, <span class="comment">// doesn&#39;t really matter, just use Python image
-        </span><span class="prelude-val">Some</span>(PluginType::Python3) =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-python:latest&quot;</span>,
-        <span class="prelude-val">Some</span>(PluginType::R) =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-r:latest&quot;</span>,
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(LangsError::NoPlugin),
+    <span class="kw">let </span>url = <span class="kw">match </span>PluginType::from_exercise(path)<span class="question-mark">? </span>{
+        PluginType::CSharp =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest&quot;</span>,
+        PluginType::Make =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-make:latest&quot;</span>,
+        PluginType::Maven | PluginType::Ant =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-java:latest&quot;</span>,
+        PluginType::NoTests =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-python:latest&quot;</span>, <span class="comment">// doesn&#39;t really matter, just use Python image
+        </span>PluginType::Python3 =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-python:latest&quot;</span>,
+        PluginType::R =&gt; <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-r:latest&quot;</span>,
     };
     <span class="prelude-val">Ok</span>(url)
 }
@@ -1114,7 +1108,7 @@
         <span class="kw">let </span>zip_file_path = zip_dir.join(<span class="macro">format!</span>(<span class="string">&quot;{}.zip&quot;</span>, exercise.name));
 
         <span class="kw">let </span><span class="kw-2">mut </span>writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)<span class="question-mark">?</span>);
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(<span class="kw-2">&amp;</span>exercise_root) {
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(exercise_root) {
             <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
             <span class="kw">let </span>relative_path = entry
                 .path()

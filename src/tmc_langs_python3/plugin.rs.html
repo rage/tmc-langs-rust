@@ -945,14 +945,6 @@
 <span id="945">945</span>
 <span id="946">946</span>
 <span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains the Python3Plugin struct
 
 </span><span class="kw">use crate</span>::{
@@ -973,8 +965,8 @@
 };
 <span class="kw">use </span>tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
-    TestResult, TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PythonVer, RunResult, RunStatus,
+    TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml,
 };
 <span class="kw">use </span>tmc_langs_util::{
     deserialize, file_util,
@@ -983,12 +975,12 @@
 };
 <span class="kw">use </span>walkdir::WalkDir;
 
-<span class="kw">pub struct </span>Python3Plugin {}
+<span class="kw">pub struct </span>Python3Plugin;
 
 <span class="kw">impl </span>Python3Plugin {
     <span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{}
-    }
+        <span class="self">Self
+    </span>}
 
     <span class="kw">fn </span>get_local_python_command() -&gt; TmcCommand {
         <span class="comment">// the correct python command is platform-dependent
@@ -1067,32 +1059,24 @@
         timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
         stdin: <span class="prelude-ty">Option</span>&lt;String&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Output, PythonError&gt; {
-        <span class="kw">let </span>minimum_python_version = TmcProjectYml::load_or_default(path)<span class="question-mark">?
+        <span class="kw">let </span>minimum = TmcProjectYml::load_or_default(path)<span class="question-mark">?
             </span>.minimum_python_version
-            .unwrap_or_default();
-        <span class="comment">// default minimum version is 3.0.0
-        </span><span class="kw">let </span>minimum_major = minimum_python_version.major.unwrap_or(<span class="number">3</span>);
-        <span class="kw">let </span>minimum_minor = minimum_python_version.minor.unwrap_or(<span class="number">0</span>);
-        <span class="kw">let </span>minimum_patch = minimum_python_version.patch.unwrap_or(<span class="number">0</span>);
+            .unwrap_or_default()
+            .min();
+        <span class="kw">let </span>recommended = PythonVer::recommended();
+        <span class="kw">let </span>local = <span class="self">Self</span>::get_local_python_ver()<span class="question-mark">?</span>;
 
-        <span class="comment">// Try to keep up to date with https://devguide.python.org/#branchstatus
-        // As of writing, 3.6 is the oldest maintained release and its EOL 2021-12-23
-        </span><span class="kw">let </span>recommended_major = <span class="number">3</span>;
-        <span class="kw">let </span>recommended_minor = <span class="number">6</span>;
-
-        <span class="kw">let </span>(major, minor, patch) = <span class="self">Self</span>::get_local_python_ver()<span class="question-mark">?</span>;
-
-        <span class="kw">if </span>major &lt; recommended_major || major == recommended_major &amp;&amp; minor &lt; recommended_minor {
-            notification_reporter::notify(Notification::warning(<span class="macro">format!</span>(<span class="string">&quot;Your Python is out of date. Minimum maintained release is {}.{}, your Python version was detected as {}.{}. Updating to a newer release is recommended.&quot;</span>, recommended_major, recommended_minor, major, minor)));
+        <span class="kw">if </span>local &lt; recommended {
+            notification_reporter::notify(Notification::warning(<span class="macro">format!</span>(
+                <span class="string">&quot;Your Python is out of date. Minimum maintained release is {}.{}.{},\
+                your Python version was detected as {}.{}.{}. Updating to a newer release is recommended.&quot;</span>,
+                minimum.<span class="number">0</span>, minimum.<span class="number">1</span>, minimum.<span class="number">2</span>, local.<span class="number">0</span>, local.<span class="number">1</span>, local.<span class="number">2
+            </span>)));
         }
-
-        <span class="kw">if </span>major &lt; minimum_major
-            || major == minimum_major &amp;&amp; minor &lt; minimum_minor
-            || major == minimum_major &amp;&amp; minor == minimum_minor &amp;&amp; patch &lt; minimum_patch
-        {
+        <span class="kw">if </span>local &lt; minimum {
             <span class="kw">return </span><span class="prelude-val">Err</span>(PythonError::OldPythonVersion {
-                found: <span class="macro">format!</span>(<span class="string">&quot;{}.{}.{}&quot;</span>, major, minor, patch),
-                minimum_required: <span class="macro">format!</span>(<span class="string">&quot;{}.{}.{}&quot;</span>, minimum_major, minimum_minor, minimum_patch),
+                found: <span class="macro">format!</span>(<span class="string">&quot;{}.{}.{}&quot;</span>, local.<span class="number">0</span>, local.<span class="number">1</span>, local.<span class="number">2</span>),
+                minimum_required: <span class="macro">format!</span>(<span class="string">&quot;{}.{}.{}&quot;</span>, minimum.<span class="number">0</span>, minimum.<span class="number">1</span>, minimum.<span class="number">2</span>),
             });
         }
 
@@ -1149,7 +1133,7 @@
                 .expect(<span class="string">&quot;HMAC can take key of any size&quot;</span>);
             mac.update(results.as_bytes());
             <span class="kw">let </span>bytes =
-                hex::decode(<span class="kw-2">&amp;</span>test_runner_hmac_hex).map_err(|<span class="kw">_</span>| PythonError::UnexpectedHmac)<span class="question-mark">?</span>;
+                hex::decode(test_runner_hmac_hex).map_err(|<span class="kw">_</span>| PythonError::UnexpectedHmac)<span class="question-mark">?</span>;
             mac.verify_slice(<span class="kw-2">&amp;</span>bytes)
                 .map_err(|<span class="kw">_</span>| PythonError::InvalidHmac)<span class="question-mark">?</span>;
         }

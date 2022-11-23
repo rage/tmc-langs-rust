@@ -268,56 +268,10 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains StudentFilePolicy.
 
 </span><span class="kw">use crate</span>::{TmcError, TmcProjectYml};
-<span class="kw">use </span>std::{ffi::OsStr, path::Path};
+<span class="kw">use </span>std::path::Path;
 
 <span class="doccomment">/// Specifies which files are student files. A single StudentFilePolicy is only valid for a single project as it uses a config file to determine its output.
 ///
@@ -342,9 +296,6 @@
     <span class="doccomment">/// The policy should contain a TmcProjectYml parsed from the project this policy was created for.
     </span><span class="kw">fn </span>get_project_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TmcProjectYml;
 
-    <span class="doccomment">/// Checks whether the path is considered a student source file. The file_path can be assumed to be a relative path starting from the project root directory.
-    </span><span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file_path: <span class="kw-2">&amp;</span>Path) -&gt; bool;
-
     <span class="doccomment">/// Determines whether a file is a student source file.
     ///
     /// A file should be considered a student source file if it resides in a location the student
@@ -353,52 +304,33 @@
     ///
     /// For example in a Java project that uses Apache Ant, should return `true` for any files in the `src` directory.
     ///
-    /// The file_path should be some file inside project_root_path.
-    ///
-    /// # Errors
-    /// Returns an error if project_root_path doesn&#39;t exist, or if file_path is not in project_root_path.
-    </span><span class="comment">// TODO: look at removing project_root_path and just requiring file_path to be relative
-    </span><span class="kw">fn </span>is_student_file(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        file_path: <span class="kw-2">&amp;</span>Path,
-        project_root_path: <span class="kw-2">&amp;</span>Path,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, TmcError&gt; {
-        <span class="comment">// non-existent files should never be considered student files
-        </span><span class="prelude-val">Ok</span>(file_path.exists() &amp;&amp; <span class="self">self</span>.would_be_student_file(file_path, project_root_path)<span class="question-mark">?</span>)
-    }
-
-    <span class="doccomment">/// Same as is_student_file, except allows for non-existent student files.
-    /// This can be useful for checking if a file would be a student file if extracted from an archive, for example.
-    /// The arguments should be absolute or relative from the same base.
-    </span><span class="kw">fn </span>would_be_student_file(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        file_path: <span class="kw-2">&amp;</span>Path,
-        project_root_path: <span class="kw-2">&amp;</span>Path,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, TmcError&gt; {
-        <span class="comment">// .tmcproject.yml should never be considered student files
-        </span><span class="kw">if </span>file_path.file_name() == <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;.tmcproject.yml&quot;</span>)) {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+    /// The file_path should be relative to the project root path.
+    </span><span class="kw">fn </span>is_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file_path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+        <span class="comment">// .tmcproject.yml should never be considered a student file
+        </span><span class="kw">if </span>file_path == Path::new(<span class="string">&quot;.tmcproject.yml&quot;</span>) {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-
-        <span class="comment">// the project root path should be considered a student file
-        </span><span class="kw">if </span>file_path == project_root_path {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
-        }
-
-        <span class="comment">// strip root directory from file path
-        </span><span class="kw">let </span>relative = file_path.strip_prefix(project_root_path).map_err(|<span class="kw">_</span>| {
-            TmcError::FileNotInProject(file_path.to_path_buf(), project_root_path.to_path_buf())
-        })<span class="question-mark">?</span>;
 
         <span class="comment">// check extra student files
-        </span><span class="kw">let </span>is_extra_student_file = <span class="self">self
-            </span>.get_project_config()
+        </span><span class="kw">let </span>config = <span class="self">self</span>.get_project_config();
+        <span class="kw">let </span>is_extra_student_file = config
             .extra_student_files
             .iter()
-            .any(|f| relative.starts_with(f));
+            .any(|f| file_path.starts_with(f));
 
-        <span class="prelude-val">Ok</span>(is_extra_student_file || <span class="self">self</span>.is_student_source_file(relative))
+        <span class="kw">let </span>is_extra_exercise_file = config
+            .extra_exercise_files
+            .iter()
+            .any(|f| file_path.starts_with(f));
+
+        <span class="comment">// extra student files take precedence, otherwise check if it&#39;s a non-extra student file and not an extra exercise file
+        </span>is_extra_student_file
+            || (<span class="self">self</span>.is_non_extra_student_file(file_path) &amp;&amp; !is_extra_exercise_file)
     }
+
+    <span class="doccomment">/// Used by is_student_file.
+    /// Defines a language plugin policy&#39;s rules for determining whether a file is a student file or not.
+    </span><span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file_path: <span class="kw-2">&amp;</span>Path) -&gt; bool;
 
     <span class="doccomment">/// Used to check for files which should always be overwritten.
     ///
@@ -444,11 +376,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
     }
 
-    <span class="kw">fn </span>is_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path, _project_root_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;bool, TmcError&gt; {
-        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-    }
-
-    <span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
         <span class="bool-val">false
     </span>}
 }
@@ -485,11 +413,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
     }
 
-    <span class="kw">fn </span>is_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path, _project_root_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;bool, TmcError&gt; {
-        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
-    }
-
-    <span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, _path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
         <span class="bool-val">true
     </span>}
 }
@@ -535,7 +459,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
         }
 
-        <span class="kw">fn </span>is_student_source_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file_path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+        <span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, file_path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
             file_path
                 .components()
                 .any(|c| c.as_os_str() == <span class="string">&quot;student_file&quot;</span>)
@@ -554,18 +478,10 @@
 
         <span class="kw">let </span>project_config = TmcProjectYml::default();
         <span class="kw">let </span>policy = MockPolicy { project_config };
-        <span class="macro">assert!</span>(policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;dir/student_file/some file&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other dir/student_file&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(!policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other dir/other file&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(!policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other file&quot;</span>), temp.path())
-            .unwrap());
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;dir/student_file/some file&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;other dir/student_file&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;other dir/other file&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;other file&quot;</span>)));
     }
 
     <span class="attribute">#[test]
@@ -583,18 +499,10 @@
             ..Default::default()
         };
         <span class="kw">let </span>policy = MockPolicy { project_config };
-        <span class="macro">assert!</span>(policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;sdir/some file&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other dir/sfile&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(!policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other dir/other file&quot;</span>), temp.path())
-            .unwrap());
-        <span class="macro">assert!</span>(!policy
-            .is_student_file(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">&quot;other file&quot;</span>), temp.path())
-            .unwrap());
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;sdir/some file&quot;</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">&quot;other dir/sfile&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;other dir/other file&quot;</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">&quot;other file&quot;</span>)));
     }
 
     <span class="attribute">#[test]

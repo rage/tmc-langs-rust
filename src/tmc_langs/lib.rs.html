@@ -1625,13 +1625,13 @@
     },
     ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
 };
-<span class="kw">use </span>tmc_langs_framework::TmcError;
+<span class="kw">use </span>tmc_langs_framework::{Archive, TmcError};
 <span class="kw">pub use </span>tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
-<span class="kw">use </span>tmc_langs_plugins::{compression, get_language_plugin, AntPlugin, PluginType};
+<span class="kw">use </span>tmc_langs_plugins::{compression, AntPlugin, Plugin, PluginType};
 <span class="kw">pub use </span>tmc_langs_util::{
     file_util::{<span class="self">self</span>, FileLockGuard},
     notification_reporter, progress_reporter,
@@ -1959,13 +1959,12 @@
                                 <span class="bool-val">false</span>,
                             )<span class="question-mark">?</span>;
 
-                            <span class="kw">let </span>plugin = get_language_plugin(<span class="kw-2">&amp;</span>download_target.target.path)<span class="question-mark">?</span>;
-                            <span class="kw">let </span>tmc_project_yml =
-                                TmcProjectYml::load_or_default(<span class="kw-2">&amp;</span>download_target.target.path)<span class="question-mark">?</span>;
-                            <span class="kw">let </span>config =
-                                plugin.get_exercise_packaging_configuration(tmc_project_yml)<span class="question-mark">?</span>;
+                            <span class="kw">let </span>plugin = PluginType::from_exercise(<span class="kw-2">&amp;</span>download_target.target.path)<span class="question-mark">?</span>;
+                            <span class="kw">let </span>config = plugin.get_exercise_packaging_configuration(
+                                <span class="kw-2">&amp;</span>download_target.target.path,
+                            )<span class="question-mark">?</span>;
                             <span class="kw">for </span>student_file <span class="kw">in </span>config.student_file_paths {
-                                <span class="kw">let </span>student_file = download_target.target.path.join(<span class="kw-2">&amp;</span>student_file);
+                                <span class="kw">let </span>student_file = download_target.target.path.join(student_file);
                                 <span class="kw">if </span>student_file.is_file() {
                                     file_util::remove_file(<span class="kw-2">&amp;</span>student_file)<span class="question-mark">?</span>;
                                 } <span class="kw">else </span>{
@@ -2315,8 +2314,8 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;StyleValidationResult&gt;, LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;checking code style in {}&quot;</span>, exercise_path.display());
 
-    <span class="kw">let </span>style_validation_result = tmc_langs_plugins::get_language_plugin(exercise_path)<span class="question-mark">?
-        </span>.check_code_style(exercise_path, locale)<span class="question-mark">?</span>;
+    <span class="kw">let </span>style_validation_result =
+        Plugin::from_exercise(exercise_path)<span class="question-mark">?</span>.check_code_style(exercise_path, locale)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(style_validation_result)
 }
 
@@ -2324,7 +2323,7 @@
 </span><span class="kw">pub fn </span>clean(exercise_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;cleaning {}&quot;</span>, exercise_path.display());
 
-    tmc_langs_plugins::get_language_plugin(exercise_path)<span class="question-mark">?</span>.clean(exercise_path)<span class="question-mark">?</span>;
+    Plugin::from_exercise(exercise_path)<span class="question-mark">?</span>.clean(exercise_path)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -2343,7 +2342,7 @@
     );
 
     <span class="kw">let </span>data = tmc_langs_plugins::compress_project(source, compression, naive)<span class="question-mark">?</span>;
-    file_util::write_to_file(<span class="kw-2">&amp;</span>data, target)<span class="question-mark">?</span>;
+    file_util::write_to_file(data, target)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -2392,8 +2391,9 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 
     <span class="kw">if </span>naive {
         extract_project_overwrite(compressed_project, target_location, compression)<span class="question-mark">?</span>;
-    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
-        plugin.extract_project(compressed_project, target_location, compression, clean)<span class="question-mark">?</span>;
+    } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(plugin) = PluginType::from_exercise(target_location) {
+        <span class="kw">let </span><span class="kw-2">mut </span>archive = Archive::new(compressed_project, compression)<span class="question-mark">?</span>;
+        plugin.extract_project(<span class="kw-2">&amp;mut </span>archive, target_location, clean)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         <span class="macro">log::debug!</span>(
             <span class="string">&quot;no matching language plugin found for {}, overwriting&quot;</span>,
@@ -2408,8 +2408,7 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 </span><span class="kw">pub fn </span>get_available_points(exercise_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;parsing available points in {}&quot;</span>, exercise_path.display());
 
-    <span class="kw">let </span>points = tmc_langs_plugins::get_language_plugin(exercise_path)<span class="question-mark">?
-        </span>.get_available_points(exercise_path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>points = PluginType::from_exercise(exercise_path)<span class="question-mark">?</span>.get_available_points(exercise_path)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(points)
 }
 
@@ -2428,7 +2427,7 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
     }) {
         <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
         <span class="comment">// check if the path contains a valid exercise for some plugin
-        </span><span class="kw">if </span>tmc_langs_plugins::get_language_plugin(entry.path()).is_ok() {
+        </span><span class="kw">if </span>Plugin::from_exercise(entry.path()).is_ok() {
             paths.push(entry.into_path())
         }
     }
@@ -2441,7 +2440,8 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ExercisePackagingConfiguration, LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;getting exercise packaging config for {}&quot;</span>, path.display());
 
-    <span class="kw">let </span>config = tmc_langs_plugins::get_exercise_packaging_configuration(path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>plugin = PluginType::from_exercise(path)<span class="question-mark">?</span>;
+    <span class="kw">let </span>config = plugin.get_exercise_packaging_configuration(path)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(config)
 }
 
@@ -2456,7 +2456,7 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
     submission_processing::prepare_stub(exercise_path, dest_path)<span class="question-mark">?</span>;
 
     <span class="comment">// The Ant plugin needs some additional files to be copied over.
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(PluginType::Ant) = tmc_langs_plugins::get_language_plugin_type(exercise_path) {
+    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(PluginType::Ant) = PluginType::from_exercise(exercise_path) {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
@@ -2466,14 +2466,14 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
 </span><span class="kw">pub fn </span>run_tests(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;RunResult, LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;running tests in {}&quot;</span>, path.display());
 
-    <span class="prelude-val">Ok</span>(tmc_langs_plugins::get_language_plugin(path)<span class="question-mark">?</span>.run_tests(path)<span class="question-mark">?</span>)
+    <span class="prelude-val">Ok</span>(Plugin::from_exercise(path)<span class="question-mark">?</span>.run_tests(path)<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Scans the exercise.
 </span><span class="kw">pub fn </span>scan_exercise(path: <span class="kw-2">&amp;</span>Path, exercise_name: String) -&gt; <span class="prelude-ty">Result</span>&lt;ExerciseDesc, LangsError&gt; {
     <span class="macro">log::debug!</span>(<span class="string">&quot;scanning exercise in {}&quot;</span>, path.display());
 
-    <span class="prelude-val">Ok</span>(tmc_langs_plugins::get_language_plugin(path)<span class="question-mark">?</span>.scan_exercise(path, exercise_name)<span class="question-mark">?</span>)
+    <span class="prelude-val">Ok</span>(Plugin::from_exercise(path)<span class="question-mark">?</span>.scan_exercise(path, exercise_name)<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Extracts student files from the compressed exercise.
@@ -2487,7 +2487,7 @@ pub fn free_disk_space_megabytes(path: &amp;Path) -&gt; Result&lt;u64, LangsErro
         target_location.display()
     );
 
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(plugin) = tmc_langs_plugins::get_language_plugin(target_location) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_student_files(compressed_project, compression, target_location)<span class="question-mark">?</span>;
     } <span class="kw">else </span>{
         <span class="macro">log::debug!</span>(
