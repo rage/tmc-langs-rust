@@ -599,7 +599,7 @@ mod test {
         assert!(!test_result.successful);
         assert!(test_result.points.is_empty());
         assert!(test_result.message.contains("Expected: False"));
-        assert_eq!(test_result.exception.len(), 2);
+        assert!(!test_result.exception.is_empty());
         assert!(res.logs.get("stdout").unwrap().is_empty());
         assert!(res.logs.get("stderr").unwrap().is_empty());
     }
