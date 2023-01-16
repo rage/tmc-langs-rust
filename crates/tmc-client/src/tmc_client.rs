@@ -84,7 +84,7 @@ impl TmcClient {
         let root_url = if root_url.as_str().ends_with('/') {
             root_url
         } else {
-            format!("{}/", root_url).parse().expect("invalid root url")
+            format!("{root_url}/").parse().expect("invalid root url")
         };
 
         TmcClient(Arc::new(TmcCore {

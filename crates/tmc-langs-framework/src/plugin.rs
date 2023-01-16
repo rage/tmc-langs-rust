@@ -35,6 +35,7 @@ use walkdir::WalkDir;
 /// this interface are free to cache results if needed.
 pub trait LanguagePlugin {
     const PLUGIN_NAME: &'static str;
+    const DEFAULT_SANDBOX_IMAGE: &'static str;
     const LINE_COMMENT: &'static str;
     const BLOCK_COMMENT: Option<(&'static str, &'static str)>;
     type StudentFilePolicy: StudentFilePolicy;
@@ -442,9 +443,8 @@ enum Parse {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use crate::TmcProjectYml;
-
     use super::*;
+    use crate::TmcProjectYml;
     use nom::character;
     use std::io::Write;
     use tmc_langs_util::path_util;
@@ -532,6 +532,7 @@ mod test {
 
     impl LanguagePlugin for MockPlugin {
         const PLUGIN_NAME: &'static str = "mock_plugin";
+        const DEFAULT_SANDBOX_IMAGE: &'static str = "mock_image";
         const LINE_COMMENT: &'static str = "//";
         const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
         type StudentFilePolicy = MockPolicy;

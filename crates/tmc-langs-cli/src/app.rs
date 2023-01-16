@@ -156,13 +156,16 @@ pub enum Command {
         output_path: PathBuf,
     },
 
-    /// Takes a submission archive and turns it into an archive with reset test files, and tmc-params, ready for further processing
-    #[clap(long_about = SCHEMA_NULL)]
+    /// Takes a submission archive and turns it into an archive with reset test files, and tmc-params, ready for further processing.
+    /// Returns the sandbox image that should be used for the submission.
+    #[clap(long_about = schema_leaked::<String>())]
     PrepareSubmission {
         /// The output format of the submission archive. Defaults to tar.
         #[clap(long, default_value_t = Compression::Tar)]
         output_format: Compression,
         /// Path to exercise's clone path, where the unmodified test files will be copied from.
+        /// The course and exercise name will be derived from the clone path and used in the resulting submission archive,
+        /// unless no-archive-prefix is set.
         #[clap(long)]
         clone_path: PathBuf,
         /// Path to the resulting archive. Overwritten if it already exists.
@@ -187,9 +190,9 @@ pub enum Command {
         /// A key-value pair in the form key=value to be written into .tmcparams. If multiple pairs with the same key are given, the values are collected into an array.
         #[clap(long)]
         tmc_param: Vec<String>,
-        /// If given, the contents in the resulting archive will be nested inside a directory with this name.
+        /// If given, the exercise will reside in the root of the archive.
         #[clap(long)]
-        top_level_dir_name: Option<String>,
+        no_archive_prefix: bool,
     },
 
     /// Refresh the given course
@@ -571,7 +574,7 @@ impl FromStr for Locale {
         let locale = Language::from_locale(s)
             .or_else(|| Language::from_639_1(s))
             .or_else(|| Language::from_639_3(s))
-            .with_context(|| format!("Invalid locale: {}", s))?;
+            .with_context(|| format!("Invalid locale: {s}"))?;
         Ok(Locale(locale))
     }
 }
@@ -604,7 +607,7 @@ mod base_test {
 
     fn get_matches(args: &[&str]) {
         Opt::parse_from(
-            &[
+            [
                 "tmc-langs-cli",
                 "--client-name",
                 "client",
@@ -620,7 +623,7 @@ mod base_test {
     #[test]
     fn sanity() {
         assert!(
-            Opt::try_parse_from(&["tmc-langs-cli", "checkstyle", "--non-existent-arg"]).is_err()
+            Opt::try_parse_from(["tmc-langs-cli", "checkstyle", "--non-existent-arg"]).is_err()
         );
     }
 
@@ -796,7 +799,7 @@ mod core_test {
 
     fn get_matches_core(args: &[&str]) {
         Opt::parse_from(
-            &[
+            [
                 "tmc-langs-cli",
                 "--client-name",
                 "client",
@@ -1040,7 +1043,7 @@ mod settings_test {
 
     fn get_matches_settings(args: &[&str]) {
         Opt::parse_from(
-            &["tmc-langs-cli", "--client-name", "client", "settings"]
+            ["tmc-langs-cli", "--client-name", "client", "settings"]
                 .iter()
                 .chain(args)
                 .collect::<Vec<_>>(),

@@ -401,7 +401,7 @@ mod test {
 }
 "#;
 
-        assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
+        assert_eq!(s, expected, "expected:\n{expected:#}\nfound:\n{s:#}");
     }
 
     #[test]
@@ -440,7 +440,7 @@ mod test {
 
         let s = file_util::read_file_to_string(temp_target.path().join("Test.bin")).unwrap();
 
-        assert_eq!(s, contents, "expected:\n{:#}\nfound:\n{:#}", contents, s);
+        assert_eq!(s, contents, "expected:\n{contents:#}\nfound:\n{s:#}");
     }
 
     #[test]
@@ -519,7 +519,7 @@ class SomeClass {}
 "#
         .to_string();
 
-        assert_eq!(s, expected, "expected:\n{:#}\nfound:\n{:#}", expected, s);
+        assert_eq!(s, expected, "expected:\n{expected:#}\nfound:\n{s:#}");
     }
 
     #[test]

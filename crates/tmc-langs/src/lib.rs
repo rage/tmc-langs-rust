@@ -57,7 +57,10 @@ pub use tmc_langs_framework::{
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
-use tmc_langs_plugins::{compression, AntPlugin, Plugin, PluginType};
+use tmc_langs_plugins::{
+    compression, AntPlugin, CSharpPlugin, MakePlugin, MavenPlugin, NoTestsPlugin, Plugin,
+    PluginType, Python3Plugin, RPlugin,
+};
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
@@ -314,7 +317,7 @@ pub fn download_or_update_course_exercises(
     let exercises_len = to_be_downloaded.len();
     progress_reporter::start_stage::<()>(
         u32::try_from(exercises_len).expect("should never happen") * 2 + 1, // each download progresses at 2 points, plus the final finishing step
-        format!("Downloading {} exercises", exercises_len),
+        format!("Downloading {exercises_len} exercises"),
         None,
     );
 
@@ -947,8 +950,7 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
             log::info!("skipping lock file");
             file_count_copied += 1;
             progress_stage(format!(
-                "Skipped moving file {} / {}",
-                file_count_copied, file_count_total
+                "Skipped moving file {file_count_copied} / {file_count_total}"
             ));
             continue;
         }
@@ -973,8 +975,7 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
 
             file_count_copied += 1;
             progress_stage(format!(
-                "Moved file {} / {}",
-                file_count_copied, file_count_total
+                "Moved file {file_count_copied} / {file_count_total}"
             ));
         } else if entry_path.is_dir() {
             log::debug!("Deleting {}", entry_path.display());
@@ -1023,6 +1024,19 @@ fn extract_project_overwrite(
         Compression::Zip => compression::unzip(compressed_project, target_location)?,
     }
     Ok(())
+}
+
+fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
+    let img = match PluginType::from_exercise(path)? {
+        PluginType::CSharp => CSharpPlugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::Make => MakePlugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::Maven => MavenPlugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::Ant => AntPlugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::NoTests => NoTestsPlugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::Python3 => Python3Plugin::DEFAULT_SANDBOX_IMAGE,
+        PluginType::R => RPlugin::DEFAULT_SANDBOX_IMAGE,
+    };
+    Ok(img)
 }
 
 #[cfg(test)]
@@ -1427,7 +1441,7 @@ checksum = 'new checksum'
                 mockito::Matcher::Regex("download".to_string()),
             ]),
         )
-        .with_body(&sub_z)
+        .with_body(sub_z)
         .create();
 
         let res =
@@ -1438,7 +1452,7 @@ checksum = 'new checksum'
                 downloaded,
                 skipped,
             } => (downloaded, skipped),
-            other => panic!("{:?}", other),
+            other => panic!("{other:?}"),
         };
 
         assert_eq!(downloaded.len(), 4);

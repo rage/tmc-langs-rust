@@ -8,7 +8,7 @@ use std::{
     path::{Path, PathBuf},
     sync::Mutex,
 };
-use tmc_langs_framework::Archive;
+use tmc_langs_framework::{Archive, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
@@ -23,15 +23,16 @@ pub struct PrepareSubmission<'a> {
 }
 
 /// Prepares a submission for further processing.
+/// Returns the sandbox image to be used for the submission.
 pub fn prepare_submission(
     submission: PrepareSubmission,
     target_path: &Path,
-    toplevel_dir_name: Option<String>,
+    no_archive_prefix: bool,
     tmc_params: TmcParams,
     stub_clone_path: &Path,
     stub_archive: Option<(&Path, Compression)>,
     output_format: Compression,
-) -> Result<(), LangsError> {
+) -> Result<String, LangsError> {
     // FIXME: workaround for unknown issues when prepare_submission is ran multiple times in parallel
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
     log::debug!("preparing submission for {}", submission.archive.display());
@@ -141,7 +142,7 @@ pub fn prepare_submission(
         let mut tmc_params_file = file_util::create_file(&tmc_params_path)?;
         for (key, value) in tmc_params.0 {
             // todo handle arrays, shell escapes
-            let export = format!("export {}={}\n", key, value);
+            let export = format!("export {key}={value}\n");
             log::debug!("{}", export);
             tmc_params_file
                 .write_all(export.as_bytes())
@@ -153,21 +154,18 @@ pub fn prepare_submission(
     log::debug!("creating submission archive");
     let exercise_name = stub_clone_path.file_name();
     let course_name = stub_clone_path.parent().and_then(Path::file_name);
-    let prefix = match (toplevel_dir_name, course_name, exercise_name) {
-        (Some(toplevel_dir_name), Some(course_name), Some(exercise_name)) => {
-            Path::new(&toplevel_dir_name)
-                .join(course_name)
-                .join(exercise_name)
-        }
-        (None, Some(course_name), Some(exercise_name)) => {
-            Path::new(course_name).join(exercise_name)
-        }
-        _ => {
-            log::warn!(
-                "was not able to find exercise and/or course name from clone path {}",
-                stub_clone_path.display()
-            );
-            PathBuf::from("")
+    let prefix = if no_archive_prefix {
+        PathBuf::new()
+    } else {
+        match (course_name, exercise_name) {
+            (Some(course_name), Some(exercise_name)) => Path::new(course_name).join(exercise_name),
+            _ => {
+                log::warn!(
+                    "was not able to find exercise and/or course name from clone path {}",
+                    stub_clone_path.display()
+                );
+                PathBuf::new()
+            }
         }
     };
     let archive_file = file_util::create_file(target_path)?;
@@ -232,7 +230,13 @@ pub fn prepare_submission(
             zstd::stream::copy_encode(tar, archive_file, 0).map_err(LangsError::Zstd)?;
         }
     }
-    Ok(())
+
+    // get sandbox image
+    let sandbox_image = match TmcProjectYml::load(stub_clone_path)?.and_then(|c| c.sandbox_image) {
+        Some(sandbox_image) => sandbox_image,
+        None => crate::get_default_sandbox_image(stub_clone_path)?.to_string(),
+    };
+    Ok(sandbox_image)
 }
 
 fn extract_with_filter<F: Fn(&Path) -> bool>(
@@ -317,7 +321,7 @@ mod test {
                 extract_naively: false,
             },
             &output_archive,
-            None,
+            false,
             tmc_params,
             Path::new(clone),
             None,
@@ -404,7 +408,7 @@ mod test {
     }
 
     #[test]
-    fn packages_with_toplevel_dir_name() {
+    fn packages_without_prefix() {
         init();
 
         let temp = tempfile::tempdir().unwrap();
@@ -418,7 +422,7 @@ mod test {
                 extract_naively: false,
             },
             &output,
-            Some("toplevel".to_string()),
+            true,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
@@ -434,12 +438,8 @@ mod test {
         for entry in WalkDir::new(temp.path()) {
             log::debug!("{}", entry.unwrap().path().display());
         }
-        assert!(output
-            .join("toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
-            .exists());
-        assert!(output
-            .join("toplevel/some_course/MavenExercise/pom.xml")
-            .exists());
+        assert!(output.join("src/test/java/SimpleHiddenTest.java").exists());
+        assert!(output.join("pom.xml").exists());
     }
 
     #[test]
@@ -457,7 +457,7 @@ mod test {
                 extract_naively: false,
             },
             &output,
-            None,
+            false,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
@@ -495,7 +495,7 @@ mod test {
                 extract_naively: false,
             },
             &output,
-            None,
+            false,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
@@ -512,7 +512,7 @@ mod test {
     }
 
     #[test]
-    fn packages_with_toplevel_dir_and_output_zip() {
+    fn packages_without_prefix_and_output_zip() {
         init();
 
         let temp = tempfile::tempdir().unwrap();
@@ -526,7 +526,7 @@ mod test {
                 extract_naively: false,
             },
             &output,
-            Some("toplevel".to_string()),
+            true,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             None,
@@ -538,11 +538,9 @@ mod test {
         let output = file_util::open_file(output).unwrap();
         let mut archive = zip::ZipArchive::new(output).unwrap();
         archive
-            .by_name("toplevel/some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+            .by_name("src/test/java/SimpleHiddenTest.java")
             .unwrap();
-        archive
-            .by_name("toplevel/some_course/MavenExercise/pom.xml")
-            .unwrap();
+        archive.by_name("pom.xml").unwrap();
     }
 
     #[test]
@@ -560,7 +558,7 @@ mod test {
                 extract_naively: false,
             },
             &output_arch,
-            None,
+            false,
             TmcParams::new(),
             Path::new(MAVEN_CLONE),
             Some((Path::new("tests/data/MavenStub.zip"), Compression::Zip)),

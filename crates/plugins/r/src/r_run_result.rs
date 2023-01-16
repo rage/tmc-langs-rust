@@ -21,7 +21,7 @@ impl From<RRunResult> for RunResult {
                 r_run_result
                     .backtrace
                     .into_iter()
-                    .map(|s| format!("{}\n", s))
+                    .map(|s| format!("{s}\n"))
                     .collect(),
             );
         }

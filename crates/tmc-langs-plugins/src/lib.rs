@@ -11,7 +11,7 @@ use std::{
     io::{Read, Seek},
     path::{Path, PathBuf},
 };
-use tmc_langs_csharp::CSharpPlugin;
+pub use tmc_langs_csharp::CSharpPlugin;
 use tmc_langs_framework::{Archive, LanguagePlugin, TmcError};
 pub use tmc_langs_framework::{
     Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,

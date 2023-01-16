@@ -43,44 +43,37 @@ struct MetaSyntax {
 impl MetaSyntax {
     fn new(comment_start: &'static str, comment_end: Option<&'static str>) -> Self {
         // comment patterns
-        let comment_start_pattern = format!(r"^(\s*){}\s*", comment_start);
+        let comment_start_pattern = format!(r"^(\s*){comment_start}\s*");
         let comment_end_pattern = match comment_end {
-            Some(s) => format!(r"(.*){}\s*", s),
+            Some(s) => format!(r"(.*){s}\s*"),
             None => "(.*)".to_string(),
         };
 
         // annotation patterns
         let solution_file = Regex::new(&format!(
-            r"{}SOLUTION\s+FILE{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}SOLUTION\s+FILE{comment_end_pattern}"
         ))
         .unwrap();
         let solution_begin = Regex::new(&format!(
-            r"{}BEGIN\s+SOLUTION{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}BEGIN\s+SOLUTION{comment_end_pattern}"
         ))
         .unwrap();
         let solution_end = Regex::new(&format!(
-            r"{}END\s+SOLUTION{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}END\s+SOLUTION{comment_end_pattern}"
         ))
         .unwrap();
-        let stub_begin =
-            Regex::new(&format!(r"{}STUB:[\s&&[^\n]]*", comment_start_pattern)).unwrap();
+        let stub_begin = Regex::new(&format!(r"{comment_start_pattern}STUB:[\s&&[^\n]]*")).unwrap();
         let stub_end = Regex::new(&comment_end_pattern).unwrap();
         let hidden_file = Regex::new(&format!(
-            r"{}HIDDEN\s+FILE{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}HIDDEN\s+FILE{comment_end_pattern}"
         ))
         .unwrap();
         let hidden_begin = Regex::new(&format!(
-            r"{}BEGIN\s+HIDDEN{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}BEGIN\s+HIDDEN{comment_end_pattern}"
         ))
         .unwrap();
         let hidden_end = Regex::new(&format!(
-            r"{}END\s+HIDDEN{}",
-            comment_start_pattern, comment_end_pattern
+            r"{comment_start_pattern}END\s+HIDDEN{comment_end_pattern}"
         ))
         .unwrap();
 
@@ -279,7 +272,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE
                 .lines()
-                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
+                .map(|s| Ok::<_, Infallible>(format!("{s}\n"))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -311,7 +304,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE_SOLUTION
                 .lines()
-                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
+                .map(|s| Ok::<_, Infallible>(format!("{s}\n"))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -350,7 +343,7 @@ public class JavaTestCase {
         let filter = MetaSyntaxParser::new(
             JAVA_FILE_STUB
                 .lines()
-                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
+                .map(|s| Ok::<_, Infallible>(format!("{s}\n"))),
             "java",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();
@@ -407,7 +400,7 @@ print("a")
         let filter = MetaSyntaxParser::new(
             PYTHON_FILE_STUB
                 .lines()
-                .map(|s| Ok::<_, Infallible>(format!("{}\n", s))),
+                .map(|s| Ok::<_, Infallible>(format!("{s}\n"))),
             "py",
         );
         let actual = filter.map(|l| l.unwrap()).collect::<Vec<MetaString>>();

@@ -99,6 +99,7 @@ impl MavenPlugin {
 /// Contains pom.xml file
 impl LanguagePlugin for MavenPlugin {
     const PLUGIN_NAME: &'static str = "apache-maven";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest";
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = MavenStudentFilePolicy;

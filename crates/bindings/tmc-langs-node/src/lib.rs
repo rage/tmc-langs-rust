@@ -190,7 +190,7 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
         submission_compression: Compression,
         extract_submission_naively: bool,
         tmc_param: Vec<(String, Vec<String>)>,
-        top_level_dir_name: Option<String>
+        no_archive_prefix: bool
     );
 
     let mut tmc_params = tmc_langs::TmcParams::new();
@@ -220,7 +220,7 @@ fn prepare_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
             extract_naively: extract_submission_naively,
         },
         &output_path,
-        top_level_dir_name,
+        no_archive_prefix,
         tmc_params,
         &clone_path,
         stub_archive_path.as_deref().map(|p| (p, stub_compression)),
@@ -899,7 +899,7 @@ mod test {
         );
 
         let s = Command::new("npm")
-            .args(&["run", "jest"])
+            .args(["run", "jest"])
             .output()
             .expect("running jest failed");
         println!("stdout: {}", String::from_utf8_lossy(&s.stdout));

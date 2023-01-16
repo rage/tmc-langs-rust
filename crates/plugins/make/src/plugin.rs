@@ -29,11 +29,7 @@ impl MakePlugin {
 
     /// Parses tmc_available_points.txt which is output by the TMC tests and
     /// contains lines like "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points".
-    fn parse_exercise_desc(
-        &self,
-        available_points: &Path,
-        exercise_name: String,
-    ) -> Result<ExerciseDesc, MakeError> {
+    fn parse_available_points(&self, available_points: &Path) -> Result<Vec<TestDesc>, MakeError> {
         // "[test] [test_one] 1.1 1.2 1.3" = "[type] [name] points"
         // TODO: use parser lib
         #[allow(clippy::unwrap_used)]
@@ -60,11 +56,7 @@ impl MakePlugin {
                 }
             }
         }
-
-        Ok(ExerciseDesc {
-            name: exercise_name,
-            tests,
-        })
+        Ok(tests)
     }
 
     /// Runs tests with or without valgrind according to the argument.
@@ -123,6 +115,7 @@ impl MakePlugin {
 /// Contains a src directory and a Makefile file
 impl LanguagePlugin for MakePlugin {
     const PLUGIN_NAME: &'static str = "make";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest";
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = MakeStudentFilePolicy;
@@ -140,7 +133,11 @@ impl LanguagePlugin for MakePlugin {
             return MakeError::CantFindAvailablePoints(available_points_path).into();
         }
 
-        Ok(self.parse_exercise_desc(&available_points_path, exercise_name)?)
+        let tests = self.parse_available_points(&available_points_path)?;
+        Ok(ExerciseDesc {
+            name: exercise_name,
+            tests,
+        })
     }
 
     fn run_tests_with_timeout(
@@ -229,9 +226,7 @@ impl LanguagePlugin for MakePlugin {
 
         // parse available points into a mapping from test name to test point list
         let available_points_path = base_test_path.join("tmc_available_points.txt");
-        let tests = self
-            .parse_exercise_desc(&available_points_path, "unused".to_string())?
-            .tests;
+        let tests = self.parse_available_points(&available_points_path)?;
         let mut ids_to_points = HashMap::new();
         for test in tests {
             ids_to_points.insert(test.name, test.points);
@@ -503,11 +498,9 @@ test [invalid] point6
         );
 
         let plugin = MakePlugin::new();
-        let exercise_desc = plugin
-            .parse_exercise_desc(&available_points, "ex".to_string())
-            .unwrap();
-        assert_eq!(exercise_desc.tests.len(), 2);
-        assert_eq!(exercise_desc.tests[0].points.len(), 4);
+        let exercise_desc = plugin.parse_available_points(&available_points).unwrap();
+        assert_eq!(exercise_desc.len(), 2);
+        assert_eq!(exercise_desc[0].points.len(), 4);
     }
 
     #[test]

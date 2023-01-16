@@ -10,7 +10,6 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{TmcCommand, TmcProjectYml};
-use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{deserialize, file_util};
 use walkdir::WalkDir;
 
@@ -192,7 +191,7 @@ fn initialize_new_cache_clone(
 
             run_git(&["remote", "set-url", "origin", course_source_url])?;
             run_git(&["fetch", "origin"])?;
-            run_git(&["checkout", &format!("origin/{}", course_git_branch)])?;
+            run_git(&["checkout", &format!("origin/{course_git_branch}")])?;
             run_git(&["clean", "-df"])?;
             run_git(&["checkout", "."])?;
             Ok(())
@@ -313,7 +312,7 @@ fn get_exercises(
             {
                 image_override.clone()
             } else {
-                get_default_sandbox_image(&exercise_path)?.to_string()
+                crate::get_default_sandbox_image(&exercise_path)?.to_string()
             };
 
             Ok(RefreshExercise {
@@ -327,18 +326,6 @@ fn get_exercises(
         })
         .collect::<Result<_, LangsError>>()?;
     Ok(exercises)
-}
-
-fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
-    let url = match PluginType::from_exercise(path)? {
-        PluginType::CSharp => "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest",
-        PluginType::Make => "eu.gcr.io/moocfi-public/tmc-sandbox-make:latest",
-        PluginType::Maven | PluginType::Ant => "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest",
-        PluginType::NoTests => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest", // doesn't really matter, just use Python image
-        PluginType::Python3 => "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest",
-        PluginType::R => "eu.gcr.io/moocfi-public/tmc-sandbox-r:latest",
-    };
-    Ok(url)
 }
 
 fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
@@ -364,7 +351,7 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
 
     // convert the digest into a hex string
     let digest = digest.compute();
-    Ok(format!("{:x}", digest))
+    Ok(format!("{digest:x}"))
 }
 
 fn execute_zip(

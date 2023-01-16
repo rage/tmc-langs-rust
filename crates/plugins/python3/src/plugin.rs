@@ -217,6 +217,7 @@ impl Python3Plugin {
 /// Contains an .ipynb file. This is given lower priority than the prior rule, and if there are multiple .ipynb files, the shallowest directory is returned.
 impl LanguagePlugin for Python3Plugin {
     const PLUGIN_NAME: &'static str = "python3";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest";
     const LINE_COMMENT: &'static str = "#";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("\"\"\"", "\"\"\""));
     type StudentFilePolicy = Python3StudentFilePolicy;
@@ -243,7 +244,8 @@ impl LanguagePlugin for Python3Plugin {
         if available_points_json.exists() {
             file_util::remove_file(&available_points_json)?;
         }
-        Ok(ExerciseDesc::new(exercise_name, test_descs_res?))
+        let tests = test_descs_res?;
+        Ok(ExerciseDesc::new(exercise_name, tests))
     }
 
     fn run_tests_with_timeout(

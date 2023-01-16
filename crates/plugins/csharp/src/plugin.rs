@@ -135,6 +135,7 @@ impl CSharpPlugin {
 /// Contains a src directory which contains a .csproj file (which may be inside a subdirectory).
 impl LanguagePlugin for CSharpPlugin {
     const PLUGIN_NAME: &'static str = "csharp";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest";
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = CSharpStudentFilePolicy;
@@ -213,6 +214,7 @@ impl LanguagePlugin for CSharpPlugin {
         for (key, value) in json {
             tests.push(TestDesc::new(key, value));
         }
+
         Ok(ExerciseDesc {
             name: exercise_name,
             tests,

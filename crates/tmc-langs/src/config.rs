@@ -23,7 +23,7 @@ fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
         Ok(v) => PathBuf::from(v),
         Err(_) => dirs::config_dir().ok_or(LangsError::NoConfigDir)?,
     };
-    Ok(config_dir.join(format!("tmc-{}", client_name)))
+    Ok(config_dir.join(format!("tmc-{client_name}")))
 }
 
 /// Returns all of the exercises for the given course.

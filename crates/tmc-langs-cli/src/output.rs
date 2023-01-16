@@ -97,6 +97,7 @@ pub enum DataKind {
     SubmissionFinished(SubmissionFinished),
     ConfigValue(ConfigValue<'static>),
     TmcConfig(TmcConfig),
+    SubmissionSandbox(String),
 }
 
 #[derive(Debug, Serialize)]
