@@ -1,3 +1,7 @@
+export type Locale = string;
+
+export type Compression = "tar" | "zip" | "zstd";
+
 export type CliOutput = { "output-kind": "output-data" } & OutputData | { "output-kind": "status-update" } & StatusUpdateData | { "output-kind": "notification" } & Notification;
 
 export interface OutputData { status: Status, message: string, result: OutputResult, data: DataKind | null, }

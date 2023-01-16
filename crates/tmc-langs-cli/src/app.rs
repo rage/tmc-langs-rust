@@ -565,7 +565,8 @@ pub enum Settings {
 }
 
 #[derive(Clone, Copy)]
-pub struct Locale(pub Language);
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct Locale(#[cfg_attr(feature = "ts-rs", ts(type = "string"))] pub Language);
 
 impl FromStr for Locale {
     type Err = anyhow::Error;
@@ -1096,4 +1097,72 @@ mod settings_test {
     fn unset() {
         get_matches_settings(&["unset", "key"]);
     }
+}
+
+#[test]
+#[ignore]
+#[cfg(feature = "ts-rs")]
+fn generate_cli_bindings() {
+    use crate::output::*;
+    use tmc_langs::*;
+
+    let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
+    ts_rs::export_to!(
+        &mut f,
+        // input
+        Locale,
+        Compression,
+        // output
+        CliOutput,
+        OutputData,
+        StatusUpdateData,
+        notification_reporter::Notification,
+        Status,
+        OutputResult,
+        ClientUpdateData,
+        progress_reporter::StatusUpdate<()>,
+        notification_reporter::NotificationKind,
+        DataKind,
+        NewSubmission,
+        Kind,
+        StyleValidationResult,
+        ExerciseDownload,
+        StyleValidationStrategy,
+        StyleValidationError,
+        ExercisePackagingConfiguration,
+        LocalExercise,
+        RefreshData,
+        RunResult,
+        ExerciseDesc,
+        RefreshExercise,
+        RunStatus,
+        TestResult,
+        TestDesc,
+        TmcProjectYml,
+        UpdatedExercise,
+        DownloadOrUpdateCourseExercisesResult,
+        CombinedCourseData,
+        CourseDetails,
+        CourseExercise,
+        CourseData,
+        Course,
+        ExerciseDetails,
+        Submission,
+        UpdateResult,
+        Organization,
+        Review,
+        Exercise,
+        ExerciseSubmission,
+        ExercisePoint,
+        PythonVer,
+        TmcConfig,
+        ConfigValue,
+        SubmissionFinished,
+        SubmissionFeedbackResponse,
+        SubmissionStatus,
+        SubmissionFeedbackQuestion,
+        TestCase,
+        SubmissionFeedbackKind,
+    )
+    .unwrap();
 }
