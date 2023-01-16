@@ -335,6 +335,7 @@ mod test {
 
     impl LanguagePlugin for Stub {
         const PLUGIN_NAME: &'static str = "stub";
+        const DEFAULT_SANDBOX_IMAGE: &'static str = "stub-image";
         const LINE_COMMENT: &'static str = "//";
         const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
         type StudentFilePolicy = tmc_langs_framework::EverythingIsStudentFilePolicy;
@@ -390,10 +391,8 @@ mod test {
         }
         fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
             let path = path.to_str().unwrap();
-            let cp = format!(
-                "{1}/lib/edu-test-utils-0.4.1.jar{0}{1}/lib/junit-4.10.jar",
-                SEPARATOR, path
-            );
+            let cp =
+                format!("{path}/lib/edu-test-utils-0.4.1.jar{SEPARATOR}{path}/lib/junit-4.10.jar");
             Ok(cp)
         }
 

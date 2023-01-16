@@ -38,12 +38,13 @@ impl NoTestsPlugin {
 /// Contains a .tmcproject.yml file that has `no-tests` set to `true`.
 impl LanguagePlugin for NoTestsPlugin {
     const PLUGIN_NAME: &'static str = "No-Tests";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-python:latest"; // doesn't really matter, just use Python image
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = NoTestsStudentFilePolicy;
 
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError> {
-        let test_name = format!("{}Test", exercise_name);
+        let test_name = format!("{exercise_name}Test");
         Ok(ExerciseDesc {
             name: exercise_name,
             tests: vec![TestDesc {

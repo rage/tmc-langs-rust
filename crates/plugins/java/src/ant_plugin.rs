@@ -70,6 +70,7 @@ impl AntPlugin {
 /// Contains src and test directories.
 impl LanguagePlugin for AntPlugin {
     const PLUGIN_NAME: &'static str = "apache-ant";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-java:latest";
     const LINE_COMMENT: &'static str = "//";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
     type StudentFilePolicy = AntStudentFilePolicy;
@@ -287,7 +288,7 @@ impl JavaPlugin for AntPlugin {
         arguments.push(format!("-Dtmc.test_class_dir={}", test_dir.display()));
         // we want to use path relative to the exercise path for the java command,
         // and a path relative to the current directory for the rest of the program
-        arguments.push(format!("-Dtmc.results_file={}", result_file_name));
+        arguments.push(format!("-Dtmc.results_file={result_file_name}"));
         // TODO: endorsed libs?
         let endorsed_libs_path = path.join("lib/endorsed");
         if endorsed_libs_path.exists() {

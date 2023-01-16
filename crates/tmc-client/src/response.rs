@@ -461,7 +461,7 @@ impl Serialize for SubmissionFeedbackKind {
     {
         let s = match self {
             Self::Text => "text".to_string(),
-            Self::IntRange { lower, upper } => format!("intrange[{}..{}]", lower, upper),
+            Self::IntRange { lower, upper } => format!("intrange[{lower}..{upper}]"),
         };
         serializer.serialize_str(&s)
     }
@@ -490,17 +490,11 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
         } else if let Some(captures) = RANGE.captures(value) {
             let lower = &captures[1];
             let lower = u32::from_str(lower).map_err(|e| {
-                E::custom(format!(
-                    "error parsing intrange lower bound {}: {}",
-                    lower, e
-                ))
+                E::custom(format!("error parsing intrange lower bound {lower}: {e}"))
             })?;
             let upper = &captures[2];
             let upper = u32::from_str(upper).map_err(|e| {
-                E::custom(format!(
-                    "error parsing intrange upper bound {}: {}",
-                    upper, e
-                ))
+                E::custom(format!("error parsing intrange upper bound {upper}: {e}"))
             })?;
             Ok(SubmissionFeedbackKind::IntRange { lower, upper })
         } else {

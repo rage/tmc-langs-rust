@@ -28,6 +28,7 @@ impl RPlugin {
 /// Contains an R directory.
 impl LanguagePlugin for RPlugin {
     const PLUGIN_NAME: &'static str = "r";
+    const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-r:latest";
     const LINE_COMMENT: &'static str = "#";
     const BLOCK_COMMENT: Option<(&'static str, &'static str)> = None;
     type StudentFilePolicy = RStudentFilePolicy;

@@ -53,9 +53,9 @@ pub fn run() {
             // panicked, likely before any output was printed
             // currently only prints a message if the panic is called with str or String; this should be good enough
             let error_message = if let Some(string) = err.downcast_ref::<&str>() {
-                format!("Process panicked unexpectedly with message: {}", string)
+                format!("Process panicked unexpectedly with message: {string}")
             } else if let Some(string) = err.downcast_ref::<String>() {
-                format!("Process panicked unexpectedly with message: {}", string)
+                format!("Process panicked unexpectedly with message: {string}")
             } else {
                 "Process panicked unexpectedly without an error message".to_string()
             };
@@ -76,11 +76,20 @@ pub fn run() {
 // sets up warning and progress reporting and calls run_app and does error handling for its result
 // returns Ok if we should exit with code 0, Err if we should exit with 1
 fn run_inner() -> Result<(), ()> {
-    let matches = match Opt::try_parse().context("Failed to parse arguments") {
+    let matches = match Opt::try_parse() {
         Ok(matches) => matches,
+        Err(e) if e.kind() == clap::error::ErrorKind::DisplayHelp => {
+            // help is probably being called by a human, so we'll just print it out normally
+            #[allow(clippy::print_stdout)]
+            {
+                println!("{e}");
+            }
+            return Ok(());
+        }
         Err(e) => {
             // CLI was called incorrectly
-            let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
+            let e = anyhow::Error::from(e).context("Failed to parse arguments");
+            let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
             let error_output = CliOutput::OutputData(Box::new(OutputData {
                 status: Status::Finished,
                 message: format!("{e:?}"), // debug formatting to print backtrace from anyhow
@@ -116,7 +125,7 @@ fn run_inner() -> Result<(), ()> {
 
     if let Err(e) = run_app(matches) {
         // error handling
-        let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {}", e)).collect();
+        let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
         let message = error_message_special_casing(&e);
         let kind = solve_error_kind(&e);
         let sandbox_path = check_sandbox_err(&e);
@@ -336,7 +345,7 @@ fn run_app(matches: Opt) -> Result<()> {
                 tmc_langs::list_local_course_exercises(client_name, &course_slug)?;
 
             CliOutput::finished_with_data(
-                format!("listed local exercises for {}", course_slug),
+                format!("listed local exercises for {course_slug}"),
                 DataKind::LocalExercises(local_exercises),
             )
         }
@@ -387,7 +396,7 @@ fn run_app(matches: Opt) -> Result<()> {
             submission_compression,
             extract_submission_naively,
             tmc_param,
-            top_level_dir_name,
+            no_archive_prefix,
         } => {
             // will contain for each key all the values with that key in a list
             let mut tmc_params_grouped = HashMap::new();
@@ -420,24 +429,27 @@ fn run_app(matches: Opt) -> Result<()> {
                 }
             }
 
-            tmc_langs::prepare_submission(
+            let sandbox = tmc_langs::prepare_submission(
                 tmc_langs::PrepareSubmission {
                     archive: &submission_path,
                     compression: submission_compression,
                     extract_naively: extract_submission_naively,
                 },
                 &output_path,
-                top_level_dir_name,
+                no_archive_prefix,
                 tmc_params,
                 &clone_path,
                 stub_archive_path.as_deref().map(|p| (p, stub_compression)),
                 output_format,
             )?;
-            CliOutput::finished(format!(
-                "prepared submission for {} at {}",
-                submission_path.display(),
-                output_path.display()
-            ))
+            CliOutput::finished_with_data(
+                format!(
+                    "prepared submission for {} at {}",
+                    submission_path.display(),
+                    output_path.display()
+                ),
+                DataKind::SubmissionSandbox(sandbox),
+            )
         }
 
         Command::RefreshCourse {
@@ -454,9 +466,9 @@ fn run_app(matches: Opt) -> Result<()> {
                 git_branch,
                 cache_root,
             )
-            .with_context(|| format!("Failed to refresh course {}", course_name))?;
+            .with_context(|| format!("Failed to refresh course {course_name}"))?;
             CliOutput::finished_with_data(
-                format!("refreshed course {}", course_name),
+                format!("refreshed course {course_name}"),
                 DataKind::RefreshResult(refresh_result),
             )
         }
@@ -538,10 +550,7 @@ fn run_app(matches: Opt) -> Result<()> {
             })?;
 
             let exercise_name = exercise_name.to_str().with_context(|| {
-                format!(
-                    "Exercise path's file name '{:?}' was not valid UTF8",
-                    exercise_name
-                )
+                format!("Exercise path's file name '{exercise_name:?}' was not valid UTF8")
             })?;
 
             let scan_result = tmc_langs::scan_exercise(&exercise_path, exercise_name.to_string())
@@ -1068,7 +1077,7 @@ fn print_output(output: &CliOutput, pretty: bool) -> Result<PrintToken> {
     print_output_with_file(output, pretty, None)
 }
 
-#[allow(clippy::print_stdout)] // this is the only function that should output to stdout/stderr across tmc-langs
+#[allow(clippy::print_stdout)]
 fn print_output_with_file(
     output: &CliOutput,
     pretty: bool,
@@ -1079,8 +1088,8 @@ fn print_output_with_file(
     } else {
         serde_json::to_string(&output)
     }
-    .with_context(|| format!("Failed to convert {:?} to JSON", output))?;
-    println!("{}", result);
+    .with_context(|| format!("Failed to convert {output:?} to JSON"))?;
+    println!("{result}");
 
     if let Some(path) = path {
         let mut file = File::create(&path)
@@ -1129,12 +1138,8 @@ fn write_result_to_file_as_json<T: Serialize>(
 }
 
 fn into_u32(arg: &str) -> Result<u32> {
-    arg.parse::<u32>().with_context(|| {
-        format!(
-            "Failed to convert argument to a non-negative integer: {}",
-            arg,
-        )
-    })
+    arg.parse::<u32>()
+        .with_context(|| format!("Failed to convert argument to a non-negative integer: {arg}"))
 }
 
 // if output_path is Some, the checkstyle results are written to that path

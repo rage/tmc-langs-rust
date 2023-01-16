@@ -101,10 +101,10 @@ pub fn prepare_feedback_form(feedback: Vec<FeedbackAnswer>) -> HashMap<String, S
     let mut form = HashMap::new();
     for (i, answer) in feedback.into_iter().enumerate() {
         form.insert(
-            format!("answers[{}][question_id]", i),
+            format!("answers[{i}][question_id]"),
             answer.question_id.to_string(),
         );
-        form.insert(format!("answers[{}][answer]", i), answer.answer);
+        form.insert(format!("answers[{i}][answer]"), answer.answer);
     }
     form
 }
@@ -157,7 +157,7 @@ pub fn post_form<T: DeserializeOwned>(
 pub fn get_credentials(client: &TmcClient, client_name: &str) -> Result<Credentials, ClientError> {
     let url = make_url(
         client,
-        format!("/api/v8/application/{}/credentials", client_name),
+        format!("/api/v8/application/{client_name}/credentials"),
     )?;
     get_json(client, url, &[])
 }
@@ -168,7 +168,7 @@ pub fn get_submission(
     client: &TmcClient,
     submission_id: u32,
 ) -> Result<SubmissionProcessingStatus, ClientError> {
-    let url = make_url(client, format!("/api/v8/core/submission/{}", submission_id))?;
+    let url = make_url(client, format!("/api/v8/core/submission/{submission_id}"))?;
     get_json(client, url, &[])
 }
 
@@ -178,7 +178,7 @@ pub mod user {
     /// get /api/v8/users/{user_id}
     /// Returns the user's username, email, and administrator status by user id
     pub fn get(client: &TmcClient, user_id: u32) -> Result<User, ClientError> {
-        let url = make_url(client, format!("/api/v8/users/{}", user_id))?;
+        let url = make_url(client, format!("/api/v8/users/{user_id}"))?;
         get_json(client, url, &[])
     }
 
@@ -234,7 +234,7 @@ pub mod course {
     /// get /api/v8/courses/{course_id}
     /// Returns the course's information in a json format. Course is searched by id
     pub fn get_by_id(client: &TmcClient, course_id: u32) -> Result<CourseData, ClientError> {
-        let url = make_url(client, format!("/api/v8/courses/{}", course_id))?;
+        let url = make_url(client, format!("/api/v8/courses/{course_id}"))?;
         get_json(client, url, &[])
     }
 
@@ -266,7 +266,7 @@ pub mod point {
         client: &TmcClient,
         course_id: u32,
     ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
-        let url = make_url(client, format!("/api/v8/courses/{}/points", course_id))?;
+        let url = make_url(client, format!("/api/v8/courses/{course_id}/points"))?;
         get_json(client, url, &[])
     }
 
@@ -335,7 +335,7 @@ pub mod point {
     ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/courses/{}/users/{}/points", course_id, user_id),
+            format!("/api/v8/courses/{course_id}/users/{user_id}/points"),
         )?;
         get_json(client, url, &[])
     }
@@ -348,7 +348,7 @@ pub mod point {
     ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/courses/{}/users/current/points", course_id),
+            format!("/api/v8/courses/{course_id}/users/current/points"),
         )?;
         get_json(client, url, &[])
     }
@@ -505,7 +505,7 @@ pub mod submission {
         client: &TmcClient,
         course_id: u32,
     ) -> Result<Vec<Submission>, ClientError> {
-        let url = make_url(client, format!("/api/v8/courses/{}/submissions", course_id))?;
+        let url = make_url(client, format!("/api/v8/courses/{course_id}/submissions"))?;
         get_json(client, url, &[])
     }
 
@@ -517,7 +517,7 @@ pub mod submission {
     ) -> Result<Vec<u32>, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/courses/{}/submissions/last_hour", course_id),
+            format!("/api/v8/courses/{course_id}/submissions/last_hour"),
         )?;
         get_json(client, url, &[])
     }
@@ -531,10 +531,7 @@ pub mod submission {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!(
-                "/api/v8/courses/{}/users/{}/submissions",
-                course_id, user_id
-            ),
+            format!("/api/v8/courses/{course_id}/users/{user_id}/submissions"),
         )?;
         get_json(client, url, &[])
     }
@@ -547,7 +544,7 @@ pub mod submission {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/courses/{}/users/current/submissions", course_id,),
+            format!("/api/v8/courses/{course_id}/users/current/submissions",),
         )?;
         get_json(client, url, &[])
     }
@@ -561,10 +558,7 @@ pub mod submission {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!(
-                "/api/v8/exercises/{}/users/{}/submissions",
-                exercise_id, user_id
-            ),
+            format!("/api/v8/exercises/{exercise_id}/users/{user_id}/submissions"),
         )?;
         get_json(client, url, &[])
     }
@@ -577,10 +571,7 @@ pub mod submission {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!(
-                "/api/v8/exercises/{}/users/current/submissions",
-                exercise_id
-            ),
+            format!("/api/v8/exercises/{exercise_id}/users/current/submissions"),
         )?;
         get_json(client, url, &[])
     }
@@ -651,7 +642,7 @@ pub mod exercise {
         client: &TmcClient,
         course_id: u32,
     ) -> Result<Vec<CourseExercise>, ClientError> {
-        let url = make_url(client, format!("/api/v8/courses/{}/exercises", course_id))?;
+        let url = make_url(client, format!("/api/v8/courses/{course_id}/exercises"))?;
         get_json(client, url, &[])
     }
 
@@ -664,10 +655,7 @@ pub mod exercise {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!(
-                "/api/v8/exercises/{}/users/{}/submissions",
-                exercise_id, user_id
-            ),
+            format!("/api/v8/exercises/{exercise_id}/users/{user_id}/submissions"),
         )?;
         get_json(client, url, &[])
     }
@@ -680,10 +668,7 @@ pub mod exercise {
     ) -> Result<Vec<Submission>, ClientError> {
         let url = make_url(
             client,
-            format!(
-                "/api/v8/exercises/{}/users/current/submissions",
-                exercise_id
-            ),
+            format!("/api/v8/exercises/{exercise_id}/users/current/submissions"),
         )?;
         get_json(client, url, &[])
     }
@@ -758,7 +743,7 @@ pub mod core {
     /// get /api/v8/core/courses/{course_id}
     /// Returns the course details in a json format. Course is searched by id
     pub fn get_course(client: &TmcClient, course_id: u32) -> Result<CourseDetails, ClientError> {
-        let url = make_url(client, format!("/api/v8/core/courses/{}", course_id))?;
+        let url = make_url(client, format!("/api/v8/core/courses/{course_id}"))?;
         get_json(client, url, &[])
     }
 
@@ -768,10 +753,7 @@ pub mod core {
         client: &TmcClient,
         course_id: u32,
     ) -> Result<Vec<Review>, ClientError> {
-        let url = make_url(
-            client,
-            format!("/api/v8/core/courses/{}/reviews", course_id),
-        )?;
+        let url = make_url(client, format!("/api/v8/core/courses/{course_id}/reviews"))?;
         get_json(client, url, &[])
     }
 
@@ -788,7 +770,7 @@ pub mod core {
     ) -> Result<(), ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/courses/{}/reviews/{}", course_id, review_id),
+            format!("/api/v8/core/courses/{course_id}/reviews/{review_id}"),
         )?;
 
         let mut form = HashMap::new();
@@ -815,7 +797,7 @@ pub mod core {
     /// Untested.
     /// Unlocks the courses exercises
     pub fn unlock_course(client: &TmcClient, course_id: u32) -> Result<(), ClientError> {
-        let url = make_url(client, format!("/api/v8/core/courses/{}/unlock", course_id))?;
+        let url = make_url(client, format!("/api/v8/core/courses/{course_id}/unlock"))?;
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .send()
             .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
@@ -833,7 +815,7 @@ pub mod core {
     ) -> Result<(), ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/exercises/{}/download", exercise_id),
+            format!("/api/v8/core/exercises/{exercise_id}/download"),
         )?;
         download(client, url, target)
     }
@@ -844,7 +826,7 @@ pub mod core {
         client: &TmcClient,
         exercise_id: u32,
     ) -> Result<ExerciseDetails, ClientError> {
-        let url = make_url(client, format!("/api/v8/core/exercises/{}", exercise_id))?;
+        let url = make_url(client, format!("/api/v8/core/exercises/{exercise_id}"))?;
         get_json(client, url, &[])
     }
 
@@ -877,7 +859,7 @@ pub mod core {
     ) -> Result<(), ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/exercises/{}/solution/download", exercise_id),
+            format!("/api/v8/core/exercises/{exercise_id}/solution/download"),
         )?;
         download(client, url, target)
     }
@@ -894,7 +876,7 @@ pub mod core {
     ) -> Result<NewSubmission, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/exercises/{}/submissions", exercise_id),
+            format!("/api/v8/core/exercises/{exercise_id}/submissions"),
         )?;
 
         let mut form = Form::new();
@@ -963,7 +945,7 @@ pub mod core {
     ) -> Result<(), ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/submissions/{}/download", submission_id),
+            format!("/api/v8/core/submissions/{submission_id}/download"),
         )?;
         download(client, url, target)
     }
@@ -977,7 +959,7 @@ pub mod core {
     ) -> Result<SubmissionFeedbackResponse, ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/submissions/{}/feedback", submission_id),
+            format!("/api/v8/core/submissions/{submission_id}/feedback"),
         )?;
 
         let form = prepare_feedback_form(feedback);
@@ -1000,7 +982,7 @@ pub mod core {
     ) -> Result<(), ClientError> {
         let url = make_url(
             client,
-            format!("/api/v8/core/submissions/{}/reviews", submission_id),
+            format!("/api/v8/core/submissions/{submission_id}/reviews"),
         )?;
 
         let mut form = HashMap::new();
@@ -1027,7 +1009,7 @@ pub mod core {
 mod test {
     use super::{super::TmcClient, *};
     use mockito::{Matcher, Mock};
-    use std::io::{Cursor, Seek, SeekFrom};
+    use std::io::{Cursor, Seek};
 
     fn init() {
         use log::*;
@@ -2119,7 +2101,7 @@ mod test {
         )
         .unwrap();
         let mut buf = vec![];
-        temp.seek(SeekFrom::Start(0)).unwrap();
+        temp.rewind().unwrap();
         temp.read_to_end(&mut buf).unwrap();
         assert!(!buf.is_empty());
     }
@@ -2304,7 +2286,7 @@ mod test {
         let mut temp = tempfile::tempfile().unwrap();
         core::download_exercise(client, 0, &mut temp).unwrap();
         let mut buf = vec![];
-        temp.seek(SeekFrom::Start(0)).unwrap();
+        temp.rewind().unwrap();
         temp.read_to_end(&mut buf).unwrap();
         assert!(!buf.is_empty());
     }
@@ -2392,7 +2374,7 @@ mod test {
         let mut temp = tempfile::tempfile().unwrap();
         core::download_exercise_solution(client, 0, &mut temp).unwrap();
         let mut buf = vec![];
-        temp.seek(SeekFrom::Start(0)).unwrap();
+        temp.rewind().unwrap();
         temp.read_to_end(&mut buf).unwrap();
         assert!(!buf.is_empty());
     }
@@ -2478,7 +2460,7 @@ mod test {
         let mut temp = tempfile::tempfile().unwrap();
         core::download_submission(client, 0, &mut temp).unwrap();
         let mut buf = vec![];
-        temp.seek(SeekFrom::Start(0)).unwrap();
+        temp.rewind().unwrap();
         temp.read_to_end(&mut buf).unwrap();
         assert!(!buf.is_empty());
     }

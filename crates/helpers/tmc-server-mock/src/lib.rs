@@ -9,10 +9,9 @@ use serde_json::json;
 pub fn mock_config(projects_dir: &str) -> String {
     format!(
         r#"
-projects-dir = '{}'
+projects-dir = '{projects_dir}'
 setting = "value"
-"#,
-        projects_dir
+"#
     )
 }
 

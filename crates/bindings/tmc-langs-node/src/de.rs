@@ -97,8 +97,7 @@ impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x>
             let len = prop_names.len(self.cx);
             if len != 1 {
                 return Err(LibError::InvalidKeyType(format!(
-                    "object key with {} properties",
-                    len
+                    "object key with {len} properties"
                 )));
             }
             let key: Handle<JsString> = prop_names.get(self.cx, 0)?;
