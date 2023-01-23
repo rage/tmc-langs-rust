@@ -6,6 +6,7 @@ mod helpers;
 mod ser;
 
 use crate::helpers::{convert, convert_err, convert_res};
+use base64::Engine;
 use neon::prelude::*;
 use std::{
     env,
@@ -529,7 +530,9 @@ fn login(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let decoded = if base64 {
-        let bytes = base64::decode(password).expect("Failed to decore password with base64");
+        let bytes = base64::engine::general_purpose::STANDARD
+            .decode(password)
+            .expect("Failed to decore password with base64");
         String::from_utf8(bytes).expect("Failed to decode password with base64")
     } else {
         password

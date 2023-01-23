@@ -5,7 +5,7 @@ This crate differs from the others in that it contains two different plugins wit
 The `./deps` directory contains some Java dependencies, such as a bundled Maven for use by the Maven plugin.
 
 - Maven: https://maven.apache.org/download.cgi
-- j4rs: https://github.com/astonbitecode/j4rs/releases
+- j4rs: https://search.maven.org/artifact/io.github.astonbitecode/j4rs/0.15.2/jar
 - tmc-checkstyle-runner:
   - https://github.com/testmycode/tmc-checkstyle-runner/blob/master/pom.xml
   - https://maven.mooc.fi/snapshots/fi/helsinki/cs/tmc/tmc-checkstyle-runner/3.0.3-SNAPSHOT/maven-metadata.xml

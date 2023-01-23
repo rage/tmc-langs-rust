@@ -13,6 +13,7 @@ use self::{
 use crate::app::{Locale, Opt};
 use anyhow::{Context, Result};
 use app::{Command, Core, Settings};
+use base64::Engine;
 use clap::{error::ErrorKind, CommandFactory, Parser};
 use serde::Serialize;
 use serde_json::Value;
@@ -831,7 +832,7 @@ fn run_core_inner(
                     rpassword::read_password().context("Failed to read password")?
                 };
                 let decoded = if base64 {
-                    let bytes = base64::decode(password)?;
+                    let bytes = base64::engine::general_purpose::STANDARD.decode(password)?;
                     String::from_utf8(bytes).context("Failed to decode password with base64")?
                 } else {
                     password
@@ -1056,7 +1057,7 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<CliOutput> {
 
         Settings::Set { key, json, base64 } => {
             let json: Value = if base64 {
-                let json = base64::decode(&json)?;
+                let json = base64::engine::general_purpose::STANDARD.decode(&json)?;
                 deserialize::json_from_slice(&json)?
             } else {
                 deserialize::json_from_str(&json)?
