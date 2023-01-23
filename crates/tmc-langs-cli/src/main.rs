@@ -1,7 +1,11 @@
 //! CLI client for TMC.
 
-#[quit::main]
-fn main() {
+use std::process::ExitCode;
+
+fn main() -> ExitCode {
     env_logger::init();
-    tmc_langs_cli::run()
+    match tmc_langs_cli::run() {
+        Ok(_) => ExitCode::SUCCESS,
+        Err(_) => ExitCode::FAILURE,
+    }
 }

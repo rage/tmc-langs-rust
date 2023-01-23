@@ -34,21 +34,12 @@ use tmc_langs_util::{deserialize, progress_reporter};
 
 // wraps the run_inner function that actually does the work and handles any panics that occur
 // any langs library should never panic by itself, but other libraries used may in some rare circumstances
-pub fn run() {
+pub fn run() -> Result<(), ()> {
     // run the inner function and catch any panics
     match std::panic::catch_unwind(run_inner) {
         Ok(res) => {
             // no panic, output was printed properly
-            match res {
-                Ok(_) => {
-                    // inner returned Ok, exit with 0
-                    quit::with_code(0);
-                }
-                Err(_) => {
-                    // inner returned Err, exit with 1
-                    quit::with_code(1);
-                }
-            }
+            res
         }
         Err(err) => {
             // panicked, likely before any output was printed
@@ -69,7 +60,7 @@ pub fn run() {
             let pretty = std::env::args().any(|arg| arg == "--pretty");
             print_output(&output, pretty).expect("this should never fail");
 
-            quit::with_code(1);
+            Err(())
         }
     }
 }
