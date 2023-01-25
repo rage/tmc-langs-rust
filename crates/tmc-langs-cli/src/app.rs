@@ -21,7 +21,7 @@ use tmc_langs::{
     subcommand_required(true),
     arg_required_else_help(true)
 )]
-pub struct Opt {
+pub struct Cli {
     /// Pretty-prints all output
     #[clap(long, short)]
     pub pretty: bool,
@@ -607,7 +607,7 @@ mod base_test {
     use super::*;
 
     fn get_matches(args: &[&str]) {
-        Opt::parse_from(
+        Cli::parse_from(
             [
                 "tmc-langs-cli",
                 "--client-name",
@@ -624,7 +624,7 @@ mod base_test {
     #[test]
     fn sanity() {
         assert!(
-            Opt::try_parse_from(["tmc-langs-cli", "checkstyle", "--non-existent-arg"]).is_err()
+            Cli::try_parse_from(["tmc-langs-cli", "checkstyle", "--non-existent-arg"]).is_err()
         );
     }
 
@@ -799,7 +799,7 @@ mod core_test {
     use super::*;
 
     fn get_matches_core(args: &[&str]) {
-        Opt::parse_from(
+        Cli::parse_from(
             [
                 "tmc-langs-cli",
                 "--client-name",
@@ -1043,7 +1043,7 @@ mod settings_test {
     use super::*;
 
     fn get_matches_settings(args: &[&str]) {
-        Opt::parse_from(
+        Cli::parse_from(
             ["tmc-langs-cli", "--client-name", "client", "settings"]
                 .iter()
                 .chain(args)

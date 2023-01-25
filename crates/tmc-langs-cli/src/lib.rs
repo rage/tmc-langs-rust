@@ -2,87 +2,51 @@
 
 //! CLI client for TMC.
 
-mod app;
-mod error;
-mod output;
+pub mod app;
+pub mod error;
+pub mod output;
 
 use self::{
     error::{DownloadsFailedError, InvalidTokenError, SandboxTestError},
-    output::{CliOutput, DataKind, Kind, OutputData, OutputResult, Status, StatusUpdateData},
+    output::{CliOutput, DataKind, Kind, OutputData, OutputResult, Status},
 };
-use crate::app::{Locale, Opt};
+use crate::app::{Cli, Locale};
 use anyhow::{Context, Result};
 use app::{Command, Core, Settings};
 use base64::Engine;
-use clap::{error::ErrorKind, CommandFactory, Parser};
+use clap::{error::ErrorKind, CommandFactory};
 use serde::Serialize;
 use serde_json::Value;
 use std::{
     collections::HashMap,
     env,
     fs::File,
-    io::{self, BufReader, Cursor, Read, Write},
+    io::{self, BufReader, Cursor, Read},
     ops::Deref,
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    file_util, notification_reporter, ClientError, ClientUpdateData, CommandError, Credentials,
-    DownloadOrUpdateCourseExercisesResult, DownloadResult, FeedbackAnswer, Language,
-    StyleValidationResult, TmcClient, TmcConfig, UpdatedExercise,
+    file_util, ClientError, CommandError, Credentials, DownloadOrUpdateCourseExercisesResult,
+    DownloadResult, FeedbackAnswer, Language, StyleValidationResult, TmcClient, TmcConfig,
+    UpdatedExercise,
 };
-use tmc_langs_util::{deserialize, progress_reporter};
+use tmc_langs_util::deserialize;
 
-// wraps the run_inner function that actually does the work and handles any panics that occur
-// any langs library should never panic by itself, but other libraries used may in some rare circumstances
-pub fn run() -> Result<(), ()> {
-    // run the inner function and catch any panics
-    match std::panic::catch_unwind(run_inner) {
-        Ok(res) => {
-            // no panic, output was printed properly
-            res
-        }
-        Err(err) => {
-            // panicked, likely before any output was printed
-            // currently only prints a message if the panic is called with str or String; this should be good enough
-            let error_message = if let Some(string) = err.downcast_ref::<&str>() {
-                format!("Process panicked unexpectedly with message: {string}")
-            } else if let Some(string) = err.downcast_ref::<String>() {
-                format!("Process panicked unexpectedly with message: {string}")
-            } else {
-                "Process panicked unexpectedly without an error message".to_string()
-            };
-            let output = CliOutput::OutputData(Box::new(OutputData {
-                status: Status::Crashed,
-                message: error_message,
-                result: OutputResult::Error,
-                data: None,
-            }));
-            let pretty = std::env::args().any(|arg| arg == "--pretty");
-            print_output(&output, pretty).expect("this should never fail");
-
-            Err(())
-        }
-    }
+pub enum ParsingResult {
+    Ok(Cli),
+    Help(clap::Error),
+    Err(CliOutput),
 }
 
-// sets up warning and progress reporting and calls run_app and does error handling for its result
-// returns Ok if we should exit with code 0, Err if we should exit with 1
-fn run_inner() -> Result<(), ()> {
-    let matches = match Opt::try_parse() {
-        Ok(matches) => matches,
-        Err(e) if e.kind() == clap::error::ErrorKind::DisplayHelp => {
-            // help is probably being called by a human, so we'll just print it out normally
-            #[allow(clippy::print_stdout)]
-            {
-                println!("{e}");
-            }
-            return Ok(());
-        }
+pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
+    match result {
+        Ok(cli) => ParsingResult::Ok(cli),
+        Err(e) if e.kind() == clap::error::ErrorKind::DisplayHelp => ParsingResult::Help(e),
         Err(e) => {
             // CLI was called incorrectly
             let e = anyhow::Error::from(e).context("Failed to parse arguments");
             let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
-            let error_output = CliOutput::OutputData(Box::new(OutputData {
+            let output = CliOutput::OutputData(Box::new(OutputData {
                 status: Status::Finished,
                 message: format!("{e:?}"), // debug formatting to print backtrace from anyhow
                 result: OutputResult::Error,
@@ -91,50 +55,39 @@ fn run_inner() -> Result<(), ()> {
                     trace: causes,
                 }),
             }));
-            let pretty = std::env::args().any(|arg| arg == "--pretty");
-            print_output(&error_output, pretty).expect("failed to print output");
-            return Err(());
+            ParsingResult::Err(output)
         }
-    };
-    let pretty = matches.pretty;
+    }
+}
 
-    notification_reporter::init(Box::new(move |warning| {
-        let warning_output = CliOutput::Notification(warning);
-        if let Err(err) = print_output(&warning_output, pretty) {
-            log::error!("printing warning failed: {}", err);
+pub struct CliError {
+    pub output: CliOutput,
+    pub sandbox_path: Option<PathBuf>,
+}
+
+pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
+    match run_app(cli) {
+        Ok(output) => Ok(output),
+        Err(e) => {
+            // error handling
+            let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
+            let message = error_message_special_casing(&e);
+            let kind = solve_error_kind(&e);
+            let sandbox_path = check_sandbox_err(&e);
+            let output = CliOutput::OutputData(Box::new(OutputData {
+                status: Status::Finished,
+                message,
+                result: OutputResult::Error,
+                data: Some(DataKind::Error {
+                    kind,
+                    trace: causes,
+                }),
+            }));
+            Err(CliError {
+                output,
+                sandbox_path,
+            })
         }
-    }));
-
-    progress_reporter::subscribe::<(), _>(move |update| {
-        let output = CliOutput::StatusUpdate(StatusUpdateData::None(update));
-        let _r = print_output(&output, pretty);
-    });
-
-    progress_reporter::subscribe::<ClientUpdateData, _>(move |update| {
-        let output = CliOutput::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
-        let _r = print_output(&output, pretty);
-    });
-
-    if let Err(e) = run_app(matches) {
-        // error handling
-        let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
-        let message = error_message_special_casing(&e);
-        let kind = solve_error_kind(&e);
-        let sandbox_path = check_sandbox_err(&e);
-        let error_output = CliOutput::OutputData(Box::new(OutputData {
-            status: Status::Finished,
-            message,
-            result: OutputResult::Error,
-            data: Some(DataKind::Error {
-                kind,
-                trace: causes,
-            }),
-        }));
-        print_output_with_file(&error_output, pretty, sandbox_path)
-            .expect("failed to print output");
-        Err(())
-    } else {
-        Ok(())
     }
 }
 
@@ -215,8 +168,8 @@ fn check_sandbox_err(e: &anyhow::Error) -> Option<PathBuf> {
     None
 }
 
-fn run_app(matches: Opt) -> Result<()> {
-    let output = match matches.cmd {
+fn run_app(cli: Cli) -> Result<CliOutput> {
+    let output = match cli.cmd {
         Command::Checkstyle {
             exercise_path,
             locale: Locale(locale),
@@ -250,8 +203,8 @@ fn run_app(matches: Opt) -> Result<()> {
         }
 
         Command::Core(core) => {
-            let client_name = require_client_name(&matches.client_name)?;
-            let client_version = require_client_version(&matches.client_version)?;
+            let client_name = require_client_name(&cli.client_name)?;
+            let client_version = require_client_version(&cli.client_version)?;
             run_core(client_name, client_version, core)?
         }
 
@@ -298,7 +251,7 @@ fn run_app(matches: Opt) -> Result<()> {
                     )
                 })?;
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&exercises, &output_path, matches.pretty, None)?;
+                write_result_to_file_as_json(&exercises, &output_path, cli.pretty, None)?;
             }
             CliOutput::finished_with_data(
                 format!("found exercises at {}", exercise_path.display()),
@@ -319,7 +272,7 @@ fn run_app(matches: Opt) -> Result<()> {
                     )
                 })?;
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&config, &output_path, matches.pretty, None)?;
+                write_result_to_file_as_json(&config, &output_path, cli.pretty, None)?;
             }
             CliOutput::finished_with_data(
                 format!(
@@ -331,7 +284,7 @@ fn run_app(matches: Opt) -> Result<()> {
         }
 
         Command::ListLocalCourseExercises { course_slug } => {
-            let client_name = require_client_name(&matches.client_name)?;
+            let client_name = require_client_name(&cli.client_name)?;
 
             let local_exercises =
                 tmc_langs::list_local_course_exercises(client_name, &course_slug)?;
@@ -395,7 +348,7 @@ fn run_app(matches: Opt) -> Result<()> {
             for value in &tmc_param {
                 let params: Vec<_> = value.split('=').collect();
                 if params.len() != 2 {
-                    app::Opt::command()
+                    app::Cli::command()
                         .error(
                             ErrorKind::ValueValidation,
                             "tmc-param values should contain a single '=' as a delimiter.",
@@ -501,7 +454,7 @@ fn run_app(matches: Opt) -> Result<()> {
             };
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&test_result, &output_path, matches.pretty, secret)?;
+                write_result_to_file_as_json(&test_result, &output_path, cli.pretty, secret)?;
             }
 
             // todo: checkstyle results in stdout?
@@ -524,7 +477,7 @@ fn run_app(matches: Opt) -> Result<()> {
         }
 
         Command::Settings(settings) => {
-            let client_name = require_client_name(&matches.client_name)?;
+            let client_name = require_client_name(&cli.client_name)?;
             run_settings(client_name, settings)?
         }
 
@@ -551,7 +504,7 @@ fn run_app(matches: Opt) -> Result<()> {
             })?;
 
             if let Some(output_path) = output_path {
-                write_result_to_file_as_json(&scan_result, &output_path, matches.pretty, None)?;
+                write_result_to_file_as_json(&scan_result, &output_path, cli.pretty, None)?;
             }
 
             CliOutput::finished_with_data(
@@ -560,8 +513,7 @@ fn run_app(matches: Opt) -> Result<()> {
             )
         }
     };
-    print_output(&output, matches.pretty)?;
-    Ok(())
+    Ok(output)
 }
 
 fn run_core(client_name: &str, client_version: &str, core: Core) -> Result<CliOutput> {
@@ -1065,33 +1017,6 @@ fn run_settings(client_name: &str, settings: Settings) -> Result<CliOutput> {
     Ok(output)
 }
 
-fn print_output(output: &CliOutput, pretty: bool) -> Result<PrintToken> {
-    print_output_with_file(output, pretty, None)
-}
-
-#[allow(clippy::print_stdout)]
-fn print_output_with_file(
-    output: &CliOutput,
-    pretty: bool,
-    path: Option<PathBuf>,
-) -> Result<PrintToken> {
-    let result = if pretty {
-        serde_json::to_string_pretty(&output)
-    } else {
-        serde_json::to_string(&output)
-    }
-    .with_context(|| format!("Failed to convert {output:?} to JSON"))?;
-    println!("{result}");
-
-    if let Some(path) = path {
-        let mut file = File::create(&path)
-            .with_context(|| format!("Failed to open file at {}", path.display()))?;
-        file.write_all(result.as_bytes())
-            .with_context(|| format!("Failed to write result to {}", path.display()))?;
-    }
-    Ok(PrintToken)
-}
-
 fn write_result_to_file_as_json<T: Serialize>(
     result: &T,
     output_path: &Path,
@@ -1182,5 +1107,3 @@ fn require_client_version(client_version: &Option<String>) -> Result<&str> {
         );
     }
 }
-
-struct PrintToken;
