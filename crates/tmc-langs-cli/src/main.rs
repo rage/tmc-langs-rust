@@ -25,8 +25,8 @@ fn run() -> Result<(), ()> {
         // parsed correctly
         Ok(ParsingResult::Ok(cli)) => cli,
         // called with --help
-        Ok(ParsingResult::Help(e)) => {
-            // --help was probably called by a human, so we'll just print the human-readable help
+        Ok(ParsingResult::Help(e) | ParsingResult::Version(e)) => {
+            // --help/--version are printed in a human-readable form
             println!("{e}");
             return Ok(());
         }

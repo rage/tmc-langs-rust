@@ -35,6 +35,7 @@ use tmc_langs_util::deserialize;
 pub enum ParsingResult {
     Ok(Cli),
     Help(clap::Error),
+    Version(clap::Error),
     Err(CliOutput),
 }
 
@@ -42,6 +43,7 @@ pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
     match result {
         Ok(cli) => ParsingResult::Ok(cli),
         Err(e) if e.kind() == clap::error::ErrorKind::DisplayHelp => ParsingResult::Help(e),
+        Err(e) if e.kind() == clap::error::ErrorKind::DisplayVersion => ParsingResult::Version(e),
         Err(e) => {
             // CLI was called incorrectly
             let e = anyhow::Error::from(e).context("Failed to parse arguments");
