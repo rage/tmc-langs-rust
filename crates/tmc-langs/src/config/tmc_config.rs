@@ -181,7 +181,7 @@ impl TmcConfig {
 }
 
 /// A setting in a TmcConfig file.
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ConfigValue<'a> {

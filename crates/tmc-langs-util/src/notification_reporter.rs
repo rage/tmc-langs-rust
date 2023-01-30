@@ -1,7 +1,7 @@
 //! Contains an utility for reporting warnings.
 
 use once_cell::sync::OnceCell;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 type NotificationClosure = Box<dyn 'static + Sync + Send + Fn(Notification)>;
 
@@ -20,7 +20,7 @@ pub fn notify(notification: Notification) {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct Notification {
@@ -28,7 +28,7 @@ pub struct Notification {
     message: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum NotificationKind {

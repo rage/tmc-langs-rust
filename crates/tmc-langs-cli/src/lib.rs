@@ -62,6 +62,7 @@ pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
     }
 }
 
+#[derive(Debug)]
 pub struct CliError {
     pub output: CliOutput,
     pub sandbox_path: Option<PathBuf>,

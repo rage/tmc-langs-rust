@@ -2,7 +2,7 @@
 
 use crate::error::{LangsError, ParamError};
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -11,7 +11,7 @@ use std::{
 use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
 
 /// Exercise inside the projects directory.
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalExercise {
@@ -172,7 +172,7 @@ pub enum DownloadTargetKind {
     Submission { submission_id: u32 },
 }
 
-#[derive(Debug, Clone, Serialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct ExerciseDownload {
@@ -182,7 +182,7 @@ pub struct ExerciseDownload {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct CombinedCourseData {
     pub details: CourseDetails,
@@ -190,7 +190,7 @@ pub struct CombinedCourseData {
     pub settings: CourseData,
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct DownloadOrUpdateCourseExercisesResult {
     pub downloaded: Vec<ExerciseDownload>,

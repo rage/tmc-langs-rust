@@ -31,7 +31,7 @@ use oauth2::{
     basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
 };
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -69,7 +69,7 @@ use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct UpdatedExercise {
     pub id: u32,
