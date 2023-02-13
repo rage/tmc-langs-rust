@@ -23,15 +23,14 @@ jobs:
       - name: Prepare env
         run: |
           echo "JAVA_HOME=$JAVA_HOME_11_X64" >> $GITHUB_ENV
+          echo "JAVA_HOME=$JAVA_HOME_11_X64" >> $env:GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
+          components: clippy, rustfmt
       - name: Cache
         uses: Swatinem/rust-cache@v2
 
@@ -43,10 +42,7 @@ jobs:
         run: cargo fmt -- --check
       - name: Clippy
         if: matrix.os == 'ubuntu-latest'
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+        run: cargo clippy --all-features
 
       - name: Build test binary
         run: cargo test --no-run

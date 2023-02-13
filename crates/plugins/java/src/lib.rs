@@ -140,7 +140,6 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
     // j4rs may panic
     let jvm = match std::panic::catch_unwind(|| -> Result<Jvm, JavaError> {
         let jvm = JvmBuilder::new()
-            .with_default_classloader()
             .with_base_path(
                 tmc_dir
                     .to_str()
