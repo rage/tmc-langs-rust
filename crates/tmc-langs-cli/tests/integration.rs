@@ -40,8 +40,12 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
     insta::with_settings!({filters => vec![
-        // replace all /tmp/ paths which vary each test run
-        (r"/tmp/\S*", "[PATH]")
+        // replace all /tmp/ (linux), /var/ (macos) and C:\[..]\Temp\ (win) paths which vary each test run
+        (r"/tmp/\S*", "[PATH]"),
+        (r"/var/\S*", "[PATH]"),
+        (r"C:\\\S*\\Temp\\\S*", "[PATH]"),
+        // replace Windows-style path separators
+        (r"\\", "/"),
     ]}, {
         insta::glob!("sample_exercises/*/*", |exercise| {
             f(exercise)
