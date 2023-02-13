@@ -45,7 +45,7 @@ fn test(f: impl Fn(&Path)) {
         (r"/var/\S*", "[PATH]"),
         (r"C:\\\S*\\Temp\\\S*", "[PATH]"),
         // replace Windows-style path separators
-        (r"\\", "/"),
+        (r"\\\\", "/"),
     ]}, {
         insta::glob!("sample_exercises/*/*", |exercise| {
             f(exercise)
