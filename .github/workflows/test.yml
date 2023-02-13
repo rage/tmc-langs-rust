@@ -3,13 +3,15 @@ name: Run tests
 on:
   push:
     branches: [main, "[0-9]+.[0-9]+"]
-  pull_request:
+  pull_request_target:
     branches: [main, "[0-9]+.[0-9]+"]
+    types: [opened, synchronize, reopened]
 
 env:
   RUST_LOG: debug,j4rs=warn
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-C debuginfo=0"
+  JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}  # seems to default to 8 on Windows and Mac
 
 jobs:
   test:
