@@ -10,7 +10,6 @@ env:
   RUST_LOG: debug,j4rs=warn
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-C debuginfo=0"
-  JAVA_HOME: ${{ env.JAVA_HOME_11_X64 }}  # seems to default to 8 on Windows and Mac
 
 jobs:
   test:
@@ -21,6 +20,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Prepare env
+        run: |
+          echo "${JAVA_HOME}=${JAVA_HOME_11_X64}" >> $GITHUB_ENV
+
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install Rust
