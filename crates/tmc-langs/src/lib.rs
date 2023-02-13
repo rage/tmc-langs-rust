@@ -1043,6 +1043,7 @@ fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+    use mockito::Server;
     use std::io::Write;
     use tmc_client::response::ExercisesDetails;
 
@@ -1070,9 +1071,9 @@ mod test {
         target
     }
 
-    fn mock_client() -> TmcClient {
+    fn mock_client(server: &Server) -> TmcClient {
         let mut client = TmcClient::new(
-            mockito::server_url().parse().unwrap(),
+            server.url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
         );
@@ -1111,6 +1112,7 @@ mod test {
     #[test]
     fn checks_exercise_updates() {
         init();
+        let mut server = Server::new();
 
         let details = vec![
             ExercisesDetails {
@@ -1131,7 +1133,8 @@ mod test {
         let mut response = HashMap::new();
         response.insert("exercises", details);
         let response = serde_json::to_string(&response).unwrap();
-        let _m = mockito::mock("GET", mockito::Matcher::Any)
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
             .with_body(response)
             .create();
 
@@ -1154,7 +1157,7 @@ checksum = 'old checksum'
         );
         file_to(&projects_dir, "some course/some exercise/some file", "");
 
-        let client = mock_client();
+        let client = mock_client(&server);
         let updates = check_exercise_updates(&client, projects_dir.path()).unwrap();
         assert_eq!(updates.len(), 1);
         assert_eq!(&updates[0], &1);
@@ -1163,18 +1166,20 @@ checksum = 'old checksum'
     #[test]
     fn downloads_old_submission() {
         init();
+        let mut server = Server::new();
 
         let mut zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         zw.start_file("src/file", zip::write::FileOptions::default())
             .unwrap();
         zw.write_all(b"file contents").unwrap();
         let z = zw.finish().unwrap();
-        let _m = mockito::mock("GET", mockito::Matcher::Any)
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
             .with_body(z.into_inner())
             .create();
 
         let output_dir = tempfile::tempdir().unwrap();
-        let client = mock_client();
+        let client = mock_client(&server);
 
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
@@ -1184,6 +1189,7 @@ checksum = 'old checksum'
     #[test]
     fn downloads_or_updates_course_exercises() {
         init();
+        let mut server = Server::new();
 
         let projects_dir = tempfile::tempdir().unwrap();
         file_to(
@@ -1212,7 +1218,7 @@ checksum = 'new checksum'
             "",
         );
 
-        let client = mock_client();
+        let client = mock_client(&server);
 
         let exercises = vec![1, 2, 3];
 
@@ -1259,12 +1265,13 @@ checksum = 'new checksum'
                 },
             ],
         );
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::Regex("exercises/details".to_string()),
-        )
-        .with_body(serde_json::to_string(&body).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/details".to_string()),
+            )
+            .with_body(serde_json::to_string(&body).unwrap())
+            .create();
 
         let sub_body = vec![Submission {
             id: 1,
@@ -1294,55 +1301,60 @@ checksum = 'new checksum'
             message_for_paste: "".to_string(),
             paste_key: None,
         }];
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/1".to_string()),
-                mockito::Matcher::Regex("submissions".to_string()),
-            ]),
-        )
-        .with_body(serde_json::to_string(&sub_body).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/1".to_string()),
+                    mockito::Matcher::Regex("submissions".to_string()),
+                ]),
+            )
+            .with_body(serde_json::to_string(&sub_body).unwrap())
+            .create();
 
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/2".to_string()),
-                mockito::Matcher::Regex("submissions".to_string()),
-            ]),
-        )
-        .with_body(serde_json::to_string(&[0; 0]).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/2".to_string()),
+                    mockito::Matcher::Regex("submissions".to_string()),
+                ]),
+            )
+            .with_body(serde_json::to_string(&[0; 0]).unwrap())
+            .create();
 
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/3".to_string()),
-                mockito::Matcher::Regex("submissions".to_string()),
-            ]),
-        )
-        .with_body(serde_json::to_string(&sub_body).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/3".to_string()),
+                    mockito::Matcher::Regex("submissions".to_string()),
+                ]),
+            )
+            .with_body(serde_json::to_string(&sub_body).unwrap())
+            .create();
 
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/4".to_string()),
-                mockito::Matcher::Regex("submissions".to_string()),
-            ]),
-        )
-        .with_body(serde_json::to_string(&[0; 0]).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/4".to_string()),
+                    mockito::Matcher::Regex("submissions".to_string()),
+                ]),
+            )
+            .with_body(serde_json::to_string(&[0; 0]).unwrap())
+            .create();
 
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/5".to_string()),
-                mockito::Matcher::Regex("submissions".to_string()),
-            ]),
-        )
-        .with_body(serde_json::to_string(&sub_body).unwrap())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/5".to_string()),
+                    mockito::Matcher::Regex("submissions".to_string()),
+                ]),
+            )
+            .with_body(serde_json::to_string(&sub_body).unwrap())
+            .create();
 
         let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         template_zw
@@ -1366,51 +1378,56 @@ checksum = 'new checksum'
         template_zw.write_all(b"template").unwrap();
         let template_z = template_zw.finish().unwrap();
         let template_z = template_z.into_inner();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/1".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(&template_z)
-        .create();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/2".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(&template_z)
-        .create();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/3".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(&template_z)
-        .create();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/4".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(&template_z)
-        .create();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises/5".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(&template_z)
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/1".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(&template_z)
+            .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/2".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(&template_z)
+            .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/3".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(&template_z)
+            .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/4".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(&template_z)
+            .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises/5".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(&template_z)
+            .create();
 
         let mut sub_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         sub_zw
@@ -1434,15 +1451,16 @@ checksum = 'new checksum'
         sub_zw.write_all(b"submission").unwrap();
         let sub_z = sub_zw.finish().unwrap();
         let sub_z = sub_z.into_inner();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("submissions/1".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(sub_z)
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("submissions/1".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(sub_z)
+            .create();
 
         let res =
             download_or_update_course_exercises(&client, projects_dir.path(), &exercises, false)
@@ -1500,6 +1518,7 @@ checksum = 'new checksum'
     #[test]
     fn download_old_submission_keeps_new_exercise_files() {
         init();
+        let mut server = Server::new();
 
         let output_dir = tempfile::tempdir().unwrap();
 
@@ -1527,15 +1546,16 @@ checksum = 'new checksum'
         template_zw.write_all(b"template").unwrap();
 
         let template_z = template_zw.finish().unwrap();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("exercises".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(template_z.into_inner())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("exercises".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(template_z.into_inner())
+            .create();
 
         // submission
         let mut submission_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
@@ -1561,17 +1581,18 @@ checksum = 'new checksum'
         submission_zw.write_all(b"old submission").unwrap();
 
         let submission_z = submission_zw.finish().unwrap();
-        let _m = mockito::mock(
-            "GET",
-            mockito::Matcher::AllOf(vec![
-                mockito::Matcher::Regex("submission".to_string()),
-                mockito::Matcher::Regex("download".to_string()),
-            ]),
-        )
-        .with_body(submission_z.into_inner())
-        .create();
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::AllOf(vec![
+                    mockito::Matcher::Regex("submission".to_string()),
+                    mockito::Matcher::Regex("download".to_string()),
+                ]),
+            )
+            .with_body(submission_z.into_inner())
+            .create();
 
-        let client = mock_client();
+        let client = mock_client(&server);
 
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
 

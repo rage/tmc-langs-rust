@@ -421,7 +421,7 @@ test("sample", c("r1.1"), {
                 }
             }
         }
-        panic!()
+        panic!("did not time out")
     }
 
     #[test]

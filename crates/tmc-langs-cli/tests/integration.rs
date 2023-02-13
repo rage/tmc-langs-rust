@@ -1,7 +1,7 @@
 use clap::Parser;
 use std::path::Path;
 use tempfile::{tempdir, NamedTempFile, TempDir};
-use tmc_langs_cli::{app::Cli, output::CliOutput};
+use tmc_langs_cli::app::Cli;
 use walkdir::WalkDir;
 
 fn cp_exercise(path: &Path) -> TempDir {

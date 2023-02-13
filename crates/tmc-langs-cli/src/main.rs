@@ -32,7 +32,7 @@ fn run() -> Result<(), ()> {
         }
         // failed to parse
         Ok(ParsingResult::Err(output)) => {
-            print_output(&output, false).expect("should never fail");
+            print_output(&output, false, None).expect("should never fail");
             return Err(());
         }
         // panicked
@@ -48,12 +48,11 @@ fn run() -> Result<(), ()> {
         tmc_langs_cli::run(cli)
     }) {
         Ok(Ok(output)) => {
-            print_output(&output, pretty).map_err(|_| ())?;
+            print_output(&output, pretty, None).map_err(|_| ())?;
             Ok(())
         }
         Ok(Err(printable)) => {
-            print_output_with_file(&printable.output, pretty, printable.sandbox_path)
-                .map_err(|_| ())?;
+            print_output(&printable.output, pretty, printable.sandbox_path).map_err(|_| ())?;
             Err(())
         }
         Err(err) => {
@@ -66,17 +65,17 @@ fn run() -> Result<(), ()> {
 fn register_reporters(pretty: bool) {
     notification_reporter::init(Box::new(move |warning| {
         let warning_output = CliOutput::Notification(warning);
-        if let Err(err) = print_output(&warning_output, pretty) {
+        if let Err(err) = print_output(&warning_output, pretty, None) {
             log::error!("printing warning failed: {}", err);
         }
     }));
     progress_reporter::subscribe::<(), _>(move |update| {
         let output = CliOutput::StatusUpdate(StatusUpdateData::None(update));
-        let _r = print_output(&output, pretty);
+        let _r = print_output(&output, pretty, None);
     });
     progress_reporter::subscribe::<ClientUpdateData, _>(move |update| {
         let output = CliOutput::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
-        let _r = print_output(&output, pretty);
+        let _r = print_output(&output, pretty, None);
     });
 }
 
@@ -95,14 +94,10 @@ fn print_panic(err: Box<dyn Any + Send>, pretty: bool) {
         result: OutputResult::Error,
         data: None,
     }));
-    print_output(&output, pretty).expect("should never fail");
+    print_output(&output, pretty, None).expect("should never fail");
 }
 
-fn print_output(output: &CliOutput, pretty: bool) -> Result<()> {
-    print_output_with_file(output, pretty, None)
-}
-
-fn print_output_with_file(output: &CliOutput, pretty: bool, path: Option<PathBuf>) -> Result<()> {
+fn print_output(output: &CliOutput, pretty: bool, path: Option<PathBuf>) -> Result<()> {
     let result = if pretty {
         serde_json::to_string_pretty(&output)
     } else {

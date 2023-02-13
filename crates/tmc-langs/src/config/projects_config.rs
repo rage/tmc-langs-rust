@@ -194,6 +194,7 @@ mod test {
         assert_eq!(
             s,
             r#"course = "course 1"
+
 [exercises."ex 1"]
 id = 4321
 checksum = "abcd1234"
