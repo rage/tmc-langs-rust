@@ -1008,7 +1008,7 @@ pub mod core {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::{super::TmcClient, *};
-    use mockito::{Matcher, Mock};
+    use mockito::{Matcher, Mock, Server};
     use std::io::{Cursor, Seek};
 
     fn init() {
@@ -1017,9 +1017,9 @@ mod test {
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
-    fn make_client() -> TmcClient {
+    fn make_client(server: &Server) -> TmcClient {
         TmcClient::new(
-            mockito::server_url().parse().unwrap(),
+            server.url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
         )
@@ -1032,8 +1032,9 @@ mod test {
         ])
     }
 
-    fn mock_get(path: &str, body: &str) -> Mock {
-        mockito::mock("GET", path)
+    fn mock_get(server: &mut Server, path: &str, body: &str) -> Mock {
+        server
+            .mock("GET", path)
             .match_query(client_matcher())
             .with_body(body)
             .create()
@@ -1042,9 +1043,11 @@ mod test {
     #[test]
     fn gets_credentials() {
         init();
+        let mut server = Server::new();
 
-        let client = make_client();
+        let client = make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/application/client/credentials",
             r#"
         {
@@ -1060,9 +1063,10 @@ mod test {
     #[test]
     fn gets_submission_processing_status() {
         init();
+        let mut server = Server::new();
 
-        let client = make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/submission/0")
+        let client = make_client(&server);
+        let _m = server.mock("GET", "/api/v8/core/submission/0")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "client".into()),
                 Matcher::UrlEncoded("client_version".into(), "version".into()),
@@ -1128,9 +1132,11 @@ mod test {
     #[test]
     fn user_get() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/users/0",
             r#"
 {
@@ -1147,9 +1153,11 @@ mod test {
     #[test]
     fn user_get_current() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/users/current",
             r#"
 {
@@ -1167,9 +1175,11 @@ mod test {
     #[test]
     fn user_get_basic_info_by_usernames() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/users/basic_info_by_usernames")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/users/basic_info_by_usernames")
             .match_query(client_matcher())
             .match_body(Matcher::JsonString(
                 r#"{"usernames": ["username"]}"#.to_string(),
@@ -1194,9 +1204,11 @@ mod test {
     #[test]
     fn user_get_basic_info_by_emails() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/users/basic_info_by_emails")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/users/basic_info_by_emails")
             .match_query(client_matcher())
             .match_body(Matcher::JsonString(r#"{"emails": ["email"]}"#.to_string()))
             .with_body(
@@ -1219,9 +1231,11 @@ mod test {
     #[test]
     fn course_get_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0",
             r#"
 {
@@ -1256,9 +1270,11 @@ mod test {
     #[test]
     fn course_get() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse",
             r#"
 {
@@ -1293,9 +1309,11 @@ mod test {
     #[test]
     fn point_get_course_points_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/points",
             r#"
 [
@@ -1320,9 +1338,11 @@ mod test {
     #[test]
     fn point_get_exercise_points_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/exercises/someexercise/points",
             r#"
 [
@@ -1347,9 +1367,11 @@ mod test {
     #[test]
     fn point_get_exercise_points_for_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/exercises/someexercise/users/1/points",
             r#"
 [
@@ -1374,9 +1396,11 @@ mod test {
     #[test]
     fn point_get_exercise_points_for_current_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/exercises/someexercise/users/current/points",
             r#"
 [
@@ -1402,9 +1426,11 @@ mod test {
     #[test]
     fn point_get_course_points_for_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/users/1/points",
             r#"
 [
@@ -1429,9 +1455,11 @@ mod test {
     #[test]
     fn point_get_course_points_for_current_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/users/current/points",
             r#"
 [
@@ -1456,9 +1484,11 @@ mod test {
     #[test]
     fn point_get_course_points() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/points",
             r#"
 [
@@ -1483,9 +1513,11 @@ mod test {
     #[test]
     fn point_get_exercise_points() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/exercises/someexercise/points",
             r#"
 [
@@ -1511,9 +1543,11 @@ mod test {
     #[test]
     fn point_get_course_points_for_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/0/points",
             r#"
 [
@@ -1538,9 +1572,11 @@ mod test {
     #[test]
     fn point_get_course_points_for_current_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/current/points",
             r#"
 [
@@ -1566,9 +1602,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/submissions",
             r#"
 [
@@ -1608,9 +1646,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions_for_last_hour() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/submissions/last_hour",
             r#"
 [
@@ -1625,9 +1665,10 @@ mod test {
     #[test]
     fn submission_get_course_submissions_for_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("GET", "/api/v8/courses/0/users/1/submissions")
+        let client = &make_client(&server);
+        let _m = server.mock("GET", "/api/v8/courses/0/users/1/submissions")
             .match_query(client_matcher())
             .with_body(
                 r#"
@@ -1669,9 +1710,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions_for_current_user_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/users/current/submissions",
             r#"
 [
@@ -1711,9 +1754,11 @@ mod test {
     #[test]
     fn submission_get_exercise_submissions_for_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/0/submissions",
             r#"
 [
@@ -1754,9 +1799,11 @@ mod test {
     #[test]
     fn submission_get_exercise_submissions_for_current_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/current/submissions",
             r#"
 [
@@ -1798,9 +1845,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/submissions",
             r#"
 [
@@ -1840,9 +1889,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions_for_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/0/submissions",
             r#"
 [
@@ -1883,9 +1934,11 @@ mod test {
     #[test]
     fn submission_get_course_submissions_for_current_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/users/current/submissions",
             r#"
 [
@@ -1927,9 +1980,11 @@ mod test {
     #[test]
     fn exercise_get_course_exercises_by_id() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/courses/0/exercises",
             r#"
 [
@@ -1962,9 +2017,11 @@ mod test {
     #[test]
     fn exercise_get_exercise_submissions_for_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/exercises/0/users/1/submissions",
             r#"
 [
@@ -2004,9 +2061,11 @@ mod test {
     #[test]
     fn exercise_get_exercise_submissions_for_current_user() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/exercises/0/users/current/submissions",
             r#"
 [
@@ -2046,9 +2105,11 @@ mod test {
     #[test]
     fn exercise_get_course_exercises() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg/courses/somecourse/exercises",
             r#"
 [
@@ -2081,15 +2142,17 @@ mod test {
     #[test]
     fn exercise_download_course_exercise() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock(
-            "GET",
-            "/api/v8/org/someorg/courses/somecourse/exercises/someexercise/download",
-        )
-        .match_query(client_matcher())
-        .with_body(b"1234")
-        .create();
+        let client = &make_client(&server);
+        let _m = server
+            .mock(
+                "GET",
+                "/api/v8/org/someorg/courses/somecourse/exercises/someexercise/download",
+            )
+            .match_query(client_matcher())
+            .with_body(b"1234")
+            .create();
 
         let mut temp = tempfile::tempfile().unwrap();
         exercise::download_course_exercise(
@@ -2109,9 +2172,11 @@ mod test {
     #[test]
     fn organization_get_organizations() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org.json",
             r#"
         [
@@ -2132,9 +2197,11 @@ mod test {
     #[test]
     fn organization_get_organization() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/org/someorg.json",
             r#"
         {
@@ -2153,9 +2220,11 @@ mod test {
     #[test]
     fn core_get_course() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/core/courses/0",
             r#"
 {
@@ -2214,9 +2283,11 @@ mod test {
     #[test]
     fn core_get_course_reviews() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/core/courses/0/reviews",
             r#"
         [
@@ -2248,9 +2319,11 @@ mod test {
     #[test]
     fn core_update_course_review() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("PUT", "/api/v8/core/courses/0/reviews/1")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("PUT", "/api/v8/core/courses/0/reviews/1")
             .match_query(client_matcher())
             .match_body(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("review[review_body]".to_string(), "body".to_string()),
@@ -2264,9 +2337,11 @@ mod test {
     #[test]
     fn core_unlock_course() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/core/courses/0/unlock")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/core/courses/0/unlock")
             .match_query(client_matcher())
             .create();
 
@@ -2276,9 +2351,11 @@ mod test {
     #[test]
     fn core_download_exercise() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/exercises/0/download")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/exercises/0/download")
             .match_query(client_matcher())
             .with_body(b"1234")
             .create();
@@ -2294,9 +2371,11 @@ mod test {
     #[test]
     fn core_get_exercise() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/core/exercises/0",
             r#"
         {
@@ -2334,9 +2413,11 @@ mod test {
     #[test]
     fn core_get_exercise_details() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/exercises/details")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/exercises/details")
             .match_query(Matcher::AllOf(vec![
                 client_matcher(),
                 Matcher::UrlEncoded("ids".to_string(), "0,1".to_string()),
@@ -2364,9 +2445,11 @@ mod test {
     #[test]
     fn core_download_exercise_solution() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/exercises/0/solution/download")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/exercises/0/solution/download")
             .match_query(client_matcher())
             .with_body(b"1234")
             .create();
@@ -2382,9 +2465,11 @@ mod test {
     #[test]
     fn core_submit_exercise() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/core/exercises/0/submissions")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/core/exercises/0/submissions")
             .match_query(client_matcher())
             .match_body(Matcher::AllOf(vec![
                 Matcher::Regex("client_time".to_string()),
@@ -2421,9 +2506,11 @@ mod test {
     #[test]
     fn core_get_organization_courses() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
+        let client = &make_client(&server);
         let _m = mock_get(
+            &mut server,
             "/api/v8/core/org/someorg/courses",
             r#"
         [
@@ -2450,9 +2537,11 @@ mod test {
     #[test]
     fn core_download_submission() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/submissions/0/download")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/submissions/0/download")
             .match_query(client_matcher())
             .with_body(b"1234")
             .create();
@@ -2468,9 +2557,11 @@ mod test {
     #[test]
     fn core_post_submission_feedback() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/core/submissions/0/feedback")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/core/submissions/0/feedback")
             .match_query(client_matcher())
             .match_body(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("answers[0][question_id]".to_string(), "0".to_string()),
@@ -2499,9 +2590,11 @@ mod test {
     #[test]
     fn core_post_submission_review() {
         init();
+        let mut server = Server::new();
 
-        let client = &make_client();
-        let _m = mockito::mock("POST", "/api/v8/core/submissions/0/reviews")
+        let client = &make_client(&server);
+        let _m = server
+            .mock("POST", "/api/v8/core/submissions/0/reviews")
             .match_query(client_matcher())
             .match_body(Matcher::UrlEncoded(
                 "review[review_body]".to_string(),

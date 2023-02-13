@@ -107,9 +107,9 @@ pub enum Command {
     /// Finds all exercise root directories inside the exercise-path
     #[clap(long_about = schema_leaked::<Vec<PathBuf>>())]
     FindExercises {
-        /// Path to the directory where the projects reside.
+        /// Path to the directory where to search for exercises.
         #[clap(long)]
-        exercise_path: PathBuf,
+        search_path: PathBuf,
         /// If given, the search results will be written to this path. Overwritten if it already exists.
         #[clap(long)]
         output_path: Option<PathBuf>,
@@ -684,7 +684,7 @@ mod base_test {
     fn find_exercises() {
         get_matches(&[
             "find-exercises",
-            "--exercise-path",
+            "--search-path",
             "path",
             "--output-path",
             "path",

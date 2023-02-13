@@ -625,7 +625,7 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 mod test {
     // many of TmcClient's functions simply call already tested functions from api_v8 and don't need testing
     use super::*;
-    use mockito::Matcher;
+    use mockito::{Matcher, Server};
     use oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
     use std::sync::atomic::AtomicBool;
 
@@ -645,9 +645,9 @@ mod test {
             .init();
     }
 
-    fn make_client() -> TmcClient {
+    fn make_client(server: &Server) -> TmcClient {
         let mut client = TmcClient::new(
-            mockito::server_url().parse().unwrap(),
+            server.url().parse().unwrap(),
             "some_client".to_string(),
             "some_ver".to_string(),
         );
@@ -663,8 +663,9 @@ mod test {
     #[test]
     fn gets_exercise_updates() {
         init();
-        let client = make_client();
-        let _m = mockito::mock("GET", "/api/v8/core/courses/1234")
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let _m = server.mock("GET", "/api/v8/core/courses/1234")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
                 Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
@@ -772,9 +773,10 @@ mod test {
     #[test]
     fn waits_for_submission() {
         init();
-
-        let client = make_client();
-        let m = mockito::mock("GET", "/api/v8/core/submission/0")
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let m = server
+            .mock("GET", "/api/v8/core/submission/0")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "some_client".into()),
                 Matcher::UrlEncoded("client_version".into(), "some_ver".into()),

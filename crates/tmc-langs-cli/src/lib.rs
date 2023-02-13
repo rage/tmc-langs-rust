@@ -242,22 +242,22 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
         }
 
         Command::FindExercises {
-            exercise_path,
+            search_path,
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            file_util::lock!(search_path);
             let exercises =
-                tmc_langs::find_exercise_directories(&exercise_path).with_context(|| {
+                tmc_langs::find_exercise_directories(&search_path).with_context(|| {
                     format!(
                         "Failed to find exercise directories in {}",
-                        exercise_path.display(),
+                        search_path.display(),
                     )
                 })?;
             if let Some(output_path) = output_path {
                 write_result_to_file_as_json(&exercises, &output_path, cli.pretty, None)?;
             }
             CliOutput::finished_with_data(
-                format!("found exercises at {}", exercise_path.display()),
+                format!("found exercises at {}", search_path.display()),
                 DataKind::Exercises(exercises),
             )
         }
@@ -1108,5 +1108,31 @@ fn require_client_version(client_version: &Option<String>) -> Result<&str> {
         anyhow::bail!(
             "The following required argument was not provided: --client-version <client-version>"
         );
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use clap::Parser;
+
+    #[test]
+    fn parses_display_help() {
+        let cli = Cli::try_parse_from(["tmc-langs-cli", "--help"]);
+        if let ParsingResult::Help(err) = map_parsing_result(cli) {
+            assert!(err.to_string().contains("Usage:"));
+        } else {
+            panic!()
+        }
+    }
+
+    #[test]
+    fn parses_version() {
+        let cli = Cli::try_parse_from(["tmc-langs-cli", "--version"]);
+        if let ParsingResult::Version(err) = map_parsing_result(cli) {
+            assert!(err.to_string().starts_with("tmc-langs-cli"));
+        } else {
+            panic!()
+        }
     }
 }

@@ -32,7 +32,7 @@ pub fn json_from_value<T: DeserializeOwned>(json: Value) -> Result<T, JsonError>
 pub type TomlError = serde_path_to_error::Error<toml::de::Error>;
 
 pub fn toml_from_str<T: DeserializeOwned>(toml: &str) -> Result<T, TomlError> {
-    let de = &mut toml::Deserializer::new(toml);
+    let de = toml::Deserializer::new(toml);
     let res = serde_path_to_error::deserialize(de)?;
     Ok(res)
 }
