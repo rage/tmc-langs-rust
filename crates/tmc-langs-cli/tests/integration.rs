@@ -23,7 +23,7 @@ fn cp_exercise(path: &Path) -> TempDir {
 }
 
 fn path_str(path: &impl AsRef<Path>) -> &str {
-    path.as_ref().as_os_str().to_str().unwrap()
+    path.as_ref().to_str().unwrap()
 }
 
 fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
@@ -31,7 +31,8 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
     for entry in WalkDir::new(path).min_depth(1) {
         let entry = entry.unwrap();
         let path = entry.path().strip_prefix(path.as_ref()).unwrap();
-        files.push(path.to_str().unwrap().to_string());
+        let path = path_str(&path).replace('\\', "/");
+        files.push(path);
     }
     files.sort();
     files
@@ -39,14 +40,31 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
 
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
-    insta::with_settings!({filters => vec![
-        // replace all /tmp/ (linux), /var/ (macos) and C:\[..]\Temp\ (win) paths which vary each test run
-        (r"/tmp/\S*", "[PATH]"),
-        (r"/var/\S*", "[PATH]"),
-        (r"C:\\\S*\\Temp\\\S*", "[PATH]"),
-        // replace Windows-style path separators
-        (r"\\\\", "/"),
-    ]}, {
+    insta::with_settings!({
+        filters => vec![
+            // replace Windows-style path separators
+            // the yaml serialization doubles the backslashes so
+            // we need to filter \\\\
+            (r"\\\\", "/"),
+
+            // replace all /tmp/ (linux), /var/ (macos) and C:/[..]/Temp/ (win) paths which vary each test run
+            // note that we already turned \s to /s
+            (r"/tmp/\S*", "[PATH]"),
+            (r"/var/\S*", "[PATH]"),
+            (r"C:/\S*/Temp/\S*", "[PATH]"),
+        ],
+        redactions => vec![
+            // strings containing backslashes get quoted which causes a mismatch between
+            // Linux and Windows tests due to the different path separators,
+            // so here we just unquote everything
+            (".**", insta::dynamic_redaction(|value, _path| {
+                let Some(s) = value.as_str() else {
+                    return value;
+                };
+                s.trim_matches('"').into()
+            }))
+        ],
+    }, {
         insta::glob!("sample_exercises/*/*", |exercise| {
             f(exercise)
         })
