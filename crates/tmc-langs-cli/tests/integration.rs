@@ -46,23 +46,14 @@ fn test(f: impl Fn(&Path)) {
             // the yaml serialization doubles the backslashes so
             // we need to filter \\\\
             (r"\\\\", "/"),
+            // remove quotes, some keys and values get quoted on Windows due to backslash path separators
+            ("\"", ""),
 
             // replace all /tmp/ (linux), /var/ (macos) and C:/[..]/Temp/ (win) paths which vary each test run
             // note that we already turned \s to /s
             (r"/tmp/\S*", "[PATH]"),
             (r"/var/\S*", "[PATH]"),
             (r"C:/\S*/Temp/\S*", "[PATH]"),
-        ],
-        redactions => vec![
-            // strings containing backslashes get quoted which causes a mismatch between
-            // Linux and Windows tests due to the different path separators,
-            // so here we just unquote everything
-            (".**", insta::dynamic_redaction(|value, _path| {
-                let Some(s) = value.as_str() else {
-                    return value;
-                };
-                s.trim_matches('"').into()
-            }))
         ],
     }, {
         insta::glob!("sample_exercises/*/*", |exercise| {
