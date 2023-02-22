@@ -1,14 +1,13 @@
 //! Contains types that abstract over the various archive formats.
 
 use std::{
-    io::{self, Cursor, Seek, Write},
+    io::{Cursor, Seek, Write},
     path::Path,
 };
 use tar::Builder;
 use tmc_langs_framework::{Compression, TmcError};
 use tmc_langs_util::file_util;
 use zip::{write::FileOptions, ZipWriter};
-use zstd::Encoder;
 
 pub enum ArchiveBuilder<W: Write + Seek> {
     Tar(Builder<W>),
@@ -65,11 +64,11 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
     pub fn finish(self) -> Result<W, TmcError> {
         let res = match self {
             Self::Tar(builder) => builder.into_inner().map_err(TmcError::TarWrite)?,
-            Self::TarZstd(writer, builder) => {
-                let mut tar_data = builder.into_inner().map_err(TmcError::TarWrite)?;
-                let mut encoder = Encoder::new(writer, 0).map_err(TmcError::ZstdWrite)?;
-                io::copy(&mut tar_data, &mut encoder).map_err(TmcError::ZstdWrite)?;
-                encoder.finish().map_err(TmcError::ZstdWrite)?
+            Self::TarZstd(mut writer, builder) => {
+                let tar_data = builder.into_inner().map_err(TmcError::TarWrite)?;
+                zstd::stream::copy_encode(tar_data.get_ref().as_slice(), &mut writer, 0)
+                    .map_err(TmcError::ZstdWrite)?;
+                writer
             }
             Self::Zip(mut builder) => builder.finish()?,
         };

@@ -241,34 +241,38 @@ pub enum Compression {
 
 impl Compression {
     pub fn compress(self, path: &Path) -> Result<Vec<u8>, TmcError> {
-        let buf = Cursor::new(Vec::new());
         let buf = match self {
             Self::Tar => {
+                let buf = Cursor::new(Vec::new());
                 let mut builder = tar::Builder::new(buf);
                 builder
                     .append_dir_all(".", path)
                     .map_err(TmcError::TarWrite)?;
-                builder.into_inner().map_err(TmcError::TarWrite)?
+                builder
+                    .into_inner()
+                    .map_err(TmcError::TarWrite)?
+                    .into_inner()
             }
             Self::Zip => {
+                let buf = Cursor::new(Vec::new());
                 let mut writer = zip::ZipWriter::new(buf);
                 let path_str = path
                     .to_str()
                     .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
                 writer.add_directory(path_str, Default::default())?;
-                writer.finish()?
+                writer.finish()?.into_inner()
             }
             Self::TarZstd => {
-                let mut builder = tar::Builder::new(buf);
+                let tar_buf = vec![];
+                let mut builder = tar::Builder::new(tar_buf);
                 builder
                     .append_dir_all(".", path)
                     .map_err(TmcError::TarWrite)?;
-                let buf = builder.into_inner().map_err(TmcError::TarWrite)?;
-                let encoder = zstd::Encoder::new(buf, 0).map_err(TmcError::ZstdWrite)?;
-                encoder.finish().map_err(TmcError::ZstdWrite)?
+                let tar_buf = builder.into_inner().map_err(TmcError::TarWrite)?;
+                zstd::stream::encode_all(tar_buf.as_slice(), 0).map_err(TmcError::ZstdWrite)?
             }
         };
-        Ok(buf.into_inner())
+        Ok(buf)
     }
 }
 
