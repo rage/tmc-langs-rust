@@ -295,6 +295,10 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains types that abstract over the various archive formats.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::TmcError;
@@ -538,34 +542,38 @@
 
 <span class="kw">impl </span>Compression {
     <span class="kw">pub fn </span>compress(<span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, TmcError&gt; {
-        <span class="kw">let </span>buf = Cursor::new(Vec::new());
         <span class="kw">let </span>buf = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Tar =&gt; {
+                <span class="kw">let </span>buf = Cursor::new(Vec::new());
                 <span class="kw">let </span><span class="kw-2">mut </span>builder = tar::Builder::new(buf);
                 builder
                     .append_dir_all(<span class="string">&quot;.&quot;</span>, path)
                     .map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
-                builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?
-            </span>}
+                builder
+                    .into_inner()
+                    .map_err(TmcError::TarWrite)<span class="question-mark">?
+                    </span>.into_inner()
+            }
             <span class="self">Self</span>::Zip =&gt; {
+                <span class="kw">let </span>buf = Cursor::new(Vec::new());
                 <span class="kw">let </span><span class="kw-2">mut </span>writer = zip::ZipWriter::new(buf);
                 <span class="kw">let </span>path_str = path
                     .to_str()
                     .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))<span class="question-mark">?</span>;
                 writer.add_directory(path_str, Default::default())<span class="question-mark">?</span>;
-                writer.finish()<span class="question-mark">?
-            </span>}
+                writer.finish()<span class="question-mark">?</span>.into_inner()
+            }
             <span class="self">Self</span>::TarZstd =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>builder = tar::Builder::new(buf);
+                <span class="kw">let </span>tar_buf = <span class="macro">vec!</span>[];
+                <span class="kw">let </span><span class="kw-2">mut </span>builder = tar::Builder::new(tar_buf);
                 builder
                     .append_dir_all(<span class="string">&quot;.&quot;</span>, path)
                     .map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
-                <span class="kw">let </span>buf = builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
-                <span class="kw">let </span>encoder = zstd::Encoder::new(buf, <span class="number">0</span>).map_err(TmcError::ZstdWrite)<span class="question-mark">?</span>;
-                encoder.finish().map_err(TmcError::ZstdWrite)<span class="question-mark">?
+                <span class="kw">let </span>tar_buf = builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
+                zstd::stream::encode_all(tar_buf.as_slice(), <span class="number">0</span>).map_err(TmcError::ZstdWrite)<span class="question-mark">?
             </span>}
         };
-        <span class="prelude-val">Ok</span>(buf.into_inner())
+        <span class="prelude-val">Ok</span>(buf)
     }
 }
 

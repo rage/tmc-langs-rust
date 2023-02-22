@@ -75,18 +75,16 @@
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains types that abstract over the various archive formats.
 
 </span><span class="kw">use </span>std::{
-    io::{<span class="self">self</span>, Cursor, Seek, Write},
+    io::{Cursor, Seek, Write},
     path::Path,
 };
 <span class="kw">use </span>tar::Builder;
 <span class="kw">use </span>tmc_langs_framework::{Compression, TmcError};
 <span class="kw">use </span>tmc_langs_util::file_util;
 <span class="kw">use </span>zip::{write::FileOptions, ZipWriter};
-<span class="kw">use </span>zstd::Encoder;
 
 <span class="kw">pub enum </span>ArchiveBuilder&lt;W: Write + Seek&gt; {
     Tar(Builder&lt;W&gt;),
@@ -143,12 +141,12 @@
     <span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;W, TmcError&gt; {
         <span class="kw">let </span>res = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Tar(builder) =&gt; builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?</span>,
-            <span class="self">Self</span>::TarZstd(writer, builder) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>tar_data = builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>encoder = Encoder::new(writer, <span class="number">0</span>).map_err(TmcError::ZstdWrite)<span class="question-mark">?</span>;
-                io::copy(<span class="kw-2">&amp;mut </span>tar_data, <span class="kw-2">&amp;mut </span>encoder).map_err(TmcError::ZstdWrite)<span class="question-mark">?</span>;
-                encoder.finish().map_err(TmcError::ZstdWrite)<span class="question-mark">?
-            </span>}
+            <span class="self">Self</span>::TarZstd(<span class="kw-2">mut </span>writer, builder) =&gt; {
+                <span class="kw">let </span>tar_data = builder.into_inner().map_err(TmcError::TarWrite)<span class="question-mark">?</span>;
+                zstd::stream::copy_encode(tar_data.get_ref().as_slice(), <span class="kw-2">&amp;mut </span>writer, <span class="number">0</span>)
+                    .map_err(TmcError::ZstdWrite)<span class="question-mark">?</span>;
+                writer
+            }
             <span class="self">Self</span>::Zip(<span class="kw-2">mut </span>builder) =&gt; builder.finish()<span class="question-mark">?</span>,
         };
         <span class="prelude-val">Ok</span>(res)
