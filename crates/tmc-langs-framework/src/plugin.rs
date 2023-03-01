@@ -278,6 +278,9 @@ pub trait LanguagePlugin {
     }
 
     /// Searches the zip for a valid project directory.
+    /// This function is used to detect the language plugin for the archive, so
+    /// simply finding "src" is not sufficient, e.g. the Python plugin should check
+    /// that there is an actual "src/*.py" file inside src.
     /// Note that the returned path may not actually have an entry in the zip.
     fn find_project_dir_in_archive<R: Read + Seek>(
         archive: &mut Archive<R>,

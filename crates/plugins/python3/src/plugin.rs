@@ -13,7 +13,7 @@ use std::{
     ffi::OsStr,
     io::{BufReader, Read, Seek},
     ops::ControlFlow::{Break, Continue},
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
     time::Duration,
 };
 use tmc_langs_framework::{
@@ -361,11 +361,34 @@ impl LanguagePlugin for Python3Plugin {
 
         let project_dir = loop {
             let next = iter.with_next(|file| {
-                // zips don't necessarily contain entries for intermediate directories,
-                // so we need to check every path for src
+                // archives don't necessarily contain entries for intermediate directories
                 let file_path = file.path()?;
 
+                // skip pycache paths
+                if file_path
+                    .components()
+                    .map(Component::as_os_str)
+                    .flat_map(OsStr::to_str)
+                    .any(|c| c == "__pycache__")
+                {
+                    return Ok(Continue(()));
+                }
+
                 if file.is_file() {
+                    // for all .py files...
+                    if file_path
+                        .extension()
+                        .and_then(OsStr::to_str)
+                        .map(|ext| ext == "py")
+                        .unwrap_or_default()
+                    {
+                        // check if the parent is src and return src's parent dir if so
+                        if let Some(parent) = file_path.parent() {
+                            if let Some(parent) = path_util::get_parent_of_named(&parent, "src") {
+                                return Ok(Break(Some(parent)));
+                            }
+                        }
+                    }
                     if let Some(parent) = path_util::get_parent_of_named(&file_path, "setup.py") {
                         return Ok(Break(Some(parent)));
                     }
