@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::path::Path;
 use tempfile::{tempdir, NamedTempFile, TempDir};
+use tmc_langs::Compression;
 use tmc_langs_cli::app::Cli;
 use walkdir::WalkDir;
 
@@ -22,6 +23,38 @@ fn cp_exercise(path: &Path) -> TempDir {
     temp
 }
 
+fn compress_naive(path: &impl AsRef<Path>, target: &impl AsRef<Path>, compression: Compression) {
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "compress-project",
+        "--exercise-path",
+        path_str(path),
+        "--output-path",
+        path_str(target),
+        "--compression",
+        &compression.to_string(),
+        "--naive",
+    ]);
+    tmc_langs_cli::run(cli).unwrap();
+}
+
+fn extract_naive(path: &impl AsRef<Path>, target: &impl AsRef<Path>, compression: Compression) {
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "extract-project",
+        "--archive-path",
+        path_str(path),
+        "--output-path",
+        path_str(target),
+        "--compression",
+        &compression.to_string(),
+        "--naive",
+    ]);
+    tmc_langs_cli::run(cli).unwrap();
+}
+
 fn path_str(path: &impl AsRef<Path>) -> &str {
     path.as_ref().to_str().unwrap()
 }
@@ -40,6 +73,7 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
 
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
+    let _ = env_logger::try_init();
     insta::with_settings!({
         filters => vec![
             // replace Windows-style path separators
@@ -56,7 +90,8 @@ fn test(f: impl Fn(&Path)) {
             (r"C:/\S*/Temp/\S*", "[PATH]"),
         ],
     }, {
-        insta::glob!("sample_exercises/*/*", |exercise| {
+        insta::glob!("../../../", "sample_exercises/*/*", |exercise| {
+            println!("testing {exercise:?}");
             f(exercise)
         })
     })
@@ -97,6 +132,155 @@ fn clean() {
         let output = tmc_langs_cli::run(cli).unwrap();
         insta::assert_yaml_snapshot!(output);
         let files = sorted_list_of_files(&ex);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn compress_project_tar() {
+    test(|exercise| {
+        let target = NamedTempFile::new().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "compress-project",
+            "--exercise-path",
+            path_str(&exercise),
+            "--output-path",
+            path_str(&target),
+            "--compression",
+            "tar",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+
+        let extracted = tempdir().unwrap();
+        extract_naive(&target, &extracted, Compression::Tar);
+        let files = sorted_list_of_files(&extracted);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn compress_project_zip() {
+    test(|exercise| {
+        let target = NamedTempFile::new().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "compress-project",
+            "--exercise-path",
+            path_str(&exercise),
+            "--output-path",
+            path_str(&target),
+            // zip should be the default
+            // "--compression",
+            // "zip",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+
+        let extracted = tempdir().unwrap();
+        extract_naive(&target, &extracted, Compression::Zip);
+        let files = sorted_list_of_files(&extracted);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn compress_project_zstd() {
+    test(|exercise| {
+        let target = NamedTempFile::new().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "compress-project",
+            "--exercise-path",
+            path_str(&exercise),
+            "--output-path",
+            path_str(&target),
+            "--compression",
+            "zstd",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+
+        let extracted = tempdir().unwrap();
+        extract_naive(&target, &extracted, Compression::TarZstd);
+        let files = sorted_list_of_files(&extracted);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn extract_project_tar() {
+    test(|exercise| {
+        let compressed = NamedTempFile::new().unwrap();
+        compress_naive(&exercise, &compressed, Compression::Tar);
+        let target = tempdir().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "extract-project",
+            "--archive-path",
+            path_str(&compressed),
+            "--output-path",
+            path_str(&target),
+            "--compression",
+            "tar",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+        let files = sorted_list_of_files(&target);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn extract_project_zip() {
+    test(|exercise| {
+        let compressed = NamedTempFile::new().unwrap();
+        compress_naive(&exercise, &compressed, Compression::Zip);
+        let target = tempdir().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "extract-project",
+            "--archive-path",
+            path_str(&compressed),
+            "--output-path",
+            path_str(&target),
+            // zip should be the default
+            // "--compression",
+            // "zip",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+        let files = sorted_list_of_files(&target);
+        insta::assert_yaml_snapshot!(files);
+    })
+}
+
+#[test]
+fn extract_project_zstd() {
+    test(|exercise| {
+        let compressed = NamedTempFile::new().unwrap();
+        compress_naive(&exercise, &compressed, Compression::TarZstd);
+        let target = tempdir().unwrap();
+        let cli = Cli::parse_from([
+            "tmc-langs-cli",
+            "--pretty",
+            "extract-project",
+            "--archive-path",
+            path_str(&compressed),
+            "--output-path",
+            path_str(&target),
+            "--compression",
+            "zstd",
+        ]);
+        let output = tmc_langs_cli::run(cli).unwrap();
+        insta::assert_yaml_snapshot!(output);
+        let files = sorted_list_of_files(&target);
         insta::assert_yaml_snapshot!(files);
     })
 }
