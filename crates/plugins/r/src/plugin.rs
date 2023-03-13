@@ -129,6 +129,15 @@ impl LanguagePlugin for RPlugin {
                 if let Some(parent) = path_util::get_parent_of_component_in_path(&file_path, "R") {
                     return Ok(Break(Some(parent)));
                 }
+                if let Some(parent) =
+                    path_util::get_parent_of_component_in_path(&file_path, "testthat")
+                {
+                    if let Some(parent) = parent.parent() {
+                        if parent.ends_with("tests") {
+                            return Ok(Break(Some(parent.to_path_buf())));
+                        }
+                    }
+                }
                 Ok(Continue(()))
             });
             match next? {

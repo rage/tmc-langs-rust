@@ -384,7 +384,7 @@ impl LanguagePlugin for Python3Plugin {
                     {
                         // check if the parent is src and return src's parent dir if so
                         if let Some(parent) = file_path.parent() {
-                            if let Some(parent) = path_util::get_parent_of_named(&parent, "src") {
+                            if let Some(parent) = path_util::get_parent_of_named(parent, "src") {
                                 return Ok(Break(Some(parent)));
                             }
                         }
