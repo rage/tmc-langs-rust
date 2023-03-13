@@ -4,11 +4,13 @@ use crate::TmcError;
 use serde::Deserialize;
 use std::{
     fmt::Display,
-    io::{BufReader, Cursor, Read, Seek},
+    io::{BufReader, Cursor, Read, Seek, Write},
     ops::ControlFlow::{self, Break},
     path::{Path, PathBuf},
     str::FromStr,
 };
+use tmc_langs_util::file_util;
+use walkdir::WalkDir;
 
 /// Wrapper unifying the API of all the different compression formats supported by langs.
 /// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,
@@ -256,10 +258,26 @@ impl Compression {
             Self::Zip => {
                 let buf = Cursor::new(Vec::new());
                 let mut writer = zip::ZipWriter::new(buf);
-                let path_str = path
-                    .to_str()
-                    .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
-                writer.add_directory(path_str, Default::default())?;
+                let parent = path.parent().map(PathBuf::from).unwrap_or_default();
+                for entry in WalkDir::new(path) {
+                    let entry = entry?;
+                    let stripped = entry
+                        .path()
+                        .strip_prefix(&parent)
+                        .expect("entries are within parent");
+                    let path_str = stripped
+                        .to_str()
+                        .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
+                    if entry.path().is_dir() {
+                        writer.add_directory(path_str, Default::default())?;
+                    } else if entry.path().is_file() {
+                        writer.start_file(path_str, Default::default())?;
+                        let contents = file_util::read_file(entry.path())?;
+                        writer
+                            .write_all(&contents)
+                            .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
+                    }
+                }
                 writer.finish()?.into_inner()
             }
             Self::TarZstd => {

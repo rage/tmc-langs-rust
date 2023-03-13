@@ -155,7 +155,7 @@ fn error_message_special_casing(e: &anyhow::Error) -> String {
             return cnf.to_string();
         }
     }
-    format!("{e:?}") // debug formatting to print backtrace from anyhow
+    e.to_string()
 }
 
 /// Goes through the error chain and returns the error output file path if a sandbox test error is found

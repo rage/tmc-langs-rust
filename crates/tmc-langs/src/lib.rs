@@ -58,8 +58,8 @@ pub use tmc_langs_framework::{
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
 use tmc_langs_plugins::{
-    compression, AntPlugin, CSharpPlugin, MakePlugin, MavenPlugin, NoTestsPlugin, Plugin,
-    PluginType, Python3Plugin, RPlugin,
+    AntPlugin, CSharpPlugin, MakePlugin, MavenPlugin, NoTestsPlugin, Plugin, PluginType,
+    Python3Plugin, RPlugin,
 };
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
@@ -1021,7 +1021,12 @@ fn extract_project_overwrite(
                 .unpack(target_location)
                 .map_err(|e| LangsError::TarExtract(target_location.to_path_buf(), e))?;
         }
-        Compression::Zip => compression::unzip(compressed_project, target_location)?,
+        Compression::Zip => {
+            let mut archive = zip::ZipArchive::new(compressed_project)?;
+            archive
+                .extract(target_location)
+                .map_err(|e| LangsError::ZipExtract(target_location.to_path_buf(), e))?;
+        }
     }
     Ok(())
 }

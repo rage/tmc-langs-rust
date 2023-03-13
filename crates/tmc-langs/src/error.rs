@@ -5,6 +5,7 @@ use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
 use tmc_client::ClientError;
+use tmc_langs_plugins::compression::ZipError;
 use tmc_langs_util::{JsonError, TomlError, YamlError};
 
 /// Main error type of the library.
@@ -34,6 +35,8 @@ pub enum LangsError {
     NoProjectDirInZip(PathBuf),
     #[error("Error while writing file to zip")]
     ZipWrite(#[source] std::io::Error),
+    #[error("Error extracting zip to {0}")]
+    ZipExtract(PathBuf, #[source] ZipError),
     #[error("Failed to parse file {0}")]
     SubmissionParse(PathBuf, #[source] Box<Self>),
     #[error("Failed to deserialize credentials file at {0}. The file has been removed, please try again")]

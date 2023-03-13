@@ -25,34 +25,42 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
     }
 
     /// Does not include any files within the directory.
-    pub fn add_directory(&mut self, path: &str) -> Result<(), TmcError> {
-        log::trace!("adding directory {}", path);
+    pub fn add_directory(&mut self, source: &Path, path_in_archive: &str) -> Result<(), TmcError> {
+        log::trace!("adding directory {}", path_in_archive);
         match self {
             Self::Tar(builder) => {
-                builder.append_dir(path, path).map_err(TmcError::TarWrite)?;
+                builder
+                    .append_dir(path_in_archive, source)
+                    .map_err(TmcError::TarWrite)?;
             }
             Self::TarZstd(_, builder) => {
-                builder.append_dir(path, path).map_err(TmcError::TarWrite)?;
+                builder
+                    .append_dir(path_in_archive, source)
+                    .map_err(TmcError::TarWrite)?;
             }
-            Self::Zip(builder) => {
-                builder.add_directory(path, FileOptions::default().unix_permissions(0o755))?
-            }
+            Self::Zip(builder) => builder.add_directory(
+                path_in_archive,
+                FileOptions::default().unix_permissions(0o755),
+            )?,
         }
         Ok(())
     }
 
-    pub fn add_file(&mut self, source: &Path, target: &str) -> Result<(), TmcError> {
-        log::trace!("writing file {} as {}", source.display(), target);
+    pub fn add_file(&mut self, source: &Path, path_in_archive: &str) -> Result<(), TmcError> {
+        log::trace!("writing file {} as {}", source.display(), path_in_archive);
         match self {
             Self::Tar(builder) => builder
-                .append_path_with_name(source, target)
+                .append_path_with_name(source, path_in_archive)
                 .map_err(TmcError::TarWrite)?,
             Self::TarZstd(_, builder) => builder
-                .append_path_with_name(source, target)
+                .append_path_with_name(source, path_in_archive)
                 .map_err(TmcError::TarWrite)?,
             Self::Zip(builder) => {
                 let bytes = file_util::read_file(source)?;
-                builder.start_file(target, FileOptions::default().unix_permissions(0o755))?;
+                builder.start_file(
+                    path_in_archive,
+                    FileOptions::default().unix_permissions(0o755),
+                )?;
                 builder
                     .write_all(&bytes)
                     .map_err(|e| TmcError::ZipWrite(source.into(), e))?;

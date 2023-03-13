@@ -40,7 +40,7 @@ pub fn compress_student_files(
                 })
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
-                writer.add_directory(&path_to_zip_compatible_string(path))?;
+                writer.add_directory(entry.path(), &path_to_zip_compatible_string(path))?;
             } else {
                 writer.add_file(entry.path(), &path_to_zip_compatible_string(path))?;
             }
