@@ -6,10 +6,11 @@ use tmc_langs_cli::app::Cli;
 use walkdir::WalkDir;
 
 fn cp_exercise(path: &Path) -> TempDir {
+    let path_parent = path.parent().unwrap();
     let temp = tempdir().unwrap();
     for file in WalkDir::new(path) {
         let file = file.unwrap();
-        let relative = file.path().strip_prefix(path).unwrap();
+        let relative = file.path().strip_prefix(path_parent).unwrap();
         let target = temp.path().join(relative);
         if file.file_type().is_dir() {
             std::fs::create_dir_all(target).unwrap();
@@ -91,8 +92,10 @@ fn test(f: impl Fn(&Path)) {
         ],
     }, {
         insta::glob!("../../../", "sample_exercises/*/*", |exercise| {
-            println!("testing {exercise:?}");
-            f(exercise)
+            let dir_name = exercise.file_name().unwrap();
+            let exercise = cp_exercise(&exercise);
+            println!("testing {:?}", exercise.path().join(dir_name));
+            f(&exercise.path().join(dir_name))
         })
     })
 }
@@ -100,14 +103,13 @@ fn test(f: impl Fn(&Path)) {
 #[test]
 fn checkstyle() {
     test(|exercise| {
-        let ex = cp_exercise(exercise);
         let out = NamedTempFile::new().unwrap();
         let cli = Cli::parse_from([
             "tmc-langs-cli",
             "--pretty",
             "checkstyle",
             "--exercise-path",
-            path_str(&ex),
+            path_str(&exercise),
             "--locale",
             "eng",
             "--output-path",
@@ -121,17 +123,16 @@ fn checkstyle() {
 #[test]
 fn clean() {
     test(|exercise| {
-        let ex = cp_exercise(exercise);
         let cli = Cli::parse_from([
             "tmc-langs-cli",
             "--pretty",
             "clean",
             "--exercise-path",
-            path_str(&ex),
+            path_str(&exercise),
         ]);
         let output = tmc_langs_cli::run(cli).unwrap();
         insta::assert_yaml_snapshot!(output);
-        let files = sorted_list_of_files(&ex);
+        let files = sorted_list_of_files(&exercise);
         insta::assert_yaml_snapshot!(files);
     })
 }
