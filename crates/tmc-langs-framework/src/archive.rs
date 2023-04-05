@@ -15,10 +15,14 @@ use walkdir::WalkDir;
 /// Wrapper unifying the API of all the different compression formats supported by langs.
 /// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,
 /// while zip only supports accessing by index.
-pub enum Archive<T: Read + Seek> {
+pub struct Archive<T: Read + Seek>(ArchiveInner<T>);
+
+enum ArchiveInner<T: Read + Seek> {
     Tar(tar::Archive<T>),
     TarZstd(tar::Archive<zstd::Decoder<'static, BufReader<T>>>),
     Zip(zip::ZipArchive<T>),
+    // This variant is only used for dummy values when swapping out the inner archive when we only have a &mut Archive
+    Empty,
 }
 
 impl<T: Read + Seek> Archive<T> {
@@ -32,86 +36,124 @@ impl<T: Read + Seek> Archive<T> {
 
     pub fn tar(archive: T) -> Self {
         let archive = tar::Archive::new(archive);
-        Self::Tar(archive)
+        Self(ArchiveInner::Tar(archive))
     }
 
     pub fn tar_zstd(archive: T) -> Result<Self, TmcError> {
         let archive = zstd::Decoder::new(archive).map_err(TmcError::ZstdRead)?;
         let archive = tar::Archive::new(archive);
-        Ok(Self::TarZstd(archive))
+        Ok(Self(ArchiveInner::TarZstd(archive)))
     }
 
     pub fn zip(archive: T) -> Result<Self, TmcError> {
         let archive = zip::ZipArchive::new(archive)?;
-        Ok(Self::Zip(archive))
+        Ok(Self(ArchiveInner::Zip(archive)))
     }
 
     pub fn extract(self, target_directory: &Path) -> Result<(), TmcError> {
         match self {
-            Self::Tar(mut tar) => tar.unpack(target_directory).map_err(TmcError::TarRead)?,
-            Self::TarZstd(mut zstd) => zstd.unpack(target_directory).map_err(TmcError::TarRead)?,
-            Self::Zip(mut zip) => zip.extract(target_directory)?,
+            Self(ArchiveInner::Tar(mut tar)) => {
+                tar.unpack(target_directory).map_err(TmcError::TarRead)?
+            }
+            Self(ArchiveInner::TarZstd(mut zstd)) => {
+                zstd.unpack(target_directory).map_err(TmcError::TarRead)?
+            }
+            Self(ArchiveInner::Zip(mut zip)) => zip.extract(target_directory)?,
+            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
         Ok(())
     }
 
-    /// a
     pub fn iter(&mut self) -> Result<ArchiveIterator<'_, T>, TmcError> {
+        self.reset()?;
         match self {
-            Self::Tar(archive) => {
-                let iter = ArchiveIterator::Tar(archive.entries().map_err(TmcError::TarRead)?);
+            Self(ArchiveInner::Tar(archive)) => {
+                let iter =
+                    ArchiveIterator::Tar(archive.entries_with_seek().map_err(TmcError::TarRead)?);
                 Ok(iter)
             }
-            Self::TarZstd(archive) => {
+            Self(ArchiveInner::TarZstd(archive)) => {
                 let iter = ArchiveIterator::TarZstd(archive.entries().map_err(TmcError::TarRead)?);
                 Ok(iter)
             }
-            Self::Zip(archive) => Ok(ArchiveIterator::Zip(0, archive)),
+            Self(ArchiveInner::Zip(archive)) => Ok(ArchiveIterator::Zip(0, archive)),
+            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
     }
 
     pub fn by_path(&mut self, path: &str) -> Result<Entry<'_, T>, TmcError> {
+        self.reset()?;
         match self {
-            Self::Tar(archive) => {
-                for entry in archive.entries().map_err(TmcError::TarRead)? {
-                    let mut entry = entry.map_err(TmcError::TarRead)?;
+            Self(ArchiveInner::Tar(archive)) => {
+                for entry in archive.entries_with_seek().map_err(TmcError::TarRead)? {
+                    let entry = entry.map_err(TmcError::TarRead)?;
                     if entry.path().map_err(TmcError::TarRead)? == Path::new(path) {
                         return Ok(Entry::Tar(entry));
                     }
-                    // "process" file
-                    let mut buf = Vec::new();
-                    entry.read_to_end(&mut buf).map_err(TmcError::TarRead)?;
                 }
                 Err(TmcError::TarRead(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("Could not find {path} in tar"),
                 )))
             }
-            Self::TarZstd(archive) => {
+            Self(ArchiveInner::TarZstd(archive)) => {
                 for entry in archive.entries().map_err(TmcError::TarRead)? {
-                    let mut entry = entry.map_err(TmcError::TarRead)?;
+                    let entry = entry.map_err(TmcError::TarRead)?;
                     if entry.path().map_err(TmcError::TarRead)? == Path::new(path) {
                         return Ok(Entry::TarZstd(entry));
                     }
-                    // "process" file
-                    let mut buf = Vec::new();
-                    entry.read_to_end(&mut buf).map_err(TmcError::TarRead)?;
                 }
                 Err(TmcError::TarRead(std::io::Error::new(
                     std::io::ErrorKind::Other,
                     format!("Could not find {path} in tar"),
                 )))
             }
-            Self::Zip(archive) => archive.by_name(path).map(Entry::Zip).map_err(Into::into),
+            Self(ArchiveInner::Zip(archive)) => {
+                archive.by_name(path).map(Entry::Zip).map_err(Into::into)
+            }
+            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
     }
 
     pub fn compression(&self) -> Compression {
         match self {
-            Self::Tar(_) => Compression::Tar,
-            Self::TarZstd(_) => Compression::TarZstd,
-            Self::Zip(_) => Compression::Zip,
+            Self(ArchiveInner::Tar(_)) => Compression::Tar,
+            Self(ArchiveInner::TarZstd(_)) => Compression::TarZstd,
+            Self(ArchiveInner::Zip(_)) => Compression::Zip,
+            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
+    }
+
+    /// tar's entries functions require the archive's position to be at 0,
+    /// but resetting the position is awkward, hence this helper function
+    fn reset(&mut self) -> Result<(), TmcError> {
+        let mut swap = ArchiveInner::Empty;
+        std::mem::swap(&mut self.0, &mut swap);
+        let mut swap = match swap {
+            ArchiveInner::Tar(archive) => {
+                let mut inner = archive.into_inner();
+                inner
+                    .seek(std::io::SeekFrom::Start(0))
+                    .map_err(TmcError::Seek)?;
+                ArchiveInner::Tar(tar::Archive::new(inner))
+            }
+            ArchiveInner::TarZstd(archive) => {
+                let mut inner = archive.into_inner().finish().into_inner();
+                inner
+                    .seek(std::io::SeekFrom::Start(0))
+                    .map_err(TmcError::Seek)?;
+                let decoder = zstd::Decoder::new(inner).map_err(TmcError::ZstdRead)?;
+                ArchiveInner::TarZstd(tar::Archive::new(decoder))
+            }
+            ArchiveInner::Zip(_) => {
+                // no-op
+                swap
+            }
+            ArchiveInner::Empty => unreachable!("This is a bug."),
+        };
+        // swap the value back in
+        std::mem::swap(&mut self.0, &mut swap);
+        Ok(())
     }
 }
 

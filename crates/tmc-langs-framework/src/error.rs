@@ -10,8 +10,13 @@ pub use zip::result::ZipError;
 // todo: make util error type and move variants there
 #[derive(Error, Debug)]
 pub enum TmcError {
+    #[error("Failed to seek archive")]
+    Seek(#[source] std::io::Error),
+
+    #[error("Failed to read zip file")]
+    ZipRead(#[source] std::io::Error),
     #[error("Failed to read file inside zip archive with path {0}")]
-    ZipRead(PathBuf, #[source] std::io::Error),
+    ZipReadFile(PathBuf, #[source] std::io::Error),
     #[error("Failed to write file at {0} to zip archive")]
     ZipWrite(PathBuf, #[source] std::io::Error),
     #[error("Invalid name {0} in zip")]
