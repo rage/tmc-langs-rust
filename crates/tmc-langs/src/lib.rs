@@ -824,11 +824,17 @@ pub fn extract_project(
         let mut archive = Archive::new(compressed_project, compression)?;
         plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
-        log::debug!(
-            "no matching language plugin found for {}, overwriting",
-            target_location.display()
-        );
-        extract_project_overwrite(compressed_project, target_location, compression)?;
+        let mut archive = Archive::new(compressed_project, compression)?;
+        if let Ok(plugin) = PluginType::from_archive(&mut archive) {
+            plugin.extract_project(&mut archive, target_location, clean)?;
+        } else {
+            log::debug!(
+                "no matching language plugin found for {}, extracting naively",
+                target_location.display()
+            );
+            let compressed_project = archive.into_inner();
+            extract_project_overwrite(compressed_project, target_location, compression)?;
+        }
     }
     Ok(())
 }
@@ -919,11 +925,17 @@ pub fn extract_student_files(
     if let Ok(plugin) = PluginType::from_exercise(target_location) {
         plugin.extract_student_files(compressed_project, compression, target_location)?;
     } else {
-        log::debug!(
-            "no matching language plugin found for {}, overwriting",
-            target_location.display()
-        );
-        extract_project_overwrite(compressed_project, target_location, Compression::Zip)?;
+        let mut archive = Archive::new(compressed_project, compression)?;
+        if let Ok(plugin) = PluginType::from_archive(&mut archive) {
+            let compressed_project = archive.into_inner();
+            plugin.extract_student_files(compressed_project, compression, target_location)?;
+        } else {
+            log::debug!(
+                "no matching language plugin found for {}, extracting naively",
+                target_location.display()
+            );
+            archive.extract(target_location)?;
+        }
     }
     Ok(())
 }

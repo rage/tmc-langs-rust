@@ -124,6 +124,15 @@ impl<T: Read + Seek> Archive<T> {
         }
     }
 
+    pub fn into_inner(self) -> T {
+        match self {
+            Self(ArchiveInner::Tar(archive)) => archive.into_inner(),
+            Self(ArchiveInner::TarZstd(archive)) => archive.into_inner().finish().into_inner(),
+            Self(ArchiveInner::Zip(archive)) => archive.into_inner(),
+            Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
+        }
+    }
+
     /// tar's entries functions require the archive's position to be at 0,
     /// but resetting the position is awkward, hence this helper function
     fn reset(&mut self) -> Result<(), TmcError> {
