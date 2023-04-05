@@ -124,7 +124,8 @@ pub trait LanguagePlugin {
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         // used to clean non-student files not in the zip later
-        let mut files_from_zip = HashSet::new();
+        let mut files_from_archive = HashSet::new();
+        files_from_archive.insert(target_location.join(".tmcproject.yml")); // prevent cleaning .tmcproject.yml
 
         let mut iter = archive.iter()?;
         loop {
@@ -145,7 +146,7 @@ pub trait LanguagePlugin {
                 let path_in_target = target_location.join(relative);
                 log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
 
-                files_from_zip.insert(path_in_target.clone());
+                files_from_archive.insert(path_in_target.clone());
 
                 if !path_in_target.exists() {
                     // just extract
@@ -175,8 +176,8 @@ pub trait LanguagePlugin {
         }
 
         if clean {
-            // delete non-student files that were not in zip
-            log::debug!("deleting non-student files not in zip");
+            // delete non-student files that were not in archive
+            log::debug!("deleting non-student files not in archive");
             for entry in WalkDir::new(target_location)
                 .into_iter()
                 .filter_map(|e| e.ok())
@@ -185,7 +186,7 @@ pub trait LanguagePlugin {
                     .path()
                     .strip_prefix(target_location)
                     .expect("all entries are inside target");
-                if !files_from_zip.contains(entry.path())
+                if !files_from_archive.contains(entry.path())
                     && (policy.is_updating_forced(entry.path())?
                         || !policy.is_student_file(relative))
                 {
