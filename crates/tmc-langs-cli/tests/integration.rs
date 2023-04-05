@@ -290,7 +290,7 @@ fn extract_project_zstd() {
 fn prepare_submission_tar() {
     test(|exercise| {
         let compressed = NamedTempFile::new().unwrap();
-        compress_naive(&exercise, &compressed, Compression::TarZstd);
+        compress_naive(&exercise, &compressed, Compression::Tar);
         let target = NamedTempFile::new().unwrap();
         let cli = Cli::parse_from([
             "tmc-langs-cli",
@@ -300,8 +300,9 @@ fn prepare_submission_tar() {
             path_str(&exercise),
             "--output-path",
             path_str(&target),
-            "--output-format",
-            "tar",
+            // tar should be the default
+            // "--output-format",
+            // "tar",
             "--submission-path",
             path_str(&compressed),
             "--submission-compression",
@@ -322,7 +323,7 @@ fn prepare_submission_tar() {
 fn prepare_submission_zip() {
     test(|exercise| {
         let compressed = NamedTempFile::new().unwrap();
-        compress_naive(&exercise, &compressed, Compression::TarZstd);
+        compress_naive(&exercise, &compressed, Compression::Zip);
         let target = NamedTempFile::new().unwrap();
         let cli = Cli::parse_from([
             "tmc-langs-cli",
@@ -332,8 +333,8 @@ fn prepare_submission_zip() {
             path_str(&exercise),
             "--output-path",
             path_str(&target),
-            // "--output-format",
-            // "zip",
+            "--output-format",
+            "zip",
             "--submission-path",
             path_str(&compressed),
             // "--submission-compression",
