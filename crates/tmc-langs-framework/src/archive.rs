@@ -298,9 +298,18 @@ impl Compression {
             Self::Tar => {
                 let buf = Cursor::new(Vec::new());
                 let mut builder = tar::Builder::new(buf);
-                builder
-                    .append_dir_all(".", path)
-                    .map_err(TmcError::TarWrite)?;
+                walk_dir_for_compression(path, |entry, relative_path| {
+                    if entry.path().is_dir() {
+                        builder
+                            .append_dir(relative_path, entry.path())
+                            .map_err(TmcError::TarWrite)?;
+                    } else if entry.path().is_file() {
+                        builder
+                            .append_path_with_name(entry.path(), relative_path)
+                            .map_err(TmcError::TarWrite)?;
+                    }
+                    Ok(())
+                })?;
                 builder
                     .into_inner()
                     .map_err(TmcError::TarWrite)?
@@ -309,40 +318,64 @@ impl Compression {
             Self::Zip => {
                 let buf = Cursor::new(Vec::new());
                 let mut writer = zip::ZipWriter::new(buf);
-                let parent = path.parent().map(PathBuf::from).unwrap_or_default();
-                for entry in WalkDir::new(path) {
-                    let entry = entry?;
-                    let stripped = entry
-                        .path()
-                        .strip_prefix(&parent)
-                        .expect("entries are within parent");
-                    let path_str = stripped
-                        .to_str()
-                        .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
+                walk_dir_for_compression(path, |entry, relative_path| {
                     if entry.path().is_dir() {
-                        writer.add_directory(path_str, Default::default())?;
+                        writer.add_directory(relative_path, Default::default())?;
                     } else if entry.path().is_file() {
-                        writer.start_file(path_str, Default::default())?;
+                        writer.start_file(relative_path, Default::default())?;
                         let contents = file_util::read_file(entry.path())?;
                         writer
                             .write_all(&contents)
-                            .map_err(|e| TmcError::ZipWrite(path.to_path_buf(), e))?;
+                            .map_err(|err| TmcError::ZipWrite(path.to_path_buf(), err))?;
                     }
-                }
+                    Ok(())
+                })?;
                 writer.finish()?.into_inner()
             }
             Self::TarZstd => {
                 let tar_buf = vec![];
                 let mut builder = tar::Builder::new(tar_buf);
-                builder
-                    .append_dir_all(".", path)
-                    .map_err(TmcError::TarWrite)?;
+                walk_dir_for_compression(path, |entry, relative_path| {
+                    if entry.path().is_dir() {
+                        builder
+                            .append_dir(relative_path, entry.path())
+                            .map_err(TmcError::TarWrite)?;
+                    } else if entry.path().is_file() {
+                        builder
+                            .append_path_with_name(entry.path(), relative_path)
+                            .map_err(TmcError::TarWrite)?;
+                    }
+                    Ok(())
+                })?;
                 let tar_buf = builder.into_inner().map_err(TmcError::TarWrite)?;
                 zstd::stream::encode_all(tar_buf.as_slice(), 0).map_err(TmcError::ZstdWrite)?
             }
         };
         Ok(buf)
     }
+}
+
+fn walk_dir_for_compression(
+    root: &Path,
+    mut f: impl FnMut(&walkdir::DirEntry, &str) -> Result<(), TmcError>,
+) -> Result<(), TmcError> {
+    let parent = root.parent().map(PathBuf::from).unwrap_or_default();
+    for entry in WalkDir::new(root)
+        .into_iter()
+        // filter windows lock files
+        .filter_entry(|e| e.file_name() != ".tmc.lock")
+    {
+        let entry = entry?;
+        let stripped = entry
+            .path()
+            .strip_prefix(&parent)
+            .expect("entries are within parent");
+        let path_str = stripped
+            .to_str()
+            .ok_or_else(|| TmcError::InvalidUtf8(stripped.to_path_buf()))?;
+        f(&entry, path_str)?;
+    }
+    Ok(())
 }
 
 impl Display for Compression {
