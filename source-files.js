@@ -162,7 +162,7 @@ var sourcesIndex = JSON.parse('{\
 "strsim":["",[],["lib.rs"]],\
 "subprocess":["",[],["builder.rs","communicate.rs","lib.rs","os_common.rs","popen.rs","posix.rs"]],\
 "subtle":["",[],["lib.rs"]],\
-"syn":["",[["gen",[],["clone.rs","debug.rs","eq.rs","gen_helper.rs","hash.rs"]]],["attr.rs","await.rs","bigint.rs","buffer.rs","custom_keyword.rs","custom_punctuation.rs","data.rs","derive.rs","discouraged.rs","drops.rs","error.rs","export.rs","expr.rs","ext.rs","file.rs","generics.rs","group.rs","ident.rs","item.rs","lib.rs","lifetime.rs","lit.rs","lookahead.rs","mac.rs","macros.rs","op.rs","parse.rs","parse_macro_input.rs","parse_quote.rs","pat.rs","path.rs","print.rs","punctuated.rs","reserved.rs","sealed.rs","span.rs","spanned.rs","stmt.rs","thread.rs","token.rs","tt.rs","ty.rs","verbatim.rs","whitespace.rs"]],\
+"syn":["",[["gen",[],["clone.rs","debug.rs","eq.rs","hash.rs"]]],["attr.rs","await.rs","bigint.rs","buffer.rs","custom_keyword.rs","custom_punctuation.rs","data.rs","derive.rs","discouraged.rs","drops.rs","error.rs","export.rs","expr.rs","ext.rs","file.rs","gen_helper.rs","generics.rs","group.rs","ident.rs","item.rs","lib.rs","lifetime.rs","lit.rs","lookahead.rs","mac.rs","macros.rs","op.rs","parse.rs","parse_macro_input.rs","parse_quote.rs","pat.rs","path.rs","print.rs","punctuated.rs","reserved.rs","sealed.rs","span.rs","spanned.rs","stmt.rs","thread.rs","token.rs","tt.rs","ty.rs","verbatim.rs","whitespace.rs"]],\
 "syn_mid":["",[],["func.rs","lib.rs","macros.rs","pat.rs","path.rs"]],\
 "tar":["",[],["archive.rs","builder.rs","entry.rs","entry_type.rs","error.rs","header.rs","lib.rs","pax.rs"]],\
 "tempfile":["",[["file",[["imp",[],["mod.rs","unix.rs"]]],["mod.rs"]]],["dir.rs","error.rs","lib.rs","spooled.rs","util.rs"]],\
