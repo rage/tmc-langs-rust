@@ -24,7 +24,7 @@ Install [.NET 6.0](https://dotnet.microsoft.com/download).
 
 Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15), [valgrind](https://valgrind.org/) and `libsubunit0` (or equivalent for your distribution).
 
-Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) by running `R -e 'install.packages("devtools", repos="http://cran.r-project.org", lib="~/.R")'` (the `lib` directory must exist before running the command, you may use another path for it if you wish) and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'`. `devtools` has several dependencies that need to be installed. For Ubuntu, they can be installed with
+Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) by running either `sudo apt install r-cran-devtools` or `R -e 'install.packages("devtools", repos="http://cran.r-project.org"")'` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'`. You can set the `R_LIBS_USER` environment variable to control where R packages get installed, for example by setting `export R_LIBS_USER="~/.R"` in your `.bashrc`. If you install `devtools` with the `R -e` command, it has several dependencies that need to be installed. For Ubuntu, they can be installed with
 
 ```bash
 sudo apt install libcurl-dev libxml2-dev libopenssl-dev gcc-c++ libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
