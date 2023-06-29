@@ -4,7 +4,6 @@
 use crate::course_refresher::ModeBits;
 use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
-use tmc_client::ClientError;
 use tmc_langs_plugins::compression::ZipError;
 use tmc_langs_util::{JsonError, TomlError, YamlError};
 
@@ -98,8 +97,6 @@ pub enum LangsError {
     Canonicalize(PathBuf, #[source] std::io::Error),
 
     #[error(transparent)]
-    TmcClient(#[from] ClientError),
-    #[error(transparent)]
     Tmc(#[from] tmc_langs_framework::TmcError),
     #[error(transparent)]
     Plugin(#[from] tmc_langs_plugins::PluginError),
@@ -123,6 +120,8 @@ pub enum LangsError {
     Jwt(#[from] jwt::Error),
     #[error(transparent)]
     Hmac(#[from] hmac::digest::InvalidLength),
+    #[error(transparent)]
+    TestMyCodeClient(#[from] tmc_testmycode_client::TestMyCodeClientError),
 }
 
 /// Error validating TMC params values.

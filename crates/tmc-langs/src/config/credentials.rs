@@ -1,6 +1,6 @@
 //! Contains the Credentials struct for authenticating with tmc-server.
 
-use crate::{LangsError, Token};
+use crate::{tmc::Token, LangsError};
 use serde::{Deserialize, Serialize};
 use std::{ops::Deref, path::PathBuf};
 use tmc_langs_util::{deserialize, file_util, FileError};

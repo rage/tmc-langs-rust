@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     path::PathBuf,
 };
-use tmc_client::response::{CourseData, CourseDetails, CourseExercise};
+use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 
 /// Exercise inside the projects directory.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

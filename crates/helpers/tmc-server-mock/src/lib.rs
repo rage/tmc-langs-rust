@@ -1,7 +1,7 @@
 //! This library can be used to easily set up a mock tmc-server for testing.
 
 pub use mockito;
-use mockito::{mock, Matcher::*, Mock};
+use mockito::{Matcher::*, Mock, Server};
 use serde_json::json;
 
 /// Formats a mock config with the given projects dir and a mock setting with key "setting" and value "value".
@@ -77,16 +77,18 @@ pub const SUBMISSION_ID: u32 = 1;
 pub const EXERCISE_BYTES: &[u8] = include_bytes!("../python-exercise.zip");
 
 macro_rules! mocker {
-    ($m: tt, $r: tt, $j: tt) => {
-        mock($m, Regex(format!("{}[^/]+$", $r.replace("{}", "[^/]+"))))
+    ($server:ident, $m: tt, $r: tt, $j: tt) => {
+        $server
+            .mock($m, Regex(format!("{}[^/]+$", $r.replace("{}", "[^/]+"))))
             .with_body(json!($j).to_string())
             .create()
     };
 }
 
 macro_rules! mocker_json {
-    ($m: tt, $r: tt, $j: expr) => {
-        mock($m, Regex(format!("{}[^/]+$", $r.replace("{}", "[^/]+"))))
+    ($server:ident, $m: tt, $r: tt, $j: expr) => {
+        $server
+            .mock($m, Regex(format!("{}[^/]+$", $r.replace("{}", "[^/]+"))))
             .with_body($j.to_string())
             .create()
     };
@@ -201,15 +203,15 @@ macro_rules! exercises {
     }])}
 }
 
-pub fn get_credentials() -> Mock {
-    mocker!("GET", "/api/v8/application/{}/credentials", {
+pub fn get_credentials(server: &mut Server) -> Mock {
+    mocker!(server, "GET", "/api/v8/application/{}/credentials", {
         "application_id": "1234",
         "secret": "abcd"
     })
 }
 
-pub fn get_submission() -> Mock {
-    mocker!("GET", "/api/v8/core/submission/{}", {
+pub fn get_submission(server: &mut Server) -> Mock {
+    mocker!(server, "GET", "/api/v8/core/submission/{}", {
         "api_version": 0,
         "user_id": USER_ID,
         "login": "",
@@ -228,88 +230,122 @@ pub fn get_submission() -> Mock {
 pub mod user {
     use super::*;
 
-    pub fn get() -> Mock {
-        mocker_json!("GET", "/api/v8/users/{}", users!())
+    pub fn get(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/users/{}", users!())
     }
 
-    pub fn get_current() -> Mock {
-        mocker_json!("GET", "/api/v8/users/current", user!())
+    pub fn get_current(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/users/current", user!())
     }
 
-    pub fn get_basic_info_by_usernames() -> Mock {
-        mocker_json!("GET", "/api/v8/users/basic_info_by_usernames", users!())
+    pub fn get_basic_info_by_usernames(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/users/basic_info_by_usernames",
+            users!()
+        )
     }
 
-    pub fn get_basic_info_by_emails() -> Mock {
-        mocker_json!("GET", "/api/v8/users/basic_info_by_emails", users!())
+    pub fn get_basic_info_by_emails(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/users/basic_info_by_emails",
+            users!()
+        )
     }
 }
 
 pub mod course {
     use super::*;
 
-    pub fn get_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}", course!())
+    pub fn get_by_id(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/courses/{}", course!())
     }
 
-    pub fn get() -> Mock {
-        mocker_json!("GET", "/api/v8/org/{}/courses/{}", course!())
+    pub fn get(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/org/{}/courses/{}", course!())
     }
 }
 
 pub mod point {
     use super::*;
 
-    pub fn get_course_points_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/points", points!())
+    pub fn get_course_points_by_id(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/courses/{}/points", points!())
     }
 
-    pub fn get_exercise_points_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/exercises/{}/points", points!())
-    }
-
-    pub fn get_exercise_points_for_user_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/users/{}/points", points!())
-    }
-
-    pub fn get_exercise_points_for_current_user_by_id() -> Mock {
+    pub fn get_exercise_points_by_id(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
+            "GET",
+            "/api/v8/courses/{}/exercises/{}/points",
+            points!()
+        )
+    }
+
+    pub fn get_exercise_points_for_user_by_id(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/courses/{}/users/{}/points",
+            points!()
+        )
+    }
+
+    pub fn get_exercise_points_for_current_user_by_id(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
             "GET",
             "/api/v8/courses/{}/exercises/{}/users/current/points",
             points!()
         )
     }
 
-    pub fn get_course_points_for_user_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/users/{}/points", points!())
-    }
-
-    pub fn get_course_points_for_current_user_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/users/current/points", points!())
-    }
-
-    pub fn get_course_points() -> Mock {
-        mocker_json!("GET", "/api/v8/org/{}/courses/{}/points", points!())
-    }
-
-    pub fn get_exercise_points() -> Mock {
+    pub fn get_course_points_for_user_by_id(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
+            "GET",
+            "/api/v8/courses/{}/users/{}/points",
+            points!()
+        )
+    }
+
+    pub fn get_course_points_for_current_user_by_id(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/courses/{}/users/current/points",
+            points!()
+        )
+    }
+
+    pub fn get_course_points(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/org/{}/courses/{}/points", points!())
+    }
+
+    pub fn get_exercise_points(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/exercises/{}/points",
             points!()
         )
     }
 
-    pub fn get_course_points_for_user() -> Mock {
+    pub fn get_course_points_for_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/users/{}/points",
             points!()
         )
     }
 
-    pub fn get_course_points_for_current_user() -> Mock {
+    pub fn get_course_points_for_current_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/users/current/points",
             points!()
@@ -320,68 +356,81 @@ pub mod point {
 pub mod submission {
     use super::*;
 
-    pub fn get_course_submissions_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/{}/submissions", submissions!())
+    pub fn get_course_submissions_by_id(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/courses/{}/submissions",
+            submissions!()
+        )
     }
 
-    pub fn get_course_submissions_for_last_hour() -> Mock {
+    pub fn get_course_submissions_for_last_hour(server: &mut Server) -> Mock {
         mocker!(
+            server,
             "GET",
             "/api/v8/courses/{}/submissions/last_hour",
             [SUBMISSION_ID]
         )
     }
 
-    pub fn get_course_submissions_for_user_by_id() -> Mock {
+    pub fn get_course_submissions_for_user_by_id(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/courses/{}/users/{}/submissions",
             submissions!()
         )
     }
 
-    pub fn get_course_submissions_for_current_user_by_id() -> Mock {
+    pub fn get_course_submissions_for_current_user_by_id(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/courses/{}/users/current/submissions",
             submissions!()
         )
     }
 
-    pub fn get_exercise_submissions_for_user() -> Mock {
+    pub fn get_exercise_submissions_for_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/exercises/{}/users/{}/submissions",
             submissions!()
         )
     }
 
-    pub fn get_exercise_submissions_for_current_user() -> Mock {
+    pub fn get_exercise_submissions_for_current_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/exercises/{}/users/current/submissions",
             submissions!()
         )
     }
 
-    pub fn get_course_submissions() -> Mock {
+    pub fn get_course_submissions(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/submissions",
             submissions!()
         )
     }
 
-    pub fn get_course_submissions_for_user() -> Mock {
+    pub fn get_course_submissions_for_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/users/{}/submissions",
             submissions!()
         )
     }
 
-    pub fn get_course_submissions_for_current_user() -> Mock {
+    pub fn get_course_submissions_for_current_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/org/{}/courses/{}/users/current/submissions",
             submissions!()
@@ -392,45 +441,53 @@ pub mod submission {
 pub mod exercise {
     use super::*;
 
-    pub fn get_course_exercises_by_id() -> Mock {
-        mocker_json!("GET", "/api/v8/courses/.*/exercises", exercises!())
+    pub fn get_course_exercises_by_id(server: &mut Server) -> Mock {
+        mocker_json!(server, "GET", "/api/v8/courses/.*/exercises", exercises!())
     }
 
-    pub fn get_exercise_submissions_for_user() -> Mock {
+    pub fn get_exercise_submissions_for_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/exercises/{}/users/{}/submissions",
             submissions!()
         )
     }
 
-    pub fn get_exercise_submissions_for_current_user() -> Mock {
+    pub fn get_exercise_submissions_for_current_user(server: &mut Server) -> Mock {
         mocker_json!(
+            server,
             "GET",
             "/api/v8/exercises/{}/users/current/submissions",
             submissions!()
         )
     }
 
-    pub fn get_course_exercises() -> Mock {
-        mocker_json!("GET", "/api/v8/org/{}/courses/{}/exercises", exercises!())
+    pub fn get_course_exercises(server: &mut Server) -> Mock {
+        mocker_json!(
+            server,
+            "GET",
+            "/api/v8/org/{}/courses/{}/exercises",
+            exercises!()
+        )
     }
 
-    pub fn download_course_exercise() -> Mock {
-        mock(
-            "GET",
-            Regex("/api/v8/org/{}/courses/{}/exercises/{}/download".replace("{}", "[^/]")),
-        )
-        .with_body(EXERCISE_BYTES)
-        .create()
+    pub fn download_course_exercise(server: &mut Server) -> Mock {
+        server
+            .mock(
+                "GET",
+                Regex("/api/v8/org/{}/courses/{}/exercises/{}/download".replace("{}", "[^/]")),
+            )
+            .with_body(EXERCISE_BYTES)
+            .create()
     }
 }
 
 pub mod organization {
     use super::*;
 
-    pub fn get_organizations() -> Mock {
-        mocker!("GET", "/api/v8/org.json", [{
+    pub fn get_organizations(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/org.json", [{
           "id": ORGANIZATION_ID,
           "name": ORGANIZATION_NAME,
           "information": "info",
@@ -457,8 +514,8 @@ pub mod organization {
         }])
     }
 
-    pub fn get_organization() -> Mock {
-        mocker!("GET", "/api/v8/org/{}.json", {
+    pub fn get_organization(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/org/{}.json", {
           "id": ORGANIZATION_ID,
           "name": ORGANIZATION_NAME,
           "information": "info",
@@ -489,8 +546,8 @@ pub mod organization {
 pub mod core {
     use super::*;
 
-    pub fn get_course() -> Mock {
-        mocker!("GET", "/api/v8/core/courses/{}", {
+    pub fn get_course(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/core/courses/{}", {
             "course": {
               "id": COURSE_ID,
               "name": COURSE_NAME,
@@ -644,8 +701,8 @@ pub mod core {
         }})
     }
 
-    pub fn get_course_reviews() -> Mock {
-        mocker!("GET", "/api/v8/core/courses/{}/reviews", [
+    pub fn get_course_reviews(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/core/courses/{}/reviews", [
         {
           "submission_id": SUBMISSION_ID,
           "exercise_name": "part01-Part01_01.Sandbox",
@@ -662,25 +719,26 @@ pub mod core {
         }])
     }
 
-    pub fn update_course_review() -> Mock {
-        mocker!("PUT", "/api/v8/core/courses/{}/reviews/{}", {})
+    pub fn update_course_review(server: &mut Server) -> Mock {
+        mocker!(server, "PUT", "/api/v8/core/courses/{}/reviews/{}", {})
     }
 
-    pub fn unlock_course() -> Mock {
-        mocker!("POST", "/api/v8/core/courses/{}/unlock", {})
+    pub fn unlock_course(server: &mut Server) -> Mock {
+        mocker!(server, "POST", "/api/v8/core/courses/{}/unlock", {})
     }
 
-    pub fn download_exercise() -> Mock {
-        mock(
-            "GET",
-            Regex("/api/v8/core/exercises/[^/]+/download".to_string()),
-        )
-        .with_body(EXERCISE_BYTES)
-        .create()
+    pub fn download_exercise(server: &mut Server) -> Mock {
+        server
+            .mock(
+                "GET",
+                Regex("/api/v8/core/exercises/[^/]+/download".to_string()),
+            )
+            .with_body(EXERCISE_BYTES)
+            .create()
     }
 
-    pub fn get_exercise() -> Mock {
-        mocker!("GET", "/api/v8/core/exercises/[0-9]+", {
+    pub fn get_exercise(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/core/exercises/[0-9]+", {
             "course_name": COURSE_NAME,
             "course_id": COURSE_ID,
             "code_review_requests_enabled": true,
@@ -693,8 +751,8 @@ pub mod core {
         })
     }
 
-    pub fn get_exercise_details() -> Mock {
-        mocker!("GET", "/api/v8/core/exercises/details", {
+    pub fn get_exercise_details(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/core/exercises/details", {
             "exercises": [
                 {
                     "id": EXERCISE_IDS[0],
@@ -735,25 +793,26 @@ pub mod core {
         })
     }
 
-    pub fn download_exercise_solution() -> Mock {
-        mock(
-            "GET",
-            Regex("/api/v8/core/exercises/[^/]+/solution/download".to_string()),
-        )
-        .with_body(EXERCISE_BYTES)
-        .create()
+    pub fn download_exercise_solution(server: &mut Server) -> Mock {
+        server
+            .mock(
+                "GET",
+                Regex("/api/v8/core/exercises/[^/]+/solution/download".to_string()),
+            )
+            .with_body(EXERCISE_BYTES)
+            .create()
     }
 
-    pub fn submit_exercise() -> Mock {
-        mocker!("POST", "/api/v8/core/exercises/{}/submissions", {
+    pub fn submit_exercise(server: &mut Server) -> Mock {
+        mocker!(server, "POST", "/api/v8/core/exercises/{}/submissions", {
             "show_submission_url": "url",
             "paste_url": "url",
             "submission_url": "url"
         })
     }
 
-    pub fn get_organization_courses() -> Mock {
-        mocker!("GET", "/api/v8/core/org/{}/courses", [{
+    pub fn get_organization_courses(server: &mut Server) -> Mock {
+        mocker!(server, "GET", "/api/v8/core/org/{}/courses", [{
           "id": COURSE_ID,
           "name": COURSE_NAME,
           "title": "Data Analysis with Python 2020",
@@ -766,75 +825,76 @@ pub mod core {
         }])
     }
 
-    pub fn download_submission() -> Mock {
-        mock(
-            "GET",
-            Regex("/api/v8/core/submissions/[^/]+/download".to_string()),
-        )
-        .with_body(EXERCISE_BYTES)
-        .create()
+    pub fn download_submission(server: &mut Server) -> Mock {
+        server
+            .mock(
+                "GET",
+                Regex("/api/v8/core/submissions/[^/]+/download".to_string()),
+            )
+            .with_body(EXERCISE_BYTES)
+            .create()
     }
 
-    pub fn post_submission_feedback() -> Mock {
-        mocker!("POST", "/api/v8/core/submissions/{}/feedback", {
+    pub fn post_submission_feedback(server: &mut Server) -> Mock {
+        mocker!(server, "POST", "/api/v8/core/submissions/{}/feedback", {
             "api_version": 1,
             "status": "processing"
         })
     }
 
-    pub fn post_submission_review() -> Mock {
-        mocker!("POST", "/api/v8/core/submissions/{}/reviews", {})
+    pub fn post_submission_review(server: &mut Server) -> Mock {
+        mocker!(server, "POST", "/api/v8/core/submissions/{}/reviews", {})
     }
 }
 
-pub fn mock_all() -> Vec<Mock> {
+pub fn mock_all(server: &mut Server) -> Vec<Mock> {
     vec![
-        get_credentials(),
-        get_submission(),
-        user::get(),
-        user::get_current(),
-        user::get_basic_info_by_usernames(),
-        user::get_basic_info_by_emails(),
-        course::get_by_id(),
-        course::get(),
-        point::get_course_points_by_id(),
-        point::get_exercise_points_by_id(),
-        point::get_exercise_points_for_user_by_id(),
-        point::get_exercise_points_for_current_user_by_id(),
-        point::get_course_points_for_user_by_id(),
-        point::get_course_points_for_current_user_by_id(),
-        point::get_course_points(),
-        point::get_exercise_points(),
-        point::get_course_points_for_user(),
-        point::get_course_points_for_current_user(),
-        submission::get_course_submissions_by_id(),
-        submission::get_course_submissions_for_last_hour(),
-        submission::get_course_submissions_for_user_by_id(),
-        submission::get_course_submissions_for_current_user_by_id(),
-        submission::get_exercise_submissions_for_user(),
-        submission::get_exercise_submissions_for_current_user(),
-        submission::get_course_submissions(),
-        submission::get_course_submissions_for_user(),
-        submission::get_course_submissions_for_current_user(),
-        exercise::get_course_exercises_by_id(),
-        exercise::get_exercise_submissions_for_user(),
-        exercise::get_exercise_submissions_for_current_user(),
-        exercise::get_course_exercises(),
-        exercise::download_course_exercise(),
-        organization::get_organizations(),
-        organization::get_organization(),
-        core::get_course(),
-        core::get_course_reviews(),
-        core::update_course_review(),
-        core::unlock_course(),
-        core::download_exercise(),
-        core::get_exercise(),
-        core::get_exercise_details(),
-        core::download_exercise_solution(),
-        core::submit_exercise(),
-        core::get_organization_courses(),
-        core::download_submission(),
-        core::post_submission_feedback(),
-        core::post_submission_review(),
+        get_credentials(server),
+        get_submission(server),
+        user::get(server),
+        user::get_current(server),
+        user::get_basic_info_by_usernames(server),
+        user::get_basic_info_by_emails(server),
+        course::get_by_id(server),
+        course::get(server),
+        point::get_course_points_by_id(server),
+        point::get_exercise_points_by_id(server),
+        point::get_exercise_points_for_user_by_id(server),
+        point::get_exercise_points_for_current_user_by_id(server),
+        point::get_course_points_for_user_by_id(server),
+        point::get_course_points_for_current_user_by_id(server),
+        point::get_course_points(server),
+        point::get_exercise_points(server),
+        point::get_course_points_for_user(server),
+        point::get_course_points_for_current_user(server),
+        submission::get_course_submissions_by_id(server),
+        submission::get_course_submissions_for_last_hour(server),
+        submission::get_course_submissions_for_user_by_id(server),
+        submission::get_course_submissions_for_current_user_by_id(server),
+        submission::get_exercise_submissions_for_user(server),
+        submission::get_exercise_submissions_for_current_user(server),
+        submission::get_course_submissions(server),
+        submission::get_course_submissions_for_user(server),
+        submission::get_course_submissions_for_current_user(server),
+        exercise::get_course_exercises_by_id(server),
+        exercise::get_exercise_submissions_for_user(server),
+        exercise::get_exercise_submissions_for_current_user(server),
+        exercise::get_course_exercises(server),
+        exercise::download_course_exercise(server),
+        organization::get_organizations(server),
+        organization::get_organization(server),
+        core::get_course(server),
+        core::get_course_reviews(server),
+        core::update_course_review(server),
+        core::unlock_course(server),
+        core::download_exercise(server),
+        core::get_exercise(server),
+        core::get_exercise_details(server),
+        core::download_exercise_solution(server),
+        core::submit_exercise(server),
+        core::get_organization_courses(server),
+        core::download_submission(server),
+        core::post_submission_feedback(server),
+        core::post_submission_review(server),
     ]
 }

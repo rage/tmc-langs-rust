@@ -3,7 +3,9 @@
 pub mod api_v8;
 
 use self::api_v8::{PasteData, ReviewData};
-use crate::{error::ClientError, request::*, response::*};
+use crate::{
+    error::TestMyCodeClientError, request::FeedbackAnswer, response::*, TestMyCodeClientResult,
+};
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
@@ -27,16 +29,6 @@ use tmc_langs_util::progress_reporter;
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
-/// The update data type for the progress reporter.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-#[serde(tag = "client-update-data-kind")]
-#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub enum ClientUpdateData {
-    ExerciseDownload { id: u32, path: PathBuf },
-    PostedSubmission(NewSubmission),
-}
-
 /// Updated exercises.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -47,7 +39,7 @@ pub struct UpdateResult {
 
 /// A struct for interacting with the TestMyCode service, including authentication.
 #[derive(Clone)]
-pub struct TmcClient(Arc<TmcCore>);
+pub struct TestMyCodeClient(Arc<TmcCore>);
 
 struct TmcCore {
     client: Client,
@@ -58,13 +50,13 @@ struct TmcCore {
 }
 
 // TODO: cache API results?
-impl TmcClient {
+impl TestMyCodeClient {
     /// Convenience function for checking authentication.
-    pub fn require_authentication(&self) -> Result<(), ClientError> {
+    pub fn require_authentication(&self) -> Result<(), TestMyCodeClientError> {
         if self.0.token.is_some() {
             Ok(())
         } else {
-            Err(ClientError::NotAuthenticated)
+            Err(TestMyCodeClientError::NotAuthenticated)
         }
     }
 
@@ -75,7 +67,7 @@ impl TmcClient {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_client::TmcClient;
+    /// use tmc_testmycode_client::TmcClient;
     ///
     /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// ```
@@ -87,7 +79,7 @@ impl TmcClient {
             format!("{root_url}/").parse().expect("invalid root url")
         };
 
-        TmcClient(Arc::new(TmcCore {
+        TestMyCodeClient(Arc::new(TmcCore {
             client: Client::new(),
             root_url,
             token: None,
@@ -119,7 +111,7 @@ impl TmcClient {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_client::TmcClient;
+    /// use tmc_testmycode_client::TmcClient;
     ///
     /// let mut client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
@@ -129,16 +121,16 @@ impl TmcClient {
         client_name: &str,
         email: String,
         password: String,
-    ) -> Result<Token, ClientError> {
+    ) -> TestMyCodeClientResult<Token> {
         if self.0.token.is_some() {
-            return Err(ClientError::AlreadyAuthenticated);
+            return Err(TestMyCodeClientError::AlreadyAuthenticated);
         }
 
         let auth_url = self
             .0
             .root_url
             .join("/oauth/token")
-            .map_err(|e| ClientError::UrlParse("oauth/token".to_string(), e))?;
+            .map_err(|e| TestMyCodeClientError::UrlParse("oauth/token".to_string(), e))?;
 
         let credentials = api_v8::get_credentials(self, client_name)?;
 
@@ -155,46 +147,13 @@ impl TmcClient {
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .request(oauth2::reqwest::http_client)?;
+            .request(oauth2::reqwest::http_client)
+            .map_err(TestMyCodeClientError::from)?;
         Arc::get_mut(&mut self.0)
             .expect("called when multiple clones exist")
             .token = Some(token.clone());
         log::debug!("authenticated");
         Ok(token)
-    }
-
-    /// Fetches all organizations. Does not require authentication.
-    ///
-    /// # Errors
-    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organizations(&self) -> Result<Vec<Organization>, ClientError> {
-        api_v8::organization::get_organizations(self)
-    }
-
-    /// Fetches an organization. Does not require authentication.
-    ///
-    /// # Errors
-    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_organization(&self, organization_slug: &str) -> Result<Organization, ClientError> {
-        api_v8::organization::get_organization(self, organization_slug)
-    }
-
-    /// Fetches the course's information. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, or if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_course_details(&self, course_id: u32) -> Result<CourseDetails, ClientError> {
-        self.require_authentication()?;
-        api_v8::core::get_course(self, course_id)
-    }
-
-    /// Fetches the exercise's details. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, or if there's some problem reaching the API, or if the API returns an error.
-    pub fn get_exercise_details(&self, exercise_id: u32) -> Result<ExerciseDetails, ClientError> {
-        self.require_authentication()?;
-        api_v8::core::get_exercise(self, exercise_id)
     }
 
     /// Fetches the course's information. Does not require authentication.
@@ -204,121 +163,9 @@ impl TmcClient {
     pub fn get_exercises_details(
         &self,
         exercise_ids: &[u32],
-    ) -> Result<Vec<ExercisesDetails>, ClientError> {
-        api_v8::core::get_exercise_details(self, exercise_ids)
-    }
-
-    /// Fetches all courses under the given organization. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn list_courses(&self, organization_slug: &str) -> Result<Vec<Course>, ClientError> {
-        self.require_authentication()?;
-        api_v8::core::get_organization_courses(self, organization_slug)
-    }
-
-    /// Fetches the given course's data. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn get_course(&self, course_id: u32) -> Result<CourseData, ClientError> {
-        self.require_authentication()?;
-        api_v8::course::get_by_id(self, course_id)
-    }
-
-    /// Fetches the given course's exercises. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn get_course_exercises(&self, course_id: u32) -> Result<Vec<CourseExercise>, ClientError> {
-        self.require_authentication()?;
-        api_v8::exercise::get_course_exercises_by_id(self, course_id)
-    }
-
-    /// Sends the given submission as a paste. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_client::{TmcClient, Language};
-    /// use url::Url;
-    /// use std::path::Path;
-    ///
-    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
-    /// // authenticate
-    /// let new_submission = client.paste(
-    ///     123,
-    ///     Path::new("./exercises/python/123"),
-    ///     Some("my python solution".to_string()),
-    ///     Some(Language::Eng)).unwrap();
-    /// ```
-    pub fn paste(
-        &self,
-        exercise_id: u32,
-        submission_path: &Path,
-        paste_message: Option<String>,
-        locale: Option<Language>,
-    ) -> Result<NewSubmission, ClientError> {
-        self.require_authentication()?;
-
-        // compress
-        start_stage(2, "Compressing paste submission...", None);
-        let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)?;
-        progress_stage(
-            "Compressed paste submission. Posting paste submission...",
-            None,
-        );
-
-        let paste = if let Some(message) = paste_message {
-            PasteData::WithMessage(message)
-        } else {
-            PasteData::WithoutMessage
-        };
-
-        let result = api_v8::core::submit_exercise(
-            self,
-            exercise_id,
-            Cursor::new(compressed),
-            Some(paste),
-            None,
-            locale,
-        )?;
-
-        finish_stage(
-            format!("Paste finished, running at {0}", result.paste_url),
-            ClientUpdateData::PostedSubmission(result.clone()),
-        );
-        Ok(result)
-    }
-
-    /// Sends feedback. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn send_feedback(
-        &self,
-        submission_id: u32,
-        feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse, ClientError> {
-        self.require_authentication()?;
-        api_v8::core::post_submission_feedback(self, submission_id, feedback)
-    }
-
-    /// Posts feedback to the given URL. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn send_feedback_to_url(
-        &self,
-        feedback_url: Url,
-        feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse, ClientError> {
-        self.require_authentication()?;
-        let form = api_v8::prepare_feedback_form(feedback);
-        api_v8::post_form(self, feedback_url, &form)
+    ) -> TestMyCodeClientResult<Vec<ExercisesDetails>> {
+        let res = api_v8::core::get_exercise_details(self, &exercise_ids)?;
+        Ok(res.into_iter().collect())
     }
 
     /// Sends the submission to the server. Requires authentication.
@@ -330,12 +177,13 @@ impl TmcClient {
         exercise_id: u32,
         submission_path: &Path,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, ClientError> {
+    ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
         start_stage(2, "Compressing submission...", None);
         let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)?;
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+                .map_err(TestMyCodeClientError::from)?;
         progress_stage("Compressed submission. Posting submission...", None);
 
         let result = api_v8::core::submit_exercise(
@@ -363,11 +211,71 @@ impl TmcClient {
     pub fn download_old_submission(
         &self,
         submission_id: u32,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
+        target: &mut dyn Write,
+    ) -> TestMyCodeClientResult<()> {
         self.require_authentication()?;
         log::info!("downloading old submission {}", submission_id);
-        api_v8::core::download_submission(self, submission_id, target)
+        api_v8::core::download_submission(self, submission_id, target)?;
+        Ok(())
+    }
+    /// Sends the given submission as a paste. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_testmycode_client::{TmcClient, Language};
+    /// use url::Url;
+    /// use std::path::Path;
+    ///
+    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// // authenticate
+    /// let new_submission = client.paste(
+    ///     123,
+    ///     Path::new("./exercises/python/123"),
+    ///     Some("my python solution".to_string()),
+    ///     Some(Language::Eng)).unwrap();
+    /// ```
+    pub fn paste(
+        &self,
+        exercise_id: u32,
+        submission_path: &Path,
+        paste_message: Option<String>,
+        locale: Option<Language>,
+    ) -> TestMyCodeClientResult<NewSubmission> {
+        self.require_authentication()?;
+
+        // compress
+        start_stage(2, "Compressing paste submission...", None);
+        let compressed =
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+                .map_err(TestMyCodeClientError::from)?;
+        progress_stage(
+            "Compressed paste submission. Posting paste submission...",
+            None,
+        );
+
+        let paste = if let Some(message) = paste_message {
+            PasteData::WithMessage(message)
+        } else {
+            PasteData::WithoutMessage
+        };
+
+        let result = api_v8::core::submit_exercise(
+            self,
+            exercise_id,
+            Cursor::new(compressed),
+            Some(paste),
+            None,
+            locale,
+        )?;
+
+        finish_stage(
+            format!("Paste finished, running at {0}", result.paste_url),
+            ClientUpdateData::PostedSubmission(result.clone()),
+        );
+        Ok(result)
     }
 
     /// Fetches exercise submissions for the authenticated user. Requires authentication.
@@ -377,16 +285,288 @@ impl TmcClient {
     pub fn get_exercise_submissions_for_current_user(
         &self,
         exercise_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> TestMyCodeClientResult<Vec<Submission>> {
         self.require_authentication()?;
-        api_v8::submission::get_exercise_submissions_for_current_user(self, exercise_id)
+        let res = api_v8::submission::get_exercise_submissions_for_current_user(self, exercise_id)?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Request code review. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn download_exercise(
+        &self,
+        exercise_id: u32,
+        target: &mut dyn Write,
+    ) -> TestMyCodeClientResult<()> {
+        self.require_authentication()?;
+        api_v8::core::download_exercise(self, exercise_id, target)?;
+        Ok(())
+    }
+
+    /// Downloads the model solution from the given url. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    /// The method extracts the downloaded model solution archive, which may fail.
+    pub fn download_model_solution(
+        &self,
+        exercise_id: u32,
+        target: &Path,
+    ) -> TestMyCodeClientResult<()> {
+        self.require_authentication()?;
+
+        let mut buf = vec![];
+        api_v8::core::download_exercise_solution(self, exercise_id, &mut buf)?;
+        tmc_langs_plugins::extract_project(Cursor::new(buf), target, Compression::Zip, false)
+            .map_err(TestMyCodeClientError::from)?;
+        Ok(())
+    }
+
+    /// Fetches the course's information. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, or if there's some problem reaching the API, or if the API returns an error.
+    pub fn get_course_details(&self, course_id: u32) -> TestMyCodeClientResult<CourseDetails> {
+        self.require_authentication()?;
+        let res = api_v8::core::get_course(self, course_id)?;
+        Ok(res)
+    }
+
+    /// Fetches the given course's exercises. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn get_course_exercises(
+        &self,
+        course_id: u32,
+    ) -> TestMyCodeClientResult<Vec<CourseExercise>> {
+        self.require_authentication()?;
+        let res = api_v8::exercise::get_course_exercises_by_id(self, course_id)?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Fetches the given course's data. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn get_course(&self, course_id: u32) -> TestMyCodeClientResult<CourseData> {
+        self.require_authentication()?;
+        let res = api_v8::course::get_by_id(self, course_id)?;
+        Ok(res)
+    }
+
+    /// Fetches all courses under the given organization. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn list_courses(&self, organization_slug: &str) -> TestMyCodeClientResult<Vec<Course>> {
+        self.require_authentication()?;
+        let res = api_v8::core::get_organization_courses(self, organization_slug)?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Fetches the exercise's details. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, or if there's some problem reaching the API, or if the API returns an error.
+    pub fn get_exercise_details(
+        &self,
+        exercise_id: u32,
+    ) -> TestMyCodeClientResult<ExerciseDetails> {
+        self.require_authentication()?;
+        let res = api_v8::core::get_exercise(self, exercise_id)?;
+        Ok(res)
+    }
+
+    /// Fetches the course's exercises from the server,
+    /// and finds new or updated exercises. Requires authentication.
+    /// If an exercise's id is not found in the checksum map, it is considered new.
+    /// If an id is found, it is compared to the current one. If they are different,
+    /// it is considered updated.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    ///
+    /// # Examples
+    /// ```rust,no_run
+    /// use tmc_testmycode_client::TmcClient;
+    ///
+    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// // authenticate
+    /// let mut checksums = std::collections::HashMap::new();
+    /// checksums.insert(1234, "exercisechecksum".to_string());
+    /// let update_result = client.get_exercise_updates(600, checksums).unwrap();
+    /// ```
+    pub fn get_exercise_updates(
+        &self,
+        course_id: u32,
+        checksums: HashMap<u32, String>,
+    ) -> TestMyCodeClientResult<UpdateResult> {
+        self.require_authentication()?;
+
+        let mut new_exercises = vec![];
+        let mut updated_exercises = vec![];
+
+        let course = self.get_course_details(course_id)?;
+        for exercise in course.exercises {
+            if let Some(old_checksum) = checksums.get(&exercise.id) {
+                if &exercise.checksum != old_checksum {
+                    // updated
+                    updated_exercises.push(exercise);
+                }
+            } else {
+                // new
+                new_exercises.push(exercise);
+            }
+        }
+        Ok(UpdateResult {
+            created: new_exercises,
+            updated: updated_exercises,
+        })
+    }
+
+    /// Fetches an organization. Does not require authentication.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    pub fn get_organization(
+        &self,
+        organization_slug: &str,
+    ) -> TestMyCodeClientResult<Organization> {
+        let res = api_v8::organization::get_organization(self, organization_slug)?;
+        Ok(res)
+    }
+
+    /// Fetches all organizations. Does not require authentication.
+    ///
+    /// # Errors
+    /// Returns an error if there's some problem reaching the API, or if the API returns an error.
+    pub fn get_organizations(&self) -> TestMyCodeClientResult<Vec<Organization>> {
+        let res = api_v8::organization::get_organizations(self)?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Fetches unread reviews. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn get_unread_reviews(&self, course_id: u32) -> TestMyCodeClientResult<Vec<Review>> {
+        self.require_authentication()?;
+        let res = api_v8::core::get_course_reviews(self, course_id)?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Mark the review as read on the server. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn mark_review_as_read(
+        &self,
+        course_id: u32,
+        review_id: u32,
+    ) -> TestMyCodeClientResult<()> {
+        self.require_authentication()?;
+        api_v8::core::update_course_review(self, course_id, review_id, None, Some(true))?;
+        Ok(())
+    }
+
+    /// Request code review. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn request_code_review(
+        &self,
+        exercise_id: u32,
+        submission_path: &Path,
+        message_for_reviewer: Option<String>,
+        locale: Option<Language>,
+    ) -> TestMyCodeClientResult<NewSubmission> {
+        self.require_authentication()?;
+
+        let compressed =
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+                .map_err(TestMyCodeClientError::from)?;
+        let review = if let Some(message) = message_for_reviewer {
+            ReviewData::WithMessage(message)
+        } else {
+            ReviewData::WithoutMessage
+        };
+        let res = api_v8::core::submit_exercise(
+            self,
+            exercise_id,
+            Cursor::new(compressed),
+            None,
+            Some(review),
+            locale,
+        )?;
+        Ok(res)
+    }
+
+    /// Sends feedback. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn send_feedback(
+        &self,
+        submission_id: u32,
+        feedback: Vec<FeedbackAnswer>,
+    ) -> TestMyCodeClientResult<SubmissionFeedbackResponse> {
+        self.require_authentication()?;
+        let res = api_v8::core::post_submission_feedback(
+            self,
+            submission_id,
+            feedback.into_iter().map(Into::into).collect(),
+        )?;
+        Ok(res)
+    }
+
+    /// Posts feedback to the given URL. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn send_feedback_to_url(
+        &self,
+        feedback_url: Url,
+        feedback: Vec<FeedbackAnswer>,
+    ) -> TestMyCodeClientResult<SubmissionFeedbackResponse> {
+        self.require_authentication()?;
+        let form = api_v8::prepare_feedback_form(feedback.into_iter().map(Into::into).collect());
+        let res = api_v8::post_form::<SubmissionFeedbackResponse>(self, feedback_url, &form)?;
+        Ok(res)
+    }
+
+    /// Waits for a submission to finish. Requires authentication.
+    ///
+    /// # Errors
+    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn wait_for_submission(
+        &self,
+        submission_id: u32,
+    ) -> TestMyCodeClientResult<SubmissionFinished> {
+        let res = self.wait_for_submission_inner(|| api_v8::get_submission(self, submission_id))?;
+        Ok(res)
+    }
+
+    /// Waits for a submission to finish at the given URL. May require authentication
+    ///
+    /// # Errors
+    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
+    pub fn wait_for_submission_at(
+        &self,
+        submission_url: Url,
+    ) -> TestMyCodeClientResult<SubmissionFinished> {
+        let res =
+            self.wait_for_submission_inner(|| api_v8::get_json(self, submission_url.clone(), &[]))?;
+        Ok(res)
     }
 
     // abstracts waiting for submission over different functions for getting the submission status
-    fn wait_for_submission_inner(
+    pub fn wait_for_submission_inner(
         &self,
-        f: impl Fn() -> Result<SubmissionProcessingStatus, ClientError>,
-    ) -> Result<SubmissionFinished, ClientError> {
+        f: impl Fn() -> Result<SubmissionProcessingStatus, TestMyCodeClientError>,
+    ) -> Result<SubmissionFinished, TestMyCodeClientError> {
         start_stage(4, "Waiting for submission", None);
 
         let mut previous_status = None;
@@ -457,157 +637,9 @@ impl TmcClient {
             }
         }
     }
-
-    /// Waits for a submission to finish at the given URL. May require authentication
-    ///
-    /// # Errors
-    /// If authentication is required but the client is not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn wait_for_submission_at(
-        &self,
-        submission_url: Url,
-    ) -> Result<SubmissionFinished, ClientError> {
-        self.wait_for_submission_inner(|| api_v8::get_json(self, submission_url.clone(), &[]))
-    }
-
-    /// Waits for a submission to finish. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn wait_for_submission(
-        &self,
-        submission_id: u32,
-    ) -> Result<SubmissionFinished, ClientError> {
-        self.wait_for_submission_inner(|| api_v8::get_submission(self, submission_id))
-    }
-
-    /// Fetches the course's exercises from the server,
-    /// and finds new or updated exercises. Requires authentication.
-    /// If an exercise's id is not found in the checksum map, it is considered new.
-    /// If an id is found, it is compared to the current one. If they are different,
-    /// it is considered updated.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_client::TmcClient;
-    ///
-    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
-    /// // authenticate
-    /// let mut checksums = std::collections::HashMap::new();
-    /// checksums.insert(1234, "exercisechecksum".to_string());
-    /// let update_result = client.get_exercise_updates(600, checksums).unwrap();
-    /// ```
-    pub fn get_exercise_updates(
-        &self,
-        course_id: u32,
-        checksums: HashMap<u32, String>,
-    ) -> Result<UpdateResult, ClientError> {
-        self.require_authentication()?;
-
-        let mut new_exercises = vec![];
-        let mut updated_exercises = vec![];
-
-        let course = self.get_course_details(course_id)?;
-        for exercise in course.exercises {
-            if let Some(old_checksum) = checksums.get(&exercise.id) {
-                if &exercise.checksum != old_checksum {
-                    // updated
-                    updated_exercises.push(exercise);
-                }
-            } else {
-                // new
-                new_exercises.push(exercise);
-            }
-        }
-        Ok(UpdateResult {
-            created: new_exercises,
-            updated: updated_exercises,
-        })
-    }
-
-    /// Mark the review as read on the server. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn mark_review_as_read(&self, course_id: u32, review_id: u32) -> Result<(), ClientError> {
-        self.require_authentication()?;
-        api_v8::core::update_course_review(self, course_id, review_id, None, Some(true))
-    }
-
-    /// Fetches unread reviews. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn get_unread_reviews(&self, course_id: u32) -> Result<Vec<Review>, ClientError> {
-        self.require_authentication()?;
-        api_v8::core::get_course_reviews(self, course_id)
-    }
-
-    /// Request code review. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn request_code_review(
-        &self,
-        exercise_id: u32,
-        submission_path: &Path,
-        message_for_reviewer: Option<String>,
-        locale: Option<Language>,
-    ) -> Result<NewSubmission, ClientError> {
-        self.require_authentication()?;
-
-        let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)?;
-        let review = if let Some(message) = message_for_reviewer {
-            ReviewData::WithMessage(message)
-        } else {
-            ReviewData::WithoutMessage
-        };
-        api_v8::core::submit_exercise(
-            self,
-            exercise_id,
-            Cursor::new(compressed),
-            None,
-            Some(review),
-            locale,
-        )
-    }
-
-    /// Downloads the model solution from the given url. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    /// The method extracts the downloaded model solution archive, which may fail.
-    pub fn download_model_solution(
-        &self,
-        exercise_id: u32,
-        target: &Path,
-    ) -> Result<(), ClientError> {
-        self.require_authentication()?;
-
-        let mut buf = vec![];
-        api_v8::core::download_exercise_solution(self, exercise_id, &mut buf)?;
-        tmc_langs_plugins::extract_project(Cursor::new(buf), target, Compression::Zip, false)?;
-        Ok(())
-    }
-
-    /// Request code review. Requires authentication.
-    ///
-    /// # Errors
-    /// If not authenticated, there's some problem reaching the API, or if the API returns an error.
-    pub fn download_exercise(
-        &self,
-        exercise_id: u32,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
-        self.require_authentication()?;
-        api_v8::core::download_exercise(self, exercise_id, target)
-    }
 }
 
-// convenience functions to make sure the progress report type is correct for tmc-client
+// convenience functions to make sure the progress report type is correct for tmc-testmycode-client
 fn start_stage(steps: u32, message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
     progress_reporter::start_stage(steps, message.into(), data.into())
 }
@@ -618,6 +650,16 @@ fn progress_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdat
 
 fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateData>>) {
     progress_reporter::finish_stage(message.into(), data.into())
+}
+
+/// The update data type for the progress reporter.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+#[serde(tag = "client-update-data-kind")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum ClientUpdateData {
+    ExerciseDownload { id: u32, path: PathBuf },
+    PostedSubmission(NewSubmission),
 }
 
 #[cfg(test)]
@@ -645,8 +687,8 @@ mod test {
             .init();
     }
 
-    fn make_client(server: &Server) -> TmcClient {
-        let mut client = TmcClient::new(
+    fn make_client(server: &Server) -> TestMyCodeClient {
+        let mut client = TestMyCodeClient::new(
             server.url().parse().unwrap(),
             "some_client".to_string(),
             "some_ver".to_string(),
@@ -667,8 +709,8 @@ mod test {
         let client = make_client(&server);
         let _m = server.mock("GET", "/api/v8/core/courses/1234")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("client".into(), "some_client".into()),
-                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+                Matcher::UrlEncoded("client".to_string(), "some_client".to_string()),
+                Matcher::UrlEncoded("client_version".to_string(), "some_ver".to_string()),
             ]))
             .with_body(serde_json::json!({
                 "course": {
@@ -778,10 +820,10 @@ mod test {
         let m = server
             .mock("GET", "/api/v8/core/submission/0")
             .match_query(Matcher::AllOf(vec![
-                Matcher::UrlEncoded("client".into(), "some_client".into()),
-                Matcher::UrlEncoded("client_version".into(), "some_ver".into()),
+                Matcher::UrlEncoded("client".to_string(), "some_client".to_string()),
+                Matcher::UrlEncoded("client_version".to_string(), "some_ver".to_string()),
             ]))
-            .with_body_from_fn(|w| {
+            .with_chunked_body(|w| {
                 static CALLED: AtomicBool = AtomicBool::new(false);
                 if !CALLED.load(std::sync::atomic::Ordering::SeqCst) {
                     CALLED.store(true, std::sync::atomic::Ordering::SeqCst);

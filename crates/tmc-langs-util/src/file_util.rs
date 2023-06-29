@@ -358,7 +358,6 @@ mod test {
     #[test]
     fn copies_dir() {
         init();
-
         let temp = tempfile::tempdir().unwrap();
         file_to(&temp, "dir/another/file", "file contents");
         file_to(&temp, "dir/elsewhere/f", "another file");

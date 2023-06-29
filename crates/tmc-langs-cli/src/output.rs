@@ -3,12 +3,17 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
-    notification_reporter::Notification, ClientUpdateData, CombinedCourseData, ConfigValue, Course,
-    CourseData, CourseDetails, CourseExercise, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, LocalExercise,
-    NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
-    SubmissionFeedbackResponse, SubmissionFinished, TmcConfig, Token, UpdateResult,
-    UpdatedExercise,
+    notification_reporter::Notification,
+    tmc::{
+        response::{
+            Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+        },
+        ClientUpdateData, Token, UpdateResult,
+    },
+    CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, RunResult,
+    StyleValidationResult, TmcConfig, UpdatedExercise,
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
 

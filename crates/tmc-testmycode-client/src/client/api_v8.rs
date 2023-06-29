@@ -2,7 +2,7 @@
 
 //! Models the API of https://tmc.mooc.fi (https://testmycode.github.io/tmc-server/).
 
-use crate::{request::*, response::*, ClientError, TmcClient};
+use crate::{request::*, response::*, TestMyCodeClient, TestMyCodeClientError};
 use http::Method;
 use oauth2::TokenResponse;
 use reqwest::blocking::{
@@ -30,12 +30,15 @@ pub enum ReviewData {
 }
 
 // joins the URL "tail" with the API url root from the client
-fn make_url(client: &TmcClient, tail: impl AsRef<str>) -> Result<Url, ClientError> {
+fn make_url(
+    client: &TestMyCodeClient,
+    tail: impl AsRef<str>,
+) -> Result<Url, TestMyCodeClientError> {
     client
         .0
         .root_url
         .join(tail.as_ref())
-        .map_err(|e| ClientError::UrlParse(tail.as_ref().to_string(), e))
+        .map_err(|e| TestMyCodeClientError::UrlParse(tail.as_ref().to_string(), e))
 }
 
 // encodes a string so it can be used for a URL
@@ -44,7 +47,7 @@ fn percent_encode(target: &str) -> String {
 }
 
 // creates a request with the required TMC and authentication headers
-fn prepare_tmc_request(client: &TmcClient, method: Method, url: Url) -> RequestBuilder {
+fn prepare_tmc_request(client: &TestMyCodeClient, method: Method, url: Url) -> RequestBuilder {
     log::info!("{} {}", method, url);
     let req = client.0.client.request(method, url).query(&[
         ("client", &client.0.client_name),
@@ -58,7 +61,7 @@ fn prepare_tmc_request(client: &TmcClient, method: Method, url: Url) -> RequestB
 }
 
 // checks a response for failure
-fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError> {
+fn assert_success(response: Response, url: &Url) -> Result<Response, TestMyCodeClientError> {
     let status = response.status();
     if status.is_success() {
         Ok(response)
@@ -70,7 +73,7 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
             (None, Some(errs)) => errs.join(","),
             (None, None) => "".to_string(),
         };
-        Err(ClientError::HttpError {
+        Err(TestMyCodeClientError::HttpError {
             url: url.clone(),
             status,
             error,
@@ -78,7 +81,7 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
         })
     } else {
         // failed and failed to parse error json, return generic HTTP error
-        Err(ClientError::HttpError {
+        Err(TestMyCodeClientError::HttpError {
             url: url.clone(),
             status,
             error: status.to_string(),
@@ -87,12 +90,15 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, ClientError
     }
 }
 
-fn assert_success_json<T: DeserializeOwned>(res: Response, url: &Url) -> Result<T, ClientError> {
+fn assert_success_json<T: DeserializeOwned>(
+    res: Response,
+    url: &Url,
+) -> Result<T, TestMyCodeClientError> {
     let res = assert_success(res, url)?
         .bytes()
-        .map_err(ClientError::HttpReadResponse)?;
+        .map_err(TestMyCodeClientError::HttpReadResponse)?;
     let json = deserialize::json_from_slice(&res)
-        .map_err(|e| ClientError::HttpJsonResponse(url.clone(), e))?;
+        .map_err(|e| TestMyCodeClientError::HttpJsonResponse(url.clone(), e))?;
     Ok(json)
 }
 
@@ -110,28 +116,32 @@ pub fn prepare_feedback_form(feedback: Vec<FeedbackAnswer>) -> HashMap<String, S
 }
 
 /// Fetches data from the URL and writes it into the target.
-pub fn download(client: &TmcClient, url: Url, mut target: impl Write) -> Result<(), ClientError> {
+pub fn download(
+    client: &TestMyCodeClient,
+    url: Url,
+    target: &mut dyn Write,
+) -> Result<(), TestMyCodeClientError> {
     let res = prepare_tmc_request(client, Method::GET, url.clone())
         .send()
-        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+        .map_err(|e| TestMyCodeClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
     let mut res = assert_success(res, &url)?;
     let _bytes = res
-        .copy_to(&mut target)
-        .map_err(ClientError::HttpWriteResponse)?;
+        .copy_to(target)
+        .map_err(TestMyCodeClientError::HttpWriteResponse)?;
     Ok(())
 }
 
 /// Fetches JSON from the given URL and deserializes it into T.
 pub fn get_json<T: DeserializeOwned>(
-    client: &TmcClient,
+    client: &TestMyCodeClient,
     url: Url,
     params: &[(&str, String)],
-) -> Result<T, ClientError> {
+) -> Result<T, TestMyCodeClientError> {
     let res = prepare_tmc_request(client, Method::GET, url.clone())
         .query(params)
         .send()
-        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+        .map_err(|e| TestMyCodeClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
     let json = assert_success_json(res, &url)?;
     Ok(json)
@@ -139,14 +149,14 @@ pub fn get_json<T: DeserializeOwned>(
 
 /// Posts the given form data to the given URL and deserializes the response to T.
 pub fn post_form<T: DeserializeOwned>(
-    client: &TmcClient,
+    client: &TestMyCodeClient,
     url: Url,
     form: &HashMap<String, String>,
-) -> Result<T, ClientError> {
+) -> Result<T, TestMyCodeClientError> {
     let res = prepare_tmc_request(client, Method::POST, url.clone())
         .form(form)
         .send()
-        .map_err(|e| ClientError::ConnectionError(Method::GET, url.clone(), e))?;
+        .map_err(|e| TestMyCodeClientError::ConnectionError(Method::GET, url.clone(), e))?;
 
     let json = assert_success_json(res, &url)?;
     Ok(json)
@@ -154,7 +164,10 @@ pub fn post_form<T: DeserializeOwned>(
 
 /// get /api/v8/application/{client_name}/credentials
 /// Fetches oauth2 credentials info.
-pub fn get_credentials(client: &TmcClient, client_name: &str) -> Result<Credentials, ClientError> {
+pub fn get_credentials(
+    client: &TestMyCodeClient,
+    client_name: &str,
+) -> Result<Credentials, TestMyCodeClientError> {
     let url = make_url(
         client,
         format!("/api/v8/application/{client_name}/credentials"),
@@ -165,9 +178,9 @@ pub fn get_credentials(client: &TmcClient, client_name: &str) -> Result<Credenti
 /// get /api/v8/core/submission/{submission_id}
 /// Checks the submission processing status from the given URL.
 pub fn get_submission(
-    client: &TmcClient,
+    client: &TestMyCodeClient,
     submission_id: u32,
-) -> Result<SubmissionProcessingStatus, ClientError> {
+) -> Result<SubmissionProcessingStatus, TestMyCodeClientError> {
     let url = make_url(client, format!("/api/v8/core/submission/{submission_id}"))?;
     get_json(client, url, &[])
 }
@@ -177,14 +190,14 @@ pub mod user {
 
     /// get /api/v8/users/{user_id}
     /// Returns the user's username, email, and administrator status by user id
-    pub fn get(client: &TmcClient, user_id: u32) -> Result<User, ClientError> {
+    pub fn get(client: &TestMyCodeClient, user_id: u32) -> Result<User, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/users/{user_id}"))?;
         get_json(client, url, &[])
     }
 
     /// get /api/v8/users/current
     /// Returns the current user's username, email, and administrator status
-    pub fn get_current(client: &TmcClient) -> Result<User, ClientError> {
+    pub fn get_current(client: &TestMyCodeClient) -> Result<User, TestMyCodeClientError> {
         let url = make_url(client, "/api/v8/users/current")?;
         get_json(client, url, &[])
     }
@@ -193,16 +206,16 @@ pub mod user {
     /// Requires admin.
     /// Find all users' basic infos with the posted json array of usernames
     pub fn get_basic_info_by_usernames(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         usernames: &[String],
-    ) -> Result<Vec<User>, ClientError> {
+    ) -> Result<Vec<User>, TestMyCodeClientError> {
         let url = make_url(client, "/api/v8/users/basic_info_by_usernames")?;
         let mut username_map = HashMap::new();
         username_map.insert("usernames", usernames);
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .json(&username_map)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         let json = assert_success_json(res, &url)?;
         Ok(json)
@@ -212,16 +225,16 @@ pub mod user {
     /// Requires admin.
     /// Find all users' basic infos with the posted json array of emails
     pub fn get_basic_info_by_emails(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         emails: &[String],
-    ) -> Result<Vec<User>, ClientError> {
+    ) -> Result<Vec<User>, TestMyCodeClientError> {
         let url = make_url(client, "/api/v8/users/basic_info_by_emails")?;
         let mut email_map = HashMap::new();
         email_map.insert("emails", emails);
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .json(&email_map)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         let json = assert_success_json(res, &url)?;
         Ok(json)
@@ -233,7 +246,10 @@ pub mod course {
 
     /// get /api/v8/courses/{course_id}
     /// Returns the course's information in a json format. Course is searched by id
-    pub fn get_by_id(client: &TmcClient, course_id: u32) -> Result<CourseData, ClientError> {
+    pub fn get_by_id(
+        client: &TestMyCodeClient,
+        course_id: u32,
+    ) -> Result<CourseData, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/courses/{course_id}"))?;
         get_json(client, url, &[])
     }
@@ -241,10 +257,10 @@ pub mod course {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}
     /// Returns the course's information in a json format. Course is searched by organization slug and course name
     pub fn get(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<CourseData, ClientError> {
+    ) -> Result<CourseData, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -263,9 +279,9 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/points
     /// Returns the course's points in a json format. Course is searched by id
     pub fn get_course_points_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/courses/{course_id}/points"))?;
         get_json(client, url, &[])
     }
@@ -273,10 +289,10 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/exercises/{exercise_name}/points
     /// Returns all the awarded points of an excercise for all users
     pub fn get_exercise_points_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -291,11 +307,11 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/exercises/{exercise_name}/users/{user_id}/points
     /// Returns all the awarded points of an excercise for the specified user
     pub fn get_exercise_points_for_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         exercise_name: &str,
         user_id: u32,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -311,10 +327,10 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/exercises/{exercise_name}/users/current/points
     /// Returns all the awarded points of an excercise for current user
     pub fn get_exercise_points_for_current_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -329,10 +345,10 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/users/{user_id}/points
     /// Returns the given user's points from the course in a json format. Course is searched by id
     pub fn get_course_points_for_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         user_id: u32,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/courses/{course_id}/users/{user_id}/points"),
@@ -343,9 +359,9 @@ pub mod point {
     /// get /api/v8/courses/{course_id}/users/current/points
     /// Returns the current user's points from the course in a json format. Course is searched by id
     pub fn get_course_points_for_current_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/courses/{course_id}/users/current/points"),
@@ -356,10 +372,10 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/points
     /// Returns the course's points in a json format. Course is searched by name
     pub fn get_course_points(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -375,7 +391,7 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/eligible_students
     /// Returns all users from the course who have at least 90% of every part's points and are applying for study right, in a json format. Course is searched by name, only 2019 programming mooc course is valid
     pub fn get_course_eligible_students(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
     ) -> Result<(), ClientError> {
@@ -394,11 +410,11 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises/{exercise_name}/points
     /// Returns all the awarded points of an excercise for all users
     pub fn get_exercise_points(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -415,7 +431,7 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises/{exercise_name}/users/current/points
     /// Returns all the awarded points of an excercise for current user
     pub fn get_exercise_points_for_current_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
@@ -437,7 +453,7 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises/{exercise_name}/users/{user_id}/points
     /// Returns all the awarded points of an excercise for the specified user
     pub fn get_exercise_points_for_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
@@ -460,11 +476,11 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/users/{user_id}/points
     /// Returns the given user's points from the course in a json format. Course is searched by name
     pub fn get_course_points_for_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         user_id: u32,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -480,10 +496,10 @@ pub mod point {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/users/current/points
     /// Returns the current user's points from the course in a json format. Course is searched by name
     pub fn get_course_points_for_current_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercisePoint>, ClientError> {
+    ) -> Result<Vec<CourseDataExercisePoint>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -502,9 +518,9 @@ pub mod submission {
     /// get /api/v8/courses/{course_id}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_course_submissions_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/courses/{course_id}/submissions"))?;
         get_json(client, url, &[])
     }
@@ -512,9 +528,9 @@ pub mod submission {
     /// get /api/v8/courses/{course_id}/submissions/last_hour
     /// Returns submissions to the course in the latest hour
     pub fn get_course_submissions_for_last_hour(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<u32>, ClientError> {
+    ) -> Result<Vec<u32>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/courses/{course_id}/submissions/last_hour"),
@@ -525,10 +541,10 @@ pub mod submission {
     /// get /api/v8/courses/{course_id}/users/{user_id}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_course_submissions_for_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         user_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/courses/{course_id}/users/{user_id}/submissions"),
@@ -539,9 +555,9 @@ pub mod submission {
     /// get /api/v8/courses/{course_id}/users/current/submissions
     /// Returns the user's own submissions in a json format
     pub fn get_course_submissions_for_current_user_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/courses/{course_id}/users/current/submissions",),
@@ -552,10 +568,10 @@ pub mod submission {
     /// get api/v8/exercises/{exercise_id}/users/{user_id}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_exercise_submissions_for_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
         user_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/exercises/{exercise_id}/users/{user_id}/submissions"),
@@ -566,9 +582,9 @@ pub mod submission {
     /// get api/v8/exercises/{exercise_id}/users/current/submissions
     /// Returns the current user's submissions for the exercise in a json format. The exercise is searched by id.
     pub fn get_exercise_submissions_for_current_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/exercises/{exercise_id}/users/current/submissions"),
@@ -579,10 +595,10 @@ pub mod submission {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_course_submissions(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -597,11 +613,11 @@ pub mod submission {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/users/{user_id}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_course_submissions_for_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         user_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -617,10 +633,10 @@ pub mod submission {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/users/current/submissions
     /// Returns the user's own submissions in a json format
     pub fn get_course_submissions_for_current_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -639,9 +655,9 @@ pub mod exercise {
     /// get /api/v8/courses/{course_id}/exercises
     /// Returns all exercises of the course as json. Course is searched by id
     pub fn get_course_exercises_by_id(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<CourseExercise>, ClientError> {
+    ) -> Result<Vec<CourseExercise>, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/courses/{course_id}/exercises"))?;
         get_json(client, url, &[])
     }
@@ -649,10 +665,10 @@ pub mod exercise {
     /// get api/v8/exercises/{exercise_id}/users/{user_id}/submissions
     /// Returns the submissions visible to the user in a json format
     pub fn get_exercise_submissions_for_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
         user_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/exercises/{exercise_id}/users/{user_id}/submissions"),
@@ -663,9 +679,9 @@ pub mod exercise {
     /// get api/v8/exercises/{exercise_id}/users/current/submissions
     /// Returns the current user's submissions for the exercise in a json format. The exercise is searched by id.
     pub fn get_exercise_submissions_for_current_user(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
-    ) -> Result<Vec<Submission>, ClientError> {
+    ) -> Result<Vec<Submission>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/exercises/{exercise_id}/users/current/submissions"),
@@ -676,10 +692,10 @@ pub mod exercise {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises
     /// Returns all exercises of the course as json. Course is searched by name
     pub fn get_course_exercises(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
-    ) -> Result<Vec<CourseDataExercise>, ClientError> {
+    ) -> Result<Vec<CourseDataExercise>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -694,12 +710,12 @@ pub mod exercise {
     /// get /api/v8/org/{organization_slug}/courses/{course_name}/exercises/{exercise_name}/download
     /// Download the exercise as a zip file
     pub fn download_course_exercise(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
         course_name: &str,
         exercise_name: &str,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
+        target: &mut dyn Write,
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -718,7 +734,9 @@ pub mod organization {
 
     /// get /api/v8/org.json
     /// Returns a list of all organizations
-    pub fn get_organizations(client: &TmcClient) -> Result<Vec<Organization>, ClientError> {
+    pub fn get_organizations(
+        client: &TestMyCodeClient,
+    ) -> Result<Vec<Organization>, TestMyCodeClientError> {
         let url = make_url(client, "/api/v8/org.json")?;
         get_json(client, url, &[])
     }
@@ -726,9 +744,9 @@ pub mod organization {
     /// get /api/v8/org/{organization_slug}.json
     /// Returns a json representation of the organization
     pub fn get_organization(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
-    ) -> Result<Organization, ClientError> {
+    ) -> Result<Organization, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/org/{}.json", percent_encode(organization_slug)),
@@ -742,7 +760,10 @@ pub mod core {
 
     /// get /api/v8/core/courses/{course_id}
     /// Returns the course details in a json format. Course is searched by id
-    pub fn get_course(client: &TmcClient, course_id: u32) -> Result<CourseDetails, ClientError> {
+    pub fn get_course(
+        client: &TestMyCodeClient,
+        course_id: u32,
+    ) -> Result<CourseDetails, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/core/courses/{course_id}"))?;
         get_json(client, url, &[])
     }
@@ -750,9 +771,9 @@ pub mod core {
     /// get /api/v8/core/courses/{course_id}/reviews
     /// Returns the course's review information for current user's submissions in a json format. Course is searched by id
     pub fn get_course_reviews(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
-    ) -> Result<Vec<Review>, ClientError> {
+    ) -> Result<Vec<Review>, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/core/courses/{course_id}/reviews"))?;
         get_json(client, url, &[])
     }
@@ -762,12 +783,12 @@ pub mod core {
     /// Review text can be updated by using `review_body`.
     /// Review can be marked as read or unread by setting `mark_as_read`.
     pub fn update_course_review(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         course_id: u32,
         review_id: u32,
         review_body: Option<String>,
         mark_as_read: Option<bool>,
-    ) -> Result<(), ClientError> {
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/courses/{course_id}/reviews/{review_id}"),
@@ -787,7 +808,7 @@ pub mod core {
         let res = prepare_tmc_request(client, Method::PUT, url.clone())
             .form(&form)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::PUT, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::PUT, url.clone(), e))?;
 
         assert_success(res, &url)?;
         Ok(())
@@ -796,11 +817,14 @@ pub mod core {
     /// post /api/v8/core/courses/{course_id}/unlock
     /// Untested.
     /// Unlocks the courses exercises
-    pub fn unlock_course(client: &TmcClient, course_id: u32) -> Result<(), ClientError> {
+    pub fn unlock_course(
+        client: &TestMyCodeClient,
+        course_id: u32,
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/core/courses/{course_id}/unlock"))?;
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         assert_success(res, &url)?;
         Ok(())
@@ -809,10 +833,10 @@ pub mod core {
     /// get /api/v8/core/exercises/{exercise_id}/download
     /// Download the exercise as a zip file
     pub fn download_exercise(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
+        target: &mut dyn Write,
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/exercises/{exercise_id}/download"),
@@ -823,9 +847,9 @@ pub mod core {
     /// get /api/v8/core/exercises/{exercise_id}
     /// Returns information about exercise and its submissions.
     pub fn get_exercise(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
-    ) -> Result<ExerciseDetails, ClientError> {
+    ) -> Result<ExerciseDetails, TestMyCodeClientError> {
         let url = make_url(client, format!("/api/v8/core/exercises/{exercise_id}"))?;
         get_json(client, url, &[])
     }
@@ -833,9 +857,9 @@ pub mod core {
     /// get /api/v8/core/exercises/details
     /// Fetch multiple exercise details as query parameters.
     pub fn get_exercise_details(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercises: &[u32],
-    ) -> Result<Vec<ExercisesDetails>, ClientError> {
+    ) -> Result<Vec<ExercisesDetails>, TestMyCodeClientError> {
         let url = make_url(client, "/api/v8/core/exercises/details")?;
         let exercise_ids = (
             "ids",
@@ -853,10 +877,10 @@ pub mod core {
     /// get /api/v8/core/exercises/{exercise_id}/solution/download
     /// Download the solution for an exercise as a zip file
     pub fn download_exercise_solution(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
+        target: &mut dyn Write,
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/exercises/{exercise_id}/solution/download"),
@@ -867,13 +891,13 @@ pub mod core {
     /// post /api/v8/core/exercises/{exercise_id}/submissions
     /// Create submission from a zip file
     pub fn submit_exercise(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         exercise_id: u32,
         submission_zip: impl Read + Send + Sync + 'static,
         submit_paste: Option<PasteData>,
         submit_for_review: Option<ReviewData>,
         locale: Option<Language>,
-    ) -> Result<NewSubmission, ClientError> {
+    ) -> Result<NewSubmission, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/exercises/{exercise_id}/submissions"),
@@ -914,7 +938,7 @@ pub mod core {
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .multipart(form)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         let json = assert_success_json(res, &url)?;
         Ok(json)
@@ -923,9 +947,9 @@ pub mod core {
     /// get /api/v8/core/org/{organization_slug}/courses
     /// Returns an array containing each course's collection of links
     pub fn get_organization_courses(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         organization_slug: &str,
-    ) -> Result<Vec<Course>, ClientError> {
+    ) -> Result<Vec<Course>, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!(
@@ -939,10 +963,10 @@ pub mod core {
     /// get /api/v8/core/submissions/{submission_id}/download
     /// Download the submission as a zip file
     pub fn download_submission(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         submission_id: u32,
-        target: impl Write,
-    ) -> Result<(), ClientError> {
+        target: &mut dyn Write,
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/submissions/{submission_id}/download"),
@@ -953,10 +977,10 @@ pub mod core {
     /// post /api/v8/core/submissions/{submission_id}/feedback
     /// Submits a feedback for submission
     pub fn post_submission_feedback(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         submission_id: u32,
         feedback: Vec<FeedbackAnswer>,
-    ) -> Result<SubmissionFeedbackResponse, ClientError> {
+    ) -> Result<SubmissionFeedbackResponse, TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/submissions/{submission_id}/feedback"),
@@ -966,7 +990,7 @@ pub mod core {
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .form(&form)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         let json = assert_success_json(res, &url)?;
         Ok(json)
@@ -975,11 +999,11 @@ pub mod core {
     /// post /api/v8/core/submissions/{submission_id}/reviews
     /// Submits a review for the submission
     pub fn post_submission_review(
-        client: &TmcClient,
+        client: &TestMyCodeClient,
         submission_id: u32,
         review: String,
         // review_points: &[String], doesn't work yet
-    ) -> Result<(), ClientError> {
+    ) -> Result<(), TestMyCodeClientError> {
         let url = make_url(
             client,
             format!("/api/v8/core/submissions/{submission_id}/reviews"),
@@ -997,7 +1021,7 @@ pub mod core {
         let res = prepare_tmc_request(client, Method::POST, url.clone())
             .form(&form)
             .send()
-            .map_err(|e| ClientError::ConnectionError(Method::POST, url.clone(), e))?;
+            .map_err(|e| TestMyCodeClientError::ConnectionError(Method::POST, url.clone(), e))?;
 
         assert_success(res, &url)?;
         Ok(())
@@ -1007,7 +1031,7 @@ pub mod core {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod test {
-    use super::{super::TmcClient, *};
+    use super::{super::TestMyCodeClient, *};
     use mockito::{Matcher, Mock, Server};
     use std::io::{Cursor, Seek};
 
@@ -1017,8 +1041,8 @@ mod test {
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
     }
 
-    fn make_client(server: &Server) -> TmcClient {
-        TmcClient::new(
+    fn make_client(server: &Server) -> TestMyCodeClient {
+        TestMyCodeClient::new(
             server.url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),

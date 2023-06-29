@@ -10,9 +10,11 @@ type TokenError = oauth2::RequestTokenError<
     oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
 >;
 
-/// The main error type for tmc-client.
+pub type TestMyCodeClientResult<T> = Result<T, TestMyCodeClientError>;
+
+/// The main error type for tmc-testmycode-client.
 #[derive(Debug, Error)]
-pub enum ClientError {
+pub enum TestMyCodeClientError {
     #[error("HTTP error {status} for {url}: {error}. Obsolete client: {obsolete_client}")]
     HttpError {
         url: Url,
@@ -48,7 +50,7 @@ pub enum ClientError {
     Plugin(#[from] tmc_langs_plugins::PluginError),
 }
 
-impl From<TokenError> for ClientError {
+impl From<TokenError> for TestMyCodeClientError {
     fn from(err: TokenError) -> Self {
         Self::Token(Box::new(err))
     }

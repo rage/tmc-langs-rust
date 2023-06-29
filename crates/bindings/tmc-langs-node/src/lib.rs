@@ -16,9 +16,14 @@ use std::{
 };
 use thiserror::Error;
 use tmc_langs::{
-    file_util, ClientError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult,
-    FeedbackAnswer, LangsError, Language, NewSubmission, PrepareSubmission, SubmissionFinished,
-    TmcClient, TmcConfig,
+    file_util,
+    tmc::{
+        request::FeedbackAnswer,
+        response::{NewSubmission, SubmissionFinished},
+        TestMyCodeClient, TestMyCodeClientError,
+    },
+    Compression, Credentials, DownloadOrUpdateCourseExercisesResult, LangsError, Language,
+    PrepareSubmission, TmcConfig,
 };
 
 #[derive(Debug, Error)]
@@ -29,33 +34,34 @@ enum NodeError {
     InvalidTokenError(#[source] LangsError),
 }
 
-fn make_client(
+fn make_testmycode_client(
     client_name: impl AsRef<str>,
     client_version: impl AsRef<str>,
-) -> Result<(TmcClient, Option<Credentials>), LangsError> {
+) -> Result<(TestMyCodeClient, Option<Credentials>), LangsError> {
     let root_url = env::var("TMC_LANGS_ROOT_URL")
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
         .expect("Invalid TMC root url");
-    tmc_langs::init_tmc_client_with_credentials(
+    tmc_langs::init_testmycode_client_with_credentials(
         root_url,
         client_name.as_ref(),
         client_version.as_ref(),
     )
 }
 
-fn with_client<T, F: FnOnce(&mut TmcClient) -> Result<T, LangsError>>(
+fn with_client<T, F: FnOnce(&mut TestMyCodeClient) -> Result<T, LangsError>>(
     client_name: impl AsRef<str>,
     client_version: impl AsRef<str>,
     f: F,
 ) -> Result<T, NodeError> {
-    let (mut client, credentials) = make_client(client_name, client_version)?;
+    let (mut client, credentials) = make_testmycode_client(client_name, client_version)?;
     match f(&mut client) {
         Ok(res) => Ok(res),
         Err(err) => {
             let mut source = Some(&err as &dyn Error);
             while let Some(s) = source {
-                if let Some(ClientError::HttpError { status, .. }) = s.downcast_ref::<ClientError>()
+                if let Some(TestMyCodeClientError::HttpError { status, .. }) =
+                    s.downcast_ref::<TestMyCodeClientError>()
                 {
                     if status.as_u16() == 401 {
                         if let Some(credentials) = credentials {
@@ -514,7 +520,7 @@ fn logged_in(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, client_version: String);
 
     let (_, credentials) =
-        make_client(client_name, client_version).map_err(|e| convert_err(&mut cx, e))?;
+        make_testmycode_client(client_name, client_version).map_err(|e| convert_err(&mut cx, e))?;
     let res = credentials.is_some();
     convert(&mut cx, &res)
 }
@@ -567,7 +573,7 @@ fn logout(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, client_version: String);
 
     let (_, credentials) =
-        make_client(client_name, client_version).map_err(|e| convert_err(&mut cx, e))?;
+        make_testmycode_client(client_name, client_version).map_err(|e| convert_err(&mut cx, e))?;
     if let Some(credentials) = credentials {
         credentials.remove().expect("Failed to remove credentials");
     }
@@ -875,11 +881,8 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
 
 #[cfg(test)]
 mod test {
-    use once_cell::sync::OnceCell;
     use std::{env, process::Command};
-    use tmc_server_mock::mockito::{server_address, Mock};
-
-    static MOCKS: OnceCell<Vec<Mock>> = OnceCell::new();
+    use tmc_server_mock::mockito::Server;
 
     fn init() {
         use log::*;
@@ -888,17 +891,17 @@ mod test {
             .with_level(LevelFilter::Debug)
             .with_module_level("mockito", LevelFilter::Info)
             .init();
-
-        let _ = MOCKS.get_or_init(tmc_server_mock::mock_all);
     }
 
     #[test]
     #[cfg(not(windows))]
     fn jest() {
         init();
+        let mut server = Server::new();
+        tmc_server_mock::mock_all(&mut server);
         env::set_var(
             "TMC_LANGS_MOCK_SERVER_ADDR",
-            format!("http://{}", server_address()),
+            format!("http://{}", server.host_with_port()),
         );
 
         let s = Command::new("npm")
