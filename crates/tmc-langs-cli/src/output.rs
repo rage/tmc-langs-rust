@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
+    mooc,
     notification_reporter::Notification,
     tmc::{
         response::{
@@ -103,6 +104,10 @@ pub enum DataKind {
     ConfigValue(ConfigValue<'static>),
     TmcConfig(TmcConfig),
     SubmissionSandbox(String),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    CourseInstances(Vec<mooc::CourseInstance>),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    ExerciseSlides(Vec<mooc::TmcExerciseSlide>),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

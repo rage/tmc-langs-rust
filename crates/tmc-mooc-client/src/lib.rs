@@ -3,17 +3,20 @@
 //! Used to communicate with the Courses MOOC server. See the `MoocClient` struct for more details.
 
 mod error;
+mod exercise;
 
+pub use self::exercise::{TmcExerciseSlide, TmcExerciseTask};
 use crate::error::{MoocClientError, MoocClientResult};
 use bytes::Bytes;
 pub use mooc_langs_api::*;
 use oauth2::TokenResponse;
 use reqwest::{
     blocking::{Client, RequestBuilder, Response},
-    Method,
+    Method, StatusCode,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{borrow::Cow, sync::Arc};
+use tmc_langs_util::JsonError;
 use uuid::Uuid;
 
 /// Client for accessing the Courses MOOC API.
@@ -74,17 +77,34 @@ impl MoocClient {
         Ok(res)
     }
 
-    pub fn course_exercises(&self, course: Uuid) -> MoocClientResult<Vec<Exercise>> {
+    pub fn course_instance_exercise_slides(
+        &self,
+        course_instance: Uuid,
+    ) -> MoocClientResult<Vec<TmcExerciseSlide>> {
+        let url = format!("course-instances/{course_instance}/exercises");
         let res = self
-            .request(Method::GET, &format!("courses/{course}/exercises"))
-            .send_expect_json()?;
+            .request(Method::GET, &url)
+            .send_expect_json::<Vec<ExerciseSlide>>()?
+            .into_iter()
+            .map(TryFrom::try_from)
+            .collect::<Result<_, JsonError>>()
+            .map_err(|err| MoocClientError::DeserializingResponse {
+                url,
+                error: err.into(),
+            })?;
         Ok(res)
     }
 
-    pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<ExerciseSlide> {
+    pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
+        let url = format!("exercises/{exercise}");
         let res = self
-            .request(Method::GET, &format!("exercises/{exercise}"))
-            .send_expect_json()?;
+            .request(Method::GET, &url)
+            .send_expect_json::<ExerciseSlide>()?
+            .try_into()
+            .map_err(|err: JsonError| MoocClientError::DeserializingResponse {
+                url,
+                error: err.into(),
+            })?;
         Ok(res)
     }
 
@@ -127,23 +147,26 @@ impl MoocRequest {
     fn send(self) -> MoocClientResult<Response> {
         match self.builder.send() {
             Ok(res) => {
-                if res.status().is_success() {
-                    Ok(res)
-                } else {
-                    let status = res.status();
-                    let body = res
-                        .text()
-                        .map_err(|err| MoocClientError::ReadingResponseBody {
-                            method: self.method,
-                            url: self.url.clone(),
-                            error: Box::new(err),
-                        })?;
-                    Err(MoocClientError::ErrorResponseFromServer {
-                        url: self.url,
-                        status,
-                        error: body,
-                        obsolete_client: false,
-                    })
+                let status = res.status();
+                match status {
+                    _success if status.is_success() => Ok(res),
+                    StatusCode::UNAUTHORIZED => Err(MoocClientError::NotAuthenticated),
+                    _other => {
+                        let status = res.status();
+                        let body =
+                            res.text()
+                                .map_err(|err| MoocClientError::ReadingResponseBody {
+                                    method: self.method,
+                                    url: self.url.clone(),
+                                    error: Box::new(err),
+                                })?;
+                        Err(MoocClientError::ErrorResponseFromServer {
+                            url: self.url,
+                            status,
+                            error: body,
+                            obsolete_client: false,
+                        })
+                    }
                 }
             }
             Err(err) => Err(MoocClientError::SendingRequest {
@@ -152,20 +175,6 @@ impl MoocRequest {
                 error: Box::new(err),
             }),
         }
-    }
-
-    fn send_expect_text(self) -> MoocClientResult<String> {
-        let method = self.method.clone();
-        let url = self.url.clone();
-        let res = self.send()?;
-        let body = res
-            .json()
-            .map_err(|err| MoocClientError::ReadingResponseBody {
-                method,
-                url,
-                error: Box::new(err),
-            })?;
-        Ok(body)
     }
 
     fn send_expect_bytes(self) -> MoocClientResult<Bytes> {

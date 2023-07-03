@@ -966,7 +966,7 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
         env::var("TMC_LANGS_MOOC_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
 
     let (mut client, credentials) =
-        tmc_langs::init_mooc_client_with_credentials(root_url, "langs")?;
+        tmc_langs::init_mooc_client_with_credentials(root_url, &mooc.client_name)?;
     match run_mooc_inner(mooc, &mut client) {
         Err(error) => {
             for cause in error.chain() {
@@ -995,11 +995,18 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
     let output = match mooc.command {
         MoocCommand::CourseInstances => {
             let course_instances = client.course_instances()?;
-            todo!("{:#?}", course_instances)
+            CliOutput::finished_with_data(
+                "fetched course instances",
+                DataKind::CourseInstances(course_instances),
+            )
         }
-        MoocCommand::CourseExercises { course_id } => {
-            let course_exercises = client.course_exercises(course_id)?;
-            todo!()
+        MoocCommand::CourseInstanceExercises { course_instance_id } => {
+            let course_instance_exercises =
+                client.course_instance_exercise_slides(course_instance_id)?;
+            CliOutput::finished_with_data(
+                "fetched course instance exercises",
+                DataKind::ExerciseSlides(course_instance_exercises),
+            )
         }
         MoocCommand::Exercise { exercise_id } => {
             let exercise = client.exercise(exercise_id)?;

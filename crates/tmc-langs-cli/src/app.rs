@@ -529,6 +529,9 @@ pub enum TestMyCodeCommand {
 
 #[derive(Parser)]
 pub struct Mooc {
+    /// Name used to differentiate between different frontends (e.g. the VSCode extension).
+    #[clap(long, short)]
+    pub client_name: String,
     #[clap(subcommand)]
     pub command: MoocCommand,
 }
@@ -536,17 +539,22 @@ pub struct Mooc {
 #[derive(Parser)]
 pub enum MoocCommand {
     CourseInstances,
-    CourseExercises {
-        course_id: Uuid,
+    CourseInstanceExercises {
+        #[clap(long)]
+        course_instance_id: Uuid,
     },
     Exercise {
+        #[clap(long)]
         exercise_id: Uuid,
     },
     DownloadExercise {
+        #[clap(long)]
         exercise_id: Uuid,
     },
     Submit {
+        #[clap(long)]
         exercise_id: Uuid,
+        #[clap(long)]
         submission_path: PathBuf,
     },
 }
