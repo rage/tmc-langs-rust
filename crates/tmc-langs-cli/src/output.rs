@@ -101,13 +101,15 @@ pub enum DataKind {
     NewSubmission(NewSubmission),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
-    ConfigValue(ConfigValue<'static>),
+    ConfigValue(ConfigValue),
     TmcConfig(TmcConfig),
     SubmissionSandbox(String),
     #[cfg_attr(feature = "ts-rs", ts(skip))]
-    CourseInstances(Vec<mooc::CourseInstance>),
+    MoocCourseInstances(Vec<mooc::CourseInstance>),
     #[cfg_attr(feature = "ts-rs", ts(skip))]
-    ExerciseSlides(Vec<mooc::TmcExerciseSlide>),
+    MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    MoocExerciseSlide(mooc::TmcExerciseSlide),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

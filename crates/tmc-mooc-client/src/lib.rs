@@ -5,7 +5,9 @@
 mod error;
 mod exercise;
 
-pub use self::exercise::{TmcExerciseSlide, TmcExerciseTask};
+pub use self::exercise::{
+    ExerciseFile, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask,
+};
 use crate::error::{MoocClientError, MoocClientResult};
 use bytes::Bytes;
 pub use mooc_langs_api::*;
@@ -46,11 +48,22 @@ impl MoocClient {
     /// If the root URL or endpoint are malformed.
     fn request(&self, method: Method, endpoint: &str) -> MoocRequest {
         let url = format!("{}/api/v0/langs/{endpoint}", self.0.root_addr);
+        self.request_to_url(method, url)
+    }
+
+    fn request_to_url(&self, method: Method, url: String) -> MoocRequest {
         log::debug!("building a request to {url}");
+
+        let trusted_urls = &["https://courses.mooc.fi/", "http://project-331.local"];
+        let include_bearer_token = trusted_urls.iter().any(|tu| url.starts_with(tu));
         let mut builder = self.0.client.request(method.clone(), url.clone());
         if let Some(token) = self.0.token.as_ref() {
-            log::debug!("setting bearer token");
-            builder = builder.bearer_auth(token.access_token().secret());
+            if include_bearer_token {
+                log::debug!("setting bearer token");
+                builder = builder.bearer_auth(token.access_token().secret());
+            } else {
+                log::debug!("leaving out bearer token due to untrusted url");
+            }
         } else {
             log::debug!("no bearer token");
         }
@@ -105,6 +118,11 @@ impl MoocClient {
                 url,
                 error: err.into(),
             })?;
+        Ok(res)
+    }
+
+    pub fn download(&self, url: String) -> MoocClientResult<Bytes> {
+        let res = self.request_to_url(Method::GET, url).send_expect_bytes()?;
         Ok(res)
     }
 

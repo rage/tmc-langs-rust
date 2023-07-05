@@ -767,9 +767,7 @@ fn migrate_exercise(mut cx: FunctionContext) -> JsResult<JsValue> {
         exercise_checksum: String
     );
 
-    let config_path = TmcConfig::get_location(&client_name).map_err(|e| convert_err(&mut cx, e))?;
-    let tmc_config =
-        TmcConfig::load(&client_name, &config_path).map_err(|e| convert_err(&mut cx, e))?;
+    let tmc_config = TmcConfig::load(&client_name).map_err(|e| convert_err(&mut cx, e))?;
     let res = tmc_langs::migrate_exercise(
         tmc_config,
         &course_slug,
@@ -784,10 +782,8 @@ fn migrate_exercise(mut cx: FunctionContext) -> JsResult<JsValue> {
 fn move_projects_dir(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, dir: PathBuf);
 
-    let config_path = TmcConfig::get_location(&client_name).map_err(|e| convert_err(&mut cx, e))?;
-    let tmc_config =
-        TmcConfig::load(&client_name, &config_path).map_err(|e| convert_err(&mut cx, e))?;
-    let res = tmc_langs::move_projects_dir(tmc_config, &config_path, dir);
+    let tmc_config = TmcConfig::load(&client_name).map_err(|e| convert_err(&mut cx, e))?;
+    let res = tmc_langs::move_projects_dir(tmc_config, dir);
     convert_res(&mut cx, res)
 }
 

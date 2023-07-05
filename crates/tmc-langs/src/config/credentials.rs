@@ -29,6 +29,7 @@ impl Credentials {
         if !credentials_path.exists() {
             return Ok(None);
         }
+        log::debug!("Loading credentials from {}", credentials_path.display());
 
         let mut credentials_file = file_util::open_file_locked(&credentials_path)?;
         let guard = credentials_file

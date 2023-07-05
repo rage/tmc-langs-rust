@@ -550,6 +550,8 @@ pub enum MoocCommand {
     DownloadExercise {
         #[clap(long)]
         exercise_id: Uuid,
+        #[clap(long)]
+        target: PathBuf,
     },
     Submit {
         #[clap(long)]

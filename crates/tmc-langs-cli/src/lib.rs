@@ -29,8 +29,8 @@ use tmc_langs::{
     file_util,
     mooc::{ExerciseSlideSubmission, MoocClient},
     tmc::{request::FeedbackAnswer, TestMyCodeClient, TestMyCodeClientError},
-    CommandError, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult, Language,
-    StyleValidationResult, TmcConfig, UpdatedExercise,
+    CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
+    Language, StyleValidationResult, TmcConfig, UpdatedExercise,
 };
 use tmc_langs_util::deserialize;
 
@@ -997,7 +997,7 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             let course_instances = client.course_instances()?;
             CliOutput::finished_with_data(
                 "fetched course instances",
-                DataKind::CourseInstances(course_instances),
+                DataKind::MoocCourseInstances(course_instances),
             )
         }
         MoocCommand::CourseInstanceExercises { course_instance_id } => {
@@ -1005,26 +1005,28 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 client.course_instance_exercise_slides(course_instance_id)?;
             CliOutput::finished_with_data(
                 "fetched course instance exercises",
-                DataKind::ExerciseSlides(course_instance_exercises),
+                DataKind::MoocExerciseSlides(course_instance_exercises),
             )
         }
         MoocCommand::Exercise { exercise_id } => {
             let exercise = client.exercise(exercise_id)?;
-            todo!()
+            CliOutput::finished_with_data("fetched exercise", DataKind::MoocExerciseSlide(exercise))
         }
-        MoocCommand::DownloadExercise { exercise_id } => {
-            let exercise = client.download_exercise(exercise_id)?;
-            todo!()
-        }
-        MoocCommand::Submit {
+        MoocCommand::DownloadExercise {
             exercise_id,
-            submission_path,
+            target,
         } => {
-            let submission = ExerciseSlideSubmission {
-                exercise_slide_id: todo!(),
-                exercise_task_submissions: todo!(),
-            };
-            let result = client.submit(exercise_id, &submission)?;
+            let exercise = client.download_exercise(exercise_id)?;
+            tmc_langs::extract_project(
+                Cursor::new(exercise),
+                &target,
+                Compression::TarZstd,
+                false,
+                false,
+            )?;
+            CliOutput::finished("downloaded exercise")
+        }
+        MoocCommand::Submit { .. } => {
             todo!()
         }
     };
@@ -1051,8 +1053,7 @@ fn run_settings(settings: Settings) -> Result<CliOutput> {
             exercise_slug,
             exercise_checksum,
         } => {
-            let config_path = TmcConfig::get_location(client_name)?;
-            let tmc_config = TmcConfig::load(client_name, &config_path)?;
+            let tmc_config = TmcConfig::load(client_name)?;
             tmc_langs::migrate_exercise(
                 tmc_config,
                 &course_slug,
@@ -1065,9 +1066,8 @@ fn run_settings(settings: Settings) -> Result<CliOutput> {
         }
 
         SettingsCommand::MoveProjectsDir { dir } => {
-            let config_path = TmcConfig::get_location(client_name)?;
-            let tmc_config = TmcConfig::load(client_name, &config_path)?;
-            tmc_langs::move_projects_dir(tmc_config, &config_path, dir)?;
+            let tmc_config = TmcConfig::load(client_name)?;
+            tmc_langs::move_projects_dir(tmc_config, dir)?;
             CliOutput::finished("moved project directory")
         }
 

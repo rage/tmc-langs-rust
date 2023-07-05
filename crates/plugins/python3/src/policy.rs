@@ -26,7 +26,6 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
             || path
                 .components()
                 .any(|c| c.as_os_str() == OsStr::new("__pycache__"));
-
         // .py files in exercise root are student source files
         let is_in_project_root = match path.parent() {
             Some(s) => s.as_os_str().is_empty(),

@@ -12,12 +12,12 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue,
-        CourseConfig, Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+        list_local_course_exercises, migrate_exercise, move_projects_dir, CourseConfig,
+        Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
     },
     course_refresher::{refresh_course, RefreshData, RefreshExercise},
     data::{
-        CombinedCourseData, DownloadOrUpdateCourseExercisesResult, DownloadResult,
+        CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, DownloadResult,
         ExerciseDownload, LocalExercise, TmcParams,
     },
     error::{LangsError, ParamError},
@@ -91,8 +91,7 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
-    let config_path = TmcConfig::get_location(client_name)?;
-    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
+    let projects_dir = TmcConfig::load(client_name)?.projects_dir;
     Ok(projects_dir)
 }
 
@@ -697,11 +696,14 @@ pub fn update_exercises(
 }
 
 /// Fetches a setting from the config.
-pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue<'static>, LangsError> {
+pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue, LangsError> {
     log::debug!("fetching setting {} in {}", key, client_name);
 
     let tmc_config = get_settings(client_name)?;
-    let value = tmc_config.get(key).into_owned();
+    let value = match key {
+        "projects-dir" => ConfigValue::Path(tmc_config.get_projects_dir().to_path_buf()),
+        other => ConfigValue::Value(tmc_config.get(other).cloned()),
+    };
     Ok(value)
 }
 
@@ -709,20 +711,29 @@ pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue<'static>,
 pub fn get_settings(client_name: &str) -> Result<TmcConfig, LangsError> {
     log::debug!("fetching settings for {}", client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    TmcConfig::load(client_name, &config_path)
+    TmcConfig::load(client_name)
 }
 
 /// Saves a setting in the config.
 pub fn set_setting<T: Serialize>(client_name: &str, key: &str, value: T) -> Result<(), LangsError> {
     log::debug!("setting {} in {}", key, client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
-    let value = TomlValue::try_from(value)?;
+    let mut tmc_config = TmcConfig::load(client_name)?;
 
-    tmc_config.insert(key.to_string(), value)?;
-    tmc_config.save(&config_path)?;
+    let value = TomlValue::try_from(value)?;
+    match key {
+        "projects-dir" => {
+            let TomlValue::String(value) = value else {
+                return Err(LangsError::ProjectsDirNotString);
+            };
+            tmc_config.set_projects_dir(PathBuf::from(value))?;
+        }
+        other => {
+            tmc_config.insert(other.to_string(), value);
+        }
+    }
+
+    tmc_config.save()?;
     Ok(())
 }
 
@@ -735,15 +746,14 @@ pub fn reset_settings(client_name: &str) -> Result<(), LangsError> {
 }
 
 /// Unsets the given setting.
-pub fn unset_setting(client_name: &str, key: &str) -> Result<(), LangsError> {
+pub fn unset_setting(client_name: &str, key: &str) -> Result<Option<TomlValue>, LangsError> {
     log::debug!("unsetting setting {} in {}", key, client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
+    let mut tmc_config = TmcConfig::load(client_name)?;
+    let old_value = tmc_config.remove(key);
+    tmc_config.save()?;
 
-    tmc_config.remove(key)?;
-    tmc_config.save(&config_path)?;
-    Ok(())
+    Ok(old_value)
 }
 
 /// Checks the exercise's code quality.

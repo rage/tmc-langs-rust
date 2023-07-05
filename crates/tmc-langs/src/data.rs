@@ -198,3 +198,12 @@ pub struct DownloadOrUpdateCourseExercisesResult {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(ExerciseDownload, Vec<String>)>>,
 }
+
+/// A setting in a TmcConfig file.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum ConfigValue {
+    Value(Option<toml::Value>),
+    Path(PathBuf),
+}
