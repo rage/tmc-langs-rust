@@ -27,7 +27,7 @@ use std::{
 };
 use tmc_langs::{
     file_util,
-    mooc::{ExerciseSlideSubmission, MoocClient},
+    mooc::MoocClient,
     tmc::{request::FeedbackAnswer, TestMyCodeClient, TestMyCodeClientError},
     CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
     Language, StyleValidationResult, TmcConfig, UpdatedExercise,
@@ -199,12 +199,16 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             naive,
         } => {
             file_util::lock!(exercise_path);
-            tmc_langs::compress_project_to(&exercise_path, &output_path, compression, naive)?;
-            CliOutput::finished(format!(
-                "compressed project from {} to {}",
-                exercise_path.display(),
-                output_path.display()
-            ))
+            let hash =
+                tmc_langs::compress_project_to(&exercise_path, &output_path, compression, naive)?;
+            CliOutput::finished_with_data(
+                format!(
+                    "compressed project from {} to {}",
+                    exercise_path.display(),
+                    output_path.display()
+                ),
+                DataKind::CompressedProjectHash(hash),
+            )
         }
 
         Command::Tmc(tmc) => run_tmc(tmc)?,

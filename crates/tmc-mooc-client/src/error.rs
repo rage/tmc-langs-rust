@@ -10,6 +10,8 @@ pub type MoocClientResult<T> = Result<T, MoocClientError>;
 pub enum MoocClientError {
     #[error("Authentication required")]
     NotAuthenticated,
+    #[error("Failed to attach file to submission form: {error}")]
+    AttachFileToForm { error: Box<dyn Error + Send + Sync> },
     #[error("Failed to send {method} request to {url}: {error}.")]
     SendingRequest {
         method: Method,
@@ -34,4 +36,6 @@ pub enum MoocClientError {
         error: String,
         obsolete_client: bool,
     },
+    #[error(transparent)]
+    JsonError(#[from] tmc_langs_util::JsonError),
 }

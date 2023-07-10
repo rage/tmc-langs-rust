@@ -164,7 +164,7 @@ impl TestMyCodeClient {
         &self,
         exercise_ids: &[u32],
     ) -> TestMyCodeClientResult<Vec<ExercisesDetails>> {
-        let res = api_v8::core::get_exercise_details(self, &exercise_ids)?;
+        let res = api_v8::core::get_exercise_details(self, exercise_ids)?;
         Ok(res.into_iter().collect())
     }
 

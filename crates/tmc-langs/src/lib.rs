@@ -777,12 +777,13 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 }
 
 /// Compresses the exercise to the target path.
+/// Returns the BLAKE3 hash of the resulting file.
 pub fn compress_project_to(
     source: &Path,
     target: &Path,
     compression: Compression,
     naive: bool,
-) -> Result<(), LangsError> {
+) -> Result<String, LangsError> {
     log::debug!(
         "compressing {} to {} ({})",
         source.display(),
@@ -791,8 +792,9 @@ pub fn compress_project_to(
     );
 
     let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
+    let hash = blake3::hash(&data);
     file_util::write_to_file(data, target)?;
-    Ok(())
+    Ok(hash.to_string())
 }
 
 /*

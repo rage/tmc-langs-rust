@@ -74,6 +74,20 @@ pub enum PublicSpec {
         archive_name: String,
         #[serde(rename = "archiveDownloadUrl")]
         archive_download_url: String,
+        checksum: String,
+    },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "camelCase")]
+pub enum UserAnswer {
+    Browser {
+        files: Vec<ExerciseFile>,
+    },
+    Editor {
+        #[serde(rename = "archiveDownloadUrl")]
+        download_url: String,
     },
 }
 
@@ -86,7 +100,7 @@ pub enum ModelSolutionSpec {
         solution_files: Vec<ExerciseFile>,
     },
     Editor {
-        #[serde(rename = "downloadUrl")]
+        #[serde(rename = "archiveDownloadUrl")]
         download_url: String,
     },
 }

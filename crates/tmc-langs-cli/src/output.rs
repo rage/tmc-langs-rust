@@ -103,6 +103,7 @@ pub enum DataKind {
     SubmissionFinished(SubmissionFinished),
     ConfigValue(ConfigValue),
     TmcConfig(TmcConfig),
+    CompressedProjectHash(String),
     SubmissionSandbox(String),
     #[cfg_attr(feature = "ts-rs", ts(skip))]
     MoocCourseInstances(Vec<mooc::CourseInstance>),

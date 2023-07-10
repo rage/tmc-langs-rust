@@ -1,10 +1,9 @@
 //! Utility functions for de/serializing data wrapped with serde_path_to_error for better errors.
 
+use crate::{JsonError, TomlError, YamlError};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::io::Read;
-
-pub type JsonError = serde_path_to_error::Error<serde_json::Error>;
 
 pub fn json_from_str<T: DeserializeOwned>(json: &str) -> Result<T, JsonError> {
     let de = &mut serde_json::Deserializer::from_str(json);
@@ -29,15 +28,11 @@ pub fn json_from_value<T: DeserializeOwned>(json: Value) -> Result<T, JsonError>
     Ok(res)
 }
 
-pub type TomlError = serde_path_to_error::Error<toml::de::Error>;
-
 pub fn toml_from_str<T: DeserializeOwned>(toml: &str) -> Result<T, TomlError> {
     let de = toml::Deserializer::new(toml);
     let res = serde_path_to_error::deserialize(de)?;
     Ok(res)
 }
-
-pub type YamlError = serde_path_to_error::Error<serde_yaml::Error>;
 
 pub fn yaml_from_str<T: DeserializeOwned>(yaml: &str) -> Result<T, YamlError> {
     let de = serde_yaml::Deserializer::from_str(yaml);

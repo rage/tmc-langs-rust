@@ -77,6 +77,8 @@ pub enum LangsError {
         zip_path: PathBuf,
         file_path: String,
     },
+    #[error("Failed to find parent directory of {0}")]
+    NoParentDir(PathBuf),
 
     #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
     InvalidCachePath(PathBuf),

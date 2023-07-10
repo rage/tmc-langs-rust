@@ -10,15 +10,19 @@ pub use self::exercise::{
 };
 use crate::error::{MoocClientError, MoocClientResult};
 use bytes::Bytes;
+use exercise::UserAnswer;
 pub use mooc_langs_api::*;
 use oauth2::TokenResponse;
 use reqwest::{
-    blocking::{Client, RequestBuilder, Response},
+    blocking::{
+        multipart::{Form, Part},
+        Client, RequestBuilder, Response,
+    },
     Method, StatusCode,
 };
 use serde::{de::DeserializeOwned, Serialize};
-use std::{borrow::Cow, sync::Arc};
-use tmc_langs_util::JsonError;
+use std::{borrow::Cow, path::Path, sync::Arc};
+use tmc_langs_util::{serialize, JsonError};
 use uuid::Uuid;
 
 /// Client for accessing the Courses MOOC API.
@@ -136,11 +140,42 @@ impl MoocClient {
     pub fn submit(
         &self,
         exercise_id: Uuid,
-        exercise_slide_submission: &ExerciseSlideSubmission,
+        slide_id: Uuid,
+        task_id: Uuid,
+        archive: &Path,
     ) -> MoocClientResult<ExerciseSlideSubmissionResult> {
+        // upload archive
+        let metadata = UploadMetadata { slide_id, task_id };
+        let metadata = serialize::to_json_vec(&metadata)?;
+        let form = Form::new()
+            .part(
+                "metadata",
+                Part::bytes(metadata)
+                    .mime_str("application/json")
+                    .expect("known to work"),
+            )
+            .file("file", archive)
+            .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
         let res = self
-            .request(Method::POST, &format!("exercises/{exercise_id}"))
-            .json(exercise_slide_submission)
+            .request(Method::POST, &format!("exercises/{exercise_id}/upload"))
+            .multipart(form)
+            .send_expect_json::<UploadResult>()?;
+
+        // send submission
+        let user_answer = UserAnswer::Editor {
+            download_url: res.download_url,
+        };
+        let data_json = serialize::to_json_value(&user_answer)?;
+        let exercise_slide_submission = ExerciseSlideSubmission {
+            exercise_slide_id: slide_id,
+            exercise_task_submissions: vec![ExerciseTaskSubmission {
+                exercise_task_id: task_id,
+                data_json,
+            }],
+        };
+        let res = self
+            .request(Method::POST, &format!("exercises/{exercise_id}/submit"))
+            .json(&exercise_slide_submission)
             .send_expect_json()?;
         Ok(res)
     }
@@ -159,6 +194,11 @@ impl MoocRequest {
         T: Serialize,
     {
         self.builder = self.builder.json(value);
+        self
+    }
+
+    fn multipart(mut self, form: Form) -> Self {
+        self.builder = self.builder.multipart(form);
         self
     }
 

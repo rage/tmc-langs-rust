@@ -28,6 +28,7 @@ impl TmcConfig {
     /// Reads or initialises the config for the given client.
     pub fn load(client_name: &str) -> Result<TmcConfig, LangsError> {
         let path = Self::get_location(client_name)?;
+        log::debug!("Loading config at {}", path.display());
         Self::load_from(client_name, path)
     }
 
@@ -146,9 +147,12 @@ impl TmcConfig {
         log::info!("Saving config at {}", path.display());
 
         log::debug!("Saving config to temporary path");
-        let temp_file = file_util::named_temp_file()?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| LangsError::NoParentDir(path.to_path_buf()))?;
+        let temp_file = file_util::named_temp_file_in(parent)?;
         let toml = toml::to_string_pretty(&self)?;
-        file_util::write_to_file(&toml, temp_file.path())?;
+        file_util::write_to_file(toml, temp_file.path())?;
 
         log::debug!("Moving new config over old one");
         file_util::rename(temp_file.path(), path)?;
