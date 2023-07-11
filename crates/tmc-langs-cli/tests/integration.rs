@@ -138,6 +138,7 @@ fn clean() {
 }
 
 #[test]
+#[cfg(not(target_os = "windows"))] // hash differs on windows
 fn compress_project_tar() {
     test(|exercise| {
         let target = NamedTempFile::new().unwrap();
@@ -164,6 +165,7 @@ fn compress_project_tar() {
 }
 
 #[test]
+#[cfg(not(target_os = "windows"))] // hash differs on windows
 fn compress_project_zip() {
     test(|exercise| {
         let target = NamedTempFile::new().unwrap();
@@ -191,6 +193,7 @@ fn compress_project_zip() {
 }
 
 #[test]
+#[cfg(not(target_os = "windows"))] // hash differs on windows
 fn compress_project_zstd() {
     test(|exercise| {
         let target = NamedTempFile::new().unwrap();

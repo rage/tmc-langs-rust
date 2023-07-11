@@ -155,7 +155,7 @@ impl TmcConfig {
         file_util::write_to_file(toml, temp_file.path())?;
 
         log::debug!("Moving new config over old one");
-        file_util::rename(temp_file.path(), path)?;
+        temp_file.persist(path)?;
         Ok(())
     }
 

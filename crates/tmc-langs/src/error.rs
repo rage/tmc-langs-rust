@@ -124,6 +124,8 @@ pub enum LangsError {
     Hmac(#[from] hmac::digest::InvalidLength),
     #[error(transparent)]
     TestMyCodeClient(#[from] tmc_testmycode_client::TestMyCodeClientError),
+    #[error(transparent)]
+    PersistTempFile(#[from] tempfile::PersistError),
 }
 
 /// Error validating TMC params values.

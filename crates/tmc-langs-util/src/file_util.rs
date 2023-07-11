@@ -17,7 +17,7 @@ use std::{
     ops::{Deref, DerefMut},
     path::{Path, PathBuf},
 };
-use tempfile::NamedTempFile;
+use tempfile::{NamedTempFile, TempDir};
 use walkdir::WalkDir;
 
 /// Convenience macro for locking a path.
