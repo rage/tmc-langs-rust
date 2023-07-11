@@ -203,12 +203,15 @@ mod test {
     fn moves_projects_dir() {
         init();
 
-        let config_location = tempfile::NamedTempFile::new().unwrap();
+        // can't use a tempfile for the config location directly
+        // because windows won't let us replace a tempfile while it's "open"
+        let config_dir = tempfile::tempdir().unwrap();
+        let config_location = config_dir.path().join("tmc_config.temp");
         let projects_dir = tempfile::tempdir().unwrap();
         let target_dir = tempfile::tempdir().unwrap();
 
         let tmc_config = TmcConfig {
-            location: config_location.path().to_path_buf(),
+            location: config_location,
             projects_dir: projects_dir.path().to_path_buf(),
             table: Table::new(),
         };
