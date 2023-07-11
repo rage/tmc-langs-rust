@@ -33,6 +33,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: "gci env:"
 
+      - name: Disable protectNTFS on Windows
+        if: matrix.os == 'windows-latest'
+        run: git config core.protectNTFS false # disable to allow invalid file paths from secret-project git dependency
+
       - name: Rustfmt
         run: cargo fmt -- --check
       - name: Clippy
@@ -52,8 +56,8 @@ jobs:
       - name: Install Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '11'
+          distribution: "temurin"
+          java-version: "11"
 
       - name: Install Node
         uses: actions/setup-node@v3
