@@ -361,6 +361,7 @@ fn walk_dir_for_compression(
 ) -> Result<(), TmcError> {
     let parent = root.parent().map(PathBuf::from).unwrap_or_default();
     for entry in WalkDir::new(root)
+        .sort_by_file_name()
         .into_iter()
         // filter windows lock files
         .filter_entry(|e| e.file_name() != ".tmc.lock")

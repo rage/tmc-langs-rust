@@ -143,7 +143,7 @@ impl MoocClient {
         slide_id: Uuid,
         task_id: Uuid,
         archive: &Path,
-    ) -> MoocClientResult<ExerciseSlideSubmissionResult> {
+    ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
         // upload archive
         let metadata = UploadMetadata { slide_id, task_id };
         let metadata = serialize::to_json_vec(&metadata)?;
@@ -168,14 +168,22 @@ impl MoocClient {
         let data_json = serialize::to_json_value(&user_answer)?;
         let exercise_slide_submission = ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
-            exercise_task_submissions: vec![ExerciseTaskSubmission {
-                exercise_task_id: task_id,
-                data_json,
-            }],
+            exercise_task_id: task_id,
+            data_json,
         };
         let res = self
             .request(Method::POST, &format!("exercises/{exercise_id}/submit"))
             .json(&exercise_slide_submission)
+            .send_expect_json()?;
+        Ok(res)
+    }
+
+    pub fn get_submission_grading(
+        &self,
+        submission_id: Uuid,
+    ) -> MoocClientResult<ExerciseTaskSubmissionStatus> {
+        let res = self
+            .request(Method::GET, &format!("submissions/{submission_id}/grading"))
             .send_expect_json()?;
         Ok(res)
     }

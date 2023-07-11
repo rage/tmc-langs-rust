@@ -196,11 +196,17 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             exercise_path,
             output_path,
             compression,
+            deterministic,
             naive,
         } => {
             file_util::lock!(exercise_path);
-            let hash =
-                tmc_langs::compress_project_to(&exercise_path, &output_path, compression, naive)?;
+            let hash = tmc_langs::compress_project_to(
+                &exercise_path,
+                &output_path,
+                compression,
+                deterministic,
+                naive,
+            )?;
             CliOutput::finished_with_data(
                 format!(
                     "compressed project from {} to {}",

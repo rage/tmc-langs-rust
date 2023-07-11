@@ -18,7 +18,8 @@ export function compressProject(
   exercisePath: string,
   outputPath: string,
   compression: Compression,
-  naive: boolean
+  deterministic: boolean,
+  naive: boolean,
 ): void;
 export function extractProject(
   archivePath: string,

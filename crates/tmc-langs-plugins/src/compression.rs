@@ -16,10 +16,12 @@ pub fn compress_student_files(
     policy: &dyn StudentFilePolicy,
     root_directory: &Path,
     compression: Compression,
+    deterministic: bool,
 ) -> Result<Vec<u8>, TmcError> {
-    let mut writer = ArchiveBuilder::new(Cursor::new(vec![]), compression);
+    let mut writer = ArchiveBuilder::new(Cursor::new(vec![]), compression, deterministic);
 
     for entry in WalkDir::new(root_directory)
+        .sort_by(|a, b| a.path().cmp(b.path()))
         .into_iter()
         .filter_entry(|e| !contains_tmcnosubmit(e))
         .filter_map(|e| e.ok())
@@ -220,6 +222,7 @@ mod test {
             &EverythingIsStudentFilePolicy::new(&path).unwrap(),
             &path,
             Compression::Zip,
+            true,
         )
         .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();

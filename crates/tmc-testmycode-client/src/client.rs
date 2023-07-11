@@ -60,16 +60,16 @@ impl TestMyCodeClient {
         }
     }
 
-    /// Creates a new TmcClient with the given config directory and root URL.
+    /// Creates a new TestMyCodeClient with the given config directory and root URL.
     ///
     /// # Panics
     /// If the root URL does not have a trailing slash and is not a valid URL with an appended trailing slash.
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_testmycode_client::TmcClient;
+    /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// ```
     pub fn new(root_url: Url, client_name: String, client_version: String) -> Self {
         // guarantee a trailing slash, otherwise join will drop the last component
@@ -111,9 +111,9 @@ impl TestMyCodeClient {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_testmycode_client::TmcClient;
+    /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let mut client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
@@ -182,7 +182,7 @@ impl TestMyCodeClient {
 
         start_stage(2, "Compressing submission...", None);
         let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
                 .map_err(TestMyCodeClientError::from)?;
         progress_stage("Compressed submission. Posting submission...", None);
 
@@ -225,11 +225,11 @@ impl TestMyCodeClient {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_testmycode_client::{TmcClient, Language};
+    /// use tmc_testmycode_client::{TestMyCodeClient, Language};
     /// use url::Url;
     /// use std::path::Path;
     ///
-    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// // authenticate
     /// let new_submission = client.paste(
     ///     123,
@@ -249,7 +249,7 @@ impl TestMyCodeClient {
         // compress
         start_stage(2, "Compressing paste submission...", None);
         let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
                 .map_err(TestMyCodeClientError::from)?;
         progress_stage(
             "Compressed paste submission. Posting paste submission...",
@@ -391,9 +391,9 @@ impl TestMyCodeClient {
     ///
     /// # Examples
     /// ```rust,no_run
-    /// use tmc_testmycode_client::TmcClient;
+    /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let client = TmcClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
     /// checksums.insert(1234, "exercisechecksum".to_string());
@@ -486,7 +486,7 @@ impl TestMyCodeClient {
         self.require_authentication()?;
 
         let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false)
+            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
                 .map_err(TestMyCodeClientError::from)?;
         let review = if let Some(message) = message_for_reviewer {
             ReviewData::WithMessage(message)
@@ -563,7 +563,7 @@ impl TestMyCodeClient {
     }
 
     // abstracts waiting for submission over different functions for getting the submission status
-    pub fn wait_for_submission_inner(
+    fn wait_for_submission_inner(
         &self,
         f: impl Fn() -> Result<SubmissionProcessingStatus, TestMyCodeClientError>,
     ) -> Result<SubmissionFinished, TestMyCodeClientError> {

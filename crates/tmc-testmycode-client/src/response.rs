@@ -535,6 +535,7 @@ pub struct StyleValidationResult {
 /// Determines how style errors are handled.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+#[serde(rename_all = "UPPERCASE")]
 pub enum StyleValidationStrategy {
     Fail,
     Warn,

@@ -48,13 +48,14 @@ pub fn extract_project(
 pub fn compress_project(
     path: &Path,
     compression: Compression,
+    deterministic: bool,
     naive: bool,
 ) -> Result<Vec<u8>, PluginError> {
     let compressed = if naive {
         compression.compress(path)?
     } else {
         let policy = get_student_file_policy(path)?;
-        compression::compress_student_files(policy.as_ref(), path, compression)?
+        compression::compress_student_files(policy.as_ref(), path, compression, deterministic)?
     };
 
     Ok(compressed)

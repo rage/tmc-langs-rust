@@ -203,11 +203,12 @@ mod test {
     fn moves_projects_dir() {
         init();
 
+        let config_location = tempfile::NamedTempFile::new().unwrap();
         let projects_dir = tempfile::tempdir().unwrap();
         let target_dir = tempfile::tempdir().unwrap();
 
         let tmc_config = TmcConfig {
-            location: PathBuf::new(),
+            location: config_location.path().to_path_buf(),
             projects_dir: projects_dir.path().to_path_buf(),
             table: Table::new(),
         };

@@ -782,6 +782,7 @@ pub fn compress_project_to(
     source: &Path,
     target: &Path,
     compression: Compression,
+    deterministic: bool,
     naive: bool,
 ) -> Result<String, LangsError> {
     log::debug!(
@@ -791,7 +792,7 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
+    let data = tmc_langs_plugins::compress_project(source, compression, deterministic, naive)?;
     let hash = blake3::hash(&data);
     file_util::write_to_file(data, target)?;
     Ok(hash.to_string())

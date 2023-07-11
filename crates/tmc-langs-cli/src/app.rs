@@ -71,6 +71,9 @@ pub enum Command {
         /// Compression algorithm to use.
         #[clap(long, default_value_t = Compression::Zip)]
         compression: Compression,
+        /// If set, does not include metadata such as timestamps in the archives.
+        #[clap(long)]
+        deterministic: bool,
         /// If set, simply compresses the target directory with all of its files.
         #[clap(long)]
         naive: bool,

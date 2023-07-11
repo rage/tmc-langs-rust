@@ -141,7 +141,8 @@ mod test {
 {
     "type": "editor",
     "archiveName": "1",
-    "archiveDownloadUrl": "2"
+    "archiveDownloadUrl": "2",
+    "checksum": "abcd"
 }
 "#;
         serde_json::from_str::<PublicSpec>(editor_task).unwrap();
