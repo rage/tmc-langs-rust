@@ -44,6 +44,15 @@ The `docker.sh` script can be conveniently used to build and test the project. T
 
 Use `cargo +nightly fmt` and `cargo clippy` for formatting and linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny to allow the CLI to have total control over stdout and stderr. The CLI has one function where writing to stdout is allowed.
 
+## Logging
+tmc-langs-rust uses the `log` library for logging. The log levels should roughly follow the guidelines below:
+
+- ERROR: When something unexpectedly went wrong. For example, if a file that should be of a known JSON format fails to parse.
+- WARN: When something unusual happens that may or may not be a problem. For example, if removing some file during cleanup fails.
+- INFO: Informational logs that can be used to follow the general control flow of the application.
+- DEBUG: Informational logs that can include things not necessarily relevant to the current operation.
+- TRACE: Fine-grained logs that follow everything happening very closely.
+
 ## Updating dependencies
 
 For convenience, a tool called [cargo-outdated](https://crates.io/crates/cargo-outdated) can be installed to automatically check all the crates in the workspace for outdated dependencies. You may want to call `cargo update` first to update dependencies to the latest semver-compatible version.

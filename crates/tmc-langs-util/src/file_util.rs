@@ -66,6 +66,10 @@ pub fn named_temp_file() -> Result<NamedTempFile, FileError> {
     tempfile::NamedTempFile::new().map_err(FileError::TempFile)
 }
 
+pub fn named_temp_file_in(path: &Path) -> Result<NamedTempFile, FileError> {
+    tempfile::NamedTempFile::new_in(path).map_err(FileError::TempFile)
+}
+
 pub fn open_file(path: impl AsRef<Path>) -> Result<File, FileError> {
     let path = path.as_ref();
     File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
@@ -358,7 +362,6 @@ mod test {
     #[test]
     fn copies_dir() {
         init();
-
         let temp = tempfile::tempdir().unwrap();
         file_to(&temp, "dir/another/file", "file contents");
         file_to(&temp, "dir/elsewhere/f", "another file");

@@ -48,9 +48,10 @@ export class Tmc {
     exercisePath: string,
     outputPath: string,
     compression: Compression,
-    naive: boolean
+    deterministic: boolean,
+    naive: boolean,
   ): void {
-    return tmc.compressProject(exercisePath, outputPath, compression, naive);
+    return tmc.compressProject(exercisePath, outputPath, compression, deterministic, naive);
   }
 
   extractProject(

@@ -3,12 +3,18 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
-    notification_reporter::Notification, ClientUpdateData, CombinedCourseData, ConfigValue, Course,
-    CourseData, CourseDetails, CourseExercise, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExerciseDetails, ExerciseDownload, ExercisePackagingConfiguration, LocalExercise,
-    NewSubmission, Organization, Review, RunResult, StyleValidationResult, Submission,
-    SubmissionFeedbackResponse, SubmissionFinished, TmcConfig, Token, UpdateResult,
-    UpdatedExercise,
+    mooc,
+    notification_reporter::Notification,
+    tmc::{
+        response::{
+            Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+        },
+        ClientUpdateData, Token, UpdateResult,
+    },
+    CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, RunResult,
+    StyleValidationResult, TmcConfig, UpdatedExercise,
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
 
@@ -95,9 +101,16 @@ pub enum DataKind {
     NewSubmission(NewSubmission),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
-    ConfigValue(ConfigValue<'static>),
+    ConfigValue(ConfigValue),
     TmcConfig(TmcConfig),
+    CompressedProjectHash(String),
     SubmissionSandbox(String),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    MoocCourseInstances(Vec<mooc::CourseInstance>),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
+    #[cfg_attr(feature = "ts-rs", ts(skip))]
+    MoocExerciseSlide(mooc::TmcExerciseSlide),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

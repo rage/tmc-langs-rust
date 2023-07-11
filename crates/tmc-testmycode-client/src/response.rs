@@ -8,9 +8,8 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{fmt, str::FromStr};
+use std::{collections::HashMap, fmt, path::PathBuf, str::FromStr};
 use thiserror::Error;
-use tmc_langs_plugins::StyleValidationResult;
 
 /// Represents an error response from tmc-server
 #[derive(Debug, Error, Deserialize)]
@@ -523,6 +522,34 @@ pub struct Review {
     pub created_at: DateTime<FixedOffset>,
     #[cfg_attr(feature = "ts-rs", ts(type = "string"))]
     pub updated_at: DateTime<FixedOffset>,
+}
+
+/// The result of a style check.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct StyleValidationResult {
+    pub strategy: StyleValidationStrategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,
+}
+
+/// Determines how style errors are handled.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+#[serde(rename_all = "UPPERCASE")]
+pub enum StyleValidationStrategy {
+    Fail,
+    Warn,
+    Disabled,
+}
+
+/// A style validation error.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct StyleValidationError {
+    pub column: u32,
+    pub line: u32,
+    pub message: String,
+    pub source_name: String,
 }
 
 #[cfg(test)]

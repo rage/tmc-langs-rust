@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use std::{any::Any, fs::File, io::Write, path::PathBuf, process::ExitCode};
-use tmc_langs::{notification_reporter, progress_reporter, ClientUpdateData};
+use tmc_langs::{notification_reporter, progress_reporter, tmc::ClientUpdateData};
 use tmc_langs_cli::{
     app::Cli,
     map_parsing_result,

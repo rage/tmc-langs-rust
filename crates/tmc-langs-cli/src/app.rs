@@ -5,12 +5,18 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, CourseData, CourseDetails, CourseExercise,
-    DownloadOrUpdateCourseExercisesResult, ExerciseDesc, ExerciseDetails,
-    ExercisePackagingConfiguration, Language, LocalExercise, NewSubmission, Organization, Review,
-    RunResult, StyleValidationResult, Submission, SubmissionFeedbackResponse, SubmissionFinished,
-    UpdateResult, UpdatedExercise,
+    tmc::{
+        response::{
+            CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
+        },
+        UpdateResult,
+    },
+    CombinedCourseData, Compression, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
+    UpdatedExercise,
 };
+use uuid::Uuid;
 
 #[derive(Parser)]
 #[clap(
@@ -25,14 +31,8 @@ pub struct Cli {
     /// Pretty-prints all output
     #[clap(long, short)]
     pub pretty: bool,
-    /// Name used to differentiate between different TMC clients.
-    #[clap(long, short)]
-    pub client_name: Option<String>,
-    /// Client version.
-    #[clap(long, short = 'v')]
-    pub client_version: Option<String>,
     #[clap(subcommand)]
-    pub cmd: Command,
+    pub command: Command,
 }
 
 #[derive(Parser)]
@@ -71,13 +71,17 @@ pub enum Command {
         /// Compression algorithm to use.
         #[clap(long, default_value_t = Compression::Zip)]
         compression: Compression,
+        /// If set, does not include metadata such as timestamps in the archives.
+        #[clap(long)]
+        deterministic: bool,
         /// If set, simply compresses the target directory with all of its files.
         #[clap(long)]
         naive: bool,
     },
 
-    #[clap(subcommand)]
-    Core(Core),
+    Tmc(TestMyCode),
+
+    Mooc(Mooc),
 
     /// Extracts an exercise from an archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files
     #[clap(long_about = SCHEMA_NULL)]
@@ -129,6 +133,9 @@ pub enum Command {
     /// Returns a list of local exercises for the given course
     #[clap(long_about = schema_leaked::<Vec<LocalExercise>>())]
     ListLocalCourseExercises {
+        /// The client name of which the exercises should be listed.
+        #[clap(long)]
+        client_name: String,
         /// The course slug the local exercises of which should be listed.
         #[clap(long)]
         course_slug: String,
@@ -234,7 +241,6 @@ pub enum Command {
         wait_for_secret: bool,
     },
 
-    #[clap(subcommand)]
     Settings(Settings),
 
     /// Produces a description of an exercise using the appropriate language plugin
@@ -249,10 +255,22 @@ pub enum Command {
     },
 }
 
-/// Various commands that communicate with the TMC server
+/// Various commands that communicate with the TestMyCode server.
 #[derive(Parser)]
 #[clap(subcommand_required(true), arg_required_else_help(true))]
-pub enum Core {
+pub struct TestMyCode {
+    /// Name used to differentiate between different frontends (e.g. the VSCode extension).
+    #[clap(long, short)]
+    pub client_name: String,
+    /// Client version.
+    #[clap(long, short = 'v')]
+    pub client_version: String,
+    #[clap(subcommand)]
+    pub command: TestMyCodeCommand,
+}
+
+#[derive(Parser)]
+pub enum TestMyCodeCommand {
     /// Checks for updates to any exercises that exist locally.
     #[clap(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
     CheckExerciseUpdates,
@@ -512,10 +530,53 @@ pub enum Core {
     },
 }
 
+#[derive(Parser)]
+pub struct Mooc {
+    /// Name used to differentiate between different frontends (e.g. the VSCode extension).
+    #[clap(long, short)]
+    pub client_name: String,
+    #[clap(subcommand)]
+    pub command: MoocCommand,
+}
+
+#[derive(Parser)]
+pub enum MoocCommand {
+    CourseInstances,
+    CourseInstanceExercises {
+        #[clap(long)]
+        course_instance_id: Uuid,
+    },
+    Exercise {
+        #[clap(long)]
+        exercise_id: Uuid,
+    },
+    DownloadExercise {
+        #[clap(long)]
+        exercise_id: Uuid,
+        #[clap(long)]
+        target: PathBuf,
+    },
+    Submit {
+        #[clap(long)]
+        exercise_id: Uuid,
+        #[clap(long)]
+        submission_path: PathBuf,
+    },
+}
+
 /// Configure the CLI
 #[derive(Parser)]
 #[clap(subcommand_required(true), arg_required_else_help(true))]
-pub enum Settings {
+pub struct Settings {
+    /// The client name of which the settings should be listed.
+    #[clap(long)]
+    pub client_name: String,
+    #[clap(subcommand)]
+    pub command: SettingsCommand,
+}
+
+#[derive(Parser)]
+pub enum SettingsCommand {
     /// Retrieves a value from the settings
     Get {
         /// The name of the setting.
@@ -607,18 +668,7 @@ mod base_test {
     use super::*;
 
     fn get_matches(args: &[&str]) {
-        Cli::parse_from(
-            [
-                "tmc-langs-cli",
-                "--client-name",
-                "client",
-                "--client-version",
-                "version",
-            ]
-            .iter()
-            .chain(args)
-            .collect::<Vec<_>>(),
-        );
+        Cli::try_parse_from(["tmc-langs-cli"].iter().chain(args).collect::<Vec<_>>()).unwrap();
     }
 
     #[test]
@@ -704,7 +754,13 @@ mod base_test {
 
     #[test]
     fn list_local_course_exercises() {
-        get_matches(&["list-local-course-exercises", "--course-slug", "slug"]);
+        get_matches(&[
+            "list-local-course-exercises",
+            "--client-name",
+            "client",
+            "--course-slug",
+            "slug",
+        ]);
     }
 
     #[test]
@@ -798,30 +854,31 @@ mod base_test {
 mod core_test {
     use super::*;
 
-    fn get_matches_core(args: &[&str]) {
-        Cli::parse_from(
+    fn get_matches_tmc(args: &[&str]) {
+        Cli::try_parse_from(
             [
                 "tmc-langs-cli",
+                "tmc",
                 "--client-name",
                 "client",
                 "--client-version",
                 "version",
-                "core",
             ]
             .iter()
             .chain(args)
             .collect::<Vec<_>>(),
-        );
+        )
+        .unwrap();
     }
 
     #[test]
     fn check_exercise_updates() {
-        get_matches_core(&["check-exercise-updates"]);
+        get_matches_tmc(&["check-exercise-updates"]);
     }
 
     #[test]
     fn download_model_solution() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "download-model-solution",
             "--exercise-id",
             "0",
@@ -832,7 +889,7 @@ mod core_test {
 
     #[test]
     fn download_old_submission() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "download-old-submission",
             "--save-old-state",
             "--exercise-id",
@@ -846,14 +903,14 @@ mod core_test {
 
     #[test]
     fn download_or_update_course_exercises() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "download-or-update-course-exercises",
             "--exercise-id",
             "1234",
             "--exercise-id",
             "2345",
         ]);
-        get_matches_core(&[
+        get_matches_tmc(&[
             "download-or-update-course-exercises",
             "--exercise-id",
             "1234",
@@ -863,42 +920,42 @@ mod core_test {
 
     #[test]
     fn get_course_data() {
-        get_matches_core(&["get-course-data", "--course-id", "1234"]);
+        get_matches_tmc(&["get-course-data", "--course-id", "1234"]);
     }
 
     #[test]
     fn get_course_details() {
-        get_matches_core(&["get-course-details", "--course-id", "1234"]);
+        get_matches_tmc(&["get-course-details", "--course-id", "1234"]);
     }
 
     #[test]
     fn get_course_exercises() {
-        get_matches_core(&["get-course-exercises", "--course-id", "1234"]);
+        get_matches_tmc(&["get-course-exercises", "--course-id", "1234"]);
     }
 
     #[test]
     fn get_course_settings() {
-        get_matches_core(&["get-course-settings", "--course-id", "1234"]);
+        get_matches_tmc(&["get-course-settings", "--course-id", "1234"]);
     }
 
     #[test]
     fn get_courses() {
-        get_matches_core(&["get-courses", "--organization", "org"]);
+        get_matches_tmc(&["get-courses", "--organization", "org"]);
     }
 
     #[test]
     fn get_exercise_details() {
-        get_matches_core(&["get-exercise-details", "--exercise-id", "1234"]);
+        get_matches_tmc(&["get-exercise-details", "--exercise-id", "1234"]);
     }
 
     #[test]
     fn get_exercise_submissions() {
-        get_matches_core(&["get-exercise-submissions", "--exercise-id", "1234"]);
+        get_matches_tmc(&["get-exercise-submissions", "--exercise-id", "1234"]);
     }
 
     #[test]
     fn get_exercise_updates() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "get-exercise-updates",
             "--course-id",
             "1234",
@@ -913,27 +970,27 @@ mod core_test {
 
     #[test]
     fn get_organization() {
-        get_matches_core(&["get-organization", "--organization", "org"]);
+        get_matches_tmc(&["get-organization", "--organization", "org"]);
     }
 
     #[test]
     fn get_organizations() {
-        get_matches_core(&["get-organizations"]);
+        get_matches_tmc(&["get-organizations"]);
     }
 
     #[test]
     fn get_unread_reviews() {
-        get_matches_core(&["get-unread-reviews", "--course-id", "0"]);
+        get_matches_tmc(&["get-unread-reviews", "--course-id", "0"]);
     }
 
     #[test]
     fn logged_in() {
-        get_matches_core(&["logged-in"]);
+        get_matches_tmc(&["logged-in"]);
     }
 
     #[test]
     fn login() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "login",
             "--base64",
             "--email",
@@ -945,12 +1002,12 @@ mod core_test {
 
     #[test]
     fn logout() {
-        get_matches_core(&["logout"]);
+        get_matches_tmc(&["logout"]);
     }
 
     #[test]
     fn mark_review_as_read() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "mark-review-as-read",
             "--course-id",
             "0",
@@ -961,7 +1018,7 @@ mod core_test {
 
     #[test]
     fn paste() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "paste",
             "--locale",
             "fi",
@@ -976,7 +1033,7 @@ mod core_test {
 
     #[test]
     fn request_code_review() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "request-code-review",
             "--locale",
             "fi",
@@ -991,7 +1048,7 @@ mod core_test {
 
     #[test]
     fn reset_exercise() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "reset-exercise",
             "--save-old-state",
             "--exercise-id",
@@ -1003,7 +1060,7 @@ mod core_test {
 
     #[test]
     fn send_feedback() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "send-feedback",
             "--feedback",
             "1234",
@@ -1015,7 +1072,7 @@ mod core_test {
 
     #[test]
     fn submit() {
-        get_matches_core(&[
+        get_matches_tmc(&[
             "submit",
             "--dont-block",
             "--locale",
@@ -1029,12 +1086,12 @@ mod core_test {
 
     #[test]
     fn update_exercises() {
-        get_matches_core(&["update-exercises"]);
+        get_matches_tmc(&["update-exercises"]);
     }
 
     #[test]
     fn wait_for_submission() {
-        get_matches_core(&["wait-for-submission", "--submission-id", "0"]);
+        get_matches_tmc(&["wait-for-submission", "--submission-id", "0"]);
     }
 }
 
@@ -1043,12 +1100,14 @@ mod settings_test {
     use super::*;
 
     fn get_matches_settings(args: &[&str]) {
-        Cli::parse_from(
-            ["tmc-langs-cli", "--client-name", "client", "settings"]
+        Cli::try_parse_from(
+            ["tmc-langs-cli", "settings", "--client-name", "client"]
                 .iter()
                 .chain(args)
                 .collect::<Vec<_>>(),
-        );
+        )
+        .map_err(|e| e.to_string())
+        .unwrap();
     }
 
     #[test]
@@ -1119,7 +1178,7 @@ fn generate_cli_bindings() {
         notification_reporter::Notification,
         Status,
         OutputResult,
-        ClientUpdateData,
+        tmc::ClientUpdateData,
         progress_reporter::StatusUpdate<()>,
         notification_reporter::NotificationKind,
         DataKind,
@@ -1145,24 +1204,24 @@ fn generate_cli_bindings() {
         CourseDetails,
         CourseExercise,
         CourseData,
-        Course,
+        tmc::response::Course,
         ExerciseDetails,
         Submission,
         UpdateResult,
         Organization,
         Review,
-        Exercise,
-        ExerciseSubmission,
-        ExercisePoint,
+        tmc::response::Exercise,
+        tmc::response::ExerciseSubmission,
+        tmc::response::ExercisePoint,
         PythonVer,
         TmcConfig,
         ConfigValue,
         SubmissionFinished,
         SubmissionFeedbackResponse,
-        SubmissionStatus,
-        SubmissionFeedbackQuestion,
-        TestCase,
-        SubmissionFeedbackKind,
+        tmc::response::SubmissionStatus,
+        tmc::response::SubmissionFeedbackQuestion,
+        tmc::response::TestCase,
+        tmc::response::SubmissionFeedbackKind,
     )
     .unwrap();
 }

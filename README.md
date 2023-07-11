@@ -24,7 +24,15 @@ The "backend". A library that provides a convenient API for implementing differe
 
 ### tmc-client
 
-A library for communicating with the TMC server.
+A library that abstracts over different TMC backends.
+
+### tmc-testmycode-client
+
+A library for communicating with the TestMyCode TMC server.
+
+### tmc-mooc-client
+
+A library for communicating with the mooc.fi TMC server.
 
 ### tmc-langs-framework
 

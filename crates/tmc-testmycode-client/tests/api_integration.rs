@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use std::{env, io::Read};
-use tmc_client::{api_v8, request::FeedbackAnswer, TmcClient};
+use tmc_testmycode_client::{api_v8, request::FeedbackAnswer, TestMyCodeClient};
 
 const ORGANIZATION_SLUG: &str = "hy";
 const COURSE_NAME: &str = "java-1-f2020";
@@ -11,7 +11,7 @@ const SUBMISSION_ID: u32 = 10406006;
 const SUBMISSION_ZIP: &[u8] = include_bytes!("data/part01-Part01_01.Sandbox.zip");
 const REVIEW_ID: u32 = 1138;
 
-fn init_client() -> TmcClient {
+fn init_client() -> TestMyCodeClient {
     use log::*;
     use simple_logger::*;
     let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
@@ -20,7 +20,7 @@ fn init_client() -> TmcClient {
     let email = env::var("TMC_EMAIL").unwrap();
     let password = env::var("TMC_PASSWORD").unwrap();
 
-    let mut client = TmcClient::new(
+    let mut client = TestMyCodeClient::new(
         "https://tmc.mooc.fi".parse().unwrap(),
         "vscode_plugin".to_string(),
         "1.0.0".to_string(),

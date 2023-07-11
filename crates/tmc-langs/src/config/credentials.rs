@@ -1,6 +1,6 @@
 //! Contains the Credentials struct for authenticating with tmc-server.
 
-use crate::{LangsError, Token};
+use crate::{tmc::Token, LangsError};
 use serde::{Deserialize, Serialize};
 use std::{ops::Deref, path::PathBuf};
 use tmc_langs_util::{deserialize, file_util, FileError};
@@ -29,6 +29,7 @@ impl Credentials {
         if !credentials_path.exists() {
             return Ok(None);
         }
+        log::debug!("Loading credentials from {}", credentials_path.display());
 
         let mut credentials_file = file_util::open_file_locked(&credentials_path)?;
         let guard = credentials_file

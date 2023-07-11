@@ -12,12 +12,12 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        list_local_course_exercises, migrate_exercise, move_projects_dir, ConfigValue,
-        CourseConfig, Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+        list_local_course_exercises, migrate_exercise, move_projects_dir, CourseConfig,
+        Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
     },
     course_refresher::{refresh_course, RefreshData, RefreshExercise},
     data::{
-        CombinedCourseData, DownloadOrUpdateCourseExercisesResult, DownloadResult,
+        CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, DownloadResult,
         ExerciseDownload, LocalExercise, TmcParams,
     },
     error::{LangsError, ParamError},
@@ -41,16 +41,6 @@ use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
-pub use tmc_client::{
-    request::FeedbackAnswer,
-    response::{
-        Course, CourseData, CourseDetails, CourseExercise, Exercise, ExerciseDetails,
-        ExercisePoint, ExerciseSubmission, ExercisesDetails, NewSubmission, Organization, Review,
-        Submission, SubmissionFeedbackKind, SubmissionFeedbackQuestion, SubmissionFeedbackResponse,
-        SubmissionFinished, SubmissionStatus, TestCase,
-    },
-    ClientError, ClientUpdateData, TmcClient, Token, UpdateResult,
-};
 use tmc_langs_framework::{Archive, TmcError};
 pub use tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
@@ -65,6 +55,8 @@ pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
 };
+pub use tmc_mooc_client as mooc;
+pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
@@ -99,15 +91,14 @@ pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, La
 /// Returns the projects directory for the given client name.
 /// The return value for `my-client` might look something like `/home/username/.local/share/tmc/my-client` on Linux.
 pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
-    let config_path = TmcConfig::get_location(client_name)?;
-    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
+    let projects_dir = TmcConfig::load(client_name)?.projects_dir;
     Ok(projects_dir)
 }
 
 /// Checks the server for any updates for exercises within the given projects directory.
 /// Returns the ids of each exercise that can be updated.
 pub fn check_exercise_updates(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
 ) -> Result<Vec<u32>, LangsError> {
     log::debug!("checking exercise updates in {}", projects_dir.display());
@@ -142,7 +133,7 @@ pub fn check_exercise_updates(
 /// Resets the exercise at the path before the download.
 /// If a submission_url is given, the current state of the exercise is submitted to that URL before the download.
 pub fn download_old_submission(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     exercise_id: u32,
     output_path: &Path,
     submission_id: u32,
@@ -177,12 +168,12 @@ pub fn download_old_submission(
 
 /// Submits the exercise to the server
 pub fn submit_exercise(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
     course_slug: &str,
     exercise_slug: &str,
     locale: Option<Language>,
-) -> Result<NewSubmission, LangsError> {
+) -> Result<tmc::response::NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
         .get_exercise(course_slug, exercise_slug)
@@ -193,18 +184,19 @@ pub fn submit_exercise(
 
     client
         .submit(exercise.id, exercise_path.as_path(), locale)
-        .map_err(|e| e.into())
+        .map(Into::into)
+        .map_err(Into::into)
 }
 
 /// Sends the paste to the server
 pub fn paste_exercise(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
     course_slug: &str,
     exercise_slug: &str,
     paste_message: Option<String>,
     locale: Option<Language>,
-) -> Result<NewSubmission, LangsError> {
+) -> Result<tmc::response::NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
         .get_exercise(course_slug, exercise_slug)
@@ -225,7 +217,7 @@ pub fn paste_exercise(
 ///   otherwise, the exercise template is downloaded.
 /// If the exercise exists on disk, it is updated using the course template.
 pub fn download_or_update_course_exercises(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
     exercises: &[u32],
     download_template: bool,
@@ -352,13 +344,13 @@ pub fn download_or_update_course_exercises(
                 // dropped mutex
 
                 let exercise_download_result = || -> Result<(), LangsError> {
-                    progress_reporter::progress_stage::<ClientUpdateData>(
+                    progress_reporter::progress_stage::<tmc::ClientUpdateData>(
                         format!(
                             "Downloading exercise {} to '{}'",
                             download_target.target.id,
                             download_target.target.path.display(),
                         ),
-                        Some(ClientUpdateData::ExerciseDownload {
+                        Some(tmc::ClientUpdateData::ExerciseDownload {
                             id: download_target.target.id,
                             path: download_target.target.path.clone(),
                         }),
@@ -428,13 +420,13 @@ pub fn download_or_update_course_exercises(
                     course_config.save_to_projects_dir(&projects_dir)?;
                     drop(projects_config); // drop mutex
 
-                    progress_reporter::progress_stage::<ClientUpdateData>(
+                    progress_reporter::progress_stage::<tmc::ClientUpdateData>(
                         format!(
                             "Downloaded exercise {} to '{}'",
                             download_target.target.id,
                             download_target.target.path.display(),
                         ),
-                        Some(ClientUpdateData::ExerciseDownload {
+                        Some(tmc::ClientUpdateData::ExerciseDownload {
                             id: download_target.target.id,
                             path: download_target.target.path.clone(),
                         }),
@@ -493,7 +485,7 @@ pub fn download_or_update_course_exercises(
             failed.len(),
         )
     };
-    progress_reporter::finish_stage::<ClientUpdateData>(finish_message, None);
+    progress_reporter::finish_stage::<tmc::ClientUpdateData>(finish_message, None);
 
     // return information about the downloads
     let downloaded = successful.into_iter().map(|t| t.target).collect();
@@ -526,7 +518,7 @@ pub fn download_or_update_course_exercises(
 
 /// Fetches the given course's details, exercises and course data.
 pub fn get_course_data(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     course_id: u32,
 ) -> Result<CombinedCourseData, LangsError> {
     log::debug!("getting course data for {}", course_id);
@@ -542,7 +534,7 @@ pub fn get_course_data(
 }
 
 /// Creates a login Token from a token string.
-pub fn login_with_token(token: String) -> Token {
+pub fn login_with_token(token: String) -> tmc::Token {
     log::debug!("creating token from token string");
 
     let mut token_response = StandardTokenResponse::new(
@@ -557,24 +549,24 @@ pub fn login_with_token(token: String) -> Token {
 /// Authenticates with the server, returning a login Token.
 /// Reads the password from stdin.
 pub fn login_with_password(
-    client: &mut TmcClient,
+    client: &mut tmc::TestMyCodeClient,
     client_name: &str,
     email: String,
     password: String,
-) -> Result<Token, LangsError> {
+) -> Result<tmc::Token, LangsError> {
     log::debug!("logging in with password");
     let token = client.authenticate(client_name, email, password)?;
     Ok(token)
 }
 
-/// Initializes a TmcClient, using and returning the stored credentials, if any.
-pub fn init_tmc_client_with_credentials(
+/// Initializes a TestMyCodeClient, using and returning the stored credentials, if any.
+pub fn init_testmycode_client_with_credentials(
     root_url: Url,
     client_name: &str,
     client_version: &str,
-) -> Result<(TmcClient, Option<Credentials>), LangsError> {
+) -> Result<(tmc::TestMyCodeClient, Option<Credentials>), LangsError> {
     // create client
-    let mut client = TmcClient::new(
+    let mut client = tmc::TestMyCodeClient::new(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
@@ -589,10 +581,27 @@ pub fn init_tmc_client_with_credentials(
     Ok((client, credentials))
 }
 
+/// Initializes a MoocClient, using and returning the stored credentials, if any.
+pub fn init_mooc_client_with_credentials(
+    root_url: String,
+    client_name: &str,
+) -> Result<(mooc::MoocClient, Option<Credentials>), LangsError> {
+    // create client
+    let mut client = mooc::MoocClient::new(root_url);
+
+    // set token from the credentials file if one exists
+    let credentials = Credentials::load(client_name)?;
+    if let Some(credentials) = &credentials {
+        client.set_token(credentials.token());
+    }
+
+    Ok((client, credentials))
+}
+
 /// Updates the exercises in the local projects directory.
 // TODO: parallel downloads
 pub fn update_exercises(
-    client: &TmcClient,
+    client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateCourseExercisesResult, LangsError> {
     log::debug!("updating exercises in {}", projects_dir.display());
@@ -687,11 +696,14 @@ pub fn update_exercises(
 }
 
 /// Fetches a setting from the config.
-pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue<'static>, LangsError> {
+pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue, LangsError> {
     log::debug!("fetching setting {} in {}", key, client_name);
 
     let tmc_config = get_settings(client_name)?;
-    let value = tmc_config.get(key).into_owned();
+    let value = match key {
+        "projects-dir" => ConfigValue::Path(tmc_config.get_projects_dir().to_path_buf()),
+        other => ConfigValue::Value(tmc_config.get(other).cloned()),
+    };
     Ok(value)
 }
 
@@ -699,20 +711,29 @@ pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue<'static>,
 pub fn get_settings(client_name: &str) -> Result<TmcConfig, LangsError> {
     log::debug!("fetching settings for {}", client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    TmcConfig::load(client_name, &config_path)
+    TmcConfig::load(client_name)
 }
 
 /// Saves a setting in the config.
 pub fn set_setting<T: Serialize>(client_name: &str, key: &str, value: T) -> Result<(), LangsError> {
     log::debug!("setting {} in {}", key, client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
-    let value = TomlValue::try_from(value)?;
+    let mut tmc_config = TmcConfig::load(client_name)?;
 
-    tmc_config.insert(key.to_string(), value)?;
-    tmc_config.save(&config_path)?;
+    let value = TomlValue::try_from(value)?;
+    match key {
+        "projects-dir" => {
+            let TomlValue::String(value) = value else {
+                return Err(LangsError::ProjectsDirNotString);
+            };
+            tmc_config.set_projects_dir(PathBuf::from(value))?;
+        }
+        other => {
+            tmc_config.insert(other.to_string(), value);
+        }
+    }
+
+    tmc_config.save()?;
     Ok(())
 }
 
@@ -725,15 +746,14 @@ pub fn reset_settings(client_name: &str) -> Result<(), LangsError> {
 }
 
 /// Unsets the given setting.
-pub fn unset_setting(client_name: &str, key: &str) -> Result<(), LangsError> {
+pub fn unset_setting(client_name: &str, key: &str) -> Result<Option<TomlValue>, LangsError> {
     log::debug!("unsetting setting {} in {}", key, client_name);
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let mut tmc_config = TmcConfig::load(client_name, &config_path)?;
+    let mut tmc_config = TmcConfig::load(client_name)?;
+    let old_value = tmc_config.remove(key);
+    tmc_config.save()?;
 
-    tmc_config.remove(key)?;
-    tmc_config.save(&config_path)?;
-    Ok(())
+    Ok(old_value)
 }
 
 /// Checks the exercise's code quality.
@@ -757,12 +777,14 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 }
 
 /// Compresses the exercise to the target path.
+/// Returns the BLAKE3 hash of the resulting file.
 pub fn compress_project_to(
     source: &Path,
     target: &Path,
     compression: Compression,
+    deterministic: bool,
     naive: bool,
-) -> Result<(), LangsError> {
+) -> Result<String, LangsError> {
     log::debug!(
         "compressing {} to {} ({})",
         source.display(),
@@ -770,9 +792,10 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project(source, compression, naive)?;
+    let data = tmc_langs_plugins::compress_project(source, compression, deterministic, naive)?;
+    let hash = blake3::hash(&data);
     file_util::write_to_file(data, target)?;
-    Ok(())
+    Ok(hash.to_string())
 }
 
 /*
@@ -788,7 +811,11 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 */
 
 /// Resets the given exercise
-pub fn reset(client: &TmcClient, exercise_id: u32, exercise_path: &Path) -> Result<(), LangsError> {
+pub fn reset(
+    client: &tmc::TestMyCodeClient,
+    exercise_id: u32,
+    exercise_path: &Path,
+) -> Result<(), LangsError> {
     if exercise_path.exists() {
         // clear out the exercise directory
         file_util::remove_dir_all(exercise_path)?;
@@ -1062,7 +1089,7 @@ mod test {
     use super::*;
     use mockito::Server;
     use std::io::Write;
-    use tmc_client::response::ExercisesDetails;
+    use tmc_testmycode_client::response::ExercisesDetails;
 
     fn init() {
         use log::*;
@@ -1088,13 +1115,13 @@ mod test {
         target
     }
 
-    fn mock_client(server: &Server) -> TmcClient {
-        let mut client = TmcClient::new(
+    fn mock_testmycode_client(server: &Server) -> tmc::TestMyCodeClient {
+        let mut client = tmc::TestMyCodeClient::new(
             server.url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
         );
-        let token = Token::new(
+        let token = tmc::Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
@@ -1174,7 +1201,7 @@ checksum = 'old checksum'
         );
         file_to(&projects_dir, "some course/some exercise/some file", "");
 
-        let client = mock_client(&server);
+        let client = mock_testmycode_client(&server);
         let updates = check_exercise_updates(&client, projects_dir.path()).unwrap();
         assert_eq!(updates.len(), 1);
         assert_eq!(&updates[0], &1);
@@ -1196,7 +1223,7 @@ checksum = 'old checksum'
             .create();
 
         let output_dir = tempfile::tempdir().unwrap();
-        let client = mock_client(&server);
+        let client = mock_testmycode_client(&server);
 
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
         let s = file_util::read_file_to_string(output_dir.path().join("src/file")).unwrap();
@@ -1235,7 +1262,7 @@ checksum = 'new checksum'
             "",
         );
 
-        let client = mock_client(&server);
+        let client = mock_testmycode_client(&server);
 
         let exercises = vec![1, 2, 3];
 
@@ -1290,7 +1317,7 @@ checksum = 'new checksum'
             .with_body(serde_json::to_string(&body).unwrap())
             .create();
 
-        let sub_body = vec![Submission {
+        let sub_body = vec![tmc::response::Submission {
             id: 1,
             user_id: 1,
             pretest_error: None,
@@ -1609,7 +1636,7 @@ checksum = 'new checksum'
             .with_body(submission_z.into_inner())
             .create();
 
-        let client = mock_client(&server);
+        let client = mock_testmycode_client(&server);
 
         download_old_submission(&client, 1, output_dir.path(), 2, false).unwrap();
 

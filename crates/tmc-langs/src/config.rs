@@ -7,7 +7,7 @@ mod tmc_config;
 pub use self::{
     credentials::Credentials,
     projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise},
-    tmc_config::{ConfigValue, TmcConfig},
+    tmc_config::TmcConfig,
 };
 use crate::{data::LocalExercise, error::LangsError};
 use std::{
@@ -37,8 +37,7 @@ pub fn list_local_course_exercises(
         client_name
     );
 
-    let config_path = TmcConfig::get_location(client_name)?;
-    let projects_dir = TmcConfig::load(client_name, &config_path)?.projects_dir;
+    let projects_dir = TmcConfig::load(client_name)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;
 
     let exercises = projects_config
@@ -106,11 +105,7 @@ pub fn migrate_exercise(
 }
 
 /// Moves the projects directory from its current location to the target, taking all of the contained exercises with it.
-pub fn move_projects_dir(
-    mut tmc_config: TmcConfig,
-    config_path: &Path,
-    target: PathBuf,
-) -> Result<(), LangsError> {
+pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(), LangsError> {
     log::debug!("moving projects dir to {}", target.display());
 
     if target.is_file() {
@@ -137,7 +132,7 @@ pub fn move_projects_dir(
     let guard = lock.lock()?;
 
     super::move_dir(&old_projects_dir, guard, &target)?;
-    tmc_config.save(config_path)?;
+    tmc_config.save()?;
     Ok(())
 }
 
@@ -174,6 +169,7 @@ mod test {
         let exercise_path = tempfile::tempdir().unwrap();
 
         let tmc_config = TmcConfig {
+            location: PathBuf::new(),
             projects_dir: projects_dir.path().to_path_buf(),
             table: Table::new(),
         };
@@ -207,11 +203,12 @@ mod test {
     fn moves_projects_dir() {
         init();
 
+        let config_location = tempfile::NamedTempFile::new().unwrap();
         let projects_dir = tempfile::tempdir().unwrap();
         let target_dir = tempfile::tempdir().unwrap();
 
-        let config_path = tempfile::NamedTempFile::new().unwrap();
         let tmc_config = TmcConfig {
+            location: config_location.path().to_path_buf(),
             projects_dir: projects_dir.path().to_path_buf(),
             table: Table::new(),
         };
@@ -227,12 +224,7 @@ mod test {
             .join("some course/some exercise/some file")
             .exists());
 
-        move_projects_dir(
-            tmc_config,
-            config_path.path(),
-            target_dir.path().to_path_buf(),
-        )
-        .unwrap();
+        move_projects_dir(tmc_config, target_dir.path().to_path_buf()).unwrap();
 
         assert!(target_dir
             .path()

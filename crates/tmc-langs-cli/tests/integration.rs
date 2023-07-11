@@ -13,12 +13,12 @@ fn cp_exercise(path: &Path) -> TempDir {
         let relative = file.path().strip_prefix(path_parent).unwrap();
         let target = temp.path().join(relative);
         if file.file_type().is_dir() {
-            std::fs::create_dir_all(target).unwrap();
+            std::fs::create_dir_all(&target).unwrap();
         } else if file.file_type().is_file() {
             if let Some(parent) = target.parent() {
                 std::fs::create_dir_all(parent).unwrap();
             }
-            std::fs::copy(file.path(), target).unwrap();
+            std::fs::copy(file.path(), &target).unwrap();
         }
     }
     temp
@@ -151,6 +151,7 @@ fn compress_project_tar() {
             path_str(&target),
             "--compression",
             "tar",
+            "--deterministic",
         ]);
         let output = tmc_langs_cli::run(cli).unwrap();
         insta::assert_yaml_snapshot!(output);
@@ -177,6 +178,7 @@ fn compress_project_zip() {
             // zip should be the default
             // "--compression",
             // "zip",
+            "--deterministic",
         ]);
         let output = tmc_langs_cli::run(cli).unwrap();
         insta::assert_yaml_snapshot!(output);
@@ -202,6 +204,7 @@ fn compress_project_zstd() {
             path_str(&target),
             "--compression",
             "zstd",
+            "--deterministic",
         ]);
         let output = tmc_langs_cli::run(cli).unwrap();
         insta::assert_yaml_snapshot!(output);
