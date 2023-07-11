@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CSharpError",""]],"struct":[["CSharpPlugin",""],["CSharpStudentFilePolicy",""]]};
+window.SIDEBAR_ITEMS = {"enum":["CSharpError"],"struct":["CSharpPlugin","CSharpStudentFilePolicy"]};

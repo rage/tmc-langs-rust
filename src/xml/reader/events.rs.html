@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.4/src/reader/events.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.15/src/reader/events.rs`."><title>events.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -217,15 +217,17 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-</pre><pre class="rust"><code><span class="doccomment">//! Contains `XmlEvent` datatype, instances of which are emitted by the parser.
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Contains `XmlEvent` datatype, instances of which are emitted by the parser.
 
-</span><span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::borrow::Cow;
+</span><span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::fmt;
 
-<span class="kw">use </span>name::OwnedName;
-<span class="kw">use </span>attribute::OwnedAttribute;
-<span class="kw">use </span>common::XmlVersion;
-<span class="kw">use </span>namespace::Namespace;
+<span class="kw">use </span><span class="kw">crate</span>::attribute::OwnedAttribute;
+<span class="kw">use </span><span class="kw">crate</span>::common::XmlVersion;
+<span class="kw">use </span><span class="kw">crate</span>::name::OwnedName;
+<span class="kw">use </span><span class="kw">crate</span>::namespace::Namespace;
 
 <span class="doccomment">/// An element of an XML input stream.
 ///
@@ -255,7 +257,7 @@
         /// If XML document is not present or does not contain `standalone` attribute,
         /// defaults to `None`. This field is currently used for no other purpose than
         /// informational.
-        </span>standalone: <span class="prelude-ty">Option</span>&lt;bool&gt;
+        </span>standalone: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     },
 
     <span class="doccomment">/// Denotes to the end of the document stream.
@@ -273,7 +275,7 @@
         </span>name: String,
 
         <span class="doccomment">/// Processing instruction content.
-        </span>data: <span class="prelude-ty">Option</span>&lt;String&gt;
+        </span>data: <span class="prelude-ty">Option</span>&lt;String&gt;,
     },
 
     <span class="doccomment">/// Denotes a beginning of an XML element.
@@ -299,7 +301,7 @@
     /// latter case it is emitted immediately after corresponding `StartElement` event.
     </span>EndElement {
         <span class="doccomment">/// Qualified name of the element.
-        </span>name: OwnedName
+        </span>name: OwnedName,
     },
 
     <span class="doccomment">/// Denotes CDATA content.
@@ -330,19 +332,20 @@
     /// It is possible to configure a parser to emit `Characters` event instead of `Whitespace`.
     /// See `pull::ParserConfiguration` structure for more information. When combined with whitespace
     /// trimming, it will eliminate standalone whitespace from the event stream completely.
-    </span>Whitespace(String)
+    </span>Whitespace(String),
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>XmlEvent {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+    <span class="attr">#[cold]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            XmlEvent::StartDocument { <span class="kw-2">ref </span>version, <span class="kw-2">ref </span>encoding, <span class="kw-2">ref </span>standalone } =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;StartDocument({}, {}, {:?})&quot;</span>, version, <span class="kw-2">*</span>encoding, <span class="kw-2">*</span>standalone),
+            XmlEvent::StartDocument { <span class="kw-2">ref </span>version, <span class="kw-2">ref </span>encoding, standalone } =&gt;
+                <span class="macro">write!</span>(f, <span class="string">&quot;StartDocument({}, {}, {:?})&quot;</span>, version, <span class="kw-2">*</span>encoding, standalone),
             XmlEvent::EndDocument =&gt;
                 <span class="macro">write!</span>(f, <span class="string">&quot;EndDocument&quot;</span>),
             XmlEvent::ProcessingInstruction { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>data } =&gt;
                 <span class="macro">write!</span>(f, <span class="string">&quot;ProcessingInstruction({}{})&quot;</span>, <span class="kw-2">*</span>name, <span class="kw">match </span><span class="kw-2">*</span>data {
-                    <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>data) =&gt; <span class="macro">format!</span>(<span class="string">&quot;, {}&quot;</span>, data),
+                    <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>data) =&gt; <span class="macro">format!</span>(<span class="string">&quot;, {data}&quot;</span>),
                     <span class="prelude-val">None       </span>=&gt; String::new()
                 }),
             XmlEvent::StartElement { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>attributes, namespace: Namespace(<span class="kw-2">ref </span>namespace) } =&gt;
@@ -355,15 +358,15 @@
                     <span class="macro">format!</span>(<span class="string">&quot;, [{}]&quot;</span>, attributes.join(<span class="string">&quot;, &quot;</span>))
                 }),
             XmlEvent::EndElement { <span class="kw-2">ref </span>name } =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;EndElement({})&quot;</span>, name),
+                <span class="macro">write!</span>(f, <span class="string">&quot;EndElement({name})&quot;</span>),
             XmlEvent::Comment(<span class="kw-2">ref </span>data) =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;Comment({})&quot;</span>, data),
+                <span class="macro">write!</span>(f, <span class="string">&quot;Comment({data})&quot;</span>),
             XmlEvent::CData(<span class="kw-2">ref </span>data) =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;CData({})&quot;</span>, data),
+                <span class="macro">write!</span>(f, <span class="string">&quot;CData({data})&quot;</span>),
             XmlEvent::Characters(<span class="kw-2">ref </span>data) =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;Characters({})&quot;</span>, data),
+                <span class="macro">write!</span>(f, <span class="string">&quot;Characters({data})&quot;</span>),
             XmlEvent::Whitespace(<span class="kw-2">ref </span>data) =&gt;
-                <span class="macro">write!</span>(f, <span class="string">&quot;Whitespace({})&quot;</span>, data)
+                <span class="macro">write!</span>(f, <span class="string">&quot;Whitespace({data})&quot;</span>)
         }
     }
 }
@@ -407,34 +410,34 @@
     /// ```
     ///
     /// Note that this API may change or get additions in future to improve its ergonomics.
-    </span><span class="kw">pub fn </span>as_writer_event&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;::writer::events::XmlEvent&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>as_writer_event(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::writer::events::XmlEvent&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             XmlEvent::StartDocument { version, <span class="kw-2">ref </span>encoding, standalone } =&gt;
-                <span class="prelude-val">Some</span>(::writer::events::XmlEvent::StartDocument {
-                    version: version,
+                <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::StartDocument {
+                    version,
                     encoding: <span class="prelude-val">Some</span>(encoding),
-                    standalone: standalone
+                    standalone
                 }),
             XmlEvent::ProcessingInstruction { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>data } =&gt;
-                <span class="prelude-val">Some</span>(::writer::events::XmlEvent::ProcessingInstruction {
-                    name: name,
-                    data: data.as_ref().map(|s| <span class="kw-2">&amp;</span>s[..])
+                <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::ProcessingInstruction {
+                    name,
+                    data: data.as_ref().map(|s| <span class="kw-2">&amp;**</span>s)
                 }),
             XmlEvent::StartElement { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>attributes, <span class="kw-2">ref </span>namespace } =&gt;
-                <span class="prelude-val">Some</span>(::writer::events::XmlEvent::StartElement {
+                <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::StartElement {
                     name: name.borrow(),
                     attributes: attributes.iter().map(|a| a.borrow()).collect(),
                     namespace: Cow::Borrowed(namespace)
                 }),
             XmlEvent::EndElement { <span class="kw-2">ref </span>name } =&gt;
-                <span class="prelude-val">Some</span>(::writer::events::XmlEvent::EndElement { name: <span class="prelude-val">Some</span>(name.borrow()) }),
-            XmlEvent::Comment(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(::writer::events::XmlEvent::Comment(data)),
-            XmlEvent::CData(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(::writer::events::XmlEvent::CData(data)),
-            XmlEvent::Characters(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(::writer::events::XmlEvent::Characters(data)),
-            XmlEvent::Whitespace(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(::writer::events::XmlEvent::Characters(data)),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None
-        </span>}
+                <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::EndElement { name: <span class="prelude-val">Some</span>(name.borrow()) }),
+            XmlEvent::Comment(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::Comment(data)),
+            XmlEvent::CData(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::CData(data)),
+            XmlEvent::Characters(<span class="kw-2">ref </span>data) |
+            XmlEvent::Whitespace(<span class="kw-2">ref </span>data) =&gt; <span class="prelude-val">Some</span>(<span class="kw">crate</span>::writer::events::XmlEvent::Characters(data)),
+            XmlEvent::EndDocument =&gt; <span class="prelude-val">None</span>,
+        }
     }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ParsingResult",""]],"fn":[["map_parsing_result",""],["run",""]],"mod":[["app","Create clap app"],["error","Contains various error types."],["output","Contains the type definition for the output format of the CLI."]],"struct":[["CliError",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ParsingResult"],"fn":["map_parsing_result","run"],"mod":["app","error","output"],"struct":["CliError"]};

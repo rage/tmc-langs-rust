@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ArchiveBuilder",""]]};
+window.SIDEBAR_ITEMS = {"enum":["ArchiveBuilder"]};

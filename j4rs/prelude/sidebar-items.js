@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["ptr","Manually manage memory through raw pointers."]],"struct":[["Instance","A Java instance"],["Jvm","Holds the assets for the JVM"]],"type":[["JNIEnv",""],["c_void","Equivalent to C’s `void` type when used as a [pointer]."],["jlong",""],["jobject",""]]};
+window.SIDEBAR_ITEMS = {"mod":["ptr"],"struct":["Instance"],"type":["JNIEnv","c_void","jlong","jobject"]};

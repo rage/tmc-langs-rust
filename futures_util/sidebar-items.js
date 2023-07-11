@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":[["pin_mut","Pins a value on the stack."],["ready","Extracts the successful type of a `Poll<T>`."]],"mod":[["future","Asynchronous values."],["io","Asynchronous I/O."],["lock","Futures-powered synchronization primitives."],["never","This module contains the `Never` type."],["stream","Asynchronous streams."],["task","Tools for working with tasks."]]};
+window.SIDEBAR_ITEMS = {"macro":["join","pending","pin_mut","poll","ready","select","select_biased","stream_select","try_join"],"mod":["future","io","lock","never","sink","stream","task"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["ordinalize","Orginalizes a `&str`"]]};
+window.SIDEBAR_ITEMS = {"fn":["ordinalize"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["get","get /api/v8/org/{organization_slug}/courses/{course_name} Returns the course’s information in a json format. Course is searched by organization slug and course name"],["get_by_id","get /api/v8/courses/{course_id} Returns the course’s information in a json format. Course is searched by id"]]};

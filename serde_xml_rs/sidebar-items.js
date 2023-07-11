@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"macro":[["debug_expect",""],["expect",""]],"mod":[["de",""],["ser",""]],"struct":[["EventReader","A wrapper around an `std::io::Read` instance which provides pull-based XML parsing."],["ParserConfig","Parser configuration structure."]]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"macro":["debug_expect","expect"],"mod":["de","ser"],"struct":["EventReader","ParserConfig"]};

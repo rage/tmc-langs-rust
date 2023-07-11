@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["argv","Returns the function arguments for a call"],["data","Mutates the `out` argument provided to refer to the associated data value of the `napi_callback_info`."],["is_construct",""],["len","Gets the number of arguments passed to the function."],["this",""]],"struct":[["Arguments","List of JavaScript arguments to a function"]]};
+window.SIDEBAR_ITEMS = {"fn":["argv","data","is_construct","len","this"],"struct":["Arguments"]};

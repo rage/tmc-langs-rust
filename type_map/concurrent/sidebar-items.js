@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Entry","A view into a single entry in a map, which may either be vacant or occupied."]],"struct":[["KvPair","Prepared key-value pair"],["OccupiedEntry","A view into an occupied entry in a `TypeMap`."],["TypeMap","The typemap container"],["VacantEntry","A view into a vacant entry in a `TypeMap`."]]};
+window.SIDEBAR_ITEMS = {"enum":["Entry"],"struct":["KvPair","OccupiedEntry","TypeMap","VacantEntry"]};

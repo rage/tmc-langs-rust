@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["canonicalize","Like `std::fs::canonicalize()`, but on Windows it outputs the most compatible form of a path instead of UNC."],["simplified","Takes any path, and when possible, converts Windows UNC paths to regular paths."]]};
+window.SIDEBAR_ITEMS = {"fn":["canonicalize","simplified"]};

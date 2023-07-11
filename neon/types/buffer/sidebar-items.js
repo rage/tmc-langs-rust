@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BorrowError","An error returned by [`TypedArray::try_borrow`] or [`TypedArray::try_borrow_mut`] indicating that a mutable borrow would overlap with another borrow."],["Ref","Wraps binary data immutably borrowed from a JavaScript value."],["RefMut","Wraps binary data mutably borrowed from a JavaScript value."]],"trait":[["TypedArray","A trait for borrowing binary data from JavaScript values"]]};
+window.SIDEBAR_ITEMS = {"struct":["BorrowError","Ref","RefMut"],"trait":["TypedArray"]};

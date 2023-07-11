@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["deordinalize","Deorginalizes a `&str`"]]};
+window.SIDEBAR_ITEMS = {"fn":["deordinalize"]};

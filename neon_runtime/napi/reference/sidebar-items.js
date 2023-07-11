@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["get","Safety"],["new",""],["reference","Safety"],["unreference","Safety"]]};
+window.SIDEBAR_ITEMS = {"fn":["get","new","reference","unreference"]};

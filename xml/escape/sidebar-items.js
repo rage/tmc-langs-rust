@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["escape_str_attribute","Performs escaping of common XML characters inside an attribute value."],["escape_str_pcdata","Performs escaping of common XML characters inside PCDATA."]]};
+window.SIDEBAR_ITEMS = {"fn":["escape_str_attribute","escape_str_pcdata"]};

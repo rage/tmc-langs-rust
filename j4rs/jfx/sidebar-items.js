@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["FxEventType","Types of FX events."]],"struct":[["FxController",""]],"trait":[["JavaFxSupport","Provides JavaFx support."]]};
+window.SIDEBAR_ITEMS = {"enum":["FxEventType"],"struct":["FxController"],"trait":["JavaFxSupport"]};

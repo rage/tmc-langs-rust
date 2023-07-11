@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["PopenExt","Unix-specific extension methods for `Popen`"]]};
+window.SIDEBAR_ITEMS = {"trait":["PopenExt"]};

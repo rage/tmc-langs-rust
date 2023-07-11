@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.4/src/reader/parser/outside_tag.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>outside_tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.15/src/reader/parser/outside_tag.rs`."><title>outside_tag.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../xml/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -128,135 +128,266 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
-</pre><pre class="rust"><code><span class="kw">use </span>common::is_whitespace_char;
-
-<span class="kw">use </span>reader::events::XmlEvent;
-<span class="kw">use </span>reader::lexer::Token;
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::reader::error::SyntaxError;
+<span class="kw">use </span><span class="kw">crate</span>::common::is_whitespace_char;
+<span class="kw">use </span><span class="kw">crate</span>::reader::events::XmlEvent;
+<span class="kw">use </span><span class="kw">crate</span>::reader::lexer::Token;
 
 <span class="kw">use super</span>::{
-    <span class="prelude-ty">Result</span>, PullParser, State, ClosingTagSubstate, OpeningTagSubstate,
-    ProcessingInstructionSubstate, DEFAULT_VERSION, DEFAULT_ENCODING, DEFAULT_STANDALONE
+    ClosingTagSubstate, DoctypeSubstate, Encountered, OpeningTagSubstate,
+    ProcessingInstructionSubstate, PullParser, <span class="prelude-ty">Result</span>, State,
 };
 
 <span class="kw">impl </span>PullParser {
     <span class="kw">pub fn </span>outside_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
         <span class="kw">match </span>t {
-            Token::ReferenceStart =&gt;
-                <span class="self">self</span>.into_state_continue(State::InsideReference(Box::new(State::OutsideTag))),
+            Token::Character(c) =&gt; {
+                <span class="kw">if </span>is_whitespace_char(c) {
+                    <span class="comment">// skip whitespace outside of the root element
+                    </span><span class="kw">if </span>(<span class="self">self</span>.config.c.trim_whitespace &amp;&amp; <span class="self">self</span>.buf.is_empty()) ||
+                        (<span class="self">self</span>.depth() == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.config.c.ignore_root_level_whitespace) {
+                            <span class="kw">return </span><span class="prelude-val">None</span>;
+                    }
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.inside_whitespace = <span class="bool-val">false</span>;
+                    <span class="kw">if </span><span class="self">self</span>.depth() == <span class="number">0 </span>{
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedTokenOutsideRoot(t)));
+                    }
+                }
 
-            Token::Whitespace(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.depth() == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.config.ignore_root_level_whitespace =&gt; <span class="prelude-val">None</span>,  <span class="comment">// skip whitespace outside of the root element
+                <span class="kw">if </span>!<span class="self">self</span>.is_valid_xml_char_not_restricted(c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::InvalidCharacterEntity(c <span class="kw">as </span>u32)));
+                }
 
-            </span>Token::Whitespace(<span class="kw">_</span>) <span class="kw">if </span><span class="self">self</span>.config.trim_whitespace &amp;&amp; !<span class="self">self</span>.buf_has_data() =&gt; <span class="prelude-val">None</span>,
-
-            Token::Whitespace(c) =&gt; {
-                <span class="kw">if </span>!<span class="self">self</span>.buf_has_data() {
+                <span class="kw">if </span><span class="self">self</span>.buf.is_empty() {
                     <span class="self">self</span>.push_pos();
                 }
-                <span class="self">self</span>.append_char_continue(c)
-            }
+                <span class="self">self</span>.buf.push(c);
+                <span class="prelude-val">None
+            </span>},
 
-            <span class="kw">_ if </span>t.contains_char_data() &amp;&amp; <span class="self">self</span>.depth() == <span class="number">0 </span>=&gt;
-                <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="self">self</span>; <span class="string">&quot;Unexpected characters outside the root element: {}&quot;</span>, t)),
-
-            <span class="kw">_ if </span>t.contains_char_data() =&gt; {  <span class="comment">// Non-whitespace char data
-                </span><span class="kw">if </span>!<span class="self">self</span>.buf_has_data() {
-                    <span class="self">self</span>.push_pos();
+            Token::CommentEnd | Token::TagEnd | Token::EqualsSign |
+            Token::DoubleQuote | Token::SingleQuote |
+            Token::ProcessingInstructionEnd | Token::EmptyTagEnd =&gt; {
+                <span class="kw">if </span><span class="self">self</span>.depth() == <span class="number">0 </span>{
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedTokenOutsideRoot(t)));
                 }
                 <span class="self">self</span>.inside_whitespace = <span class="bool-val">false</span>;
-                t.push_to_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buf);
-                <span class="prelude-val">None
-            </span>}
 
-            Token::ReferenceEnd =&gt; { <span class="comment">// Semi-colon in a text outside an entity
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = t.as_static_str() {
+                    <span class="kw">if </span><span class="self">self</span>.buf.is_empty() {
+                        <span class="self">self</span>.push_pos();
+                    }
+                    <span class="self">self</span>.buf.push_str(s);
+                }
+                <span class="prelude-val">None
+            </span>},
+
+            Token::ReferenceStart <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>=&gt; {
+                <span class="self">self</span>.state_after_reference = State::OutsideTag;
+                <span class="self">self</span>.into_state_continue(State::InsideReference)
+            },
+
+            Token::ReferenceEnd <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>=&gt; { <span class="comment">// Semi-colon in a text outside an entity
                 </span><span class="self">self</span>.inside_whitespace = <span class="bool-val">false</span>;
                 Token::ReferenceEnd.push_to_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buf);
                 <span class="prelude-val">None
-            </span>}
+            </span>},
 
-            Token::CommentStart <span class="kw">if </span><span class="self">self</span>.config.coalesce_characters &amp;&amp; <span class="self">self</span>.config.ignore_comments =&gt; {
+            Token::CommentStart <span class="kw">if </span><span class="self">self</span>.config.c.coalesce_characters &amp;&amp; <span class="self">self</span>.config.c.ignore_comments =&gt; {
+                <span class="kw">let </span>next_event = <span class="self">self</span>.set_encountered(Encountered::Comment);
                 <span class="comment">// We need to switch the lexer into a comment mode inside comments
-                </span><span class="self">self</span>.lexer.inside_comment();
-                <span class="self">self</span>.into_state_continue(State::InsideComment)
+                </span><span class="self">self</span>.into_state(State::InsideComment, next_event)
             }
 
-            Token::CDataStart <span class="kw">if </span><span class="self">self</span>.config.coalesce_characters &amp;&amp; <span class="self">self</span>.config.cdata_to_characters =&gt; {
-                <span class="kw">if </span>!<span class="self">self</span>.buf_has_data() {
+            Token::CDataStart <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.config.c.coalesce_characters &amp;&amp; <span class="self">self</span>.config.c.cdata_to_characters =&gt; {
+                <span class="kw">if </span><span class="self">self</span>.buf.is_empty() {
                     <span class="self">self</span>.push_pos();
                 }
-                <span class="comment">// We need to disable lexing errors inside CDATA
-                </span><span class="self">self</span>.lexer.disable_errors();
                 <span class="self">self</span>.into_state_continue(State::InsideCData)
-            }
+            },
 
             <span class="kw">_ </span>=&gt; {
                 <span class="comment">// Encountered some markup event, flush the buffer as characters
                 // or a whitespace
                 </span><span class="kw">let </span><span class="kw-2">mut </span>next_event = <span class="kw">if </span><span class="self">self</span>.buf_has_data() {
                     <span class="kw">let </span>buf = <span class="self">self</span>.take_buf();
-                    <span class="kw">if </span><span class="self">self</span>.inside_whitespace &amp;&amp; <span class="self">self</span>.config.trim_whitespace {
+                    <span class="kw">if </span><span class="self">self</span>.inside_whitespace &amp;&amp; <span class="self">self</span>.config.c.trim_whitespace {
                         <span class="prelude-val">None
-                    </span>} <span class="kw">else if </span><span class="self">self</span>.inside_whitespace &amp;&amp; !<span class="self">self</span>.config.whitespace_to_characters {
+                    </span>} <span class="kw">else if </span><span class="self">self</span>.inside_whitespace &amp;&amp; !<span class="self">self</span>.config.c.whitespace_to_characters {
                         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(XmlEvent::Whitespace(buf)))
-                    } <span class="kw">else if </span><span class="self">self</span>.config.trim_whitespace {
+                    } <span class="kw">else if </span><span class="self">self</span>.config.c.trim_whitespace {
                         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(XmlEvent::Characters(buf.trim_matches(is_whitespace_char).into())))
                     } <span class="kw">else </span>{
                         <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(XmlEvent::Characters(buf)))
                     }
                 } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
                 <span class="self">self</span>.inside_whitespace = <span class="bool-val">true</span>;  <span class="comment">// Reset inside_whitespace flag
-                </span><span class="self">self</span>.push_pos();
+
+                // pos is popped whenever an event is emitted, so pushes must happen only if there will be an event to balance it
+                // and ignored comments don&#39;t pop
+                </span><span class="kw">if </span>t != Token::CommentStart || !<span class="self">self</span>.config.c.ignore_comments {
+                    <span class="self">self</span>.push_pos();
+                }
                 <span class="kw">match </span>t {
-                    Token::ProcessingInstructionStart =&gt;
-                        <span class="self">self</span>.into_state(State::InsideProcessingInstruction(ProcessingInstructionSubstate::PIInsideName), next_event),
-
-                    Token::DoctypeStart <span class="kw">if </span>!<span class="self">self</span>.encountered_element =&gt; {
-                        <span class="comment">// We don&#39;t have a doctype event so skip this position
-                        // FIXME: update when we have a doctype event
-                        </span><span class="self">self</span>.next_pos();
-                        <span class="self">self</span>.lexer.disable_errors();
-                        <span class="self">self</span>.into_state(State::InsideDoctype, next_event)
-                    }
-
-                    Token::OpeningTagStart =&gt; {
-                        <span class="comment">// If declaration was not parsed and we have encountered an element,
-                        // emit this declaration as the next event.
-                        </span><span class="kw">if </span>!<span class="self">self</span>.parsed_declaration {
-                            <span class="self">self</span>.parsed_declaration = <span class="bool-val">true</span>;
-                            <span class="kw">let </span>sd_event = XmlEvent::StartDocument {
-                                version: DEFAULT_VERSION,
-                                encoding: DEFAULT_ENCODING.into(),
-                                standalone: DEFAULT_STANDALONE
-                            };
-                            <span class="comment">// next_event is always none here because we&#39;re outside of
-                            // the root element
-                            </span>next_event = <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(sd_event));
-                            <span class="self">self</span>.push_pos();
+                    Token::OpeningTagStart <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>|| <span class="self">self</span>.encountered &lt; Encountered::Element || <span class="self">self</span>.config.allow_multiple_root_elements =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <span class="self">self</span>.set_encountered(Encountered::Element) {
+                            next_event = <span class="prelude-val">Some</span>(e);
                         }
-                        <span class="self">self</span>.encountered_element = <span class="bool-val">true</span>;
                         <span class="self">self</span>.nst.push_empty();
                         <span class="self">self</span>.into_state(State::InsideOpeningTag(OpeningTagSubstate::InsideName), next_event)
-                    }
+                    },
 
                     Token::ClosingTagStart <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>=&gt;
                         <span class="self">self</span>.into_state(State::InsideClosingTag(ClosingTagSubstate::CTInsideName), next_event),
 
                     Token::CommentStart =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <span class="self">self</span>.set_encountered(Encountered::Comment) {
+                            next_event = <span class="prelude-val">Some</span>(e);
+                        }
                         <span class="comment">// We need to switch the lexer into a comment mode inside comments
-                        </span><span class="self">self</span>.lexer.inside_comment();
-                        <span class="self">self</span>.into_state(State::InsideComment, next_event)
-                    }
+                        </span><span class="self">self</span>.into_state(State::InsideComment, next_event)
+                    },
 
-                    Token::CDataStart =&gt; {
-                        <span class="comment">// We need to disable lexing errors inside CDATA
-                        </span><span class="self">self</span>.lexer.disable_errors();
+                    Token::DoctypeStart <span class="kw">if </span><span class="self">self</span>.encountered &lt; Encountered::Doctype =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(e) = <span class="self">self</span>.set_encountered(Encountered::Doctype) {
+                            next_event = <span class="prelude-val">Some</span>(e);
+                        }
+
+                        <span class="comment">// We don&#39;t have a doctype event so skip this position
+                        // FIXME: update when we have a doctype event
+                        </span><span class="self">self</span>.next_pos();
+                        <span class="self">self</span>.into_state(State::InsideDoctype(DoctypeSubstate::Outside), next_event)
+                    },
+
+                    Token::ProcessingInstructionStart =&gt;
+                        <span class="self">self</span>.into_state(State::InsideProcessingInstruction(ProcessingInstructionSubstate::PIInsideName), next_event),
+
+                    Token::CDataStart <span class="kw">if </span><span class="self">self</span>.depth() &gt; <span class="number">0 </span>=&gt; {
                         <span class="self">self</span>.into_state(State::InsideCData, next_event)
-                    }
+                    },
 
-                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="macro">self_error!</span>(<span class="self">self</span>; <span class="string">&quot;Unexpected token: {}&quot;</span>, t))
+                    <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedToken(t)))
                 }
             }
         }
     }
+
+    <span class="kw">pub fn </span>document_start(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.encountered &lt; Encountered::Declaration);
+
+        <span class="kw">match </span>t {
+            Token::Character(c) =&gt; {
+                <span class="kw">let </span>next_event = <span class="self">self</span>.set_encountered(Encountered::AnyChars);
+
+                <span class="kw">if </span>!is_whitespace_char(c) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedTokenOutsideRoot(t)));
+                }
+                <span class="self">self</span>.inside_whitespace = <span class="bool-val">true</span>;
+
+                <span class="comment">// skip whitespace outside of the root element
+                </span><span class="kw">if </span>(<span class="self">self</span>.config.c.trim_whitespace &amp;&amp; <span class="self">self</span>.buf.is_empty()) ||
+                    (<span class="self">self</span>.depth() == <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.config.c.ignore_root_level_whitespace) {
+                        <span class="kw">return </span><span class="self">self</span>.into_state(State::OutsideTag, next_event);
+                }
+
+                <span class="self">self</span>.push_pos();
+                <span class="self">self</span>.buf.push(c);
+                <span class="self">self</span>.into_state(State::OutsideTag, next_event)
+            },
+
+            Token::CommentStart  =&gt; {
+                <span class="kw">let </span>next_event = <span class="self">self</span>.set_encountered(Encountered::Comment);
+                <span class="self">self</span>.into_state(State::InsideComment, next_event)
+            }
+
+            Token::OpeningTagStart =&gt; {
+                <span class="kw">let </span>next_event = <span class="self">self</span>.set_encountered(Encountered::Element);
+                <span class="self">self</span>.nst.push_empty();
+                <span class="self">self</span>.into_state(State::InsideOpeningTag(OpeningTagSubstate::InsideName), next_event)
+            },
+
+            Token::DoctypeStart =&gt; {
+                <span class="kw">let </span>next_event = <span class="self">self</span>.set_encountered(Encountered::Doctype);
+                <span class="comment">// We don&#39;t have a doctype event so skip this position
+                // FIXME: update when we have a doctype event
+                </span><span class="self">self</span>.next_pos();
+                <span class="self">self</span>.into_state(State::InsideDoctype(DoctypeSubstate::Outside), next_event)
+            },
+
+            Token::ProcessingInstructionStart =&gt; {
+                <span class="self">self</span>.push_pos();
+                <span class="self">self</span>.into_state_continue(State::InsideProcessingInstruction(ProcessingInstructionSubstate::PIInsideName))
+            },
+
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedToken(t))),
+        }
+    }
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

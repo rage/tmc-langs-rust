@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["as_mut_slice","Safety"],["data",""],["new",""],["new_external",""]]};
+window.SIDEBAR_ITEMS = {"fn":["as_mut_slice","data","new","new_external"]};

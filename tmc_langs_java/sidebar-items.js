@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["JavaError",""]],"struct":[["AntPlugin",""],["AntStudentFilePolicy",""],["MavenPlugin",""],["MavenStudentFilePolicy",""]]};
+window.SIDEBAR_ITEMS = {"enum":["JavaError"],"struct":["AntPlugin","AntStudentFilePolicy","MavenPlugin","MavenStudentFilePolicy"]};

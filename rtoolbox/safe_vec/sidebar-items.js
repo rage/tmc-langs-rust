@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SafeVec","Vec that is zeroed when dropped"]]};
+window.SIDEBAR_ITEMS = {"struct":["SafeVec"]};

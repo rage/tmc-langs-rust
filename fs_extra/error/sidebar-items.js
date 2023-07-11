@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ErrorKind","A list specifying general categories of fs_extra error."]],"struct":[["Error","The error type for fs_extra operations with files and folder."]],"type":[["Result","A specialized Result type for fs_extra operations."]]};
+window.SIDEBAR_ITEMS = {"enum":["ErrorKind"],"struct":["Error"],"type":["Result"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["DownloadsFailedError",""],["InvalidTokenError",""],["SandboxTestError",""]]};
+window.SIDEBAR_ITEMS = {"struct":["DownloadsFailedError","InvalidTokenError","SandboxTestError"]};

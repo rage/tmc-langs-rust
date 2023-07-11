@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.5/src/emitter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-93196c7a1c3542a8.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-4743e13df3dfe8c4.css"><link rel="stylesheet" disabled href="../../static.files/dark-0e1b889528bd466b.css"><link rel="stylesheet" disabled href="../../static.files/ayu-65289d5d067c7c66.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-3367e395607fafc1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.8/src/emitter.rs`."><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ba5701c5741a7b69.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0 (90c541806 2023-05-31)" data-search-js="search-e077946657036a58.js" data-settings-js="settings-298e1ea74db45b39.js" data-settings-css="settings-7bfb4c59cc6bc502.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-905937fbbdc8e9ea.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f61008743c98d196.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2392,14 +2392,7 @@
 <a href="#2392" id="2392">2392</a>
 <a href="#2393" id="2393">2393</a>
 <a href="#2394" id="2394">2394</a>
-<a href="#2395" id="2395">2395</a>
-<a href="#2396" id="2396">2396</a>
-<a href="#2397" id="2397">2397</a>
-<a href="#2398" id="2398">2398</a>
-<a href="#2399" id="2399">2399</a>
-<a href="#2400" id="2400">2400</a>
-<a href="#2401" id="2401">2401</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::api::{yaml_free, yaml_queue_extend, yaml_stack_extend, yaml_strdup};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::api::{yaml_free, yaml_queue_extend, yaml_stack_extend, yaml_strdup};
 <span class="kw">use </span><span class="kw">crate</span>::externs::{strcmp, strlen, strncmp};
 <span class="kw">use </span><span class="kw">crate</span>::success::{Success, FAIL, OK};
 <span class="kw">use </span><span class="kw">crate</span>::yaml::{size_t, yaml_char_t, yaml_string_t};
@@ -2418,9 +2411,9 @@
     YAML_EMIT_FLOW_SEQUENCE_FIRST_ITEM_STATE, YAML_EMIT_FLOW_SEQUENCE_ITEM_STATE,
     YAML_EMIT_STREAM_START_STATE, YAML_FLOW_MAPPING_STYLE, YAML_FLOW_SEQUENCE_STYLE,
     YAML_FOLDED_SCALAR_STYLE, YAML_LITERAL_SCALAR_STYLE, YAML_LN_BREAK, YAML_MAPPING_END_EVENT,
-    YAML_MAPPING_START_EVENT, YAML_MEMORY_ERROR, YAML_PLAIN_SCALAR_STYLE, YAML_SCALAR_EVENT,
-    YAML_SEQUENCE_END_EVENT, YAML_SEQUENCE_START_EVENT, YAML_SINGLE_QUOTED_SCALAR_STYLE,
-    YAML_STREAM_END_EVENT, YAML_STREAM_START_EVENT, YAML_UTF8_ENCODING,
+    YAML_MAPPING_START_EVENT, YAML_PLAIN_SCALAR_STYLE, YAML_SCALAR_EVENT, YAML_SEQUENCE_END_EVENT,
+    YAML_SEQUENCE_START_EVENT, YAML_SINGLE_QUOTED_SCALAR_STYLE, YAML_STREAM_END_EVENT,
+    YAML_STREAM_START_EVENT, YAML_UTF8_ENCODING,
 };
 <span class="kw">use </span>core::ptr::{<span class="self">self</span>, addr_of_mut};
 
@@ -2617,15 +2610,8 @@
     }
     copy.handle = yaml_strdup(value.handle);
     copy.prefix = yaml_strdup(value.prefix);
-    <span class="kw">if </span>copy.handle.is_null() || copy.prefix.is_null() {
-        (<span class="kw-2">*</span>emitter).error = YAML_MEMORY_ERROR;
-    } <span class="kw">else </span>{
-        <span class="macro">PUSH!</span>((<span class="kw-2">*</span>emitter).tag_directives, copy);
-        <span class="kw">return </span>OK;
-    }
-    yaml_free(copy.handle <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void);
-    yaml_free(copy.prefix <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void);
-    FAIL
+    <span class="macro">PUSH!</span>((<span class="kw-2">*</span>emitter).tag_directives, copy);
+    OK
 }
 
 <span class="kw">unsafe fn </span>yaml_emitter_increase_indent(
@@ -2715,7 +2701,7 @@
             (<span class="kw-2">*</span>emitter).best_width = <span class="number">80</span>;
         }
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).best_width &lt; <span class="number">0 </span>{
-            (<span class="kw-2">*</span>emitter).best_width = <span class="number">2147483647</span>;
+            (<span class="kw-2">*</span>emitter).best_width = libc::c_int::MAX;
         }
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).line_break == YAML_ANY_BREAK {
             (<span class="kw-2">*</span>emitter).line_break = YAML_LN_BREAK;
@@ -4273,8 +4259,8 @@
     length: size_t,
     allow_breaks: bool,
 ) -&gt; Success {
-    <span class="kw">let </span><span class="kw-2">mut </span>spaces: libc::c_int = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>breaks: libc::c_int = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>spaces = <span class="bool-val">false</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>breaks = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>!(<span class="kw-2">*</span>emitter).whitespace &amp;&amp; (length != <span class="number">0 </span>|| (<span class="kw-2">*</span>emitter).flow_level != <span class="number">0</span>) {
         <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
@@ -4284,8 +4270,8 @@
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span><span class="macro">IS_SPACE!</span>(string) {
             <span class="kw">if </span>allow_breaks
-                &amp;&amp; spaces == <span class="number">0
-                </span>&amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
+                &amp;&amp; !spaces
+                &amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
                 &amp;&amp; !<span class="macro">IS_SPACE_AT!</span>(string, <span class="number">1</span>)
             {
                 <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
@@ -4295,9 +4281,9 @@
             } <span class="kw">else if </span><span class="macro">WRITE!</span>(emitter, string).fail {
                 <span class="kw">return </span>FAIL;
             }
-            spaces = <span class="number">1</span>;
+            spaces = <span class="bool-val">true</span>;
         } <span class="kw">else if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>breaks == <span class="number">0 </span>&amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
                 <span class="kw">if </span>PUT_BREAK(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4306,9 +4292,9 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">true</span>;
-            breaks = <span class="number">1</span>;
+            breaks = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <span class="kw">if </span>breaks != <span class="number">0 </span>{
+            <span class="kw">if </span>breaks {
                 <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4317,8 +4303,8 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">false</span>;
-            spaces = <span class="number">0</span>;
-            breaks = <span class="number">0</span>;
+            spaces = <span class="bool-val">false</span>;
+            breaks = <span class="bool-val">false</span>;
         }
     }
     (<span class="kw-2">*</span>emitter).whitespace = <span class="bool-val">false</span>;
@@ -4332,8 +4318,8 @@
     length: size_t,
     allow_breaks: bool,
 ) -&gt; Success {
-    <span class="kw">let </span><span class="kw-2">mut </span>spaces: libc::c_int = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>breaks: libc::c_int = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>spaces = <span class="bool-val">false</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>breaks = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
@@ -4349,8 +4335,8 @@
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span><span class="macro">IS_SPACE!</span>(string) {
             <span class="kw">if </span>allow_breaks
-                &amp;&amp; spaces == <span class="number">0
-                </span>&amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
+                &amp;&amp; !spaces
+                &amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
                 &amp;&amp; string.pointer != string.start
                 &amp;&amp; string.pointer != string.end.wrapping_offset(-<span class="number">1_isize</span>)
                 &amp;&amp; !<span class="macro">IS_SPACE_AT!</span>(string, <span class="number">1</span>)
@@ -4362,9 +4348,9 @@
             } <span class="kw">else if </span><span class="macro">WRITE!</span>(emitter, string).fail {
                 <span class="kw">return </span>FAIL;
             }
-            spaces = <span class="number">1</span>;
+            spaces = <span class="bool-val">true</span>;
         } <span class="kw">else if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>breaks == <span class="number">0 </span>&amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
                 <span class="kw">if </span>PUT_BREAK(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4373,9 +4359,9 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">true</span>;
-            breaks = <span class="number">1</span>;
+            breaks = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <span class="kw">if </span>breaks != <span class="number">0 </span>{
+            <span class="kw">if </span>breaks {
                 <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4389,11 +4375,11 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">false</span>;
-            spaces = <span class="number">0</span>;
-            breaks = <span class="number">0</span>;
+            spaces = <span class="bool-val">false</span>;
+            breaks = <span class="bool-val">false</span>;
         }
     }
-    <span class="kw">if </span>breaks != <span class="number">0 </span>{
+    <span class="kw">if </span>breaks {
         <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
             <span class="kw">return </span>FAIL;
         }
@@ -4420,7 +4406,7 @@
     length: size_t,
     allow_breaks: bool,
 ) -&gt; Success {
-    <span class="kw">let </span><span class="kw-2">mut </span>spaces: libc::c_int = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>spaces = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
@@ -4479,77 +4465,77 @@
                 <span class="kw">return </span>FAIL;
             }
             <span class="kw">match </span>value_0 {
-                <span class="number">0 </span>=&gt; {
+                <span class="number">0x00 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;0&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">7 </span>=&gt; {
+                <span class="number">0x07 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;a&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">8 </span>=&gt; {
+                <span class="number">0x08 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;b&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">9 </span>=&gt; {
+                <span class="number">0x09 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;t&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">10 </span>=&gt; {
+                <span class="number">0x0A </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;n&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">11 </span>=&gt; {
+                <span class="number">0x0B </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;v&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">12 </span>=&gt; {
+                <span class="number">0x0C </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;f&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">13 </span>=&gt; {
+                <span class="number">0x0D </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;r&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">27 </span>=&gt; {
+                <span class="number">0x1B </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;e&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">34 </span>=&gt; {
+                <span class="number">0x22 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;&quot;&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">92 </span>=&gt; {
+                <span class="number">0x5C </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;\\&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">133 </span>=&gt; {
+                <span class="number">0x85 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;N&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">160 </span>=&gt; {
+                <span class="number">0xA0 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;_&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">8232 </span>=&gt; {
+                <span class="number">0x2028 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;L&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
-                <span class="number">8233 </span>=&gt; {
+                <span class="number">0x2029 </span>=&gt; {
                     <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;P&#39;</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
@@ -4586,11 +4572,11 @@
                     }
                 }
             }
-            spaces = <span class="number">0</span>;
+            spaces = <span class="bool-val">false</span>;
         } <span class="kw">else if </span><span class="macro">IS_SPACE!</span>(string) {
             <span class="kw">if </span>allow_breaks
-                &amp;&amp; spaces == <span class="number">0
-                </span>&amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
+                &amp;&amp; !spaces
+                &amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
                 &amp;&amp; string.pointer != string.start
                 &amp;&amp; string.pointer != string.end.wrapping_offset(-<span class="number">1_isize</span>)
             {
@@ -4606,12 +4592,12 @@
             } <span class="kw">else if </span><span class="macro">WRITE!</span>(emitter, string).fail {
                 <span class="kw">return </span>FAIL;
             }
-            spaces = <span class="number">1</span>;
+            spaces = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
             <span class="kw">if </span><span class="macro">WRITE!</span>(emitter, string).fail {
                 <span class="kw">return </span>FAIL;
             }
-            spaces = <span class="number">0</span>;
+            spaces = <span class="bool-val">false</span>;
         }
     }
     <span class="kw">if </span>yaml_emitter_write_indicator(
@@ -4686,7 +4672,7 @@
     value: <span class="kw-2">*mut </span>yaml_char_t,
     length: size_t,
 ) -&gt; Success {
-    <span class="kw">let </span><span class="kw-2">mut </span>breaks: libc::c_int = <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>breaks = <span class="bool-val">true</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
@@ -4713,9 +4699,9 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">true</span>;
-            breaks = <span class="number">1</span>;
+            breaks = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <span class="kw">if </span>breaks != <span class="number">0 </span>{
+            <span class="kw">if </span>breaks {
                 <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4724,7 +4710,7 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">false</span>;
-            breaks = <span class="number">0</span>;
+            breaks = <span class="bool-val">false</span>;
         }
     }
     OK
@@ -4735,8 +4721,8 @@
     value: <span class="kw-2">*mut </span>yaml_char_t,
     length: size_t,
 ) -&gt; Success {
-    <span class="kw">let </span><span class="kw-2">mut </span>breaks: libc::c_int = <span class="number">1</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>leading_spaces: libc::c_int = <span class="number">1</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>breaks = <span class="bool-val">true</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>leading_spaces = <span class="bool-val">true</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
@@ -4759,7 +4745,7 @@
     (<span class="kw-2">*</span>emitter).whitespace = <span class="bool-val">true</span>;
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>breaks == <span class="number">0 </span>&amp;&amp; leading_spaces == <span class="number">0 </span>&amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; !leading_spaces &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
                 <span class="kw">let </span><span class="kw-2">mut </span>k: libc::c_int = <span class="number">0</span>;
                 <span class="kw">while </span><span class="macro">IS_BREAK_AT!</span>(string, k <span class="kw">as </span>isize) {
                     k += <span class="macro">WIDTH_AT!</span>(string, k <span class="kw">as </span>isize);
@@ -4774,16 +4760,16 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">true</span>;
-            breaks = <span class="number">1</span>;
+            breaks = <span class="bool-val">true</span>;
         } <span class="kw">else </span>{
-            <span class="kw">if </span>breaks != <span class="number">0 </span>{
+            <span class="kw">if </span>breaks {
                 <span class="kw">if </span>yaml_emitter_write_indent(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
-                leading_spaces = <span class="macro">IS_BLANK!</span>(string) <span class="kw">as </span>libc::c_int;
+                leading_spaces = <span class="macro">IS_BLANK!</span>(string);
             }
-            <span class="kw">if </span>breaks == <span class="number">0
-                </span>&amp;&amp; <span class="macro">IS_SPACE!</span>(string)
+            <span class="kw">if </span>!breaks
+                &amp;&amp; <span class="macro">IS_SPACE!</span>(string)
                 &amp;&amp; !<span class="macro">IS_SPACE_AT!</span>(string, <span class="number">1</span>)
                 &amp;&amp; (<span class="kw-2">*</span>emitter).column &gt; (<span class="kw-2">*</span>emitter).best_width
             {
@@ -4795,10 +4781,9 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>emitter).indention = <span class="bool-val">false</span>;
-            breaks = <span class="number">0</span>;
+            breaks = <span class="bool-val">false</span>;
         }
     }
     OK
 }
-</code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.2 (9eb3afe9e 2023-03-27)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-c3c521c753752a1a.js" data-settings-css="settings-08ddfdda51b8ee2e.css" ></div></body></html>
+</code></pre></div></section></main></body></html>

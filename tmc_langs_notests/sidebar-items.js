@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["NoTestsPlugin",""],["NoTestsStudentFilePolicy","The no-tests policy considers all files to be student source files by default."]]};
+window.SIDEBAR_ITEMS = {"struct":["NoTestsPlugin","NoTestsStudentFilePolicy"]};

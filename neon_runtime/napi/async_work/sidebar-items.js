@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["schedule","Schedule work to execute on the libuv thread pool"]]};
+window.SIDEBAR_ITEMS = {"fn":["schedule"]};

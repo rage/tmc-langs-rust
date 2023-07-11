@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["CliOutput","The format for all messages written to stdout by the CLI"],["DataKind",""],["Kind",""],["OutputResult",""],["Status",""],["StatusUpdateData",""]],"struct":[["DownloadTarget",""],["OutputData",""],["ProjectsDirExercise","An exercise in the projects directory."]]};
+window.SIDEBAR_ITEMS = {"enum":["CliOutput","DataKind","Kind","OutputResult","Status","StatusUpdateData"],"struct":["DownloadTarget","OutputData","ProjectsDirExercise"]};

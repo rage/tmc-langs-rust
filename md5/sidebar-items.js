@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["compute","Compute the digest of data."]],"struct":[["Context","A context."],["Digest","A digest."]]};
+window.SIDEBAR_ITEMS = {"fn":["compute"],"struct":["Context","Digest"]};

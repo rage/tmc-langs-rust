@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["get_jvm_dyn_lib_file_name","Returns the name of the jvm dynamic library:"],["locate_file","Returns the path that contains the file with the provided name."],["locate_java_home","Returns the Java home path."],["locate_jvm_dyn_library","Returns the path that contains the `libjvm.so` (or `jvm.dll` in windows)."]],"mod":[["errors",""]]};
+window.SIDEBAR_ITEMS = {"fn":["get_jvm_dyn_lib_file_name","locate_file","locate_java_home","locate_jvm_dyn_library"],"mod":["errors"]};

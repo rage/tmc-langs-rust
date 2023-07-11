@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["eval",""]]};
+window.SIDEBAR_ITEMS = {"fn":["eval"]};

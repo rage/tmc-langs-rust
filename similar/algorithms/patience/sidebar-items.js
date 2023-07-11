@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["diff","Patience diff algorithm."],["diff_deadline","Patience diff algorithm with deadline."]]};
+window.SIDEBAR_ITEMS = {"fn":["diff","diff_deadline"]};

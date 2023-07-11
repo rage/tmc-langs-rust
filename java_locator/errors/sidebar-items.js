@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JavaLocatorError",""]],"type":[["Result",""]]};
+window.SIDEBAR_ITEMS = {"struct":["JavaLocatorError"],"type":["Result"]};
