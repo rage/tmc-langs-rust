@@ -142,7 +142,7 @@ impl TmcConfig {
     }
 
     /// Saves the config struct to the given path.
-    pub fn save(self) -> Result<(), LangsError> {
+    pub fn save(&mut self) -> Result<(), LangsError> {
         let path = &self.location;
         log::info!("Saving config at {}", path.display());
 
