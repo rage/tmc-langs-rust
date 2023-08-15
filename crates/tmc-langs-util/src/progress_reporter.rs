@@ -13,7 +13,7 @@ pub struct StatusUpdate<T> {
     pub finished: bool,
     pub message: String,
     pub percent_done: f64,
-    pub time: u128,
+    pub time: u32,
     pub data: Option<T>,
 }
 
@@ -32,6 +32,14 @@ struct ProgressReporterContainer {
     total_steps_left: u32,
     start_time: Instant,
     stage_steps: Vec<u32>, // steps left
+}
+
+impl ProgressReporterContainer {
+    pub fn elapsed_millis(&self) -> u32 {
+        // for the time to not fit into a u32, the time elapsed would have to be over a month
+        // which isn't going to happen here
+        self.start_time.elapsed().as_millis() as u32
+    }
 }
 
 static PROGRESS_REPORTERS: OnceCell<RwLock<ProgressReporterContainer>> = OnceCell::new();
@@ -78,7 +86,7 @@ pub fn start_stage<T: 'static + Send + Sync>(total_steps: u32, message: String, 
                 finished: false,
                 message,
                 percent_done: reporter.current_progress,
-                time: reporter.start_time.elapsed().as_millis(),
+                time: reporter.elapsed_millis(),
                 data,
             };
             progress_reporter.progress_report.as_ref()(status_update);
@@ -109,12 +117,13 @@ pub fn progress_stage<T: 'static + Send + Sync>(message: String, data: Option<T>
             }
 
             // check for subscriber
+            let time = reporter.elapsed_millis();
             if let Some(progress_reporter) = reporter.reporters.get_mut::<ProgressReporter<T>>() {
                 let status_update = StatusUpdate {
                     finished: false,
                     message,
                     percent_done: reporter.current_progress,
-                    time: reporter.start_time.elapsed().as_millis(),
+                    time,
                     data,
                 };
                 progress_reporter.progress_report.as_ref()(status_update);
@@ -148,7 +157,7 @@ pub fn finish_stage<T: 'static + Send + Sync>(message: String, data: Option<T>) 
                     finished: true,
                     message,
                     percent_done: reporter.current_progress,
-                    time: reporter.start_time.elapsed().as_millis(),
+                    time: reporter.elapsed_millis(),
                     data,
                 };
                 progress_reporter.progress_report.as_ref()(status_update);

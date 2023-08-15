@@ -54,6 +54,7 @@ pub trait LanguagePlugin {
         let timeout = Self::StudentFilePolicy::new(path)?
             .get_project_config()
             .tests_timeout_ms
+            .map(Into::into)
             .map(Duration::from_millis);
         let result = self.run_tests_with_timeout(path, timeout)?;
 

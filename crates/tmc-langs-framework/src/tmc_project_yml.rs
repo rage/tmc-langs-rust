@@ -35,7 +35,7 @@ pub struct TmcProjectYml {
     /// If set, tests are forcibly stopped after this duration.
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tests_timeout_ms: Option<u64>,
+    pub tests_timeout_ms: Option<u32>,
 
     /// Marks the exercise as not containing any tests.
     #[serde(rename = "no-tests")]

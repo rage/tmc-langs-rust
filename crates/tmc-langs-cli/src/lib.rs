@@ -537,7 +537,7 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
     let (mut client, mut credentials) =
         tmc_langs::init_testmycode_client_with_credentials(root_url, client_name, client_version)?;
 
-    match run_core_inner(tmc, &mut client, &mut credentials) {
+    match run_tmc_inner(tmc, &mut client, &mut credentials) {
         Err(error) => {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
@@ -561,7 +561,7 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
     }
 }
 
-fn run_core_inner(
+fn run_tmc_inner(
     tmc: TestMyCode,
     client: &mut TestMyCodeClient,
     credentials: &mut Option<Credentials>,

@@ -16,7 +16,7 @@ export type OutputResult = "logged-in" | "logged-out" | "not-logged-in" | "error
 
 export type ClientUpdateData = { "client-update-data-kind": "exercise-download", id: number, path: string, } | { "client-update-data-kind": "posted-submission" } & NewSubmission;
 
-export interface StatusUpdate<T> { finished: boolean, message: string, "percent-done": number, time: bigint, data: T | null, }
+export interface StatusUpdate<T> { finished: boolean, message: string, "percent-done": number, time: number, data: T | null, }
 
 export type NotificationKind = "warning" | "info";
 
@@ -52,7 +52,7 @@ export interface TestResult { name: string, successful: boolean, points: Array<s
 
 export interface TestDesc { name: string, points: Array<string>, }
 
-export interface TmcProjectYml { extra_student_files: Array<string>, extra_exercise_files: Array<string>, force_update: Array<string>, tests_timeout_ms?: bigint, fail_on_valgrind_error?: boolean, minimum_python_version?: PythonVer, sandbox_image?: string, }
+export interface TmcProjectYml { extra_student_files: Array<string>, extra_exercise_files: Array<string>, force_update: Array<string>, tests_timeout_ms?: number, fail_on_valgrind_error?: boolean, minimum_python_version?: PythonVer, sandbox_image?: string, }
 
 export interface UpdatedExercise { id: number, }
 

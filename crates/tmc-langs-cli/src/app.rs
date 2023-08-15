@@ -7,7 +7,7 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     tmc::{
         response::{
-            CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
             Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
         },
         UpdateResult,
@@ -347,7 +347,7 @@ pub enum TestMyCodeCommand {
     },
 
     /// Lists courses
-    #[clap(long_about = schema_leaked::<Vec<CourseData>>())]
+    #[clap(long_about = schema_leaked::<Vec<Course>>())]
     GetCourses {
         /// Organization slug (e.g. mooc, hy).
         #[clap(long)]
