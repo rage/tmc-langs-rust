@@ -38,7 +38,7 @@ fn make_testmycode_client(
     client_name: impl AsRef<str>,
     client_version: impl AsRef<str>,
 ) -> Result<(TestMyCodeClient, Option<Credentials>), LangsError> {
-    let root_url = env::var("TMC_LANGS_ROOT_URL")
+    let root_url = env::var("TMC_LANGS_TMC_ROOT_URL")
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
         .expect("Invalid TMC root url");

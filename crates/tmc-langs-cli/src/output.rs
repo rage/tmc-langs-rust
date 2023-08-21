@@ -105,12 +105,10 @@ pub enum DataKind {
     TmcConfig(TmcConfig),
     CompressedProjectHash(String),
     SubmissionSandbox(String),
-    #[cfg_attr(feature = "ts-rs", ts(skip))]
     MoocCourseInstances(Vec<mooc::CourseInstance>),
-    #[cfg_attr(feature = "ts-rs", ts(skip))]
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
-    #[cfg_attr(feature = "ts-rs", ts(skip))]
     MoocExerciseSlide(mooc::TmcExerciseSlide),
+    MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

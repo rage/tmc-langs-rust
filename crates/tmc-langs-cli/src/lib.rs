@@ -933,7 +933,7 @@ fn run_tmc_inner(
 
             if dont_block {
                 CliOutput::finished_with_data(
-                    "submit exercise",
+                    "submitted exercise",
                     DataKind::NewSubmission(new_submission),
                 )
             } else {
@@ -943,7 +943,7 @@ fn run_tmc_inner(
                     .wait_for_submission_at(submission_url)
                     .context("Failed while waiting for submissions")?;
                 CliOutput::finished_with_data(
-                    "submit exercise",
+                    "submitted exercise",
                     DataKind::SubmissionFinished(submission_finished),
                 )
             }
@@ -1036,8 +1036,27 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             )?;
             CliOutput::finished("downloaded exercise")
         }
-        MoocCommand::Submit { .. } => {
-            todo!()
+        MoocCommand::Submit {
+            exercise_id,
+            slide_id,
+            task_id,
+            submission_path,
+        } => {
+            file_util::lock!(submission_path);
+            let temp = file_util::named_temp_file()?;
+            tmc_langs::compress_project_to(
+                &submission_path,
+                temp.path(),
+                Compression::TarZstd,
+                false,
+                false,
+            )?;
+
+            let result = client.submit(exercise_id, slide_id, task_id, temp.path())?;
+            CliOutput::finished_with_data(
+                "submitted exercise",
+                DataKind::MoocSubmissionFinished(result),
+            )
         }
     };
     Ok(output)

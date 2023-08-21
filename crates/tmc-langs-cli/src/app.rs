@@ -560,6 +560,10 @@ pub enum MoocCommand {
         #[clap(long)]
         exercise_id: Uuid,
         #[clap(long)]
+        slide_id: Uuid,
+        #[clap(long)]
+        task_id: Uuid,
+        #[clap(long)]
         submission_path: PathBuf,
     },
 }
@@ -1222,6 +1226,13 @@ fn generate_cli_bindings() {
         tmc::response::SubmissionFeedbackQuestion,
         tmc::response::TestCase,
         tmc::response::SubmissionFeedbackKind,
+        mooc::CourseInstance,
+        mooc::TmcExerciseSlide,
+        mooc::TmcExerciseTask,
+        mooc::PublicSpec,
+        mooc::ModelSolutionSpec,
+        mooc::ExerciseFile,
+        mooc::ExerciseTaskSubmissionResult,
     )
     .unwrap();
 }

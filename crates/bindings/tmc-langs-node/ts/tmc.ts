@@ -21,7 +21,7 @@ export class Tmc {
     this.clientVersion = clientVersion;
     if (rootUrl) {
       this.rootUrl = rootUrl;
-      tmc.setEnv("TMC_LANGS_ROOT_URL", rootUrl);
+      tmc.setEnv("TMC_LANGS_TMC_ROOT_URL", rootUrl);
     }
     if (configDir) {
       this.configDir = configDir;
@@ -49,9 +49,15 @@ export class Tmc {
     outputPath: string,
     compression: Compression,
     deterministic: boolean,
-    naive: boolean,
+    naive: boolean
   ): void {
-    return tmc.compressProject(exercisePath, outputPath, compression, deterministic, naive);
+    return tmc.compressProject(
+      exercisePath,
+      outputPath,
+      compression,
+      deterministic,
+      naive
+    );
   }
 
   extractProject(

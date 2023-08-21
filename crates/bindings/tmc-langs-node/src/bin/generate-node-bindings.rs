@@ -3,7 +3,9 @@
 use std::fs::File;
 
 fn main() {
-    let mut file = File::create(concat!(env!("CARGO_MANIFEST_DIR"), "/ts/generated.d.ts")).unwrap();
+    println!("Generating node bindings");
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/ts/generated.d.ts");
+    let mut file = File::create(path).unwrap();
     ts_rs::export_to! {
         &mut file,
         // checkstyle
@@ -71,5 +73,6 @@ fn main() {
         // listSettings
         tmc_langs::TmcConfig,
     }
-    .unwrap()
+    .unwrap();
+    println!("Wrote bindings to `{path}`");
 }

@@ -2,9 +2,12 @@ use chrono::{DateTime, Utc};
 use mooc_langs_api as api;
 use serde::{Deserialize, Serialize};
 use tmc_langs_util::{deserialize, JsonError};
+#[cfg(feature = "ts-rs")]
+use ts_rs::TS;
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct TmcExerciseSlide {
     pub slide_id: Uuid,
     pub exercise_id: Uuid,
@@ -34,6 +37,7 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct TmcExerciseTask {
     pub task_id: Uuid,
     pub order_number: i32,
@@ -65,6 +69,7 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum PublicSpec {
     Browser {
         files: Vec<ExerciseFile>,
@@ -94,6 +99,7 @@ pub enum UserAnswer {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum ModelSolutionSpec {
     Browser {
         #[serde(rename = "solutionFiles")]
@@ -106,6 +112,7 @@ pub enum ModelSolutionSpec {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseFile {
     filepath: String,
     contents: String,

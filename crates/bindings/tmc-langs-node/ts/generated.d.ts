@@ -14,7 +14,7 @@ export interface RefreshData { "new-cache-path": string, "course-options": objec
 
 export interface RefreshExercise { name: string, checksum: string, points: Array<string>, "sandbox-image": string, "tmcproject-yml": TmcProjectYml | null, }
 
-export interface TmcProjectYml { extra_student_files: Array<string>, extra_exercise_files: Array<string>, force_update: Array<string>, tests_timeout_ms?: bigint, fail_on_valgrind_error?: boolean, minimum_python_version?: PythonVer, sandbox_image?: string, }
+export interface TmcProjectYml { extra_student_files: Array<string>, extra_exercise_files: Array<string>, force_update: Array<string>, tests_timeout_ms?: number, fail_on_valgrind_error?: boolean, minimum_python_version?: PythonVer, sandbox_image?: string, }
 
 export interface PythonVer { major: number, minor: number | null, patch: number | null, }
 
