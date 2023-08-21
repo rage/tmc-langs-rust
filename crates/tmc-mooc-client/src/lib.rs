@@ -10,8 +10,9 @@ pub use self::exercise::{
 };
 use crate::error::{MoocClientError, MoocClientResult};
 use bytes::Bytes;
+use chrono::{DateTime, Utc};
 use exercise::UserAnswer;
-pub use mooc_langs_api::*;
+pub use mooc_langs_api as api;
 use oauth2::TokenResponse;
 use reqwest::{
     blocking::{
@@ -23,6 +24,8 @@ use reqwest::{
 use serde::{de::DeserializeOwned, Serialize};
 use std::{borrow::Cow, path::Path, sync::Arc};
 use tmc_langs_util::{serialize, JsonError};
+#[cfg(feature = "ts-rs")]
+use ts_rs::TS;
 use uuid::Uuid;
 
 /// Client for accessing the Courses MOOC API.
@@ -33,7 +36,7 @@ pub struct MoocClient(Arc<MoocClientInner>);
 struct MoocClientInner {
     client: Client,
     root_addr: Cow<'static, str>,
-    token: Option<Token>,
+    token: Option<api::Token>,
 }
 
 /// Non-API methods.
@@ -78,7 +81,7 @@ impl MoocClient {
         }
     }
 
-    pub fn set_token(&mut self, token: Token) {
+    pub fn set_token(&mut self, token: api::Token) {
         Arc::get_mut(&mut self.0)
             .expect("called when multiple clones exist")
             .token = Some(token);
@@ -90,8 +93,8 @@ impl MoocClient {
     pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
         let res = self
             .request(Method::GET, "course-instances")
-            .send_expect_json()?;
-        Ok(res)
+            .send_expect_json::<Vec<api::CourseInstance>>()?;
+        Ok(res.into_iter().map(Into::into).collect())
     }
 
     pub fn course_instance_exercise_slides(
@@ -101,7 +104,7 @@ impl MoocClient {
         let url = format!("course-instances/{course_instance}/exercises");
         let res = self
             .request(Method::GET, &url)
-            .send_expect_json::<Vec<ExerciseSlide>>()?
+            .send_expect_json::<Vec<api::ExerciseSlide>>()?
             .into_iter()
             .map(TryFrom::try_from)
             .collect::<Result<_, JsonError>>()
@@ -116,7 +119,7 @@ impl MoocClient {
         let url = format!("exercises/{exercise}");
         let res = self
             .request(Method::GET, &url)
-            .send_expect_json::<ExerciseSlide>()?
+            .send_expect_json::<api::ExerciseSlide>()?
             .try_into()
             .map_err(|err: JsonError| MoocClientError::DeserializingResponse {
                 url,
@@ -145,7 +148,7 @@ impl MoocClient {
         archive: &Path,
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
         // upload archive
-        let metadata = UploadMetadata { slide_id, task_id };
+        let metadata = api::UploadMetadata { slide_id, task_id };
         let metadata = serialize::to_json_vec(&metadata)?;
         let form = Form::new()
             .part(
@@ -159,14 +162,14 @@ impl MoocClient {
         let res = self
             .request(Method::POST, &format!("exercises/{exercise_id}/upload"))
             .multipart(form)
-            .send_expect_json::<UploadResult>()?;
+            .send_expect_json::<api::UploadResult>()?;
 
         // send submission
         let user_answer = UserAnswer::Editor {
             download_url: res.download_url,
         };
         let data_json = serialize::to_json_value(&user_answer)?;
-        let exercise_slide_submission = ExerciseSlideSubmission {
+        let exercise_slide_submission = api::ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
             exercise_task_id: task_id,
             data_json,
@@ -174,8 +177,8 @@ impl MoocClient {
         let res = self
             .request(Method::POST, &format!("exercises/{exercise_id}/submit"))
             .json(&exercise_slide_submission)
-            .send_expect_json()?;
-        Ok(res)
+            .send_expect_json::<api::ExerciseTaskSubmissionResult>()?;
+        Ok(res.into())
     }
 
     pub fn get_submission_grading(
@@ -184,8 +187,8 @@ impl MoocClient {
     ) -> MoocClientResult<ExerciseTaskSubmissionStatus> {
         let res = self
             .request(Method::GET, &format!("submissions/{submission_id}/grading"))
-            .send_expect_json()?;
-        Ok(res)
+            .send_expect_json::<api::ExerciseTaskSubmissionStatus>()?;
+        Ok(res.into())
     }
 }
 
@@ -270,5 +273,109 @@ impl MoocRequest {
             }
         })?;
         Ok(json)
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct CourseInstance {
+    pub id: Uuid,
+    pub course_id: Uuid,
+    pub course_slug: String,
+    pub course_name: String,
+    pub course_description: Option<String>,
+    pub instance_name: Option<String>,
+    pub instance_description: Option<String>,
+}
+
+impl From<api::CourseInstance> for CourseInstance {
+    fn from(value: api::CourseInstance) -> Self {
+        Self {
+            id: value.id,
+            course_id: value.course_id,
+            course_slug: value.course_slug,
+            course_name: value.course_name,
+            course_description: value.course_description,
+            instance_name: value.instance_name,
+            instance_description: value.instance_description,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ExerciseTaskSubmissionResult {
+    pub submission_id: Uuid,
+}
+
+impl From<api::ExerciseTaskSubmissionResult> for ExerciseTaskSubmissionResult {
+    fn from(value: api::ExerciseTaskSubmissionResult) -> Self {
+        Self {
+            submission_id: value.submission_id,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum ExerciseTaskSubmissionStatus {
+    NoGradingYet,
+    Grading {
+        grading_progress: GradingProgress,
+        score_given: Option<f32>,
+        grading_started_at: Option<DateTime<Utc>>,
+        grading_completed_at: Option<DateTime<Utc>>,
+        feedback_json: Option<serde_json::Value>,
+        feedback_text: Option<String>,
+    },
+}
+
+impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
+    fn from(value: api::ExerciseTaskSubmissionStatus) -> Self {
+        match value {
+            api::ExerciseTaskSubmissionStatus::NoGradingYet => Self::NoGradingYet,
+            api::ExerciseTaskSubmissionStatus::Grading {
+                grading_progress,
+                score_given,
+                grading_started_at,
+                grading_completed_at,
+                feedback_json,
+                feedback_text,
+            } => Self::Grading {
+                grading_progress: grading_progress.into(),
+                score_given,
+                grading_started_at,
+                grading_completed_at,
+                feedback_json,
+                feedback_text,
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum GradingProgress {
+    /// The grading could not complete.
+    Failed,
+    /// There is no grading process occurring; for example, the student has not yet made any submission.
+    NotReady,
+    /// Final Grade is pending, and it does require human intervention; if a Score value is present, it indicates the current value is partial and may be updated during the manual grading.
+    PendingManual,
+    /// Final Grade is pending, but does not require manual intervention; if a Score value is present, it indicates the current value is partial and may be updated.
+    Pending,
+    /// The grading process is completed; the score value, if any, represents the current Final Grade;
+    FullyGraded,
+}
+
+impl From<api::GradingProgress> for GradingProgress {
+    fn from(value: api::GradingProgress) -> Self {
+        match value {
+            api::GradingProgress::Failed => Self::Failed,
+            api::GradingProgress::NotReady => Self::NotReady,
+            api::GradingProgress::PendingManual => Self::PendingManual,
+            api::GradingProgress::Pending => Self::Pending,
+            api::GradingProgress::FullyGraded => Self::FullyGraded,
+        }
     }
 }

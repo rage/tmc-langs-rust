@@ -19,7 +19,7 @@ use tmc_langs::{
 use tmc_langs_util::progress_reporter::StatusUpdate;
 
 /// The format for all messages written to stdout by the CLI
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -55,7 +55,7 @@ impl CliOutput {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct OutputData {
@@ -65,7 +65,7 @@ pub struct OutputData {
     pub data: Option<DataKind>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
