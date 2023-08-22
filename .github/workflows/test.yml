@@ -16,6 +16,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - java-arch: "x64"
+          - os: macos-latest
+            java-arch: "aarch64"
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -58,6 +62,7 @@ jobs:
         with:
           distribution: "temurin"
           java-version: "17"
+          architecture: ${{ matrix.java-arch }}
 
       - name: Install Node
         uses: actions/setup-node@v3
