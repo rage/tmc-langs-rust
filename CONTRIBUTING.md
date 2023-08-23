@@ -18,7 +18,7 @@ Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node
 
 Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
 
-Install [OpenJDK 11](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
+Install [OpenJDK 17](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
 
 Install [.NET 6.0](https://dotnet.microsoft.com/download).
 
