@@ -101,7 +101,7 @@ jobs:
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
           gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node             gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
 
-  macos-11:
+  macos:
     runs-on: macos-11
     strategy:
       matrix:
@@ -127,7 +127,7 @@ jobs:
 
       - name: Cargo build
         run: |
-          cargo build -p tmc-langs-cli --release
+          cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
           npm --prefix ./crates/bindings/tmc-langs-node install
           npm run --prefix ./crates/bindings/tmc-langs-node build -- --release
       - name: Sign
