@@ -127,6 +127,7 @@ jobs:
 
       - name: Cargo build
         run: |
+          rustup target add ${{ matrix.target }}
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
           npm --prefix ./crates/bindings/tmc-langs-node install
           npm run --prefix ./crates/bindings/tmc-langs-node build -- --release
@@ -134,6 +135,5 @@ jobs:
         run: codesign --force -s - target/release/tmc-langs-cli
       - name: Deploy
         run: |
-          rustup target add ${{ matrix.target }}
           gsutil cp ./target/release/tmc-langs-cli              gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
           gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
