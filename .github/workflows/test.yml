@@ -93,5 +93,8 @@ jobs:
           Rscript -e 'install.packages(c("testthat", "jsonlite", "R.utils"))'
           Rscript -e 'install.packages("crates/plugins/r/tests/tmcRtestrunner", repos=NULL, type="source")'
 
+      - name: Install rosetta
+        if: matrix.os == 'macos-latest'
+        run: softwareupdate --install-rosetta --agree-to-license
       - name: Run tests
         run: cargo test --no-fail-fast --target ${{ matrix.rust-target }}
