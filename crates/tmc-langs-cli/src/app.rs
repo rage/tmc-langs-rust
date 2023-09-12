@@ -1162,77 +1162,109 @@ mod settings_test {
     }
 }
 
-#[test]
-#[ignore]
-#[cfg(feature = "ts-rs")]
-fn generate_cli_bindings() {
-    use crate::output::*;
-    use tmc_langs::*;
-
-    let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
-    ts_rs::export_to!(
-        &mut f,
-        // input
-        Locale,
-        Compression,
-        // output
-        CliOutput,
-        OutputData,
-        StatusUpdateData,
-        notification_reporter::Notification,
-        Status,
-        OutputResult,
-        tmc::ClientUpdateData,
-        progress_reporter::StatusUpdate<()>,
-        notification_reporter::NotificationKind,
-        DataKind,
-        NewSubmission,
-        Kind,
-        StyleValidationResult,
-        ExerciseDownload,
-        StyleValidationStrategy,
-        StyleValidationError,
-        ExercisePackagingConfiguration,
-        LocalExercise,
-        RefreshData,
-        RunResult,
-        ExerciseDesc,
-        RefreshExercise,
-        RunStatus,
-        TestResult,
-        TestDesc,
-        TmcProjectYml,
-        UpdatedExercise,
-        DownloadOrUpdateCourseExercisesResult,
-        CombinedCourseData,
-        CourseDetails,
-        CourseExercise,
-        CourseData,
-        tmc::response::Course,
-        ExerciseDetails,
-        Submission,
-        UpdateResult,
-        Organization,
-        Review,
-        tmc::response::Exercise,
-        tmc::response::ExerciseSubmission,
-        tmc::response::ExercisePoint,
-        PythonVer,
-        TmcConfig,
-        ConfigValue,
-        SubmissionFinished,
-        SubmissionFeedbackResponse,
-        tmc::response::SubmissionStatus,
-        tmc::response::SubmissionFeedbackQuestion,
-        tmc::response::TestCase,
-        tmc::response::SubmissionFeedbackKind,
-        mooc::CourseInstance,
-        mooc::TmcExerciseSlide,
-        mooc::TmcExerciseTask,
-        mooc::PublicSpec,
-        mooc::ModelSolutionSpec,
-        mooc::ExerciseFile,
-        mooc::ExerciseTaskSubmissionResult,
-    )
-    .unwrap();
+#[cfg(test)]
+mod test {
+    #[test]
+    #[ignore]
+    #[cfg(feature = "ts-rs")]
+    fn generate_cli_bindings() {
+        let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
+        ts_rs::export_to!(
+            &mut f,
+            // input
+            crate::app::Locale,
+            // output
+            crate::output::CliOutput,
+            crate::output::DataKind,
+            crate::output::Kind,
+            crate::output::OutputData,
+            crate::output::OutputResult,
+            crate::output::Status,
+            crate::output::StatusUpdateData,
+            tmc_langs::notification_reporter::Notification,
+            tmc_langs::notification_reporter::NotificationKind,
+            tmc_langs::progress_reporter::StatusUpdate<()>,
+            tmc_langs::tmc::ClientUpdateData,
+            tmc_langs::tmc::response::NewSubmission,
+            // checkstyle
+            tmc_langs::StyleValidationResult,
+            tmc_langs::StyleValidationError,
+            tmc_langs::StyleValidationStrategy,
+            // getExercisePackagingConfiguration
+            tmc_langs::ExercisePackagingConfiguration,
+            // listLocalCourseExercises
+            tmc_langs::LocalExercise,
+            // prepareSubmission
+            tmc_langs::Compression,
+            // refreshCourse
+            tmc_langs::RefreshData,
+            tmc_langs::RefreshExercise,
+            tmc_langs::TmcProjectYml,
+            tmc_langs::PythonVer,
+            // runTests
+            tmc_langs::RunResult,
+            tmc_langs::RunStatus,
+            tmc_langs::TestResult,
+            // scanExercise
+            tmc_langs::ExerciseDesc,
+            tmc_langs::TestDesc,
+            // checkExerciseUpdates
+            tmc_langs::UpdatedExercise,
+            // downloadOrUpdateCourseExercises
+            tmc_langs::DownloadOrUpdateCourseExercisesResult,
+            tmc_langs::ExerciseDownload,
+            // getCourseData
+            tmc_langs::CombinedCourseData,
+            // getCourseDetails
+            tmc_langs::tmc::response::CourseDetails,
+            tmc_langs::tmc::response::Exercise,
+            tmc_langs::tmc::response::Course,
+            // getCourseExercises
+            tmc_langs::tmc::response::CourseExercise,
+            tmc_langs::tmc::response::ExercisePoint,
+            // getCourseSettings
+            // getCourses
+            tmc_langs::tmc::response::CourseData,
+            // getExerciseDetails
+            tmc_langs::tmc::response::ExerciseDetails,
+            tmc_langs::tmc::response::ExerciseSubmission,
+            // getExerciseSubmissions
+            tmc_langs::tmc::response::Submission,
+            // getExerciseUpdates
+            tmc_langs::tmc::UpdateResult,
+            // getOrganization
+            // getOrganizations
+            tmc_langs::tmc::response::Organization,
+            // getUnreadReviews
+            tmc_langs::tmc::response::Review,
+            // paste
+            // requestCodeReview
+            tmc_langs::tmc::response::NewSubmission,
+            // sendFeedback
+            tmc_langs::tmc::response::SubmissionFeedbackResponse,
+            tmc_langs::tmc::response::SubmissionStatus,
+            // submit
+            tmc_langs::tmc::response::TmcStyleValidationResult,
+            tmc_langs::tmc::response::TmcStyleValidationError,
+            tmc_langs::tmc::response::TmcStyleValidationStrategy,
+            // waitForSubmission
+            tmc_langs::tmc::response::SubmissionFinished,
+            tmc_langs::tmc::response::TestCase,
+            tmc_langs::tmc::response::SubmissionFeedbackQuestion,
+            tmc_langs::tmc::response::SubmissionFeedbackKind,
+            // settings get
+            tmc_langs::ConfigValue,
+            // settings list
+            tmc_langs::TmcConfig,
+            // mooc
+            tmc_langs::mooc::CourseInstance,
+            tmc_langs::mooc::TmcExerciseSlide,
+            tmc_langs::mooc::TmcExerciseTask,
+            tmc_langs::mooc::PublicSpec,
+            tmc_langs::mooc::ModelSolutionSpec,
+            tmc_langs::mooc::ExerciseFile,
+            tmc_langs::mooc::ExerciseTaskSubmissionResult,
+        )
+        .unwrap();
+    }
 }

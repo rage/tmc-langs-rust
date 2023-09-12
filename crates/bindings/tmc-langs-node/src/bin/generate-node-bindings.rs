@@ -65,6 +65,9 @@ fn main() {
         tmc_langs::tmc::response::SubmissionFeedbackResponse,
         tmc_langs::tmc::response::SubmissionStatus,
         // submit
+        tmc_langs::tmc::response::TmcStyleValidationResult,
+        tmc_langs::tmc::response::TmcStyleValidationError,
+        tmc_langs::tmc::response::TmcStyleValidationStrategy,
         // waitForSubmission
         tmc_langs::tmc::response::SubmissionFinished,
         tmc_langs::tmc::response::TestCase,

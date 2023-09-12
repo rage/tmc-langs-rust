@@ -397,7 +397,7 @@ pub struct SubmissionFinished {
     /// /api/v8/core/submissions/{submission_id}/feedback
     pub feedback_answer_url: Option<String>,
     pub error: Option<String>,
-    pub validations: Option<StyleValidationResult>,
+    pub validations: Option<TmcStyleValidationResult>,
 }
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
@@ -527,16 +527,16 @@ pub struct Review {
 /// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct StyleValidationResult {
-    pub strategy: StyleValidationStrategy,
-    pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,
+pub struct TmcStyleValidationResult {
+    pub strategy: TmcStyleValidationStrategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<TmcStyleValidationError>>>,
 }
 
 /// Determines how style errors are handled.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 #[serde(rename_all = "UPPERCASE")]
-pub enum StyleValidationStrategy {
+pub enum TmcStyleValidationStrategy {
     Fail,
     Warn,
     Disabled,
@@ -545,7 +545,7 @@ pub enum StyleValidationStrategy {
 /// A style validation error.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct StyleValidationError {
+pub struct TmcStyleValidationError {
     pub column: u32,
     pub line: u32,
     pub message: String,
