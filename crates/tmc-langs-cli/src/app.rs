@@ -1185,7 +1185,6 @@ mod test {
             tmc_langs::notification_reporter::NotificationKind,
             tmc_langs::progress_reporter::StatusUpdate<()>,
             tmc_langs::tmc::ClientUpdateData,
-            tmc_langs::tmc::response::NewSubmission,
             // checkstyle
             tmc_langs::StyleValidationResult,
             tmc_langs::StyleValidationError,
