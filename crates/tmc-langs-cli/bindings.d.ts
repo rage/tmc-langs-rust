@@ -22,8 +22,6 @@ export interface StatusUpdate<T> { finished: boolean, message: string, "percent-
 
 export type ClientUpdateData = { "client-update-data-kind": "exercise-download", id: number, path: string, } | { "client-update-data-kind": "posted-submission" } & NewSubmission;
 
-export interface NewSubmission { show_submission_url: string, paste_url: string, submission_url: string, }
-
 export interface StyleValidationResult { strategy: StyleValidationStrategy, validationErrors: Record<string, Array<StyleValidationError>> | null, }
 
 export interface StyleValidationError { column: number, line: number, message: string, sourceName: string, }
