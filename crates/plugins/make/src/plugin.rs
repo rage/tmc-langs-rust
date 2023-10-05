@@ -163,52 +163,61 @@ impl LanguagePlugin for MakePlugin {
             });
         }
 
+        // try to clean old log file if any
+        let base_test_path = path.join("test");
+        let valgrind_log_path = base_test_path.join("valgrind.log");
+        let _ = file_util::remove_file(&valgrind_log_path);
+
         // try to run valgrind
         let mut ran_valgrind = true;
         let valgrind_run = self.run_tests_with_valgrind(path, true);
         let output = match valgrind_run {
             Ok(output) => output,
-            Err(error) => match error {
-                MakeError::Tmc(TmcError::Command(command_error)) => {
-                    match command_error {
-                        CommandError::Popen(_, PopenError::IoError(io_error))
-                        | CommandError::FailedToRun(_, PopenError::IoError(io_error))
-                            if io_error.kind() == io::ErrorKind::PermissionDenied =>
-                        {
-                            // failed due to lacking permissions, try to clean and rerun
-                            self.clean(path)?;
-                            match self.run_tests_with_valgrind(path, false) {
-                                Ok(output) => output,
-                                Err(err) => {
-                                    log::error!(
+            Err(error) => {
+                if let Ok(valgrind_log) = file_util::read_file_to_string_lossy(&valgrind_log_path) {
+                    log::warn!("Failed to run valgrind but a valgrind.log exists: {valgrind_log}");
+                }
+                match error {
+                    MakeError::Tmc(TmcError::Command(command_error)) => {
+                        match command_error {
+                            CommandError::Popen(_, PopenError::IoError(io_error))
+                            | CommandError::FailedToRun(_, PopenError::IoError(io_error))
+                                if io_error.kind() == io::ErrorKind::PermissionDenied =>
+                            {
+                                // failed due to lacking permissions, try to clean and rerun
+                                self.clean(path)?;
+                                match self.run_tests_with_valgrind(path, false) {
+                                    Ok(output) => output,
+                                    Err(err) => {
+                                        log::error!(
                                         "Running with valgrind failed after trying to clean! {}",
                                         err
                                     );
-                                    ran_valgrind = false;
-                                    log::info!("Running without valgrind");
-                                    self.run_tests_with_valgrind(path, false)?
+                                        ran_valgrind = false;
+                                        log::info!("Running without valgrind");
+                                        self.run_tests_with_valgrind(path, false)?
+                                    }
                                 }
                             }
-                        }
-                        _ => {
-                            ran_valgrind = false;
-                            log::info!("Running without valgrind");
-                            self.run_tests_with_valgrind(path, false)?
+                            _ => {
+                                ran_valgrind = false;
+                                log::info!("Running without valgrind");
+                                self.run_tests_with_valgrind(path, false)?
+                            }
                         }
                     }
+                    MakeError::RunningTestsWithValgrind(..) => {
+                        ran_valgrind = false;
+                        log::info!("Running without valgrind");
+                        self.run_tests_with_valgrind(path, false)?
+                    }
+                    err => {
+                        log::warn!("unexpected error {:?}", err);
+                        return Err(err.into());
+                    }
                 }
-                MakeError::RunningTestsWithValgrind(..) => {
-                    ran_valgrind = false;
-                    log::info!("Running without valgrind");
-                    self.run_tests_with_valgrind(path, false)?
-                }
-                err => {
-                    log::warn!("unexpected error {:?}", err);
-                    return Err(err.into());
-                }
-            },
+            }
         };
-        let base_test_path = path.join("test");
 
         // fails on valgrind by default
         let fail_on_valgrind_error = match TmcProjectYml::load_or_default(path) {
@@ -218,8 +227,7 @@ impl LanguagePlugin for MakePlugin {
 
         // valgrind logs are only interesting if fail on valgrind error is on
         let valgrind_log = if ran_valgrind && fail_on_valgrind_error {
-            let valgrind_path = base_test_path.join("valgrind.log");
-            Some(ValgrindLog::from(&valgrind_path)?)
+            Some(ValgrindLog::from(&valgrind_log_path)?)
         } else {
             None
         };

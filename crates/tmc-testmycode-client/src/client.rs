@@ -126,11 +126,9 @@ impl TestMyCodeClient {
             return Err(TestMyCodeClientError::AlreadyAuthenticated);
         }
 
-        let auth_url = self
-            .0
-            .root_url
-            .join("/oauth/token")
-            .map_err(|e| TestMyCodeClientError::UrlParse("oauth/token".to_string(), e))?;
+        let auth_url = self.0.root_url.join("/oauth/token").map_err(|e| {
+            TestMyCodeClientError::UrlParse(self.0.root_url.to_string() + "/oauth/token", e)
+        })?;
 
         let credentials = api_v8::get_credentials(self, client_name)?;
 
