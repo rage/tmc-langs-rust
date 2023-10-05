@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.26.2/src/unistd.rs`."><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.1 (eb26296b5 2023-08-03)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.27.1/src/unistd.rs`."><title>unistd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3381,6 +3381,600 @@
 <a href="#3381" id="3381">3381</a>
 <a href="#3382" id="3382">3382</a>
 <a href="#3383" id="3383">3383</a>
+<a href="#3384" id="3384">3384</a>
+<a href="#3385" id="3385">3385</a>
+<a href="#3386" id="3386">3386</a>
+<a href="#3387" id="3387">3387</a>
+<a href="#3388" id="3388">3388</a>
+<a href="#3389" id="3389">3389</a>
+<a href="#3390" id="3390">3390</a>
+<a href="#3391" id="3391">3391</a>
+<a href="#3392" id="3392">3392</a>
+<a href="#3393" id="3393">3393</a>
+<a href="#3394" id="3394">3394</a>
+<a href="#3395" id="3395">3395</a>
+<a href="#3396" id="3396">3396</a>
+<a href="#3397" id="3397">3397</a>
+<a href="#3398" id="3398">3398</a>
+<a href="#3399" id="3399">3399</a>
+<a href="#3400" id="3400">3400</a>
+<a href="#3401" id="3401">3401</a>
+<a href="#3402" id="3402">3402</a>
+<a href="#3403" id="3403">3403</a>
+<a href="#3404" id="3404">3404</a>
+<a href="#3405" id="3405">3405</a>
+<a href="#3406" id="3406">3406</a>
+<a href="#3407" id="3407">3407</a>
+<a href="#3408" id="3408">3408</a>
+<a href="#3409" id="3409">3409</a>
+<a href="#3410" id="3410">3410</a>
+<a href="#3411" id="3411">3411</a>
+<a href="#3412" id="3412">3412</a>
+<a href="#3413" id="3413">3413</a>
+<a href="#3414" id="3414">3414</a>
+<a href="#3415" id="3415">3415</a>
+<a href="#3416" id="3416">3416</a>
+<a href="#3417" id="3417">3417</a>
+<a href="#3418" id="3418">3418</a>
+<a href="#3419" id="3419">3419</a>
+<a href="#3420" id="3420">3420</a>
+<a href="#3421" id="3421">3421</a>
+<a href="#3422" id="3422">3422</a>
+<a href="#3423" id="3423">3423</a>
+<a href="#3424" id="3424">3424</a>
+<a href="#3425" id="3425">3425</a>
+<a href="#3426" id="3426">3426</a>
+<a href="#3427" id="3427">3427</a>
+<a href="#3428" id="3428">3428</a>
+<a href="#3429" id="3429">3429</a>
+<a href="#3430" id="3430">3430</a>
+<a href="#3431" id="3431">3431</a>
+<a href="#3432" id="3432">3432</a>
+<a href="#3433" id="3433">3433</a>
+<a href="#3434" id="3434">3434</a>
+<a href="#3435" id="3435">3435</a>
+<a href="#3436" id="3436">3436</a>
+<a href="#3437" id="3437">3437</a>
+<a href="#3438" id="3438">3438</a>
+<a href="#3439" id="3439">3439</a>
+<a href="#3440" id="3440">3440</a>
+<a href="#3441" id="3441">3441</a>
+<a href="#3442" id="3442">3442</a>
+<a href="#3443" id="3443">3443</a>
+<a href="#3444" id="3444">3444</a>
+<a href="#3445" id="3445">3445</a>
+<a href="#3446" id="3446">3446</a>
+<a href="#3447" id="3447">3447</a>
+<a href="#3448" id="3448">3448</a>
+<a href="#3449" id="3449">3449</a>
+<a href="#3450" id="3450">3450</a>
+<a href="#3451" id="3451">3451</a>
+<a href="#3452" id="3452">3452</a>
+<a href="#3453" id="3453">3453</a>
+<a href="#3454" id="3454">3454</a>
+<a href="#3455" id="3455">3455</a>
+<a href="#3456" id="3456">3456</a>
+<a href="#3457" id="3457">3457</a>
+<a href="#3458" id="3458">3458</a>
+<a href="#3459" id="3459">3459</a>
+<a href="#3460" id="3460">3460</a>
+<a href="#3461" id="3461">3461</a>
+<a href="#3462" id="3462">3462</a>
+<a href="#3463" id="3463">3463</a>
+<a href="#3464" id="3464">3464</a>
+<a href="#3465" id="3465">3465</a>
+<a href="#3466" id="3466">3466</a>
+<a href="#3467" id="3467">3467</a>
+<a href="#3468" id="3468">3468</a>
+<a href="#3469" id="3469">3469</a>
+<a href="#3470" id="3470">3470</a>
+<a href="#3471" id="3471">3471</a>
+<a href="#3472" id="3472">3472</a>
+<a href="#3473" id="3473">3473</a>
+<a href="#3474" id="3474">3474</a>
+<a href="#3475" id="3475">3475</a>
+<a href="#3476" id="3476">3476</a>
+<a href="#3477" id="3477">3477</a>
+<a href="#3478" id="3478">3478</a>
+<a href="#3479" id="3479">3479</a>
+<a href="#3480" id="3480">3480</a>
+<a href="#3481" id="3481">3481</a>
+<a href="#3482" id="3482">3482</a>
+<a href="#3483" id="3483">3483</a>
+<a href="#3484" id="3484">3484</a>
+<a href="#3485" id="3485">3485</a>
+<a href="#3486" id="3486">3486</a>
+<a href="#3487" id="3487">3487</a>
+<a href="#3488" id="3488">3488</a>
+<a href="#3489" id="3489">3489</a>
+<a href="#3490" id="3490">3490</a>
+<a href="#3491" id="3491">3491</a>
+<a href="#3492" id="3492">3492</a>
+<a href="#3493" id="3493">3493</a>
+<a href="#3494" id="3494">3494</a>
+<a href="#3495" id="3495">3495</a>
+<a href="#3496" id="3496">3496</a>
+<a href="#3497" id="3497">3497</a>
+<a href="#3498" id="3498">3498</a>
+<a href="#3499" id="3499">3499</a>
+<a href="#3500" id="3500">3500</a>
+<a href="#3501" id="3501">3501</a>
+<a href="#3502" id="3502">3502</a>
+<a href="#3503" id="3503">3503</a>
+<a href="#3504" id="3504">3504</a>
+<a href="#3505" id="3505">3505</a>
+<a href="#3506" id="3506">3506</a>
+<a href="#3507" id="3507">3507</a>
+<a href="#3508" id="3508">3508</a>
+<a href="#3509" id="3509">3509</a>
+<a href="#3510" id="3510">3510</a>
+<a href="#3511" id="3511">3511</a>
+<a href="#3512" id="3512">3512</a>
+<a href="#3513" id="3513">3513</a>
+<a href="#3514" id="3514">3514</a>
+<a href="#3515" id="3515">3515</a>
+<a href="#3516" id="3516">3516</a>
+<a href="#3517" id="3517">3517</a>
+<a href="#3518" id="3518">3518</a>
+<a href="#3519" id="3519">3519</a>
+<a href="#3520" id="3520">3520</a>
+<a href="#3521" id="3521">3521</a>
+<a href="#3522" id="3522">3522</a>
+<a href="#3523" id="3523">3523</a>
+<a href="#3524" id="3524">3524</a>
+<a href="#3525" id="3525">3525</a>
+<a href="#3526" id="3526">3526</a>
+<a href="#3527" id="3527">3527</a>
+<a href="#3528" id="3528">3528</a>
+<a href="#3529" id="3529">3529</a>
+<a href="#3530" id="3530">3530</a>
+<a href="#3531" id="3531">3531</a>
+<a href="#3532" id="3532">3532</a>
+<a href="#3533" id="3533">3533</a>
+<a href="#3534" id="3534">3534</a>
+<a href="#3535" id="3535">3535</a>
+<a href="#3536" id="3536">3536</a>
+<a href="#3537" id="3537">3537</a>
+<a href="#3538" id="3538">3538</a>
+<a href="#3539" id="3539">3539</a>
+<a href="#3540" id="3540">3540</a>
+<a href="#3541" id="3541">3541</a>
+<a href="#3542" id="3542">3542</a>
+<a href="#3543" id="3543">3543</a>
+<a href="#3544" id="3544">3544</a>
+<a href="#3545" id="3545">3545</a>
+<a href="#3546" id="3546">3546</a>
+<a href="#3547" id="3547">3547</a>
+<a href="#3548" id="3548">3548</a>
+<a href="#3549" id="3549">3549</a>
+<a href="#3550" id="3550">3550</a>
+<a href="#3551" id="3551">3551</a>
+<a href="#3552" id="3552">3552</a>
+<a href="#3553" id="3553">3553</a>
+<a href="#3554" id="3554">3554</a>
+<a href="#3555" id="3555">3555</a>
+<a href="#3556" id="3556">3556</a>
+<a href="#3557" id="3557">3557</a>
+<a href="#3558" id="3558">3558</a>
+<a href="#3559" id="3559">3559</a>
+<a href="#3560" id="3560">3560</a>
+<a href="#3561" id="3561">3561</a>
+<a href="#3562" id="3562">3562</a>
+<a href="#3563" id="3563">3563</a>
+<a href="#3564" id="3564">3564</a>
+<a href="#3565" id="3565">3565</a>
+<a href="#3566" id="3566">3566</a>
+<a href="#3567" id="3567">3567</a>
+<a href="#3568" id="3568">3568</a>
+<a href="#3569" id="3569">3569</a>
+<a href="#3570" id="3570">3570</a>
+<a href="#3571" id="3571">3571</a>
+<a href="#3572" id="3572">3572</a>
+<a href="#3573" id="3573">3573</a>
+<a href="#3574" id="3574">3574</a>
+<a href="#3575" id="3575">3575</a>
+<a href="#3576" id="3576">3576</a>
+<a href="#3577" id="3577">3577</a>
+<a href="#3578" id="3578">3578</a>
+<a href="#3579" id="3579">3579</a>
+<a href="#3580" id="3580">3580</a>
+<a href="#3581" id="3581">3581</a>
+<a href="#3582" id="3582">3582</a>
+<a href="#3583" id="3583">3583</a>
+<a href="#3584" id="3584">3584</a>
+<a href="#3585" id="3585">3585</a>
+<a href="#3586" id="3586">3586</a>
+<a href="#3587" id="3587">3587</a>
+<a href="#3588" id="3588">3588</a>
+<a href="#3589" id="3589">3589</a>
+<a href="#3590" id="3590">3590</a>
+<a href="#3591" id="3591">3591</a>
+<a href="#3592" id="3592">3592</a>
+<a href="#3593" id="3593">3593</a>
+<a href="#3594" id="3594">3594</a>
+<a href="#3595" id="3595">3595</a>
+<a href="#3596" id="3596">3596</a>
+<a href="#3597" id="3597">3597</a>
+<a href="#3598" id="3598">3598</a>
+<a href="#3599" id="3599">3599</a>
+<a href="#3600" id="3600">3600</a>
+<a href="#3601" id="3601">3601</a>
+<a href="#3602" id="3602">3602</a>
+<a href="#3603" id="3603">3603</a>
+<a href="#3604" id="3604">3604</a>
+<a href="#3605" id="3605">3605</a>
+<a href="#3606" id="3606">3606</a>
+<a href="#3607" id="3607">3607</a>
+<a href="#3608" id="3608">3608</a>
+<a href="#3609" id="3609">3609</a>
+<a href="#3610" id="3610">3610</a>
+<a href="#3611" id="3611">3611</a>
+<a href="#3612" id="3612">3612</a>
+<a href="#3613" id="3613">3613</a>
+<a href="#3614" id="3614">3614</a>
+<a href="#3615" id="3615">3615</a>
+<a href="#3616" id="3616">3616</a>
+<a href="#3617" id="3617">3617</a>
+<a href="#3618" id="3618">3618</a>
+<a href="#3619" id="3619">3619</a>
+<a href="#3620" id="3620">3620</a>
+<a href="#3621" id="3621">3621</a>
+<a href="#3622" id="3622">3622</a>
+<a href="#3623" id="3623">3623</a>
+<a href="#3624" id="3624">3624</a>
+<a href="#3625" id="3625">3625</a>
+<a href="#3626" id="3626">3626</a>
+<a href="#3627" id="3627">3627</a>
+<a href="#3628" id="3628">3628</a>
+<a href="#3629" id="3629">3629</a>
+<a href="#3630" id="3630">3630</a>
+<a href="#3631" id="3631">3631</a>
+<a href="#3632" id="3632">3632</a>
+<a href="#3633" id="3633">3633</a>
+<a href="#3634" id="3634">3634</a>
+<a href="#3635" id="3635">3635</a>
+<a href="#3636" id="3636">3636</a>
+<a href="#3637" id="3637">3637</a>
+<a href="#3638" id="3638">3638</a>
+<a href="#3639" id="3639">3639</a>
+<a href="#3640" id="3640">3640</a>
+<a href="#3641" id="3641">3641</a>
+<a href="#3642" id="3642">3642</a>
+<a href="#3643" id="3643">3643</a>
+<a href="#3644" id="3644">3644</a>
+<a href="#3645" id="3645">3645</a>
+<a href="#3646" id="3646">3646</a>
+<a href="#3647" id="3647">3647</a>
+<a href="#3648" id="3648">3648</a>
+<a href="#3649" id="3649">3649</a>
+<a href="#3650" id="3650">3650</a>
+<a href="#3651" id="3651">3651</a>
+<a href="#3652" id="3652">3652</a>
+<a href="#3653" id="3653">3653</a>
+<a href="#3654" id="3654">3654</a>
+<a href="#3655" id="3655">3655</a>
+<a href="#3656" id="3656">3656</a>
+<a href="#3657" id="3657">3657</a>
+<a href="#3658" id="3658">3658</a>
+<a href="#3659" id="3659">3659</a>
+<a href="#3660" id="3660">3660</a>
+<a href="#3661" id="3661">3661</a>
+<a href="#3662" id="3662">3662</a>
+<a href="#3663" id="3663">3663</a>
+<a href="#3664" id="3664">3664</a>
+<a href="#3665" id="3665">3665</a>
+<a href="#3666" id="3666">3666</a>
+<a href="#3667" id="3667">3667</a>
+<a href="#3668" id="3668">3668</a>
+<a href="#3669" id="3669">3669</a>
+<a href="#3670" id="3670">3670</a>
+<a href="#3671" id="3671">3671</a>
+<a href="#3672" id="3672">3672</a>
+<a href="#3673" id="3673">3673</a>
+<a href="#3674" id="3674">3674</a>
+<a href="#3675" id="3675">3675</a>
+<a href="#3676" id="3676">3676</a>
+<a href="#3677" id="3677">3677</a>
+<a href="#3678" id="3678">3678</a>
+<a href="#3679" id="3679">3679</a>
+<a href="#3680" id="3680">3680</a>
+<a href="#3681" id="3681">3681</a>
+<a href="#3682" id="3682">3682</a>
+<a href="#3683" id="3683">3683</a>
+<a href="#3684" id="3684">3684</a>
+<a href="#3685" id="3685">3685</a>
+<a href="#3686" id="3686">3686</a>
+<a href="#3687" id="3687">3687</a>
+<a href="#3688" id="3688">3688</a>
+<a href="#3689" id="3689">3689</a>
+<a href="#3690" id="3690">3690</a>
+<a href="#3691" id="3691">3691</a>
+<a href="#3692" id="3692">3692</a>
+<a href="#3693" id="3693">3693</a>
+<a href="#3694" id="3694">3694</a>
+<a href="#3695" id="3695">3695</a>
+<a href="#3696" id="3696">3696</a>
+<a href="#3697" id="3697">3697</a>
+<a href="#3698" id="3698">3698</a>
+<a href="#3699" id="3699">3699</a>
+<a href="#3700" id="3700">3700</a>
+<a href="#3701" id="3701">3701</a>
+<a href="#3702" id="3702">3702</a>
+<a href="#3703" id="3703">3703</a>
+<a href="#3704" id="3704">3704</a>
+<a href="#3705" id="3705">3705</a>
+<a href="#3706" id="3706">3706</a>
+<a href="#3707" id="3707">3707</a>
+<a href="#3708" id="3708">3708</a>
+<a href="#3709" id="3709">3709</a>
+<a href="#3710" id="3710">3710</a>
+<a href="#3711" id="3711">3711</a>
+<a href="#3712" id="3712">3712</a>
+<a href="#3713" id="3713">3713</a>
+<a href="#3714" id="3714">3714</a>
+<a href="#3715" id="3715">3715</a>
+<a href="#3716" id="3716">3716</a>
+<a href="#3717" id="3717">3717</a>
+<a href="#3718" id="3718">3718</a>
+<a href="#3719" id="3719">3719</a>
+<a href="#3720" id="3720">3720</a>
+<a href="#3721" id="3721">3721</a>
+<a href="#3722" id="3722">3722</a>
+<a href="#3723" id="3723">3723</a>
+<a href="#3724" id="3724">3724</a>
+<a href="#3725" id="3725">3725</a>
+<a href="#3726" id="3726">3726</a>
+<a href="#3727" id="3727">3727</a>
+<a href="#3728" id="3728">3728</a>
+<a href="#3729" id="3729">3729</a>
+<a href="#3730" id="3730">3730</a>
+<a href="#3731" id="3731">3731</a>
+<a href="#3732" id="3732">3732</a>
+<a href="#3733" id="3733">3733</a>
+<a href="#3734" id="3734">3734</a>
+<a href="#3735" id="3735">3735</a>
+<a href="#3736" id="3736">3736</a>
+<a href="#3737" id="3737">3737</a>
+<a href="#3738" id="3738">3738</a>
+<a href="#3739" id="3739">3739</a>
+<a href="#3740" id="3740">3740</a>
+<a href="#3741" id="3741">3741</a>
+<a href="#3742" id="3742">3742</a>
+<a href="#3743" id="3743">3743</a>
+<a href="#3744" id="3744">3744</a>
+<a href="#3745" id="3745">3745</a>
+<a href="#3746" id="3746">3746</a>
+<a href="#3747" id="3747">3747</a>
+<a href="#3748" id="3748">3748</a>
+<a href="#3749" id="3749">3749</a>
+<a href="#3750" id="3750">3750</a>
+<a href="#3751" id="3751">3751</a>
+<a href="#3752" id="3752">3752</a>
+<a href="#3753" id="3753">3753</a>
+<a href="#3754" id="3754">3754</a>
+<a href="#3755" id="3755">3755</a>
+<a href="#3756" id="3756">3756</a>
+<a href="#3757" id="3757">3757</a>
+<a href="#3758" id="3758">3758</a>
+<a href="#3759" id="3759">3759</a>
+<a href="#3760" id="3760">3760</a>
+<a href="#3761" id="3761">3761</a>
+<a href="#3762" id="3762">3762</a>
+<a href="#3763" id="3763">3763</a>
+<a href="#3764" id="3764">3764</a>
+<a href="#3765" id="3765">3765</a>
+<a href="#3766" id="3766">3766</a>
+<a href="#3767" id="3767">3767</a>
+<a href="#3768" id="3768">3768</a>
+<a href="#3769" id="3769">3769</a>
+<a href="#3770" id="3770">3770</a>
+<a href="#3771" id="3771">3771</a>
+<a href="#3772" id="3772">3772</a>
+<a href="#3773" id="3773">3773</a>
+<a href="#3774" id="3774">3774</a>
+<a href="#3775" id="3775">3775</a>
+<a href="#3776" id="3776">3776</a>
+<a href="#3777" id="3777">3777</a>
+<a href="#3778" id="3778">3778</a>
+<a href="#3779" id="3779">3779</a>
+<a href="#3780" id="3780">3780</a>
+<a href="#3781" id="3781">3781</a>
+<a href="#3782" id="3782">3782</a>
+<a href="#3783" id="3783">3783</a>
+<a href="#3784" id="3784">3784</a>
+<a href="#3785" id="3785">3785</a>
+<a href="#3786" id="3786">3786</a>
+<a href="#3787" id="3787">3787</a>
+<a href="#3788" id="3788">3788</a>
+<a href="#3789" id="3789">3789</a>
+<a href="#3790" id="3790">3790</a>
+<a href="#3791" id="3791">3791</a>
+<a href="#3792" id="3792">3792</a>
+<a href="#3793" id="3793">3793</a>
+<a href="#3794" id="3794">3794</a>
+<a href="#3795" id="3795">3795</a>
+<a href="#3796" id="3796">3796</a>
+<a href="#3797" id="3797">3797</a>
+<a href="#3798" id="3798">3798</a>
+<a href="#3799" id="3799">3799</a>
+<a href="#3800" id="3800">3800</a>
+<a href="#3801" id="3801">3801</a>
+<a href="#3802" id="3802">3802</a>
+<a href="#3803" id="3803">3803</a>
+<a href="#3804" id="3804">3804</a>
+<a href="#3805" id="3805">3805</a>
+<a href="#3806" id="3806">3806</a>
+<a href="#3807" id="3807">3807</a>
+<a href="#3808" id="3808">3808</a>
+<a href="#3809" id="3809">3809</a>
+<a href="#3810" id="3810">3810</a>
+<a href="#3811" id="3811">3811</a>
+<a href="#3812" id="3812">3812</a>
+<a href="#3813" id="3813">3813</a>
+<a href="#3814" id="3814">3814</a>
+<a href="#3815" id="3815">3815</a>
+<a href="#3816" id="3816">3816</a>
+<a href="#3817" id="3817">3817</a>
+<a href="#3818" id="3818">3818</a>
+<a href="#3819" id="3819">3819</a>
+<a href="#3820" id="3820">3820</a>
+<a href="#3821" id="3821">3821</a>
+<a href="#3822" id="3822">3822</a>
+<a href="#3823" id="3823">3823</a>
+<a href="#3824" id="3824">3824</a>
+<a href="#3825" id="3825">3825</a>
+<a href="#3826" id="3826">3826</a>
+<a href="#3827" id="3827">3827</a>
+<a href="#3828" id="3828">3828</a>
+<a href="#3829" id="3829">3829</a>
+<a href="#3830" id="3830">3830</a>
+<a href="#3831" id="3831">3831</a>
+<a href="#3832" id="3832">3832</a>
+<a href="#3833" id="3833">3833</a>
+<a href="#3834" id="3834">3834</a>
+<a href="#3835" id="3835">3835</a>
+<a href="#3836" id="3836">3836</a>
+<a href="#3837" id="3837">3837</a>
+<a href="#3838" id="3838">3838</a>
+<a href="#3839" id="3839">3839</a>
+<a href="#3840" id="3840">3840</a>
+<a href="#3841" id="3841">3841</a>
+<a href="#3842" id="3842">3842</a>
+<a href="#3843" id="3843">3843</a>
+<a href="#3844" id="3844">3844</a>
+<a href="#3845" id="3845">3845</a>
+<a href="#3846" id="3846">3846</a>
+<a href="#3847" id="3847">3847</a>
+<a href="#3848" id="3848">3848</a>
+<a href="#3849" id="3849">3849</a>
+<a href="#3850" id="3850">3850</a>
+<a href="#3851" id="3851">3851</a>
+<a href="#3852" id="3852">3852</a>
+<a href="#3853" id="3853">3853</a>
+<a href="#3854" id="3854">3854</a>
+<a href="#3855" id="3855">3855</a>
+<a href="#3856" id="3856">3856</a>
+<a href="#3857" id="3857">3857</a>
+<a href="#3858" id="3858">3858</a>
+<a href="#3859" id="3859">3859</a>
+<a href="#3860" id="3860">3860</a>
+<a href="#3861" id="3861">3861</a>
+<a href="#3862" id="3862">3862</a>
+<a href="#3863" id="3863">3863</a>
+<a href="#3864" id="3864">3864</a>
+<a href="#3865" id="3865">3865</a>
+<a href="#3866" id="3866">3866</a>
+<a href="#3867" id="3867">3867</a>
+<a href="#3868" id="3868">3868</a>
+<a href="#3869" id="3869">3869</a>
+<a href="#3870" id="3870">3870</a>
+<a href="#3871" id="3871">3871</a>
+<a href="#3872" id="3872">3872</a>
+<a href="#3873" id="3873">3873</a>
+<a href="#3874" id="3874">3874</a>
+<a href="#3875" id="3875">3875</a>
+<a href="#3876" id="3876">3876</a>
+<a href="#3877" id="3877">3877</a>
+<a href="#3878" id="3878">3878</a>
+<a href="#3879" id="3879">3879</a>
+<a href="#3880" id="3880">3880</a>
+<a href="#3881" id="3881">3881</a>
+<a href="#3882" id="3882">3882</a>
+<a href="#3883" id="3883">3883</a>
+<a href="#3884" id="3884">3884</a>
+<a href="#3885" id="3885">3885</a>
+<a href="#3886" id="3886">3886</a>
+<a href="#3887" id="3887">3887</a>
+<a href="#3888" id="3888">3888</a>
+<a href="#3889" id="3889">3889</a>
+<a href="#3890" id="3890">3890</a>
+<a href="#3891" id="3891">3891</a>
+<a href="#3892" id="3892">3892</a>
+<a href="#3893" id="3893">3893</a>
+<a href="#3894" id="3894">3894</a>
+<a href="#3895" id="3895">3895</a>
+<a href="#3896" id="3896">3896</a>
+<a href="#3897" id="3897">3897</a>
+<a href="#3898" id="3898">3898</a>
+<a href="#3899" id="3899">3899</a>
+<a href="#3900" id="3900">3900</a>
+<a href="#3901" id="3901">3901</a>
+<a href="#3902" id="3902">3902</a>
+<a href="#3903" id="3903">3903</a>
+<a href="#3904" id="3904">3904</a>
+<a href="#3905" id="3905">3905</a>
+<a href="#3906" id="3906">3906</a>
+<a href="#3907" id="3907">3907</a>
+<a href="#3908" id="3908">3908</a>
+<a href="#3909" id="3909">3909</a>
+<a href="#3910" id="3910">3910</a>
+<a href="#3911" id="3911">3911</a>
+<a href="#3912" id="3912">3912</a>
+<a href="#3913" id="3913">3913</a>
+<a href="#3914" id="3914">3914</a>
+<a href="#3915" id="3915">3915</a>
+<a href="#3916" id="3916">3916</a>
+<a href="#3917" id="3917">3917</a>
+<a href="#3918" id="3918">3918</a>
+<a href="#3919" id="3919">3919</a>
+<a href="#3920" id="3920">3920</a>
+<a href="#3921" id="3921">3921</a>
+<a href="#3922" id="3922">3922</a>
+<a href="#3923" id="3923">3923</a>
+<a href="#3924" id="3924">3924</a>
+<a href="#3925" id="3925">3925</a>
+<a href="#3926" id="3926">3926</a>
+<a href="#3927" id="3927">3927</a>
+<a href="#3928" id="3928">3928</a>
+<a href="#3929" id="3929">3929</a>
+<a href="#3930" id="3930">3930</a>
+<a href="#3931" id="3931">3931</a>
+<a href="#3932" id="3932">3932</a>
+<a href="#3933" id="3933">3933</a>
+<a href="#3934" id="3934">3934</a>
+<a href="#3935" id="3935">3935</a>
+<a href="#3936" id="3936">3936</a>
+<a href="#3937" id="3937">3937</a>
+<a href="#3938" id="3938">3938</a>
+<a href="#3939" id="3939">3939</a>
+<a href="#3940" id="3940">3940</a>
+<a href="#3941" id="3941">3941</a>
+<a href="#3942" id="3942">3942</a>
+<a href="#3943" id="3943">3943</a>
+<a href="#3944" id="3944">3944</a>
+<a href="#3945" id="3945">3945</a>
+<a href="#3946" id="3946">3946</a>
+<a href="#3947" id="3947">3947</a>
+<a href="#3948" id="3948">3948</a>
+<a href="#3949" id="3949">3949</a>
+<a href="#3950" id="3950">3950</a>
+<a href="#3951" id="3951">3951</a>
+<a href="#3952" id="3952">3952</a>
+<a href="#3953" id="3953">3953</a>
+<a href="#3954" id="3954">3954</a>
+<a href="#3955" id="3955">3955</a>
+<a href="#3956" id="3956">3956</a>
+<a href="#3957" id="3957">3957</a>
+<a href="#3958" id="3958">3958</a>
+<a href="#3959" id="3959">3959</a>
+<a href="#3960" id="3960">3960</a>
+<a href="#3961" id="3961">3961</a>
+<a href="#3962" id="3962">3962</a>
+<a href="#3963" id="3963">3963</a>
+<a href="#3964" id="3964">3964</a>
+<a href="#3965" id="3965">3965</a>
+<a href="#3966" id="3966">3966</a>
+<a href="#3967" id="3967">3967</a>
+<a href="#3968" id="3968">3968</a>
+<a href="#3969" id="3969">3969</a>
+<a href="#3970" id="3970">3970</a>
+<a href="#3971" id="3971">3971</a>
+<a href="#3972" id="3972">3972</a>
+<a href="#3973" id="3973">3973</a>
+<a href="#3974" id="3974">3974</a>
+<a href="#3975" id="3975">3975</a>
+<a href="#3976" id="3976">3976</a>
+<a href="#3977" id="3977">3977</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Safe wrappers around functions found in libc &quot;unistd.h&quot; header
 
 </span><span class="kw">use </span><span class="kw">crate</span>::errno::{<span class="self">self</span>, Errno};
@@ -3418,6 +4012,7 @@
 </span><span class="kw">use </span>std::os::unix::ffi::OsStrExt;
 <span class="kw">use </span>std::os::unix::ffi::OsStringExt;
 <span class="kw">use </span>std::os::unix::io::RawFd;
+<span class="kw">use </span>std::os::unix::io::{AsFd, AsRawFd};
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::{fmt, mem, ptr};
 
@@ -3600,7 +4195,6 @@
     }
 }
 
-
 <span class="doccomment">/// Represents the successful result of calling `fork`
 ///
 /// When `fork` is called, the process continues execution in the parent process
@@ -3613,7 +4207,6 @@
 }
 
 <span class="kw">impl </span>ForkResult {
-
     <span class="doccomment">/// Return `true` if this is the child process of the `fork()`
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_child(<span class="self">self</span>) -&gt; bool {
@@ -3861,9 +4454,8 @@
 /// pages for additional details on possible failure cases.
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>chdir&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::chdir(cstr.as_ptr()) }
-    })<span class="question-mark">?</span>;
+    <span class="kw">let </span>res =
+        path.with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::chdir(cstr.as_ptr()) })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
 }
@@ -3910,8 +4502,8 @@
 /// ```
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>mkdir&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::mkdir(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t) }
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::mkdir(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t)
     })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
@@ -3949,8 +4541,8 @@
 </span><span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support fifo yet
 </span><span class="kw">pub fn </span>mkfifo&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::mkfifo(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t) }
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::mkfifo(cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t)
     })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
@@ -3968,9 +4560,17 @@
 </span><span class="comment">// mkfifoat is not implemented in OSX or android
 </span><span class="attr">#[inline]
 #[cfg(not(any(
-    target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>,
-    target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>)))]
-</span><span class="kw">pub fn </span>mkfifoat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;, path: <span class="kw-2">&amp;</span>P, mode: Mode) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;ios&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;</span>,
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;
+</span>)))]
+</span><span class="kw">pub fn </span>mkfifoat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
+    path: <span class="kw-2">&amp;</span>P,
+    mode: Mode,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
         libc::mkfifoat(at_rawfd(dirfd), cstr.as_ptr(), mode.bits() <span class="kw">as </span>mode_t)
     })<span class="question-mark">?</span>;
@@ -3991,19 +4591,17 @@
 </span><span class="kw">pub fn </span>symlinkat&lt;P1: <span class="question-mark">?</span>Sized + NixPath, P2: <span class="question-mark">?</span>Sized + NixPath&gt;(
     path1: <span class="kw-2">&amp;</span>P1,
     dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
-    path2: <span class="kw-2">&amp;</span>P2) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res =
-        path1.with_nix_path(|path1| {
-            path2.with_nix_path(|path2| {
-                <span class="kw">unsafe </span>{
-                    libc::symlinkat(
-                        path1.as_ptr(),
-                        dirfd.unwrap_or(libc::AT_FDCWD),
-                        path2.as_ptr()
-                    )
-                }
-            })
-        })<span class="question-mark">??</span>;
+    path2: <span class="kw-2">&amp;</span>P2,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = path1.with_nix_path(|path1| {
+        path2.with_nix_path(|path2| <span class="kw">unsafe </span>{
+            libc::symlinkat(
+                path1.as_ptr(),
+                dirfd.unwrap_or(libc::AT_FDCWD),
+                path2.as_ptr(),
+            )
+        })
+    })<span class="question-mark">??</span>;
     Errno::result(res).map(drop)
 }
 }
@@ -4053,7 +4651,9 @@
             // To safely handle this we start with a reasonable size (512 bytes)
             // and double the buffer size upon every error
             </span><span class="kw">if </span>!libc::getcwd(ptr, buf.capacity()).is_null() {
-                <span class="kw">let </span>len = CStr::from_ptr(buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char).to_bytes().len();
+                <span class="kw">let </span>len = CStr::from_ptr(buf.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>c_char)
+                    .to_bytes()
+                    .len();
                 buf.set_len(len);
                 buf.shrink_to_fit();
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(PathBuf::from(OsString::from_vec(buf)));
@@ -4063,7 +4663,7 @@
                 </span><span class="kw">if </span>error != Errno::ERANGE {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(error);
                 }
-           }
+            }
 
             <span class="comment">// Trigger the internal buffer resizing logic.
             </span>reserve_double_buffer_size(<span class="kw-2">&amp;mut </span>buf, PATH_MAX <span class="kw">as </span>usize)<span class="question-mark">?</span>;
@@ -4078,13 +4678,15 @@
 </span><span class="doccomment">/// Computes the raw UID and GID values to pass to a `*chown` call.
 </span><span class="comment">// The cast is not unnecessary on all platforms.
 </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-</span><span class="kw">fn </span>chown_raw_ids(owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; (libc::uid_t, libc::gid_t) {
+</span><span class="kw">fn </span>chown_raw_ids(owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; (uid_t, gid_t) {
     <span class="comment">// According to the POSIX specification, -1 is used to indicate that owner and group
     // are not to be changed.  Since uid_t and gid_t are unsigned types, we have to wrap
     // around to get -1.
-    </span><span class="kw">let </span>uid = owner.map(Into::into)
+    </span><span class="kw">let </span>uid = owner
+        .map(Into::into)
         .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span>uid_t).wrapping_sub(<span class="number">1</span>));
-    <span class="kw">let </span>gid = group.map(Into::into)
+    <span class="kw">let </span>gid = group
+        .map(Into::into)
         .unwrap_or_else(|| (<span class="number">0 </span><span class="kw">as </span>gid_t).wrapping_sub(<span class="number">1</span>));
     (uid, gid)
 }
@@ -4097,7 +4699,11 @@
 /// provided for that argument.  Ownership change will be attempted for the path
 /// only if `Some` owner/group is provided.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>chown&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;, group: <span class="prelude-ty">Option</span>&lt;Gid&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+</span><span class="kw">pub fn </span>chown&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    path: <span class="kw-2">&amp;</span>P,
+    owner: <span class="prelude-ty">Option</span>&lt;Uid&gt;,
+    group: <span class="prelude-ty">Option</span>&lt;Gid&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = path.with_nix_path(|cstr| {
         <span class="kw">let </span>(uid, gid) = chown_raw_ids(owner, group);
         <span class="kw">unsafe </span>{ libc::chown(cstr.as_ptr(), uid, gid) }
@@ -4156,15 +4762,19 @@
     group: <span class="prelude-ty">Option</span>&lt;Gid&gt;,
     flag: FchownatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>atflag =
-        <span class="kw">match </span>flag {
-            FchownatFlags::FollowSymlink =&gt; AtFlags::empty(),
-            FchownatFlags::NoFollowSymlink =&gt; AtFlags::AT_SYMLINK_NOFOLLOW,
-        };
+    <span class="kw">let </span>atflag = <span class="kw">match </span>flag {
+        FchownatFlags::FollowSymlink =&gt; AtFlags::empty(),
+        FchownatFlags::NoFollowSymlink =&gt; AtFlags::AT_SYMLINK_NOFOLLOW,
+    };
     <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
         <span class="kw">let </span>(uid, gid) = chown_raw_ids(owner, group);
-        libc::fchownat(at_rawfd(dirfd), cstr.as_ptr(), uid, gid,
-                       atflag.bits() <span class="kw">as </span>libc::c_int)
+        libc::fchownat(
+            at_rawfd(dirfd),
+            cstr.as_ptr(),
+            uid,
+            gid,
+            atflag.bits() <span class="kw">as </span>libc::c_int,
+        )
     })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
@@ -4191,13 +4801,10 @@
 </span><span class="kw">pub fn </span>execv&lt;S: AsRef&lt;CStr&gt;&gt;(path: <span class="kw-2">&amp;</span>CStr, argv: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(argv);
 
-    <span class="kw">unsafe </span>{
-        libc::execv(path.as_ptr(), args_p.as_ptr())
-    };
+    <span class="kw">unsafe </span>{ libc::execv(path.as_ptr(), args_p.as_ptr()) };
 
     <span class="prelude-val">Err</span>(Errno::last())
 }
-
 
 <span class="doccomment">/// Replace the current process image with a new one (see
 /// [execve(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html)).
@@ -4212,13 +4819,15 @@
 /// in the `args` list is an argument to the new process. Each element in the
 /// `env` list should be a string in the form &quot;key=value&quot;.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>execve&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(path: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+</span><span class="kw">pub fn </span>execve&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(
+    path: <span class="kw-2">&amp;</span>CStr,
+    args: <span class="kw-2">&amp;</span>[SA],
+    env: <span class="kw-2">&amp;</span>[SE],
+) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(args);
     <span class="kw">let </span>env_p = to_exec_array(env);
 
-    <span class="kw">unsafe </span>{
-        libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr())
-    };
+    <span class="kw">unsafe </span>{ libc::execve(path.as_ptr(), args_p.as_ptr(), env_p.as_ptr()) };
 
     <span class="prelude-val">Err</span>(Errno::last())
 }
@@ -4233,12 +4842,13 @@
 /// would not work if &quot;bash&quot; was specified for the path argument, but `execvp`
 /// would assuming that a bash executable was on the system `PATH`.
 </span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>execvp&lt;S: AsRef&lt;CStr&gt;&gt;(filename: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[S]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+</span><span class="kw">pub fn </span>execvp&lt;S: AsRef&lt;CStr&gt;&gt;(
+    filename: <span class="kw-2">&amp;</span>CStr,
+    args: <span class="kw-2">&amp;</span>[S],
+) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(args);
 
-    <span class="kw">unsafe </span>{
-        libc::execvp(filename.as_ptr(), args_p.as_ptr())
-    };
+    <span class="kw">unsafe </span>{ libc::execvp(filename.as_ptr(), args_p.as_ptr()) };
 
     <span class="prelude-val">Err</span>(Errno::last())
 }
@@ -4250,10 +4860,12 @@
 /// This functions like a combination of `execvp(2)` and `execve(2)` to pass an
 /// environment and have a search path. See these two for additional
 /// information.
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;haiku&quot;</span>,
-          target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>))]
-</span><span class="kw">pub fn </span>execvpe&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(filename: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;haiku&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+</span><span class="kw">pub fn </span>execvpe&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(
+    filename: <span class="kw-2">&amp;</span>CStr,
+    args: <span class="kw-2">&amp;</span>[SA],
+    env: <span class="kw-2">&amp;</span>[SE],
+) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(args);
     <span class="kw">let </span>env_p = to_exec_array(env);
 
@@ -4274,18 +4886,22 @@
 ///
 /// This function is similar to `execve`, except that the program to be executed
 /// is referenced as a file descriptor instead of a path.
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
-          target_os = <span class="string">&quot;freebsd&quot;</span>))]
+</span><span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;
+</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>fexecve&lt;SA: AsRef&lt;CStr&gt; ,SE: AsRef&lt;CStr&gt;&gt;(fd: RawFd, args: <span class="kw-2">&amp;</span>[SA], env: <span class="kw-2">&amp;</span>[SE]) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+</span><span class="kw">pub fn </span>fexecve&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(
+    fd: RawFd,
+    args: <span class="kw-2">&amp;</span>[SA],
+    env: <span class="kw-2">&amp;</span>[SE],
+) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(args);
     <span class="kw">let </span>env_p = to_exec_array(env);
 
-    <span class="kw">unsafe </span>{
-        libc::fexecve(fd, args_p.as_ptr(), env_p.as_ptr())
-    };
+    <span class="kw">unsafe </span>{ libc::fexecve(fd, args_p.as_ptr(), env_p.as_ptr()) };
 
     <span class="prelude-val">Err</span>(Errno::last())
 }
@@ -4302,14 +4918,25 @@
 /// is referenced as a file descriptor to the base directory plus a path.
 </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
 #[inline]
-</span><span class="kw">pub fn </span>execveat&lt;SA: AsRef&lt;CStr&gt;,SE: AsRef&lt;CStr&gt;&gt;(dirfd: RawFd, pathname: <span class="kw-2">&amp;</span>CStr, args: <span class="kw-2">&amp;</span>[SA],
-                env: <span class="kw-2">&amp;</span>[SE], flags: <span class="kw">super</span>::fcntl::AtFlags) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
+</span><span class="kw">pub fn </span>execveat&lt;SA: AsRef&lt;CStr&gt;, SE: AsRef&lt;CStr&gt;&gt;(
+    dirfd: RawFd,
+    pathname: <span class="kw-2">&amp;</span>CStr,
+    args: <span class="kw-2">&amp;</span>[SA],
+    env: <span class="kw-2">&amp;</span>[SE],
+    flags: <span class="kw">super</span>::fcntl::AtFlags,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Infallible&gt; {
     <span class="kw">let </span>args_p = to_exec_array(args);
     <span class="kw">let </span>env_p = to_exec_array(env);
 
     <span class="kw">unsafe </span>{
-        libc::syscall(libc::SYS_execveat, dirfd, pathname.as_ptr(),
-                      args_p.as_ptr(), env_p.as_ptr(), flags);
+        libc::syscall(
+            libc::SYS_execveat,
+            dirfd,
+            pathname.as_ptr(),
+            args_p.as_ptr(),
+            env_p.as_ptr(),
+            flags,
+        );
     };
 
     <span class="prelude-val">Err</span>(Errno::last())
@@ -4340,14 +4967,16 @@
 ///   descriptors will remain identical after daemonizing.
 /// * `noclose = false`: The process&#39; stdin, stdout, and stderr will point to
 ///   `/dev/null` after daemonizing.
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
-          target_os = <span class="string">&quot;freebsd&quot;</span>,
-          target_os = <span class="string">&quot;illumos&quot;</span>,
-          target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;netbsd&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>,
-          target_os = <span class="string">&quot;solaris&quot;</span>))]
+</span><span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;illumos&quot;</span>,
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;</span>,
+    target_os = <span class="string">&quot;solaris&quot;
+</span>))]
 </span><span class="kw">pub fn </span>daemon(nochdir: bool, noclose: bool) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::daemon(nochdir <span class="kw">as </span>c_int, noclose <span class="kw">as </span>c_int) };
     Errno::result(res).map(drop)
@@ -4373,6 +5002,7 @@
                      target_os = <span class="string">&quot;illumos&quot;</span>,
                      target_os = <span class="string">&quot;ios&quot;</span>,
                      target_os = <span class="string">&quot;macos&quot;</span>,
+                     target_os = <span class="string">&quot;aix&quot;</span>,
                      target_os = <span class="string">&quot;solaris&quot;</span>, ))] </span>{
             <span class="kw">type </span>sethostname_len_t = c_int;
         } <span class="kw">else </span>{
@@ -4489,23 +5119,27 @@
     <span class="doccomment">/// Specify an offset relative to the next location in the file greater than or
     /// equal to offset that contains some data. If offset points to
     /// some data, then the file offset is set to offset.
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
-              target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>,
-              target_os = <span class="string">&quot;solaris&quot;</span>))]
+    </span><span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     </span>SeekData = libc::SEEK_DATA,
     <span class="doccomment">/// Specify an offset relative to the next hole in the file greater than
     /// or equal to offset. If offset points into the middle of a hole, then
     /// the file offset should be set to offset. If there is no hole past offset,
     /// then the file offset should be adjusted to the end of the file (i.e., there
     /// is an implicit hole at the end of any file).
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
-              target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>,
-              target_os = <span class="string">&quot;solaris&quot;</span>))]
-    </span>SeekHole = libc::SEEK_HOLE
+    </span><span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
+    </span>SeekHole = libc::SEEK_HOLE,
 }
 
 <span class="doccomment">/// Move the read/write file offset.
@@ -4518,7 +5152,11 @@
 }
 
 <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-</span><span class="kw">pub fn </span>lseek64(fd: RawFd, offset: libc::off64_t, whence: Whence) -&gt; <span class="prelude-ty">Result</span>&lt;libc::off64_t&gt; {
+</span><span class="kw">pub fn </span>lseek64(
+    fd: RawFd,
+    offset: libc::off64_t,
+    whence: Whence,
+) -&gt; <span class="prelude-ty">Result</span>&lt;libc::off64_t&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::lseek64(fd, offset, whence <span class="kw">as </span>i32) };
 
     Errno::result(res).map(|r| r <span class="kw">as </span>libc::off64_t)
@@ -4546,27 +5184,34 @@
 /// created:
 ///
 /// - `O_CLOEXEC`:    Set the close-on-exec flag for the new file descriptors.
-</span><span class="attr">#[cfg_attr(target_os = <span class="string">&quot;linux&quot;</span>, doc = <span class="string">&quot;- `O_DIRECT`: Create a pipe that performs I/O in \&quot;packet\&quot; mode.&quot;</span>)]
-#[cfg_attr(target_os = <span class="string">&quot;netbsd&quot;</span>, doc = <span class="string">&quot;- `O_NOSIGPIPE`: Return `EPIPE` instead of raising `SIGPIPE`.&quot;</span>)]
+</span><span class="attr">#[cfg_attr(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    doc = <span class="string">&quot;- `O_DIRECT`: Create a pipe that performs I/O in \&quot;packet\&quot; mode.&quot;
+</span>)]
+#[cfg_attr(
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    doc = <span class="string">&quot;- `O_NOSIGPIPE`: Return `EPIPE` instead of raising `SIGPIPE`.&quot;
+</span>)]
 </span><span class="doccomment">/// - `O_NONBLOCK`:   Set the non-blocking flag for the ends of the pipe.
 ///
 /// See also [pipe(2)](https://man7.org/linux/man-pages/man2/pipe.2.html)
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;dragonfly&quot;</span>,
-          target_os = <span class="string">&quot;emscripten&quot;</span>,
-          target_os = <span class="string">&quot;freebsd&quot;</span>,
-          target_os = <span class="string">&quot;illumos&quot;</span>,
-          target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;redox&quot;</span>,
-          target_os = <span class="string">&quot;netbsd&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>,
-          target_os = <span class="string">&quot;solaris&quot;</span>))]
+</span><span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;dragonfly&quot;</span>,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;illumos&quot;</span>,
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;</span>,
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;</span>,
+    target_os = <span class="string">&quot;solaris&quot;
+</span>))]
 </span><span class="kw">pub fn </span>pipe2(flags: OFlag) -&gt; <span class="prelude-ty">Result</span>&lt;(RawFd, RawFd)&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>fds = mem::MaybeUninit::&lt;[c_int; <span class="number">2</span>]&gt;::uninit();
 
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::pipe2(fds.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_int, flags.bits())
-    };
+    <span class="kw">let </span>res =
+        <span class="kw">unsafe </span>{ libc::pipe2(fds.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>c_int, flags.bits()) };
 
     Errno::result(res)<span class="question-mark">?</span>;
 
@@ -4579,11 +5224,8 @@
 /// [truncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/truncate.html)
 </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;fuchsia&quot;</span>)))]
 </span><span class="kw">pub fn </span>truncate&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, len: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::truncate(cstr.as_ptr(), len)
-        }
-    })<span class="question-mark">?</span>;
+    <span class="kw">let </span>res = path
+        .with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::truncate(cstr.as_ptr(), len) })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
 }
@@ -4592,8 +5234,8 @@
 ///
 /// See also
 /// [ftruncate(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html)
-</span><span class="kw">pub fn </span>ftruncate(fd: RawFd, len: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    Errno::result(<span class="kw">unsafe </span>{ libc::ftruncate(fd, len) }).map(drop)
+</span><span class="kw">pub fn </span>ftruncate&lt;Fd: AsFd&gt;(fd: Fd, len: off_t) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    Errno::result(<span class="kw">unsafe </span>{ libc::ftruncate(fd.as_fd().as_raw_fd(), len) }).map(drop)
 }
 
 <span class="kw">pub fn </span>isatty(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
@@ -4607,7 +5249,7 @@
                 Errno::ENOTTY =&gt; <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
                 err =&gt; <span class="prelude-val">Err</span>(err),
             }
-       }
+        }
     }
 }
 
@@ -4639,40 +5281,31 @@
     newpath: <span class="kw-2">&amp;</span>P,
     flag: LinkatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>atflag = <span class="kw">match </span>flag {
+        LinkatFlags::SymlinkFollow =&gt; AtFlags::AT_SYMLINK_FOLLOW,
+        LinkatFlags::NoSymlinkFollow =&gt; AtFlags::empty(),
+    };
 
-    <span class="kw">let </span>atflag =
-        <span class="kw">match </span>flag {
-            LinkatFlags::SymlinkFollow =&gt; AtFlags::AT_SYMLINK_FOLLOW,
-            LinkatFlags::NoSymlinkFollow =&gt; AtFlags::empty(),
-        };
-
-    <span class="kw">let </span>res =
-        oldpath.with_nix_path(|oldcstr| {
-            newpath.with_nix_path(|newcstr| {
-            <span class="kw">unsafe </span>{
-                libc::linkat(
-                    at_rawfd(olddirfd),
-                    oldcstr.as_ptr(),
-                    at_rawfd(newdirfd),
-                    newcstr.as_ptr(),
-                    atflag.bits() <span class="kw">as </span>libc::c_int
-                    )
-                }
-            })
-        })<span class="question-mark">??</span>;
+    <span class="kw">let </span>res = oldpath.with_nix_path(|oldcstr| {
+        newpath.with_nix_path(|newcstr| <span class="kw">unsafe </span>{
+            libc::linkat(
+                at_rawfd(olddirfd),
+                oldcstr.as_ptr(),
+                at_rawfd(newdirfd),
+                newcstr.as_ptr(),
+                atflag.bits() <span class="kw">as </span>libc::c_int,
+            )
+        })
+    })<span class="question-mark">??</span>;
     Errno::result(res).map(drop)
 }
-
 
 <span class="doccomment">/// Remove a directory entry
 ///
 /// See also [unlink(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/unlink.html)
 </span><span class="kw">pub fn </span>unlink&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::unlink(cstr.as_ptr())
-        }
-    })<span class="question-mark">?</span>;
+    <span class="kw">let </span>res =
+        path.with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::unlink(cstr.as_ptr()) })<span class="question-mark">?</span>;
     Errno::result(res).map(drop)
 }
 
@@ -4699,26 +5332,25 @@
     path: <span class="kw-2">&amp;</span>P,
     flag: UnlinkatFlags,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>atflag =
-        <span class="kw">match </span>flag {
-            UnlinkatFlags::RemoveDir =&gt; AtFlags::AT_REMOVEDIR,
-            UnlinkatFlags::NoRemoveDir =&gt; AtFlags::empty(),
-        };
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::unlinkat(at_rawfd(dirfd), cstr.as_ptr(), atflag.bits() <span class="kw">as </span>libc::c_int)
-        }
+    <span class="kw">let </span>atflag = <span class="kw">match </span>flag {
+        UnlinkatFlags::RemoveDir =&gt; AtFlags::AT_REMOVEDIR,
+        UnlinkatFlags::NoRemoveDir =&gt; AtFlags::empty(),
+    };
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::unlinkat(
+            at_rawfd(dirfd),
+            cstr.as_ptr(),
+            atflag.bits() <span class="kw">as </span>libc::c_int,
+        )
     })<span class="question-mark">?</span>;
     Errno::result(res).map(drop)
 }
 
-
 <span class="attr">#[inline]
 #[cfg(not(target_os = <span class="string">&quot;fuchsia&quot;</span>))]
 </span><span class="kw">pub fn </span>chroot&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{ libc::chroot(cstr.as_ptr()) }
-    })<span class="question-mark">?</span>;
+    <span class="kw">let </span>res =
+        path.with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::chroot(cstr.as_ptr()) })<span class="question-mark">?</span>;
 
     Errno::result(res).map(drop)
 }
@@ -4762,15 +5394,17 @@
 ///
 /// See also
 /// [fdatasync(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fdatasync.html)
-</span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>,
-          target_os = <span class="string">&quot;android&quot;</span>,
-          target_os = <span class="string">&quot;emscripten&quot;</span>,
-          target_os = <span class="string">&quot;freebsd&quot;</span>,
-          target_os = <span class="string">&quot;fuchsia&quot;</span>,
-          target_os = <span class="string">&quot;netbsd&quot;</span>,
-          target_os = <span class="string">&quot;openbsd&quot;</span>,
-          target_os = <span class="string">&quot;illumos&quot;</span>,
-          target_os = <span class="string">&quot;solaris&quot;</span>))]
+</span><span class="attr">#[cfg(any(
+    target_os = <span class="string">&quot;linux&quot;</span>,
+    target_os = <span class="string">&quot;android&quot;</span>,
+    target_os = <span class="string">&quot;emscripten&quot;</span>,
+    target_os = <span class="string">&quot;freebsd&quot;</span>,
+    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+    target_os = <span class="string">&quot;netbsd&quot;</span>,
+    target_os = <span class="string">&quot;openbsd&quot;</span>,
+    target_os = <span class="string">&quot;illumos&quot;</span>,
+    target_os = <span class="string">&quot;solaris&quot;
+</span>))]
 #[inline]
 </span><span class="kw">pub fn </span>fdatasync(fd: RawFd) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::fdatasync(fd) };
@@ -4922,27 +5556,31 @@
     <span class="comment">// Now actually get the groups. We try multiple times in case the number of
     // groups has changed since the first call to getgroups() and the buffer is
     // now too small.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>groups = Vec::&lt;Gid&gt;::with_capacity(Errno::result(ngroups)<span class="question-mark">? </span><span class="kw">as </span>usize);
+    </span><span class="kw">let </span><span class="kw-2">mut </span>groups =
+        Vec::&lt;Gid&gt;::with_capacity(Errno::result(ngroups)<span class="question-mark">? </span><span class="kw">as </span>usize);
     <span class="kw">loop </span>{
         <span class="comment">// FIXME: On the platforms we currently support, the `Gid` struct has
         // the same representation in memory as a bare `gid_t`. This is not
         // necessarily the case on all Rust platforms, though. See RFC 1785.
         </span><span class="kw">let </span>ngroups = <span class="kw">unsafe </span>{
-            libc::getgroups(groups.capacity() <span class="kw">as </span>c_int, groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>gid_t)
+            libc::getgroups(
+                groups.capacity() <span class="kw">as </span>c_int,
+                groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>gid_t,
+            )
         };
 
         <span class="kw">match </span>Errno::result(ngroups) {
             <span class="prelude-val">Ok</span>(s) =&gt; {
                 <span class="kw">unsafe </span>{ groups.set_len(s <span class="kw">as </span>usize) };
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(groups);
-            },
+            }
             <span class="prelude-val">Err</span>(Errno::EINVAL) =&gt; {
                 <span class="comment">// EINVAL indicates that the buffer size was too
                 // small, resize it up to ngroups_max as limit.
                 </span>reserve_double_buffer_size(<span class="kw-2">&amp;mut </span>groups, ngroups_max)
                     .or(<span class="prelude-val">Err</span>(Errno::EINVAL))<span class="question-mark">?</span>;
-            },
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e)
+            }
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
         }
     }
 }
@@ -4978,17 +5616,23 @@
 /// #
 /// # try_main().unwrap();
 /// ```
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(
+    target_os = <span class="string">&quot;ios&quot;</span>,
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;
+</span>)))]
 </span><span class="kw">pub fn </span>setgroups(groups: <span class="kw-2">&amp;</span>[Gid]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">cfg_if! </span>{
-        <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;aix&quot;</span>,
+                     target_os = <span class="string">&quot;dragonfly&quot;</span>,
                      target_os = <span class="string">&quot;freebsd&quot;</span>,
                      target_os = <span class="string">&quot;illumos&quot;</span>,
                      target_os = <span class="string">&quot;ios&quot;</span>,
                      target_os = <span class="string">&quot;macos&quot;</span>,
                      target_os = <span class="string">&quot;netbsd&quot;</span>,
-                     target_os = <span class="string">&quot;illumos&quot;</span>,
-                     target_os = <span class="string">&quot;openbsd&quot;</span>))] </span>{
+                     target_os = <span class="string">&quot;openbsd&quot;</span>,
+                     target_os = <span class="string">&quot;solaris&quot;</span>))] </span>{
             <span class="kw">type </span>setgroups_ngroups_t = c_int;
         } <span class="kw">else </span>{
             <span class="kw">type </span>setgroups_ngroups_t = size_t;
@@ -4998,7 +5642,10 @@
     // same representation in memory as a bare `gid_t`. This is not necessarily
     // the case on all Rust platforms, though. See RFC 1785.
     </span><span class="kw">let </span>res = <span class="kw">unsafe </span>{
-        libc::setgroups(groups.len() <span class="kw">as </span>setgroups_ngroups_t, groups.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>gid_t)
+        libc::setgroups(
+            groups.len() <span class="kw">as </span>setgroups_ngroups_t,
+            groups.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>gid_t,
+        )
     };
 
     Errno::result(res).map(drop)
@@ -5024,10 +5671,13 @@
 /// and `setgroups()`. Additionally, while some implementations will return a
 /// partial list of groups when `NGROUPS_MAX` is exceeded, this implementation
 /// will only ever return the complete list or else an error.
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os = <span class="string">&quot;redox&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(
+    target_os = <span class="string">&quot;aix&quot;</span>,
+    target_os = <span class="string">&quot;illumos&quot;</span>,
+    target_os = <span class="string">&quot;ios&quot;</span>,
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;
+</span>)))]
 </span><span class="kw">pub fn </span>getgrouplist(user: <span class="kw-2">&amp;</span>CStr, group: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Gid&gt;&gt; {
     <span class="kw">let </span>ngroups_max = <span class="kw">match </span>sysconf(SysconfVar::NGROUPS_MAX) {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(n)) =&gt; n <span class="kw">as </span>c_int,
@@ -5046,10 +5696,12 @@
     <span class="kw">loop </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>ngroups = groups.capacity() <span class="kw">as </span>i32;
         <span class="kw">let </span>ret = <span class="kw">unsafe </span>{
-            libc::getgrouplist(user.as_ptr(),
-                               gid <span class="kw">as </span>getgrouplist_group_t,
-                               groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>getgrouplist_group_t,
-                               <span class="kw-2">&amp;mut </span>ngroups)
+            libc::getgrouplist(
+                user.as_ptr(),
+                gid <span class="kw">as </span>getgrouplist_group_t,
+                groups.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span>getgrouplist_group_t,
+                <span class="kw-2">&amp;mut </span>ngroups,
+            )
         };
 
         <span class="comment">// BSD systems only return 0 or -1, Linux returns ngroups on success.
@@ -5105,7 +5757,12 @@
 /// #
 /// # try_main().unwrap();
 /// ```
-</span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
+</span><span class="attr">#[cfg(not(any(
+    target_os = <span class="string">&quot;ios&quot;</span>,
+    target_os = <span class="string">&quot;macos&quot;</span>,
+    target_os = <span class="string">&quot;redox&quot;</span>,
+    target_os = <span class="string">&quot;haiku&quot;
+</span>)))]
 </span><span class="kw">pub fn </span>initgroups(user: <span class="kw-2">&amp;</span>CStr, group: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="macro">cfg_if! </span>{
         <span class="kw">if </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>))] </span>{
@@ -5115,7 +5772,8 @@
         }
     }
     <span class="kw">let </span>gid: gid_t = group.into();
-    <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::initgroups(user.as_ptr(), gid <span class="kw">as </span>initgroups_group_t) };
+    <span class="kw">let </span>res =
+        <span class="kw">unsafe </span>{ libc::initgroups(user.as_ptr(), gid <span class="kw">as </span>initgroups_group_t) };
 
     Errno::result(res).map(drop)
 }
@@ -5159,8 +5817,8 @@
     //!
     //! Scheduling an alarm and waiting for the signal:
     //!
-</span><span class="attr">#![cfg_attr(target_os = <span class="string">&quot;redox&quot;</span>, doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
-#![cfg_attr(not(target_os = <span class="string">&quot;redox&quot;</span>), doc = <span class="string">&quot; ```rust&quot;</span>)]
+    </span><span class="attr">#![cfg_attr(target_os = <span class="string">&quot;redox&quot;</span>, doc = <span class="string">&quot; ```rust,ignore&quot;</span>)]
+    #![cfg_attr(not(target_os = <span class="string">&quot;redox&quot;</span>), doc = <span class="string">&quot; ```rust&quot;</span>)]
     </span><span class="doccomment">//! use std::time::{Duration, Instant};
     //!
     //! use nix::unistd::{alarm, pause};
@@ -5236,17 +5894,16 @@
 
 #[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
 </span><span class="kw">pub mod </span>acct {
-    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, NixPath};
     <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+    <span class="kw">use crate</span>::{NixPath, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span>std::ptr;
 
     <span class="doccomment">/// Enable process accounting
     ///
     /// See also [acct(2)](https://linux.die.net/man/2/acct)
     </span><span class="kw">pub fn </span>enable&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(filename: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = filename.with_nix_path(|cstr| {
-            <span class="kw">unsafe </span>{ libc::acct(cstr.as_ptr()) }
-        })<span class="question-mark">?</span>;
+        <span class="kw">let </span>res = filename
+            .with_nix_path(|cstr| <span class="kw">unsafe </span>{ libc::acct(cstr.as_ptr()) })<span class="question-mark">?</span>;
 
         Errno::result(res).map(drop)
     }
@@ -5288,7 +5945,8 @@
 /// ```
 </span><span class="attr">#[inline]
 </span><span class="kw">pub fn </span>mkstemp&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(template: <span class="kw-2">&amp;</span>P) -&gt; <span class="prelude-ty">Result</span>&lt;(RawFd, PathBuf)&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>path = template.with_nix_path(|path| {path.to_bytes_with_nul().to_owned()})<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>path =
+        template.with_nix_path(|path| path.to_bytes_with_nul().to_owned())<span class="question-mark">?</span>;
     <span class="kw">let </span>p = path.as_mut_ptr() <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>;
     <span class="kw">let </span>fd = <span class="kw">unsafe </span>{ libc::mkstemp(p) };
     <span class="kw">let </span>last = path.pop(); <span class="comment">// drop the trailing nul
@@ -5322,8 +5980,14 @@
 #[repr(i32)]
 #[non_exhaustive]
 </span><span class="kw">pub enum </span>PathconfVar {
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>,
-              target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;
+    </span>))]
     </span><span class="doccomment">/// Minimum number of bits needed to represent, as a signed integer value,
     /// the maximum size of a regular file allowed in the specified directory.
     </span><span class="attr">#[cfg_attr(docsrs, doc(cfg(all())))]
@@ -5347,42 +6011,86 @@
     <span class="doccomment">/// Maximum number of bytes that is guaranteed to be atomic when writing to
     /// a pipe.
     </span>PIPE_BUF = libc::_PC_PIPE_BUF,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>,
-              target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Symbolic links can be created.
     </span>POSIX2_SYMLINKS = libc::_PC_2_SYMLINKS,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Minimum number of bytes of storage actually allocated for any portion of
     /// a file.
     </span>POSIX_ALLOC_SIZE_MIN = libc::_PC_ALLOC_SIZE_MIN,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Recommended increment for file transfer sizes between the
     /// `POSIX_REC_MIN_XFER_SIZE` and `POSIX_REC_MAX_XFER_SIZE` values.
     </span>POSIX_REC_INCR_XFER_SIZE = libc::_PC_REC_INCR_XFER_SIZE,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Maximum recommended file transfer size.
     </span>POSIX_REC_MAX_XFER_SIZE = libc::_PC_REC_MAX_XFER_SIZE,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Minimum recommended file transfer size.
     </span>POSIX_REC_MIN_XFER_SIZE = libc::_PC_REC_MIN_XFER_SIZE,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">///  Recommended file transfer buffer alignment.
     </span>POSIX_REC_XFER_ALIGN = libc::_PC_REC_XFER_ALIGN,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>,
-              target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Maximum number of bytes in a symbolic link.
     </span>SYMLINK_MAX = libc::_PC_SYMLINK_MAX,
@@ -5396,23 +6104,45 @@
     <span class="doccomment">/// This symbol shall be defined to be the value of a character that shall
     /// disable terminal special character handling.
     </span>_POSIX_VDISABLE = libc::_PC_VDISABLE,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>,
-              target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Asynchronous input or output operations may be performed for the
     /// associated file.
     </span>_POSIX_ASYNC_IO = libc::_PC_ASYNC_IO,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>,
-              target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Prioritized input or output operations may be performed for the
     /// associated file.
     </span>_POSIX_PRIO_IO = libc::_PC_PRIO_IO,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;netbsd&quot;</span>,
-              target_os = <span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;redox&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Synchronized input or output operations may be performed for the
     /// associated file.
@@ -5420,7 +6150,7 @@
     <span class="attr">#[cfg(any(target_os = <span class="string">&quot;dragonfly&quot;</span>, target_os = <span class="string">&quot;openbsd&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The resolution in nanoseconds for all file timestamps.
-    </span>_POSIX_TIMESTAMP_RESOLUTION = libc::_PC_TIMESTAMP_RESOLUTION
+    </span>_POSIX_TIMESTAMP_RESOLUTION = libc::_PC_TIMESTAMP_RESOLUTION,
 }
 
 <span class="doccomment">/// Like `pathconf`, but works with file descriptors instead of paths (see
@@ -5476,12 +6206,13 @@
 /// - `Ok(None)`: the variable has no limit (for limit variables) or is
 ///     unsupported (for option variables)
 /// - `Err(x)`: an error occurred
-</span><span class="kw">pub fn </span>pathconf&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, var: PathconfVar) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;c_long&gt;&gt; {
-    <span class="kw">let </span>raw = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            Errno::clear();
-            libc::pathconf(cstr.as_ptr(), var <span class="kw">as </span>c_int)
-        }
+</span><span class="kw">pub fn </span>pathconf&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    path: <span class="kw-2">&amp;</span>P,
+    var: PathconfVar,
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;c_long&gt;&gt; {
+    <span class="kw">let </span>raw = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        Errno::clear();
+        libc::pathconf(cstr.as_ptr(), var <span class="kw">as </span>c_int)
     })<span class="question-mark">?</span>;
     <span class="kw">if </span>raw == -<span class="number">1 </span>{
         <span class="kw">if </span>errno::errno() == <span class="number">0 </span>{
@@ -5528,9 +6259,15 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>AIO_MAX = libc::_SC_AIO_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The maximum amount by which a process can decrease its asynchronous I/O
     /// priority level from its own scheduling priority.
@@ -5575,9 +6312,17 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>EXPR_NEST_MAX = libc::_SC_EXPR_NEST_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Maximum length of a host name (not including the terminating null) as
     /// returned from the `gethostname` function
@@ -5618,14 +6363,28 @@
     <span class="doccomment">/// A value one greater than the maximum value that the system may assign to
     /// a newly-created file descriptor.
     </span>OPEN_MAX = libc::_SC_OPEN_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Advisory Information option.
     </span>_POSIX_ADVISORY_INFO = libc::_SC_ADVISORY_INFO,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports barriers.
     </span>_POSIX_BARRIERS = libc::_SC_BARRIERS,
@@ -5633,15 +6392,31 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_ASYNCHRONOUS_IO = libc::_SC_ASYNCHRONOUS_IO,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports clock selection.
     </span>_POSIX_CLOCK_SELECTION = libc::_SC_CLOCK_SELECTION,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Process CPU-Time Clocks option.
     </span>_POSIX_CPUTIME = libc::_SC_CPUTIME,
@@ -5649,9 +6424,16 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_FSYNC = libc::_SC_FSYNC,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the IPv6 option.
     </span>_POSIX_IPV6 = libc::_SC_IPV6,
@@ -5683,9 +6465,17 @@
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_MONOTONIC_CLOCK = libc::_SC_MONOTONIC_CLOCK,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;illumos&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>,
-              target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Prioritized Input and Output option.
     </span>_POSIX_PRIORITIZED_IO = libc::_SC_PRIORITIZED_IO,
@@ -5693,27 +6483,56 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_PRIORITY_SCHEDULING = libc::_SC_PRIORITY_SCHEDULING,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Raw Sockets option.
     </span>_POSIX_RAW_SOCKETS = libc::_SC_RAW_SOCKETS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports read-write locks.
     </span>_POSIX_READER_WRITER_LOCKS = libc::_SC_READER_WRITER_LOCKS,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os = <span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports realtime signals.
     </span>_POSIX_REALTIME_SIGNALS = libc::_SC_REALTIME_SIGNALS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;illumos&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>, target_os = <span class="string">&quot;solaris&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Regular Expression Handling option.
     </span>_POSIX_REGEXP = libc::_SC_REGEXP,
@@ -5729,31 +6548,59 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_SHARED_MEMORY_OBJECTS = libc::_SC_SHARED_MEMORY_OBJECTS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the POSIX shell.
     </span>_POSIX_SHELL = libc::_SC_SHELL,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Spawn option.
     </span>_POSIX_SPAWN = libc::_SC_SPAWN,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports spin locks.
     </span>_POSIX_SPIN_LOCKS = libc::_SC_SPIN_LOCKS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Process Sporadic Server option.
     </span>_POSIX_SPORADIC_SERVER = libc::_SC_SPORADIC_SERVER,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_SS_REPL_MAX = libc::_SC_SS_REPL_MAX,
     <span class="doccomment">/// The implementation supports the Synchronized Input and Output option.
@@ -5768,8 +6615,13 @@
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_THREAD_ATTR_STACKSIZE = libc::_SC_THREAD_ATTR_STACKSIZE,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;netbsd&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Thread CPU-Time Clocks option.
     </span>_POSIX_THREAD_CPUTIME = libc::_SC_THREAD_CPUTIME,
@@ -5786,18 +6638,32 @@
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_THREAD_PRIORITY_SCHEDULING = libc::_SC_THREAD_PRIORITY_SCHEDULING,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Thread Process-Shared Synchronization
     /// option.
     </span>_POSIX_THREAD_PROCESS_SHARED = libc::_SC_THREAD_PROCESS_SHARED,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Robust Mutex Priority Inheritance option.
     </span>_POSIX_THREAD_ROBUST_PRIO_INHERIT = libc::_SC_THREAD_ROBUST_PRIO_INHERIT,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Robust Mutex Priority Protection option.
     </span>_POSIX_THREAD_ROBUST_PRIO_PROTECT = libc::_SC_THREAD_ROBUST_PRIO_PROTECT,
@@ -5805,8 +6671,14 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_THREAD_SAFE_FUNCTIONS = libc::_SC_THREAD_SAFE_FUNCTIONS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Thread Sporadic Server option.
     </span>_POSIX_THREAD_SPORADIC_SERVER = libc::_SC_THREAD_SPORADIC_SERVER,
@@ -5814,8 +6686,14 @@
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_THREADS = libc::_SC_THREADS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports timeouts.
     </span>_POSIX_TIMEOUTS = libc::_SC_TIMEOUTS,
@@ -5823,44 +6701,90 @@
     </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_TIMERS = libc::_SC_TIMERS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Trace option.
     </span>_POSIX_TRACE = libc::_SC_TRACE,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Trace Event Filter option.
     </span>_POSIX_TRACE_EVENT_FILTER = libc::_SC_TRACE_EVENT_FILTER,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_TRACE_EVENT_NAME_MAX = libc::_SC_TRACE_EVENT_NAME_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Trace Inherit option.
     </span>_POSIX_TRACE_INHERIT = libc::_SC_TRACE_INHERIT,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Trace Log option.
     </span>_POSIX_TRACE_LOG = libc::_SC_TRACE_LOG,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_TRACE_NAME_MAX = libc::_SC_TRACE_NAME_MAX,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_TRACE_SYS_MAX = libc::_SC_TRACE_SYS_MAX,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX_TRACE_USER_EVENT_MAX = libc::_SC_TRACE_USER_EVENT_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Typed Memory Objects option.
     </span>_POSIX_TYPED_MEMORY_OBJECTS = libc::_SC_TYPED_MEMORY_OBJECTS,
@@ -5868,31 +6792,55 @@
     /// to which the implementation conforms. For implementations conforming to
     /// POSIX.1-2008, the value shall be 200809L.
     </span>_POSIX_VERSION = libc::_SC_VERSION,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation provides a C-language compilation environment with
     /// 32-bit `int`, `long`, `pointer`, and `off_t` types.
     </span>_POSIX_V6_ILP32_OFF32 = libc::_SC_V6_ILP32_OFF32,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation provides a C-language compilation environment with
     /// 32-bit `int`, `long`, and pointer types and an `off_t` type using at
     /// least 64 bits.
     </span>_POSIX_V6_ILP32_OFFBIG = libc::_SC_V6_ILP32_OFFBIG,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation provides a C-language compilation environment with
     /// 32-bit `int` and 64-bit `long`, `pointer`, and `off_t` types.
     </span>_POSIX_V6_LP64_OFF64 = libc::_SC_V6_LP64_OFF64,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation provides a C-language compilation environment with an
     /// `int` type using at least 32 bits and `long`, pointer, and `off_t` types
@@ -5923,40 +6871,76 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_POSIX2_LOCALEDEF = libc::_SC_2_LOCALEDEF,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Batch Environment Services and Utilities
     /// option.
     </span>_POSIX2_PBS = libc::_SC_2_PBS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Batch Accounting option.
     </span>_POSIX2_PBS_ACCOUNTING = libc::_SC_2_PBS_ACCOUNTING,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Batch Checkpoint/Restart option.
     </span>_POSIX2_PBS_CHECKPOINT = libc::_SC_2_PBS_CHECKPOINT,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Locate Batch Job Request option.
     </span>_POSIX2_PBS_LOCATE = libc::_SC_2_PBS_LOCATE,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Batch Job Message Request option.
     </span>_POSIX2_PBS_MESSAGE = libc::_SC_2_PBS_MESSAGE,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Track Batch Job Request option.
     </span>_POSIX2_PBS_TRACK = libc::_SC_2_PBS_TRACK,
@@ -5992,28 +6976,52 @@
     </span>PTHREAD_THREADS_MAX = libc::_SC_THREAD_THREADS_MAX,
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;haiku&quot;</span>))]
     </span>RE_DUP_MAX = libc::_SC_RE_DUP_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>RTSIG_MAX = libc::_SC_RTSIG_MAX,
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>SEM_NSEMS_MAX = libc::_SC_SEM_NSEMS_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>SEM_VALUE_MAX = libc::_SC_SEM_VALUE_MAX,
-    <span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os = <span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>SIGQUEUE_MAX = libc::_SC_SIGQUEUE_MAX,
     STREAM_MAX = libc::_SC_STREAM_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;netbsd&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;netbsd&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>SYMLOOP_MAX = libc::_SC_SYMLOOP_MAX,
     <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
@@ -6021,33 +7029,63 @@
     </span>TIMER_MAX = libc::_SC_TIMER_MAX,
     TTY_NAME_MAX = libc::_SC_TTY_NAME_MAX,
     TZNAME_MAX = libc::_SC_TZNAME_MAX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the X/Open Encryption Option Group.
     </span>_XOPEN_CRYPT = libc::_SC_XOPEN_CRYPT,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the Issue 4, Version 2 Enhanced
     /// Internationalization Option Group.
     </span>_XOPEN_ENH_I18N = libc::_SC_XOPEN_ENH_I18N,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_XOPEN_LEGACY = libc::_SC_XOPEN_LEGACY,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the X/Open Realtime Option Group.
     </span>_XOPEN_REALTIME = libc::_SC_XOPEN_REALTIME,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the X/Open Realtime Threads Option Group.
     </span>_XOPEN_REALTIME_THREADS = libc::_SC_XOPEN_REALTIME_THREADS,
@@ -6056,36 +7094,54 @@
     </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;redox&quot;</span>, target_os = <span class="string">&quot;haiku&quot;</span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span>_XOPEN_SHM = libc::_SC_XOPEN_SHM,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>, target_os = <span class="string">&quot;ios&quot;</span>,
-              target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>, target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the XSI STREAMS Option Group.
     </span>_XOPEN_STREAMS = libc::_SC_XOPEN_STREAMS,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// The implementation supports the XSI option
     </span>_XOPEN_UNIX = libc::_SC_XOPEN_UNIX,
-    <span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;dragonfly&quot;</span>, target_os=<span class="string">&quot;freebsd&quot;</span>,
-              target_os = <span class="string">&quot;ios&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;macos&quot;</span>,
-              target_os=<span class="string">&quot;openbsd&quot;</span>))]
+    <span class="attr">#[cfg(any(
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;dragonfly&quot;</span>,
+        target_os = <span class="string">&quot;freebsd&quot;</span>,
+        target_os = <span class="string">&quot;ios&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;macos&quot;</span>,
+        target_os = <span class="string">&quot;openbsd&quot;
+    </span>))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="doccomment">/// Integer value indicating version of the X/Open Portability Guide to
     /// which the implementation conforms.
     </span>_XOPEN_VERSION = libc::_SC_XOPEN_VERSION,
     <span class="doccomment">/// The number of pages of physical memory. Note that it is possible for
     /// the product of this value to overflow.
-    </span><span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
     </span>_PHYS_PAGES = libc::_SC_PHYS_PAGES,
     <span class="doccomment">/// The number of currently available pages of physical memory.
-    </span><span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
     </span>_AVPHYS_PAGES = libc::_SC_AVPHYS_PAGES,
     <span class="doccomment">/// The number of processors configured.
-    </span><span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
     </span>_NPROCESSORS_CONF = libc::_SC_NPROCESSORS_CONF,
     <span class="doccomment">/// The number of processors currently online (available).
-    </span><span class="attr">#[cfg(any(target_os=<span class="string">&quot;android&quot;</span>, target_os=<span class="string">&quot;linux&quot;</span>))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
     </span>_NPROCESSORS_ONLN = libc::_SC_NPROCESSORS_ONLN,
 }
 
@@ -6122,27 +7178,28 @@
 }
 }
 
-<span class="macro">feature! </span>{
-<span class="attr">#![feature = <span class="string">&quot;fs&quot;</span>]
-
-#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+<span class="attr">#[cfg(any(target_os = <span class="string">&quot;android&quot;</span>, target_os = <span class="string">&quot;linux&quot;</span>))]
+#[cfg(feature = <span class="string">&quot;fs&quot;</span>)]
 </span><span class="kw">mod </span>pivot_root {
-    <span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, NixPath};
     <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
+    <span class="kw">use crate</span>::{NixPath, <span class="prelude-ty">Result</span>};
 
     <span class="kw">pub fn </span>pivot_root&lt;P1: <span class="question-mark">?</span>Sized + NixPath, P2: <span class="question-mark">?</span>Sized + NixPath&gt;(
-            new_root: <span class="kw-2">&amp;</span>P1, put_old: <span class="kw-2">&amp;</span>P2) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        new_root: <span class="kw-2">&amp;</span>P1,
+        put_old: <span class="kw-2">&amp;</span>P2,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>res = new_root.with_nix_path(|new_root| {
-            put_old.with_nix_path(|put_old| {
-                <span class="kw">unsafe </span>{
-                    libc::syscall(libc::SYS_pivot_root, new_root.as_ptr(), put_old.as_ptr())
-                }
+            put_old.with_nix_path(|put_old| <span class="kw">unsafe </span>{
+                libc::syscall(
+                    libc::SYS_pivot_root,
+                    new_root.as_ptr(),
+                    put_old.as_ptr(),
+                )
             })
         })<span class="question-mark">??</span>;
 
         Errno::result(res).map(drop)
     }
-}
 }
 
 <span class="attr">#[cfg(any(
@@ -6156,9 +7213,9 @@
     <span class="macro">feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;user&quot;</span>]
 
-    </span><span class="kw">use </span><span class="kw">crate</span>::Result;
+    </span><span class="kw">use super</span>::{Gid, Uid};
     <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
-    <span class="kw">use super</span>::{Uid, Gid};
+    <span class="kw">use </span><span class="kw">crate</span>::Result;
 
     <span class="doccomment">/// Sets the real, effective, and saved uid.
     /// ([see setresuid(2)](https://man7.org/linux/man-pages/man2/setresuid.2.html))
@@ -6171,7 +7228,8 @@
     /// Err is returned if the user doesn&#39;t have permission to set this UID.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>setresuid(ruid: Uid, euid: Uid, suid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresuid(ruid.into(), euid.into(), suid.into()) };
+        <span class="kw">let </span>res =
+            <span class="kw">unsafe </span>{ libc::setresuid(ruid.into(), euid.into(), suid.into()) };
 
         Errno::result(res).map(drop)
     }
@@ -6187,7 +7245,8 @@
     /// Err is returned if the user doesn&#39;t have permission to set this GID.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>setresgid(rgid: Gid, egid: Gid, sgid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::setresgid(rgid.into(), egid.into(), sgid.into()) };
+        <span class="kw">let </span>res =
+            <span class="kw">unsafe </span>{ libc::setresgid(rgid.into(), egid.into(), sgid.into()) };
 
         Errno::result(res).map(drop)
     }
@@ -6205,16 +7264,16 @@
     <span class="macro">feature! </span>{
     <span class="attr">#![feature = <span class="string">&quot;user&quot;</span>]
 
-    </span><span class="kw">use </span><span class="kw">crate</span>::Result;
+    </span><span class="kw">use super</span>::{Gid, Uid};
     <span class="kw">use </span><span class="kw">crate</span>::errno::Errno;
-    <span class="kw">use super</span>::{Uid, Gid};
+    <span class="kw">use </span><span class="kw">crate</span>::Result;
 
     <span class="doccomment">/// Real, effective and saved user IDs.
     </span><span class="attr">#[derive(Debug, Copy, Clone, Eq, PartialEq)]
     </span><span class="kw">pub struct </span>ResUid {
         <span class="kw">pub </span>real: Uid,
         <span class="kw">pub </span>effective: Uid,
-        <span class="kw">pub </span>saved: Uid
+        <span class="kw">pub </span>saved: Uid,
     }
 
     <span class="doccomment">/// Real, effective and saved group IDs.
@@ -6222,7 +7281,7 @@
     </span><span class="kw">pub struct </span>ResGid {
         <span class="kw">pub </span>real: Gid,
         <span class="kw">pub </span>effective: Gid,
-        <span class="kw">pub </span>saved: Gid
+        <span class="kw">pub </span>saved: Gid,
     }
 
     <span class="doccomment">/// Gets the real, effective, and saved user IDs.
@@ -6241,7 +7300,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>suid = libc::uid_t::max_value();
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresuid(<span class="kw-2">&amp;mut </span>ruid, <span class="kw-2">&amp;mut </span>euid, <span class="kw-2">&amp;mut </span>suid) };
 
-        Errno::result(res).map(|<span class="kw">_</span>| ResUid{ real: Uid(ruid), effective: Uid(euid), saved: Uid(suid) })
+        Errno::result(res).map(|<span class="kw">_</span>| ResUid {
+            real: Uid(ruid),
+            effective: Uid(euid),
+            saved: Uid(suid),
+        })
     }
 
     <span class="doccomment">/// Gets the real, effective, and saved group IDs.
@@ -6260,7 +7323,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>sgid = libc::gid_t::max_value();
         <span class="kw">let </span>res = <span class="kw">unsafe </span>{ libc::getresgid(<span class="kw-2">&amp;mut </span>rgid, <span class="kw-2">&amp;mut </span>egid, <span class="kw-2">&amp;mut </span>sgid) };
 
-        Errno::result(res).map(|<span class="kw">_</span>| ResGid { real: Gid(rgid), effective: Gid(egid), saved: Gid(sgid) } )
+        Errno::result(res).map(|<span class="kw">_</span>| ResGid {
+            real: Gid(rgid),
+            effective: Gid(egid),
+            saved: Gid(sgid),
+        })
     }
     }
 }
@@ -6287,10 +7354,8 @@
 </span><span class="doccomment">/// Checks the file named by `path` for accessibility according to the flags given by `amode`
 /// See [access(2)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/access.html)
 </span><span class="kw">pub fn </span>access&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, amode: AccessFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::access(cstr.as_ptr(), amode.bits)
-        }
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::access(cstr.as_ptr(), amode.bits())
     })<span class="question-mark">?</span>;
     Errno::result(res).map(drop)
 }
@@ -6306,11 +7371,19 @@
 /// [faccessat(2)](http://pubs.opengroup.org/onlinepubs/9699919799/functions/faccessat.html)
 </span><span class="comment">// redox: does not appear to support the *at family of syscalls.
 </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))]
-</span><span class="kw">pub fn </span>faccessat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;, path: <span class="kw-2">&amp;</span>P, mode: AccessFlags, flags: AtFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::faccessat(at_rawfd(dirfd), cstr.as_ptr(), mode.bits(), flags.bits())
-        }
+</span><span class="kw">pub fn </span>faccessat&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(
+    dirfd: <span class="prelude-ty">Option</span>&lt;RawFd&gt;,
+    path: <span class="kw-2">&amp;</span>P,
+    mode: AccessFlags,
+    flags: AtFlags,
+) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::faccessat(
+            at_rawfd(dirfd),
+            cstr.as_ptr(),
+            mode.bits(),
+            flags.bits(),
+        )
     })<span class="question-mark">?</span>;
     Errno::result(res).map(drop)
 }
@@ -6328,10 +7401,8 @@
     target_os = <span class="string">&quot;dragonfly&quot;
 </span>))]
 </span><span class="kw">pub fn </span>eaccess&lt;P: <span class="question-mark">?</span>Sized + NixPath&gt;(path: <span class="kw-2">&amp;</span>P, mode: AccessFlags) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">let </span>res = path.with_nix_path(|cstr| {
-        <span class="kw">unsafe </span>{
-            libc::eaccess(cstr.as_ptr(), mode.bits)
-        }
+    <span class="kw">let </span>res = path.with_nix_path(|cstr| <span class="kw">unsafe </span>{
+        libc::eaccess(cstr.as_ptr(), mode.bits())
     })<span class="question-mark">?</span>;
     Errno::result(res).map(drop)
 }
@@ -6365,32 +7436,41 @@
     <span class="doccomment">/// Path to shell
     </span><span class="kw">pub </span>shell: PathBuf,
     <span class="doccomment">/// Login class
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                  target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                  target_os = <span class="string">&quot;haiku&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
-                  target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(
+        target_os = <span class="string">&quot;aix&quot;</span>,
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="kw">pub </span>class: CString,
     <span class="doccomment">/// Last password change
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                  target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                  target_os = <span class="string">&quot;haiku&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
-                  target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(
+        target_os = <span class="string">&quot;aix&quot;</span>,
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
     </span><span class="kw">pub </span>change: libc::time_t,
     <span class="doccomment">/// Expiration time of account
-    </span><span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                  target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                  target_os = <span class="string">&quot;haiku&quot;</span>,
-                  target_os = <span class="string">&quot;illumos&quot;</span>,
-                  target_os = <span class="string">&quot;linux&quot;</span>,
-                  target_os = <span class="string">&quot;solaris&quot;</span>)))]
+    </span><span class="attr">#[cfg(not(any(
+        target_os = <span class="string">&quot;aix&quot;</span>,
+        target_os = <span class="string">&quot;android&quot;</span>,
+        target_os = <span class="string">&quot;fuchsia&quot;</span>,
+        target_os = <span class="string">&quot;haiku&quot;</span>,
+        target_os = <span class="string">&quot;illumos&quot;</span>,
+        target_os = <span class="string">&quot;linux&quot;</span>,
+        target_os = <span class="string">&quot;solaris&quot;
+    </span>)))]
     #[cfg_attr(docsrs, doc(cfg(all())))]
-    </span><span class="kw">pub </span>expire: libc::time_t
+    </span><span class="kw">pub </span>expire: libc::time_t,
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">//RedoxFS does not support passwd
@@ -6398,35 +7478,74 @@
     <span class="kw">fn </span>from(pw: <span class="kw-2">&amp;</span>libc::passwd) -&gt; User {
         <span class="kw">unsafe </span>{
             User {
-                name: <span class="kw">if </span>pw.pw_name.is_null() { Default::default() } <span class="kw">else </span>{ CStr::from_ptr(pw.pw_name).to_string_lossy().into_owned() },
-                passwd: <span class="kw">if </span>pw.pw_passwd.is_null() { Default::default() } <span class="kw">else </span>{ CString::new(CStr::from_ptr(pw.pw_passwd).to_bytes()).unwrap() },
-                <span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
-                </span>gecos: <span class="kw">if </span>pw.pw_gecos.is_null() { Default::default() } <span class="kw">else </span>{ CString::new(CStr::from_ptr(pw.pw_gecos).to_bytes()).unwrap() },
-                dir: <span class="kw">if </span>pw.pw_dir.is_null() { Default::default() } <span class="kw">else </span>{ PathBuf::from(OsStr::from_bytes(CStr::from_ptr(pw.pw_dir).to_bytes())) },
-                shell: <span class="kw">if </span>pw.pw_shell.is_null() { Default::default() } <span class="kw">else </span>{ PathBuf::from(OsStr::from_bytes(CStr::from_ptr(pw.pw_shell).to_bytes())) },
+                name: <span class="kw">if </span>pw.pw_name.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    CStr::from_ptr(pw.pw_name).to_string_lossy().into_owned()
+                },
+                passwd: <span class="kw">if </span>pw.pw_passwd.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    CString::new(CStr::from_ptr(pw.pw_passwd).to_bytes())
+                        .unwrap()
+                },
+                <span class="attr">#[cfg(not(all(
+                    target_os = <span class="string">&quot;android&quot;</span>,
+                    target_pointer_width = <span class="string">&quot;32&quot;
+                </span>)))]
+                </span>gecos: <span class="kw">if </span>pw.pw_gecos.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    CString::new(CStr::from_ptr(pw.pw_gecos).to_bytes())
+                        .unwrap()
+                },
+                dir: <span class="kw">if </span>pw.pw_dir.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    PathBuf::from(OsStr::from_bytes(
+                        CStr::from_ptr(pw.pw_dir).to_bytes(),
+                    ))
+                },
+                shell: <span class="kw">if </span>pw.pw_shell.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    PathBuf::from(OsStr::from_bytes(
+                        CStr::from_ptr(pw.pw_shell).to_bytes(),
+                    ))
+                },
                 uid: Uid::from_raw(pw.pw_uid),
                 gid: Gid::from_raw(pw.pw_gid),
-                <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                              target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                              target_os = <span class="string">&quot;haiku&quot;</span>,
-                              target_os = <span class="string">&quot;illumos&quot;</span>,
-                              target_os = <span class="string">&quot;linux&quot;</span>,
-                              target_os = <span class="string">&quot;solaris&quot;</span>)))]
-                </span>class: CString::new(CStr::from_ptr(pw.pw_class).to_bytes()).unwrap(),
-                <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                              target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                              target_os = <span class="string">&quot;haiku&quot;</span>,
-                              target_os = <span class="string">&quot;illumos&quot;</span>,
-                              target_os = <span class="string">&quot;linux&quot;</span>,
-                              target_os = <span class="string">&quot;solaris&quot;</span>)))]
+                <span class="attr">#[cfg(not(any(
+                    target_os = <span class="string">&quot;aix&quot;</span>,
+                    target_os = <span class="string">&quot;android&quot;</span>,
+                    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                    target_os = <span class="string">&quot;haiku&quot;</span>,
+                    target_os = <span class="string">&quot;illumos&quot;</span>,
+                    target_os = <span class="string">&quot;linux&quot;</span>,
+                    target_os = <span class="string">&quot;solaris&quot;
+                </span>)))]
+                </span>class: CString::new(CStr::from_ptr(pw.pw_class).to_bytes())
+                    .unwrap(),
+                <span class="attr">#[cfg(not(any(
+                    target_os = <span class="string">&quot;aix&quot;</span>,
+                    target_os = <span class="string">&quot;android&quot;</span>,
+                    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                    target_os = <span class="string">&quot;haiku&quot;</span>,
+                    target_os = <span class="string">&quot;illumos&quot;</span>,
+                    target_os = <span class="string">&quot;linux&quot;</span>,
+                    target_os = <span class="string">&quot;solaris&quot;
+                </span>)))]
                 </span>change: pw.pw_change,
-                <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                              target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                              target_os = <span class="string">&quot;haiku&quot;</span>,
-                              target_os = <span class="string">&quot;illumos&quot;</span>,
-                              target_os = <span class="string">&quot;linux&quot;</span>,
-                              target_os = <span class="string">&quot;solaris&quot;</span>)))]
-                </span>expire: pw.pw_expire
+                <span class="attr">#[cfg(not(any(
+                    target_os = <span class="string">&quot;aix&quot;</span>,
+                    target_os = <span class="string">&quot;android&quot;</span>,
+                    target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                    target_os = <span class="string">&quot;haiku&quot;</span>,
+                    target_os = <span class="string">&quot;illumos&quot;</span>,
+                    target_os = <span class="string">&quot;linux&quot;</span>,
+                    target_os = <span class="string">&quot;solaris&quot;
+                </span>)))]
+                </span>expire: pw.pw_expire,
             }
         }
     }
@@ -6450,32 +7569,44 @@
         <span class="self">Self </span>{
             pw_name: name,
             pw_passwd: u.passwd.into_raw(),
-            <span class="attr">#[cfg(not(all(target_os = <span class="string">&quot;android&quot;</span>, target_pointer_width = <span class="string">&quot;32&quot;</span>)))]
+            <span class="attr">#[cfg(not(all(
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_pointer_width = <span class="string">&quot;32&quot;
+            </span>)))]
             </span>pw_gecos: u.gecos.into_raw(),
             pw_dir: dir,
             pw_shell: shell,
             pw_uid: u.uid.<span class="number">0</span>,
             pw_gid: u.gid.<span class="number">0</span>,
-            <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                          target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                          target_os = <span class="string">&quot;haiku&quot;</span>,
-                          target_os = <span class="string">&quot;illumos&quot;</span>,
-                          target_os = <span class="string">&quot;linux&quot;</span>,
-                          target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;illumos&quot;</span>,
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>pw_class: u.class.into_raw(),
-            <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                          target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                          target_os = <span class="string">&quot;haiku&quot;</span>,
-                          target_os = <span class="string">&quot;illumos&quot;</span>,
-                          target_os = <span class="string">&quot;linux&quot;</span>,
-                          target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;illumos&quot;</span>,
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>pw_change: u.change,
-            <span class="attr">#[cfg(not(any(target_os = <span class="string">&quot;android&quot;</span>,
-                          target_os = <span class="string">&quot;fuchsia&quot;</span>,
-                          target_os = <span class="string">&quot;haiku&quot;</span>,
-                          target_os = <span class="string">&quot;illumos&quot;</span>,
-                          target_os = <span class="string">&quot;linux&quot;</span>,
-                          target_os = <span class="string">&quot;solaris&quot;</span>)))]
+            <span class="attr">#[cfg(not(any(
+                target_os = <span class="string">&quot;aix&quot;</span>,
+                target_os = <span class="string">&quot;android&quot;</span>,
+                target_os = <span class="string">&quot;fuchsia&quot;</span>,
+                target_os = <span class="string">&quot;haiku&quot;</span>,
+                target_os = <span class="string">&quot;illumos&quot;</span>,
+                target_os = <span class="string">&quot;linux&quot;</span>,
+                target_os = <span class="string">&quot;solaris&quot;
+            </span>)))]
             </span>pw_expire: u.expire,
             <span class="attr">#[cfg(target_os = <span class="string">&quot;illumos&quot;</span>)]
             </span>pw_age: CString::new(<span class="string">&quot;&quot;</span>).unwrap().into_raw(),
@@ -6489,12 +7620,19 @@
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
 </span><span class="kw">impl </span>User {
-    <span class="kw">fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
+    <span class="doccomment">/// # Safety
+    ///
+    /// If `f` writes to its `*mut *mut libc::passwd` parameter, then it must
+    /// also initialize the value pointed to by its `*mut libc::group`
+    /// parameter.
+    </span><span class="kw">unsafe fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">*mut </span>libc::passwd,
-              <span class="kw-2">*mut </span>c_char,
-              libc::size_t,
-              <span class="kw-2">*mut *mut </span>libc::passwd) -&gt; libc::c_int
+        </span>F: Fn(
+            <span class="kw-2">*mut </span>libc::passwd,
+            <span class="kw-2">*mut </span>c_char,
+            libc::size_t,
+            <span class="kw-2">*mut *mut </span>libc::passwd,
+        ) -&gt; libc::c_int,
     {
         <span class="kw">let </span>buflimit = <span class="number">1048576</span>;
         <span class="kw">let </span>bufsize = <span class="kw">match </span>sysconf(SysconfVar::GETPW_R_SIZE_MAX) {
@@ -6507,12 +7645,19 @@
         <span class="kw">let </span><span class="kw-2">mut </span>res = ptr::null_mut();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>error = f(pwd.as_mut_ptr(), cbuf.as_mut_ptr(), cbuf.capacity(), <span class="kw-2">&amp;mut </span>res);
+            <span class="kw">let </span>error = f(
+                pwd.as_mut_ptr(),
+                cbuf.as_mut_ptr(),
+                cbuf.capacity(),
+                <span class="kw-2">&amp;mut </span>res,
+            );
             <span class="kw">if </span>error == <span class="number">0 </span>{
                 <span class="kw">if </span>res.is_null() {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>pwd = <span class="kw">unsafe </span>{ pwd.assume_init() };
+                    <span class="comment">// SAFETY: `f` guarantees that `pwd` is initialized if `res`
+                    // is not null.
+                    </span><span class="kw">let </span>pwd = pwd.assume_init();
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(User::from(<span class="kw-2">&amp;</span>pwd)));
                 }
             } <span class="kw">else if </span>Errno::last() == Errno::ERANGE {
@@ -6538,15 +7683,19 @@
     /// assert_eq!(res.name, &quot;root&quot;);
     /// ```
     </span><span class="kw">pub fn </span>from_uid(uid: Uid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
-        User::from_anything(|pwd, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getpwuid_r(uid.<span class="number">0</span>, pwd, cbuf, cap, res) }
-        })
+        <span class="comment">// SAFETY: `getpwuid_r` will write to `res` if it initializes the value
+        // at `pwd`.
+        </span><span class="kw">unsafe </span>{
+            User::from_anything(|pwd, cbuf, cap, res| {
+                libc::getpwuid_r(uid.<span class="number">0</span>, pwd, cbuf, cap, res)
+            })
+        }
     }
 
     <span class="doccomment">/// Get a user by name.
     ///
     /// Internally, this function calls
-    /// [getpwnam_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwuid_r.html)
+    /// [getpwnam_r(3)](https://pubs.opengroup.org/onlinepubs/9699919799/functions/getpwnam_r.html)
     ///
     /// # Examples
     ///
@@ -6561,9 +7710,13 @@
             <span class="prelude-val">Ok</span>(c_str) =&gt; c_str,
             <span class="prelude-val">Err</span>(_nul_error) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        User::from_anything(|pwd, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getpwnam_r(name.as_ptr(), pwd, cbuf, cap, res) }
-        })
+        <span class="comment">// SAFETY: `getpwnam_r` will write to `res` if it initializes the value
+        // at `pwd`.
+        </span><span class="kw">unsafe </span>{
+            User::from_anything(|pwd, cbuf, cap, res| {
+                libc::getpwnam_r(name.as_ptr(), pwd, cbuf, cap, res)
+            })
+        }
     }
 }
 
@@ -6578,7 +7731,7 @@
     <span class="doccomment">/// Group ID
     </span><span class="kw">pub </span>gid: Gid,
     <span class="doccomment">/// List of Group members
-    </span><span class="kw">pub </span>mem: Vec&lt;String&gt;
+    </span><span class="kw">pub </span>mem: Vec&lt;String&gt;,
 }
 
 <span class="attr">#[cfg(not(target_os = <span class="string">&quot;redox&quot;</span>))] </span><span class="comment">// RedoxFS does not support passwd
@@ -6586,10 +7739,23 @@
     <span class="kw">fn </span>from(gr: <span class="kw-2">&amp;</span>libc::group) -&gt; Group {
         <span class="kw">unsafe </span>{
             Group {
-                name: CStr::from_ptr(gr.gr_name).to_string_lossy().into_owned(),
-                passwd: CString::new(CStr::from_ptr(gr.gr_passwd).to_bytes()).unwrap(),
+                name: <span class="kw">if </span>gr.gr_name.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    CStr::from_ptr(gr.gr_name).to_string_lossy().into_owned()
+                },
+                passwd: <span class="kw">if </span>gr.gr_passwd.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    CString::new(CStr::from_ptr(gr.gr_passwd).to_bytes())
+                        .unwrap()
+                },
                 gid: Gid::from_raw(gr.gr_gid),
-                mem: Group::members(gr.gr_mem)
+                mem: <span class="kw">if </span>gr.gr_mem.is_null() {
+                    Default::default()
+                } <span class="kw">else </span>{
+                    Group::members(gr.gr_mem)
+                },
             }
         }
     }
@@ -6613,12 +7779,19 @@
         ret
     }
 
-    <span class="kw">fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
+    <span class="doccomment">/// # Safety
+    ///
+    /// If `f` writes to its `*mut *mut libc::group` parameter, then it must
+    /// also initialize the value pointed to by its `*mut libc::group`
+    /// parameter.
+    </span><span class="kw">unsafe fn </span>from_anything&lt;F&gt;(f: F) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt;
     <span class="kw">where
-        </span>F: Fn(<span class="kw-2">*mut </span>libc::group,
-              <span class="kw-2">*mut </span>c_char,
-              libc::size_t,
-              <span class="kw-2">*mut *mut </span>libc::group) -&gt; libc::c_int
+        </span>F: Fn(
+            <span class="kw-2">*mut </span>libc::group,
+            <span class="kw-2">*mut </span>c_char,
+            libc::size_t,
+            <span class="kw-2">*mut *mut </span>libc::group,
+        ) -&gt; libc::c_int,
     {
         <span class="kw">let </span>buflimit = <span class="number">1048576</span>;
         <span class="kw">let </span>bufsize = <span class="kw">match </span>sysconf(SysconfVar::GETGR_R_SIZE_MAX) {
@@ -6631,12 +7804,19 @@
         <span class="kw">let </span><span class="kw-2">mut </span>res = ptr::null_mut();
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>error = f(grp.as_mut_ptr(), cbuf.as_mut_ptr(), cbuf.capacity(), <span class="kw-2">&amp;mut </span>res);
+            <span class="kw">let </span>error = f(
+                grp.as_mut_ptr(),
+                cbuf.as_mut_ptr(),
+                cbuf.capacity(),
+                <span class="kw-2">&amp;mut </span>res,
+            );
             <span class="kw">if </span>error == <span class="number">0 </span>{
                 <span class="kw">if </span>res.is_null() {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 } <span class="kw">else </span>{
-                    <span class="kw">let </span>grp = <span class="kw">unsafe </span>{ grp.assume_init() };
+                    <span class="comment">// SAFETY: `f` guarantees that `grp` is initialized if `res`
+                    // is not null.
+                    </span><span class="kw">let </span>grp = grp.assume_init();
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Group::from(<span class="kw-2">&amp;</span>grp)));
                 }
             } <span class="kw">else if </span>Errno::last() == Errno::ERANGE {
@@ -6664,9 +7844,13 @@
     /// assert!(res.name == &quot;root&quot;);
     /// ```
     </span><span class="kw">pub fn </span>from_gid(gid: Gid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt;&gt; {
-        Group::from_anything(|grp, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getgrgid_r(gid.<span class="number">0</span>, grp, cbuf, cap, res) }
-        })
+        <span class="comment">// SAFETY: `getgrgid_r` will write to `res` if it initializes the value
+        // at `grp`.
+        </span><span class="kw">unsafe </span>{
+            Group::from_anything(|grp, cbuf, cap, res| {
+                libc::getgrgid_r(gid.<span class="number">0</span>, grp, cbuf, cap, res)
+            })
+        }
     }
 
     <span class="doccomment">/// Get a group by name.
@@ -6689,9 +7873,13 @@
             <span class="prelude-val">Ok</span>(c_str) =&gt; c_str,
             <span class="prelude-val">Err</span>(_nul_error) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         };
-        Group::from_anything(|grp, cbuf, cap, res| {
-            <span class="kw">unsafe </span>{ libc::getgrnam_r(name.as_ptr(), grp, cbuf, cap, res) }
-        })
+        <span class="comment">// SAFETY: `getgrnam_r` will write to `res` if it initializes the value
+        // at `grp`.
+        </span><span class="kw">unsafe </span>{
+            Group::from_anything(|grp, cbuf, cap, res| {
+                libc::getgrnam_r(name.as_ptr(), grp, cbuf, cap, res)
+            })
+        }
     }
 }
 }
