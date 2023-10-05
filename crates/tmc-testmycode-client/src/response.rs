@@ -437,7 +437,7 @@ pub struct SubmissionFeedbackQuestion {
     pub kind: SubmissionFeedbackKind,
 }
 
-#[derive(Debug, PartialEq, Eq, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum SubmissionFeedbackKind {
     Text,
@@ -449,7 +449,22 @@ impl<'de> Deserialize<'de> for SubmissionFeedbackKind {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_string(SubmissionFeedbackKindVisitor {})
+        let wrapper = SubmissionFeedbackKindWrapper::deserialize(deserializer)?;
+        let kind = match wrapper {
+            SubmissionFeedbackKindWrapper::String(string) => match string {
+                SubmissionFeedbackKindString::Text => Self::Text,
+                SubmissionFeedbackKindString::IntRange { lower, upper } => {
+                    Self::IntRange { lower, upper }
+                }
+            },
+            SubmissionFeedbackKindWrapper::Derived(derived) => match derived {
+                SubmissionFeedbackKindDerived::Text => Self::Text,
+                SubmissionFeedbackKindDerived::IntRange { lower, upper } => {
+                    Self::IntRange { lower, upper }
+                }
+            },
+        };
+        Ok(kind)
     }
 }
 
@@ -458,19 +473,53 @@ impl Serialize for SubmissionFeedbackKind {
     where
         S: Serializer,
     {
-        let s = match self {
-            Self::Text => "text".to_string(),
-            Self::IntRange { lower, upper } => format!("intrange[{lower}..{upper}]"),
+        let derived = match self {
+            Self::Text => SubmissionFeedbackKindDerived::Text,
+            Self::IntRange { lower, upper } => SubmissionFeedbackKindDerived::IntRange {
+                lower: *lower,
+                upper: *upper,
+            },
         };
-        serializer.serialize_str(&s)
+        derived.serialize(serializer)
     }
 }
 
-struct SubmissionFeedbackKindVisitor {}
+// wraps the two stringly typed and rusty versions of the kind
+#[derive(Debug, Clone, Copy, Deserialize)]
+#[serde(untagged)]
+enum SubmissionFeedbackKindWrapper {
+    Derived(SubmissionFeedbackKindDerived),
+    String(SubmissionFeedbackKindString),
+}
+
+// uses derived serde impls
+#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+enum SubmissionFeedbackKindDerived {
+    Text,
+    IntRange { lower: u32, upper: u32 },
+}
+
+// the stringly typed "text" or "intrange" that comes from the server
+#[derive(Debug, Clone, Copy)]
+enum SubmissionFeedbackKindString {
+    Text,
+    IntRange { lower: u32, upper: u32 },
+}
+
+impl<'de> Deserialize<'de> for SubmissionFeedbackKindString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_string(SubmissionFeedbackKindStringVisitor {})
+    }
+}
+
+struct SubmissionFeedbackKindStringVisitor {}
 
 // parses "text" into Text, and "intrange[x..y]" into IntRange {lower: x, upper: y}
-impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
-    type Value = SubmissionFeedbackKind;
+impl<'de> Visitor<'de> for SubmissionFeedbackKindStringVisitor {
+    type Value = SubmissionFeedbackKindString;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("\"text\" or \"intrange[x..y]\"")
@@ -485,7 +534,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
             Lazy::new(|| Regex::new(r#"intrange\[(\d+)\.\.(\d+)\]"#).unwrap());
 
         if value == "text" {
-            Ok(SubmissionFeedbackKind::Text)
+            Ok(SubmissionFeedbackKindString::Text)
         } else if let Some(captures) = RANGE.captures(value) {
             let lower = &captures[1];
             let lower = u32::from_str(lower).map_err(|e| {
@@ -495,7 +544,7 @@ impl<'de> Visitor<'de> for SubmissionFeedbackKindVisitor {
             let upper = u32::from_str(upper).map_err(|e| {
                 E::custom(format!("error parsing intrange upper bound {upper}: {e}"))
             })?;
-            Ok(SubmissionFeedbackKind::IntRange { lower, upper })
+            Ok(SubmissionFeedbackKindString::IntRange { lower, upper })
         } else {
             Err(E::custom("expected \"text\" or \"intrange[x..y]\""))
         }
@@ -601,7 +650,7 @@ mod test {
     }
 
     #[test]
-    fn feedback_kind_de() {
+    fn feedback_kind_de_server() {
         init();
 
         let text = serde_json::json!("text");
@@ -620,16 +669,30 @@ mod test {
     }
 
     #[test]
+    fn feedback_kind_de_rust() {
+        init();
+
+        let original = SubmissionFeedbackKind::Text;
+        let json = serde_json::to_string(&original).unwrap();
+        let deserialized: SubmissionFeedbackKind = deserialize::json_from_str(&json).unwrap();
+        assert_eq!(deserialized, original);
+
+        let original = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
+        let json = serde_json::to_string(&original).unwrap();
+        let deserialized: SubmissionFeedbackKind = deserialize::json_from_str(&json).unwrap();
+        assert_eq!(deserialized, original);
+    }
+
+    #[test]
     fn feedback_kind_se() {
         init();
-        use serde_json::Value;
 
-        let text = SubmissionFeedbackKind::Text;
-        let text = serde_json::to_value(&text).unwrap();
-        assert_eq!(text, Value::String("text".to_string()));
+        let original = SubmissionFeedbackKind::Text;
+        let json = serde_json::to_string(&original).unwrap();
+        assert_eq!(json, r#""Text""#);
 
-        let range = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
-        let range = serde_json::to_value(&range).unwrap();
-        assert_eq!(range, Value::String("intrange[1..5]".to_string()));
+        let original = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
+        let json = serde_json::to_string(&original).unwrap();
+        assert_eq!(json, r#"{"IntRange":{"lower":1,"upper":5}}"#);
     }
 }
