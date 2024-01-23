@@ -194,7 +194,7 @@ impl TestMyCodeClient {
         )?;
         finish_stage(
             format!(
-                "Submission finished, running at {0}",
+                "Sent submission to server, running at {0}",
                 result.show_submission_url
             ),
             ClientUpdateData::PostedSubmission(result.clone()),
