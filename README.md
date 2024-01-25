@@ -81,6 +81,8 @@ A TMC plugin for R.
 - ARM64 (aarch64-unknown-linux-gnu)
 - Armv7 (armv7-unknown-linux-gnueabihf)
 
+A musl (x86_64-unknown-linux-musl) build is also available, but it does not support Java exercises. This is because the Java support relies on dynamically linking libjvm, which is not supported by the musl build.
+
 ## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md).
