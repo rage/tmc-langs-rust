@@ -163,7 +163,16 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
             } else {
                 "J4rs panicked without an error message".to_string()
             };
-            return Err(JavaError::J4rsPanic(error_message));
+
+            // it's expected that we end up here when running on musl as libjvm is dynamically linked
+            // (and statically linking it seems challenging)
+            // we could fail early and error as soon as we recognise a Java project on musl,
+            // but this is a very niche issue and this is a foolproof place to detect it
+            if cfg!(target_env = "musl") {
+                return Err(JavaError::UnsupportedPlatformMusl(error_message));
+            } else {
+                return Err(JavaError::J4rsPanic(error_message));
+            }
         }
     };
 

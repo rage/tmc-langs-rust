@@ -42,6 +42,9 @@ stderr: {}
     },
     #[error("J4rs panicked: {0}")]
     J4rsPanic(String),
+    #[error("This program does not support Java on this platform due to dynamic loading not being supported on musl. As a result, J4rs panicked: {0}")]
+    UnsupportedPlatformMusl(String),
+
     #[error(transparent)]
     WalkDir(#[from] walkdir::Error),
     #[error("JSON error")]

@@ -61,6 +61,8 @@ use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
 
+const TMC_LANGS_CONFIG_DIR_VAR: &str = "TMC_LANGS_CONFIG_DIR";
+
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct UpdatedExercise {

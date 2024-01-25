@@ -9,7 +9,7 @@ pub use self::{
     projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise},
     tmc_config::TmcConfig,
 };
-use crate::{data::LocalExercise, error::LangsError};
+use crate::{data::LocalExercise, error::LangsError, TMC_LANGS_CONFIG_DIR_VAR};
 use std::{
     collections::BTreeMap,
     env,
@@ -19,7 +19,7 @@ use tmc_langs_util::{file_util, FileError};
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
-    let config_dir = match env::var("TMC_LANGS_CONFIG_DIR") {
+    let config_dir = match env::var(TMC_LANGS_CONFIG_DIR_VAR) {
         Ok(v) => PathBuf::from(v),
         Err(_) => dirs::config_dir().ok_or(LangsError::NoConfigDir)?,
     };
