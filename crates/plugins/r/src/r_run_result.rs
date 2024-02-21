@@ -1,7 +1,7 @@
 //! Struct modeling the test run results from R.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Write};
 use tmc_langs_framework::{RunResult, RunStatus, TestResult};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,8 +21,10 @@ impl From<RRunResult> for RunResult {
                 r_run_result
                     .backtrace
                     .into_iter()
-                    .map(|s| format!("{s}\n"))
-                    .collect(),
+                    .fold(String::new(), |mut output, s| {
+                        let _ = writeln!(output, "{s}");
+                        output
+                    }),
             );
         }
         let status = match r_run_result.run_status {

@@ -138,7 +138,7 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
     let tmc_dir = tmc_dir()?;
 
     // j4rs may panic
-    let jvm = match std::panic::catch_unwind(|| -> Result<Jvm, JavaError> {
+    let catch = std::panic::catch_unwind(|| -> Result<Jvm, JavaError> {
         let jvm = JvmBuilder::new()
             .with_base_path(
                 tmc_dir
@@ -152,7 +152,8 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
             .build()
             .map_err(JavaError::j4rs)?;
         Ok(jvm)
-    }) {
+    });
+    let jvm = match catch {
         Ok(jvm_result) => jvm_result?,
         Err(jvm_panic) => {
             // try to extract error message from panic, if any

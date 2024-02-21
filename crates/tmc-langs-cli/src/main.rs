@@ -22,7 +22,7 @@ fn main() -> ExitCode {
             "TRACE" => "TRACE,reqwest=DEBUG,rustls=DEBUG",
             other => other,
         };
-        let _ = std::env::set_var("RUST_LOG", level);
+        std::env::set_var("RUST_LOG", level);
     }
 
     env_logger::init();
@@ -56,10 +56,11 @@ fn run() -> Result<(), ()> {
         }
     };
     let pretty = cli.pretty;
-    match std::panic::catch_unwind(|| {
+    let catch = std::panic::catch_unwind(|| {
         register_reporters(pretty);
         tmc_langs_cli::run(cli)
-    }) {
+    });
+    match catch {
         Ok(Ok(output)) => {
             print_output(&output, pretty, None).map_err(|_| ())?;
             Ok(())
