@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.25/src/value/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.32/src/value/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -736,7 +737,7 @@
     <span class="doccomment">/// Represents a YAML mapping in which the keys and values are both
     /// `serde_yaml::Value`.
     </span>Mapping(Mapping),
-    <span class="doccomment">/// A representation of YAML&#39;s `!Tag` syntax, used for enums.
+    <span class="doccomment">/// A representation of YAML's `!Tag` syntax, used for enums.
     </span>Tagged(Box&lt;TaggedValue&gt;),
 }
 
@@ -759,7 +760,7 @@
 /// }
 ///
 /// # fn try_main() -&gt; Result&lt;(), serde_yaml::Error&gt; {
-/// let data = r#&quot; { &quot;level&quot;: 42 } &quot;#;
+/// let data = r#" { "level": 42 } "#;
 /// let s: Settings = serde_yaml::from_str(data)?;
 ///
 /// assert_eq!(s.level, 42);
@@ -782,13 +783,13 @@
 <span class="doccomment">/// Convert a `T` into `serde_yaml::Value` which is an enum that can represent
 /// any valid YAML data.
 ///
-/// This conversion can fail if `T`&#39;s implementation of `Serialize` decides to
+/// This conversion can fail if `T`'s implementation of `Serialize` decides to
 /// return an error.
 ///
 /// ```
 /// # use serde_yaml::Value;
-/// let val = serde_yaml::to_value(&quot;s&quot;).unwrap();
-/// assert_eq!(val, Value::String(&quot;s&quot;.to_owned()));
+/// let val = serde_yaml::to_value("s").unwrap();
+/// assert_eq!(val, Value::String("s".to_owned()));
 /// ```
 </span><span class="kw">pub fn </span>to_value&lt;T&gt;(value: T) -&gt; <span class="prelude-ty">Result</span>&lt;Value, Error&gt;
 <span class="kw">where
@@ -802,16 +803,16 @@
 /// This conversion can fail if the structure of the Value does not match the
 /// structure expected by `T`, for example if `T` is a struct type but the Value
 /// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`&#39;s implementation of `Deserialize` decides that something
+/// is correct but `T`'s implementation of `Deserialize` decides that something
 /// is wrong with the data, for example required struct fields are missing from
 /// the YAML map or some number is too big to fit in the expected primitive
 /// type.
 ///
 /// ```
 /// # use serde_yaml::Value;
-/// let val = Value::String(&quot;foo&quot;.to_owned());
+/// let val = Value::String("foo".to_owned());
 /// let s: String = serde_yaml::from_value(val).unwrap();
-/// assert_eq!(&quot;foo&quot;, s);
+/// assert_eq!("foo", s);
 /// ```
 </span><span class="kw">pub fn </span>from_value&lt;T&gt;(value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;T, Error&gt;
 <span class="kw">where
@@ -834,15 +835,15 @@
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
     /// use serde_yaml::Value;
     ///
-    /// let object: Value = serde_yaml::from_str(r#&quot;{ A: 65, B: 66, C: 67 }&quot;#)?;
-    /// let x = object.get(&quot;A&quot;).unwrap();
+    /// let object: Value = serde_yaml::from_str(r#"{ A: 65, B: 66, C: 67 }"#)?;
+    /// let x = object.get("A").unwrap();
     /// assert_eq!(x, 65);
     ///
-    /// let sequence: Value = serde_yaml::from_str(r#&quot;[ &quot;A&quot;, &quot;B&quot;, &quot;C&quot; ]&quot;#)?;
+    /// let sequence: Value = serde_yaml::from_str(r#"[ "A", "B", "C" ]"#)?;
     /// let x = sequence.get(2).unwrap();
-    /// assert_eq!(x, &amp;Value::String(&quot;C&quot;.into()));
+    /// assert_eq!(x, &amp;Value::String("C".into()));
     ///
-    /// assert_eq!(sequence.get(&quot;A&quot;), None);
+    /// assert_eq!(sequence.get("A"), None);
     /// # Ok(())
     /// # }
     /// ```
@@ -855,17 +856,17 @@
     /// # use serde_yaml::Value;
     /// #
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let object: Value = serde_yaml::from_str(r#&quot;
+    /// let object: Value = serde_yaml::from_str(r#"
     /// A: [a, á, à]
     /// B: [b, b́]
     /// C: [c, ć, ć̣, ḉ]
     /// 42: true
-    /// &quot;#)?;
-    /// assert_eq!(object[&quot;B&quot;][0], Value::String(&quot;b&quot;.into()));
+    /// "#)?;
+    /// assert_eq!(object["B"][0], Value::String("b".into()));
     ///
-    /// assert_eq!(object[Value::String(&quot;D&quot;.into())], Value::Null);
-    /// assert_eq!(object[&quot;D&quot;], Value::Null);
-    /// assert_eq!(object[0][&quot;x&quot;][&quot;y&quot;][&quot;z&quot;], Value::Null);
+    /// assert_eq!(object[Value::String("D".into())], Value::Null);
+    /// assert_eq!(object["D"], Value::Null);
+    /// assert_eq!(object[0]["x"]["y"]["z"], Value::Null);
     ///
     /// assert_eq!(object[42], Value::Bool(true));
     /// # Ok(())
@@ -894,13 +895,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("null").unwrap();
     /// assert!(v.is_null());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert!(!v.is_null());
     /// ```
     </span><span class="kw">pub fn </span>is_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -915,13 +916,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("null").unwrap();
     /// assert_eq!(v.as_null(), Some(()));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_null(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_null(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
@@ -938,13 +939,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert!(v.is_bool());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("42").unwrap();
     /// assert!(!v.is_bool());
     /// ```
     </span><span class="kw">pub fn </span>is_bool(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -956,13 +957,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert_eq!(v.as_bool(), Some(true));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("42").unwrap();
     /// assert_eq!(v.as_bool(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_bool(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
@@ -976,13 +977,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;5&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("5").unwrap();
     /// assert!(v.is_number());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert!(!v.is_number());
     /// ```
     </span><span class="kw">pub fn </span>is_number(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1000,13 +1001,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;1337&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("1337").unwrap();
     /// assert!(v.is_i64());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("null").unwrap();
     /// assert!(!v.is_i64());
     /// ```
     </span><span class="kw">pub fn </span>is_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1018,13 +1019,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;1337&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("1337").unwrap();
     /// assert_eq!(v.as_i64(), Some(1337));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_i64(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
@@ -1042,13 +1043,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;1337&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("1337").unwrap();
     /// assert!(v.is_u64());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;null&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("null").unwrap();
     /// assert!(!v.is_u64());
     /// ```
     </span><span class="kw">pub fn </span>is_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1060,13 +1061,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;1337&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("1337").unwrap();
     /// assert_eq!(v.as_u64(), Some(1337));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_u64(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
@@ -1086,13 +1087,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;256.01&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("256.01").unwrap();
     /// assert!(v.is_f64());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert!(!v.is_f64());
     /// ```
     </span><span class="kw">pub fn </span>is_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1107,13 +1108,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;13.37&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("13.37").unwrap();
     /// assert_eq!(v.as_f64(), Some(13.37));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_f64(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
@@ -1130,13 +1131,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;&#39;lorem ipsum&#39;&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("'lorem ipsum'").unwrap();
     /// assert!(v.is_string());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;42&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("42").unwrap();
     /// assert!(!v.is_string());
     /// ```
     </span><span class="kw">pub fn </span>is_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1148,13 +1149,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;&#39;lorem ipsum&#39;&quot;).unwrap();
-    /// assert_eq!(v.as_str(), Some(&quot;lorem ipsum&quot;));
+    /// let v: Value = serde_yaml::from_str("'lorem ipsum'").unwrap();
+    /// assert_eq!(v.as_str(), Some("lorem ipsum"));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_str(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
@@ -1168,13 +1169,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;[1, 2, 3]&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("[1, 2, 3]").unwrap();
     /// assert!(v.is_sequence());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert!(!v.is_sequence());
     /// ```
     </span><span class="kw">pub fn </span>is_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1186,13 +1187,13 @@
     ///
     /// ```
     /// # use serde_yaml::{Value, Number};
-    /// let v: Value = serde_yaml::from_str(&quot;[1, 2]&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("[1, 2]").unwrap();
     /// assert_eq!(v.as_sequence(), Some(&amp;vec![Value::Number(Number::from(1)), Value::Number(Number::from(2))]));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_sequence(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Sequence&gt; {
@@ -1207,7 +1208,7 @@
     ///
     /// ```
     /// # use serde_yaml::{Value, Number};
-    /// let mut v: Value = serde_yaml::from_str(&quot;[1]&quot;).unwrap();
+    /// let mut v: Value = serde_yaml::from_str("[1]").unwrap();
     /// let s = v.as_sequence_mut().unwrap();
     /// s.push(Value::Number(Number::from(2)));
     /// assert_eq!(s, &amp;vec![Value::Number(Number::from(1)), Value::Number(Number::from(2))]);
@@ -1215,7 +1216,7 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let mut v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let mut v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_sequence_mut(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_sequence_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Sequence&gt; {
@@ -1229,13 +1230,13 @@
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;a: 42&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("a: 42").unwrap();
     /// assert!(v.is_mapping());
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;true&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("true").unwrap();
     /// assert!(!v.is_mapping());
     /// ```
     </span><span class="kw">pub fn </span>is_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -1247,17 +1248,17 @@
     ///
     /// ```
     /// # use serde_yaml::{Value, Mapping, Number};
-    /// let v: Value = serde_yaml::from_str(&quot;a: 42&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("a: 42").unwrap();
     ///
     /// let mut expected = Mapping::new();
-    /// expected.insert(Value::String(&quot;a&quot;.into()),Value::Number(Number::from(42)));
+    /// expected.insert(Value::String("a".into()),Value::Number(Number::from(42)));
     ///
     /// assert_eq!(v.as_mapping(), Some(&amp;expected));
     /// ```
     ///
     /// ```
     /// # use serde_yaml::Value;
-    /// let v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_mapping(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_mapping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Mapping&gt; {
@@ -1272,20 +1273,20 @@
     ///
     /// ```
     /// # use serde_yaml::{Value, Mapping, Number};
-    /// let mut v: Value = serde_yaml::from_str(&quot;a: 42&quot;).unwrap();
+    /// let mut v: Value = serde_yaml::from_str("a: 42").unwrap();
     /// let m = v.as_mapping_mut().unwrap();
-    /// m.insert(Value::String(&quot;b&quot;.into()), Value::Number(Number::from(21)));
+    /// m.insert(Value::String("b".into()), Value::Number(Number::from(21)));
     ///
     /// let mut expected = Mapping::new();
-    /// expected.insert(Value::String(&quot;a&quot;.into()), Value::Number(Number::from(42)));
-    /// expected.insert(Value::String(&quot;b&quot;.into()), Value::Number(Number::from(21)));
+    /// expected.insert(Value::String("a".into()), Value::Number(Number::from(42)));
+    /// expected.insert(Value::String("b".into()), Value::Number(Number::from(21)));
     ///
     /// assert_eq!(m, &amp;expected);
     /// ```
     ///
     /// ```
     /// # use serde_yaml::{Value, Mapping};
-    /// let mut v: Value = serde_yaml::from_str(&quot;false&quot;).unwrap();
+    /// let mut v: Value = serde_yaml::from_str("false").unwrap();
     /// assert_eq!(v.as_mapping_mut(), None);
     /// ```
     </span><span class="kw">pub fn </span>as_mapping_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Mapping&gt; {
@@ -1303,23 +1304,23 @@
     /// ```
     /// use serde_yaml::Value;
     ///
-    /// let config = &quot;\
+    /// let config = "\
     /// tasks:
     ///   build: &amp;webpack_shared
     ///     command: webpack
     ///     args: build
     ///     inputs:
-    ///       - &#39;src/**/*&#39;
+    ///       - 'src/**/*'
     ///   start:
     ///     &lt;&lt;: *webpack_shared
     ///     args: start
-    /// &quot;;
+    /// ";
     ///
     /// let mut value: Value = serde_yaml::from_str(config).unwrap();
     /// value.apply_merge().unwrap();
     ///
-    /// assert_eq!(value[&quot;tasks&quot;][&quot;start&quot;][&quot;command&quot;], &quot;webpack&quot;);
-    /// assert_eq!(value[&quot;tasks&quot;][&quot;start&quot;][&quot;args&quot;], &quot;start&quot;);
+    /// assert_eq!(value["tasks"]["start"]["command"], "webpack");
+    /// assert_eq!(value["tasks"]["start"]["args"], "start");
     /// ```
     </span><span class="kw">pub fn </span>apply_merge(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>stack = Vec::new();
@@ -1327,7 +1328,7 @@
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = stack.pop() {
             <span class="kw">match </span>node {
                 Value::Mapping(mapping) =&gt; {
-                    <span class="kw">match </span>mapping.remove(<span class="string">&quot;&lt;&lt;&quot;</span>) {
+                    <span class="kw">match </span>mapping.remove(<span class="string">"&lt;&lt;"</span>) {
                         <span class="prelude-val">Some</span>(Value::Mapping(merge)) =&gt; {
                             <span class="kw">for </span>(k, v) <span class="kw">in </span>merge {
                                 mapping.entry(k).or_insert(v);
@@ -1370,7 +1371,7 @@
 
 <span class="kw">impl </span>Eq <span class="kw">for </span>Value {}
 
-<span class="comment">// NOTE: This impl must be kept consistent with HashLikeValue&#39;s Hash impl in
+<span class="comment">// NOTE: This impl must be kept consistent with HashLikeValue's Hash impl in
 // mapping.rs in order for value[str] indexing to work.
 </span><span class="kw">impl </span>Hash <span class="kw">for </span>Value {
     <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
@@ -1387,7 +1388,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; IntoDeserializer&lt;<span class="lifetime">&#39;de</span>, Error&gt; <span class="kw">for </span>Value {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; IntoDeserializer&lt;<span class="lifetime">'de</span>, Error&gt; <span class="kw">for </span>Value {
     <span class="kw">type </span>Deserializer = <span class="self">Self</span>;
 
     <span class="kw">fn </span>into_deserializer(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Deserializer {

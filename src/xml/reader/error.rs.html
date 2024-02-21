@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.19/src/reader/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.19/src/reader/error.rs`."><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -264,7 +265,7 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>ErrorKind {
-    Syntax(Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;),
+    Syntax(Cow&lt;<span class="lifetime">'static</span>, str&gt;),
     Io(io::Error),
     Utf8(str::Utf8Error),
     UnexpectedEof,
@@ -315,7 +316,7 @@
     </span>UnknownMarkupDeclaration(Box&lt;str&gt;),
     UnexpectedXmlVersion(Box&lt;str&gt;),
     ConflictingEncoding(Encoding, Encoding),
-    UnexpectedTokenBefore(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, char),
+    UnexpectedTokenBefore(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, char),
     <span class="doccomment">/// Document has more stuff than `ParserConfig` allows
     </span>ExceededConfiguredLimit,
 }
@@ -329,47 +330,47 @@
 <span class="kw">impl </span>SyntaxError {
     <span class="attr">#[inline(never)]
     #[cold]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_cow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">&#39;static</span>, str&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_cow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cow&lt;<span class="lifetime">'static</span>, str&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            <span class="self">Self</span>::CannotRedefineXmlnsPrefix =&gt; <span class="string">&quot;Cannot redefine XMLNS prefix&quot;</span>.into(),
-            <span class="self">Self</span>::CannotRedefineXmlPrefix =&gt; <span class="string">&quot;Default XMLNS prefix cannot be rebound to another value&quot;</span>.into(),
-            <span class="self">Self</span>::EmptyEntity =&gt; <span class="string">&quot;Encountered empty entity&quot;</span>.into(),
-            <span class="self">Self</span>::EntityTooBig =&gt; <span class="string">&quot;Entity too big&quot;</span>.into(),
-            <span class="self">Self</span>::NoRootElement =&gt; <span class="string">&quot;Unexpected end of stream: no root element found&quot;</span>.into(),
-            <span class="self">Self</span>::ProcessingInstructionWithoutName =&gt; <span class="string">&quot;Encountered processing instruction without a name&quot;</span>.into(),
-            <span class="self">Self</span>::UnbalancedRootElement =&gt; <span class="string">&quot;Unexpected end of stream: still inside the root element&quot;</span>.into(),
-            <span class="self">Self</span>::UnclosedCdata =&gt; <span class="string">&quot;Unclosed &lt;![CDATA[&quot;</span>.into(),
-            <span class="self">Self</span>::UnexpectedEof =&gt; <span class="string">&quot;Unexpected end of stream&quot;</span>.into(),
-            <span class="self">Self</span>::UnexpectedOpeningTag =&gt; <span class="string">&quot;&#39;&lt;&#39; is not allowed in attributes&quot;</span>.into(),
-            <span class="self">Self</span>::CannotUndefinePrefix(<span class="kw-2">ref </span>ln) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Cannot undefine prefix &#39;{ln}&#39;&quot;</span>).into(),
-            <span class="self">Self</span>::ConflictingEncoding(a, b) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Declared encoding {a}, but uses {b}&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidCharacterEntity(num) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Invalid character U+{num:04X}&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidDefaultNamespace(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>( <span class="string">&quot;Namespace &#39;{name}&#39; cannot be default&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidNamePrefix(<span class="kw-2">ref </span>prefix) =&gt; <span class="macro">format!</span>(<span class="string">&quot;&#39;{prefix}&#39; cannot be an element name prefix&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidNumericEntity(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Invalid numeric entity: {v}&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidQualifiedName(<span class="kw-2">ref </span>e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Qualified name is invalid: {e}&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidStandaloneDeclaration(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Invalid standalone declaration value: {value}&quot;</span>).into(),
-            <span class="self">Self</span>::InvalidXmlProcessingInstruction(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Invalid processing instruction: &lt;?{name} - \&quot;&lt;?xml\&quot;-like PI is only valid at the beginning of the document&quot;</span>).into(),
-            <span class="self">Self</span>::RedefinedAttribute(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Attribute &#39;{name}&#39; is redefined&quot;</span>).into(),
-            <span class="self">Self</span>::UnboundAttribute(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Attribute {name} prefix is unbound&quot;</span>).into(),
-            <span class="self">Self</span>::UnboundElementPrefix(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Element {name} prefix is unbound&quot;</span>).into(),
-            <span class="self">Self</span>::UndefinedEntity(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Undefined entity: {v}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedClosingTag(<span class="kw-2">ref </span>expected_got) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected closing tag: {expected_got}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedEntity(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected entity: {name}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedName(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected name: {name}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedNameInsideXml(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected name inside XML declaration: {name}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedProcessingInstruction(<span class="kw-2">ref </span>buf, token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside processing instruction: &lt;?{buf}{token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedQualifiedName(e) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside qualified name: {e}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedToken(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token: {token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedTokenBefore(before, c) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token &#39;{before}&#39; before &#39;{c}&#39;&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedTokenInClosingTag(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside closing tag: {token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedTokenInEntity(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside entity: {token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedTokenInOpeningTag(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected token inside opening tag: {token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedTokenOutsideRoot(token) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unexpected characters outside the root element: {token}&quot;</span>).into(),
-            <span class="self">Self</span>::UnexpectedXmlVersion(<span class="kw-2">ref </span>version) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Invalid XML version: {version}&quot;</span>).into(),
-            <span class="self">Self</span>::UnknownMarkupDeclaration(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unknown markup declaration: {v}&quot;</span>).into(),
-            <span class="self">Self</span>::UnsupportedEncoding(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Unsupported encoding: {v}&quot;</span>).into(),
-            <span class="self">Self</span>::ExceededConfiguredLimit =&gt; <span class="string">&quot;This document is larger/more complex than allowed by the parser&#39;s configuration&quot;</span>.into(),
+            <span class="self">Self</span>::CannotRedefineXmlnsPrefix =&gt; <span class="string">"Cannot redefine XMLNS prefix"</span>.into(),
+            <span class="self">Self</span>::CannotRedefineXmlPrefix =&gt; <span class="string">"Default XMLNS prefix cannot be rebound to another value"</span>.into(),
+            <span class="self">Self</span>::EmptyEntity =&gt; <span class="string">"Encountered empty entity"</span>.into(),
+            <span class="self">Self</span>::EntityTooBig =&gt; <span class="string">"Entity too big"</span>.into(),
+            <span class="self">Self</span>::NoRootElement =&gt; <span class="string">"Unexpected end of stream: no root element found"</span>.into(),
+            <span class="self">Self</span>::ProcessingInstructionWithoutName =&gt; <span class="string">"Encountered processing instruction without a name"</span>.into(),
+            <span class="self">Self</span>::UnbalancedRootElement =&gt; <span class="string">"Unexpected end of stream: still inside the root element"</span>.into(),
+            <span class="self">Self</span>::UnclosedCdata =&gt; <span class="string">"Unclosed &lt;![CDATA["</span>.into(),
+            <span class="self">Self</span>::UnexpectedEof =&gt; <span class="string">"Unexpected end of stream"</span>.into(),
+            <span class="self">Self</span>::UnexpectedOpeningTag =&gt; <span class="string">"'&lt;' is not allowed in attributes"</span>.into(),
+            <span class="self">Self</span>::CannotUndefinePrefix(<span class="kw-2">ref </span>ln) =&gt; <span class="macro">format!</span>(<span class="string">"Cannot undefine prefix '{ln}'"</span>).into(),
+            <span class="self">Self</span>::ConflictingEncoding(a, b) =&gt; <span class="macro">format!</span>(<span class="string">"Declared encoding {a}, but uses {b}"</span>).into(),
+            <span class="self">Self</span>::InvalidCharacterEntity(num) =&gt; <span class="macro">format!</span>(<span class="string">"Invalid character U+{num:04X}"</span>).into(),
+            <span class="self">Self</span>::InvalidDefaultNamespace(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>( <span class="string">"Namespace '{name}' cannot be default"</span>).into(),
+            <span class="self">Self</span>::InvalidNamePrefix(<span class="kw-2">ref </span>prefix) =&gt; <span class="macro">format!</span>(<span class="string">"'{prefix}' cannot be an element name prefix"</span>).into(),
+            <span class="self">Self</span>::InvalidNumericEntity(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">"Invalid numeric entity: {v}"</span>).into(),
+            <span class="self">Self</span>::InvalidQualifiedName(<span class="kw-2">ref </span>e) =&gt; <span class="macro">format!</span>(<span class="string">"Qualified name is invalid: {e}"</span>).into(),
+            <span class="self">Self</span>::InvalidStandaloneDeclaration(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">"Invalid standalone declaration value: {value}"</span>).into(),
+            <span class="self">Self</span>::InvalidXmlProcessingInstruction(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Invalid processing instruction: &lt;?{name} - \"&lt;?xml\"-like PI is only valid at the beginning of the document"</span>).into(),
+            <span class="self">Self</span>::RedefinedAttribute(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Attribute '{name}' is redefined"</span>).into(),
+            <span class="self">Self</span>::UnboundAttribute(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Attribute {name} prefix is unbound"</span>).into(),
+            <span class="self">Self</span>::UnboundElementPrefix(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Element {name} prefix is unbound"</span>).into(),
+            <span class="self">Self</span>::UndefinedEntity(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">"Undefined entity: {v}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedClosingTag(<span class="kw-2">ref </span>expected_got) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected closing tag: {expected_got}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedEntity(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected entity: {name}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedName(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected name: {name}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedNameInsideXml(<span class="kw-2">ref </span>name) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected name inside XML declaration: {name}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedProcessingInstruction(<span class="kw-2">ref </span>buf, token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token inside processing instruction: &lt;?{buf}{token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedQualifiedName(e) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token inside qualified name: {e}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedToken(token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token: {token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedTokenBefore(before, c) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token '{before}' before '{c}'"</span>).into(),
+            <span class="self">Self</span>::UnexpectedTokenInClosingTag(token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token inside closing tag: {token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedTokenInEntity(token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token inside entity: {token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedTokenInOpeningTag(token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected token inside opening tag: {token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedTokenOutsideRoot(token) =&gt; <span class="macro">format!</span>(<span class="string">"Unexpected characters outside the root element: {token}"</span>).into(),
+            <span class="self">Self</span>::UnexpectedXmlVersion(<span class="kw-2">ref </span>version) =&gt; <span class="macro">format!</span>(<span class="string">"Invalid XML version: {version}"</span>).into(),
+            <span class="self">Self</span>::UnknownMarkupDeclaration(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">"Unknown markup declaration: {v}"</span>).into(),
+            <span class="self">Self</span>::UnsupportedEncoding(<span class="kw-2">ref </span>v) =&gt; <span class="macro">format!</span>(<span class="string">"Unsupported encoding: {v}"</span>).into(),
+            <span class="self">Self</span>::ExceededConfiguredLimit =&gt; <span class="string">"This document is larger/more complex than allowed by the parser's configuration"</span>.into(),
         }
     }
 }
@@ -384,15 +385,15 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">use </span><span class="self">self</span>::ErrorKind::{Io, Syntax, UnexpectedEof, Utf8};
 
-        <span class="macro">write!</span>(f, <span class="string">&quot;{} &quot;</span>, <span class="self">self</span>.pos)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{} "</span>, <span class="self">self</span>.pos)<span class="question-mark">?</span>;
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.kind {
             Io(io_error) =&gt; io_error.fmt(f),
             Utf8(reason) =&gt; reason.fmt(f),
             Syntax(msg) =&gt; f.write_str(msg),
-            UnexpectedEof =&gt; f.write_str(<span class="string">&quot;Unexpected EOF&quot;</span>),
+            UnexpectedEof =&gt; f.write_str(<span class="string">"Unexpected EOF"</span>),
         }
     }
 }
@@ -413,7 +414,7 @@
             Io(io_error) =&gt; io_error.description(),
             Utf8(reason) =&gt; reason.description(),
             Syntax(msg) =&gt; msg.as_ref(),
-            UnexpectedEof =&gt; <span class="string">&quot;Unexpected EOF&quot;</span>,
+            UnexpectedEof =&gt; <span class="string">"Unexpected EOF"</span>,
         }
     }
 
@@ -430,9 +431,9 @@
     </span><span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str { <span class="self">self</span>.msg() }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, P, M&gt; From&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>P, M)&gt; <span class="kw">for </span>Error <span class="kw">where </span>P: Position, M: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, P, M&gt; From&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>P, M)&gt; <span class="kw">for </span>Error <span class="kw">where </span>P: Position, M: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt; {
     <span class="attr">#[cold]
-    </span><span class="kw">fn </span>from(orig: (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>P, M)) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>from(orig: (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>P, M)) -&gt; <span class="self">Self </span>{
         Error {
             pos: orig.<span class="number">0</span>.position(),
             kind: ErrorKind::Syntax(orig.<span class="number">1</span>.into()),

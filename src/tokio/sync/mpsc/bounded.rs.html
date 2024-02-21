@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.32.0/src/sync/mpsc/bounded.rs`."><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/sync/mpsc/bounded.rs`."><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1317,6 +1318,379 @@
 <a href="#1317" id="1317">1317</a>
 <a href="#1318" id="1318">1318</a>
 <a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
+<a href="#1321" id="1321">1321</a>
+<a href="#1322" id="1322">1322</a>
+<a href="#1323" id="1323">1323</a>
+<a href="#1324" id="1324">1324</a>
+<a href="#1325" id="1325">1325</a>
+<a href="#1326" id="1326">1326</a>
+<a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a>
+<a href="#1372" id="1372">1372</a>
+<a href="#1373" id="1373">1373</a>
+<a href="#1374" id="1374">1374</a>
+<a href="#1375" id="1375">1375</a>
+<a href="#1376" id="1376">1376</a>
+<a href="#1377" id="1377">1377</a>
+<a href="#1378" id="1378">1378</a>
+<a href="#1379" id="1379">1379</a>
+<a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
+<a href="#1610" id="1610">1610</a>
+<a href="#1611" id="1611">1611</a>
+<a href="#1612" id="1612">1612</a>
+<a href="#1613" id="1613">1613</a>
+<a href="#1614" id="1614">1614</a>
+<a href="#1615" id="1615">1615</a>
+<a href="#1616" id="1616">1616</a>
+<a href="#1617" id="1617">1617</a>
+<a href="#1618" id="1618">1618</a>
+<a href="#1619" id="1619">1619</a>
+<a href="#1620" id="1620">1620</a>
+<a href="#1621" id="1621">1621</a>
+<a href="#1622" id="1622">1622</a>
+<a href="#1623" id="1623">1623</a>
+<a href="#1624" id="1624">1624</a>
+<a href="#1625" id="1625">1625</a>
+<a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
+<a href="#1628" id="1628">1628</a>
+<a href="#1629" id="1629">1629</a>
+<a href="#1630" id="1630">1630</a>
+<a href="#1631" id="1631">1631</a>
+<a href="#1632" id="1632">1632</a>
+<a href="#1633" id="1633">1633</a>
+<a href="#1634" id="1634">1634</a>
+<a href="#1635" id="1635">1635</a>
+<a href="#1636" id="1636">1636</a>
+<a href="#1637" id="1637">1637</a>
+<a href="#1638" id="1638">1638</a>
+<a href="#1639" id="1639">1639</a>
+<a href="#1640" id="1640">1640</a>
+<a href="#1641" id="1641">1641</a>
+<a href="#1642" id="1642">1642</a>
+<a href="#1643" id="1643">1643</a>
+<a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::loom::sync::Arc;
 <span class="kw">use </span><span class="kw">crate</span>::sync::batch_semaphore::{<span class="self">self </span><span class="kw">as </span>semaphore, TryAcquireError};
 <span class="kw">use </span><span class="kw">crate</span>::sync::mpsc::chan;
@@ -1332,7 +1706,7 @@
 
 <span class="doccomment">/// Sends values to the associated `Receiver`.
 ///
-/// Instances are created by the [`channel`](channel) function.
+/// Instances are created by the [`channel`] function.
 ///
 /// To convert the `Sender` into a `Sink` or use it in a poll function, you can
 /// use the [`PollSender`] utility.
@@ -1354,7 +1728,7 @@
 /// [`Sender`]: Sender
 /// [`WeakSender::upgrade`]: WeakSender::upgrade
 ///
-/// #Examples
+/// # Examples
 ///
 /// ```
 /// use tokio::sync::mpsc::channel;
@@ -1363,10 +1737,10 @@
 /// async fn main() {
 ///     let (tx, _rx) = channel::&lt;i32&gt;(15);
 ///     let tx_weak = tx.downgrade();
-///   
+///
 ///     // Upgrading will succeed because `tx` still exists.
 ///     assert!(tx_weak.upgrade().is_some());
-///   
+///
 ///     // If we drop `tx`, then it will fail.
 ///     drop(tx);
 ///     assert!(tx_weak.clone().upgrade().is_none());
@@ -1383,8 +1757,20 @@
 ///
 /// [`Sender::reserve()`]: Sender::reserve
 /// [`Sender::try_reserve()`]: Sender::try_reserve
-</span><span class="kw">pub struct </span>Permit&lt;<span class="lifetime">&#39;a</span>, T&gt; {
-    chan: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>chan::Tx&lt;T, Semaphore&gt;,
+</span><span class="kw">pub struct </span>Permit&lt;<span class="lifetime">'a</span>, T&gt; {
+    chan: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>chan::Tx&lt;T, Semaphore&gt;,
+}
+
+<span class="doccomment">/// An [`Iterator`] of [`Permit`] that can be used to hold `n` slots in the channel.
+///
+/// `PermitIterator` values are returned by [`Sender::reserve_many()`] and [`Sender::try_reserve_many()`]
+/// and are used to guarantee channel capacity before generating `n` messages to send.
+///
+/// [`Sender::reserve_many()`]: Sender::reserve_many
+/// [`Sender::try_reserve_many()`]: Sender::try_reserve_many
+</span><span class="kw">pub struct </span>PermitIterator&lt;<span class="lifetime">'a</span>, T&gt; {
+    chan: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>chan::Tx&lt;T, Semaphore&gt;,
+    n: usize,
 }
 
 <span class="doccomment">/// Owned permit to send one value into the channel.
@@ -1405,7 +1791,7 @@
 
 <span class="doccomment">/// Receives values from the associated `Sender`.
 ///
-/// Instances are created by the [`channel`](channel) function.
+/// Instances are created by the [`channel`] function.
 ///
 /// This receiver can be turned into a `Stream` using [`ReceiverStream`].
 ///
@@ -1448,20 +1834,20 @@
 ///     tokio::spawn(async move {
 ///         for i in 0..10 {
 ///             if let Err(_) = tx.send(i).await {
-///                 println!(&quot;receiver dropped&quot;);
+///                 println!("receiver dropped");
 ///                 return;
 ///             }
 ///         }
 ///     });
 ///
 ///     while let Some(i) = rx.recv().await {
-///         println!(&quot;got = {}&quot;, i);
+///         println!("got = {}", i);
 ///     }
 /// }
 /// ```
 </span><span class="attr">#[track_caller]
 </span><span class="kw">pub fn </span>channel&lt;T&gt;(buffer: usize) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
-    <span class="macro">assert!</span>(buffer &gt; <span class="number">0</span>, <span class="string">&quot;mpsc bounded channel requires buffer &gt; 0&quot;</span>);
+    <span class="macro">assert!</span>(buffer &gt; <span class="number">0</span>, <span class="string">"mpsc bounded channel requires buffer &gt; 0"</span>);
     <span class="kw">let </span>semaphore = Semaphore {
         semaphore: semaphore::Semaphore::new(buffer),
         bound: buffer,
@@ -1490,11 +1876,11 @@
     <span class="doccomment">/// Receives the next value for this receiver.
     ///
     /// This method returns `None` if the channel has been closed and there are
-    /// no remaining messages in the channel&#39;s buffer. This indicates that no
+    /// no remaining messages in the channel's buffer. This indicates that no
     /// further values can ever be received from this `Receiver`. The channel is
     /// closed when all senders have been dropped, or when [`close`] is called.
     ///
-    /// If there are no messages in the channel&#39;s buffer, but the channel has
+    /// If there are no messages in the channel's buffer, but the channel has
     /// not yet been closed, this method will sleep until a message is sent or
     /// the channel is closed.  Note that if [`close`] is called, but there are
     /// still outstanding [`Permits`] from before it was closed, the channel is
@@ -1520,10 +1906,10 @@
     ///     let (tx, mut rx) = mpsc::channel(100);
     ///
     ///     tokio::spawn(async move {
-    ///         tx.send(&quot;hello&quot;).await.unwrap();
+    ///         tx.send("hello").await.unwrap();
     ///     });
     ///
-    ///     assert_eq!(Some(&quot;hello&quot;), rx.recv().await);
+    ///     assert_eq!(Some("hello"), rx.recv().await);
     ///     assert_eq!(None, rx.recv().await);
     /// }
     /// ```
@@ -1537,16 +1923,92 @@
     /// async fn main() {
     ///     let (tx, mut rx) = mpsc::channel(100);
     ///
-    ///     tx.send(&quot;hello&quot;).await.unwrap();
-    ///     tx.send(&quot;world&quot;).await.unwrap();
+    ///     tx.send("hello").await.unwrap();
+    ///     tx.send("world").await.unwrap();
     ///
-    ///     assert_eq!(Some(&quot;hello&quot;), rx.recv().await);
-    ///     assert_eq!(Some(&quot;world&quot;), rx.recv().await);
+    ///     assert_eq!(Some("hello"), rx.recv().await);
+    ///     assert_eq!(Some("world"), rx.recv().await);
     /// }
     /// ```
     </span><span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
         poll_fn(|cx| <span class="self">self</span>.chan.recv(cx)).<span class="kw">await
+    </span>}
+
+    <span class="doccomment">/// Receives the next values for this receiver and extends `buffer`.
+    ///
+    /// This method extends `buffer` by no more than a fixed number of values
+    /// as specified by `limit`. If `limit` is zero, the function immediately
+    /// returns `0`. The return value is the number of values added to `buffer`.
+    ///
+    /// For `limit &gt; 0`, if there are no messages in the channel's queue, but
+    /// the channel has not yet been closed, this method will sleep until a
+    /// message is sent or the channel is closed. Note that if [`close`] is
+    /// called, but there are still outstanding [`Permits`] from before it was
+    /// closed, the channel is not considered closed by `recv_many` until the
+    /// permits are released.
+    ///
+    /// For non-zero values of `limit`, this method will never return `0` unless
+    /// the channel has been closed and there are no remaining messages in the
+    /// channel's queue. This indicates that no further values can ever be
+    /// received from this `Receiver`. The channel is closed when all senders
+    /// have been dropped, or when [`close`] is called.
+    ///
+    /// The capacity of `buffer` is increased as needed.
+    ///
+    /// # Cancel safety
+    ///
+    /// This method is cancel safe. If `recv_many` is used as the event in a
+    /// [`tokio::select!`](crate::select) statement and some other branch
+    /// completes first, it is guaranteed that no messages were received on this
+    /// channel.
+    ///
+    /// [`close`]: Self::close
+    /// [`Permits`]: struct@crate::sync::mpsc::Permit
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::mpsc;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let mut buffer: Vec&lt;&amp;str&gt; = Vec::with_capacity(2);
+    ///     let limit = 2;
+    ///     let (tx, mut rx) = mpsc::channel(100);
+    ///     let tx2 = tx.clone();
+    ///     tx2.send("first").await.unwrap();
+    ///     tx2.send("second").await.unwrap();
+    ///     tx2.send("third").await.unwrap();
+    ///
+    ///     // Call `recv_many` to receive up to `limit` (2) values.
+    ///     assert_eq!(2, rx.recv_many(&amp;mut buffer, limit).await);
+    ///     assert_eq!(vec!["first", "second"], buffer);
+    ///
+    ///     // If the buffer is full, the next call to `recv_many`
+    ///     // reserves additional capacity.
+    ///     assert_eq!(1, rx.recv_many(&amp;mut buffer, 1).await);
+    ///
+    ///     tokio::spawn(async move {
+    ///         tx.send("fourth").await.unwrap();
+    ///     });
+    ///
+    ///     // 'tx' is dropped, but `recv_many`
+    ///     // is guaranteed not to return 0 as the channel
+    ///     // is not yet closed.
+    ///     assert_eq!(1, rx.recv_many(&amp;mut buffer, 1).await);
+    ///     assert_eq!(vec!["first", "second", "third", "fourth"], buffer);
+    ///
+    ///     // Once the last sender is dropped, the channel is
+    ///     // closed and `recv_many` returns 0, capacity unchanged.
+    ///     drop(tx2);
+    ///     assert_eq!(0, rx.recv_many(&amp;mut buffer, limit).await);
+    ///     assert_eq!(vec!["first", "second", "third", "fourth"], buffer);
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>recv_many(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;, limit: usize) -&gt; usize {
+        <span class="kw">use </span><span class="kw">crate</span>::future::poll_fn;
+        poll_fn(|cx| <span class="self">self</span>.chan.recv_many(cx, buffer, limit)).<span class="kw">await
     </span>}
 
     <span class="doccomment">/// Tries to receive the next value for this receiver.
@@ -1576,16 +2038,16 @@
     /// async fn main() {
     ///     let (tx, mut rx) = mpsc::channel(100);
     ///
-    ///     tx.send(&quot;hello&quot;).await.unwrap();
+    ///     tx.send("hello").await.unwrap();
     ///
-    ///     assert_eq!(Ok(&quot;hello&quot;), rx.try_recv());
+    ///     assert_eq!(Ok("hello"), rx.try_recv());
     ///     assert_eq!(Err(TryRecvError::Empty), rx.try_recv());
     ///
-    ///     tx.send(&quot;hello&quot;).await.unwrap();
+    ///     tx.send("hello").await.unwrap();
     ///     // Drop the last sender, closing the channel.
     ///     drop(tx);
     ///
-    ///     assert_eq!(Ok(&quot;hello&quot;), rx.try_recv());
+    ///     assert_eq!(Ok("hello"), rx.try_recv());
     ///     assert_eq!(Err(TryRecvError::Disconnected), rx.try_recv());
     /// }
     /// ```
@@ -1596,11 +2058,11 @@
     <span class="doccomment">/// Blocking receive to call outside of asynchronous contexts.
     ///
     /// This method returns `None` if the channel has been closed and there are
-    /// no remaining messages in the channel&#39;s buffer. This indicates that no
+    /// no remaining messages in the channel's buffer. This indicates that no
     /// further values can ever be received from this `Receiver`. The channel is
     /// closed when all senders have been dropped, or when [`close`] is called.
     ///
-    /// If there are no messages in the channel&#39;s buffer, but the channel has
+    /// If there are no messages in the channel's buffer, but the channel has
     /// not yet been closed, this method will block until a message is sent or
     /// the channel is closed.
     ///
@@ -1644,8 +2106,8 @@
     /// }
     /// ```
     </span><span class="attr">#[track_caller]
-    #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
-    #[cfg_attr(docsrs, doc(alias = <span class="string">&quot;recv_blocking&quot;</span>))]
+    #[cfg(feature = <span class="string">"sync"</span>)]
+    #[cfg_attr(docsrs, doc(alias = <span class="string">"recv_blocking"</span>))]
     </span><span class="kw">pub fn </span>blocking_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.recv())
     }
@@ -1684,7 +2146,7 @@
     ///     rx.close();
     ///
     ///     while let Some(msg) = rx.recv().await {
-    ///         println!(&quot;got {}&quot;, msg);
+    ///         println!("got {}", msg);
     ///     }
     ///
     ///     // Channel closed and no messages are lost.
@@ -1707,23 +2169,100 @@
     /// When the method returns `Poll::Pending`, the `Waker` in the provided
     /// `Context` is scheduled to receive a wakeup when a message is sent on any
     /// receiver, or when the channel is closed.  Note that on multiple calls to
-    /// `poll_recv`, only the `Waker` from the `Context` passed to the most
-    /// recent call is scheduled to receive a wakeup.
+    /// `poll_recv` or `poll_recv_many`, only the `Waker` from the `Context`
+    /// passed to the most recent call is scheduled to receive a wakeup.
     ///
     /// If this method returns `Poll::Pending` due to a spurious failure, then
     /// the `Waker` will be notified when the situation causing the spurious
     /// failure has been resolved. Note that receiving such a wakeup does not
     /// guarantee that the next call will succeed — it could fail with another
     /// spurious failure.
-    </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
         <span class="self">self</span>.chan.recv(cx)
+    }
+
+    <span class="doccomment">/// Polls to receive multiple messages on this channel, extending the provided buffer.
+    ///
+    /// This method returns:
+    /// * `Poll::Pending` if no messages are available but the channel is not closed, or if a
+    ///   spurious failure happens.
+    /// * `Poll::Ready(count)` where `count` is the number of messages successfully received and
+    ///   stored in `buffer`. This can be less than, or equal to, `limit`.
+    /// * `Poll::Ready(0)` if `limit` is set to zero or when the channel is closed.
+    ///
+    /// When the method returns `Poll::Pending`, the `Waker` in the provided
+    /// `Context` is scheduled to receive a wakeup when a message is sent on any
+    /// receiver, or when the channel is closed.  Note that on multiple calls to
+    /// `poll_recv` or `poll_recv_many`, only the `Waker` from the `Context`
+    /// passed to the most recent call is scheduled to receive a wakeup.
+    ///
+    /// Note that this method does not guarantee that exactly `limit` messages
+    /// are received. Rather, if at least one message is available, it returns
+    /// as many messages as it can up to the given limit. This method returns
+    /// zero only if the channel is closed (or if `limit` is zero).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::task::{Context, Poll};
+    /// use std::pin::Pin;
+    /// use tokio::sync::mpsc;
+    /// use futures::Future;
+    ///
+    /// struct MyReceiverFuture&lt;'a&gt; {
+    ///     receiver: mpsc::Receiver&lt;i32&gt;,
+    ///     buffer: &amp;'a mut Vec&lt;i32&gt;,
+    ///     limit: usize,
+    /// }
+    ///
+    /// impl&lt;'a&gt; Future for MyReceiverFuture&lt;'a&gt; {
+    ///     type Output = usize; // Number of messages received
+    ///
+    ///     fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Self::Output&gt; {
+    ///         let MyReceiverFuture { receiver, buffer, limit } = &amp;mut *self;
+    ///
+    ///         // Now `receiver` and `buffer` are mutable references, and `limit` is copied
+    ///         match receiver.poll_recv_many(cx, *buffer, *limit) {
+    ///             Poll::Pending =&gt; Poll::Pending,
+    ///             Poll::Ready(count) =&gt; Poll::Ready(count),
+    ///         }
+    ///     }
+    /// }
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, rx) = mpsc::channel(32);
+    ///     let mut buffer = Vec::new();
+    ///
+    ///     let my_receiver_future = MyReceiverFuture {
+    ///         receiver: rx,
+    ///         buffer: &amp;mut buffer,
+    ///         limit: 3,
+    ///     };
+    ///
+    ///     for i in 0..10 {
+    ///         tx.send(i).await.unwrap();
+    ///     }
+    ///
+    ///     let count = my_receiver_future.await;
+    ///     assert_eq!(count, 3);
+    ///     assert_eq!(buffer, vec![0,1,2])
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>poll_recv_many(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        buffer: <span class="kw-2">&amp;mut </span>Vec&lt;T&gt;,
+        limit: usize,
+    ) -&gt; Poll&lt;usize&gt; {
+        <span class="self">self</span>.chan.recv_many(cx, buffer, limit)
     }
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;Receiver&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"Receiver"</span>)
+            .field(<span class="string">"chan"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
             .finish()
     }
 }
@@ -1758,7 +2297,11 @@
     ///
     /// If `send` is used as the event in a [`tokio::select!`](crate::select)
     /// statement and some other branch completes first, then it is guaranteed
-    /// that the message was not sent.
+    /// that the message was not sent. **However, in that case, the message
+    /// is dropped and will be lost.**
+    ///
+    /// To avoid losing messages, use [`reserve`](Self::reserve) to reserve
+    /// capacity, then use the returned [`Permit`] to send the message.
     ///
     /// This channel uses a queue to ensure that calls to `send` and `reserve`
     /// complete in the order they were requested.  Cancelling a call to
@@ -1779,14 +2322,14 @@
     ///     tokio::spawn(async move {
     ///         for i in 0..10 {
     ///             if let Err(_) = tx.send(i).await {
-    ///                 println!(&quot;receiver dropped&quot;);
+    ///                 println!("receiver dropped");
     ///                 return;
     ///             }
     ///         }
     ///     });
     ///
     ///     while let Some(i) = rx.recv().await {
-    ///         println!(&quot;got = {}&quot;, i);
+    ///         println!("got = {}", i);
     ///     }
     /// }
     /// ```
@@ -1833,16 +2376,16 @@
     ///         tx4.closed(),
     ///         tx5.closed()
     ///     );
-    ///     println!(&quot;Receiver dropped&quot;);
+    ///     println!("Receiver dropped");
     /// }
     /// ```
     </span><span class="kw">pub async fn </span>closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="self">self</span>.chan.closed().<span class="kw">await
-    </span>}
+        <span class="self">self</span>.chan.closed().<span class="kw">await</span>;
+    }
 
     <span class="doccomment">/// Attempts to immediately send a message on this `Sender`
     ///
-    /// This method differs from [`send`] by returning immediately if the channel&#39;s
+    /// This method differs from [`send`] by returning immediately if the channel's
     /// buffer is full or no receiver is waiting to acquire some data. Compared
     /// with [`send`], this function has two failure cases instead of one (one for
     /// disconnection, one for a full buffer).
@@ -1886,21 +2429,21 @@
     ///
     ///     let mut msg;
     ///     msg = rx.recv().await.unwrap();
-    ///     println!(&quot;message {} received&quot;, msg);
+    ///     println!("message {} received", msg);
     ///
     ///     msg = rx.recv().await.unwrap();
-    ///     println!(&quot;message {} received&quot;, msg);
+    ///     println!("message {} received", msg);
     ///
     ///     // Third message may have never been sent
     ///     match rx.recv().await {
-    ///         Some(msg) =&gt; println!(&quot;message {} received&quot;, msg),
-    ///         None =&gt; println!(&quot;the third message was never sent&quot;),
+    ///         Some(msg) =&gt; println!("message {} received", msg),
+    ///         None =&gt; println!("the third message was never sent"),
     ///     }
     /// }
     /// ```
     </span><span class="kw">pub fn </span>try_send(<span class="kw-2">&amp;</span><span class="self">self</span>, message: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), TrySendError&lt;T&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.try_acquire(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">Ok</span>(()) =&gt; {}
             <span class="prelude-val">Err</span>(TryAcquireError::Closed) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Closed(message)),
             <span class="prelude-val">Err</span>(TryAcquireError::NoPermits) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Full(message)),
         }
@@ -1948,20 +2491,20 @@
     ///     tokio::spawn(async move {
     ///         for i in 0..10 {
     ///             if let Err(e) = tx.send_timeout(i, Duration::from_millis(100)).await {
-    ///                 println!(&quot;send error: #{:?}&quot;, e);
+    ///                 println!("send error: #{:?}", e);
     ///                 return;
     ///             }
     ///         }
     ///     });
     ///
     ///     while let Some(i) = rx.recv().await {
-    ///         println!(&quot;got = {}&quot;, i);
+    ///         println!("got = {}", i);
     ///         sleep(Duration::from_millis(200)).await;
     ///     }
     /// }
     /// ```
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;time&quot;</span>)]
-    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;time&quot;</span>)))]
+    </span><span class="attr">#[cfg(feature = <span class="string">"time"</span>)]
+    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"time"</span>)))]
     </span><span class="kw">pub async fn </span>send_timeout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         value: T,
@@ -2015,8 +2558,8 @@
     /// }
     /// ```
     </span><span class="attr">#[track_caller]
-    #[cfg(feature = <span class="string">&quot;sync&quot;</span>)]
-    #[cfg_attr(docsrs, doc(alias = <span class="string">&quot;send_blocking&quot;</span>))]
+    #[cfg(feature = <span class="string">"sync"</span>)]
+    #[cfg_attr(docsrs, doc(alias = <span class="string">"send_blocking"</span>))]
     </span><span class="kw">pub fn </span>blocking_send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;T&gt;&gt; {
         <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.send(value))
     }
@@ -2087,9 +2630,73 @@
     ///     assert_eq!(rx.recv().await.unwrap(), 456);
     /// }
     /// ```
-    </span><span class="kw">pub async fn </span>reserve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Permit&lt;<span class="lifetime">&#39;_</span>, T&gt;, SendError&lt;()&gt;&gt; {
-        <span class="self">self</span>.reserve_inner().<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">pub async fn </span>reserve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Permit&lt;<span class="lifetime">'_</span>, T&gt;, SendError&lt;()&gt;&gt; {
+        <span class="self">self</span>.reserve_inner(<span class="number">1</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Permit { chan: <span class="kw-2">&amp;</span><span class="self">self</span>.chan })
+    }
+
+    <span class="doccomment">/// Waits for channel capacity. Once capacity to send `n` messages is
+    /// available, it is reserved for the caller.
+    ///
+    /// If the channel is full or if there are fewer than `n` permits available, the function waits
+    /// for the number of unreceived messages to become `n` less than the channel capacity.
+    /// Capacity to send `n` message is then reserved for the caller.
+    ///
+    /// A [`PermitIterator`] is returned to track the reserved capacity.
+    /// You can call this [`Iterator`] until it is exhausted to
+    /// get a [`Permit`] and then call [`Permit::send`]. This function is similar to
+    /// [`try_reserve_many`] except it awaits for the slots to become available.
+    ///
+    /// If the channel is closed, the function returns a [`SendError`].
+    ///
+    /// Dropping [`PermitIterator`] without consuming it entirely releases the remaining
+    /// permits back to the channel.
+    ///
+    /// [`PermitIterator`]: PermitIterator
+    /// [`Permit`]: Permit
+    /// [`send`]: Permit::send
+    /// [`try_reserve_many`]: Sender::try_reserve_many
+    ///
+    /// # Cancel safety
+    ///
+    /// This channel uses a queue to ensure that calls to `send` and `reserve_many`
+    /// complete in the order they were requested. Cancelling a call to
+    /// `reserve_many` makes you lose your place in the queue.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::mpsc;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, mut rx) = mpsc::channel(2);
+    ///
+    ///     // Reserve capacity
+    ///     let mut permit = tx.reserve_many(2).await.unwrap();
+    ///
+    ///     // Trying to send directly on the `tx` will fail due to no
+    ///     // available capacity.
+    ///     assert!(tx.try_send(123).is_err());
+    ///
+    ///     // Sending with the permit iterator succeeds
+    ///     permit.next().unwrap().send(456);
+    ///     permit.next().unwrap().send(457);
+    ///
+    ///     // The iterator should now be exhausted
+    ///     assert!(permit.next().is_none());
+    ///     
+    ///     // The value sent on the permit is received
+    ///     assert_eq!(rx.recv().await.unwrap(), 456);
+    ///     assert_eq!(rx.recv().await.unwrap(), 457);
+    /// }
+    /// ```
+    </span><span class="kw">pub async fn </span>reserve_many(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Result</span>&lt;PermitIterator&lt;<span class="lifetime">'_</span>, T&gt;, SendError&lt;()&gt;&gt; {
+        <span class="self">self</span>.reserve_inner(n).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(PermitIterator {
+            chan: <span class="kw-2">&amp;</span><span class="self">self</span>.chan,
+            n,
+        })
     }
 
     <span class="doccomment">/// Waits for channel capacity, moving the `Sender` and returning an owned
@@ -2099,7 +2706,7 @@
     /// This moves the sender _by value_, and returns an owned permit that can
     /// be used to send a message into the channel. Unlike [`Sender::reserve`],
     /// this method may be used in cases where the permit must be valid for the
-    /// `&#39;static` lifetime. `Sender`s may be cloned cheaply (`Sender::clone` is
+    /// `'static` lifetime. `Sender`s may be cloned cheaply (`Sender::clone` is
     /// essentially a reference count increment, comparable to [`Arc::clone`]),
     /// so when multiple [`OwnedPermit`]s are needed or the `Sender` cannot be
     /// moved, it can be cloned prior to calling `reserve_owned`.
@@ -2173,17 +2780,20 @@
     /// [`send`]: OwnedPermit::send
     /// [`Arc::clone`]: std::sync::Arc::clone
     </span><span class="kw">pub async fn </span>reserve_owned(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedPermit&lt;T&gt;, SendError&lt;()&gt;&gt; {
-        <span class="self">self</span>.reserve_inner().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.reserve_inner(<span class="number">1</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(OwnedPermit {
             chan: <span class="prelude-val">Some</span>(<span class="self">self</span>.chan),
         })
     }
 
-    <span class="kw">async fn </span>reserve_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;()&gt;&gt; {
+    <span class="kw">async fn </span>reserve_inner(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Result</span>&lt;(), SendError&lt;()&gt;&gt; {
         <span class="kw">crate</span>::trace::async_trace_leaf().<span class="kw">await</span>;
 
-        <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.acquire(<span class="number">1</span>).<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
+        <span class="kw">if </span>n &gt; <span class="self">self</span>.max_capacity() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(SendError(()));
+        }
+        <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.acquire(n).<span class="kw">await </span>{
+            <span class="prelude-val">Ok</span>(()) =&gt; <span class="prelude-val">Ok</span>(()),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(SendError(())),
         }
     }
@@ -2231,14 +2841,99 @@
     ///
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Permit&lt;<span class="lifetime">&#39;_</span>, T&gt;, TrySendError&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>try_reserve(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Permit&lt;<span class="lifetime">'_</span>, T&gt;, TrySendError&lt;()&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.try_acquire(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">Ok</span>(()) =&gt; {}
             <span class="prelude-val">Err</span>(TryAcquireError::Closed) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Closed(())),
             <span class="prelude-val">Err</span>(TryAcquireError::NoPermits) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Full(())),
         }
 
         <span class="prelude-val">Ok</span>(Permit { chan: <span class="kw-2">&amp;</span><span class="self">self</span>.chan })
+    }
+
+    <span class="doccomment">/// Tries to acquire `n` slots in the channel without waiting for the slot to become
+    /// available.
+    ///
+    /// A [`PermitIterator`] is returned to track the reserved capacity.
+    /// You can call this [`Iterator`] until it is exhausted to
+    /// get a [`Permit`] and then call [`Permit::send`]. This function is similar to
+    /// [`reserve_many`] except it does not await for the slots to become available.
+    ///
+    /// If there are fewer than `n` permits available on the channel, then
+    /// this function will return a [`TrySendError::Full`]. If the channel is closed
+    /// this function will return a [`TrySendError::Closed`].
+    ///
+    /// Dropping [`PermitIterator`] without consuming it entirely releases the remaining
+    /// permits back to the channel.
+    ///
+    /// [`PermitIterator`]: PermitIterator
+    /// [`send`]: Permit::send
+    /// [`reserve_many`]: Sender::reserve_many
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::sync::mpsc;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, mut rx) = mpsc::channel(2);
+    ///
+    ///     // Reserve capacity
+    ///     let mut permit = tx.try_reserve_many(2).unwrap();
+    ///
+    ///     // Trying to send directly on the `tx` will fail due to no
+    ///     // available capacity.
+    ///     assert!(tx.try_send(123).is_err());
+    ///
+    ///     // Trying to reserve an additional slot on the `tx` will
+    ///     // fail because there is no capacity.
+    ///     assert!(tx.try_reserve().is_err());
+    ///
+    ///     // Sending with the permit iterator succeeds
+    ///     permit.next().unwrap().send(456);
+    ///     permit.next().unwrap().send(457);
+    ///
+    ///     // The iterator should now be exhausted
+    ///     assert!(permit.next().is_none());
+    ///
+    ///     // The value sent on the permit is received
+    ///     assert_eq!(rx.recv().await.unwrap(), 456);
+    ///     assert_eq!(rx.recv().await.unwrap(), 457);
+    ///     
+    ///     // Trying to call try_reserve_many with 0 will return an empty iterator
+    ///     let mut permit = tx.try_reserve_many(0).unwrap();
+    ///     assert!(permit.next().is_none());
+    ///
+    ///     // Trying to call try_reserve_many with a number greater than the channel
+    ///     // capacity will return an error
+    ///     let permit = tx.try_reserve_many(3);
+    ///     assert!(permit.is_err());
+    ///
+    ///     // Trying to call try_reserve_many on a closed channel will return an error
+    ///     drop(rx);
+    ///     let permit = tx.try_reserve_many(1);
+    ///     assert!(permit.is_err());
+    ///
+    ///     let permit = tx.try_reserve_many(0);
+    ///     assert!(permit.is_err());
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>try_reserve_many(<span class="kw-2">&amp;</span><span class="self">self</span>, n: usize) -&gt; <span class="prelude-ty">Result</span>&lt;PermitIterator&lt;<span class="lifetime">'_</span>, T&gt;, TrySendError&lt;()&gt;&gt; {
+        <span class="kw">if </span>n &gt; <span class="self">self</span>.max_capacity() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Full(()));
+        }
+
+        <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.try_acquire(n) {
+            <span class="prelude-val">Ok</span>(()) =&gt; {}
+            <span class="prelude-val">Err</span>(TryAcquireError::Closed) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Closed(())),
+            <span class="prelude-val">Err</span>(TryAcquireError::NoPermits) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Full(())),
+        }
+
+        <span class="prelude-val">Ok</span>(PermitIterator {
+            chan: <span class="kw-2">&amp;</span><span class="self">self</span>.chan,
+            n,
+        })
     }
 
     <span class="doccomment">/// Tries to acquire a slot in the channel without waiting for the slot to become
@@ -2247,7 +2942,7 @@
     /// This moves the sender _by value_, and returns an owned permit that can
     /// be used to send a message into the channel. Unlike [`Sender::try_reserve`],
     /// this method may be used in cases where the permit must be valid for the
-    /// `&#39;static` lifetime.  `Sender`s may be cloned cheaply (`Sender::clone` is
+    /// `'static` lifetime.  `Sender`s may be cloned cheaply (`Sender::clone` is
     /// essentially a reference count increment, comparable to [`Arc::clone`]),
     /// so when multiple [`OwnedPermit`]s are needed or the `Sender` cannot be
     /// moved, it can be cloned prior to calling `try_reserve_owned`.
@@ -2298,7 +2993,7 @@
     /// ```
     </span><span class="kw">pub fn </span>try_reserve_owned(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;OwnedPermit&lt;T&gt;, TrySendError&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">match </span><span class="self">self</span>.chan.semaphore().semaphore.try_acquire(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">Ok</span>(()) =&gt; {}
             <span class="prelude-val">Err</span>(TryAcquireError::Closed) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Closed(<span class="self">self</span>)),
             <span class="prelude-val">Err</span>(TryAcquireError::NoPermits) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(TrySendError::Full(<span class="self">self</span>)),
         }
@@ -2387,12 +3082,12 @@
     /// #[tokio::main]
     /// async fn main() {
     ///     let (tx, _rx) = mpsc::channel::&lt;()&gt;(5);
-    ///      
+    ///
     ///     // both max capacity and capacity are the same at first
     ///     assert_eq!(tx.max_capacity(), 5);
     ///     assert_eq!(tx.capacity(), 5);
     ///
-    ///     // Making a reservation doesn&#39;t change the max capacity.
+    ///     // Making a reservation doesn't change the max capacity.
     ///     let permit = tx.reserve().await.unwrap();
     ///     assert_eq!(tx.max_capacity(), 5);
     ///     // but drops the capacity by one
@@ -2417,9 +3112,9 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Sender&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;Sender&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"Sender"</span>)
+            .field(<span class="string">"chan"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
             .finish()
     }
 }
@@ -2433,8 +3128,8 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; WeakSender&lt;T&gt; {
-    <span class="doccomment">/// Tries to convert a WeakSender into a [`Sender`]. This will return `Some`
-    /// if there are other `Sender` instances alive and the channel wasn&#39;t
+    <span class="doccomment">/// Tries to convert a `WeakSender` into a [`Sender`]. This will return `Some`
+    /// if there are other `Sender` instances alive and the channel wasn't
     /// previously dropped, otherwise `None` is returned.
     </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Sender&lt;T&gt;&gt; {
         chan::Tx::upgrade(<span class="self">self</span>.chan.clone()).map(Sender::new)
@@ -2442,14 +3137,14 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WeakSender&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;WeakSender&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"WeakSender"</span>).finish()
     }
 }
 
 <span class="comment">// ===== impl Permit =====
 
-</span><span class="kw">impl</span>&lt;T&gt; Permit&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+</span><span class="kw">impl</span>&lt;T&gt; Permit&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="doccomment">/// Sends a value using the reserved capacity.
     ///
     /// Capacity for the message has already been reserved. The message is sent
@@ -2492,7 +3187,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Permit&lt;<span class="lifetime">&#39;_</span>, T&gt; {
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Permit&lt;<span class="lifetime">'_</span>, T&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">use </span>chan::Semaphore;
 
@@ -2509,10 +3204,62 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Permit&lt;<span class="lifetime">&#39;_</span>, T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;Permit&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Permit&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"Permit"</span>)
+            .field(<span class="string">"chan"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+            .finish()
+    }
+}
+
+<span class="comment">// ===== impl PermitIterator =====
+
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Iterator <span class="kw">for </span>PermitIterator&lt;<span class="lifetime">'a</span>, T&gt; {
+    <span class="kw">type </span>Item = Permit&lt;<span class="lifetime">'a</span>, T&gt;;
+
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
+        <span class="kw">if </span><span class="self">self</span>.n == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+
+        <span class="self">self</span>.n -= <span class="number">1</span>;
+        <span class="prelude-val">Some</span>(Permit { chan: <span class="self">self</span>.chan })
+    }
+
+    <span class="kw">fn </span>size_hint(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (usize, <span class="prelude-ty">Option</span>&lt;usize&gt;) {
+        <span class="kw">let </span>n = <span class="self">self</span>.n;
+        (n, <span class="prelude-val">Some</span>(n))
+    }
+}
+<span class="kw">impl</span>&lt;T&gt; ExactSizeIterator <span class="kw">for </span>PermitIterator&lt;<span class="lifetime">'_</span>, T&gt; {}
+<span class="kw">impl</span>&lt;T&gt; std::iter::FusedIterator <span class="kw">for </span>PermitIterator&lt;<span class="lifetime">'_</span>, T&gt; {}
+
+<span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>PermitIterator&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">use </span>chan::Semaphore;
+
+        <span class="kw">if </span><span class="self">self</span>.n == <span class="number">0 </span>{
+            <span class="kw">return</span>;
+        }
+
+        <span class="kw">let </span>semaphore = <span class="self">self</span>.chan.semaphore();
+
+        <span class="comment">// Add the remaining permits back to the semaphore
+        </span>semaphore.add_permits(<span class="self">self</span>.n);
+
+        <span class="comment">// If this is the last sender for this channel, wake the receiver so
+        // that it can be notified that the channel is closed.
+        </span><span class="kw">if </span>semaphore.is_closed() &amp;&amp; semaphore.is_idle() {
+            <span class="self">self</span>.chan.wake_rx();
+        }
+    }
+}
+
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>PermitIterator&lt;<span class="lifetime">'_</span>, T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"PermitIterator"</span>)
+            .field(<span class="string">"chan"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+            .field(<span class="string">"capacity"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.n)
             .finish()
     }
 }
@@ -2556,7 +3303,7 @@
     /// ```
     </span><span class="kw">pub fn </span>send(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; Sender&lt;T&gt; {
         <span class="kw">let </span>chan = <span class="self">self</span>.chan.take().unwrap_or_else(|| {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;OwnedPermit channel is only taken when the permit is moved&quot;</span>)
+            <span class="macro">unreachable!</span>(<span class="string">"OwnedPermit channel is only taken when the permit is moved"</span>)
         });
         chan.send(value);
 
@@ -2597,7 +3344,7 @@
         <span class="kw">use </span>chan::Semaphore;
 
         <span class="kw">let </span>chan = <span class="self">self</span>.chan.take().unwrap_or_else(|| {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;OwnedPermit channel is only taken when the permit is moved&quot;</span>)
+            <span class="macro">unreachable!</span>(<span class="string">"OwnedPermit channel is only taken when the permit is moved"</span>)
         });
 
         <span class="comment">// Add the permit back to the semaphore
@@ -2630,9 +3377,9 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>OwnedPermit&lt;T&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        fmt.debug_struct(<span class="string">&quot;OwnedPermit&quot;</span>)
-            .field(<span class="string">&quot;chan&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        fmt.debug_struct(<span class="string">"OwnedPermit"</span>)
+            .field(<span class="string">"chan"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.chan)
             .finish()
     }
 }

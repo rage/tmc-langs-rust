@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/parser/datetime.rs`."><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../toml_edit/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/parser/datetime.rs`."><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -444,9 +445,35 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::RangeInclusive;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::errors::CustomError;
+<span class="kw">use </span><span class="kw">crate</span>::parser::error::CustomError;
 <span class="kw">use </span><span class="kw">crate</span>::parser::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::parser::trivia::from_utf8_unchecked;
 
@@ -455,9 +482,10 @@
 <span class="kw">use </span>winnow::combinator::cut_err;
 <span class="kw">use </span>winnow::combinator::opt;
 <span class="kw">use </span>winnow::combinator::preceded;
+<span class="kw">use </span>winnow::combinator::trace;
+<span class="kw">use </span>winnow::stream::Stream <span class="kw">as _</span>;
 <span class="kw">use </span>winnow::token::one_of;
 <span class="kw">use </span>winnow::token::take_while;
-<span class="kw">use </span>winnow::trace::trace;
 
 <span class="comment">// ;; Date and Time (as defined in RFC 3339)
 
@@ -467,9 +495,9 @@
 // local-date = full-date
 // local-time = partial-time
 // full-time = partial-time time-offset
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_time(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;Datetime&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_time(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;Datetime&gt; {
     trace(
-        <span class="string">&quot;date-time&quot;</span>,
+        <span class="string">"date-time"</span>,
         alt((
             (full_date, opt((time_delim, partial_time, opt(time_offset))))
                 .map(|(date, opt)| {
@@ -488,33 +516,56 @@
                         },
                     }
                 })
-                .context(StrContext::Label(<span class="string">&quot;date-time&quot;</span>)),
+                .context(StrContext::Label(<span class="string">"date-time"</span>)),
             partial_time
                 .map(|t| t.into())
-                .context(StrContext::Label(<span class="string">&quot;time&quot;</span>)),
+                .context(StrContext::Label(<span class="string">"time"</span>)),
         )),
     )
     .parse_next(input)
 }
 
-<span class="comment">// full-date      = date-fullyear &quot;-&quot; date-month &quot;-&quot; date-mday
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>full_date(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;Date&gt; {
-    trace(
-        <span class="string">&quot;full-date&quot;</span>,
-        (date_fullyear, <span class="string">b&#39;-&#39;</span>, cut_err((date_month, <span class="string">b&#39;-&#39;</span>, date_mday)))
-            .map(|(year, <span class="kw">_</span>, (month, <span class="kw">_</span>, day))| Date { year, month, day }),
-    )
-    .parse_next(input)
+<span class="comment">// full-date      = date-fullyear "-" date-month "-" date-mday
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>full_date(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;Date&gt; {
+    trace(<span class="string">"full-date"</span>, full_date_).parse_next(input)
 }
 
-<span class="comment">// partial-time   = time-hour &quot;:&quot; time-minute &quot;:&quot; time-second [time-secfrac]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>partial_time(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;Time&gt; {
+<span class="kw">fn </span>full_date_(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;Date&gt; {
+    <span class="kw">let </span>year = date_fullyear.parse_next(input)<span class="question-mark">?</span>;
+    <span class="kw">let _ </span>= <span class="string">b'-'</span>.parse_next(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>month = cut_err(date_month).parse_next(input)<span class="question-mark">?</span>;
+    <span class="kw">let _ </span>= cut_err(<span class="string">b'-'</span>).parse_next(input)<span class="question-mark">?</span>;
+    <span class="kw">let </span>day_start = input.checkpoint();
+    <span class="kw">let </span>day = cut_err(date_mday).parse_next(input)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>is_leap_year = (year % <span class="number">4 </span>== <span class="number">0</span>) &amp;&amp; ((year % <span class="number">100 </span>!= <span class="number">0</span>) || (year % <span class="number">400 </span>== <span class="number">0</span>));
+    <span class="kw">let </span>max_days_in_month = <span class="kw">match </span>month {
+        <span class="number">2 </span><span class="kw">if </span>is_leap_year =&gt; <span class="number">29</span>,
+        <span class="number">2 </span>=&gt; <span class="number">28</span>,
+        <span class="number">4 </span>| <span class="number">6 </span>| <span class="number">9 </span>| <span class="number">11 </span>=&gt; <span class="number">30</span>,
+        <span class="kw">_ </span>=&gt; <span class="number">31</span>,
+    };
+    <span class="kw">if </span>max_days_in_month &lt; day {
+        input.reset(<span class="kw-2">&amp;</span>day_start);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(winnow::error::ErrMode::from_external_error(
+            input,
+            winnow::error::ErrorKind::Verify,
+            CustomError::OutOfRange,
+        )
+        .cut());
+    }
+
+    <span class="prelude-val">Ok</span>(Date { year, month, day })
+}
+
+<span class="comment">// partial-time   = time-hour ":" time-minute ":" time-second [time-secfrac]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>partial_time(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;Time&gt; {
     trace(
-        <span class="string">&quot;partial-time&quot;</span>,
+        <span class="string">"partial-time"</span>,
         (
             time_hour,
-            <span class="string">b&#39;:&#39;</span>,
-            cut_err((time_minute, <span class="string">b&#39;:&#39;</span>, time_second, opt(time_secfrac))),
+            <span class="string">b':'</span>,
+            cut_err((time_minute, <span class="string">b':'</span>, time_second, opt(time_secfrac))),
         )
             .map(|(hour, <span class="kw">_</span>, (minute, <span class="kw">_</span>, second, nanosecond))| Time {
                 hour,
@@ -526,45 +577,45 @@
     .parse_next(input)
 }
 
-<span class="comment">// time-offset    = &quot;Z&quot; / time-numoffset
-// time-numoffset = ( &quot;+&quot; / &quot;-&quot; ) time-hour &quot;:&quot; time-minute
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_offset(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;Offset&gt; {
+<span class="comment">// time-offset    = "Z" / time-numoffset
+// time-numoffset = ( "+" / "-" ) time-hour ":" time-minute
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_offset(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;Offset&gt; {
     trace(
-        <span class="string">&quot;time-offset&quot;</span>,
+        <span class="string">"time-offset"</span>,
         alt((
-            one_of((<span class="string">b&#39;Z&#39;</span>, <span class="string">b&#39;z&#39;</span>)).value(Offset::Z),
+            one_of((<span class="string">b'Z'</span>, <span class="string">b'z'</span>)).value(Offset::Z),
             (
-                one_of((<span class="string">b&#39;+&#39;</span>, <span class="string">b&#39;-&#39;</span>)),
-                cut_err((time_hour, <span class="string">b&#39;:&#39;</span>, time_minute)),
+                one_of((<span class="string">b'+'</span>, <span class="string">b'-'</span>)),
+                cut_err((time_hour, <span class="string">b':'</span>, time_minute)),
             )
                 .map(|(sign, (hours, <span class="kw">_</span>, minutes))| {
                     <span class="kw">let </span>sign = <span class="kw">match </span>sign {
-                        <span class="string">b&#39;+&#39; </span>=&gt; <span class="number">1</span>,
-                        <span class="string">b&#39;-&#39; </span>=&gt; -<span class="number">1</span>,
-                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;Parser prevents this&quot;</span>),
+                        <span class="string">b'+' </span>=&gt; <span class="number">1</span>,
+                        <span class="string">b'-' </span>=&gt; -<span class="number">1</span>,
+                        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"Parser prevents this"</span>),
                     };
                     sign * (hours <span class="kw">as </span>i16 * <span class="number">60 </span>+ minutes <span class="kw">as </span>i16)
                 })
                 .verify(|minutes| ((-<span class="number">24 </span>* <span class="number">60</span>)..=(<span class="number">24 </span>* <span class="number">60</span>)).contains(minutes))
                 .map(|minutes| Offset::Custom { minutes }),
         ))
-        .context(StrContext::Label(<span class="string">&quot;time offset&quot;</span>)),
+        .context(StrContext::Label(<span class="string">"time offset"</span>)),
     )
     .parse_next(input)
 }
 
 <span class="comment">// date-fullyear  = 4DIGIT
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_fullyear(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u16&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_fullyear(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u16&gt; {
     unsigned_digits::&lt;<span class="number">4</span>, <span class="number">4</span>&gt;
-        .map(|s: <span class="kw-2">&amp;</span>str| s.parse::&lt;u16&gt;().expect(<span class="string">&quot;4DIGIT should match u8&quot;</span>))
+        .map(|s: <span class="kw-2">&amp;</span>str| s.parse::&lt;u16&gt;().expect(<span class="string">"4DIGIT should match u8"</span>))
         .parse_next(input)
 }
 
 <span class="comment">// date-month     = 2DIGIT  ; 01-12
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_month(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_month(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     unsigned_digits::&lt;<span class="number">2</span>, <span class="number">2</span>&gt;
         .try_map(|s: <span class="kw-2">&amp;</span>str| {
-            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">&quot;2DIGIT should match u8&quot;</span>);
+            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">"2DIGIT should match u8"</span>);
             <span class="kw">if </span>(<span class="number">1</span>..=<span class="number">12</span>).contains(<span class="kw-2">&amp;</span>d) {
                 <span class="prelude-val">Ok</span>(d)
             } <span class="kw">else </span>{
@@ -575,10 +626,10 @@
 }
 
 <span class="comment">// date-mday      = 2DIGIT  ; 01-28, 01-29, 01-30, 01-31 based on month/year
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_mday(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>date_mday(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     unsigned_digits::&lt;<span class="number">2</span>, <span class="number">2</span>&gt;
         .try_map(|s: <span class="kw-2">&amp;</span>str| {
-            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">&quot;2DIGIT should match u8&quot;</span>);
+            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">"2DIGIT should match u8"</span>);
             <span class="kw">if </span>(<span class="number">1</span>..=<span class="number">31</span>).contains(<span class="kw-2">&amp;</span>d) {
                 <span class="prelude-val">Ok</span>(d)
             } <span class="kw">else </span>{
@@ -588,18 +639,18 @@
         .parse_next(input)
 }
 
-<span class="comment">// time-delim     = &quot;T&quot; / %x20 ; T, t, or space
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_delim(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+<span class="comment">// time-delim     = "T" / %x20 ; T, t, or space
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_delim(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     one_of(TIME_DELIM).parse_next(input)
 }
 
-<span class="kw">const </span>TIME_DELIM: (u8, u8, u8) = (<span class="string">b&#39;T&#39;</span>, <span class="string">b&#39;t&#39;</span>, <span class="string">b&#39; &#39;</span>);
+<span class="kw">const </span>TIME_DELIM: (u8, u8, u8) = (<span class="string">b'T'</span>, <span class="string">b't'</span>, <span class="string">b' '</span>);
 
 <span class="comment">// time-hour      = 2DIGIT  ; 00-23
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_hour(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_hour(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     unsigned_digits::&lt;<span class="number">2</span>, <span class="number">2</span>&gt;
         .try_map(|s: <span class="kw-2">&amp;</span>str| {
-            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">&quot;2DIGIT should match u8&quot;</span>);
+            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">"2DIGIT should match u8"</span>);
             <span class="kw">if </span>(<span class="number">0</span>..=<span class="number">23</span>).contains(<span class="kw-2">&amp;</span>d) {
                 <span class="prelude-val">Ok</span>(d)
             } <span class="kw">else </span>{
@@ -610,10 +661,10 @@
 }
 
 <span class="comment">// time-minute    = 2DIGIT  ; 00-59
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_minute(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_minute(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     unsigned_digits::&lt;<span class="number">2</span>, <span class="number">2</span>&gt;
         .try_map(|s: <span class="kw-2">&amp;</span>str| {
-            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">&quot;2DIGIT should match u8&quot;</span>);
+            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">"2DIGIT should match u8"</span>);
             <span class="kw">if </span>(<span class="number">0</span>..=<span class="number">59</span>).contains(<span class="kw-2">&amp;</span>d) {
                 <span class="prelude-val">Ok</span>(d)
             } <span class="kw">else </span>{
@@ -624,10 +675,10 @@
 }
 
 <span class="comment">// time-second    = 2DIGIT  ; 00-58, 00-59, 00-60 based on leap second rules
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_second(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_second(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     unsigned_digits::&lt;<span class="number">2</span>, <span class="number">2</span>&gt;
         .try_map(|s: <span class="kw-2">&amp;</span>str| {
-            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">&quot;2DIGIT should match u8&quot;</span>);
+            <span class="kw">let </span>d = s.parse::&lt;u8&gt;().expect(<span class="string">"2DIGIT should match u8"</span>);
             <span class="kw">if </span>(<span class="number">0</span>..=<span class="number">60</span>).contains(<span class="kw-2">&amp;</span>d) {
                 <span class="prelude-val">Ok</span>(d)
             } <span class="kw">else </span>{
@@ -637,8 +688,8 @@
         .parse_next(input)
 }
 
-<span class="comment">// time-secfrac   = &quot;.&quot; 1*DIGIT
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_secfrac(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u32&gt; {
+<span class="comment">// time-secfrac   = "." 1*DIGIT
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>time_secfrac(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u32&gt; {
     <span class="kw">static </span>SCALE: [u32; <span class="number">10</span>] = [
         <span class="number">0</span>,
         <span class="number">100_000_000</span>,
@@ -652,7 +703,7 @@
         <span class="number">1</span>,
     ];
     <span class="kw">const </span>INF: usize = usize::MAX;
-    preceded(<span class="string">b&#39;.&#39;</span>, unsigned_digits::&lt;<span class="number">1</span>, INF&gt;)
+    preceded(<span class="string">b'.'</span>, unsigned_digits::&lt;<span class="number">1</span>, INF&gt;)
         .try_map(|<span class="kw-2">mut </span>repr: <span class="kw-2">&amp;</span>str| -&gt; <span class="prelude-ty">Result</span>&lt;u32, CustomError&gt; {
             <span class="kw">let </span>max_digits = SCALE.len() - <span class="number">1</span>;
             <span class="kw">if </span>max_digits &lt; repr.len() {
@@ -673,18 +724,20 @@
         .parse_next(input)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsigned_digits&lt;<span class="lifetime">&#39;i</span>, <span class="kw">const </span>MIN: usize, <span class="kw">const </span>MAX: usize&gt;(
-    input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;,
-) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsigned_digits&lt;<span class="lifetime">'i</span>, <span class="kw">const </span>MIN: usize, <span class="kw">const </span>MAX: usize&gt;(
+    input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;,
+) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>str&gt; {
     take_while(MIN..=MAX, DIGIT)
-        .map(|b: <span class="kw-2">&amp;</span>[u8]| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`is_ascii_digit` filters out on-ASCII&quot;</span>) })
+        .map(|b: <span class="kw-2">&amp;</span>[u8]| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`is_ascii_digit` filters out on-ASCII"</span>) })
         .parse_next(input)
 }
 
 <span class="comment">// DIGIT = %x30-39 ; 0-9
-</span><span class="kw">const </span>DIGIT: RangeInclusive&lt;u8&gt; = <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39;</span>;
+</span><span class="kw">const </span>DIGIT: RangeInclusive&lt;u8&gt; = <span class="string">b'0'</span>..=<span class="string">b'9'</span>;
 
 <span class="attr">#[cfg(test)]
+#[cfg(feature = <span class="string">"parse"</span>)]
+#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -692,7 +745,7 @@
     </span><span class="kw">fn </span>offset_date_time() {
         <span class="kw">let </span>inputs = [
             (
-                <span class="string">&quot;1979-05-27T07:32:00Z&quot;</span>,
+                <span class="string">"1979-05-27T07:32:00Z"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -709,7 +762,7 @@
                 },
             ),
             (
-                <span class="string">&quot;1979-05-27T00:32:00-07:00&quot;</span>,
+                <span class="string">"1979-05-27T00:32:00-07:00"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -726,7 +779,7 @@
                 },
             ),
             (
-                <span class="string">&quot;1979-05-27T00:32:00-00:36&quot;</span>,
+                <span class="string">"1979-05-27T00:32:00-00:36"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -743,7 +796,7 @@
                 },
             ),
             (
-                <span class="string">&quot;1979-05-27T00:32:00.999999&quot;</span>,
+                <span class="string">"1979-05-27T00:32:00.999999"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -771,7 +824,7 @@
     </span><span class="kw">fn </span>local_date_time() {
         <span class="kw">let </span>inputs = [
             (
-                <span class="string">&quot;1979-05-27T07:32:00&quot;</span>,
+                <span class="string">"1979-05-27T07:32:00"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -788,7 +841,7 @@
                 },
             ),
             (
-                <span class="string">&quot;1979-05-27T00:32:00.999999&quot;</span>,
+                <span class="string">"1979-05-27T00:32:00.999999"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -816,7 +869,7 @@
     </span><span class="kw">fn </span>local_date() {
         <span class="kw">let </span>inputs = [
             (
-                <span class="string">&quot;1979-05-27&quot;</span>,
+                <span class="string">"1979-05-27"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">1979</span>,
@@ -828,7 +881,7 @@
                 },
             ),
             (
-                <span class="string">&quot;2017-07-20&quot;</span>,
+                <span class="string">"2017-07-20"</span>,
                 Datetime {
                     date: <span class="prelude-val">Some</span>(Date {
                         year: <span class="number">2017</span>,
@@ -851,7 +904,7 @@
     </span><span class="kw">fn </span>local_time() {
         <span class="kw">let </span>inputs = [
             (
-                <span class="string">&quot;07:32:00&quot;</span>,
+                <span class="string">"07:32:00"</span>,
                 Datetime {
                     date: <span class="prelude-val">None</span>,
                     time: <span class="prelude-val">Some</span>(Time {
@@ -864,7 +917,7 @@
                 },
             ),
             (
-                <span class="string">&quot;00:32:00.999999&quot;</span>,
+                <span class="string">"00:32:00.999999"</span>,
                 Datetime {
                     date: <span class="prelude-val">None</span>,
                     time: <span class="prelude-val">Some</span>(Time {
@@ -886,7 +939,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>time_fraction_truncated() {
-        <span class="kw">let </span>input = <span class="string">&quot;1987-07-05T17:45:00.123456789012345Z&quot;</span>;
+        <span class="kw">let </span>input = <span class="string">"1987-07-05T17:45:00.123456789012345Z"</span>;
         date_time.parse(new_input(input)).unwrap();
     }
 }

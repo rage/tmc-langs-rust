@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.25/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_yaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.32/src/de.rs`."><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1875,10 +1876,10 @@
 /// use serde_yaml::Value;
 ///
 /// fn main() -&gt; Result&lt;()&gt; {
-///     let input = &quot;k: 107\n&quot;;
+///     let input = "k: 107\n";
 ///     let de = serde_yaml::Deserializer::from_str(input);
 ///     let value = Value::deserialize(de)?;
-///     println!(&quot;{:?}&quot;, value);
+///     println!("{:?}", value);
 ///     Ok(())
 /// }
 /// ```
@@ -1891,38 +1892,38 @@
 /// use serde_yaml::Value;
 ///
 /// fn main() -&gt; Result&lt;()&gt; {
-///     let input = &quot;---\nk: 107\n...\n---\nj: 106\n&quot;;
+///     let input = "---\nk: 107\n...\n---\nj: 106\n";
 ///
 ///     for document in serde_yaml::Deserializer::from_str(input) {
 ///         let value = Value::deserialize(document)?;
-///         println!(&quot;{:?}&quot;, value);
+///         println!("{:?}", value);
 ///     }
 ///
 ///     Ok(())
 /// }
 /// ```
-</span><span class="kw">pub struct </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
-    progress: Progress&lt;<span class="lifetime">&#39;de</span>&gt;,
+</span><span class="kw">pub struct </span>Deserializer&lt;<span class="lifetime">'de</span>&gt; {
+    progress: Progress&lt;<span class="lifetime">'de</span>&gt;,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Progress&lt;<span class="lifetime">&#39;de</span>&gt; {
-    Str(<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str),
-    Slice(<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]),
-    Read(Box&lt;<span class="kw">dyn </span>io::Read + <span class="lifetime">&#39;de</span>&gt;),
-    Iterable(Loader&lt;<span class="lifetime">&#39;de</span>&gt;),
-    Document(Document&lt;<span class="lifetime">&#39;de</span>&gt;),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Progress&lt;<span class="lifetime">'de</span>&gt; {
+    Str(<span class="kw-2">&amp;</span><span class="lifetime">'de </span>str),
+    Slice(<span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]),
+    Read(Box&lt;<span class="kw">dyn </span>io::Read + <span class="lifetime">'de</span>&gt;),
+    Iterable(Loader&lt;<span class="lifetime">'de</span>&gt;),
+    Document(Document&lt;<span class="lifetime">'de</span>&gt;),
     Fail(Arc&lt;ErrorImpl&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="doccomment">/// Creates a YAML deserializer from a `&amp;str`.
-    </span><span class="kw">pub fn </span>from_str(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_str(s: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>str) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>progress = Progress::Str(s);
         Deserializer { progress }
     }
 
     <span class="doccomment">/// Creates a YAML deserializer from a `&amp;[u8]`.
-    </span><span class="kw">pub fn </span>from_slice(v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_slice(v: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>progress = Progress::Slice(v);
         Deserializer { progress }
     }
@@ -1934,7 +1935,7 @@
     /// -- everything it does involves copying bytes out of the data source.
     </span><span class="kw">pub fn </span>from_reader&lt;R&gt;(rdr: R) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>R: io::Read + <span class="lifetime">&#39;de</span>,
+        </span>R: io::Read + <span class="lifetime">'de</span>,
     {
         <span class="kw">let </span>progress = Progress::Read(Box::new(rdr));
         Deserializer { progress }
@@ -1942,7 +1943,7 @@
 
     <span class="kw">fn </span>de&lt;T&gt;(
         <span class="self">self</span>,
-        f: <span class="kw">impl for</span>&lt;<span class="lifetime">&#39;document</span>&gt; FnOnce(<span class="kw-2">&amp;mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
+        f: <span class="kw">impl for</span>&lt;<span class="lifetime">'document</span>&gt; FnOnce(<span class="kw-2">&amp;mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>pos = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>jumpcount = <span class="number">0</span>;
@@ -1990,7 +1991,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Iterator <span class="kw">for </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Iterator <span class="kw">for </span>Deserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Item = <span class="self">Self</span>;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
@@ -2010,7 +2011,7 @@
             <span class="kw">_ </span>=&gt; {}
         }
 
-        <span class="kw">let </span>dummy = Progress::Str(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>dummy = Progress::Str(<span class="string">""</span>);
         <span class="kw">let </span>input = mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.progress, dummy);
         <span class="kw">match </span>Loader::new(input) {
             <span class="prelude-val">Ok</span>(loader) =&gt; {
@@ -2028,246 +2029,246 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Deserializer&lt;<span class="lifetime">'de</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_any(visitor))
     }
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_bool(visitor))
     }
 
     <span class="kw">fn </span>deserialize_i8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_i8(visitor))
     }
 
     <span class="kw">fn </span>deserialize_i16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_i16(visitor))
     }
 
     <span class="kw">fn </span>deserialize_i32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_i32(visitor))
     }
 
     <span class="kw">fn </span>deserialize_i64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_i64(visitor))
     }
 
     <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_i128(visitor))
     }
 
     <span class="kw">fn </span>deserialize_u8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_u8(visitor))
     }
 
     <span class="kw">fn </span>deserialize_u16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_u16(visitor))
     }
 
     <span class="kw">fn </span>deserialize_u32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_u32(visitor))
     }
 
     <span class="kw">fn </span>deserialize_u64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_u64(visitor))
     }
 
     <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_u128(visitor))
     }
 
     <span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_f32(visitor))
     }
 
     <span class="kw">fn </span>deserialize_f64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_f64(visitor))
     }
 
     <span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_char(visitor))
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_str(visitor))
     }
 
     <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_string(visitor))
     }
 
     <span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_bytes(visitor))
     }
 
     <span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_byte_buf(visitor))
     }
 
     <span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_option(visitor))
     }
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_unit(visitor))
     }
 
-    <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_unit_struct(name, visitor))
     }
 
-    <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_newtype_struct(name, visitor))
     }
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_seq(visitor))
     }
 
     <span class="kw">fn </span>deserialize_tuple&lt;V&gt;(<span class="self">self</span>, len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_tuple(len, visitor))
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_tuple_struct(name, len, visitor))
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_map(visitor))
     }
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_struct(name, fields, visitor))
     }
 
     <span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_enum(name, variants, visitor))
     }
 
     <span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_identifier(visitor))
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.de(|state| state.deserialize_ignored_any(visitor))
     }
 }
 
 <span class="attr">#[derive(Debug)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Event&lt;<span class="lifetime">&#39;de</span>&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>Event&lt;<span class="lifetime">'de</span>&gt; {
     Alias(usize),
-    Scalar(Scalar&lt;<span class="lifetime">&#39;de</span>&gt;),
+    Scalar(Scalar&lt;<span class="lifetime">'de</span>&gt;),
     SequenceStart(SequenceStart),
     SequenceEnd,
     MappingStart(MappingStart),
@@ -2275,27 +2276,27 @@
     Void,
 }
 
-<span class="kw">struct </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; {
-    document: <span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>Document&lt;<span class="lifetime">&#39;de</span>&gt;,
-    pos: <span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span><span class="kw-2">mut </span>usize,
-    jumpcount: <span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span><span class="kw-2">mut </span>usize,
-    path: Path&lt;<span class="lifetime">&#39;document</span>&gt;,
+<span class="kw">struct </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; {
+    document: <span class="kw-2">&amp;</span><span class="lifetime">'document </span>Document&lt;<span class="lifetime">'de</span>&gt;,
+    pos: <span class="kw-2">&amp;</span><span class="lifetime">'document </span><span class="kw-2">mut </span>usize,
+    jumpcount: <span class="kw-2">&amp;</span><span class="lifetime">'document </span><span class="kw-2">mut </span>usize,
+    path: Path&lt;<span class="lifetime">'document</span>&gt;,
     remaining_depth: u8,
-    current_enum: <span class="prelude-ty">Option</span>&lt;CurrentEnum&lt;<span class="lifetime">&#39;document</span>&gt;&gt;,
+    current_enum: <span class="prelude-ty">Option</span>&lt;CurrentEnum&lt;<span class="lifetime">'document</span>&gt;&gt;,
 }
 
 <span class="attr">#[derive(Copy, Clone)]
-</span><span class="kw">struct </span>CurrentEnum&lt;<span class="lifetime">&#39;document</span>&gt; {
-    name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
-    tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>str,
+</span><span class="kw">struct </span>CurrentEnum&lt;<span class="lifetime">'document</span>&gt; {
+    name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+    tag: <span class="kw-2">&amp;</span><span class="lifetime">'document </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; {
-    <span class="kw">fn </span>peek_event(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>Event&lt;<span class="lifetime">&#39;de</span>&gt;&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; {
+    <span class="kw">fn </span>peek_event(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'document </span>Event&lt;<span class="lifetime">'de</span>&gt;&gt; {
         <span class="self">self</span>.peek_event_mark().map(|(event, _mark)| event)
     }
 
-    <span class="kw">fn </span>peek_event_mark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>Event&lt;<span class="lifetime">&#39;de</span>&gt;, Mark)&gt; {
+    <span class="kw">fn </span>peek_event_mark(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'document </span>Event&lt;<span class="lifetime">'de</span>&gt;, Mark)&gt; {
         <span class="kw">match </span><span class="self">self</span>.document.events.get(<span class="kw-2">*</span><span class="self">self</span>.pos) {
             <span class="prelude-val">Some</span>((event, mark)) =&gt; <span class="prelude-val">Ok</span>((event, <span class="kw-2">*</span>mark)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(<span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.document.error {
@@ -2305,11 +2306,11 @@
         }
     }
 
-    <span class="kw">fn </span>next_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>Event&lt;<span class="lifetime">&#39;de</span>&gt;&gt; {
+    <span class="kw">fn </span>next_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'document </span>Event&lt;<span class="lifetime">'de</span>&gt;&gt; {
         <span class="self">self</span>.next_event_mark().map(|(event, _mark)| event)
     }
 
-    <span class="kw">fn </span>next_event_mark(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>Event&lt;<span class="lifetime">&#39;de</span>&gt;, Mark)&gt; {
+    <span class="kw">fn </span>next_event_mark(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'document </span>Event&lt;<span class="lifetime">'de</span>&gt;, Mark)&gt; {
         <span class="self">self</span>.peek_event_mark().map(|(event, mark)| {
             <span class="kw-2">*</span><span class="self">self</span>.pos += <span class="number">1</span>;
             <span class="self">self</span>.current_enum = <span class="prelude-val">None</span>;
@@ -2317,10 +2318,10 @@
         })
     }
 
-    <span class="kw">fn </span>jump&lt;<span class="lifetime">&#39;anchor</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;anchor </span><span class="kw-2">mut </span><span class="self">self</span>,
-        pos: <span class="kw-2">&amp;</span><span class="lifetime">&#39;anchor </span><span class="kw-2">mut </span>usize,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;anchor</span>&gt;&gt; {
+    <span class="kw">fn </span>jump&lt;<span class="lifetime">'anchor</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'anchor </span><span class="kw-2">mut </span><span class="self">self</span>,
+        pos: <span class="kw-2">&amp;</span><span class="lifetime">'anchor </span><span class="kw-2">mut </span>usize,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'anchor</span>&gt;&gt; {
         <span class="kw-2">*</span><span class="self">self</span>.jumpcount += <span class="number">1</span>;
         <span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.jumpcount &gt; <span class="self">self</span>.document.events.len() * <span class="number">100 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(error::new(ErrorImpl::RepetitionLimitExceeded));
@@ -2337,7 +2338,7 @@
                     current_enum: <span class="prelude-val">None</span>,
                 })
             }
-            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;unresolved alias: {}&quot;</span>, <span class="kw-2">*</span>pos),
+            <span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">"unresolved alias: {}"</span>, <span class="kw-2">*</span>pos),
         }
     }
 
@@ -2361,13 +2362,13 @@
                 Event::SequenceEnd =&gt; <span class="kw">match </span>stack.pop() {
                     <span class="prelude-val">Some</span>(Nest::Sequence) =&gt; {}
                     <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Nest::Mapping) =&gt; {
-                        <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of sequence&quot;</span>);
+                        <span class="macro">panic!</span>(<span class="string">"unexpected end of sequence"</span>);
                     }
                 },
                 Event::MappingEnd =&gt; <span class="kw">match </span>stack.pop() {
                     <span class="prelude-val">Some</span>(Nest::Mapping) =&gt; {}
                     <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(Nest::Sequence) =&gt; {
-                        <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of mapping&quot;</span>);
+                        <span class="macro">panic!</span>(<span class="string">"unexpected end of mapping"</span>);
                     }
                 },
             }
@@ -2379,7 +2380,7 @@
 
     <span class="kw">fn </span>visit_sequence&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V, mark: Mark) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(value, len) = <span class="self">self</span>.recursion_check(mark, |de| {
             <span class="kw">let </span><span class="kw-2">mut </span>seq = SeqAccess {
@@ -2396,7 +2397,7 @@
 
     <span class="kw">fn </span>visit_mapping&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor: V, mark: Mark) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(value, len) = <span class="self">self</span>.recursion_check(mark, |de| {
             <span class="kw">let </span><span class="kw-2">mut </span>map = MapAccess {
@@ -2424,7 +2425,7 @@
         };
         <span class="kw">match </span><span class="self">self</span>.next_event()<span class="question-mark">? </span>{
             Event::SequenceEnd | Event::Void =&gt; {}
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected a SequenceEnd event&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"expected a SequenceEnd event"</span>),
         }
         <span class="kw">if </span>total == len {
             <span class="prelude-val">Ok</span>(())
@@ -2433,9 +2434,9 @@
             <span class="kw">impl </span>Expected <span class="kw">for </span>ExpectedSeq {
                 <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
                     <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== <span class="number">1 </span>{
-                        <span class="macro">write!</span>(formatter, <span class="string">&quot;sequence of 1 element&quot;</span>)
+                        <span class="macro">write!</span>(formatter, <span class="string">"sequence of 1 element"</span>)
                     } <span class="kw">else </span>{
-                        <span class="macro">write!</span>(formatter, <span class="string">&quot;sequence of {} elements&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+                        <span class="macro">write!</span>(formatter, <span class="string">"sequence of {} elements"</span>, <span class="self">self</span>.<span class="number">0</span>)
                     }
                 }
             }
@@ -2456,7 +2457,7 @@
         };
         <span class="kw">match </span><span class="self">self</span>.next_event()<span class="question-mark">? </span>{
             Event::MappingEnd | Event::Void =&gt; {}
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;expected a MappingEnd event&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"expected a MappingEnd event"</span>),
         }
         <span class="kw">if </span>total == len {
             <span class="prelude-val">Ok</span>(())
@@ -2465,9 +2466,9 @@
             <span class="kw">impl </span>Expected <span class="kw">for </span>ExpectedMap {
                 <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
                     <span class="kw">if </span><span class="self">self</span>.<span class="number">0 </span>== <span class="number">1 </span>{
-                        <span class="macro">write!</span>(formatter, <span class="string">&quot;map containing 1 entry&quot;</span>)
+                        <span class="macro">write!</span>(formatter, <span class="string">"map containing 1 entry"</span>)
                     } <span class="kw">else </span>{
-                        <span class="macro">write!</span>(formatter, <span class="string">&quot;map containing {} entries&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+                        <span class="macro">write!</span>(formatter, <span class="string">"map containing {} entries"</span>, <span class="self">self</span>.<span class="number">0</span>)
                     }
                 }
             }
@@ -2491,18 +2492,18 @@
     }
 }
 
-<span class="kw">struct </span>SeqAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;seq</span>&gt; {
+<span class="kw">struct </span>SeqAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'seq</span>&gt; {
     empty: bool,
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;seq </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt;,
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'seq </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt;,
     len: usize,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;seq</span>&gt; de::SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>SeqAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;seq</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'seq</span>&gt; de::SeqAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>SeqAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'seq</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_element_seed&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;T::Value&gt;&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.empty {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -2528,19 +2529,19 @@
     }
 }
 
-<span class="kw">struct </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;map</span>&gt; {
+<span class="kw">struct </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'map</span>&gt; {
     empty: bool,
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;map </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt;,
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'map </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt;,
     len: usize,
-    key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>[u8]&gt;,
+    key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'document </span>[u8]&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;map</span>&gt; de::MapAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>MapAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;map</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'map</span>&gt; de::MapAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>MapAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'map</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>next_key_seed&lt;K&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: K) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;K::Value&gt;&gt;
     <span class="kw">where
-        </span>K: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>K: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if </span><span class="self">self</span>.empty {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -2562,7 +2563,7 @@
 
     <span class="kw">fn </span>next_value_seed&lt;V&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>value_de = DeserializerFromEvents {
             document: <span class="self">self</span>.de.document,
@@ -2585,19 +2586,19 @@
     }
 }
 
-<span class="kw">struct </span>EnumAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; {
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;variant </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt;,
-    name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;,
-    tag: <span class="kw-2">&amp;</span><span class="lifetime">&#39;document </span>str,
+<span class="kw">struct </span>EnumAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; {
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'variant </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt;,
+    name: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+    tag: <span class="kw-2">&amp;</span><span class="lifetime">'document </span>str,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>EnumAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; de::EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>EnumAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; {
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>Variant = DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;variant</span>&gt;;
+    <span class="kw">type </span>Variant = DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'variant</span>&gt;;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant)&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>str_de = StrDeserializer::&lt;Error&gt;::new(<span class="self">self</span>.tag);
         <span class="kw">let </span>variant = seed.deserialize(str_de)<span class="question-mark">?</span>;
@@ -2616,7 +2617,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; de::VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>unit_variant(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -2625,44 +2626,44 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         seed.deserialize(<span class="kw-2">&amp;mut </span><span class="self">self</span>)
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         de::Deserializer::deserialize_seq(<span class="kw-2">&amp;mut </span><span class="self">self</span>, visitor)
     }
 
-    <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str], visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="kw-2">mut </span><span class="self">self</span>, fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str], visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
-        de::Deserializer::deserialize_struct(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="string">&quot;&quot;</span>, fields, visitor)
+        de::Deserializer::deserialize_struct(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="string">""</span>, fields, visitor)
     }
 }
 
-<span class="kw">struct </span>UnitVariantAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; {
-    de: <span class="kw-2">&amp;</span><span class="lifetime">&#39;variant </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt;,
+<span class="kw">struct </span>UnitVariantAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; {
+    de: <span class="kw-2">&amp;</span><span class="lifetime">'variant </span><span class="kw-2">mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; de::EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>UnitVariantAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; de::EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>UnitVariantAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; {
     <span class="kw">type </span>Error = Error;
     <span class="kw">type </span>Variant = <span class="self">Self</span>;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant)&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Ok</span>((seed.deserialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.de)<span class="question-mark">?</span>, <span class="self">self</span>))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt; de::VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt;
-    <span class="kw">for </span>UnitVariantAccess&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;variant</span>&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt; de::VariantAccess&lt;<span class="lifetime">'de</span>&gt;
+    <span class="kw">for </span>UnitVariantAccess&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>, <span class="lifetime">'variant</span>&gt;
 {
     <span class="kw">type </span>Error = Error;
 
@@ -2672,38 +2673,38 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, _seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(de::Error::invalid_type(
             Unexpected::UnitVariant,
-            <span class="kw-2">&amp;</span><span class="string">&quot;newtype variant&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="string">"newtype variant"</span>,
         ))
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(de::Error::invalid_type(
             Unexpected::UnitVariant,
-            <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="string">"tuple variant"</span>,
         ))
     }
 
-    <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="self">self</span>, _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str], _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">fn </span>struct_variant&lt;V&gt;(<span class="self">self</span>, _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str], _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(de::Error::invalid_type(
             Unexpected::UnitVariant,
-            <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="string">"struct variant"</span>,
         ))
     }
 }
 
-<span class="kw">fn </span>visit_scalar&lt;<span class="lifetime">&#39;de</span>, V&gt;(visitor: V, scalar: <span class="kw-2">&amp;</span>Scalar&lt;<span class="lifetime">&#39;de</span>&gt;, tagged_already: bool) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+<span class="kw">fn </span>visit_scalar&lt;<span class="lifetime">'de</span>, V&gt;(visitor: V, scalar: <span class="kw-2">&amp;</span>Scalar&lt;<span class="lifetime">'de</span>&gt;, tagged_already: bool) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
 <span class="kw">where
-    </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">let </span>v = <span class="kw">match </span>str::from_utf8(<span class="kw-2">&amp;</span>scalar.value) {
         <span class="prelude-val">Ok</span>(v) =&gt; v,
@@ -2718,24 +2719,24 @@
         <span class="kw">if </span>tag == Tag::BOOL {
             <span class="kw">return match </span>parse_bool(v) {
                 <span class="prelude-val">Some</span>(v) =&gt; visitor.visit_bool(v),
-                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;a boolean&quot;</span>)),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"a boolean"</span>)),
             };
         } <span class="kw">else if </span>tag == Tag::INT {
             <span class="kw">return match </span>visit_int(visitor, v) {
                 <span class="prelude-val">Ok</span>(result) =&gt; result,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;an integer&quot;</span>)),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"an integer"</span>)),
             };
         } <span class="kw">else if </span>tag == Tag::FLOAT {
             <span class="kw">return match </span>parse_f64(v) {
                 <span class="prelude-val">Some</span>(v) =&gt; visitor.visit_f64(v),
-                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;a float&quot;</span>)),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"a float"</span>)),
             };
         } <span class="kw">else if </span>tag == Tag::NULL {
             <span class="kw">return match </span>parse_null(v.as_bytes()) {
                 <span class="prelude-val">Some</span>(()) =&gt; visitor.visit_unit(),
-                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;null&quot;</span>)),
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"null"</span>)),
             };
-        } <span class="kw">else if </span>tag.starts_with(<span class="string">&quot;!&quot;</span>) &amp;&amp; scalar.style == ScalarStyle::Plain {
+        } <span class="kw">else if </span>tag.starts_with(<span class="string">"!"</span>) &amp;&amp; scalar.style == ScalarStyle::Plain {
             <span class="kw">return </span>visit_untagged_scalar(visitor, v, scalar.repr, scalar.style);
         }
     } <span class="kw">else if </span>scalar.style == ScalarStyle::Plain {
@@ -2748,11 +2749,11 @@
     }
 }
 
-<span class="kw">fn </span>parse_borrowed_str&lt;<span class="lifetime">&#39;de</span>&gt;(
+<span class="kw">fn </span>parse_borrowed_str&lt;<span class="lifetime">'de</span>&gt;(
     utf8_value: <span class="kw-2">&amp;</span>str,
-    repr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]&gt;,
+    repr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]&gt;,
     style: ScalarStyle,
-) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str&gt; {
+) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'de </span>str&gt; {
     <span class="kw">let </span>borrowed_repr = repr<span class="question-mark">?</span>;
     <span class="kw">let </span>expected_offset = <span class="kw">match </span>style {
         ScalarStyle::Plain =&gt; <span class="number">0</span>,
@@ -2770,15 +2771,15 @@
 
 <span class="kw">fn </span>parse_null(scalar: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;()&gt; {
     <span class="kw">match </span>scalar {
-        <span class="string">b&quot;null&quot; </span>| <span class="string">b&quot;Null&quot; </span>| <span class="string">b&quot;NULL&quot; </span>| <span class="string">b&quot;~&quot; </span>=&gt; <span class="prelude-val">Some</span>(()),
+        <span class="string">b"null" </span>| <span class="string">b"Null" </span>| <span class="string">b"NULL" </span>| <span class="string">b"~" </span>=&gt; <span class="prelude-val">Some</span>(()),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
 <span class="kw">fn </span>parse_bool(scalar: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
     <span class="kw">match </span>scalar {
-        <span class="string">&quot;true&quot; </span>| <span class="string">&quot;True&quot; </span>| <span class="string">&quot;TRUE&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
-        <span class="string">&quot;false&quot; </span>| <span class="string">&quot;False&quot; </span>| <span class="string">&quot;FALSE&quot; </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
+        <span class="string">"true" </span>| <span class="string">"True" </span>| <span class="string">"TRUE" </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+        <span class="string">"false" </span>| <span class="string">"False" </span>| <span class="string">"FALSE" </span>=&gt; <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
@@ -2787,32 +2788,32 @@
     scalar: <span class="kw-2">&amp;</span>str,
     from_str_radix: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;T, ParseIntError&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-    <span class="kw">let </span>unpositive = scalar.strip_prefix(<span class="string">&#39;+&#39;</span>).unwrap_or(scalar);
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0x&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">let </span>unpositive = scalar.strip_prefix(<span class="string">'+'</span>).unwrap_or(scalar);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0x"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">16</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0o&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0o"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">8</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0b&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0b"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">2</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if </span>unpositive.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if </span>unpositive.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
         <span class="kw">return </span><span class="prelude-val">None</span>;
     }
     <span class="kw">if </span>digits_but_not_number(scalar) {
@@ -2825,52 +2826,52 @@
     scalar: <span class="kw-2">&amp;</span>str,
     from_str_radix: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;T, ParseIntError&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-    <span class="kw">let </span>unpositive = <span class="kw">if let </span><span class="prelude-val">Some</span>(unpositive) = scalar.strip_prefix(<span class="string">&#39;+&#39;</span>) {
-        <span class="kw">if </span>unpositive.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">let </span>unpositive = <span class="kw">if let </span><span class="prelude-val">Some</span>(unpositive) = scalar.strip_prefix(<span class="string">'+'</span>) {
+        <span class="kw">if </span>unpositive.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         unpositive
     } <span class="kw">else </span>{
         scalar
     };
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0x&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0x"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">16</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0x&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0x"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">16</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0o&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0o"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">8</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0o&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0o"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">8</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">&quot;0b&quot;</span>) {
-        <span class="kw">if </span>rest.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = unpositive.strip_prefix(<span class="string">"0b"</span>) {
+        <span class="kw">if </span>rest.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(rest, <span class="number">2</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0b&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0b"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">2</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
@@ -2885,20 +2886,20 @@
     scalar: <span class="kw-2">&amp;</span>str,
     from_str_radix: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str, radix: u32) -&gt; <span class="prelude-ty">Result</span>&lt;T, ParseIntError&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0x&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0x"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">16</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0o&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0o"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">8</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
     }
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">&quot;-0b&quot;</span>) {
-        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, rest);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(rest) = scalar.strip_prefix(<span class="string">"-0b"</span>) {
+        <span class="kw">let </span>negative = <span class="macro">format!</span>(<span class="string">"-{}"</span>, rest);
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(int) = from_str_radix(<span class="kw-2">&amp;</span>negative, <span class="number">2</span>) {
             <span class="kw">return </span><span class="prelude-val">Some</span>(int);
         }
@@ -2910,22 +2911,22 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_f64(scalar: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
-    <span class="kw">let </span>unpositive = <span class="kw">if let </span><span class="prelude-val">Some</span>(unpositive) = scalar.strip_prefix(<span class="string">&#39;+&#39;</span>) {
-        <span class="kw">if </span>unpositive.starts_with([<span class="string">&#39;+&#39;</span>, <span class="string">&#39;-&#39;</span>]) {
+    <span class="kw">let </span>unpositive = <span class="kw">if let </span><span class="prelude-val">Some</span>(unpositive) = scalar.strip_prefix(<span class="string">'+'</span>) {
+        <span class="kw">if </span>unpositive.starts_with([<span class="string">'+'</span>, <span class="string">'-'</span>]) {
             <span class="kw">return </span><span class="prelude-val">None</span>;
         }
         unpositive
     } <span class="kw">else </span>{
         scalar
     };
-    <span class="kw">if let </span><span class="string">&quot;.inf&quot; </span>| <span class="string">&quot;.Inf&quot; </span>| <span class="string">&quot;.INF&quot; </span>= unpositive {
+    <span class="kw">if let </span><span class="string">".inf" </span>| <span class="string">".Inf" </span>| <span class="string">".INF" </span>= unpositive {
         <span class="kw">return </span><span class="prelude-val">Some</span>(f64::INFINITY);
     }
-    <span class="kw">if let </span><span class="string">&quot;-.inf&quot; </span>| <span class="string">&quot;-.Inf&quot; </span>| <span class="string">&quot;-.INF&quot; </span>= scalar {
+    <span class="kw">if let </span><span class="string">"-.inf" </span>| <span class="string">"-.Inf" </span>| <span class="string">"-.INF" </span>= scalar {
         <span class="kw">return </span><span class="prelude-val">Some</span>(f64::NEG_INFINITY);
     }
-    <span class="kw">if let </span><span class="string">&quot;.nan&quot; </span>| <span class="string">&quot;.NaN&quot; </span>| <span class="string">&quot;.NAN&quot; </span>= scalar {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(f64::NAN);
+    <span class="kw">if let </span><span class="string">".nan" </span>| <span class="string">".NaN" </span>| <span class="string">".NAN" </span>= scalar {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(f64::NAN.copysign(<span class="number">1.0</span>));
     }
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(float) = unpositive.parse::&lt;f64&gt;() {
         <span class="kw">if </span>float.is_finite() {
@@ -2938,13 +2939,13 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>digits_but_not_number(scalar: <span class="kw-2">&amp;</span>str) -&gt; bool {
     <span class="comment">// Leading zero(s) followed by numeric characters is a string according to
     // the YAML 1.2 spec. https://yaml.org/spec/1.2/spec.html#id2761292
-    </span><span class="kw">let </span>scalar = scalar.strip_prefix([<span class="string">&#39;-&#39;</span>, <span class="string">&#39;+&#39;</span>]).unwrap_or(scalar);
-    scalar.len() &gt; <span class="number">1 </span>&amp;&amp; scalar.starts_with(<span class="string">&#39;0&#39;</span>) &amp;&amp; scalar[<span class="number">1</span>..].bytes().all(|b| b.is_ascii_digit())
+    </span><span class="kw">let </span>scalar = scalar.strip_prefix([<span class="string">'-'</span>, <span class="string">'+'</span>]).unwrap_or(scalar);
+    scalar.len() &gt; <span class="number">1 </span>&amp;&amp; scalar.starts_with(<span class="string">'0'</span>) &amp;&amp; scalar[<span class="number">1</span>..].bytes().all(|b| b.is_ascii_digit())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit_int&lt;<span class="lifetime">&#39;de</span>, V&gt;(visitor: V, v: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Result</span>&lt;V::Value&gt;, V&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit_int&lt;<span class="lifetime">'de</span>, V&gt;(visitor: V, v: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Result</span>&lt;V::Value&gt;, V&gt;
 <span class="kw">where
-    </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(int) = parse_unsigned_int(v, u64::from_str_radix) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(visitor.visit_u64(int));
@@ -2961,14 +2962,14 @@
     <span class="prelude-val">Err</span>(visitor)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit_untagged_scalar&lt;<span class="lifetime">&#39;de</span>, V&gt;(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>visit_untagged_scalar&lt;<span class="lifetime">'de</span>, V&gt;(
     visitor: V,
     v: <span class="kw-2">&amp;</span>str,
-    repr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]&gt;,
+    repr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]&gt;,
     style: ScalarStyle,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
 <span class="kw">where
-    </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
 {
     <span class="kw">if </span>v.is_empty() || parse_null(v.as_bytes()) == <span class="prelude-val">Some</span>(()) {
         <span class="kw">return </span>visitor.visit_unit();
@@ -3007,11 +3008,11 @@
 <span class="kw">fn </span>invalid_type(event: <span class="kw-2">&amp;</span>Event, exp: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Expected) -&gt; Error {
     <span class="kw">enum </span>Void {}
 
-    <span class="kw">struct </span>InvalidType&lt;<span class="lifetime">&#39;a</span>&gt; {
-        exp: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Expected,
+    <span class="kw">struct </span>InvalidType&lt;<span class="lifetime">'a</span>&gt; {
+        exp: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Expected,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>InvalidType&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>InvalidType&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">type </span>Value = Void;
 
         <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
@@ -3030,15 +3031,15 @@
         }
         Event::SequenceStart(<span class="kw">_</span>) =&gt; de::Error::invalid_type(Unexpected::Seq, exp),
         Event::MappingStart(<span class="kw">_</span>) =&gt; de::Error::invalid_type(Unexpected::Map, exp),
-        Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of sequence&quot;</span>),
-        Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of mapping&quot;</span>),
+        Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of sequence"</span>),
+        Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of mapping"</span>),
         Event::Void =&gt; error::new(ErrorImpl::EndOfStream),
     }
 }
 
 <span class="kw">fn </span>parse_tag(libyaml_tag: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Tag&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>bytes: <span class="kw-2">&amp;</span>[u8] = libyaml_tag.as_ref()<span class="question-mark">?</span>;
-    <span class="kw">if let </span>(<span class="string">b&#39;!&#39;</span>, rest) = bytes.split_first()<span class="question-mark">? </span>{
+    <span class="kw">if let </span>(<span class="string">b'!'</span>, rest) = bytes.split_first()<span class="question-mark">? </span>{
         <span class="kw">if </span>!rest.is_empty() {
             bytes = rest;
         }
@@ -3048,12 +3049,12 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; de::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;mut </span>DeserializerFromEvents&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; de::Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;mut </span>DeserializerFromEvents&lt;<span class="lifetime">'de</span>, <span class="lifetime">'document</span>&gt; {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3099,8 +3100,8 @@
                     }
                     <span class="kw">break </span><span class="self">self</span>.visit_mapping(visitor, mark);
                 }
-                Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of sequence&quot;</span>),
-                Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of mapping&quot;</span>),
+                Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of sequence"</span>),
+                Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of mapping"</span>),
                 Event::Void =&gt; <span class="kw">break </span>visitor.visit_none(),
             }
         }
@@ -3111,7 +3112,7 @@
 
     <span class="kw">fn </span>deserialize_bool&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3136,28 +3137,28 @@
 
     <span class="kw">fn </span>deserialize_i8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_i64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_i16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_i64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_i32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_i64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_i64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3182,7 +3183,7 @@
 
     <span class="kw">fn </span>deserialize_i128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3207,28 +3208,28 @@
 
     <span class="kw">fn </span>deserialize_u8&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_u64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_u16&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_u64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_u32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_u64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_u64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3253,7 +3254,7 @@
 
     <span class="kw">fn </span>deserialize_u128&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3278,14 +3279,14 @@
 
     <span class="kw">fn </span>deserialize_f32&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_f64(visitor)
     }
 
     <span class="kw">fn </span>deserialize_f64&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3310,14 +3311,14 @@
 
     <span class="kw">fn </span>deserialize_char&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_str&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
         <span class="kw">match </span>next {
@@ -3340,21 +3341,21 @@
 
     <span class="kw">fn </span>deserialize_string&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_bytes&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(error::new(ErrorImpl::BytesUnsupported))
     }
 
     <span class="kw">fn </span>deserialize_byte_buf&lt;V&gt;(<span class="self">self</span>, _visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="prelude-val">Err</span>(error::new(ErrorImpl::BytesUnsupported))
     }
@@ -3362,7 +3363,7 @@
     <span class="doccomment">/// Parses `null` as None and any other values as `Some(...)`.
     </span><span class="kw">fn </span>deserialize_option&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>is_some = <span class="kw">match </span><span class="self">self</span>.peek_event()<span class="question-mark">? </span>{
             Event::Alias(<span class="kw-2">mut </span>pos) =&gt; {
@@ -3378,11 +3379,11 @@
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(()) = parse_null(<span class="kw-2">&amp;</span>scalar.value) {
                             <span class="bool-val">false
                         </span>} <span class="kw">else if let </span><span class="prelude-val">Ok</span>(v) = str::from_utf8(<span class="kw-2">&amp;</span>scalar.value) {
-                            <span class="kw">return </span><span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;null&quot;</span>));
+                            <span class="kw">return </span><span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"null"</span>));
                         } <span class="kw">else </span>{
                             <span class="kw">return </span><span class="prelude-val">Err</span>(de::Error::invalid_value(
                                 Unexpected::Bytes(<span class="kw-2">&amp;</span>scalar.value),
-                                <span class="kw-2">&amp;</span><span class="string">&quot;null&quot;</span>,
+                                <span class="kw-2">&amp;</span><span class="string">"null"</span>,
                             ));
                         }
                     } <span class="kw">else </span>{
@@ -3393,8 +3394,8 @@
                 }
             }
             Event::SequenceStart(<span class="kw">_</span>) | Event::MappingStart(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of sequence&quot;</span>),
-            Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of mapping&quot;</span>),
+            Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of sequence"</span>),
+            Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of mapping"</span>),
             Event::Void =&gt; <span class="bool-val">false</span>,
         };
         <span class="kw">if </span>is_some {
@@ -3408,7 +3409,7 @@
 
     <span class="kw">fn </span>deserialize_unit&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tagged_already = <span class="self">self</span>.current_enum.is_some();
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
@@ -3424,11 +3425,11 @@
                 <span class="kw">if </span>is_null {
                     visitor.visit_unit()
                 } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(v) = str::from_utf8(<span class="kw-2">&amp;</span>scalar.value) {
-                    <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">&quot;null&quot;</span>))
+                    <span class="prelude-val">Err</span>(de::Error::invalid_value(Unexpected::Str(v), <span class="kw-2">&amp;</span><span class="string">"null"</span>))
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Err</span>(de::Error::invalid_value(
                         Unexpected::Bytes(<span class="kw-2">&amp;</span>scalar.value),
-                        <span class="kw-2">&amp;</span><span class="string">&quot;null&quot;</span>,
+                        <span class="kw-2">&amp;</span><span class="string">"null"</span>,
                     ))
                 }
             }
@@ -3439,17 +3440,17 @@
         .map_err(|err| error::fix_mark(err, mark, <span class="self">self</span>.path))
     }
 
-    <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    <span class="kw">fn </span>deserialize_unit_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_unit(visitor)
     }
 
     <span class="doccomment">/// Parses a newtype struct as the underlying value.
-    </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
+    </span><span class="kw">fn </span>deserialize_newtype_struct&lt;V&gt;(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(_event, mark) = <span class="self">self</span>.peek_event_mark()<span class="question-mark">?</span>;
         <span class="self">self</span>.recursion_check(mark, |de| visitor.visit_newtype_struct(de))
@@ -3457,7 +3458,7 @@
 
     <span class="kw">fn </span>deserialize_seq&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
         <span class="kw">match </span>next {
@@ -3486,26 +3487,26 @@
 
     <span class="kw">fn </span>deserialize_tuple&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_seq(visitor)
     }
 
     <span class="kw">fn </span>deserialize_tuple_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_seq(visitor)
     }
 
     <span class="kw">fn </span>deserialize_map&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.next_event_mark()<span class="question-mark">?</span>;
         <span class="kw">match </span>next {
@@ -3535,12 +3536,12 @@
 
     <span class="kw">fn </span>deserialize_struct&lt;V&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_map(visitor)
     }
@@ -3550,12 +3551,12 @@
     /// to a unit enum value.
     </span><span class="kw">fn </span>deserialize_enum&lt;V&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        variants: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        variants: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>(next, mark) = <span class="self">self</span>.peek_event_mark()<span class="question-mark">?</span>;
         <span class="kw">loop </span>{
@@ -3567,12 +3568,12 @@
                 }
                 <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = current_enum.name {
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;deserializing nested enum in {}::{} from YAML is not supported yet&quot;</span>,
+                        <span class="string">"deserializing nested enum in {}::{} from YAML is not supported yet"</span>,
                         name, current_enum.tag,
                     )
                 } <span class="kw">else </span>{
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;deserializing nested enum in !{} from YAML is not supported yet&quot;</span>,
+                        <span class="string">"deserializing nested enum in !{} from YAML is not supported yet"</span>,
                         current_enum.tag,
                     )
                 };
@@ -3603,7 +3604,7 @@
                         });
                     }
                     <span class="kw">let </span>err =
-                        de::Error::invalid_type(Unexpected::Map, <span class="kw-2">&amp;</span><span class="string">&quot;a YAML tag starting with &#39;!&#39;&quot;</span>);
+                        de::Error::invalid_type(Unexpected::Map, <span class="kw-2">&amp;</span><span class="string">"a YAML tag starting with '!'"</span>);
                     <span class="prelude-val">Err</span>(error::fix_mark(err, mark, <span class="self">self</span>.path))
                 }
                 Event::SequenceStart(sequence) =&gt; {
@@ -3615,11 +3616,11 @@
                         });
                     }
                     <span class="kw">let </span>err =
-                        de::Error::invalid_type(Unexpected::Seq, <span class="kw-2">&amp;</span><span class="string">&quot;a YAML tag starting with &#39;!&#39;&quot;</span>);
+                        de::Error::invalid_type(Unexpected::Seq, <span class="kw-2">&amp;</span><span class="string">"a YAML tag starting with '!'"</span>);
                     <span class="prelude-val">Err</span>(error::fix_mark(err, mark, <span class="self">self</span>.path))
                 }
-                Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of sequence&quot;</span>),
-                Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unexpected end of mapping&quot;</span>),
+                Event::SequenceEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of sequence"</span>),
+                Event::MappingEnd =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected end of mapping"</span>),
                 Event::Void =&gt; <span class="prelude-val">Err</span>(error::new(ErrorImpl::EndOfStream)),
             };
         }
@@ -3628,14 +3629,14 @@
 
     <span class="kw">fn </span>deserialize_identifier&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.deserialize_str(visitor)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="self">self</span>.ignore_any()<span class="question-mark">?</span>;
         visitor.visit_unit()
@@ -3647,13 +3648,13 @@
 /// This conversion can fail if the structure of the Value does not match the
 /// structure expected by `T`, for example if `T` is a struct type but the Value
 /// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`&#39;s implementation of `Deserialize` decides that something
+/// is correct but `T`'s implementation of `Deserialize` decides that something
 /// is wrong with the data, for example required struct fields are missing from
 /// the YAML map or some number is too big to fit in the expected primitive
 /// type.
-</span><span class="kw">pub fn </span>from_str&lt;<span class="lifetime">&#39;de</span>, T&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
+</span><span class="kw">pub fn </span>from_str&lt;<span class="lifetime">'de</span>, T&gt;(s: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
-    </span>T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>T: Deserialize&lt;<span class="lifetime">'de</span>&gt;,
 {
     T::deserialize(Deserializer::from_str(s))
 }
@@ -3663,7 +3664,7 @@
 /// This conversion can fail if the structure of the Value does not match the
 /// structure expected by `T`, for example if `T` is a struct type but the Value
 /// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`&#39;s implementation of `Deserialize` decides that something
+/// is correct but `T`'s implementation of `Deserialize` decides that something
 /// is wrong with the data, for example required struct fields are missing from
 /// the YAML map or some number is too big to fit in the expected primitive
 /// type.
@@ -3680,13 +3681,13 @@
 /// This conversion can fail if the structure of the Value does not match the
 /// structure expected by `T`, for example if `T` is a struct type but the Value
 /// contains something other than a YAML map. It can also fail if the structure
-/// is correct but `T`&#39;s implementation of `Deserialize` decides that something
+/// is correct but `T`'s implementation of `Deserialize` decides that something
 /// is wrong with the data, for example required struct fields are missing from
 /// the YAML map or some number is too big to fit in the expected primitive
 /// type.
-</span><span class="kw">pub fn </span>from_slice&lt;<span class="lifetime">&#39;de</span>, T&gt;(v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
+</span><span class="kw">pub fn </span>from_slice&lt;<span class="lifetime">'de</span>, T&gt;(v: <span class="kw-2">&amp;</span><span class="lifetime">'de </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;T&gt;
 <span class="kw">where
-    </span>T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>T: Deserialize&lt;<span class="lifetime">'de</span>&gt;,
 {
     T::deserialize(Deserializer::from_slice(v))
 }

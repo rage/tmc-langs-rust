@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.2.0/src/mock.rs`."><title>mock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mockito/index.html"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black-100.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.2.0/src/mock.rs`."><title>mock.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../mockito/index.html"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black-100.png" alt="mockito"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -670,16 +671,16 @@
     </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>formatted = String::new();
 
-        formatted.push_str(<span class="string">&quot;\r\n&quot;</span>);
+        formatted.push_str(<span class="string">"\r\n"</span>);
         formatted.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.method);
-        formatted.push(<span class="string">&#39; &#39;</span>);
+        formatted.push(<span class="string">' '</span>);
         formatted.push_str(<span class="kw-2">&amp;</span><span class="self">self</span>.path.to_string());
 
         <span class="kw">for </span><span class="kw-2">&amp;</span>(<span class="kw-2">ref </span>key, <span class="kw-2">ref </span>value) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.headers {
             formatted.push_str(key);
-            formatted.push_str(<span class="string">&quot;: &quot;</span>);
+            formatted.push_str(<span class="string">": "</span>);
             formatted.push_str(<span class="kw-2">&amp;</span>value.to_string());
-            formatted.push_str(<span class="string">&quot;\r\n&quot;</span>);
+            formatted.push_str(<span class="string">"\r\n"</span>);
         }
 
         <span class="kw">match </span><span class="self">self</span>.body {
@@ -688,23 +689,23 @@
             | Matcher::PartialJsonString(<span class="kw-2">ref </span>value)
             | Matcher::Regex(<span class="kw-2">ref </span>value) =&gt; {
                 formatted.push_str(value);
-                formatted.push_str(<span class="string">&quot;\r\n&quot;</span>);
+                formatted.push_str(<span class="string">"\r\n"</span>);
             }
             Matcher::Binary(<span class="kw">_</span>) =&gt; {
-                formatted.push_str(<span class="string">&quot;(binary)\r\n&quot;</span>);
+                formatted.push_str(<span class="string">"(binary)\r\n"</span>);
             }
             Matcher::Json(<span class="kw-2">ref </span>json_obj) | Matcher::PartialJson(<span class="kw-2">ref </span>json_obj) =&gt; {
                 formatted.push_str(<span class="kw-2">&amp;</span>json_obj.to_string());
-                formatted.push_str(<span class="string">&quot;\r\n&quot;</span>)
+                formatted.push_str(<span class="string">"\r\n"</span>)
             }
             Matcher::UrlEncoded(<span class="kw-2">ref </span>field, <span class="kw-2">ref </span>value) =&gt; {
                 formatted.push_str(field);
-                formatted.push(<span class="string">&#39;=&#39;</span>);
+                formatted.push(<span class="string">'='</span>);
                 formatted.push_str(value);
             }
-            Matcher::Missing =&gt; formatted.push_str(<span class="string">&quot;(missing)\r\n&quot;</span>),
-            Matcher::AnyOf(..) =&gt; formatted.push_str(<span class="string">&quot;(any of)\r\n&quot;</span>),
-            Matcher::AllOf(..) =&gt; formatted.push_str(<span class="string">&quot;(all of)\r\n&quot;</span>),
+            Matcher::Missing =&gt; formatted.push_str(<span class="string">"(missing)\r\n"</span>),
+            Matcher::AnyOf(..) =&gt; formatted.push_str(<span class="string">"(any of)\r\n"</span>),
+            Matcher::AllOf(..) =&gt; formatted.push_str(<span class="string">"(all of)\r\n"</span>),
             Matcher::Any =&gt; {}
         }
 
@@ -776,22 +777,22 @@
     ///
     /// // This will match requests containing the URL-encoded
     /// // query parameter `greeting=good%20day`
-    /// s.mock(&quot;GET&quot;, &quot;/test&quot;)
-    ///   .match_query(Matcher::UrlEncoded(&quot;greeting&quot;.into(), &quot;good day&quot;.into()))
+    /// s.mock("GET", "/test")
+    ///   .match_query(Matcher::UrlEncoded("greeting".into(), "good day".into()))
     ///   .create();
     ///
     /// // This will match requests containing the URL-encoded
     /// // query parameters `hello=world` and `greeting=good%20day`
-    /// s.mock(&quot;GET&quot;, &quot;/test&quot;)
+    /// s.mock("GET", "/test")
     ///   .match_query(Matcher::AllOf(vec![
-    ///     Matcher::UrlEncoded(&quot;hello&quot;.into(), &quot;world&quot;.into()),
-    ///     Matcher::UrlEncoded(&quot;greeting&quot;.into(), &quot;good day&quot;.into())
+    ///     Matcher::UrlEncoded("hello".into(), "world".into()),
+    ///     Matcher::UrlEncoded("greeting".into(), "good day".into())
     ///   ]))
     ///   .create();
     ///
     /// // You can achieve similar results with the regex matcher
-    /// s.mock(&quot;GET&quot;, &quot;/test&quot;)
-    ///   .match_query(Matcher::Regex(&quot;hello=world&quot;.into()))
+    /// s.mock("GET", "/test")
+    ///   .match_query(Matcher::Regex("hello=world".into()))
     ///   .create();
     /// ```
     ///
@@ -820,7 +821,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).match_header(&quot;content-type&quot;, &quot;application/json&quot;);
+    /// s.mock("GET", "/").match_header("content-type", "application/json");
     /// ```
     ///
     /// Like most other `Mock` methods, it allows chanining:
@@ -830,9 +831,9 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;)
-    ///   .match_header(&quot;content-type&quot;, &quot;application/json&quot;)
-    ///   .match_header(&quot;authorization&quot;, &quot;password&quot;);
+    /// s.mock("GET", "/")
+    ///   .match_header("content-type", "application/json")
+    ///   .match_header("authorization", "password");
     /// ```
     ///
     </span><span class="kw">pub fn </span>match_header&lt;M: Into&lt;Matcher&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>str, value: M) -&gt; <span class="self">Self </span>{
@@ -851,11 +852,11 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;POST&quot;, &quot;/&quot;).match_body(r#&quot;{&quot;hello&quot;: &quot;world&quot;}&quot;#).with_body(&quot;json&quot;).create();
-    /// s.mock(&quot;POST&quot;, &quot;/&quot;).match_body(&quot;hello=world&quot;).with_body(&quot;form&quot;).create();
+    /// s.mock("POST", "/").match_body(r#"{"hello": "world"}"#).with_body("json").create();
+    /// s.mock("POST", "/").match_body("hello=world").with_body("form").create();
     ///
-    /// // Requests passing `{&quot;hello&quot;: &quot;world&quot;}` inside the body will be responded with &quot;json&quot;.
-    /// // Requests passing `hello=world` inside the body will be responded with &quot;form&quot;.
+    /// // Requests passing `{"hello": "world"}` inside the body will be responded with "json".
+    /// // Requests passing `hello=world` inside the body will be responded with "form".
     ///
     /// // Create a temporary file
     /// use std::env;
@@ -868,7 +869,7 @@
     /// let random_bytes: Vec&lt;u8&gt; = (0..1024).map(|_| rand::random::&lt;u8&gt;()).collect();
     ///
     /// let mut tmp_file = env::temp_dir();
-    /// tmp_file.push(&quot;test_file.txt&quot;);
+    /// tmp_file.push("test_file.txt");
     /// let mut f_write = File::create(tmp_file.clone()).unwrap();
     /// f_write.write_all(random_bytes.as_slice()).unwrap();
     /// let mut f_read = File::open(tmp_file.clone()).unwrap();
@@ -876,9 +877,9 @@
     ///
     /// // the following are equivalent ways of defining a mock matching
     /// // a binary payload
-    /// s.mock(&quot;POST&quot;, &quot;/&quot;).match_body(tmp_file.as_path()).create();
-    /// s.mock(&quot;POST&quot;, &quot;/&quot;).match_body(random_bytes).create();
-    /// s.mock(&quot;POST&quot;, &quot;/&quot;).match_body(&amp;mut f_read).create();
+    /// s.mock("POST", "/").match_body(tmp_file.as_path()).create();
+    /// s.mock("POST", "/").match_body(random_bytes).create();
+    /// s.mock("POST", "/").match_body(&amp;mut f_read).create();
     /// ```
     ///
     </span><span class="kw">pub fn </span>match_body&lt;M: Into&lt;Matcher&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, body: M) -&gt; <span class="self">Self </span>{
@@ -895,7 +896,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_status(201);
+    /// s.mock("GET", "/").with_status(201);
     /// ```
     ///
     </span><span class="attr">#[track_caller]
@@ -915,7 +916,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_header(&quot;content-type&quot;, &quot;application/json&quot;);
+    /// s.mock("GET", "/").with_header("content-type", "application/json");
     /// ```
     ///
     </span><span class="kw">pub fn </span>with_header(<span class="kw-2">mut </span><span class="self">self</span>, field: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
@@ -935,7 +936,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_body(&quot;hello world&quot;);
+    /// s.mock("GET", "/").with_body("hello world");
     /// ```
     ///
     </span><span class="kw">pub fn </span>with_body&lt;StrOrBytes: AsRef&lt;[u8]&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, body: StrOrBytes) -&gt; <span class="self">Self </span>{
@@ -946,7 +947,7 @@
     <span class="doccomment">///
     /// Sets the body of the mock response dynamically. The response will use chunked transfer encoding.
     ///
-    /// The function must be thread-safe. If it&#39;s a closure, it can&#39;t be borrowing its context.
+    /// The function must be thread-safe. If it's a closure, it can't be borrowing its context.
     /// Use `move` closures and `Arc` to share any data.
     ///
     /// ## Example
@@ -954,12 +955,12 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_chunked_body(|w| w.write_all(b&quot;hello world&quot;));
+    /// s.mock("GET", "/").with_chunked_body(|w| w.write_all(b"hello world"));
     /// ```
     ///
     </span><span class="kw">pub fn </span>with_chunked_body(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write) -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write) -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">'static</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.inner.response.body = Body::FnWithWriter(Arc::new(callback));
         <span class="self">self
@@ -968,10 +969,10 @@
     <span class="doccomment">///
     /// **DEPRECATED:** Replaced by `Mock::with_chunked_body`.
     ///
-    </span><span class="attr">#[deprecated(since = <span class="string">&quot;1.0.0&quot;</span>, note = <span class="string">&quot;Use `Mock::with_chunked_body` instead&quot;</span>)]
+    </span><span class="attr">#[deprecated(since = <span class="string">"1.0.0"</span>, note = <span class="string">"Use `Mock::with_chunked_body` instead"</span>)]
     </span><span class="kw">pub fn </span>with_body_from_fn(
         <span class="self">self</span>,
-        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write) -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>io::Write) -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">'static</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.with_chunked_body(callback)
     }
@@ -981,7 +982,7 @@
     ///
     /// You can use this method to provide a custom reponse body for every incoming request.
     ///
-    /// The function must be thread-safe. If it&#39;s a closure, it can&#39;t be borrowing its context.
+    /// The function must be thread-safe. If it's a closure, it can't be borrowing its context.
     /// Use `move` closures and `Arc` to share any data.
     ///
     /// ### Example
@@ -989,20 +990,20 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// let _m = s.mock(&quot;GET&quot;, mockito::Matcher::Any).with_body_from_request(|request| {
-    ///     if request.path() == &quot;/bob&quot; {
-    ///         &quot;hello bob&quot;.into()
-    ///     } else if request.path() == &quot;/alice&quot; {
-    ///         &quot;hello alice&quot;.into()
+    /// let _m = s.mock("GET", mockito::Matcher::Any).with_body_from_request(|request| {
+    ///     if request.path() == "/bob" {
+    ///         "hello bob".into()
+    ///     } else if request.path() == "/alice" {
+    ///         "hello alice".into()
     ///     } else {
-    ///         &quot;hello world&quot;.into()
+    ///         "hello world".into()
     ///     }
     /// });
     /// ```
     ///
     </span><span class="kw">pub fn </span>with_body_from_request(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Request) -&gt; Vec&lt;u8&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Request) -&gt; Vec&lt;u8&gt; + Send + Sync + <span class="lifetime">'static</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.inner.response.body = Body::FnWithRequest(Arc::new(callback));
         <span class="self">self
@@ -1017,7 +1018,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_body_from_file(&quot;tests/files/simple.http&quot;);
+    /// s.mock("GET", "/").with_body_from_file("tests/files/simple.http");
     /// ```
     ///
     </span><span class="attr">#[track_caller]
@@ -1086,9 +1087,9 @@
                 String::default()
             };
 
-            <span class="macro">assert!</span>(matched, <span class="string">&quot;{}&quot;</span>, message)
+            <span class="macro">assert!</span>(matched, <span class="string">"{}"</span>, message)
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;could not retrieve enough information about the remote mock&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"could not retrieve enough information about the remote mock"</span>)
         }
     }
 
@@ -1107,9 +1108,9 @@
                 String::default()
             };
 
-            <span class="macro">assert!</span>(matched, <span class="string">&quot;{}&quot;</span>, message)
+            <span class="macro">assert!</span>(matched, <span class="string">"{}"</span>, message)
         } <span class="kw">else </span>{
-            <span class="macro">panic!</span>(<span class="string">&quot;could not retrieve enough information about the remote mock&quot;</span>)
+            <span class="macro">panic!</span>(<span class="string">"could not retrieve enough information about the remote mock"</span>)
         }
     }
 
@@ -1147,7 +1148,7 @@
     /// ```
     /// let mut s = mockito::Server::new();
     ///
-    /// s.mock(&quot;GET&quot;, &quot;/&quot;).with_body(&quot;hello world&quot;).create();
+    /// s.mock("GET", "/").with_body("hello world").create();
     /// ```
     ///
     </span><span class="kw">pub fn </span>create(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Mock {
@@ -1211,35 +1212,35 @@
             <span class="self">self</span>.inner.expected_hits_at_most,
         ) {
             (<span class="prelude-val">Some</span>(min), <span class="prelude-val">Some</span>(max)) <span class="kw">if </span>min == max =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;\n&gt; Expected {} request(s) to:\n{}\n...but received {}\n\n&quot;</span>,
+                <span class="string">"\n&gt; Expected {} request(s) to:\n{}\n...but received {}\n\n"</span>,
                 min, <span class="self">self</span>, hits
             ),
             (<span class="prelude-val">Some</span>(min), <span class="prelude-val">Some</span>(max)) =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;\n&gt; Expected between {} and {} request(s) to:\n{}\n...but received {}\n\n&quot;</span>,
+                <span class="string">"\n&gt; Expected between {} and {} request(s) to:\n{}\n...but received {}\n\n"</span>,
                 min, max, <span class="self">self</span>, hits
             ),
             (<span class="prelude-val">Some</span>(min), <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;\n&gt; Expected at least {} request(s) to:\n{}\n...but received {}\n\n&quot;</span>,
+                <span class="string">"\n&gt; Expected at least {} request(s) to:\n{}\n...but received {}\n\n"</span>,
                 min, <span class="self">self</span>, hits
             ),
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(max)) =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;\n&gt; Expected at most {} request(s) to:\n{}\n...but received {}\n\n&quot;</span>,
+                <span class="string">"\n&gt; Expected at most {} request(s) to:\n{}\n...but received {}\n\n"</span>,
                 max, <span class="self">self</span>, hits
             ),
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; <span class="macro">format!</span>(
-                <span class="string">&quot;\n&gt; Expected 1 request(s) to:\n{}\n...but received {}\n\n&quot;</span>,
+                <span class="string">"\n&gt; Expected 1 request(s) to:\n{}\n...but received {}\n\n"</span>,
                 <span class="self">self</span>, hits
             ),
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(last_request) = last_request {
             message.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;&gt; The last unmatched request was:\n{}\n&quot;</span>,
+                <span class="string">"&gt; The last unmatched request was:\n{}\n"</span>,
                 last_request
             ));
 
             <span class="kw">let </span>difference = diff::compare(<span class="kw-2">&amp;</span><span class="self">self</span>.to_string(), <span class="kw-2">&amp;</span>last_request);
-            message.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;&gt; Difference:\n{}\n&quot;</span>, difference));
+            message.push_str(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"&gt; Difference:\n{}\n"</span>, difference));
         }
 
         message
@@ -1249,7 +1250,7 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>Mock {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span>!<span class="self">self</span>.created {
-            <span class="macro">log::warn!</span>(<span class="string">&quot;Missing .create() call on mock {}&quot;</span>, <span class="self">self</span>);
+            <span class="macro">log::warn!</span>(<span class="string">"Missing .create() call on mock {}"</span>, <span class="self">self</span>);
         }
     }
 }

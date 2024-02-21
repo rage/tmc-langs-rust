@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/subprocess-0.2.9/src/popen.rs`."><title>popen.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="subprocess" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/subprocess-0.2.9/src/popen.rs`."><title>popen.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="subprocess" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1346,7 +1347,7 @@
 
 <span class="doccomment">/// Interface to a running subprocess.
 ///
-/// `Popen` is the parent&#39;s interface to a created subprocess.  The
+/// `Popen` is the parent's interface to a created subprocess.  The
 /// child process is started in the constructor, so owning a `Popen`
 /// value indicates that the specified program has been successfully
 /// launched.  To prevent accumulation of zombie processes, the child
@@ -1412,7 +1413,7 @@
 ///
 /// ```
 /// # use subprocess::*;
-/// # let argv = &amp;[&quot;true&quot;];
+/// # let argv = &amp;["true"];
 /// Popen::create(argv, PopenConfig {
 ///      stdout: Redirection::Pipe,
 ///      detached: true,
@@ -1433,11 +1434,11 @@
 
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>PopenConfig {
-    <span class="doccomment">/// How to configure the executed program&#39;s standard input.
+    <span class="doccomment">/// How to configure the executed program's standard input.
     </span><span class="kw">pub </span>stdin: Redirection,
-    <span class="doccomment">/// How to configure the executed program&#39;s standard output.
+    <span class="doccomment">/// How to configure the executed program's standard output.
     </span><span class="kw">pub </span>stdout: Redirection,
-    <span class="doccomment">/// How to configure the executed program&#39;s standard error.
+    <span class="doccomment">/// How to configure the executed program's standard error.
     </span><span class="kw">pub </span>stderr: Redirection,
     <span class="doccomment">/// Whether the `Popen` instance is initially detached.
     </span><span class="kw">pub </span>detached: bool,
@@ -1488,8 +1489,8 @@
     </span><span class="kw">pub </span>setpgid: bool,
 
     <span class="comment">// Add this field to force construction using ..Default::default() for
-    // backward compatibility.  Unfortunately we can&#39;t mark this non-public
-    // because then ..Default::default() wouldn&#39;t work either.
+    // backward compatibility.  Unfortunately we can't mark this non-public
+    // because then ..Default::default() wouldn't work either.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub </span>_use_default_to_construct: (),
 }
@@ -1578,7 +1579,7 @@
     /// with the child.
     ///
     /// The field with `Popen` corresponding to the stream will be
-    /// `Some(file)`, `File` being the parent&#39;s end of the pipe.
+    /// `Some(file)`, `File` being the parent's end of the pipe.
     </span>Pipe,
 
     <span class="doccomment">/// Merge the stream to the other output stream.
@@ -1586,8 +1587,8 @@
     /// This variant is only valid when configuring redirection of
     /// standard output and standard error.  Using
     /// `Redirection::Merge` for `PopenConfig::stderr` requests the
-    /// child&#39;s stderr to refer to the same underlying file as the
-    /// child&#39;s stdout (which may or may not itself be redirected),
+    /// child's stderr to refer to the same underlying file as the
+    /// child's stdout (which may or may not itself be redirected),
     /// equivalent to the `2&gt;&amp;1` operator of the Bourne shell.
     /// Analogously, using `Redirection::Merge` for
     /// `PopenConfig::stdout` is equivalent to `1&gt;&amp;2` in the shell.
@@ -1637,7 +1638,7 @@
     <span class="doccomment">/// Execute an external program in a new process.
     ///
     /// `argv` is a slice containing the program followed by its
-    /// arguments, such as `&amp;[&quot;ps&quot;, &quot;x&quot;]`. `config` specifies details
+    /// arguments, such as `&amp;["ps", "x"]`. `config` specifies details
     /// how to create and interface to the process.
     ///
     /// For example, this launches the `cargo update` command:
@@ -1645,7 +1646,7 @@
     /// ```no_run
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// Popen::create(&amp;[&quot;cargo&quot;, &quot;update&quot;], PopenConfig::default())?;
+    /// Popen::create(&amp;["cargo", "update"], PopenConfig::default())?;
     /// # Ok(())
     /// # }
     /// ```
@@ -1661,7 +1662,7 @@
     /// exit status.
     </span><span class="kw">pub fn </span>create(argv: <span class="kw-2">&amp;</span>[<span class="kw">impl </span>AsRef&lt;OsStr&gt;], config: PopenConfig) -&gt; <span class="prelude-ty">Result</span>&lt;Popen&gt; {
         <span class="kw">if </span>argv.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">&quot;argv must not be empty&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">"argv must not be empty"</span>));
         }
         <span class="kw">let </span>argv: Vec&lt;OsString&gt; = argv.iter().map(|p| p.as_ref().to_owned()).collect();
         <span class="kw">let </span><span class="kw-2">mut </span>inst = Popen {
@@ -1696,7 +1697,7 @@
             parent_ref: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;File&gt;,
             child_ref: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Rc&lt;File&gt;&gt;,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-            <span class="comment">// Store the parent&#39;s end of the pipe into the given
+            <span class="comment">// Store the parent's end of the pipe into the given
             // reference, and store the child end.
             </span><span class="kw">let </span>(read, write) = os::make_pipe()<span class="question-mark">?</span>;
             <span class="kw">let </span>(parent_end, child_end) = <span class="kw">if </span>parent_writes {
@@ -1751,7 +1752,7 @@
             Redirection::RcFile(file) =&gt; prepare_rc_file(file, <span class="kw-2">&amp;mut </span>child_stdin)<span class="question-mark">?</span>,
             Redirection::Merge =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(PopenError::LogicError(
-                    <span class="string">&quot;Redirection::Merge not valid for stdin&quot;</span>,
+                    <span class="string">"Redirection::Merge not valid for stdin"</span>,
                 ));
             }
             Redirection::None =&gt; (),
@@ -1773,10 +1774,10 @@
 
         <span class="comment">// Handle Redirection::Merge after creating the output child
         // streams.  Merge by cloning the child stream, or the
-        // appropriate standard stream if we don&#39;t have a child stream
+        // appropriate standard stream if we don't have a child stream
         // requested using Redirection::Pipe or Redirection::File.  In
         // other words, 2&gt;&amp;1 (ErrToOut) is implemented by making
-        // child_stderr point to a dup of child_stdout, or of the OS&#39;s
+        // child_stderr point to a dup of child_stdout, or of the OS's
         // stdout stream.
         </span><span class="kw">match </span>merge {
             MergeKind::ErrToOut =&gt; {
@@ -1804,7 +1805,7 @@
 
     <span class="doccomment">/// Return the PID of the subprocess, if it is known to be still running.
     ///
-    /// Note that this method won&#39;t actually *check* whether the child
+    /// Note that this method won't actually *check* whether the child
     /// process is still running, it will only return the information
     /// last set using one of `create`, `wait`, `wait_timeout`, or
     /// `poll`.  For a newly created `Popen`, `pid()` always returns
@@ -1818,7 +1819,7 @@
 
     <span class="doccomment">/// Return the exit status of the subprocess, if it is known to have finished.
     ///
-    /// Note that this method won&#39;t actually *check* whether the child
+    /// Note that this method won't actually *check* whether the child
     /// process has finished, it only returns the previously available
     /// information.  To check or wait for the process to finish, call
     /// `wait`, `wait_timeout`, or `poll`.
@@ -1833,7 +1834,7 @@
     ///
     /// Communicating refers to unattended data exchange with the subprocess.
     /// During communication the given `input_data` is written to the
-    /// subprocess&#39;s standard input which is then closed, while simultaneously
+    /// subprocess's standard input which is then closed, while simultaneously
     /// its standard output and error streams are read until end-of-file is
     /// reached.
     ///
@@ -1872,7 +1873,7 @@
 
     <span class="doccomment">/// Feed the subprocess with input data and capture its output.
     ///
-    /// This will write the provided `input_data` to the subprocess&#39;s standard
+    /// This will write the provided `input_data` to the subprocess's standard
     /// input, and simultaneously read its standard output and error.  The
     /// output and error contents are returned as a pair of `Option&lt;Vec&lt;u8&gt;&gt;`.
     /// The `None` options correspond to streams not specified as
@@ -2090,7 +2091,7 @@
                     error_code <span class="kw">as </span>i32,
                 )))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">&quot;invalid read_count from exec pipe&quot;</span>))
+                <span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">"invalid read_count from exec pipe"</span>))
             }
         }
 
@@ -2146,7 +2147,7 @@
             .filter(|<span class="kw-2">&amp;</span>(k, <span class="kw">_</span>)| seen.insert(k))
             .map(|(k, v)| {
                 <span class="kw">let </span><span class="kw-2">mut </span>fmt = k.clone();
-                fmt.push(<span class="string">&quot;=&quot;</span>);
+                fmt.push(<span class="string">"="</span>);
                 fmt.push(v);
                 fmt
             })
@@ -2213,7 +2214,7 @@
 
         <span class="kw">fn </span>waitpid(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: bool) -&gt; io::Result&lt;()&gt; {
             <span class="kw">match </span><span class="self">self</span>.child_state {
-                Preparing =&gt; <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                Preparing =&gt; <span class="macro">panic!</span>(<span class="string">"child_state == Preparing"</span>),
                 Running { pid, .. } =&gt; {
                     <span class="kw">match </span>posix::waitpid(pid, <span class="kw">if </span>block { <span class="number">0 </span>} <span class="kw">else </span>{ posix::WNOHANG }) {
                         <span class="prelude-val">Err</span>(e) =&gt; {
@@ -2287,7 +2288,7 @@
         <span class="kw">impl </span>PopenExt <span class="kw">for </span>Popen {
             <span class="kw">fn </span>send_signal(<span class="kw-2">&amp;</span><span class="self">self</span>, signal: i32) -&gt; io::Result&lt;()&gt; {
                 <span class="kw">match </span><span class="self">self</span>.child_state {
-                    Preparing =&gt; <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                    Preparing =&gt; <span class="macro">panic!</span>(<span class="string">"child_state == Preparing"</span>),
                     Running { pid, .. } =&gt; posix::kill(pid, signal),
                     Finished(..) =&gt; <span class="prelude-val">Ok</span>(()),
                 }
@@ -2327,7 +2328,7 @@
             ensure_child_stream(<span class="kw-2">&amp;mut </span>child_stderr, StandardStream::Error)<span class="question-mark">?</span>;
             <span class="kw">let </span>cmdline = assemble_cmdline(argv)<span class="question-mark">?</span>;
             <span class="kw">let </span>env_block = config.env.map(|env| format_env_block(<span class="kw-2">&amp;</span>env));
-            <span class="comment">// CreateProcess doesn&#39;t search for appname in the PATH.
+            <span class="comment">// CreateProcess doesn't search for appname in the PATH.
             // We do it ourselves to match the Unix behavior.
             </span><span class="kw">let </span>executable = config.executable.map(locate_in_path);
             <span class="kw">let </span>(handle, pid) = win32::CreateProcess(
@@ -2352,14 +2353,14 @@
         <span class="kw">fn </span>os_wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;ExitStatus&gt; {
             <span class="self">self</span>.wait_handle(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
             <span class="kw">match </span><span class="self">self</span>.child_state {
-                Preparing =&gt; <span class="macro">panic!</span>(<span class="string">&quot;child_state == Preparing&quot;</span>),
+                Preparing =&gt; <span class="macro">panic!</span>(<span class="string">"child_state == Preparing"</span>),
                 Finished(exit_status) =&gt; <span class="prelude-val">Ok</span>(exit_status),
                 <span class="comment">// Since we invoked wait_handle without timeout, exit
                 // status should exist at this point.  The only way
                 // for it not to exist would be if something strange
                 // happened, like WaitForSingleObject returning
                 // something other than OBJECT_0.
-                </span>Running { .. } =&gt; <span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">&quot;Failed to obtain exit status&quot;</span>)),
+                </span>Running { .. } =&gt; <span class="prelude-val">Err</span>(PopenError::LogicError(<span class="string">"Failed to obtain exit status"</span>)),
             }
         }
 
@@ -2428,7 +2429,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="macro">vec!</span>[];
         <span class="kw">for </span>(k, v) <span class="kw">in </span>pruned {
             block.extend(k.encode_wide());
-            block.push(<span class="string">&#39;=&#39; </span><span class="kw">as </span>u16);
+            block.push(<span class="string">'=' </span><span class="kw">as </span>u16);
             block.extend(v.encode_wide());
             block.push(<span class="number">0</span>);
         }
@@ -2462,11 +2463,11 @@
     }
 
     <span class="kw">fn </span>ensure_child_stream(stream: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Rc&lt;File&gt;&gt;, which: StandardStream) -&gt; io::Result&lt;()&gt; {
-        <span class="comment">// If no stream is sent to CreateProcess, the child doesn&#39;t
+        <span class="comment">// If no stream is sent to CreateProcess, the child doesn't
         // get a valid stream.  This results in e.g.
-        // Exec(&quot;sh&quot;).arg(&quot;-c&quot;).arg(&quot;echo foo &gt;&amp;2&quot;).stream_stderr()
+        // Exec("sh").arg("-c").arg("echo foo &gt;&amp;2").stream_stderr()
         // failing because the shell tries to redirect stdout to
-        // stderr, but fails because it didn&#39;t receive a valid stdout.
+        // stderr, but fails because it didn't receive a valid stdout.
         </span><span class="kw">if </span>stream.is_none() {
             <span class="kw-2">*</span>stream = <span class="prelude-val">Some</span>(get_standard_stream(which)<span class="question-mark">?</span>);
         }
@@ -2492,7 +2493,7 @@
     }
 
     <span class="kw">fn </span>locate_in_path(executable: OsString) -&gt; OsString {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = env::var_os(<span class="string">&quot;PATH&quot;</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = env::var_os(<span class="string">"PATH"</span>) {
             <span class="kw">for </span>path <span class="kw">in </span>env::split_paths(<span class="kw-2">&amp;</span>path) {
                 <span class="kw">let </span>path = path
                     .join(<span class="kw-2">&amp;</span>executable)
@@ -2510,7 +2511,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>is_first = <span class="bool-val">true</span>;
         <span class="kw">for </span>arg <span class="kw">in </span>argv {
             <span class="kw">if </span>!is_first {
-                cmdline.push(<span class="string">&#39; &#39; </span><span class="kw">as </span>u16);
+                cmdline.push(<span class="string">' ' </span><span class="kw">as </span>u16);
             } <span class="kw">else </span>{
                 is_first = <span class="bool-val">false</span>;
             }
@@ -2528,46 +2529,46 @@
     </span><span class="kw">fn </span>append_quoted(arg: <span class="kw-2">&amp;</span>OsStr, cmdline: <span class="kw-2">&amp;mut </span>Vec&lt;u16&gt;) {
         <span class="kw">if </span>!arg.is_empty()
             &amp;&amp; !arg.encode_wide().any(|c| {
-                c == <span class="string">&#39; &#39; </span><span class="kw">as </span>u16
-                    || c == <span class="string">&#39;\t&#39; </span><span class="kw">as </span>u16
-                    || c == <span class="string">&#39;\n&#39; </span><span class="kw">as </span>u16
-                    || c == <span class="string">&#39;\x0b&#39; </span><span class="kw">as </span>u16
-                    || c == <span class="string">&#39;\&quot;&#39; </span><span class="kw">as </span>u16
+                c == <span class="string">' ' </span><span class="kw">as </span>u16
+                    || c == <span class="string">'\t' </span><span class="kw">as </span>u16
+                    || c == <span class="string">'\n' </span><span class="kw">as </span>u16
+                    || c == <span class="string">'\x0b' </span><span class="kw">as </span>u16
+                    || c == <span class="string">'\"' </span><span class="kw">as </span>u16
             })
         {
             cmdline.extend(arg.encode_wide());
             <span class="kw">return</span>;
         }
-        cmdline.push(<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16);
+        cmdline.push(<span class="string">'"' </span><span class="kw">as </span>u16);
 
         <span class="kw">let </span>arg: Vec&lt;<span class="kw">_</span>&gt; = arg.encode_wide().collect();
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
         <span class="kw">while </span>i &lt; arg.len() {
             <span class="kw">let </span><span class="kw-2">mut </span>num_backslashes = <span class="number">0</span>;
-            <span class="kw">while </span>i &lt; arg.len() &amp;&amp; arg[i] == <span class="string">&#39;\\&#39; </span><span class="kw">as </span>u16 {
+            <span class="kw">while </span>i &lt; arg.len() &amp;&amp; arg[i] == <span class="string">'\\' </span><span class="kw">as </span>u16 {
                 i += <span class="number">1</span>;
                 num_backslashes += <span class="number">1</span>;
             }
 
             <span class="kw">if </span>i == arg.len() {
                 <span class="kw">for _ in </span><span class="number">0</span>..num_backslashes * <span class="number">2 </span>{
-                    cmdline.push(<span class="string">&#39;\\&#39; </span><span class="kw">as </span>u16);
+                    cmdline.push(<span class="string">'\\' </span><span class="kw">as </span>u16);
                 }
                 <span class="kw">break</span>;
-            } <span class="kw">else if </span>arg[i] == <span class="string">b&#39;&quot;&#39; </span><span class="kw">as </span>u16 {
+            } <span class="kw">else if </span>arg[i] == <span class="string">b'"' </span><span class="kw">as </span>u16 {
                 <span class="kw">for _ in </span><span class="number">0</span>..num_backslashes * <span class="number">2 </span>+ <span class="number">1 </span>{
-                    cmdline.push(<span class="string">&#39;\\&#39; </span><span class="kw">as </span>u16);
+                    cmdline.push(<span class="string">'\\' </span><span class="kw">as </span>u16);
                 }
                 cmdline.push(arg[i]);
             } <span class="kw">else </span>{
                 <span class="kw">for _ in </span><span class="number">0</span>..num_backslashes {
-                    cmdline.push(<span class="string">&#39;\\&#39; </span><span class="kw">as </span>u16);
+                    cmdline.push(<span class="string">'\\' </span><span class="kw">as </span>u16);
                 }
                 cmdline.push(arg[i]);
             }
             i += <span class="number">1</span>;
         }
-        cmdline.push(<span class="string">&#39;&quot;&#39; </span><span class="kw">as </span>u16);
+        cmdline.push(<span class="string">'"' </span><span class="kw">as </span>u16);
     }
 
     <span class="kw">pub mod </span>ext {}
@@ -2614,7 +2615,7 @@
     <span class="doccomment">/// An IO system call failed while executing the requested operation.
     </span>IoError(io::Error),
     <span class="doccomment">/// A logical error was made, e.g. invalid arguments detected at run-time.
-    </span>LogicError(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str),
+    </span>LogicError(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str),
 }
 
 <span class="kw">impl </span>From&lt;io::Error&gt; <span class="kw">for </span>PopenError {
@@ -2630,7 +2631,7 @@
 }
 
 <span class="kw">impl </span>Error <span class="kw">for </span>PopenError {
-    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">'static</span>)&gt; {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             PopenError::IoError(<span class="kw-2">ref </span>err) =&gt; <span class="prelude-val">Some</span>(err),
             PopenError::LogicError(_msg) =&gt; <span class="prelude-val">None</span>,
@@ -2639,7 +2640,7 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>PopenError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             PopenError::IoError(<span class="kw-2">ref </span>err) =&gt; fmt::Display::fmt(err, f),
             PopenError::LogicError(desc) =&gt; f.write_str(desc),

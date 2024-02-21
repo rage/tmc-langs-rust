@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/bindings/tmc-langs-node/src/ser.rs`."><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_node" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tmc_langs_node/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/bindings/tmc-langs-node/src/ser.rs`."><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_node" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -498,9 +499,9 @@
 <span class="kw">use </span>serde::ser::{<span class="self">self</span>, Serialize};
 <span class="kw">use </span>std::marker::PhantomData;
 
-<span class="kw">pub fn </span>to_value&lt;<span class="lifetime">&#39;js</span>, C, V&gt;(cx: <span class="kw-2">&amp;mut </span>C, value: <span class="kw-2">&amp;</span>V) -&gt; LibResult&lt;Handle&lt;<span class="lifetime">&#39;js</span>, JsValue&gt;&gt;
+<span class="kw">pub fn </span>to_value&lt;<span class="lifetime">'js</span>, C, V&gt;(cx: <span class="kw-2">&amp;mut </span>C, value: <span class="kw-2">&amp;</span>V) -&gt; LibResult&lt;Handle&lt;<span class="lifetime">'js</span>, JsValue&gt;&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;js</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'js</span>&gt;,
     V: Serialize + <span class="question-mark">?</span>Sized,
 {
     <span class="kw">let </span>serializer = Serializer {
@@ -511,69 +512,69 @@
     <span class="prelude-val">Ok</span>(serialized_value)
 }
 
-<span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C,
-    ph: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;j </span>()&gt;,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C,
+    ph: PhantomData&lt;<span class="kw-2">&amp;</span><span class="lifetime">'j </span>()&gt;,
 }
 
-<span class="kw">pub struct </span>ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C,
-    array: Handle&lt;<span class="lifetime">&#39;j</span>, JsArray&gt;,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C,
+    array: Handle&lt;<span class="lifetime">'j</span>, JsArray&gt;,
 }
 
-<span class="kw">pub struct </span>TupleVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>TupleVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    outter_object: Handle&lt;<span class="lifetime">&#39;j</span>, JsObject&gt;,
-    inner: ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;,
+    outter_object: Handle&lt;<span class="lifetime">'j</span>, JsObject&gt;,
+    inner: ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;,
 }
 
-<span class="kw">pub struct </span>MapSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>MapSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C,
-    object: Handle&lt;<span class="lifetime">&#39;j</span>, JsObject&gt;,
-    key_holder: Handle&lt;<span class="lifetime">&#39;j</span>, JsObject&gt;,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C,
+    object: Handle&lt;<span class="lifetime">'j</span>, JsObject&gt;,
+    key_holder: Handle&lt;<span class="lifetime">'j</span>, JsObject&gt;,
 }
 
-<span class="kw">pub struct </span>StructSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>StructSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C,
-    object: Handle&lt;<span class="lifetime">&#39;j</span>, JsObject&gt;,
+    cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C,
+    object: Handle&lt;<span class="lifetime">'j</span>, JsObject&gt;,
 }
 
-<span class="kw">pub struct </span>StructVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C: <span class="lifetime">&#39;a</span>&gt;
+<span class="kw">pub struct </span>StructVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C: <span class="lifetime">'a</span>&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    outer_object: Handle&lt;<span class="lifetime">&#39;j</span>, JsObject&gt;,
-    inner: StructSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;,
+    outer_object: Handle&lt;<span class="lifetime">'j</span>, JsObject&gt;,
+    inner: StructSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
-    <span class="kw">type </span>SerializeSeq = ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeTuple = ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeTupleStruct = ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeTupleVariant = TupleVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeMap = MapSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeStruct = StructSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
-    <span class="kw">type </span>SerializeStructVariant = StructVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;;
+    <span class="kw">type </span>SerializeSeq = ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeTuple = ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = TupleVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeMap = MapSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeStruct = StructSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
+    <span class="kw">type </span>SerializeStructVariant = StructVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;;
 
     <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(JsBoolean::new(<span class="self">self</span>.cx, v).upcast())
@@ -662,22 +663,22 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.cx.null().upcast())
     }
 
-    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.cx.null().upcast())
     }
 
     <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_str(variant)
     }
 
     <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -688,9 +689,9 @@
 
     <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -713,7 +714,7 @@
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(ArraySerializer::new(<span class="self">self</span>.cx))
@@ -721,9 +722,9 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         TupleVariantSerializer::new(<span class="self">self</span>.cx, variant)
@@ -735,7 +736,7 @@
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Ok</span>(StructSerializer::new(<span class="self">self</span>.cx))
@@ -743,30 +744,30 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         StructVariantSerializer::new(<span class="self">self</span>.cx, variant)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>array = JsArray::new(cx, <span class="number">0</span>);
         ArraySerializer { cx, array }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeSeq <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeSeq <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
@@ -775,7 +776,7 @@
     {
         <span class="kw">let </span>value = to_value(<span class="self">self</span>.cx, value)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>arr: Handle&lt;<span class="lifetime">&#39;j</span>, JsArray&gt; = <span class="self">self</span>.array;
+        <span class="kw">let </span>arr: Handle&lt;<span class="lifetime">'j</span>, JsArray&gt; = <span class="self">self</span>.array;
         <span class="kw">let </span>len = arr.len(<span class="self">self</span>.cx);
         arr.set(<span class="self">self</span>.cx, len, value)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -786,11 +787,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeTuple <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeTuple <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_element&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
@@ -805,11 +806,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeTupleStruct <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeTupleStruct <span class="kw">for </span>ArraySerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
@@ -824,11 +825,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; TupleVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; TupleVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; LibResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; LibResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner_array = JsArray::new(cx, <span class="number">0</span>);
         <span class="kw">let </span>outter_object = JsObject::new(cx);
         outter_object.set(cx, key, inner_array)<span class="question-mark">?</span>;
@@ -842,11 +843,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeTupleVariant <span class="kw">for </span>TupleVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeTupleVariant <span class="kw">for </span>TupleVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
@@ -862,11 +863,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; MapSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; MapSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::new(cx);
         <span class="kw">let </span>key_holder = JsObject::new(cx);
         MapSerializer {
@@ -877,11 +878,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeMap <span class="kw">for </span>MapSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeMap <span class="kw">for </span>MapSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_key&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
@@ -889,7 +890,7 @@
         </span>T: Serialize,
     {
         <span class="kw">let </span>key = to_value(<span class="self">self</span>.cx, key)<span class="question-mark">?</span>;
-        <span class="self">self</span>.key_holder.set(<span class="self">self</span>.cx, <span class="string">&quot;key&quot;</span>, key)<span class="question-mark">?</span>;
+        <span class="self">self</span>.key_holder.set(<span class="self">self</span>.cx, <span class="string">"key"</span>, key)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -897,7 +898,7 @@
     <span class="kw">where
         </span>T: Serialize,
     {
-        <span class="kw">let </span>key: Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt; = <span class="self">self</span>.key_holder.get(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.cx, <span class="string">&quot;key&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>key: Handle&lt;<span class="lifetime">'j</span>, JsValue&gt; = <span class="self">self</span>.key_holder.get(<span class="kw-2">&amp;mut *</span><span class="self">self</span>.cx, <span class="string">"key"</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>value_obj = to_value(<span class="self">self</span>.cx, value)<span class="question-mark">?</span>;
         <span class="self">self</span>.object.set(<span class="self">self</span>.cx, key, value_obj)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -908,26 +909,26 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; StructSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; StructSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>object = JsObject::new(cx);
         StructSerializer { cx, object }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeStruct <span class="kw">for </span>StructSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeStruct <span class="kw">for </span>StructSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -943,11 +944,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; StructVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; StructVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>C, key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; LibResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">fn </span>new(cx: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>C, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; LibResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>inner_object = JsObject::new(cx);
         <span class="kw">let </span>outter_object = JsObject::new(cx);
         outter_object.set(cx, key, inner_object)<span class="question-mark">?</span>;
@@ -961,16 +962,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt; ser::SerializeStructVariant <span class="kw">for </span>StructVariantSerializer&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;j</span>, C&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt; ser::SerializeStructVariant <span class="kw">for </span>StructVariantSerializer&lt;<span class="lifetime">'a</span>, <span class="lifetime">'j</span>, C&gt;
 <span class="kw">where
-    </span>C: Context&lt;<span class="lifetime">&#39;j</span>&gt;,
+    </span>C: Context&lt;<span class="lifetime">'j</span>&gt;,
 {
-    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">&#39;j</span>, JsValue&gt;;
+    <span class="kw">type </span><span class="prelude-val">Ok </span>= Handle&lt;<span class="lifetime">'j</span>, JsValue&gt;;
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
     <span class="kw">where

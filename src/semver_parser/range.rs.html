@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-parser-0.7.0/src/range.rs`."><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../semver_parser/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-parser-0.7.0/src/range.rs`."><title>range.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver_parser" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -728,14 +729,14 @@
 
     <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Op, String&gt; {
         <span class="kw">match </span>s {
-            <span class="string">&quot;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::Ex),
-            <span class="string">&quot;&gt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::Gt),
-            <span class="string">&quot;&gt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::GtEq),
-            <span class="string">&quot;&lt;&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::Lt),
-            <span class="string">&quot;&lt;=&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::LtEq),
-            <span class="string">&quot;~&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::Tilde),
-            <span class="string">&quot;^&quot; </span>=&gt; <span class="prelude-val">Ok</span>(Op::Compatible),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(String::from(<span class="string">&quot;Could not parse Op&quot;</span>)),
+            <span class="string">"=" </span>=&gt; <span class="prelude-val">Ok</span>(Op::Ex),
+            <span class="string">"&gt;" </span>=&gt; <span class="prelude-val">Ok</span>(Op::Gt),
+            <span class="string">"&gt;=" </span>=&gt; <span class="prelude-val">Ok</span>(Op::GtEq),
+            <span class="string">"&lt;" </span>=&gt; <span class="prelude-val">Ok</span>(Op::Lt),
+            <span class="string">"&lt;=" </span>=&gt; <span class="prelude-val">Ok</span>(Op::LtEq),
+            <span class="string">"~" </span>=&gt; <span class="prelude-val">Ok</span>(Op::Tilde),
+            <span class="string">"^" </span>=&gt; <span class="prelude-val">Ok</span>(Op::Compatible),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(String::from(<span class="string">"Could not parse Op"</span>)),
         }
     }
 }
@@ -752,7 +753,7 @@
 <span class="kw">fn </span>numeric_or_wild(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="prelude-ty">Option</span>&lt;u64&gt;, usize)&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>((val, len)) = numeric_identifier(s) {
         <span class="prelude-val">Some</span>((<span class="prelude-val">Some</span>(val), len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = OneOf(<span class="string">b&quot;*xX&quot;</span>).p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = OneOf(<span class="string">b"*xX"</span>).p(s) {
         <span class="prelude-val">Some</span>((<span class="prelude-val">None</span>, len))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
@@ -760,25 +761,25 @@
 }
 
 <span class="kw">fn </span>dot_numeric_or_wild(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="prelude-ty">Option</span>&lt;u64&gt;, usize)&gt; {
-    <span class="string">b&#39;.&#39;</span>.p(s).and_then(|len|
+    <span class="string">b'.'</span>.p(s).and_then(|len|
         numeric_or_wild(<span class="kw-2">&amp;</span>s[len..]).map(|(val, len2)| (val, len + len2))
     )
 }
 
 <span class="kw">fn </span>operation(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;(Op, usize)&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;=&quot;</span>.p(s) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"="</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::Ex, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;&gt;=&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"&gt;="</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::GtEq, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;&gt;&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"&gt;"</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::Gt, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;&lt;=&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"&lt;="</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::LtEq, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;&lt;&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"&lt;"</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::Lt, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;~&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"~"</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::Tilde, len))
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">&quot;^&quot;</span>.p(s) {
+    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(len) = <span class="string">"^"</span>.p(s) {
         <span class="prelude-val">Some</span>((Op::Compatible, len))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
@@ -786,7 +787,7 @@
 }
 
 <span class="kw">fn </span>whitespace(s: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    ZeroOrMore(OneOf(<span class="string">b&quot;\t\r\n &quot;</span>)).p(s)
+    ZeroOrMore(OneOf(<span class="string">b"\t\r\n "</span>)).p(s)
 }
 
 <span class="kw">pub fn </span>parse_predicate(range: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Predicate, String&gt; {
@@ -806,7 +807,7 @@
         i += len;
         major
     } <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Error parsing major version number: &quot;</span>.to_string());
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Error parsing major version number: "</span>.to_string());
     };
     <span class="kw">let </span>minor = <span class="kw">if let </span><span class="prelude-val">Some</span>((minor, len)) = dot_numeric_or_wild(<span class="kw-2">&amp;</span>s[i..]) {
         i += len;
@@ -826,13 +827,13 @@
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>};
-    <span class="kw">let </span>(pre, pre_len) = common::parse_optional_meta(<span class="kw-2">&amp;</span>s[i..], <span class="string">b&#39;-&#39;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(pre, pre_len) = common::parse_optional_meta(<span class="kw-2">&amp;</span>s[i..], <span class="string">b'-'</span>)<span class="question-mark">?</span>;
     i += pre_len;
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = (<span class="string">b&#39;+&#39;</span>, letters_numbers_dash_dot).p(<span class="kw-2">&amp;</span>s[i..]) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(len) = (<span class="string">b'+'</span>, letters_numbers_dash_dot).p(<span class="kw-2">&amp;</span>s[i..]) {
         i += len;
     }
     <span class="kw">if </span>i != s.len() {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Extra junk after valid predicate: &quot;</span>.to_string() +
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">"Extra junk after valid predicate: "</span>.to_string() +
             from_utf8(<span class="kw-2">&amp;</span>s[i..]).unwrap());
     }
     <span class="prelude-val">Ok</span>(Predicate {
@@ -846,16 +847,16 @@
 
 <span class="kw">pub fn </span>parse(ranges: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;VersionReq, String&gt; {
     <span class="comment">// null is an error
-    </span><span class="kw">if </span>ranges == <span class="string">&quot;\0&quot; </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(String::from(<span class="string">&quot;Null is not a valid VersionReq&quot;</span>));
+    </span><span class="kw">if </span>ranges == <span class="string">"\0" </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(String::from(<span class="string">"Null is not a valid VersionReq"</span>));
     }
 
     <span class="comment">// an empty range is a major version wildcard
     // so is a lone * or x of either capitalization
-    </span><span class="kw">if </span>(ranges == <span class="string">&quot;&quot;</span>)
-    || (ranges == <span class="string">&quot;*&quot;</span>)
-    || (ranges == <span class="string">&quot;x&quot;</span>)
-    || (ranges == <span class="string">&quot;X&quot;</span>) {
+    </span><span class="kw">if </span>(ranges == <span class="string">""</span>)
+    || (ranges == <span class="string">"*"</span>)
+    || (ranges == <span class="string">"x"</span>)
+    || (ranges == <span class="string">"X"</span>) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(VersionReq {
             predicates: <span class="macro">vec!</span>[Predicate {
                 op: Op::Wildcard(WildcardVersion::Major),
@@ -871,7 +872,7 @@
     <span class="kw">let </span>ranges = ranges.trim();
 
     <span class="kw">let </span>predicates: <span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, String&gt; = ranges
-        .split(<span class="string">&quot;,&quot;</span>)
+        .split(<span class="string">","</span>)
         .map(|range| {
             parse_predicate(range)
         })
@@ -880,7 +881,7 @@
     <span class="kw">let </span>predicates = <span class="macro">try!</span>(predicates);
 
     <span class="kw">if </span>predicates.len() == <span class="number">0 </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(String::from(<span class="string">&quot;VersionReq did not parse properly&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(String::from(<span class="string">"VersionReq did not parse properly"</span>));
     }
 
     <span class="prelude-val">Ok</span>(VersionReq {
@@ -896,7 +897,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_default() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.0.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.0.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Compatible,
@@ -911,7 +912,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_exact_01() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;=1.0.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"=1.0.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Ex,
@@ -926,7 +927,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_exact_02() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;=0.9.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"=0.9.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Ex,
@@ -941,15 +942,15 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_exact_03() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;=0.1.0-beta2.a&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"=0.1.0-beta2.a"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Ex,
                 major: <span class="number">0</span>,
                 minor: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                 patch: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">&quot;beta2&quot;</span>)),
-                          Identifier::AlphaNumeric(String::from(<span class="string">&quot;a&quot;</span>))],
+                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">"beta2"</span>)),
+                          Identifier::AlphaNumeric(String::from(<span class="string">"a"</span>))],
             },
             r.predicates[<span class="number">0</span>]
         );
@@ -957,7 +958,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_greater_than() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&gt; 1.0.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&gt; 1.0.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Gt,
@@ -972,7 +973,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_greater_than_01() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&gt;= 1.0.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&gt;= 1.0.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::GtEq,
@@ -987,14 +988,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_greater_than_02() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&gt;= 2.1.0-alpha2&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&gt;= 2.1.0-alpha2"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::GtEq,
                 major: <span class="number">2</span>,
                 minor: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                 patch: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">&quot;alpha2&quot;</span>))],
+                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">"alpha2"</span>))],
             },
             r.predicates[<span class="number">0</span>]
         );
@@ -1002,7 +1003,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_less_than() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&lt; 1.0.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&lt; 1.0.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Lt,
@@ -1017,14 +1018,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_less_than_eq() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&lt;= 2.1.0-alpha2&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&lt;= 2.1.0-alpha2"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::LtEq,
                 major: <span class="number">2</span>,
                 minor: <span class="prelude-val">Some</span>(<span class="number">1</span>),
                 patch: <span class="prelude-val">Some</span>(<span class="number">0</span>),
-                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">&quot;alpha2&quot;</span>))],
+                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">"alpha2"</span>))],
             },
             r.predicates[<span class="number">0</span>]
         );
@@ -1032,7 +1033,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_tilde() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;~1&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"~1"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Tilde,
@@ -1047,7 +1048,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_compatible() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;^0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"^0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Compatible,
@@ -1062,7 +1063,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_blank() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">""</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Major),
@@ -1077,7 +1078,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_wildcard() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;*&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"*"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Major),
@@ -1092,7 +1093,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;x&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"x"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Major),
@@ -1107,7 +1108,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_capital_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;X&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"X"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Major),
@@ -1122,7 +1123,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_minor_wildcard_star() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.*&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.*"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Minor),
@@ -1137,7 +1138,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_minor_wildcard_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.x&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.x"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Minor),
@@ -1152,7 +1153,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_minor_wildcard_capital_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.X&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.X"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Minor),
@@ -1167,7 +1168,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_patch_wildcard_star() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.2.*&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.2.*"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Patch),
@@ -1182,7 +1183,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_patch_wildcard_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.2.x&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.2.x"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Patch),
@@ -1197,7 +1198,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_patch_wildcard_capital_x() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;1.2.X&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"1.2.X"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Wildcard(WildcardVersion::Patch),
@@ -1212,7 +1213,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple_01() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&gt; 0.0.9, &lt;= 2.5.3&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&gt; 0.0.9, &lt;= 2.5.3"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Gt,
@@ -1237,7 +1238,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple_02() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;0.3.0, 0.4.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"0.3.0, 0.4.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Compatible,
@@ -1262,7 +1263,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple_03() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&lt;= 0.2.0, &gt;= 0.5.0&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&lt;= 0.2.0, &gt;= 0.5.0"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::LtEq,
@@ -1287,7 +1288,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple_04() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;0.1.0, 0.1.4, 0.1.6&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"0.1.0, 0.1.4, 0.1.6"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::Compatible,
@@ -1322,14 +1323,14 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple_05() {
-        <span class="kw">let </span>r = range::parse(<span class="string">&quot;&gt;=0.5.1-alpha3, &lt;0.6&quot;</span>).unwrap();
+        <span class="kw">let </span>r = range::parse(<span class="string">"&gt;=0.5.1-alpha3, &lt;0.6"</span>).unwrap();
 
         <span class="macro">assert_eq!</span>(Predicate {
                 op: Op::GtEq,
                 major: <span class="number">0</span>,
                 minor: <span class="prelude-val">Some</span>(<span class="number">5</span>),
                 patch: <span class="prelude-val">Some</span>(<span class="number">1</span>),
-                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">&quot;alpha3&quot;</span>))],
+                pre: <span class="macro">vec!</span>[Identifier::AlphaNumeric(String::from(<span class="string">"alpha3"</span>))],
             },
             r.predicates[<span class="number">0</span>]
         );
@@ -1347,47 +1348,47 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parse_build_metadata_with_predicate() {
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;^1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"^1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::Compatible);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;~1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"~1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::Tilde);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;=1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"=1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::Ex);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;&lt;=1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"&lt;=1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::LtEq);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;&gt;=1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"&gt;=1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::GtEq);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;&lt;1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"&lt;1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::Lt);
-        <span class="macro">assert_eq!</span>(range::parse(<span class="string">&quot;&gt;1.2.3+meta&quot;</span>).unwrap().predicates[<span class="number">0</span>].op,
+        <span class="macro">assert_eq!</span>(range::parse(<span class="string">"&gt;1.2.3+meta"</span>).unwrap().predicates[<span class="number">0</span>].op,
                    Op::Gt);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parse_errors() {
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;\0&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;&gt;= &gt;= 0.0.2&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;&gt;== 0.0.2&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;a.0.0&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;1.0.0-&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;&gt;=&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;&gt; 0.1.0,&quot;</span>).is_err());
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;&gt; 0.3.0, ,&quot;</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"\0"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"&gt;= &gt;= 0.0.2"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"&gt;== 0.0.2"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"a.0.0"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"1.0.0-"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"&gt;="</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"&gt; 0.1.0,"</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"&gt; 0.3.0, ,"</span>).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_large_major_version() {
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;18446744073709551617.0.0&quot;</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"18446744073709551617.0.0"</span>).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_large_minor_version() {
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;0.18446744073709551617.0&quot;</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"0.18446744073709551617.0"</span>).is_err());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_large_patch_version() {
-        <span class="macro">assert!</span>(range::parse(<span class="string">&quot;0.0.18446744073709551617&quot;</span>).is_err());
+        <span class="macro">assert!</span>(range::parse(<span class="string">"0.0.18446744073709551617"</span>).is_err());
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.8.2/src/ser.rs`."><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../toml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.8.10/src/ser.rs`."><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1093,7 +1094,7 @@
 
 /// Serialize the given data structure as a String of TOML.
 ///
-/// Serialization can fail if `T`&#39;s implementation of `Serialize` decides to
+/// Serialization can fail if `T`'s implementation of `Serialize` decides to
 /// fail, if `T` contains a map with non-string keys, or if `T` attempts to
 /// serialize an unsupported datatype such as an enum, tuple, or tuple struct.
 ///
@@ -1119,7 +1120,7 @@
 ///
 /// let config = Config {
 ///     database: Database {
-///         ip: &quot;192.168.1.1&quot;.to_string(),
+///         ip: "192.168.1.1".to_string(),
 ///         port: vec![8001, 8002, 8003],
 ///         connection_max: 5000,
 ///         enabled: false,
@@ -1127,9 +1128,9 @@
 /// };
 ///
 /// let toml = toml::to_string(&amp;config).unwrap();
-/// println!(&quot;{}&quot;, toml)
+/// println!("{}", toml)
 /// ```
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">pub fn </span>to_string&lt;T: <span class="question-mark">?</span>Sized&gt;(value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt;
 <span class="kw">where
     </span>T: serde::ser::Serialize,
@@ -1140,16 +1141,16 @@
     <span class="prelude-val">Ok</span>(output)
 }
 
-<span class="doccomment">/// Serialize the given data structure as a &quot;pretty&quot; String of TOML.
+<span class="doccomment">/// Serialize the given data structure as a "pretty" String of TOML.
 ///
 /// This is identical to `to_string` except the output string has a more
-/// &quot;pretty&quot; output. See `Serializer::pretty` for more details.
+/// "pretty" output. See `Serializer::pretty` for more details.
 ///
 /// To serialize TOML values, instead of documents, see [`ValueSerializer`].
 ///
 /// For greater customization, instead serialize to a
 /// [`toml_edit::Document`](https://docs.rs/toml_edit/latest/toml_edit/struct.Document.html).
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">pub fn </span>to_string_pretty&lt;T: <span class="question-mark">?</span>Sized&gt;(value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt;
 <span class="kw">where
     </span>T: serde::ser::Serialize,
@@ -1173,12 +1174,12 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>wrap(inner: <span class="kw">crate</span>::edit::ser::Error) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ inner }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsupported_type(t: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>unsupported_type(t: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: <span class="kw">crate</span>::edit::ser::Error::UnsupportedType(t),
         }
@@ -1207,7 +1208,7 @@
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>Error {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="self">self</span>.inner.fmt(f)
     }
 }
@@ -1226,46 +1227,46 @@
 ///
 /// To serialize TOML values, instead of documents, see [`ValueSerializer`].
 </span><span class="attr">#[non_exhaustive]
-#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">&#39;d</span>&gt; {
-    dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">pub struct </span>Serializer&lt;<span class="lifetime">'d</span>&gt; {
+    dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
     settings: <span class="kw">crate</span>::fmt::DocumentFormatter,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; Serializer&lt;<span class="lifetime">&#39;d</span>&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; Serializer&lt;<span class="lifetime">'d</span>&gt; {
     <span class="doccomment">/// Creates a new serializer which will emit TOML into the buffer provided.
     ///
     /// The serializer can then be used to serialize a type after which the data
     /// will be present in `dst`.
-    </span><span class="kw">pub fn </span>new(dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             dst,
             settings: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Apply a default &quot;pretty&quot; policy to the document
+    <span class="doccomment">/// Apply a default "pretty" policy to the document
     ///
     /// For greater customization, instead serialize to a
     /// [`toml_edit::Document`](https://docs.rs/toml_edit/latest/toml_edit/struct.Document.html).
-    </span><span class="kw">pub fn </span>pretty(dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>pretty(dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>ser = Serializer::new(dst);
         ser.settings.multiline_array = <span class="bool-val">true</span>;
         ser
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">&#39;d</span>&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::Serializer <span class="kw">for </span>Serializer&lt;<span class="lifetime">'d</span>&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>SerializeSeq = SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTuple = SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTupleStruct = SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTupleVariant = SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeMap = SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeStruct = SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt;;
+    <span class="kw">type </span>SerializeSeq = SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTuple = SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeMap = SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeStruct = SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt;;
     <span class="kw">type </span>SerializeStructVariant = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
 
     <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
@@ -1407,7 +1408,7 @@
         )
     }
 
-    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         write_document(
             <span class="self">self</span>.dst,
             <span class="self">self</span>.settings,
@@ -1417,9 +1418,9 @@
 
     <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         write_document(
             <span class="self">self</span>.dst,
@@ -1434,7 +1435,7 @@
 
     <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         v: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -1449,9 +1450,9 @@
 
     <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -1483,7 +1484,7 @@
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
@@ -1491,9 +1492,9 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
@@ -1509,7 +1510,7 @@
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_map(<span class="prelude-val">Some</span>(len))
@@ -1517,9 +1518,9 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(Error::unsupported_type(<span class="prelude-val">Some</span>(name)))
@@ -1556,7 +1557,7 @@
 ///
 /// let config = Config {
 ///     database: Database {
-///         ip: &quot;192.168.1.1&quot;.to_string(),
+///         ip: "192.168.1.1".to_string(),
 ///         port: vec![8001, 8002, 8003],
 ///         connection_max: 5000,
 ///         enabled: false,
@@ -1568,35 +1569,35 @@
 ///     &amp;config,
 ///     toml::ser::ValueSerializer::new(&amp;mut value)
 /// ).unwrap();
-/// println!(&quot;{}&quot;, value)
+/// println!("{}", value)
 /// ```
 </span><span class="attr">#[non_exhaustive]
-#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">pub struct </span>ValueSerializer&lt;<span class="lifetime">&#39;d</span>&gt; {
-    dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">pub struct </span>ValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
+    dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; ValueSerializer&lt;<span class="lifetime">&#39;d</span>&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; ValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
     <span class="doccomment">/// Creates a new serializer which will emit TOML into the buffer provided.
     ///
     /// The serializer can then be used to serialize a type after which the data
     /// will be present in `dst`.
-    </span><span class="kw">pub fn </span>new(dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ dst }
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::Serializer <span class="kw">for </span>ValueSerializer&lt;<span class="lifetime">&#39;d</span>&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::Serializer <span class="kw">for </span>ValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>SerializeSeq = SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTuple = SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTupleStruct = SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeTupleVariant = SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeMap = SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt;;
-    <span class="kw">type </span>SerializeStruct = SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt;;
+    <span class="kw">type </span>SerializeSeq = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTuple = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeMap = SerializeValueTable&lt;<span class="lifetime">'d</span>&gt;;
+    <span class="kw">type </span>SerializeStruct = SerializeValueTable&lt;<span class="lifetime">'d</span>&gt;;
     <span class="kw">type </span>SerializeStructVariant = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
 
     <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
@@ -1721,7 +1722,7 @@
         )
     }
 
-    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         write_value(
             <span class="self">self</span>.dst,
             toml_edit::ser::ValueSerializer::new().serialize_unit_struct(name),
@@ -1730,9 +1731,9 @@
 
     <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
         write_value(
             <span class="self">self</span>.dst,
@@ -1746,7 +1747,7 @@
 
     <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         v: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -1760,9 +1761,9 @@
 
     <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
@@ -1793,7 +1794,7 @@
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
@@ -1801,9 +1802,9 @@
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_seq(<span class="prelude-val">Some</span>(len))
@@ -1819,7 +1820,7 @@
 
     <span class="kw">fn </span>serialize_struct(
         <span class="self">self</span>,
-        _name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct, <span class="self">Self</span>::Error&gt; {
         <span class="self">self</span>.serialize_map(<span class="prelude-val">Some</span>(len))
@@ -1827,19 +1828,19 @@
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        _variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        _variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant, <span class="self">Self</span>::Error&gt; {
         <span class="prelude-val">Err</span>(Error::unsupported_type(<span class="prelude-val">Some</span>(name)))
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">use </span>internal::<span class="kw-2">*</span>;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;display&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">mod </span>internal {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -1849,14 +1850,14 @@
         &lt;toml_edit::ser::ValueSerializer <span class="kw">as </span>serde::Serializer&gt;::SerializeSeq;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub struct </span>SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    </span><span class="kw">pub struct </span>SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
         inner: InnerSerializeDocumentSeq,
-        dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+        dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
         settings: DocumentFormatter,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: Serializer&lt;<span class="lifetime">&#39;d</span>&gt;, inner: InnerSerializeDocumentSeq) -&gt; <span class="self">Self </span>{
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: Serializer&lt;<span class="lifetime">'d</span>&gt;, inner: InnerSerializeDocumentSeq) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
                 inner,
                 dst: ser.dst,
@@ -1865,7 +1866,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeSeq <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeSeq <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -1881,7 +1882,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTuple <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTuple <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -1897,7 +1898,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTupleVariant <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTupleVariant <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -1913,7 +1914,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeDocumentArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -1933,14 +1934,14 @@
         &lt;toml_edit::ser::ValueSerializer <span class="kw">as </span>serde::Serializer&gt;::SerializeMap;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub struct </span>SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    </span><span class="kw">pub struct </span>SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt; {
         inner: InnerSerializeDocumentTable,
-        dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+        dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
         settings: DocumentFormatter,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt; {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: Serializer&lt;<span class="lifetime">&#39;d</span>&gt;, inner: InnerSerializeDocumentTable) -&gt; <span class="self">Self </span>{
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: Serializer&lt;<span class="lifetime">'d</span>&gt;, inner: InnerSerializeDocumentTable) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
                 inner,
                 dst: ser.dst,
@@ -1949,7 +1950,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -1972,13 +1973,13 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeDocumentTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeDocumentTable&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
         <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             value: <span class="kw-2">&amp;</span>T,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
         <span class="kw">where
@@ -2011,7 +2012,7 @@
         settings.visit_table_mut(<span class="kw-2">&amp;mut </span>table);
 
         <span class="kw">let </span>doc: toml_edit::Document = table.into();
-        <span class="macro">write!</span>(dst, <span class="string">&quot;{}&quot;</span>, doc).unwrap();
+        <span class="macro">write!</span>(dst, <span class="string">"{}"</span>, doc).unwrap();
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -2020,13 +2021,13 @@
         &lt;toml_edit::ser::ValueSerializer <span class="kw">as </span>serde::Serializer&gt;::SerializeSeq;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub struct </span>SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    </span><span class="kw">pub struct </span>SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
         inner: InnerSerializeValueSeq,
-        dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+        dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: ValueSerializer&lt;<span class="lifetime">&#39;d</span>&gt;, inner: InnerSerializeValueSeq) -&gt; <span class="self">Self </span>{
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: ValueSerializer&lt;<span class="lifetime">'d</span>&gt;, inner: InnerSerializeValueSeq) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
                 inner,
                 dst: ser.dst,
@@ -2034,7 +2035,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeSeq <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeSeq <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -2050,7 +2051,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTuple <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTuple <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -2066,7 +2067,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTupleVariant <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTupleVariant <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -2082,7 +2083,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeValueArray&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -2102,13 +2103,13 @@
         &lt;toml_edit::ser::ValueSerializer <span class="kw">as </span>serde::Serializer&gt;::SerializeMap;
 
     <span class="attr">#[doc(hidden)]
-    </span><span class="kw">pub struct </span>SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    </span><span class="kw">pub struct </span>SerializeValueTable&lt;<span class="lifetime">'d</span>&gt; {
         inner: InnerSerializeValueTable,
-        dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;d </span><span class="kw-2">mut </span>String,
+        dst: <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String,
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt; {
-        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: ValueSerializer&lt;<span class="lifetime">&#39;d</span>&gt;, inner: InnerSerializeValueTable) -&gt; <span class="self">Self </span>{
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; SerializeValueTable&lt;<span class="lifetime">'d</span>&gt; {
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ser: ValueSerializer&lt;<span class="lifetime">'d</span>&gt;, inner: InnerSerializeValueTable) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
                 inner,
                 dst: ser.dst,
@@ -2116,7 +2117,7 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeValueTable&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
@@ -2139,13 +2140,13 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeValueTable&lt;<span class="lifetime">&#39;d</span>&gt; {
+    <span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeValueTable&lt;<span class="lifetime">'d</span>&gt; {
         <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
         <span class="kw">type </span>Error = Error;
 
         <span class="kw">fn </span>serialize_field&lt;T: <span class="question-mark">?</span>Sized&gt;(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-            key: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+            key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
             value: <span class="kw-2">&amp;</span>T,
         ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
         <span class="kw">where
@@ -2167,7 +2168,7 @@
 
         <span class="kw">let </span>value = value.map_err(Error::wrap)<span class="question-mark">?</span>;
 
-        <span class="macro">write!</span>(dst, <span class="string">&quot;{}&quot;</span>, value).unwrap();
+        <span class="macro">write!</span>(dst, <span class="string">"{}"</span>, value).unwrap();
 
         <span class="prelude-val">Ok</span>(())
     }

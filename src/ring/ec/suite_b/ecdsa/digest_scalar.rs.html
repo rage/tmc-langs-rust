@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ring-0.16.20/src/ec/suite_b/ecdsa/digest_scalar.rs`."><title>digest_scalar.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="ring" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../../ring/index.html"><img class="rust-logo" src="../../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/ring-0.17.8/src/ec/suite_b/ecdsa/digest_scalar.rs`."><title>digest_scalar.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="ring" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -116,26 +117,13 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2015-2016 Brian Smith.
 //
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
 //
-// THE SOFTWARE IS PROVIDED &quot;AS IS&quot; AND THE AUTHORS DISCLAIM ALL WARRANTIES
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHORS DISCLAIM ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY
 // SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
@@ -145,24 +133,20 @@
 
 </span><span class="doccomment">//! ECDSA Signatures using the P-256 and P-384 curves.
 
-</span><span class="kw">use crate</span>::{
-    digest,
-    ec::suite_b::ops::<span class="kw-2">*</span>,
-    limb::{<span class="self">self</span>, LIMB_BYTES},
-};
+</span><span class="kw">use crate</span>::{digest, ec::suite_b::ops::<span class="kw-2">*</span>};
 
 <span class="doccomment">/// Calculate the digest of `msg` using the digest algorithm `digest_alg`. Then
 /// convert the digest to a scalar in the range [0, n) as described in
-/// NIST&#39;s FIPS 186-4 Section 4.2. Note that this is one of the few cases where
+/// NIST's FIPS 186-4 Section 4.2. Note that this is one of the few cases where
 /// a `Scalar` is allowed to have the value zero.
 ///
-/// NIST&#39;s FIPS 186-4 4.2 says &quot;When the length of the output of the hash
+/// NIST's FIPS 186-4 4.2 says "When the length of the output of the hash
 /// function is greater than N (i.e., the bit length of q), then the leftmost N
 /// bits of the hash function output block shall be used in any calculation
 /// using the hash function output during the generation or verification of a
-/// digital signature.&quot;
+/// digital signature."
 ///
-/// &quot;Leftmost N bits&quot; means &quot;N most significant bits&quot; because we interpret the
+/// "Leftmost N bits" means "N most significant bits" because we interpret the
 /// digest as a bit-endian encoded integer.
 ///
 /// The NSA guide instead vaguely suggests that we should convert the digest
@@ -170,13 +154,13 @@
 /// implementations (e.g. `digest_to_bn` in OpenSSL and `hashToInt` in Go) do
 /// what FIPS 186-4 says to do, not what the NSA guide suggests.
 ///
-/// Why shifting the value right by at most one bit is sufficient: P-256&#39;s `n`
-/// has its 256th bit set; i.e. 2**255 &lt; n &lt; 2**256. Once we&#39;ve truncated the
+/// Why shifting the value right by at most one bit is sufficient: P-256's `n`
+/// has its 256th bit set; i.e. 2**255 &lt; n &lt; 2**256. Once we've truncated the
 /// digest to 256 bits and converted it to an integer, it will have a value
 /// less than 2**256. If the value is larger than `n` then shifting it one bit
 /// right will give a value less than 2**255, which is less than `n`. The
 /// analogous argument applies for P-384. However, it does *not* apply in
-/// general; for example, it doesn&#39;t apply to P-521.
+/// general; for example, it doesn't apply to P-521.
 </span><span class="kw">pub fn </span>digest_scalar(ops: <span class="kw-2">&amp;</span>ScalarOps, msg: digest::Digest) -&gt; Scalar {
     digest_scalar_(ops, msg.as_ref())
 }
@@ -189,17 +173,15 @@
 <span class="comment">// This is a separate function solely so that we can test specific digest
 // values like all-zero values and values larger than `n`.
 </span><span class="kw">fn </span>digest_scalar_(ops: <span class="kw-2">&amp;</span>ScalarOps, digest: <span class="kw-2">&amp;</span>[u8]) -&gt; Scalar {
-    <span class="kw">let </span>cops = ops.common;
-    <span class="kw">let </span>num_limbs = cops.num_limbs;
-    <span class="kw">let </span>digest = <span class="kw">if </span>digest.len() &gt; num_limbs * LIMB_BYTES {
-        <span class="kw-2">&amp;</span>digest[..(num_limbs * LIMB_BYTES)]
+    <span class="kw">let </span>len = ops.scalar_bytes_len();
+    <span class="kw">let </span>digest = <span class="kw">if </span>digest.len() &gt; len {
+        <span class="kw-2">&amp;</span>digest[..len]
     } <span class="kw">else </span>{
         digest
     };
 
     scalar_parse_big_endian_partially_reduced_variable_consttime(
-        cops,
-        limb::AllowZero::Yes,
+        ops.common,
         untrusted::Input::from(digest),
     )
     .unwrap()
@@ -208,41 +190,32 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">super</span>::digest_bytes_scalar;
-    <span class="kw">use crate</span>::{
-        digest,
-        ec::suite_b::ops::<span class="kw-2">*</span>,
-        limb::{<span class="self">self</span>, LIMB_BYTES},
-        test,
-    };
+    <span class="kw">use crate</span>::{digest, ec::suite_b::ops::<span class="kw-2">*</span>, limb, test};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test() {
         test::run(
-            <span class="macro">test_file!</span>(<span class="string">&quot;ecdsa_digest_scalar_tests.txt&quot;</span>),
+            <span class="macro">test_file!</span>(<span class="string">"ecdsa_digest_scalar_tests.txt"</span>),
             |section, test_case| {
-                <span class="macro">assert_eq!</span>(section, <span class="string">&quot;&quot;</span>);
+                <span class="macro">assert_eq!</span>(section, <span class="string">""</span>);
 
-                <span class="kw">let </span>curve_name = test_case.consume_string(<span class="string">&quot;Curve&quot;</span>);
-                <span class="kw">let </span>digest_name = test_case.consume_string(<span class="string">&quot;Digest&quot;</span>);
-                <span class="kw">let </span>input = test_case.consume_bytes(<span class="string">&quot;Input&quot;</span>);
-                <span class="kw">let </span>output = test_case.consume_bytes(<span class="string">&quot;Output&quot;</span>);
+                <span class="kw">let </span>curve_name = test_case.consume_string(<span class="string">"Curve"</span>);
+                <span class="kw">let </span>digest_name = test_case.consume_string(<span class="string">"Digest"</span>);
+                <span class="kw">let </span>input = test_case.consume_bytes(<span class="string">"Input"</span>);
+                <span class="kw">let </span>output = test_case.consume_bytes(<span class="string">"Output"</span>);
 
                 <span class="kw">let </span>(ops, digest_alg) = <span class="kw">match </span>(curve_name.as_str(), digest_name.as_str()) {
-                    (<span class="string">&quot;P-256&quot;</span>, <span class="string">&quot;SHA256&quot;</span>) =&gt; (<span class="kw-2">&amp;</span>p256::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA256),
-                    (<span class="string">&quot;P-256&quot;</span>, <span class="string">&quot;SHA384&quot;</span>) =&gt; (<span class="kw-2">&amp;</span>p256::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA384),
-                    (<span class="string">&quot;P-384&quot;</span>, <span class="string">&quot;SHA256&quot;</span>) =&gt; (<span class="kw-2">&amp;</span>p384::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA256),
-                    (<span class="string">&quot;P-384&quot;</span>, <span class="string">&quot;SHA384&quot;</span>) =&gt; (<span class="kw-2">&amp;</span>p384::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA384),
+                    (<span class="string">"P-256"</span>, <span class="string">"SHA256"</span>) =&gt; (<span class="kw-2">&amp;</span>p256::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA256),
+                    (<span class="string">"P-256"</span>, <span class="string">"SHA384"</span>) =&gt; (<span class="kw-2">&amp;</span>p256::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA384),
+                    (<span class="string">"P-384"</span>, <span class="string">"SHA256"</span>) =&gt; (<span class="kw-2">&amp;</span>p384::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA256),
+                    (<span class="string">"P-384"</span>, <span class="string">"SHA384"</span>) =&gt; (<span class="kw-2">&amp;</span>p384::PUBLIC_SCALAR_OPS, <span class="kw-2">&amp;</span>digest::SHA384),
                     <span class="kw">_ </span>=&gt; {
-                        <span class="macro">panic!</span>(<span class="string">&quot;Unsupported curve+digest: {}+{}&quot;</span>, curve_name, digest_name);
+                        <span class="macro">panic!</span>(<span class="string">"Unsupported curve+digest: {}+{}"</span>, curve_name, digest_name);
                     }
                 };
 
-                <span class="kw">let </span>num_limbs = ops.public_key_ops.common.num_limbs;
-                <span class="macro">assert_eq!</span>(input.len(), digest_alg.output_len);
-                <span class="macro">assert_eq!</span>(
-                    output.len(),
-                    ops.public_key_ops.common.num_limbs * LIMB_BYTES
-                );
+                <span class="macro">assert_eq!</span>(input.len(), digest_alg.output_len());
+                <span class="macro">assert_eq!</span>(output.len(), ops.scalar_ops.scalar_bytes_len());
 
                 <span class="kw">let </span>expected = scalar_parse_big_endian_variable(
                     ops.public_key_ops.common,
@@ -252,8 +225,10 @@
                 .unwrap();
 
                 <span class="kw">let </span>actual = digest_bytes_scalar(ops.scalar_ops, <span class="kw-2">&amp;</span>input);
-
-                <span class="macro">assert_eq!</span>(actual.limbs[..num_limbs], expected.limbs[..num_limbs]);
+                <span class="macro">assert_eq!</span>(
+                    ops.scalar_ops.leak_limbs(<span class="kw-2">&amp;</span>actual),
+                    ops.scalar_ops.leak_limbs(<span class="kw-2">&amp;</span>expected)
+                );
 
                 <span class="prelude-val">Ok</span>(())
             },

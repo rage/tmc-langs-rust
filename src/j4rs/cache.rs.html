@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.17.1/src/cache.rs`."><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../j4rs/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.17.2/src/cache.rs`."><title>cache.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1910,45 +1911,16 @@
 <a href="#1910" id="1910">1910</a>
 <a href="#1911" id="1911">1911</a>
 <a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a>
-<a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a>
-<a href="#1917" id="1917">1917</a>
-<a href="#1918" id="1918">1918</a>
-<a href="#1919" id="1919">1919</a>
-<a href="#1920" id="1920">1920</a>
-<a href="#1921" id="1921">1921</a>
-<a href="#1922" id="1922">1922</a>
-<a href="#1923" id="1923">1923</a>
-<a href="#1924" id="1924">1924</a>
-<a href="#1925" id="1925">1925</a>
-<a href="#1926" id="1926">1926</a>
-<a href="#1927" id="1927">1927</a>
-<a href="#1928" id="1928">1928</a>
-<a href="#1929" id="1929">1929</a>
-<a href="#1930" id="1930">1930</a>
-<a href="#1931" id="1931">1931</a>
-<a href="#1932" id="1932">1932</a>
-<a href="#1933" id="1933">1933</a>
-<a href="#1934" id="1934">1934</a>
-<a href="#1935" id="1935">1935</a>
-<a href="#1936" id="1936">1936</a>
-<a href="#1937" id="1937">1937</a>
-<a href="#1938" id="1938">1938</a>
-<a href="#1939" id="1939">1939</a>
-<a href="#1940" id="1940">1940</a>
-<a href="#1941" id="1941">1941</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2018 astonbitecode
 //
-// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 // http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -1957,57 +1929,99 @@
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::sync::Mutex;
 
-<span class="kw">use </span>jni_sys::{<span class="self">self</span>, jboolean, jbyte, jclass, jdouble, jfloat, jint, jlong, jmethodID, JNIEnv, jobject, jobjectArray, jshort, jsize, jstring};
+<span class="kw">use </span>jni_sys::{
+    <span class="self">self</span>, jboolean, jbyte, jclass, jdouble, jfloat, jint, jlong, jmethodID, jobject, jobjectArray,
+    jshort, jsize, jstring, JNIEnv,
+};
 <span class="kw">use </span>libc::c_char;
 
-<span class="kw">use crate</span>::{api_tweaks <span class="kw">as </span>tweaks, errors, jni_utils, utils};
 <span class="kw">use </span><span class="kw">crate</span>::errors::opt_to_res;
 <span class="kw">use </span><span class="kw">crate</span>::logger::debug;
+<span class="kw">use crate</span>::{api_tweaks <span class="kw">as </span>tweaks, errors, jni_utils, utils};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INST_CLASS_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;org/astonbitecode/j4rs/api/instantiation/NativeInstantiationImpl&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_BASE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;org/astonbitecode/j4rs/api/InstanceBase&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_IFACE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;org/astonbitecode/j4rs/api/Instance&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UNKNOWN_FOR_RUST: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;known_in_java_world&quot;</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>J4RS_ARRAY: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;org.astonbitecode.j4rs.api.dtos.Array&quot;</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INST_CLASS_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str =
+    <span class="string">"org/astonbitecode/j4rs/api/instantiation/NativeInstantiationImpl"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_BASE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org/astonbitecode/j4rs/api/InstanceBase"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_IFACE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org/astonbitecode/j4rs/api/Instance"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UNKNOWN_FOR_RUST: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"known_in_java_world"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>J4RS_ARRAY: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org.astonbitecode.j4rs.api.dtos.Array"</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetMethodId = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_, <span class="kw-2">*mut </span>jni_sys::_jobject, <span class="kw-2">*const </span>c_char, <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>jni_sys::_jmethodID;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetStaticMethodId = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_, <span class="kw-2">*mut </span>jni_sys::_jobject, <span class="kw-2">*const </span>c_char, <span class="kw-2">*const </span>c_char) -&gt; <span class="kw-2">*mut </span>jni_sys::_jmethodID;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetMethodId = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
+    <span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_,
+    <span class="kw-2">*mut </span>jni_sys::_jobject,
+    <span class="kw-2">*const </span>c_char,
+    <span class="kw-2">*const </span>c_char,
+) -&gt; <span class="kw-2">*mut </span>jni_sys::_jmethodID;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetStaticMethodId = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
+    <span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_,
+    <span class="kw-2">*mut </span>jni_sys::_jobject,
+    <span class="kw-2">*const </span>c_char,
+    <span class="kw-2">*const </span>c_char,
+) -&gt; <span class="kw-2">*mut </span>jni_sys::_jmethodID;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewObject = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, clazz: jclass, methodID: jmethodID, ...) -&gt; jobject;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewStringUTF = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, utf: <span class="kw-2">*const </span>c_char) -&gt; jstring;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewObject =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, clazz: jclass, methodID: jmethodID, ...) -&gt; jobject;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewStringUTF =
+    <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, utf: <span class="kw-2">*const </span>c_char) -&gt; jstring;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetStringUTFChars = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, str: jstring, isCopy: <span class="kw-2">*mut </span>jboolean) -&gt; <span class="kw-2">*const </span>c_char;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetStringUTFChars = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
+    env: <span class="kw-2">*mut </span>JNIEnv,
+    str: jstring,
+    isCopy: <span class="kw-2">*mut </span>jboolean,
+) -&gt; <span class="kw-2">*const </span>c_char;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniReleaseStringUTFChars = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, str: jstring, utf: <span class="kw-2">*const </span>c_char);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniReleaseStringUTFChars =
+    <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, str: jstring, utf: <span class="kw-2">*const </span>c_char);
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallObjectMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...) -&gt; jobject;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallObjectMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...) -&gt; jobject;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallIntMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jint;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallIntMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jint;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallByteMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jbyte;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallByteMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jbyte;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallShortMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jshort;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallShortMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jshort;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallLongMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jlong;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallLongMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jlong;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallFloatMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jfloat;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallFloatMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jfloat;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallDoubleMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jdouble;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallDoubleMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jmethodID, ...) -&gt; jdouble;
 <span class="attr">#[allow(non_snake_case)]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallVoidMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallStaticObjectMethod = <span class="kw">unsafe extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...) -&gt; jobject;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewObjectArray = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, len: jsize, clazz: jclass, init: jobject) -&gt; jobjectArray;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniSetObjectArrayElement = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_, <span class="kw-2">*mut </span>jni_sys::_jobject, i32, <span class="kw-2">*mut </span>jni_sys::_jobject);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionCheck = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv) -&gt; jboolean;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionDescribe = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionClear = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv);
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniDeleteLocalRef = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; ();
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniDeleteGlobalRef = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; ();
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewGlobalRef = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; jobject;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniThrowNew = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jclass, <span class="kw">_</span>: <span class="kw-2">*const </span>c_char) -&gt; jint;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniIsSameObject = <span class="kw">unsafe extern </span><span class="string">&quot;system&quot; </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jobject) -&gt; jboolean;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallVoidMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniCallStaticObjectMethod =
+    <span class="kw">unsafe extern </span><span class="string">"C" </span><span class="kw">fn</span>(env: <span class="kw-2">*mut </span>JNIEnv, obj: jobject, methodID: jmethodID, ...) -&gt; jobject;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewObjectArray = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
+    env: <span class="kw-2">*mut </span>JNIEnv,
+    len: jsize,
+    clazz: jclass,
+    init: jobject,
+) -&gt; jobjectArray;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniSetObjectArrayElement = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
+    <span class="kw-2">*mut *const </span>jni_sys::JNINativeInterface_,
+    <span class="kw-2">*mut </span>jni_sys::_jobject,
+    i32,
+    <span class="kw-2">*mut </span>jni_sys::_jobject,
+);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionCheck = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv) -&gt; jboolean;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionDescribe = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniExceptionClear = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniDeleteLocalRef = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; ();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniDeleteGlobalRef = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; ();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniNewGlobalRef = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject) -&gt; jobject;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniThrowNew =
+    <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jclass, <span class="kw">_</span>: <span class="kw-2">*const </span>c_char) -&gt; jint;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniIsSameObject =
+    <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(<span class="kw">_</span>: <span class="kw-2">*mut </span>JNIEnv, <span class="kw">_</span>: jobject, <span class="kw">_</span>: jobject) -&gt; jboolean;
 
-<span class="kw">const </span>CLASS_CACHING_ENABLED: bool = !(<span class="macro">cfg!</span>(target_os = <span class="string">&quot;android&quot;</span>));
+<span class="kw">const </span>CLASS_CACHING_ENABLED: bool = !(<span class="macro">cfg!</span>(target_os = <span class="string">"android"</span>));
 
 <span class="macro">lazy_static! </span>{
     <span class="comment">// Synchronize the creation of Jvm
@@ -2119,58 +2133,50 @@
 }
 
 <span class="macro">macro_rules! </span>get_cached {
-    (<span class="macro-nonterminal">$opt_name</span>:ident, <span class="macro-nonterminal">$do_retrieve</span>:expr, <span class="macro-nonterminal">$setter_name</span>:ident) =&gt; {
-        {
-            <span class="kw">let </span>jopt = <span class="kw">if </span>CLASS_CACHING_ENABLED {
-                <span class="macro-nonterminal">$opt_name</span>.with(|opt| {
-                    <span class="kw-2">*</span>opt.borrow()
-                })
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-            <span class="kw">if </span>jopt.is_none() {
-                <span class="kw">let </span>j = {<span class="macro-nonterminal">$do_retrieve</span>};
-                <span class="kw">if </span>CLASS_CACHING_ENABLED {
-                    <span class="macro-nonterminal">$setter_name</span>(j);
-                }
-                <span class="prelude-val">Ok</span>(j)
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(jopt.unwrap())
+    (<span class="macro-nonterminal">$opt_name</span>:ident, <span class="macro-nonterminal">$do_retrieve</span>:expr, <span class="macro-nonterminal">$setter_name</span>:ident) =&gt; {{
+        <span class="kw">let </span>jopt = <span class="kw">if </span>CLASS_CACHING_ENABLED {
+            <span class="macro-nonterminal">$opt_name</span>.with(|opt| <span class="kw-2">*</span>opt.borrow())
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+        <span class="kw">if </span>jopt.is_none() {
+            <span class="kw">let </span>j = { <span class="macro-nonterminal">$do_retrieve </span>};
+            <span class="kw">if </span>CLASS_CACHING_ENABLED {
+                <span class="macro-nonterminal">$setter_name</span>(j);
             }
+            <span class="prelude-val">Ok</span>(j)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">Ok</span>(jopt.unwrap())
         }
-    };
+    }};
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_active_jvm() {
     ACTIVE_JVMS.with(|active_jvms| {
-        <span class="kw">let </span>active_number = {
-            <span class="kw-2">*</span>active_jvms.borrow() + <span class="number">1
-        </span>};
+        <span class="kw">let </span>active_number = { <span class="kw-2">*</span>active_jvms.borrow() + <span class="number">1 </span>};
         <span class="kw-2">*</span>active_jvms.borrow_mut() = active_number;
     });
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_active_jvm() -&gt; i32 {
     ACTIVE_JVMS.with(|active_jvms| {
-        <span class="kw">let </span>active_number = {
-            <span class="kw-2">*</span>active_jvms.borrow() - <span class="number">1
-        </span>};
+        <span class="kw">let </span>active_number = { <span class="kw-2">*</span>active_jvms.borrow() - <span class="number">1 </span>};
         <span class="kw-2">*</span>active_jvms.borrow_mut() = active_number;
         active_number
     })
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_thread_local_env_opt() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>JNIEnv&gt; {
-    JNI_ENV.with(|existing_jni_env_opt| {
-        <span class="kw">match </span><span class="kw-2">*</span>existing_jni_env_opt.borrow() {
+    JNI_ENV.with(
+        |existing_jni_env_opt| <span class="kw">match </span><span class="kw-2">*</span>existing_jni_env_opt.borrow() {
             <span class="prelude-val">Some</span>(env) =&gt; <span class="prelude-val">Some</span>(env),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        }
-    })
+        },
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_thread_local_env(jni_env_opt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>JNIEnv&gt;) {
-    debug(<span class="string">&quot;Called set_thread_local_env&quot;</span>);
+    debug(<span class="string">"Called set_thread_local_env"</span>);
     JNI_ENV.with(|existing_jni_env_opt| {
         <span class="kw-2">*</span>existing_jni_env_opt.borrow_mut() = jni_env_opt;
     });
@@ -2179,12 +2185,14 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_thread_local_env() -&gt; errors::Result&lt;<span class="kw-2">*mut </span>JNIEnv&gt; {
     <span class="kw">match </span>get_thread_local_env_opt() {
         <span class="prelude-val">Some</span>(env) =&gt; <span class="prelude-val">Ok</span>(env),
-        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(errors::J4RsError::JavaError(<span class="macro">format!</span>(<span class="string">&quot;Could not find the JNIEnv in the thread local&quot;</span>))),
+        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(errors::J4RsError::JavaError(<span class="macro">format!</span>(
+            <span class="string">"Could not find the JNIEnv in the thread local"
+        </span>))),
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_get_method_id(j: <span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt; {
-    debug(<span class="string">&quot;Called set_jni_get_method_id&quot;</span>);
+    debug(<span class="string">"Called set_jni_get_method_id"</span>);
     JNI_GET_METHOD_ID.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2192,13 +2200,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_get_method_id() -&gt; <span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt; {
-    JNI_GET_METHOD_ID.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_GET_METHOD_ID.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_get_static_method_id(j: <span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStaticMethodId&gt; {
-    debug(<span class="string">&quot;Called set_jni_get_static_method_id&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_get_static_method_id(
+    j: <span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStaticMethodId&gt; {
+    debug(<span class="string">"Called set_jni_get_static_method_id"</span>);
     JNI_GET_STATIC_METHOD_ID.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2206,13 +2214,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_get_static_method_id() -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStaticMethodId&gt; {
-    JNI_GET_STATIC_METHOD_ID.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_GET_STATIC_METHOD_ID.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_new_object(j: <span class="prelude-ty">Option</span>&lt;JniNewObject&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniNewObject&gt; {
-    debug(<span class="string">&quot;Called set_jni_new_object&quot;</span>);
+    debug(<span class="string">"Called set_jni_new_object"</span>);
     JNI_NEW_OBJECT.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2220,13 +2226,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_new_object() -&gt; <span class="prelude-ty">Option</span>&lt;JniNewObject&gt; {
-    JNI_NEW_OBJECT.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_NEW_OBJECT.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_new_string_utf(j: <span class="prelude-ty">Option</span>&lt;JniNewStringUTF&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniNewStringUTF&gt; {
-    debug(<span class="string">&quot;Called set_jni_new_string_utf&quot;</span>);
+    debug(<span class="string">"Called set_jni_new_string_utf"</span>);
     JNI_NEW_STRING_UTF.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2234,13 +2238,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_new_string_utf() -&gt; <span class="prelude-ty">Option</span>&lt;JniNewStringUTF&gt; {
-    JNI_NEW_STRING_UTF.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_NEW_STRING_UTF.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_get_string_utf_chars(j: <span class="prelude-ty">Option</span>&lt;JniGetStringUTFChars&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStringUTFChars&gt; {
-    debug(<span class="string">&quot;Called set_jni_get_string_utf_chars&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_get_string_utf_chars(
+    j: <span class="prelude-ty">Option</span>&lt;JniGetStringUTFChars&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStringUTFChars&gt; {
+    debug(<span class="string">"Called set_jni_get_string_utf_chars"</span>);
     JNI_GET_STRING_UTF_CHARS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2248,13 +2252,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_get_string_utf_chars() -&gt; <span class="prelude-ty">Option</span>&lt;JniGetStringUTFChars&gt; {
-    JNI_GET_STRING_UTF_CHARS.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_GET_STRING_UTF_CHARS.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_release_string_utf_chars(j: <span class="prelude-ty">Option</span>&lt;JniReleaseStringUTFChars&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniReleaseStringUTFChars&gt; {
-    debug(<span class="string">&quot;Called set_jni_release_string_utf_chars&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_release_string_utf_chars(
+    j: <span class="prelude-ty">Option</span>&lt;JniReleaseStringUTFChars&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniReleaseStringUTFChars&gt; {
+    debug(<span class="string">"Called set_jni_release_string_utf_chars"</span>);
     JNI_RELEASE_STRING_UTF_CHARS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2262,13 +2266,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_release_string_utf_chars() -&gt; <span class="prelude-ty">Option</span>&lt;JniReleaseStringUTFChars&gt; {
-    JNI_RELEASE_STRING_UTF_CHARS.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_RELEASE_STRING_UTF_CHARS.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_object_method(j: <span class="prelude-ty">Option</span>&lt;JniCallObjectMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallObjectMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_object_method&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_object_method(
+    j: <span class="prelude-ty">Option</span>&lt;JniCallObjectMethod&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallObjectMethod&gt; {
+    debug(<span class="string">"Called set_jni_call_object_method"</span>);
     JNI_CALL_OBJECT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2276,13 +2280,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_object_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallObjectMethod&gt; {
-    JNI_CALL_OBJECT_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_OBJECT_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_void_method(j: <span class="prelude-ty">Option</span>&lt;JniCallVoidMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallVoidMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_void_method&quot;</span>);
+    debug(<span class="string">"Called set_jni_call_void_method"</span>);
     JNI_CALL_VOID_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2290,7 +2292,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_byte_method(j: <span class="prelude-ty">Option</span>&lt;JniCallByteMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallByteMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_byte_method&quot;</span>);
+    debug(<span class="string">"Called set_jni_call_byte_method"</span>);
     JNI_CALL_BYTE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2298,13 +2300,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_byte_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallByteMethod&gt; {
-    JNI_CALL_BYTE_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_BYTE_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_short_method(j: <span class="prelude-ty">Option</span>&lt;JniCallShortMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallShortMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_short_method&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_short_method(
+    j: <span class="prelude-ty">Option</span>&lt;JniCallShortMethod&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallShortMethod&gt; {
+    debug(<span class="string">"Called set_jni_call_short_method"</span>);
     JNI_CALL_SHORT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2312,13 +2314,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_short_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallShortMethod&gt; {
-    JNI_CALL_SHORT_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_SHORT_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_int_method(j: <span class="prelude-ty">Option</span>&lt;JniCallIntMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallIntMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_int_method&quot;</span>);
+    debug(<span class="string">"Called set_jni_call_int_method"</span>);
     JNI_CALL_INT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2326,13 +2326,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_int_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallIntMethod&gt; {
-    JNI_CALL_INT_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_INT_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_long_method(j: <span class="prelude-ty">Option</span>&lt;JniCallLongMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallLongMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_long_method&quot;</span>);
+    debug(<span class="string">"Called set_jni_call_long_method"</span>);
     JNI_CALL_LONG_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2340,13 +2338,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_long_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallLongMethod&gt; {
-    JNI_CALL_LONG_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_LONG_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_float_method(j: <span class="prelude-ty">Option</span>&lt;JniCallFloatMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallFloatMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_float_method&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_float_method(
+    j: <span class="prelude-ty">Option</span>&lt;JniCallFloatMethod&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallFloatMethod&gt; {
+    debug(<span class="string">"Called set_jni_call_float_method"</span>);
     JNI_CALL_FLOAT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2354,13 +2352,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_float_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallFloatMethod&gt; {
-    JNI_CALL_FLOAT_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_FLOAT_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_double_method(j: <span class="prelude-ty">Option</span>&lt;JniCallDoubleMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallDoubleMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_double_method&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_double_method(
+    j: <span class="prelude-ty">Option</span>&lt;JniCallDoubleMethod&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallDoubleMethod&gt; {
+    debug(<span class="string">"Called set_jni_call_double_method"</span>);
     JNI_CALL_DOUBLE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2368,19 +2366,17 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_double_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallDoubleMethod&gt; {
-    JNI_CALL_DOUBLE_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_DOUBLE_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_void_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallVoidMethod&gt; {
-    JNI_CALL_VOID_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_VOID_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_static_object_method(j: <span class="prelude-ty">Option</span>&lt;JniCallStaticObjectMethod&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallStaticObjectMethod&gt; {
-    debug(<span class="string">&quot;Called set_jni_call_static_object_method&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_call_static_object_method(
+    j: <span class="prelude-ty">Option</span>&lt;JniCallStaticObjectMethod&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniCallStaticObjectMethod&gt; {
+    debug(<span class="string">"Called set_jni_call_static_object_method"</span>);
     JNI_CALL_STATIC_OBJECT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2388,13 +2384,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_call_static_object_method() -&gt; <span class="prelude-ty">Option</span>&lt;JniCallStaticObjectMethod&gt; {
-    JNI_CALL_STATIC_OBJECT_METHOD.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_CALL_STATIC_OBJECT_METHOD.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_new_object_array(j: <span class="prelude-ty">Option</span>&lt;JniNewObjectArray&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniNewObjectArray&gt; {
-    debug(<span class="string">&quot;Called set_jni_new_object_array&quot;</span>);
+    debug(<span class="string">"Called set_jni_new_object_array"</span>);
 
     JNI_NEW_OBJECT_ARRAY.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
@@ -2403,13 +2397,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_new_object_array() -&gt; <span class="prelude-ty">Option</span>&lt;JniNewObjectArray&gt; {
-    JNI_NEW_OBJECT_ARRAY.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_NEW_OBJECT_ARRAY.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_set_object_array_element(j: <span class="prelude-ty">Option</span>&lt;JniSetObjectArrayElement&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniSetObjectArrayElement&gt; {
-    debug(<span class="string">&quot;Called set_jni_set_object_array_element&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_set_object_array_element(
+    j: <span class="prelude-ty">Option</span>&lt;JniSetObjectArrayElement&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniSetObjectArrayElement&gt; {
+    debug(<span class="string">"Called set_jni_set_object_array_element"</span>);
     JNI_SET_OBJECT_ARRAY_ELEMENT.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2417,13 +2411,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_set_object_array_element() -&gt; <span class="prelude-ty">Option</span>&lt;JniSetObjectArrayElement&gt; {
-    JNI_SET_OBJECT_ARRAY_ELEMENT.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_SET_OBJECT_ARRAY_ELEMENT.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_exception_check(j: <span class="prelude-ty">Option</span>&lt;JniExceptionCheck&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionCheck&gt; {
-    debug(<span class="string">&quot;Called set_jni_exception_check&quot;</span>);
+    debug(<span class="string">"Called set_jni_exception_check"</span>);
     JNI_EXCEPTION_CHECK.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2431,13 +2423,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_exception_check() -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionCheck&gt; {
-    JNI_EXCEPTION_CHECK.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_EXCEPTION_CHECK.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_exception_describe(j: <span class="prelude-ty">Option</span>&lt;JniExceptionDescribe&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionDescribe&gt; {
-    debug(<span class="string">&quot;Called set_jni_exception_describe&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_exception_describe(
+    j: <span class="prelude-ty">Option</span>&lt;JniExceptionDescribe&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionDescribe&gt; {
+    debug(<span class="string">"Called set_jni_exception_describe"</span>);
     JNI_EXCEPTION_DESCRIBE.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2445,13 +2437,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_exception_describe() -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionDescribe&gt; {
-    JNI_EXCEPTION_DESCRIBE.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_EXCEPTION_DESCRIBE.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_exception_clear(j: <span class="prelude-ty">Option</span>&lt;JniExceptionClear&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionClear&gt; {
-    debug(<span class="string">&quot;Called set_jni_exception_clear&quot;</span>);
+    debug(<span class="string">"Called set_jni_exception_clear"</span>);
     JNI_EXCEPTION_CLEAR.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2459,13 +2449,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_exception_clear() -&gt; <span class="prelude-ty">Option</span>&lt;JniExceptionClear&gt; {
-    JNI_EXCEPTION_CLEAR.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_EXCEPTION_CLEAR.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_delete_local_ref(j: <span class="prelude-ty">Option</span>&lt;JniDeleteLocalRef&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniDeleteLocalRef&gt; {
-    debug(<span class="string">&quot;Called set_jni_delete_local_ref&quot;</span>);
+    debug(<span class="string">"Called set_jni_delete_local_ref"</span>);
     JNI_DELETE_LOCAL_REF.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2473,13 +2461,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_delete_local_ref() -&gt; <span class="prelude-ty">Option</span>&lt;JniDeleteLocalRef&gt; {
-    JNI_DELETE_LOCAL_REF.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_DELETE_LOCAL_REF.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_delete_global_ref(j: <span class="prelude-ty">Option</span>&lt;JniDeleteGlobalRef&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniDeleteGlobalRef&gt; {
-    debug(<span class="string">&quot;Called set_jni_delete_global_ref&quot;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_delete_global_ref(
+    j: <span class="prelude-ty">Option</span>&lt;JniDeleteGlobalRef&gt;,
+) -&gt; <span class="prelude-ty">Option</span>&lt;JniDeleteGlobalRef&gt; {
+    debug(<span class="string">"Called set_jni_delete_global_ref"</span>);
     JNI_DELETE_GLOBAL_REF.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2487,13 +2475,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_delete_global_ref() -&gt; <span class="prelude-ty">Option</span>&lt;JniDeleteGlobalRef&gt; {
-    JNI_DELETE_GLOBAL_REF.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_DELETE_GLOBAL_REF.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_new_global_ref(j: <span class="prelude-ty">Option</span>&lt;JniNewGlobalRef&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniNewGlobalRef&gt; {
-    debug(<span class="string">&quot;Called set_jni_new_global_ref&quot;</span>);
+    debug(<span class="string">"Called set_jni_new_global_ref"</span>);
     JNI_NEW_GLOBAL_REF.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2501,13 +2487,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_new_global_ref() -&gt; <span class="prelude-ty">Option</span>&lt;JniNewGlobalRef&gt; {
-    JNI_NEW_GLOBAL_REF.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_NEW_GLOBAL_REF.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_jni_throw_new(j: <span class="prelude-ty">Option</span>&lt;JniThrowNew&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniThrowNew&gt; {
-    debug(<span class="string">&quot;Called set_jni_throw_new&quot;</span>);
+    debug(<span class="string">"Called set_jni_throw_new"</span>);
     JNI_THROW_NEW.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2515,13 +2499,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_jni_throw_new() -&gt; <span class="prelude-ty">Option</span>&lt;JniThrowNew&gt; {
-    JNI_THROW_NEW.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_THROW_NEW.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_is_same_object(j: <span class="prelude-ty">Option</span>&lt;JniIsSameObject&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;JniIsSameObject&gt; {
-    debug(<span class="string">&quot;Called set_is_same_object&quot;</span>);
+    debug(<span class="string">"Called set_is_same_object"</span>);
     JNI_IS_SAME_OBJECT.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = j;
     });
@@ -2529,13 +2511,11 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_is_same_object() -&gt; <span class="prelude-ty">Option</span>&lt;JniIsSameObject&gt; {
-    JNI_IS_SAME_OBJECT.with(|opt| {
-        <span class="kw-2">*</span>opt.borrow()
-    })
+    JNI_IS_SAME_OBJECT.with(|opt| <span class="kw-2">*</span>opt.borrow())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_factory_class&quot;</span>);
+    debug(<span class="string">"Called set_factory_class"</span>);
     FACTORY_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2549,11 +2529,12 @@
             <span class="kw">let </span>c = tweaks::find_class(env, INST_CLASS_NAME)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_factory_class)
+        set_factory_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invocation_arg_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_invocation_arg_class&quot;</span>);
+    debug(<span class="string">"Called set_invocation_arg_class"</span>);
     INVOCATION_ARG_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2564,15 +2545,16 @@
         INVOCATION_ARG_CLASS,
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
-            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">&quot;org/astonbitecode/j4rs/api/dtos/InvocationArg&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"org/astonbitecode/j4rs/api/dtos/InvocationArg"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_invocation_arg_class)
+        set_invocation_arg_class
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_constructor_method"</span>);
     FACTORY_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2584,26 +2566,23 @@
         FACTORY_CONSTRUCTOR_METHOD,
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="string">&quot;()V&quot;</span>);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="string">"()V"</span>);
             <span class="comment">// The constructor of `NativeInstantiationImpl`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_factory_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_factory_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_factory_constructor_method)
+        set_factory_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_instantiate_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_instantiate_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_instantiate_method"</span>);
     FACTORY_INSTANTIATE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2615,9 +2594,10 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
             <span class="kw">let </span>instantiate_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;instantiate&quot;</span>);
+                <span class="string">"(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
+                INVO_IFACE_NAME
+            );
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"instantiate"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>instantiate_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_static_method_id())<span class="question-mark">?</span>)(
@@ -2632,11 +2612,12 @@
 
             j
         },
-        set_factory_instantiate_method)
+        set_factory_instantiate_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_create_for_static_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_create_for_static_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_create_for_static_method"</span>);
     FACTORY_CREATE_FOR_STATIC_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2647,11 +2628,10 @@
         FACTORY_CREATE_FOR_STATIC_METHOD,
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
-            <span class="kw">let </span>create_for_static_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
+            <span class="kw">let </span>create_for_static_method_signature =
+                <span class="macro">format!</span>(<span class="string">"(Ljava/lang/String;)L{};"</span>, INVO_IFACE_NAME);
 
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;createForStatic&quot;</span>);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"createForStatic"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>create_for_static_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_static_method_id())<span class="question-mark">?</span>)(
@@ -2666,11 +2646,12 @@
 
             j
         },
-        set_factory_create_for_static_method)
+        set_factory_create_for_static_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_create_java_array_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_create_java_array_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_create_java_array_method"</span>);
     FACTORY_CREATE_JAVA_ARRAY_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2683,9 +2664,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>create_java_array_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;createJavaArray&quot;</span>);
+                <span class="string">"(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
+                INVO_IFACE_NAME
+            );
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"createJavaArray"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>create_java_array_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_static_method_id())<span class="question-mark">?</span>)(
@@ -2700,11 +2682,12 @@
 
             j
         },
-        set_factory_create_java_array_method)
+        set_factory_create_java_array_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_create_java_list_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_create_java_list_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_create_java_list_method"</span>);
     FACTORY_CREATE_JAVA_LIST_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2717,9 +2700,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>create_java_list_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;createJavaList&quot;</span>);
+                <span class="string">"(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
+                INVO_IFACE_NAME
+            );
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"createJavaList"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>create_java_list_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_static_method_id())<span class="question-mark">?</span>)(
@@ -2734,11 +2718,12 @@
 
             j
         },
-        set_factory_create_java_list_method)
+        set_factory_create_java_list_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_factory_create_java_map_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_factory_create_java_map_method&quot;</span>);
+    debug(<span class="string">"Called set_factory_create_java_map_method"</span>);
     FACTORY_CREATE_JAVA_MAP_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2751,9 +2736,9 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>create_java_map_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
+                <span class="string">"(Ljava/lang/String;Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
                 INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;createJavaMap&quot;</span>);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"createJavaMap"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>create_java_map_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_static_method_id())<span class="question-mark">?</span>)(
@@ -2768,11 +2753,12 @@
 
             j
         },
-        set_factory_create_java_map_method)
+        set_factory_create_java_map_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_java_instance_base_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_java_instance_base_class&quot;</span>);
+    debug(<span class="string">"Called set_java_instance_base_class"</span>);
     JAVA_INSTANCE_BASE_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2784,19 +2770,17 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                INVO_BASE_NAME,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, INVO_BASE_NAME)<span class="question-mark">?</span>;
             <span class="kw">let </span>j = jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?</span>;
 
             j
         },
-        set_java_instance_base_class)
+        set_java_instance_base_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_java_instance_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_java_instance_class&quot;</span>);
+    debug(<span class="string">"Called set_java_instance_class"</span>);
     JAVA_INSTANCE_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2808,19 +2792,17 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                INVO_IFACE_NAME,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, INVO_IFACE_NAME)<span class="question-mark">?</span>;
             <span class="kw">let </span>j = jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?</span>;
 
             j
         },
-        set_java_instance_class)
+        set_java_instance_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invoke_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_invoke_method&quot;</span>);
+    debug(<span class="string">"Called set_invoke_method"</span>);
     INVOKE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2833,10 +2815,11 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>invoke_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
+                <span class="string">"(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
+                INVO_IFACE_NAME
+            );
             <span class="comment">// Get the method ID for the `Instance.invoke`
-            </span><span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;invoke&quot;</span>);
+            </span><span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invoke"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(invoke_method_signature.as_ref());
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
@@ -2851,11 +2834,12 @@
 
             j
         },
-        set_invoke_method)
+        set_invoke_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invoke_static_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_invoke_static_method&quot;</span>);
+    debug(<span class="string">"Called set_invoke_static_method"</span>);
     INVOKE_STATIC_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2868,9 +2852,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>invoke_static_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;invokeStatic&quot;</span>);
+                <span class="string">"(Ljava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)L{};"</span>,
+                INVO_IFACE_NAME
+            );
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invokeStatic"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(invoke_static_method_signature.as_ref());
             <span class="comment">// Get the method ID for the `Instance.invokeStatic`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -2886,11 +2871,12 @@
 
             j
         },
-        set_invoke_static_method)
+        set_invoke_static_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invoke_to_channel_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_invoke_to_channel_method&quot;</span>);
+    debug(<span class="string">"Called set_invoke_to_channel_method"</span>);
     INVOKE_TO_CHANNEL_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2902,8 +2888,9 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>invoke_to_channel_method_signature = <span class="string">&quot;(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;invokeToChannel&quot;</span>);
+            <span class="kw">let </span>invoke_to_channel_method_signature =
+                <span class="string">"(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invokeToChannel"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>invoke_to_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.invokeToChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -2919,11 +2906,12 @@
 
             j
         },
-        set_invoke_to_channel_method)
+        set_invoke_to_channel_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invoke_async_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_invoke_async_method&quot;</span>);
+    debug(<span class="string">"Called set_invoke_async_method"</span>);
     INVOKE_ASYNC_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2935,8 +2923,9 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>invoke_to_channel_method_signature = <span class="string">&quot;(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;invokeAsyncToChannel&quot;</span>);
+            <span class="kw">let </span>invoke_to_channel_method_signature =
+                <span class="string">"(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invokeAsyncToChannel"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>invoke_to_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.invokeToChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -2952,12 +2941,12 @@
 
             j
         },
-        set_invoke_async_method)
+        set_invoke_async_method
+    )
 }
 
-
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_init_callback_channel_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_init_callback_channel_method&quot;</span>);
+    debug(<span class="string">"Called set_init_callback_channel_method"</span>);
     INIT_CALLBACK_CHANNEL_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -2969,8 +2958,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>init_callback_channel_method_signature = <span class="string">&quot;(J)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;initializeCallbackChannel&quot;</span>);
+            <span class="kw">let </span>init_callback_channel_method_signature = <span class="string">"(J)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"initializeCallbackChannel"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>init_callback_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.initializeCallbackChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -2986,11 +2975,12 @@
 
             j
         },
-        set_init_callback_channel_method)
+        set_init_callback_channel_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_field_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_field_method&quot;</span>);
+    debug(<span class="string">"Called set_field_method"</span>);
     FIELD_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3002,10 +2992,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>field_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(Ljava/lang/String;)L{};&quot;</span>,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;field&quot;</span>);
+            <span class="kw">let </span>field_method_signature = <span class="macro">format!</span>(<span class="string">"(Ljava/lang/String;)L{};"</span>, INVO_IFACE_NAME);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"field"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(field_method_signature.as_ref());
             <span class="comment">// Get the method ID for the `Instance.field`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3021,11 +3009,12 @@
 
             j
         },
-        set_field_method)
+        set_field_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_clone_static_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_clone_static_method&quot;</span>);
+    debug(<span class="string">"Called set_clone_static_method"</span>);
     CLONE_STATIC_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3037,11 +3026,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>clone_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(L{};)L{};&quot;</span>,
-                INVO_IFACE_NAME,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;cloneInstance&quot;</span>);
+            <span class="kw">let </span>clone_method_signature = <span class="macro">format!</span>(<span class="string">"(L{};)L{};"</span>, INVO_IFACE_NAME, INVO_IFACE_NAME);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"cloneInstance"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(clone_method_signature.as_ref());
             <span class="comment">// Get the method ID for the `Instance.clone`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3057,11 +3043,12 @@
 
             j
         },
-        set_clone_static_method)
+        set_clone_static_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_cast_static_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_cast_static_method&quot;</span>);
+    debug(<span class="string">"Called set_cast_static_method"</span>);
     CAST_STATIC_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3074,10 +3061,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>cast_method_signature = <span class="macro">format!</span>(
-                <span class="string">&quot;(L{};Ljava/lang/String;)L{};&quot;</span>,
-                INVO_IFACE_NAME,
-                INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;cast&quot;</span>);
+                <span class="string">"(L{};Ljava/lang/String;)L{};"</span>,
+                INVO_IFACE_NAME, INVO_IFACE_NAME
+            );
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"cast"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(cast_method_signature.as_ref());
 
             <span class="comment">// Get the method ID for the `Instance.cast`
@@ -3094,11 +3081,12 @@
 
             j
         },
-        set_cast_static_method)
+        set_cast_static_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_json_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_get_json_method&quot;</span>);
+    debug(<span class="string">"Called set_get_json_method"</span>);
     GET_JSON_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3110,8 +3098,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>get_json_method_signature = <span class="string">&quot;()Ljava/lang/String;&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;getJson&quot;</span>);
+            <span class="kw">let </span>get_json_method_signature = <span class="string">"()Ljava/lang/String;"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getJson"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(get_json_method_signature.as_ref());
 
             <span class="comment">// Get the method ID for the `Instance.getJson`
@@ -3128,11 +3116,12 @@
 
             j
         },
-        set_get_json_method)
+        set_get_json_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_object_class_name_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_get_object_class_name_method&quot;</span>);
+    debug(<span class="string">"Called set_get_object_class_name_method"</span>);
     GET_OBJECT_CLASS_NAME_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3144,8 +3133,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>get_object_class_name_method_signature = <span class="string">&quot;()Ljava/lang/String;&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;getObjectClassName&quot;</span>);
+            <span class="kw">let </span>get_object_class_name_method_signature = <span class="string">"()Ljava/lang/String;"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getObjectClassName"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_class_name_method_signature.as_ref());
 
             <span class="comment">// Get the method ID for the `Instance.getObjectClass`
@@ -3162,11 +3151,12 @@
 
             j
         },
-        set_get_object_class_name_method)
+        set_get_object_class_name_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_get_object_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_get_object_method&quot;</span>);
+    debug(<span class="string">"Called set_get_object_method"</span>);
     GET_OBJECT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3178,8 +3168,8 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>get_object_method_signature = <span class="string">&quot;()Ljava/lang/Object;&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;getObject&quot;</span>);
+            <span class="kw">let </span>get_object_method_signature = <span class="string">"()Ljava/lang/Object;"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getObject"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_method_signature.as_ref());
 
             <span class="comment">// Get the method ID for the `Instance.getObject`
@@ -3196,11 +3186,12 @@
 
             j
         },
-        set_get_object_method)
+        set_get_object_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_inv_arg_java_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_inv_arg_java_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_inv_arg_java_constructor_method"</span>);
     INV_ARG_JAVA_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3212,26 +3203,29 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>inv_arg_java_constructor_method_signature = <span class="macro">format!</span>(<span class="string">&quot;(Ljava/lang/String;L{};)V&quot;</span>, INVO_IFACE_NAME);
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>inv_arg_java_constructor_method_signature =
+                <span class="macro">format!</span>(<span class="string">"(Ljava/lang/String;L{};)V"</span>, INVO_IFACE_NAME);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>inv_arg_java_constructor_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
                     env,
                     get_invocation_arg_class()<span class="question-mark">?</span>,
                     cstr1,
-                    cstr2)
+                    cstr2,
+                )
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_inv_arg_java_constructor_method)
+        set_inv_arg_java_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_inv_arg_rust_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_inv_arg_rust_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_inv_arg_rust_constructor_method"</span>);
     INV_ARG_RUST_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3243,27 +3237,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="string">&quot;(Ljava/lang/String;Ljava/lang/String;)V&quot;</span>);
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="string">"(Ljava/lang/String;Ljava/lang/String;)V"</span>);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 <span class="kw">let </span>m = opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>;
                 <span class="kw">let </span>invargclass = get_invocation_arg_class()<span class="question-mark">?</span>;
-                (m)(
-                    env,
-                    invargclass,
-                    cstr1,
-                    cstr2)
+                (m)(env, invargclass, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_inv_arg_rust_constructor_method)
+        set_inv_arg_rust_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_inv_arg_basic_rust_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_inv_arg_basic_rust_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_inv_arg_basic_rust_constructor_method"</span>);
     INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3275,26 +3266,29 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>inv_arg_basic_rust_constructor_method_signature = <span class="string">&quot;(Ljava/lang/String;Ljava/lang/Object;)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>inv_arg_basic_rust_constructor_method_signature =
+                <span class="string">"(Ljava/lang/String;Ljava/lang/Object;)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>inv_arg_basic_rust_constructor_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
                     env,
                     get_invocation_arg_class()<span class="question-mark">?</span>,
                     cstr1,
-                    cstr2)
+                    cstr2,
+                )
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_inv_arg_basic_rust_constructor_method)
+        set_inv_arg_basic_rust_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_class_to_invoke_clone_and_cast(j: jclass) {
-    debug(<span class="string">&quot;Called set_class_to_invoke_clone_and_cast&quot;</span>);
+    debug(<span class="string">"Called set_class_to_invoke_clone_and_cast"</span>);
     CLASS_TO_INVOKE_CLONE_AND_CAST.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3308,7 +3302,7 @@
             // The java_instance_base_class is used because of Java7 compatibility issues in Android.
             // In Java8 and later, the static implementation in the interfaces is used. This is not supported in Java7
             // and there is a base class created for this reason.
-            </span><span class="kw">let </span>j = <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">&quot;android&quot;</span>) {
+            </span><span class="kw">let </span>j = <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"android"</span>) {
                 get_java_instance_base_class()<span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 get_java_instance_class()<span class="question-mark">?
@@ -3316,11 +3310,12 @@
 
             j
         },
-        set_class_to_invoke_clone_and_cast)
+        set_class_to_invoke_clone_and_cast
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_integer_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_integer_class&quot;</span>);
+    debug(<span class="string">"Called set_integer_class"</span>);
     INTEGER_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3332,17 +3327,15 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Integer&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Integer"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_integer_class)
+        set_integer_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_integer_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_integer_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_integer_constructor_method"</span>);
     INTEGER_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3354,26 +3347,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(I)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(I)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_integer_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_integer_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_integer_constructor_method)
+        set_integer_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_integer_to_int_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_integer_to_int_method&quot;</span>);
+    debug(<span class="string">"Called set_integer_to_int_method"</span>);
     INTEGER_TO_INT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3385,26 +3375,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>to_int_signature = <span class="string">&quot;()I&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;intValue&quot;</span>);
+            <span class="kw">let </span>to_int_signature = <span class="string">"()I"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"intValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>to_int_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_integer_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_integer_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_integer_to_int_method)
+        set_integer_to_int_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_long_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_long_class&quot;</span>);
+    debug(<span class="string">"Called set_long_class"</span>);
     LONG_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3416,17 +3403,15 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Long&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Long"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_long_class)
+        set_long_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_invocation_exception_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_invocation_exception_class&quot;</span>);
+    debug(<span class="string">"Called set_invocation_exception_class"</span>);
     LONG_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3438,17 +3423,15 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;org/astonbitecode/j4rs/errors/InvocationException&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"org/astonbitecode/j4rs/errors/InvocationException"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_invocation_exception_class)
+        set_invocation_exception_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_long_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_long_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_long_constructor_method"</span>);
     LONG_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3460,26 +3443,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(J)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(J)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_long_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_long_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_long_constructor_method)
+        set_long_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_long_to_long_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_long_to_long_method&quot;</span>);
+    debug(<span class="string">"Called set_long_to_long_method"</span>);
     LONG_TO_LONG_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3491,26 +3471,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>signature = <span class="string">&quot;()J&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;longValue&quot;</span>);
+            <span class="kw">let </span>signature = <span class="string">"()J"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"longValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_long_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_long_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_long_to_long_method)
+        set_long_to_long_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_short_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_short_class&quot;</span>);
+    debug(<span class="string">"Called set_short_class"</span>);
     SHORT_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3522,17 +3499,15 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Short&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Short"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_short_class)
+        set_short_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_short_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_short_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_short_constructor_method"</span>);
     SHORT_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3544,26 +3519,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(S)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(S)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_short_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_short_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_short_constructor_method)
+        set_short_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_short_to_short_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_short_to_short_method&quot;</span>);
+    debug(<span class="string">"Called set_short_to_short_method"</span>);
     SHORT_TO_SHORT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3575,26 +3547,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>signature = <span class="string">&quot;()S&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;shortValue&quot;</span>);
+            <span class="kw">let </span>signature = <span class="string">"()S"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"shortValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_short_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_short_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_short_to_short_method)
+        set_short_to_short_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_byte_class&quot;</span>);
+    debug(<span class="string">"Called set_byte_class"</span>);
     BYTE_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3606,17 +3575,15 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Byte&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Byte"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_byte_class)
+        set_byte_class
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_byte_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_byte_constructor_method"</span>);
     BYTE_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3628,26 +3595,23 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(B)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(B)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_byte_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_byte_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_byte_constructor_method)
+        set_byte_constructor_method
+    )
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_byte_to_byte_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_byte_to_byte_method&quot;</span>);
+    debug(<span class="string">"Called set_byte_to_byte_method"</span>);
     BYTE_TO_BYTE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3659,27 +3623,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>signature = <span class="string">&quot;()B&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;byteValue&quot;</span>);
+            <span class="kw">let </span>signature = <span class="string">"()B"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"byteValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_byte_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_byte_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_byte_to_byte_method)
+        set_byte_to_byte_method
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_float_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_float_class&quot;</span>);
+    debug(<span class="string">"Called set_float_class"</span>);
     FLOAT_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3692,18 +3653,16 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Float&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Float"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_float_class)
+        set_float_class
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_float_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_float_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_float_constructor_method"</span>);
     FLOAT_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3716,27 +3675,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(F)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(F)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_float_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_float_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_float_constructor_method)
+        set_float_constructor_method
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_float_to_float_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_float_to_float_method&quot;</span>);
+    debug(<span class="string">"Called set_float_to_float_method"</span>);
     FLOAT_TO_FLOAT_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3749,27 +3705,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>signature = <span class="string">&quot;()F&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;floatValue&quot;</span>);
+            <span class="kw">let </span>signature = <span class="string">"()F"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"floatValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_float_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_float_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_float_to_float_method)
+        set_float_to_float_method
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_double_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_double_class&quot;</span>);
+    debug(<span class="string">"Called set_double_class"</span>);
     DOUBLE_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3782,18 +3735,16 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/Double&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/Double"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_double_class)
+        set_double_class
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_double_constructor_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_double_constructor_method&quot;</span>);
+    debug(<span class="string">"Called set_double_constructor_method"</span>);
     DOUBLE_CONSTRUCTOR_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3806,27 +3757,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>constructor_signature = <span class="string">&quot;(D)V&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;&lt;init&gt;&quot;</span>);
+            <span class="kw">let </span>constructor_signature = <span class="string">"(D)V"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_double_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_double_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_double_constructor_method)
+        set_double_constructor_method
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_double_to_double_method(j: jmethodID) {
-    debug(<span class="string">&quot;Called set_double_to_double_method&quot;</span>);
+    debug(<span class="string">"Called set_double_to_double_method"</span>);
     DOUBLE_TO_DOUBLE_METHOD.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3839,27 +3787,24 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>signature = <span class="string">&quot;()D&quot;</span>;
-            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">&quot;doubleValue&quot;</span>);
+            <span class="kw">let </span>signature = <span class="string">"()D"</span>;
+            <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"doubleValue"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
-                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
-                    env,
-                    get_double_class()<span class="question-mark">?</span>,
-                    cstr1,
-                    cstr2)
+                (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_double_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
             utils::drop_c_string(cstr1);
             utils::drop_c_string(cstr2);
 
             j
         },
-        set_double_to_double_method)
+        set_double_to_double_method
+    )
 }
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_string_class(j: jclass) {
-    debug(<span class="string">&quot;Called set_string_class&quot;</span>);
+    debug(<span class="string">"Called set_string_class"</span>);
     STRING_CLASS.with(|opt| {
         <span class="kw-2">*</span>opt.borrow_mut() = <span class="prelude-val">Some</span>(j);
     });
@@ -3872,11 +3817,10 @@
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>c = tweaks::find_class(
-                env,
-                <span class="string">&quot;java/lang/String&quot;</span>,
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>c = tweaks::find_class(env, <span class="string">"java/lang/String"</span>)<span class="question-mark">?</span>;
             jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
         </span>},
-        set_string_class)
-}</code></pre></div></section></main></body></html>
+        set_string_class
+    )
+}
+</code></pre></div></section></main></body></html>

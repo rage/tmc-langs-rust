@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-0.9.0/src/version_req.rs`."><title>version_req.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../semver/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/semver-0.9.0/src/version_req.rs`."><title>version_req.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="semver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../semver/index.html"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="semver"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -912,9 +913,9 @@
 <span class="kw">use </span>version::Identifier;
 <span class="kw">use </span>semver_parser;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">use </span>serde::ser::{Serialize, Serializer};
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">use </span>serde::de::{<span class="self">self</span>, Deserialize, Deserializer, Visitor};
 
 <span class="kw">use </span><span class="self">self</span>::Op::{Ex, Gt, GtEq, Lt, LtEq, Tilde, Compatible, Wildcard};
@@ -935,7 +936,7 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 </span><span class="kw">impl </span>Serialize <span class="kw">for </span>VersionReq {
     <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; result::Result&lt;S::Ok, S::Error&gt;
         <span class="kw">where </span>S: Serializer
@@ -945,19 +946,19 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;serde&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>VersionReq {
+<span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>VersionReq {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; result::Result&lt;<span class="self">Self</span>, D::Error&gt;
-        <span class="kw">where </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;
+        <span class="kw">where </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;
     {
         <span class="kw">struct </span>VersionReqVisitor;
 
         <span class="doccomment">/// Deserialize `VersionReq` from a string.
-        </span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>VersionReqVisitor {
+        </span><span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>VersionReqVisitor {
             <span class="kw">type </span>Value = VersionReq;
 
             <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-                formatter.write_str(<span class="string">&quot;a SemVer version requirement as a string&quot;</span>)
+                formatter.write_str(<span class="string">"a SemVer version requirement as a string"</span>)
             }
 
             <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, v: <span class="kw-2">&amp;</span>str) -&gt; result::Result&lt;<span class="self">Self</span>::Value, E&gt;
@@ -1064,18 +1065,18 @@
 <span class="kw">impl </span>Error <span class="kw">for </span>ReqParseError {
     <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="kw-2">&amp;</span>InvalidVersionRequirement =&gt; <span class="string">&quot;the given version requirement is invalid&quot;</span>,
+            <span class="kw-2">&amp;</span>InvalidVersionRequirement =&gt; <span class="string">"the given version requirement is invalid"</span>,
             <span class="kw-2">&amp;</span>OpAlreadySet =&gt; {
-                <span class="string">&quot;you have already provided an operation, such as =, ~, or ^; only use one&quot;
+                <span class="string">"you have already provided an operation, such as =, ~, or ^; only use one"
             </span>},
-            <span class="kw-2">&amp;</span>InvalidSigil =&gt; <span class="string">&quot;the sigil you have written is not correct&quot;</span>,
-            <span class="kw-2">&amp;</span>VersionComponentsMustBeNumeric =&gt; <span class="string">&quot;version components must be numeric&quot;</span>,
-            <span class="kw-2">&amp;</span>InvalidIdentifier =&gt; <span class="string">&quot;invalid identifier&quot;</span>,
-            <span class="kw-2">&amp;</span>MajorVersionRequired =&gt; <span class="string">&quot;at least a major version number is required&quot;</span>,
+            <span class="kw-2">&amp;</span>InvalidSigil =&gt; <span class="string">"the sigil you have written is not correct"</span>,
+            <span class="kw-2">&amp;</span>VersionComponentsMustBeNumeric =&gt; <span class="string">"version components must be numeric"</span>,
+            <span class="kw-2">&amp;</span>InvalidIdentifier =&gt; <span class="string">"invalid identifier"</span>,
+            <span class="kw-2">&amp;</span>MajorVersionRequired =&gt; <span class="string">"at least a major version number is required"</span>,
             <span class="kw-2">&amp;</span>UnimplementedVersionRequirement =&gt; {
-                <span class="string">&quot;the given version requirement is not implemented, yet&quot;
+                <span class="string">"the given version requirement is not implemented, yet"
             </span>},
-            <span class="kw-2">&amp;</span>DeprecatedVersionRequirement(<span class="kw">_</span>) =&gt; <span class="string">&quot;This requirement is deprecated&quot;</span>,
+            <span class="kw-2">&amp;</span>DeprecatedVersionRequirement(<span class="kw">_</span>) =&gt; <span class="string">"This requirement is deprecated"</span>,
         }
     }
 }
@@ -1083,8 +1084,8 @@
 <span class="kw">impl </span>From&lt;String&gt; <span class="kw">for </span>ReqParseError {
     <span class="kw">fn </span>from(other: String) -&gt; ReqParseError {
         <span class="kw">match </span><span class="kw-2">&amp;*</span>other {
-            <span class="string">&quot;Null is not a valid VersionReq&quot; </span>=&gt; ReqParseError::InvalidVersionRequirement,
-            <span class="string">&quot;VersionReq did not parse properly.&quot; </span>=&gt; ReqParseError::OpAlreadySet,
+            <span class="string">"Null is not a valid VersionReq" </span>=&gt; ReqParseError::InvalidVersionRequirement,
+            <span class="string">"VersionReq did not parse properly." </span>=&gt; ReqParseError::OpAlreadySet,
             <span class="kw">_ </span>=&gt; ReqParseError::InvalidVersionRequirement,
         }
     }
@@ -1105,7 +1106,7 @@
         VersionReq { predicates: <span class="macro">vec!</span>[] }
     }
 
-    <span class="doccomment">/// `parse()` is the main constructor of a `VersionReq`. It takes a string like `&quot;^1.2.3&quot;`
+    <span class="doccomment">/// `parse()` is the main constructor of a `VersionReq`. It takes a string like `"^1.2.3"`
     /// and turns it into a `VersionReq` that matches that particular constraint.
     ///
     /// A `Result` is returned which contains a `ReqParseError` if there was a problem parsing the
@@ -1116,14 +1117,14 @@
     /// ```
     /// use semver::VersionReq;
     ///
-    /// let version = VersionReq::parse(&quot;=1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;&gt;1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;&lt;1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;~1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;^1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;1.2.3&quot;); // synonym for ^1.2.3
-    /// let version = VersionReq::parse(&quot;&lt;=1.2.3&quot;);
-    /// let version = VersionReq::parse(&quot;&gt;=1.2.3&quot;);
+    /// let version = VersionReq::parse("=1.2.3");
+    /// let version = VersionReq::parse("&gt;1.2.3");
+    /// let version = VersionReq::parse("&lt;1.2.3");
+    /// let version = VersionReq::parse("~1.2.3");
+    /// let version = VersionReq::parse("^1.2.3");
+    /// let version = VersionReq::parse("1.2.3"); // synonym for ^1.2.3
+    /// let version = VersionReq::parse("&lt;=1.2.3");
+    /// let version = VersionReq::parse("&gt;=1.2.3");
     /// ```
     ///
     /// This example demonstrates error handling, and will panic.
@@ -1131,9 +1132,9 @@
     /// ```should-panic
     /// use semver::VersionReq;
     ///
-    /// let version = match VersionReq::parse(&quot;not a version&quot;) {
+    /// let version = match VersionReq::parse("not a version") {
     ///     Ok(version) =&gt; version,
-    ///     Err(e) =&gt; panic!(&quot;There was a problem parsing: {}&quot;, e),
+    ///     Err(e) =&gt; panic!("There was a problem parsing: {}", e),
     /// }
     /// ```
     </span><span class="kw">pub fn </span>parse(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;VersionReq, ReqParseError&gt; {
@@ -1153,11 +1154,11 @@
 
     <span class="kw">fn </span>parse_deprecated(version: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;VersionReq&gt; {
         <span class="kw">return match </span>version {
-            <span class="string">&quot;.*&quot; </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::any()),
-            <span class="string">&quot;0.1.0.&quot; </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">&quot;0.1.0&quot;</span>).unwrap()),
-            <span class="string">&quot;0.3.1.3&quot; </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">&quot;0.3.13&quot;</span>).unwrap()),
-            <span class="string">&quot;0.2*&quot; </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">&quot;0.2.*&quot;</span>).unwrap()),
-            <span class="string">&quot;*.0&quot; </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::any()),
+            <span class="string">".*" </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::any()),
+            <span class="string">"0.1.0." </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">"0.1.0"</span>).unwrap()),
+            <span class="string">"0.3.1.3" </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">"0.3.13"</span>).unwrap()),
+            <span class="string">"0.2*" </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::parse(<span class="string">"0.2.*"</span>).unwrap()),
+            <span class="string">"*.0" </span>=&gt; <span class="prelude-val">Some</span>(VersionReq::any()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1384,13 +1385,13 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>VersionReq {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.predicates.is_empty() {
-            <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;*&quot;</span>));
+            <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"*"</span>));
         } <span class="kw">else </span>{
             <span class="kw">for </span>(i, <span class="kw-2">ref </span>pred) <span class="kw">in </span><span class="self">self</span>.predicates.iter().enumerate() {
                 <span class="kw">if </span>i == <span class="number">0 </span>{
-                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, pred));
+                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}"</span>, pred));
                 } <span class="kw">else </span>{
-                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;, {}&quot;</span>, pred));
+                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">", {}"</span>, pred));
                 }
             }
         }
@@ -1402,35 +1403,35 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Predicate {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.op {
-            Wildcard(Major) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;*&quot;</span>)),
-            Wildcard(Minor) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}.*&quot;</span>, <span class="self">self</span>.major)),
+            Wildcard(Major) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"*"</span>)),
+            Wildcard(Minor) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}.*"</span>, <span class="self">self</span>.major)),
             Wildcard(Patch) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(minor) = <span class="self">self</span>.minor {
-                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}.{}.*&quot;</span>, <span class="self">self</span>.major, minor))
+                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}.{}.*"</span>, <span class="self">self</span>.major, minor))
                 } <span class="kw">else </span>{
-                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}.*.*&quot;</span>, <span class="self">self</span>.major))
+                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}.*.*"</span>, <span class="self">self</span>.major))
                 }
             }
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}{}&quot;</span>, <span class="self">self</span>.op, <span class="self">self</span>.major));
+                <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}{}"</span>, <span class="self">self</span>.op, <span class="self">self</span>.major));
 
                 <span class="kw">match </span><span class="self">self</span>.minor {
-                    <span class="prelude-val">Some</span>(v) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;.{}&quot;</span>, v)),
+                    <span class="prelude-val">Some</span>(v) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">".{}"</span>, v)),
                     <span class="prelude-val">None </span>=&gt; (),
                 }
 
                 <span class="kw">match </span><span class="self">self</span>.patch {
-                    <span class="prelude-val">Some</span>(v) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;.{}&quot;</span>, v)),
+                    <span class="prelude-val">Some</span>(v) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">".{}"</span>, v)),
                     <span class="prelude-val">None </span>=&gt; (),
                 }
 
                 <span class="kw">if </span>!<span class="self">self</span>.pre.is_empty() {
-                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;-&quot;</span>));
+                    <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"-"</span>));
                     <span class="kw">for </span>(i, x) <span class="kw">in </span><span class="self">self</span>.pre.iter().enumerate() {
                         <span class="kw">if </span>i != <span class="number">0 </span>{
-                            <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;.&quot;</span>))
+                            <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"."</span>))
                         }
-                        <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;{}&quot;</span>, x));
+                        <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"{}"</span>, x));
                     }
                 }
             }
@@ -1443,15 +1444,15 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Op {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            Ex =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;= &quot;</span>)),
-            Gt =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;&gt; &quot;</span>)),
-            GtEq =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;&gt;= &quot;</span>)),
-            Lt =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;&lt; &quot;</span>)),
-            LtEq =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;&lt;= &quot;</span>)),
-            Tilde =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;~&quot;</span>)),
-            Compatible =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;^&quot;</span>)),
+            Ex =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"= "</span>)),
+            Gt =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"&gt; "</span>)),
+            GtEq =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"&gt;= "</span>)),
+            Lt =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"&lt; "</span>)),
+            LtEq =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"&lt;= "</span>)),
+            Tilde =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"~"</span>)),
+            Compatible =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">"^"</span>)),
             <span class="comment">// gets handled specially in Predicate::fmt
-            </span>Wildcard(<span class="kw">_</span>) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">&quot;&quot;</span>)),
+            </span>Wildcard(<span class="kw">_</span>) =&gt; <span class="macro">try!</span>(<span class="macro">write!</span>(fmt, <span class="string">""</span>)),
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1470,19 +1471,19 @@
     <span class="kw">fn </span>version(s: <span class="kw-2">&amp;</span>str) -&gt; Version {
         <span class="kw">match </span>Version::parse(s) {
             <span class="prelude-val">Ok</span>(v) =&gt; v,
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;`{}` is not a valid version. Reason: {:?}&quot;</span>, s, e),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">panic!</span>(<span class="string">"`{}` is not a valid version. Reason: {:?}"</span>, s, e),
         }
     }
 
     <span class="kw">fn </span>assert_match(req: <span class="kw-2">&amp;</span>VersionReq, vers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
         <span class="kw">for </span>ver <span class="kw">in </span>vers.iter() {
-            <span class="macro">assert!</span>(req.matches(<span class="kw-2">&amp;</span>version(<span class="kw-2">*</span>ver)), <span class="string">&quot;did not match {}&quot;</span>, ver);
+            <span class="macro">assert!</span>(req.matches(<span class="kw-2">&amp;</span>version(<span class="kw-2">*</span>ver)), <span class="string">"did not match {}"</span>, ver);
         }
     }
 
     <span class="kw">fn </span>assert_not_match(req: <span class="kw-2">&amp;</span>VersionReq, vers: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]) {
         <span class="kw">for </span>ver <span class="kw">in </span>vers.iter() {
-            <span class="macro">assert!</span>(!req.matches(<span class="kw-2">&amp;</span>version(<span class="kw-2">*</span>ver)), <span class="string">&quot;matched {}&quot;</span>, ver);
+            <span class="macro">assert!</span>(!req.matches(<span class="kw-2">&amp;</span>version(<span class="kw-2">*</span>ver)), <span class="string">"matched {}"</span>, ver);
         }
     }
 
@@ -1496,296 +1497,296 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_default() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.0.0&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"1.0.0"</span>);
 
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;^1.0.0&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"^1.0.0"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.9&quot;</span>, <span class="string">&quot;0.10.0&quot;</span>, <span class="string">&quot;0.1.0&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0"</span>, <span class="string">"1.0.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.9"</span>, <span class="string">"0.10.0"</span>, <span class="string">"0.1.0"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parsing_exact() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;=1.0.0&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"=1.0.0"</span>);
 
-        <span class="macro">assert!</span>(r.to_string() == <span class="string">&quot;= 1.0.0&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;= 1.0.0&quot;</span>.to_string());
+        <span class="macro">assert!</span>(r.to_string() == <span class="string">"= 1.0.0"</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"= 1.0.0"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;0.9.9&quot;</span>, <span class="string">&quot;0.10.0&quot;</span>, <span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;1.0.0-pre&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.1"</span>, <span class="string">"0.9.9"</span>, <span class="string">"0.10.0"</span>, <span class="string">"0.1.0"</span>, <span class="string">"1.0.0-pre"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;=0.9.0&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"=0.9.0"</span>);
 
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;= 0.9.0&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"= 0.9.0"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;1.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"1.9.0"</span>, <span class="string">"0.0.9"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;=0.1.0-beta2.a&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"=0.1.0-beta2.a"</span>);
 
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;= 0.1.0-beta2.a&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"= 0.1.0-beta2.a"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.0-beta2.a&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;0.1.1-beta2.a&quot;</span>, <span class="string">&quot;0.1.0-beta2&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.0-beta2.a"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"0.1.0"</span>, <span class="string">"0.1.1-beta2.a"</span>, <span class="string">"0.1.0-beta2"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_parse_metadata_see_issue_88_see_issue_88() {
         <span class="kw">for </span>op <span class="kw">in </span><span class="kw-2">&amp;</span>[Op::Compatible, Op::Ex, Op::Gt, Op::GtEq, Op::Lt, Op::LtEq, Op::Tilde] {
-            req(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} 1.2.3+meta&quot;</span>, op));
+            req(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{} 1.2.3+meta"</span>, op));
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_greater_than() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;&gt;= 1.0.0&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"&gt;= 1.0.0"</span>);
 
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;&gt;= 1.0.0&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"&gt;= 1.0.0"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0&quot;</span>, <span class="string">&quot;2.0.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;0.0.1&quot;</span>, <span class="string">&quot;1.0.0-pre&quot;</span>, <span class="string">&quot;2.0.0-pre&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0"</span>, <span class="string">"2.0.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.0"</span>, <span class="string">"0.0.1"</span>, <span class="string">"1.0.0-pre"</span>, <span class="string">"2.0.0-pre"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;&gt;= 2.1.0-alpha2&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"&gt;= 2.1.0-alpha2"</span>);
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;2.1.0-alpha2&quot;</span>, <span class="string">&quot;2.1.0-alpha3&quot;</span>, <span class="string">&quot;2.1.0&quot;</span>, <span class="string">&quot;3.0.0&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"2.1.0-alpha2"</span>, <span class="string">"2.1.0-alpha3"</span>, <span class="string">"2.1.0"</span>, <span class="string">"3.0.0"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r,
-                         <span class="kw-2">&amp;</span>[<span class="string">&quot;2.0.0&quot;</span>, <span class="string">&quot;2.1.0-alpha1&quot;</span>, <span class="string">&quot;2.0.0-alpha2&quot;</span>, <span class="string">&quot;3.0.0-alpha2&quot;</span>]);
+                         <span class="kw-2">&amp;</span>[<span class="string">"2.0.0"</span>, <span class="string">"2.1.0-alpha1"</span>, <span class="string">"2.0.0-alpha2"</span>, <span class="string">"3.0.0-alpha2"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_less_than() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;&lt; 1.0.0&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"&lt; 1.0.0"</span>);
 
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;&lt; 1.0.0&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"&lt; 1.0.0"</span>.to_string());
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;0.0.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0&quot;</span>, <span class="string">&quot;1.0.0-beta&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;0.9.9-alpha&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.0"</span>, <span class="string">"0.0.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0"</span>, <span class="string">"1.0.0-beta"</span>, <span class="string">"1.0.1"</span>, <span class="string">"0.9.9-alpha"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;&lt;= 2.1.0-alpha2&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"&lt;= 2.1.0-alpha2"</span>);
 
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;2.1.0-alpha2&quot;</span>, <span class="string">&quot;2.1.0-alpha1&quot;</span>, <span class="string">&quot;2.0.0&quot;</span>, <span class="string">&quot;1.0.0&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"2.1.0-alpha2"</span>, <span class="string">"2.1.0-alpha1"</span>, <span class="string">"2.0.0"</span>, <span class="string">"1.0.0"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r,
-                         <span class="kw-2">&amp;</span>[<span class="string">&quot;2.1.0&quot;</span>, <span class="string">&quot;2.2.0-alpha1&quot;</span>, <span class="string">&quot;2.0.0-alpha2&quot;</span>, <span class="string">&quot;1.0.0-alpha2&quot;</span>]);
+                         <span class="kw-2">&amp;</span>[<span class="string">"2.1.0"</span>, <span class="string">"2.2.0-alpha1"</span>, <span class="string">"2.0.0-alpha2"</span>, <span class="string">"1.0.0-alpha2"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_multiple() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;&gt; 0.0.9, &lt;= 2.5.3&quot;</span>);
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;&gt; 0.0.9, &lt;= 2.5.3&quot;</span>.to_string());
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.10&quot;</span>, <span class="string">&quot;1.0.0&quot;</span>, <span class="string">&quot;2.5.3&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.8&quot;</span>, <span class="string">&quot;2.5.4&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"&gt; 0.0.9, &lt;= 2.5.3"</span>);
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"&gt; 0.0.9, &lt;= 2.5.3"</span>.to_string());
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.10"</span>, <span class="string">"1.0.0"</span>, <span class="string">"2.5.3"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.8"</span>, <span class="string">"2.5.4"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;0.3.0, 0.4.0&quot;</span>);
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;^0.3.0, ^0.4.0&quot;</span>.to_string());
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.8&quot;</span>, <span class="string">&quot;0.3.0&quot;</span>, <span class="string">&quot;0.4.0&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"0.3.0, 0.4.0"</span>);
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"^0.3.0, ^0.4.0"</span>.to_string());
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.8"</span>, <span class="string">"0.3.0"</span>, <span class="string">"0.4.0"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;&lt;= 0.2.0, &gt;= 0.5.0&quot;</span>);
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;&lt;= 0.2.0, &gt;= 0.5.0&quot;</span>.to_string());
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.8&quot;</span>, <span class="string">&quot;0.3.0&quot;</span>, <span class="string">&quot;0.5.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"&lt;= 0.2.0, &gt;= 0.5.0"</span>);
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"&lt;= 0.2.0, &gt;= 0.5.0"</span>.to_string());
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.8"</span>, <span class="string">"0.3.0"</span>, <span class="string">"0.5.1"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;0.1.0, 0.1.4, 0.1.6&quot;</span>);
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;^0.1.0, ^0.1.4, ^0.1.6&quot;</span>.to_string());
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.6&quot;</span>, <span class="string">&quot;0.1.9&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>, <span class="string">&quot;0.2.0&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"0.1.0, 0.1.4, 0.1.6"</span>);
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"^0.1.0, ^0.1.4, ^0.1.6"</span>.to_string());
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.6"</span>, <span class="string">"0.1.9"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.0"</span>, <span class="string">"0.1.4"</span>, <span class="string">"0.2.0"</span>]);
 
-        <span class="macro">assert!</span>(VersionReq::parse(<span class="string">&quot;&gt; 0.1.0,&quot;</span>).is_err());
-        <span class="macro">assert!</span>(VersionReq::parse(<span class="string">&quot;&gt; 0.3.0, ,&quot;</span>).is_err());
+        <span class="macro">assert!</span>(VersionReq::parse(<span class="string">"&gt; 0.1.0,"</span>).is_err());
+        <span class="macro">assert!</span>(VersionReq::parse(<span class="string">"&gt; 0.3.0, ,"</span>).is_err());
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;&gt;=0.5.1-alpha3, &lt;0.6&quot;</span>);
-        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">&quot;&gt;= 0.5.1-alpha3, &lt; 0.6&quot;</span>.to_string());
+        <span class="kw">let </span>r = req(<span class="string">"&gt;=0.5.1-alpha3, &lt;0.6"</span>);
+        <span class="macro">assert_eq!</span>(r.to_string(), <span class="string">"&gt;= 0.5.1-alpha3, &lt; 0.6"</span>.to_string());
         assert_match(<span class="kw-2">&amp;</span>r,
-                     <span class="kw-2">&amp;</span>[<span class="string">&quot;0.5.1-alpha3&quot;</span>, <span class="string">&quot;0.5.1-alpha4&quot;</span>, <span class="string">&quot;0.5.1-beta&quot;</span>, <span class="string">&quot;0.5.1&quot;</span>, <span class="string">&quot;0.5.5&quot;</span>]);
+                     <span class="kw-2">&amp;</span>[<span class="string">"0.5.1-alpha3"</span>, <span class="string">"0.5.1-alpha4"</span>, <span class="string">"0.5.1-beta"</span>, <span class="string">"0.5.1"</span>, <span class="string">"0.5.5"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r,
-                         <span class="kw-2">&amp;</span>[<span class="string">&quot;0.5.1-alpha1&quot;</span>, <span class="string">&quot;0.5.2-alpha3&quot;</span>, <span class="string">&quot;0.5.5-pre&quot;</span>, <span class="string">&quot;0.5.0-pre&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.6.0&quot;</span>, <span class="string">&quot;0.6.0-pre&quot;</span>]);
+                         <span class="kw-2">&amp;</span>[<span class="string">"0.5.1-alpha1"</span>, <span class="string">"0.5.2-alpha3"</span>, <span class="string">"0.5.5-pre"</span>, <span class="string">"0.5.0-pre"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.6.0"</span>, <span class="string">"0.6.0-pre"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_tilde() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;~1&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"~1"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0"</span>, <span class="string">"1.0.1"</span>, <span class="string">"1.1.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.0.9"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;~1.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;1.3.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"~1.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.1.1"</span>, <span class="string">"1.3.0"</span>, <span class="string">"0.0.9"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;~1.2.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.2&quot;</span>, <span class="string">&quot;1.2.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.1&quot;</span>, <span class="string">&quot;1.9.0&quot;</span>, <span class="string">&quot;1.0.9&quot;</span>, <span class="string">&quot;2.0.1&quot;</span>, <span class="string">&quot;0.1.3&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"~1.2.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.2"</span>, <span class="string">"1.2.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.1"</span>, <span class="string">"1.9.0"</span>, <span class="string">"1.0.9"</span>, <span class="string">"2.0.1"</span>, <span class="string">"0.1.3"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;~1.2.3-beta.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.3&quot;</span>, <span class="string">&quot;1.2.4&quot;</span>, <span class="string">&quot;1.2.3-beta.2&quot;</span>, <span class="string">&quot;1.2.3-beta.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.3.3&quot;</span>, <span class="string">&quot;1.1.4&quot;</span>, <span class="string">&quot;1.2.3-beta.1&quot;</span>, <span class="string">&quot;1.2.4-beta.2&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"~1.2.3-beta.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.3"</span>, <span class="string">"1.2.4"</span>, <span class="string">"1.2.3-beta.2"</span>, <span class="string">"1.2.3-beta.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.3.3"</span>, <span class="string">"1.1.4"</span>, <span class="string">"1.2.3-beta.1"</span>, <span class="string">"1.2.4-beta.2"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_compatible() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;^1&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.1.2&quot;</span>, <span class="string">&quot;1.1.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.0.0-beta1&quot;</span>, <span class="string">&quot;0.1.0-alpha&quot;</span>, <span class="string">&quot;1.0.1-pre&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^1"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.1.2"</span>, <span class="string">"1.1.0"</span>, <span class="string">"1.2.1"</span>, <span class="string">"1.0.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.1.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.0.0-beta1"</span>, <span class="string">"0.1.0-alpha"</span>, <span class="string">"1.0.1-pre"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^1.1&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.1.2&quot;</span>, <span class="string">&quot;1.1.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^1.1"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.1.2"</span>, <span class="string">"1.1.0"</span>, <span class="string">"1.2.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"1.0.1"</span>, <span class="string">"0.1.4"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^1.1.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.1.2&quot;</span>, <span class="string">&quot;1.1.4&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;0.0.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.1.2-alpha1&quot;</span>, <span class="string">&quot;1.1.3-alpha1&quot;</span>, <span class="string">&quot;2.9.0-alpha1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^1.1.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.1.2"</span>, <span class="string">"1.1.4"</span>, <span class="string">"1.2.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"1.1.1"</span>, <span class="string">"0.0.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.1.2-alpha1"</span>, <span class="string">"1.1.3-alpha1"</span>, <span class="string">"2.9.0-alpha1"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^0.1.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.2&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;0.0.1&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.1.2-beta&quot;</span>, <span class="string">&quot;0.1.3-alpha&quot;</span>, <span class="string">&quot;0.2.0-pre&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^0.1.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.2"</span>, <span class="string">"0.1.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"1.1.1"</span>, <span class="string">"0.0.1"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.1.2-beta"</span>, <span class="string">"0.1.3-alpha"</span>, <span class="string">"0.2.0-pre"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^0.5.1-alpha3&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"^0.5.1-alpha3"</span>);
         assert_match(<span class="kw-2">&amp;</span>r,
-                     <span class="kw-2">&amp;</span>[<span class="string">&quot;0.5.1-alpha3&quot;</span>, <span class="string">&quot;0.5.1-alpha4&quot;</span>, <span class="string">&quot;0.5.1-beta&quot;</span>, <span class="string">&quot;0.5.1&quot;</span>, <span class="string">&quot;0.5.5&quot;</span>]);
+                     <span class="kw-2">&amp;</span>[<span class="string">"0.5.1-alpha3"</span>, <span class="string">"0.5.1-alpha4"</span>, <span class="string">"0.5.1-beta"</span>, <span class="string">"0.5.1"</span>, <span class="string">"0.5.5"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r,
-                         <span class="kw-2">&amp;</span>[<span class="string">&quot;0.5.1-alpha1&quot;</span>, <span class="string">&quot;0.5.2-alpha3&quot;</span>, <span class="string">&quot;0.5.5-pre&quot;</span>, <span class="string">&quot;0.5.0-pre&quot;</span>, <span class="string">&quot;0.6.0&quot;</span>]);
+                         <span class="kw-2">&amp;</span>[<span class="string">"0.5.1-alpha1"</span>, <span class="string">"0.5.2-alpha3"</span>, <span class="string">"0.5.5-pre"</span>, <span class="string">"0.5.0-pre"</span>, <span class="string">"0.6.0"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^0.0.2&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.2&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;0.0.1&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^0.0.2"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.2"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"1.1.1"</span>, <span class="string">"0.0.1"</span>, <span class="string">"0.1.4"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^0.0&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.2&quot;</span>, <span class="string">&quot;0.0.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;0.1.4&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^0.0"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.2"</span>, <span class="string">"0.0.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"1.1.1"</span>, <span class="string">"0.1.4"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^0&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;0.0.2&quot;</span>, <span class="string">&quot;0.0.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"^0"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"0.0.2"</span>, <span class="string">"0.0.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"2.9.0"</span>, <span class="string">"1.1.1"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;^1.4.2-beta.5&quot;</span>);
+        <span class="kw">let </span>r = req(<span class="string">"^1.4.2-beta.5"</span>);
         assert_match(<span class="kw-2">&amp;</span>r,
-                     <span class="kw-2">&amp;</span>[<span class="string">&quot;1.4.2&quot;</span>, <span class="string">&quot;1.4.3&quot;</span>, <span class="string">&quot;1.4.2-beta.5&quot;</span>, <span class="string">&quot;1.4.2-beta.6&quot;</span>, <span class="string">&quot;1.4.2-c&quot;</span>]);
+                     <span class="kw-2">&amp;</span>[<span class="string">"1.4.2"</span>, <span class="string">"1.4.3"</span>, <span class="string">"1.4.2-beta.5"</span>, <span class="string">"1.4.2-beta.6"</span>, <span class="string">"1.4.2-c"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r,
-                         <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.9&quot;</span>, <span class="string">&quot;2.0.0&quot;</span>, <span class="string">&quot;1.4.2-alpha&quot;</span>, <span class="string">&quot;1.4.2-beta.4&quot;</span>, <span class="string">&quot;1.4.3-beta.5&quot;</span>]);
+                         <span class="kw-2">&amp;</span>[<span class="string">"0.9.9"</span>, <span class="string">"2.0.0"</span>, <span class="string">"1.4.2-alpha"</span>, <span class="string">"1.4.2-beta.4"</span>, <span class="string">"1.4.3-beta.5"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_parsing_wildcard() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">""</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.0.9"</span>, <span class="string">"1.0.1"</span>, <span class="string">"1.1.1"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;*&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"*"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.0.9"</span>, <span class="string">"1.0.1"</span>, <span class="string">"1.1.1"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;x&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"x"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.0.9"</span>, <span class="string">"1.0.1"</span>, <span class="string">"1.1.1"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;X&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.9.1&quot;</span>, <span class="string">&quot;2.9.0&quot;</span>, <span class="string">&quot;0.0.9&quot;</span>, <span class="string">&quot;1.0.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"X"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.9.1"</span>, <span class="string">"2.9.0"</span>, <span class="string">"0.0.9"</span>, <span class="string">"1.0.1"</span>, <span class="string">"1.1.1"</span>]);
         assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.*&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;1.3.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.9&quot;</span>]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.x&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;1.3.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.9&quot;</span>]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.X&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.1&quot;</span>, <span class="string">&quot;1.1.1&quot;</span>, <span class="string">&quot;1.3.0&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.9&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.*"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.1"</span>, <span class="string">"1.1.1"</span>, <span class="string">"1.3.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.9"</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.x"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.1"</span>, <span class="string">"1.1.1"</span>, <span class="string">"1.3.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.9"</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.X"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.1"</span>, <span class="string">"1.1.1"</span>, <span class="string">"1.3.0"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.9"</span>]);
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.2.*&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.2&quot;</span>, <span class="string">&quot;1.2.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.9.0&quot;</span>, <span class="string">&quot;1.0.9&quot;</span>, <span class="string">&quot;2.0.1&quot;</span>, <span class="string">&quot;0.1.3&quot;</span>]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.2.x&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.2&quot;</span>, <span class="string">&quot;1.2.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.9.0&quot;</span>, <span class="string">&quot;1.0.9&quot;</span>, <span class="string">&quot;2.0.1&quot;</span>, <span class="string">&quot;0.1.3&quot;</span>]);
-        <span class="kw">let </span>r = req(<span class="string">&quot;1.2.X&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.2.0&quot;</span>, <span class="string">&quot;1.2.2&quot;</span>, <span class="string">&quot;1.2.4&quot;</span>]);
-        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;1.9.0&quot;</span>, <span class="string">&quot;1.0.9&quot;</span>, <span class="string">&quot;2.0.1&quot;</span>, <span class="string">&quot;0.1.3&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.2.*"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.2"</span>, <span class="string">"1.2.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.9.0"</span>, <span class="string">"1.0.9"</span>, <span class="string">"2.0.1"</span>, <span class="string">"0.1.3"</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.2.x"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.2"</span>, <span class="string">"1.2.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.9.0"</span>, <span class="string">"1.0.9"</span>, <span class="string">"2.0.1"</span>, <span class="string">"0.1.3"</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"1.2.X"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.2.0"</span>, <span class="string">"1.2.2"</span>, <span class="string">"1.2.4"</span>]);
+        assert_not_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"1.9.0"</span>, <span class="string">"1.0.9"</span>, <span class="string">"2.0.1"</span>, <span class="string">"0.1.3"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_any() {
         <span class="kw">let </span>r = VersionReq::any();
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.0.1&quot;</span>, <span class="string">&quot;0.1.0&quot;</span>, <span class="string">&quot;1.0.0&quot;</span>]);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.0.1"</span>, <span class="string">"0.1.0"</span>, <span class="string">"1.0.0"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_pre() {
-        <span class="kw">let </span>r = req(<span class="string">&quot;=2.1.1-really.0&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;2.1.1-really.0&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"=2.1.1-really.0"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"2.1.1-really.0"</span>]);
     }
 
     <span class="comment">// #[test]
     // pub fn test_parse_errors() {
-    //    assert_eq!(Err(InvalidVersionRequirement), VersionReq::parse(&quot;\0&quot;));
-    //    assert_eq!(Err(OpAlreadySet), VersionReq::parse(&quot;&gt;= &gt;= 0.0.2&quot;));
-    //    assert_eq!(Err(InvalidSigil), VersionReq::parse(&quot;&gt;== 0.0.2&quot;));
+    //    assert_eq!(Err(InvalidVersionRequirement), VersionReq::parse("\0"));
+    //    assert_eq!(Err(OpAlreadySet), VersionReq::parse("&gt;= &gt;= 0.0.2"));
+    //    assert_eq!(Err(InvalidSigil), VersionReq::parse("&gt;== 0.0.2"));
     //    assert_eq!(Err(VersionComponentsMustBeNumeric),
-    //               VersionReq::parse(&quot;a.0.0&quot;));
-    //    assert_eq!(Err(InvalidIdentifier), VersionReq::parse(&quot;1.0.0-&quot;));
-    //    assert_eq!(Err(MajorVersionRequired), VersionReq::parse(&quot;&gt;=&quot;));
+    //               VersionReq::parse("a.0.0"));
+    //    assert_eq!(Err(InvalidIdentifier), VersionReq::parse("1.0.0-"));
+    //    assert_eq!(Err(MajorVersionRequired), VersionReq::parse("&gt;="));
     // }
 
     </span><span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_from_str() {
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;1.0.0&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;^1.0.0&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;=1.0.0&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;= 1.0.0&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;~1&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;~1&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;~1.2&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;~1.2&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;^1&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;^1&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;^1.1&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;^1.1&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;*&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;*&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;1.*&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;1.*&quot;</span>.to_string());
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&lt; 1.0.0&quot;</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
-                   <span class="string">&quot;&lt; 1.0.0&quot;</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"1.0.0"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"^1.0.0"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"=1.0.0"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"= 1.0.0"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"~1"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"~1"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"~1.2"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"~1.2"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"^1"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"^1"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"^1.1"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"^1.1"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"*"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"*"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"1.*"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"1.*"</span>.to_string());
+        <span class="macro">assert_eq!</span>(<span class="string">"&lt; 1.0.0"</span>.parse::&lt;VersionReq&gt;().unwrap().to_string(),
+                   <span class="string">"&lt; 1.0.0"</span>.to_string());
     }
 
     <span class="comment">// #[test]
     // pub fn test_from_str_errors() {
-    //    assert_eq!(Err(InvalidVersionRequirement), &quot;\0&quot;.parse::&lt;VersionReq&gt;());
-    //    assert_eq!(Err(OpAlreadySet), &quot;&gt;= &gt;= 0.0.2&quot;.parse::&lt;VersionReq&gt;());
-    //    assert_eq!(Err(InvalidSigil), &quot;&gt;== 0.0.2&quot;.parse::&lt;VersionReq&gt;());
+    //    assert_eq!(Err(InvalidVersionRequirement), "\0".parse::&lt;VersionReq&gt;());
+    //    assert_eq!(Err(OpAlreadySet), "&gt;= &gt;= 0.0.2".parse::&lt;VersionReq&gt;());
+    //    assert_eq!(Err(InvalidSigil), "&gt;== 0.0.2".parse::&lt;VersionReq&gt;());
     //    assert_eq!(Err(VersionComponentsMustBeNumeric),
-    //               &quot;a.0.0&quot;.parse::&lt;VersionReq&gt;());
-    //    assert_eq!(Err(InvalidIdentifier), &quot;1.0.0-&quot;.parse::&lt;VersionReq&gt;());
-    //    assert_eq!(Err(MajorVersionRequired), &quot;&gt;=&quot;.parse::&lt;VersionReq&gt;());
+    //               "a.0.0".parse::&lt;VersionReq&gt;());
+    //    assert_eq!(Err(InvalidIdentifier), "1.0.0-".parse::&lt;VersionReq&gt;());
+    //    assert_eq!(Err(MajorVersionRequired), "&gt;=".parse::&lt;VersionReq&gt;());
     // }
 
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>test_cargo3202() {
-        <span class="kw">let </span>v = <span class="string">&quot;0.*.*&quot;</span>.parse::&lt;VersionReq&gt;().unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;0.*.*&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, v.predicates[<span class="number">0</span>]));
+        <span class="kw">let </span>v = <span class="string">"0.*.*"</span>.parse::&lt;VersionReq&gt;().unwrap();
+        <span class="macro">assert_eq!</span>(<span class="string">"0.*.*"</span>, <span class="macro">format!</span>(<span class="string">"{}"</span>, v.predicates[<span class="number">0</span>]));
 
-        <span class="kw">let </span>v = <span class="string">&quot;0.0.*&quot;</span>.parse::&lt;VersionReq&gt;().unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;0.0.*&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, v.predicates[<span class="number">0</span>]));
+        <span class="kw">let </span>v = <span class="string">"0.0.*"</span>.parse::&lt;VersionReq&gt;().unwrap();
+        <span class="macro">assert_eq!</span>(<span class="string">"0.0.*"</span>, <span class="macro">format!</span>(<span class="string">"{}"</span>, v.predicates[<span class="number">0</span>]));
 
-        <span class="kw">let </span>r = req(<span class="string">&quot;0.*.*&quot;</span>);
-        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">&quot;0.5.0&quot;</span>]);
+        <span class="kw">let </span>r = req(<span class="string">"0.*.*"</span>);
+        assert_match(<span class="kw-2">&amp;</span>r, <span class="kw-2">&amp;</span>[<span class="string">"0.5.0"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_eq_hash() {
-        <span class="macro">assert!</span>(req(<span class="string">&quot;^1&quot;</span>) == req(<span class="string">&quot;^1&quot;</span>));
-        <span class="macro">assert!</span>(calculate_hash(req(<span class="string">&quot;^1&quot;</span>)) == calculate_hash(req(<span class="string">&quot;^1&quot;</span>)));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;^1&quot;</span>) != req(<span class="string">&quot;^2&quot;</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"^1"</span>) == req(<span class="string">"^1"</span>));
+        <span class="macro">assert!</span>(calculate_hash(req(<span class="string">"^1"</span>)) == calculate_hash(req(<span class="string">"^1"</span>)));
+        <span class="macro">assert!</span>(req(<span class="string">"^1"</span>) != req(<span class="string">"^2"</span>));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_ordering() {
-        <span class="macro">assert!</span>(req(<span class="string">&quot;=1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;&gt;1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;&gt;=1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;&lt;1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;&lt;=1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;~1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;^1&quot;</span>) &lt; req(<span class="string">&quot;*&quot;</span>));
-        <span class="macro">assert!</span>(req(<span class="string">&quot;*&quot;</span>) == req(<span class="string">&quot;*&quot;</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"=1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"&gt;1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"&gt;=1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"&lt;1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"&lt;=1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"~1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"^1"</span>) &lt; req(<span class="string">"*"</span>));
+        <span class="macro">assert!</span>(req(<span class="string">"*"</span>) == req(<span class="string">"*"</span>));
     }
 }
 </code></pre></div></section></main></body></html>

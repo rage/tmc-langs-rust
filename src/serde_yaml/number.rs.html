@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.25/src/number.rs`."><title>number.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../serde_yaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.32/src/number.rs`."><title>number.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -557,6 +558,8 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::de;
 <span class="kw">use </span><span class="kw">crate</span>::error::{<span class="self">self</span>, Error, ErrorImpl};
 <span class="kw">use </span>serde::de::{Unexpected, Visitor};
@@ -572,7 +575,7 @@
     n: N,
 }
 
-<span class="comment">// &quot;N&quot; is a prefix of &quot;NegInt&quot;... this is a false positive.
+<span class="comment">// "N" is a prefix of "NegInt"... this is a false positive.
 // https://github.com/Manishearth/rust-clippy/issues/1241
 </span><span class="attr">#[allow(clippy::enum_variant_names)]
 #[derive(Copy, Clone)]
@@ -594,19 +597,19 @@
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
     /// let big = i64::MAX as u64 + 10;
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: 9223372036854775817
     /// c: 256.0
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert!(v[&quot;a&quot;].is_i64());
+    /// assert!(v["a"].is_i64());
     ///
     /// // Greater than i64::MAX.
-    /// assert!(!v[&quot;b&quot;].is_i64());
+    /// assert!(!v["b"].is_i64());
     ///
     /// // Numbers with a decimal point are not considered integers.
-    /// assert!(!v[&quot;c&quot;].is_i64());
+    /// assert!(!v["c"].is_i64());
     /// # Ok(())
     /// # }
     /// ```
@@ -627,19 +630,19 @@
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: -64
     /// c: 256.0
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert!(v[&quot;a&quot;].is_u64());
+    /// assert!(v["a"].is_u64());
     ///
     /// // Negative integer.
-    /// assert!(!v[&quot;b&quot;].is_u64());
+    /// assert!(!v["b"].is_u64());
     ///
     /// // Numbers with a decimal point are not considered integers.
-    /// assert!(!v[&quot;c&quot;].is_u64());
+    /// assert!(!v["c"].is_u64());
     /// # Ok(())
     /// # }
     /// ```
@@ -661,17 +664,17 @@
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 256.0
     /// b: 64
     /// c: -64
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert!(v[&quot;a&quot;].is_f64());
+    /// assert!(v["a"].is_f64());
     ///
     /// // Integers.
-    /// assert!(!v[&quot;b&quot;].is_f64());
-    /// assert!(!v[&quot;c&quot;].is_f64());
+    /// assert!(!v["b"].is_f64());
+    /// assert!(!v["c"].is_f64());
     /// # Ok(())
     /// # }
     /// ```
@@ -689,15 +692,15 @@
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
     /// let big = i64::MAX as u64 + 10;
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: 9223372036854775817
     /// c: 256.0
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert_eq!(v[&quot;a&quot;].as_i64(), Some(64));
-    /// assert_eq!(v[&quot;b&quot;].as_i64(), None);
-    /// assert_eq!(v[&quot;c&quot;].as_i64(), None);
+    /// assert_eq!(v["a"].as_i64(), Some(64));
+    /// assert_eq!(v["b"].as_i64(), None);
+    /// assert_eq!(v["c"].as_i64(), None);
     /// # Ok(())
     /// # }
     /// ```
@@ -721,15 +724,15 @@
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: -64
     /// c: 256.0
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert_eq!(v[&quot;a&quot;].as_u64(), Some(64));
-    /// assert_eq!(v[&quot;b&quot;].as_u64(), None);
-    /// assert_eq!(v[&quot;c&quot;].as_u64(), None);
+    /// assert_eq!(v["a"].as_u64(), Some(64));
+    /// assert_eq!(v["b"].as_u64(), None);
+    /// assert_eq!(v["c"].as_u64(), None);
     /// # Ok(())
     /// # }
     /// ```
@@ -745,28 +748,28 @@
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let v: serde_yaml::Value = serde_yaml::from_str(r#&quot;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 256.0
     /// b: 64
     /// c: -64
-    /// &quot;#)?;
+    /// "#)?;
     ///
-    /// assert_eq!(v[&quot;a&quot;].as_f64(), Some(256.0));
-    /// assert_eq!(v[&quot;b&quot;].as_f64(), Some(64.0));
-    /// assert_eq!(v[&quot;c&quot;].as_f64(), Some(-64.0));
+    /// assert_eq!(v["a"].as_f64(), Some(256.0));
+    /// assert_eq!(v["b"].as_f64(), Some(64.0));
+    /// assert_eq!(v["c"].as_f64(), Some(-64.0));
     /// # Ok(())
     /// # }
     /// ```
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let v: serde_yaml::Value = serde_yaml::from_str(&quot;.inf&quot;)?;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(".inf")?;
     /// assert_eq!(v.as_f64(), Some(f64::INFINITY));
     ///
-    /// let v: serde_yaml::Value = serde_yaml::from_str(&quot;-.inf&quot;)?;
+    /// let v: serde_yaml::Value = serde_yaml::from_str("-.inf")?;
     /// assert_eq!(v.as_f64(), Some(f64::NEG_INFINITY));
     ///
-    /// let v: serde_yaml::Value = serde_yaml::from_str(&quot;.nan&quot;)?;
+    /// let v: serde_yaml::Value = serde_yaml::from_str(".nan")?;
     /// assert!(v.as_f64().unwrap().is_nan());
     /// # Ok(())
     /// # }
@@ -856,12 +859,12 @@
         <span class="kw">match </span><span class="self">self</span>.n {
             N::PosInt(i) =&gt; formatter.write_str(itoa::Buffer::new().format(i)),
             N::NegInt(i) =&gt; formatter.write_str(itoa::Buffer::new().format(i)),
-            N::Float(f) <span class="kw">if </span>f.is_nan() =&gt; formatter.write_str(<span class="string">&quot;.nan&quot;</span>),
+            N::Float(f) <span class="kw">if </span>f.is_nan() =&gt; formatter.write_str(<span class="string">".nan"</span>),
             N::Float(f) <span class="kw">if </span>f.is_infinite() =&gt; {
                 <span class="kw">if </span>f.is_sign_negative() {
-                    formatter.write_str(<span class="string">&quot;-.inf&quot;</span>)
+                    formatter.write_str(<span class="string">"-.inf"</span>)
                 } <span class="kw">else </span>{
-                    formatter.write_str(<span class="string">&quot;.inf&quot;</span>)
+                    formatter.write_str(<span class="string">".inf"</span>)
                 }
             }
             N::Float(f) =&gt; formatter.write_str(ryu::Buffer::new().format_finite(f)),
@@ -893,7 +896,7 @@
             (N::Float(a), N::Float(b)) =&gt; {
                 <span class="kw">if </span>a.is_nan() &amp;&amp; b.is_nan() {
                     <span class="comment">// YAML only has one NaN;
-                    // the bit representation isn&#39;t preserved
+                    // the bit representation isn't preserved
                     </span><span class="bool-val">true
                 </span>} <span class="kw">else </span>{
                     a == b
@@ -968,11 +971,11 @@
 
 <span class="kw">struct </span>NumberVisitor;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>NumberVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>NumberVisitor {
     <span class="kw">type </span>Value = Number;
 
     <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        formatter.write_str(<span class="string">&quot;a number&quot;</span>)
+        formatter.write_str(<span class="string">"a number"</span>)
     }
 
     <span class="attr">#[inline]
@@ -991,23 +994,23 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Number {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Number {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Number, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         deserializer.deserialize_any(NumberVisitor)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Number {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Number {
     <span class="kw">type </span>Error = Error;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.n {
             N::PosInt(i) =&gt; visitor.visit_u64(i),
@@ -1023,13 +1026,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Number {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>, <span class="lifetime">'a</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Number {
     <span class="kw">type </span>Error = Error;
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">match </span><span class="self">self</span>.n {
             N::PosInt(i) =&gt; visitor.visit_u64(i),
@@ -1076,24 +1079,26 @@
     };
 }
 
-<span class="macro">macro_rules! </span>from_float {
-    ($(<span class="macro-nonterminal">$float_ty</span>:ident)<span class="kw-2">*</span>) =&gt; {
-        $(
-            <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$float_ty</span>&gt; <span class="kw">for </span>Number {
-                <span class="attr">#[inline]
-                </span><span class="kw">fn </span>from(f: <span class="macro-nonterminal">$float_ty</span>) -&gt; <span class="self">Self </span>{
-                    Number { n: N::Float(f <span class="kw">as </span>f64) }
-                }
-            }
-        )*
+<span class="macro">from_signed!</span>(i8 i16 i32 i64 isize);
+<span class="macro">from_unsigned!</span>(u8 u16 u32 u64 usize);
+
+<span class="kw">impl </span>From&lt;f32&gt; <span class="kw">for </span>Number {
+    <span class="kw">fn </span>from(f: f32) -&gt; <span class="self">Self </span>{
+        Number::from(f <span class="kw">as </span>f64)
     }
 }
 
-<span class="macro">from_signed!</span>(i8 i16 i32 i64 isize);
-<span class="macro">from_unsigned!</span>(u8 u16 u32 u64 usize);
-<span class="macro">from_float!</span>(f32 f64);
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>Number {
+    <span class="kw">fn </span>from(<span class="kw-2">mut </span>f: f64) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>f.is_nan() {
+            <span class="comment">// Destroy NaN sign, signaling, and payload. YAML only has one NaN.
+            </span>f = f64::NAN.copysign(<span class="number">1.0</span>);
+        }
+        Number { n: N::Float(f) }
+    }
+}
 
-<span class="comment">// This is fine, because we don&#39;t _really_ implement hash for floats
+<span class="comment">// This is fine, because we don't _really_ implement hash for floats
 // all other hash functions should work as expected
 </span><span class="attr">#[allow(clippy::derived_hash_with_manual_eq)]
 </span><span class="kw">impl </span>Hash <span class="kw">for </span>Number {

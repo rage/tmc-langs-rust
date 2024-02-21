@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.25/src/value/index.rs`."><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.32/src/value/index.rs`."><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -290,43 +291,43 @@
 </span><span class="kw">pub trait </span>Index: private::Sealed {
     <span class="doccomment">/// Return None if the key is not already in the sequence or object.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt;;
+    </span><span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt;;
 
     <span class="doccomment">/// Return None if the key is not already in the sequence or object.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt;;
+    </span><span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt;;
 
     <span class="doccomment">/// Panic if sequence index out of bounds. If key is not already in the object,
     /// insert it with a value of null. Panic if Value is a type that cannot be
     /// indexed into, except if Value is null then it can be treated as an empty
     /// object.
     </span><span class="attr">#[doc(hidden)]
-    </span><span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value;
+    </span><span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value;
 }
 
 <span class="kw">impl </span>Index <span class="kw">for </span>usize {
-    <span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt; {
+    <span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt; {
         <span class="kw">match </span>v.untag_ref() {
             Value::Sequence(vec) =&gt; vec.get(<span class="kw-2">*</span><span class="self">self</span>),
             Value::Mapping(vec) =&gt; vec.get(<span class="kw-2">&amp;</span>Value::Number((<span class="kw-2">*</span><span class="self">self</span>).into())),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
-    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt; {
+    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt; {
         <span class="kw">match </span>v.untag_mut() {
             Value::Sequence(vec) =&gt; vec.get_mut(<span class="kw-2">*</span><span class="self">self</span>),
             Value::Mapping(vec) =&gt; vec.get_mut(<span class="kw-2">&amp;</span>Value::Number((<span class="kw-2">*</span><span class="self">self</span>).into())),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
-    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value {
+    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value {
         <span class="kw">loop </span>{
             <span class="kw">match </span>v {
                 Value::Sequence(vec) =&gt; {
                     <span class="kw">let </span>len = vec.len();
                     <span class="kw">return </span>vec.get_mut(<span class="kw-2">*</span><span class="self">self</span>).unwrap_or_else(|| {
                         <span class="macro">panic!</span>(
-                            <span class="string">&quot;cannot access index {} of YAML sequence of length {}&quot;</span>,
+                            <span class="string">"cannot access index {} of YAML sequence of length {}"</span>,
                             <span class="self">self</span>, len
                         )
                     });
@@ -336,13 +337,13 @@
                     <span class="kw">return </span>map.entry(n).or_insert(Value::Null);
                 }
                 Value::Tagged(tagged) =&gt; v = <span class="kw-2">&amp;mut </span>tagged.value,
-                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;cannot access index {} of YAML {}&quot;</span>, <span class="self">self</span>, Type(v)),
+                <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"cannot access index {} of YAML {}"</span>, <span class="self">self</span>, Type(v)),
             }
         }
     }
 }
 
-<span class="kw">fn </span>index_into_mapping&lt;<span class="lifetime">&#39;v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt;
+<span class="kw">fn </span>index_into_mapping&lt;<span class="lifetime">'v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt;
 <span class="kw">where
     </span>I: <span class="question-mark">?</span>Sized + mapping::Index,
 {
@@ -352,7 +353,7 @@
     }
 }
 
-<span class="kw">fn </span>index_into_mut_mapping&lt;<span class="lifetime">&#39;v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt;
+<span class="kw">fn </span>index_into_mut_mapping&lt;<span class="lifetime">'v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt;
 <span class="kw">where
     </span>I: <span class="question-mark">?</span>Sized + mapping::Index,
 {
@@ -362,7 +363,7 @@
     }
 }
 
-<span class="kw">fn </span>index_or_insert_mapping&lt;<span class="lifetime">&#39;v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, <span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value
+<span class="kw">fn </span>index_or_insert_mapping&lt;<span class="lifetime">'v</span>, I&gt;(index: <span class="kw-2">&amp;</span>I, <span class="kw-2">mut </span>v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value
 <span class="kw">where
     </span>I: <span class="question-mark">?</span>Sized + mapping::Index + ToOwned + Debug,
     Value: From&lt;I::Owned&gt;,
@@ -383,74 +384,74 @@
                 <span class="kw">return </span>map.entry(index.to_owned().into()).or_insert(Value::Null);
             }
             Value::Tagged(tagged) =&gt; v = <span class="kw-2">&amp;mut </span>tagged.value,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;cannot access key {:?} in YAML {}&quot;</span>, index, Type(v)),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"cannot access key {:?} in YAML {}"</span>, index, Type(v)),
         }
     }
 }
 
 <span class="kw">impl </span>Index <span class="kw">for </span>Value {
-    <span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt; {
+    <span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt; {
         index_into_mapping(<span class="self">self</span>, v)
     }
-    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt; {
+    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt; {
         index_into_mut_mapping(<span class="self">self</span>, v)
     }
-    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value {
+    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value {
         index_or_insert_mapping(<span class="self">self</span>, v)
     }
 }
 
 <span class="kw">impl </span>Index <span class="kw">for </span>str {
-    <span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt; {
+    <span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt; {
         index_into_mapping(<span class="self">self</span>, v)
     }
-    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt; {
+    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt; {
         index_into_mut_mapping(<span class="self">self</span>, v)
     }
-    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value {
+    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value {
         index_or_insert_mapping(<span class="self">self</span>, v)
     }
 }
 
 <span class="kw">impl </span>Index <span class="kw">for </span>String {
-    <span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt; {
+    <span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt; {
         <span class="self">self</span>.as_str().index_into(v)
     }
-    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt; {
+    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt; {
         <span class="self">self</span>.as_str().index_into_mut(v)
     }
-    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value {
+    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value {
         <span class="self">self</span>.as_str().index_or_insert(v)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Index <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Index <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>T
 <span class="kw">where
     </span>T: <span class="question-mark">?</span>Sized + Index,
 {
-    <span class="kw">fn </span>index_into&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span>Value&gt; {
+    <span class="kw">fn </span>index_into&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span>Value&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).index_into(v)
     }
-    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value&gt; {
+    <span class="kw">fn </span>index_into_mut&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value&gt; {
         (<span class="kw-2">**</span><span class="self">self</span>).index_into_mut(v)
     }
-    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">&#39;v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;v </span><span class="kw-2">mut </span>Value {
+    <span class="kw">fn </span>index_or_insert&lt;<span class="lifetime">'v</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, v: <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'v </span><span class="kw-2">mut </span>Value {
         (<span class="kw-2">**</span><span class="self">self</span>).index_or_insert(v)
     }
 }
 
 <span class="doccomment">/// Used in panic messages.
-</span><span class="kw">struct </span>Type&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value);
+</span><span class="kw">struct </span>Type&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value);
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; fmt::Display <span class="kw">for </span>Type&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; fmt::Display <span class="kw">for </span>Type&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.<span class="number">0 </span>{
-            Value::Null =&gt; formatter.write_str(<span class="string">&quot;null&quot;</span>),
-            Value::Bool(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">&quot;boolean&quot;</span>),
-            Value::Number(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">&quot;number&quot;</span>),
-            Value::String(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">&quot;string&quot;</span>),
-            Value::Sequence(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">&quot;sequence&quot;</span>),
-            Value::Mapping(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">&quot;mapping&quot;</span>),
+            Value::Null =&gt; formatter.write_str(<span class="string">"null"</span>),
+            Value::Bool(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">"boolean"</span>),
+            Value::Number(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">"number"</span>),
+            Value::String(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">"string"</span>),
+            Value::Sequence(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">"sequence"</span>),
+            Value::Mapping(<span class="kw">_</span>) =&gt; formatter.write_str(<span class="string">"mapping"</span>),
             Value::Tagged(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -466,8 +467,8 @@
 // out of it. Outside of this Index impl, you already have the option of using
 // `value.as_sequence()` and working with the Vec directly, or matching on
 // `Value::Sequence` and getting the Vec directly. The Index impl means you can
-// skip that and index directly into the thing using a concise syntax. You don&#39;t
-// have to check the type, you don&#39;t have to check the len, it is all about what
+// skip that and index directly into the thing using a concise syntax. You don't
+// have to check the type, you don't have to check the len, it is all about what
 // you expect the Value to look like.
 //
 // Basically the use cases that would be well served by panicking here are
@@ -482,7 +483,7 @@
     <span class="kw">type </span>Output = Value;
 
     <span class="doccomment">/// Index into a `serde_yaml::Value` using the syntax `value[0]` or
-    /// `value[&quot;k&quot;]`.
+    /// `value["k"]`.
     ///
     /// Returns `Value::Null` if the type of `self` does not match the type of
     /// the index, for example if the index is a string and `self` is a sequence
@@ -498,13 +499,13 @@
     /// # use serde_yaml::Value;
     /// #
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let data: serde_yaml::Value = serde_yaml::from_str(r#&quot;{ x: { y: [z, zz] } }&quot;#)?;
+    /// let data: serde_yaml::Value = serde_yaml::from_str(r#"{ x: { y: [z, zz] } }"#)?;
     ///
-    /// assert_eq!(data[&quot;x&quot;][&quot;y&quot;], serde_yaml::from_str::&lt;Value&gt;(r#&quot;[&quot;z&quot;, &quot;zz&quot;]&quot;#).unwrap());
-    /// assert_eq!(data[&quot;x&quot;][&quot;y&quot;][0], serde_yaml::from_str::&lt;Value&gt;(r#&quot;&quot;z&quot;&quot;#).unwrap());
+    /// assert_eq!(data["x"]["y"], serde_yaml::from_str::&lt;Value&gt;(r#"["z", "zz"]"#).unwrap());
+    /// assert_eq!(data["x"]["y"][0], serde_yaml::from_str::&lt;Value&gt;(r#""z""#).unwrap());
     ///
-    /// assert_eq!(data[&quot;a&quot;], serde_yaml::from_str::&lt;Value&gt;(r#&quot;null&quot;#).unwrap()); // returns null for undefined values
-    /// assert_eq!(data[&quot;a&quot;][&quot;b&quot;], serde_yaml::from_str::&lt;Value&gt;(r#&quot;null&quot;#).unwrap()); // does not panic
+    /// assert_eq!(data["a"], serde_yaml::from_str::&lt;Value&gt;(r#"null"#).unwrap()); // returns null for undefined values
+    /// assert_eq!(data["a"]["b"], serde_yaml::from_str::&lt;Value&gt;(r#"null"#).unwrap()); // does not panic
     /// # Ok(())
     /// # }
     /// ```
@@ -519,7 +520,7 @@
     </span>I: Index,
 {
     <span class="doccomment">/// Write into a `serde_yaml::Value` using the syntax `value[0] = ...` or
-    /// `value[&quot;k&quot;] = ...`.
+    /// `value["k"] = ...`.
     ///
     /// If the index is a number, the value must be a sequence of length bigger
     /// than the index. Indexing into a value that is not a sequence or a
@@ -534,21 +535,21 @@
     ///
     /// ```
     /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
-    /// let mut data: serde_yaml::Value = serde_yaml::from_str(r#&quot;{x: 0}&quot;#)?;
+    /// let mut data: serde_yaml::Value = serde_yaml::from_str(r#"{x: 0}"#)?;
     ///
     /// // replace an existing key
-    /// data[&quot;x&quot;] = serde_yaml::from_str(r#&quot;1&quot;#)?;
+    /// data["x"] = serde_yaml::from_str(r#"1"#)?;
     ///
     /// // insert a new key
-    /// data[&quot;y&quot;] = serde_yaml::from_str(r#&quot;[false, false, false]&quot;#)?;
+    /// data["y"] = serde_yaml::from_str(r#"[false, false, false]"#)?;
     ///
     /// // replace a value in a sequence
-    /// data[&quot;y&quot;][0] = serde_yaml::from_str(r#&quot;true&quot;#)?;
+    /// data["y"][0] = serde_yaml::from_str(r#"true"#)?;
     ///
     /// // inserted a deeply nested key
-    /// data[&quot;a&quot;][&quot;b&quot;][&quot;c&quot;][&quot;d&quot;] = serde_yaml::from_str(r#&quot;true&quot;#)?;
+    /// data["a"]["b"]["c"]["d"] = serde_yaml::from_str(r#"true"#)?;
     ///
-    /// println!(&quot;{:?}&quot;, data);
+    /// println!("{:?}", data);
     /// # Ok(())
     /// # }
     /// ```

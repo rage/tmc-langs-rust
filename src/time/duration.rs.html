@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.29/src/duration.rs`."><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../time/index.html"><img src="https://avatars0.githubusercontent.com/u/55999857" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/time-0.3.34/src/duration.rs`."><title>duration.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../time/index.html"><img src="https://avatars0.githubusercontent.com/u/55999857" alt="time"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1498,6 +1499,61 @@
 <a href="#1498" id="1498">1498</a>
 <a href="#1499" id="1499">1499</a>
 <a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
+<a href="#1519" id="1519">1519</a>
+<a href="#1520" id="1520">1520</a>
+<a href="#1521" id="1521">1521</a>
+<a href="#1522" id="1522">1522</a>
+<a href="#1523" id="1523">1523</a>
+<a href="#1524" id="1524">1524</a>
+<a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a>
+<a href="#1549" id="1549">1549</a>
+<a href="#1550" id="1550">1550</a>
+<a href="#1551" id="1551">1551</a>
+<a href="#1552" id="1552">1552</a>
+<a href="#1553" id="1553">1553</a>
+<a href="#1554" id="1554">1554</a>
+<a href="#1555" id="1555">1555</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! The [`Duration`] struct and its associated `impl`s.
 
 </span><span class="kw">use </span>core::cmp::Ordering;
@@ -1507,13 +1563,14 @@
 <span class="kw">use </span>core::time::Duration <span class="kw">as </span>StdDuration;
 
 <span class="kw">use </span>deranged::RangedI32;
+<span class="kw">use </span>num_conv::prelude::<span class="kw-2">*</span>;
 
 <span class="kw">use </span><span class="kw">crate</span>::convert::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::error;
 <span class="kw">use </span><span class="kw">crate</span>::internal_macros::{
     const_try_opt, expect_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::Instant;
 
 <span class="doccomment">/// By explicitly inserting this enum where padding is expected, the compiler is able to better
@@ -1547,10 +1604,10 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Duration {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Duration&quot;</span>)
-            .field(<span class="string">&quot;seconds&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.seconds)
-            .field(<span class="string">&quot;nanoseconds&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.nanoseconds)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Duration"</span>)
+            .field(<span class="string">"seconds"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.seconds)
+            .field(<span class="string">"nanoseconds"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.nanoseconds)
             .finish()
     }
 }
@@ -1585,7 +1642,7 @@
         is_nan = <span class="macro-nonterminal">$is_nan</span>:expr,
         is_overflow = <span class="macro-nonterminal">$is_overflow</span>:expr,
     ) =&gt; {{
-        <span class="lifetime">&#39;value</span>: {
+        <span class="lifetime">'value</span>: {
             <span class="kw">const </span>MIN_EXP: i16 = <span class="number">1 </span>- (<span class="number">1i16 </span>&lt;&lt; <span class="macro-nonterminal">$exp_bits</span>) / <span class="number">2</span>;
             <span class="kw">const </span>MANT_MASK: <span class="macro-nonterminal">$bits_ty </span>= (<span class="number">1 </span>&lt;&lt; <span class="macro-nonterminal">$mant_bits</span>) - <span class="number">1</span>;
             <span class="kw">const </span>EXP_MASK: <span class="macro-nonterminal">$bits_ty </span>= (<span class="number">1 </span>&lt;&lt; <span class="macro-nonterminal">$exp_bits</span>) - <span class="number">1</span>;
@@ -1658,11 +1715,11 @@
                 <span class="comment">// Change from std: Signed integers are asymmetrical in that
                 // iN::MIN is -iN::MAX - 1. So for example i8 covers the
                 // following numbers -128..=127. The check above (exp &lt; 63)
-                // doesn&#39;t cover i64::MIN as that is -2^63, so we have this
+                // doesn't cover i64::MIN as that is -2^63, so we have this
                 // additional case to handle the asymmetry of iN::MIN.
-                </span><span class="kw">break </span><span class="lifetime">&#39;value </span><span class="self">Self</span>::new_ranged_unchecked(i64::MIN, Nanoseconds::new_static::&lt;<span class="number">0</span>&gt;());
+                </span><span class="kw">break </span><span class="lifetime">'value </span><span class="self">Self</span>::new_ranged_unchecked(i64::MIN, Nanoseconds::new_static::&lt;<span class="number">0</span>&gt;());
             } <span class="kw">else if </span><span class="macro-nonterminal">$secs</span>.is_nan() {
-                <span class="comment">// Change from std: std doesn&#39;t differentiate between the error
+                <span class="comment">// Change from std: std doesn't differentiate between the error
                 // cases.
                 </span><span class="macro-nonterminal">$is_nan
             </span>} <span class="kw">else </span>{
@@ -1671,7 +1728,7 @@
 
             <span class="comment">// Change from std: All the code is mostly unmodified in that it
             // simply calculates an unsigned integer. Here we extract the sign
-            // bit and assign it to the number. We basically manually do two&#39;s
+            // bit and assign it to the number. We basically manually do two's
             // complement here, we could also use an if and just negate the
             // numbers based on the sign, but it turns out to be quite a bit
             // slower.
@@ -1880,10 +1937,14 @@
     /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     </span><span class="kw">pub const fn </span>new(<span class="kw-2">mut </span>seconds: i64, <span class="kw-2">mut </span>nanoseconds: i32) -&gt; <span class="self">Self </span>{
         seconds = <span class="macro">expect_opt!</span>(
             seconds.checked_add(nanoseconds <span class="kw">as </span>i64 / Nanosecond::per(Second) <span class="kw">as </span>i64),
-            <span class="string">&quot;overflow constructing `time::Duration`&quot;
+            <span class="string">"overflow constructing `time::Duration`"
         </span>);
         nanoseconds %= Nanosecond::per(Second) <span class="kw">as </span>i32;
 
@@ -1931,10 +1992,14 @@
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::weeks(1), 604_800.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     </span><span class="kw">pub const fn </span>weeks(weeks: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::seconds(<span class="macro">expect_opt!</span>(
             weeks.checked_mul(Second::per(Week) <span class="kw">as _</span>),
-            <span class="string">&quot;overflow constructing `time::Duration`&quot;
+            <span class="string">"overflow constructing `time::Duration`"
         </span>))
     }
 
@@ -1945,10 +2010,14 @@
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::days(1), 86_400.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     </span><span class="kw">pub const fn </span>days(days: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::seconds(<span class="macro">expect_opt!</span>(
             days.checked_mul(Second::per(Day) <span class="kw">as _</span>),
-            <span class="string">&quot;overflow constructing `time::Duration`&quot;
+            <span class="string">"overflow constructing `time::Duration`"
         </span>))
     }
 
@@ -1959,10 +2028,14 @@
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::hours(1), 3_600.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     </span><span class="kw">pub const fn </span>hours(hours: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::seconds(<span class="macro">expect_opt!</span>(
             hours.checked_mul(Second::per(Hour) <span class="kw">as _</span>),
-            <span class="string">&quot;overflow constructing `time::Duration`&quot;
+            <span class="string">"overflow constructing `time::Duration`"
         </span>))
     }
 
@@ -1973,10 +2046,14 @@
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::minutes(1), 60.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     </span><span class="kw">pub const fn </span>minutes(minutes: i64) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::seconds(<span class="macro">expect_opt!</span>(
             minutes.checked_mul(Second::per(Minute) <span class="kw">as _</span>),
-            <span class="string">&quot;overflow constructing `time::Duration`&quot;
+            <span class="string">"overflow constructing `time::Duration`"
         </span>))
     }
 
@@ -2007,8 +2084,8 @@
             bits_ty_signed = i64,
             double_ty = u128,
             float_ty = f64,
-            is_nan = <span class="kw">crate</span>::expect_failed(<span class="string">&quot;passed NaN to `time::Duration::seconds_f64`&quot;</span>),
-            is_overflow = <span class="kw">crate</span>::expect_failed(<span class="string">&quot;overflow constructing `time::Duration`&quot;</span>),
+            is_nan = <span class="kw">crate</span>::expect_failed(<span class="string">"passed NaN to `time::Duration::seconds_f64`"</span>),
+            is_overflow = <span class="kw">crate</span>::expect_failed(<span class="string">"overflow constructing `time::Duration`"</span>),
         )
     }
 
@@ -2029,8 +2106,8 @@
             bits_ty_signed = i32,
             double_ty = u64,
             float_ty = f32,
-            is_nan = <span class="kw">crate</span>::expect_failed(<span class="string">&quot;passed NaN to `time::Duration::seconds_f32`&quot;</span>),
-            is_overflow = <span class="kw">crate</span>::expect_failed(<span class="string">&quot;overflow constructing `time::Duration`&quot;</span>),
+            is_nan = <span class="kw">crate</span>::expect_failed(<span class="string">"passed NaN to `time::Duration::seconds_f32`"</span>),
+            is_overflow = <span class="kw">crate</span>::expect_failed(<span class="string">"overflow constructing `time::Duration`"</span>),
         )
     }
 
@@ -2109,7 +2186,7 @@
     }
 
     <span class="doccomment">/// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f64`. Returns `None` if the `Duration` can&#39;t be
+    /// represented as `f64`. Returns `None` if the `Duration` can't be
     /// represented.
     ///
     /// ```rust
@@ -2136,7 +2213,7 @@
     }
 
     <span class="doccomment">/// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f32`. Returns `None` if the `Duration` can&#39;t be
+    /// represented as `f32`. Returns `None` if the `Duration` can't be
     /// represented.
     ///
     /// ```rust
@@ -2217,14 +2294,14 @@
 
     <span class="doccomment">/// Create a new `Duration` with the given number of nanoseconds.
     ///
-    /// As the input range cannot be fully mapped to the output, this should only be used where it&#39;s
+    /// As the input range cannot be fully mapped to the output, this should only be used where it's
     /// known to result in a valid value.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>nanoseconds_i128(nanoseconds: i128) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>seconds = nanoseconds / Nanosecond::per(Second) <span class="kw">as </span>i128;
         <span class="kw">let </span>nanoseconds = nanoseconds % Nanosecond::per(Second) <span class="kw">as </span>i128;
 
         <span class="kw">if </span>seconds &gt; i64::MAX <span class="kw">as </span>i128 || seconds &lt; i64::MIN <span class="kw">as </span>i128 {
-            <span class="kw">crate</span>::expect_failed(<span class="string">&quot;overflow constructing `time::Duration`&quot;</span>);
+            <span class="kw">crate</span>::expect_failed(<span class="string">"overflow constructing `time::Duration`"</span>);
         }
 
         <span class="comment">// Safety: `nanoseconds` is guaranteed to be in range because of the modulus above.
@@ -2402,7 +2479,7 @@
     }
 
     <span class="doccomment">/// Get the number of nanoseconds past the number of whole seconds.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;quickcheck&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"quickcheck"</span>)]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const fn </span>subsec_nanoseconds_ranged(<span class="self">self</span>) -&gt; Nanoseconds {
         <span class="self">self</span>.nanoseconds
     }
@@ -2626,7 +2703,11 @@
 
     </span><span class="doccomment">/// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+    #[deprecated(
+        since = <span class="string">"0.3.32"</span>,
+        note = <span class="string">"extremely limited use case, not intended for benchmarking"
+    </span>)]
     </span><span class="kw">pub fn </span>time_fn&lt;T&gt;(f: <span class="kw">impl </span>FnOnce() -&gt; T) -&gt; (<span class="self">Self</span>, T) {
         <span class="kw">let </span>start = Instant::now();
         <span class="kw">let </span>return_value = f();
@@ -2646,15 +2727,15 @@
 /// # use time::Duration;
 /// #
 /// let duration = Duration::new(123456, 789011223);
-/// println!(&quot;{duration:.3}&quot;);
+/// println!("{duration:.3}");
 /// ```
 ///
 /// For the purposes of this implementation, a day is exactly 24 hours and a minute is exactly 60
 /// seconds.
 </span><span class="kw">impl </span>fmt::Display <span class="kw">for </span>Duration {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if </span><span class="self">self</span>.is_negative() {
-            f.write_str(<span class="string">&quot;-&quot;</span>)<span class="question-mark">?</span>;
+            f.write_str(<span class="string">"-"</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(_precision) = f.precision() {
@@ -2662,7 +2743,7 @@
 
             </span><span class="kw">if </span><span class="self">self</span>.is_zero() {
                 <span class="comment">// Write a zero value with the requested precision.
-                </span><span class="kw">return </span>(<span class="number">0.</span>).fmt(f).and_then(|<span class="kw">_</span>| f.write_str(<span class="string">&quot;s&quot;</span>));
+                </span><span class="kw">return </span>(<span class="number">0.</span>).fmt(f).and_then(|<span class="kw">_</span>| f.write_str(<span class="string">"s"</span>));
             }
 
             <span class="doccomment">/// Format the first item that produces a value greater than 1 and then break.
@@ -2675,21 +2756,21 @@
                 };
             }
 
-            <span class="comment">// Even if this produces a de-normal float, because we&#39;re rounding we don&#39;t really care.
+            <span class="comment">// Even if this produces a de-normal float, because we're rounding we don't really care.
             </span><span class="kw">let </span>seconds = <span class="self">self</span>.unsigned_abs().as_secs_f64();
 
-            <span class="macro">item!</span>(<span class="string">&quot;d&quot;</span>, seconds / Second::per(Day) <span class="kw">as </span>f64);
-            <span class="macro">item!</span>(<span class="string">&quot;h&quot;</span>, seconds / Second::per(Hour) <span class="kw">as </span>f64);
-            <span class="macro">item!</span>(<span class="string">&quot;m&quot;</span>, seconds / Second::per(Minute) <span class="kw">as </span>f64);
-            <span class="macro">item!</span>(<span class="string">&quot;s&quot;</span>, seconds);
-            <span class="macro">item!</span>(<span class="string">&quot;ms&quot;</span>, seconds * Millisecond::per(Second) <span class="kw">as </span>f64);
-            <span class="macro">item!</span>(<span class="string">&quot;µs&quot;</span>, seconds * Microsecond::per(Second) <span class="kw">as </span>f64);
-            <span class="macro">item!</span>(<span class="string">&quot;ns&quot;</span>, seconds * Nanosecond::per(Second) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"d"</span>, seconds / Second::per(Day) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"h"</span>, seconds / Second::per(Hour) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"m"</span>, seconds / Second::per(Minute) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"s"</span>, seconds);
+            <span class="macro">item!</span>(<span class="string">"ms"</span>, seconds * Millisecond::per(Second) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"µs"</span>, seconds * Microsecond::per(Second) <span class="kw">as </span>f64);
+            <span class="macro">item!</span>(<span class="string">"ns"</span>, seconds * Nanosecond::per(Second) <span class="kw">as </span>f64);
         } <span class="kw">else </span>{
             <span class="comment">// Precise, but verbose representation.
 
             </span><span class="kw">if </span><span class="self">self</span>.is_zero() {
-                <span class="kw">return </span>f.write_str(<span class="string">&quot;0s&quot;</span>);
+                <span class="kw">return </span>f.write_str(<span class="string">"0s"</span>);
             }
 
             <span class="doccomment">/// Format a single item.
@@ -2705,23 +2786,26 @@
             <span class="kw">let </span>seconds = <span class="self">self</span>.seconds.unsigned_abs();
             <span class="kw">let </span>nanoseconds = <span class="self">self</span>.nanoseconds.get().unsigned_abs();
 
-            <span class="macro">item!</span>(<span class="string">&quot;d&quot;</span>, seconds / Second::per(Day) <span class="kw">as </span>u64)<span class="question-mark">?</span>;
+            <span class="macro">item!</span>(<span class="string">"d"</span>, seconds / Second::per(Day).extend::&lt;u64&gt;())<span class="question-mark">?</span>;
             <span class="macro">item!</span>(
-                <span class="string">&quot;h&quot;</span>,
-                seconds / Second::per(Hour) <span class="kw">as </span>u64 % Hour::per(Day) <span class="kw">as </span>u64
+                <span class="string">"h"</span>,
+                seconds / Second::per(Hour).extend::&lt;u64&gt;() % Hour::per(Day).extend::&lt;u64&gt;()
             )<span class="question-mark">?</span>;
             <span class="macro">item!</span>(
-                <span class="string">&quot;m&quot;</span>,
-                seconds / Second::per(Minute) <span class="kw">as </span>u64 % Minute::per(Hour) <span class="kw">as </span>u64
+                <span class="string">"m"</span>,
+                seconds / Second::per(Minute).extend::&lt;u64&gt;() % Minute::per(Hour).extend::&lt;u64&gt;()
             )<span class="question-mark">?</span>;
-            <span class="macro">item!</span>(<span class="string">&quot;s&quot;</span>, seconds % Second::per(Minute) <span class="kw">as </span>u64)<span class="question-mark">?</span>;
-            <span class="macro">item!</span>(<span class="string">&quot;ms&quot;</span>, nanoseconds / Nanosecond::per(Millisecond))<span class="question-mark">?</span>;
+            <span class="macro">item!</span>(<span class="string">"s"</span>, seconds % Second::per(Minute).extend::&lt;u64&gt;())<span class="question-mark">?</span>;
+            <span class="macro">item!</span>(<span class="string">"ms"</span>, nanoseconds / Nanosecond::per(Millisecond))<span class="question-mark">?</span>;
             <span class="macro">item!</span>(
-                <span class="string">&quot;µs&quot;</span>,
-                nanoseconds / Nanosecond::per(Microsecond) <span class="kw">as </span>u32
-                    % Microsecond::per(Millisecond) <span class="kw">as </span>u32
+                <span class="string">"µs"</span>,
+                nanoseconds / Nanosecond::per(Microsecond).extend::&lt;u32&gt;()
+                    % Microsecond::per(Millisecond).extend::&lt;u32&gt;()
             )<span class="question-mark">?</span>;
-            <span class="macro">item!</span>(<span class="string">&quot;ns&quot;</span>, nanoseconds % Nanosecond::per(Microsecond) <span class="kw">as </span>u32)<span class="question-mark">?</span>;
+            <span class="macro">item!</span>(
+                <span class="string">"ns"</span>,
+                nanoseconds % Nanosecond::per(Microsecond).extend::&lt;u32&gt;()
+            )<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -2737,7 +2821,7 @@
                 .as_secs()
                 .try_into()
                 .map_err(|<span class="kw">_</span>| error::ConversionRange)<span class="question-mark">?</span>,
-            original.subsec_nanos() <span class="kw">as _</span>,
+            original.subsec_nanos().cast_signed(),
         ))
     }
 }
@@ -2763,18 +2847,24 @@
 <span class="kw">impl </span>Add <span class="kw">for </span>Duration {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    </span><span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
         <span class="self">self</span>.checked_add(rhs)
-            .expect(<span class="string">&quot;overflow when adding durations&quot;</span>)
+            .expect(<span class="string">"overflow when adding durations"</span>)
     }
 }
 
 <span class="kw">impl </span>Add&lt;StdDuration&gt; <span class="kw">for </span>Duration {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-    <span class="kw">fn </span>add(<span class="self">self</span>, std_duration: StdDuration) -&gt; <span class="self">Self</span>::Output {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    </span><span class="kw">fn </span>add(<span class="self">self</span>, std_duration: StdDuration) -&gt; <span class="self">Self</span>::Output {
         <span class="self">self </span>+ <span class="self">Self</span>::try_from(std_duration)
-            .expect(<span class="string">&quot;overflow converting `std::time::Duration` to `time::Duration`&quot;</span>)
+            .expect(<span class="string">"overflow converting `std::time::Duration` to `time::Duration`"</span>)
     }
 }
 
@@ -2789,10 +2879,13 @@
 <span class="macro">impl_add_assign!</span>(Duration: <span class="self">Self</span>, StdDuration);
 
 <span class="kw">impl </span>AddAssign&lt;Duration&gt; <span class="kw">for </span>StdDuration {
-    <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: Duration) {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if the resulting addition cannot be represented.
+    </span><span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: Duration) {
         <span class="kw-2">*</span><span class="self">self </span>= (<span class="kw-2">*</span><span class="self">self </span>+ rhs).try_into().expect(
-            <span class="string">&quot;Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
-             change the type.&quot;</span>,
+            <span class="string">"Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
+             change the type."</span>,
         );
     }
 }
@@ -2808,27 +2901,36 @@
 <span class="kw">impl </span>Sub <span class="kw">for </span>Duration {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    </span><span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
         <span class="self">self</span>.checked_sub(rhs)
-            .expect(<span class="string">&quot;overflow when subtracting durations&quot;</span>)
+            .expect(<span class="string">"overflow when subtracting durations"</span>)
     }
 }
 
 <span class="kw">impl </span>Sub&lt;StdDuration&gt; <span class="kw">for </span>Duration {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: StdDuration) -&gt; <span class="self">Self</span>::Output {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    </span><span class="kw">fn </span>sub(<span class="self">self</span>, rhs: StdDuration) -&gt; <span class="self">Self</span>::Output {
         <span class="self">self </span>- <span class="self">Self</span>::try_from(rhs)
-            .expect(<span class="string">&quot;overflow converting `std::time::Duration` to `time::Duration`&quot;</span>)
+            .expect(<span class="string">"overflow converting `std::time::Duration` to `time::Duration`"</span>)
     }
 }
 
 <span class="kw">impl </span>Sub&lt;Duration&gt; <span class="kw">for </span>StdDuration {
     <span class="kw">type </span>Output = Duration;
 
-    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: Duration) -&gt; <span class="self">Self</span>::Output {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    </span><span class="kw">fn </span>sub(<span class="self">self</span>, rhs: Duration) -&gt; <span class="self">Self</span>::Output {
         Duration::try_from(<span class="self">self</span>)
-            .expect(<span class="string">&quot;overflow converting `std::time::Duration` to `time::Duration`&quot;</span>)
+            .expect(<span class="string">"overflow converting `std::time::Duration` to `time::Duration`"</span>)
             - rhs
     }
 }
@@ -2836,10 +2938,13 @@
 <span class="macro">impl_sub_assign!</span>(Duration: <span class="self">Self</span>, StdDuration);
 
 <span class="kw">impl </span>SubAssign&lt;Duration&gt; <span class="kw">for </span>StdDuration {
-    <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: Duration) {
+    <span class="doccomment">/// # Panics
+    ///
+    /// This may panic if the resulting subtraction can not be represented.
+    </span><span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: Duration) {
         <span class="kw-2">*</span><span class="self">self </span>= (<span class="kw-2">*</span><span class="self">self </span>- rhs).try_into().expect(
-            <span class="string">&quot;Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
-             change the type.&quot;</span>,
+            <span class="string">"Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
+             change the type."</span>,
         );
     }
 }
@@ -2853,8 +2958,8 @@
             <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: <span class="macro-nonterminal">$</span><span class="kw">type</span>) -&gt; <span class="macro-nonterminal">Self::Output </span>{
                 <span class="self">Self</span>::nanoseconds_i128(
                     <span class="self">self</span>.whole_nanoseconds()
-                        .checked_mul(rhs <span class="kw">as _</span>)
-                        .expect(<span class="string">&quot;overflow when multiplying duration&quot;</span>)
+                        .checked_mul(rhs.cast_signed().extend::&lt;i128&gt;())
+                        .expect(<span class="string">"overflow when multiplying duration"</span>)
                 )
             }
         }
@@ -2871,7 +2976,9 @@
             <span class="kw">type </span>Output = <span class="self">Self</span>;
 
             <span class="kw">fn </span>div(<span class="self">self</span>, rhs: <span class="macro-nonterminal">$</span><span class="kw">type</span>) -&gt; <span class="macro-nonterminal">Self::Output </span>{
-                <span class="self">Self</span>::nanoseconds_i128(<span class="self">self</span>.whole_nanoseconds() / rhs <span class="kw">as </span>i128)
+                <span class="self">Self</span>::nanoseconds_i128(
+                    <span class="self">self</span>.whole_nanoseconds() / rhs.cast_signed().extend::&lt;i128&gt;()
+                )
             }
         }
     )+};
@@ -2968,14 +3075,18 @@
 
 <span class="kw">impl </span>PartialOrd&lt;StdDuration&gt; <span class="kw">for </span>Duration {
     <span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>StdDuration) -&gt; <span class="prelude-ty">Option</span>&lt;Ordering&gt; {
-        <span class="kw">if </span>rhs.as_secs() &gt; i64::MAX <span class="kw">as _ </span>{
+        <span class="kw">if </span>rhs.as_secs() &gt; i64::MAX.cast_unsigned() {
             <span class="kw">return </span><span class="prelude-val">Some</span>(Ordering::Less);
         }
 
         <span class="prelude-val">Some</span>(
             <span class="self">self</span>.seconds
-                .cmp(<span class="kw-2">&amp;</span>(rhs.as_secs() <span class="kw">as _</span>))
-                .then_with(|| <span class="self">self</span>.nanoseconds.get().cmp(<span class="kw-2">&amp;</span>(rhs.subsec_nanos() <span class="kw">as _</span>))),
+                .cmp(<span class="kw-2">&amp;</span>rhs.as_secs().cast_signed())
+                .then_with(|| {
+                    <span class="self">self</span>.nanoseconds
+                        .get()
+                        .cmp(<span class="kw-2">&amp;</span>rhs.subsec_nanos().cast_signed())
+                }),
         )
     }
 }
@@ -2992,8 +3103,8 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>&gt; <span class="kw">for </span>Duration {
-    <span class="kw">fn </span>sum&lt;I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">Self</span>&gt;&gt;(iter: I) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Sum&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>&gt; <span class="kw">for </span>Duration {
+    <span class="kw">fn </span>sum&lt;I: Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">Self</span>&gt;&gt;(iter: I) -&gt; <span class="self">Self </span>{
         iter.copied().sum()
     }
 }

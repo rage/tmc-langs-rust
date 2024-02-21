@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.22/src/blocking/multipart.rs`."><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/blocking/multipart.rs`."><title>multipart.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -483,8 +484,8 @@
 <a href="#483" id="483">483</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! multipart/form-data
 //!
-//! To send a `multipart/form-data` body, a [`Form`](crate::blocking::multipart::Form) is built up, adding
-//! fields or customized [`Part`](crate::blocking::multipart::Part)s, and then calling the
+//! To send a `multipart/form-data` body, a [`Form`] is built up, adding
+//! fields or customized [`Part`]s, and then calling the
 //! [`multipart`][builder] method on the `RequestBuilder`.
 //!
 //! # Example
@@ -495,22 +496,22 @@
 //! # fn run() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 //! let form = multipart::Form::new()
 //!     // Adding just a simple text field...
-//!     .text(&quot;username&quot;, &quot;seanmonstar&quot;)
+//!     .text("username", "seanmonstar")
 //!     // And a file...
-//!     .file(&quot;photo&quot;, &quot;/path/to/photo.png&quot;)?;
+//!     .file("photo", "/path/to/photo.png")?;
 //!
 //! // Customize all the details of a Part if needed...
-//! let bio = multipart::Part::text(&quot;hallo peeps&quot;)
-//!     .file_name(&quot;bio.txt&quot;)
-//!     .mime_str(&quot;text/plain&quot;)?;
+//! let bio = multipart::Part::text("hallo peeps")
+//!     .file_name("bio.txt")
+//!     .mime_str("text/plain")?;
 //!
 //! // Add the custom part to our form...
-//! let form = form.part(&quot;biography&quot;, bio);
+//! let form = form.part("biography", bio);
 //!
 //! // And finally, send the form
 //! let client = reqwest::blocking::Client::new();
 //! let resp = client
-//!     .post(&quot;http://localhost:8080/user&quot;)
+//!     .post("http://localhost:8080/user")
 //!     .multipart(form)
 //!     .send()?;
 //! # Ok(())
@@ -568,13 +569,13 @@
     ///
     /// ```
     /// let form = reqwest::blocking::multipart::Form::new()
-    ///     .text(&quot;username&quot;, &quot;seanmonstar&quot;)
-    ///     .text(&quot;password&quot;, &quot;secret&quot;);
+    ///     .text("username", "seanmonstar")
+    ///     .text("password", "secret");
     /// ```
     </span><span class="kw">pub fn </span>text&lt;T, U&gt;(<span class="self">self</span>, name: T, value: U) -&gt; Form
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
-        U: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
+        U: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.part(name, Part::text(value))
     }
@@ -588,7 +589,7 @@
     /// ```no_run
     /// # fn run() -&gt; std::io::Result&lt;()&gt; {
     /// let files = reqwest::blocking::multipart::Form::new()
-    ///     .file(&quot;key&quot;, &quot;/path/to/file&quot;)?;
+    ///     .file("key", "/path/to/file")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -598,7 +599,7 @@
     /// Errors when the file cannot be opened.
     </span><span class="kw">pub fn </span>file&lt;T, U&gt;(<span class="self">self</span>, name: T, path: U) -&gt; io::Result&lt;Form&gt;
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
         U: AsRef&lt;Path&gt;,
     {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.part(name, Part::file(path)<span class="question-mark">?</span>))
@@ -607,7 +608,7 @@
     <span class="doccomment">/// Adds a customized Part.
     </span><span class="kw">pub fn </span>part&lt;T&gt;(<span class="self">self</span>, name: T, part: Part) -&gt; Form
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.part(name, part))
     }
@@ -650,7 +651,7 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Form {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="self">self</span>.inner.fmt_fields(<span class="string">&quot;Form&quot;</span>, f)
+        <span class="self">self</span>.inner.fmt_fields(<span class="string">"Form"</span>, f)
     }
 }
 
@@ -658,7 +659,7 @@
     <span class="doccomment">/// Makes a text parameter.
     </span><span class="kw">pub fn </span>text&lt;T&gt;(value: T) -&gt; Part
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     {
         <span class="kw">let </span>body = <span class="kw">match </span>value.into() {
             Cow::Borrowed(slice) =&gt; Body::from(slice),
@@ -670,7 +671,7 @@
     <span class="doccomment">/// Makes a new parameter from arbitrary bytes.
     </span><span class="kw">pub fn </span>bytes&lt;T&gt;(value: T) -&gt; Part
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;&gt;,
     {
         <span class="kw">let </span>body = <span class="kw">match </span>value.into() {
             Cow::Borrowed(slice) =&gt; Body::from(slice),
@@ -682,14 +683,14 @@
     <span class="doccomment">/// Adds a generic reader.
     ///
     /// Does not set filename or mime.
-    </span><span class="kw">pub fn </span>reader&lt;T: Read + Send + <span class="lifetime">&#39;static</span>&gt;(value: T) -&gt; Part {
+    </span><span class="kw">pub fn </span>reader&lt;T: Read + Send + <span class="lifetime">'static</span>&gt;(value: T) -&gt; Part {
         Part::new(Body::new(value))
     }
 
     <span class="doccomment">/// Adds a generic reader with known length.
     ///
     /// Does not set filename or mime.
-    </span><span class="kw">pub fn </span>reader_with_length&lt;T: Read + Send + <span class="lifetime">&#39;static</span>&gt;(value: T, length: u64) -&gt; Part {
+    </span><span class="kw">pub fn </span>reader_with_length&lt;T: Read + Send + <span class="lifetime">'static</span>&gt;(value: T, length: u64) -&gt; Part {
         Part::new(Body::sized(value, length))
     }
 
@@ -703,7 +704,7 @@
         <span class="kw">let </span>file_name = path
             .file_name()
             .map(|filename| filename.to_string_lossy().into_owned());
-        <span class="kw">let </span>ext = path.extension().and_then(|ext| ext.to_str()).unwrap_or(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>ext = path.extension().and_then(|ext| ext.to_str()).unwrap_or(<span class="string">""</span>);
         <span class="kw">let </span>mime = mime_guess::from_ext(ext).first_or_octet_stream();
         <span class="kw">let </span>file = File::open(path)<span class="question-mark">?</span>;
         <span class="kw">let </span>field = Part::new(Body::from(file)).mime(mime);
@@ -735,7 +736,7 @@
     <span class="doccomment">/// Sets the filename, builder style.
     </span><span class="kw">pub fn </span>file_name&lt;T&gt;(<span class="self">self</span>, filename: T) -&gt; Part
     <span class="kw">where
-        </span>T: Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;,
+        </span>T: Into&lt;Cow&lt;<span class="lifetime">'static</span>, str&gt;&gt;,
     {
         <span class="self">self</span>.with_inner(<span class="kw">move </span>|inner| inner.file_name(filename))
     }
@@ -758,8 +759,8 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Part {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="kw">let </span><span class="kw-2">mut </span>dbg = f.debug_struct(<span class="string">&quot;Part&quot;</span>);
-        dbg.field(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+        <span class="kw">let </span><span class="kw-2">mut </span>dbg = f.debug_struct(<span class="string">"Part"</span>);
+        dbg.field(<span class="string">"value"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
         <span class="self">self</span>.meta.fmt_fields(<span class="kw-2">&amp;mut </span>dbg);
         dbg.finish()
     }
@@ -782,7 +783,7 @@
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Reader {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Reader&quot;</span>).field(<span class="string">&quot;form&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.form).finish()
+        f.debug_struct(<span class="string">"Reader"</span>).field(<span class="string">"form"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.form).finish()
     }
 }
 
@@ -798,9 +799,9 @@
 
     <span class="kw">fn </span>next_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.active_reader = <span class="kw">if </span>!<span class="self">self</span>.form.inner.fields.is_empty() {
-            <span class="comment">// We need to move out of the vector here because we are consuming the field&#39;s reader
+            <span class="comment">// We need to move out of the vector here because we are consuming the field's reader
             </span><span class="kw">let </span>(name, field) = <span class="self">self</span>.form.inner.fields.remove(<span class="number">0</span>);
-            <span class="kw">let </span>boundary = Cursor::new(<span class="macro">format!</span>(<span class="string">&quot;--{}\r\n&quot;</span>, <span class="self">self</span>.form.boundary()));
+            <span class="kw">let </span>boundary = Cursor::new(<span class="macro">format!</span>(<span class="string">"--{}\r\n"</span>, <span class="self">self</span>.form.boundary()));
             <span class="kw">let </span>header = Cursor::new({
                 <span class="comment">// Try to use cached headers created by compute_length
                 </span><span class="kw">let </span><span class="kw-2">mut </span>h = <span class="kw">if </span>!<span class="self">self</span>.form.inner.computed_headers.is_empty() {
@@ -811,20 +812,20 @@
                         .percent_encoding
                         .encode_headers(<span class="kw-2">&amp;</span>name, field.metadata())
                 };
-                h.extend_from_slice(<span class="string">b&quot;\r\n\r\n&quot;</span>);
+                h.extend_from_slice(<span class="string">b"\r\n\r\n"</span>);
                 h
             });
             <span class="kw">let </span>reader = boundary
                 .chain(header)
                 .chain(field.value.into_reader())
-                .chain(Cursor::new(<span class="string">&quot;\r\n&quot;</span>));
+                .chain(Cursor::new(<span class="string">"\r\n"</span>));
             <span class="comment">// According to https://tools.ietf.org/html/rfc2046#section-5.1.1
             // the very last field has a special boundary
             </span><span class="kw">if </span>!<span class="self">self</span>.form.inner.fields.is_empty() {
                 <span class="prelude-val">Some</span>(Box::new(reader))
             } <span class="kw">else </span>{
                 <span class="prelude-val">Some</span>(Box::new(reader.chain(Cursor::new(<span class="macro">format!</span>(
-                    <span class="string">&quot;--{}--\r\n&quot;</span>,
+                    <span class="string">"--{}--\r\n"</span>,
                     <span class="self">self</span>.form.boundary()
                 )))))
             }
@@ -866,7 +867,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new();
         <span class="kw">let </span>length = form.compute_length();
         form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(output, <span class="string">b&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(output, <span class="string">b""</span>);
         <span class="macro">assert_eq!</span>(length.unwrap(), <span class="number">0</span>);
     }
 
@@ -874,36 +875,36 @@
     </span><span class="kw">fn </span>read_to_end() {
         <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new()
-            .part(<span class="string">&quot;reader1&quot;</span>, Part::reader(std::io::empty()))
-            .part(<span class="string">&quot;key1&quot;</span>, Part::text(<span class="string">&quot;value1&quot;</span>))
-            .part(<span class="string">&quot;key2&quot;</span>, Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP))
-            .part(<span class="string">&quot;reader2&quot;</span>, Part::reader(std::io::empty()))
-            .part(<span class="string">&quot;key3&quot;</span>, Part::text(<span class="string">&quot;value3&quot;</span>).file_name(<span class="string">&quot;filename&quot;</span>));
-        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
+            .part(<span class="string">"reader1"</span>, Part::reader(std::io::empty()))
+            .part(<span class="string">"key1"</span>, Part::text(<span class="string">"value1"</span>))
+            .part(<span class="string">"key2"</span>, Part::text(<span class="string">"value2"</span>).mime(mime::IMAGE_BMP))
+            .part(<span class="string">"reader2"</span>, Part::reader(std::io::empty()))
+            .part(<span class="string">"key3"</span>, Part::text(<span class="string">"value3"</span>).file_name(<span class="string">"filename"</span>));
+        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
         <span class="kw">let </span>length = form.compute_length();
-        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;reader1\&quot;\r\n\r\n\
+        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
+             Content-Disposition: form-data; name=\"reader1\"\r\n\r\n\
              \r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key1\&quot;\r\n\r\n\
+             Content-Disposition: form-data; name=\"key1\"\r\n\r\n\
              value1\r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
+             Content-Disposition: form-data; name=\"key2\"\r\n\
              Content-Type: image/bmp\r\n\r\n\
              value2\r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;reader2\&quot;\r\n\r\n\
+             Content-Disposition: form-data; name=\"reader2\"\r\n\r\n\
              \r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
-             value3\r\n--boundary--\r\n&quot;</span>;
+             Content-Disposition: form-data; name=\"key3\"; filename=\"filename\"\r\n\r\n\
+             value3\r\n--boundary--\r\n"</span>;
         form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
         <span class="comment">// These prints are for debug purposes in case the test fails
         </span><span class="macro">println!</span>(
-            <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
+            <span class="string">"START REAL\n{}\nEND REAL"</span>,
             std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{}\nEND EXPECTED"</span>, expected);
         <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
         <span class="macro">assert!</span>(length.is_none());
     }
@@ -912,28 +913,28 @@
     </span><span class="kw">fn </span>read_to_end_with_length() {
         <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new()
-            .text(<span class="string">&quot;key1&quot;</span>, <span class="string">&quot;value1&quot;</span>)
-            .part(<span class="string">&quot;key2&quot;</span>, Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP))
-            .part(<span class="string">&quot;key3&quot;</span>, Part::text(<span class="string">&quot;value3&quot;</span>).file_name(<span class="string">&quot;filename&quot;</span>));
-        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
+            .text(<span class="string">"key1"</span>, <span class="string">"value1"</span>)
+            .part(<span class="string">"key2"</span>, Part::text(<span class="string">"value2"</span>).mime(mime::IMAGE_BMP))
+            .part(<span class="string">"key3"</span>, Part::text(<span class="string">"value3"</span>).file_name(<span class="string">"filename"</span>));
+        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
         <span class="kw">let </span>length = form.compute_length();
-        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key1\&quot;\r\n\r\n\
+        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
+             Content-Disposition: form-data; name=\"key1\"\r\n\r\n\
              value1\r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
+             Content-Disposition: form-data; name=\"key2\"\r\n\
              Content-Type: image/bmp\r\n\r\n\
              value2\r\n\
              --boundary\r\n\
-             Content-Disposition: form-data; name=\&quot;key3\&quot;; filename=\&quot;filename\&quot;\r\n\r\n\
-             value3\r\n--boundary--\r\n&quot;</span>;
+             Content-Disposition: form-data; name=\"key3\"; filename=\"filename\"\r\n\r\n\
+             value3\r\n--boundary--\r\n"</span>;
         form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
         <span class="comment">// These prints are for debug purposes in case the test fails
         </span><span class="macro">println!</span>(
-            <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
+            <span class="string">"START REAL\n{}\nEND REAL"</span>,
             std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{}\nEND EXPECTED"</span>, expected);
         <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
         <span class="macro">assert_eq!</span>(length.unwrap(), expected.len() <span class="kw">as </span>u64);
     }
@@ -941,26 +942,26 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>read_to_end_with_header() {
         <span class="kw">let </span><span class="kw-2">mut </span>output = Vec::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>part = Part::text(<span class="string">&quot;value2&quot;</span>).mime(mime::IMAGE_BMP);
+        <span class="kw">let </span><span class="kw-2">mut </span>part = Part::text(<span class="string">"value2"</span>).mime(mime::IMAGE_BMP);
         <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
-        headers.insert(<span class="string">&quot;Hdr3&quot;</span>, <span class="string">&quot;/a/b/c&quot;</span>.parse().unwrap());
+        headers.insert(<span class="string">"Hdr3"</span>, <span class="string">"/a/b/c"</span>.parse().unwrap());
         part = part.headers(headers);
-        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new().part(<span class="string">&quot;key2&quot;</span>, part);
-        form.inner.boundary = <span class="string">&quot;boundary&quot;</span>.to_string();
-        <span class="kw">let </span>expected = <span class="string">&quot;--boundary\r\n\
-                        Content-Disposition: form-data; name=\&quot;key2\&quot;\r\n\
+        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new().part(<span class="string">"key2"</span>, part);
+        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
+        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
+                        Content-Disposition: form-data; name=\"key2\"\r\n\
                         Content-Type: image/bmp\r\n\
                         hdr3: /a/b/c\r\n\
                         \r\n\
                         value2\r\n\
-                        --boundary--\r\n&quot;</span>;
+                        --boundary--\r\n"</span>;
         form.reader().read_to_end(<span class="kw-2">&amp;mut </span>output).unwrap();
         <span class="comment">// These prints are for debug purposes in case the test fails
         </span><span class="macro">println!</span>(
-            <span class="string">&quot;START REAL\n{}\nEND REAL&quot;</span>,
+            <span class="string">"START REAL\n{}\nEND REAL"</span>,
             std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap()
         );
-        <span class="macro">println!</span>(<span class="string">&quot;START EXPECTED\n{}\nEND EXPECTED&quot;</span>, expected);
+        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{}\nEND EXPECTED"</span>, expected);
         <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>output).unwrap(), expected);
     }
 }

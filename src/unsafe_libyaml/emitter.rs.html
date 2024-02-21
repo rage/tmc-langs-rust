@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.9/src/emitter.rs`."><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.10/src/emitter.rs`."><title>emitter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2374,16 +2375,9 @@
 <a href="#2374" id="2374">2374</a>
 <a href="#2375" id="2375">2375</a>
 <a href="#2376" id="2376">2376</a>
-<a href="#2377" id="2377">2377</a>
-<a href="#2378" id="2378">2378</a>
-<a href="#2379" id="2379">2379</a>
-<a href="#2380" id="2380">2380</a>
-<a href="#2381" id="2381">2381</a>
-<a href="#2382" id="2382">2382</a>
-<a href="#2383" id="2383">2383</a>
-<a href="#2384" id="2384">2384</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::api::{yaml_free, yaml_queue_extend, yaml_stack_extend, yaml_strdup};
 <span class="kw">use </span><span class="kw">crate</span>::externs::{strcmp, strlen, strncmp};
+<span class="kw">use </span><span class="kw">crate</span>::ops::{ForceAdd <span class="kw">as _</span>, ForceMul <span class="kw">as _</span>};
 <span class="kw">use </span><span class="kw">crate</span>::success::{Success, FAIL, OK};
 <span class="kw">use </span><span class="kw">crate</span>::yaml::{size_t, yaml_char_t, yaml_string_t};
 <span class="kw">use crate</span>::{
@@ -2436,21 +2430,21 @@
         <span class="kw">let </span>fresh62 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
         <span class="kw">let </span>fresh63 = <span class="kw-2">*</span>fresh62;
         <span class="kw-2">*</span>fresh62 = (<span class="kw-2">*</span>fresh62).wrapping_offset(<span class="number">1</span>);
-        <span class="kw-2">*</span>fresh63 = <span class="string">b&#39;\r&#39;</span>;
+        <span class="kw-2">*</span>fresh63 = <span class="string">b'\r'</span>;
     } <span class="kw">else if </span>(<span class="kw-2">*</span>emitter).line_break == YAML_LN_BREAK {
         <span class="kw">let </span>fresh64 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
         <span class="kw">let </span>fresh65 = <span class="kw-2">*</span>fresh64;
         <span class="kw-2">*</span>fresh64 = (<span class="kw-2">*</span>fresh64).wrapping_offset(<span class="number">1</span>);
-        <span class="kw-2">*</span>fresh65 = <span class="string">b&#39;\n&#39;</span>;
+        <span class="kw-2">*</span>fresh65 = <span class="string">b'\n'</span>;
     } <span class="kw">else if </span>(<span class="kw-2">*</span>emitter).line_break == YAML_CRLN_BREAK {
         <span class="kw">let </span>fresh66 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
         <span class="kw">let </span>fresh67 = <span class="kw-2">*</span>fresh66;
         <span class="kw-2">*</span>fresh66 = (<span class="kw-2">*</span>fresh66).wrapping_offset(<span class="number">1</span>);
-        <span class="kw-2">*</span>fresh67 = <span class="string">b&#39;\r&#39;</span>;
+        <span class="kw-2">*</span>fresh67 = <span class="string">b'\r'</span>;
         <span class="kw">let </span>fresh68 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
         <span class="kw">let </span>fresh69 = <span class="kw-2">*</span>fresh68;
         <span class="kw-2">*</span>fresh68 = (<span class="kw-2">*</span>fresh68).wrapping_offset(<span class="number">1</span>);
-        <span class="kw-2">*</span>fresh69 = <span class="string">b&#39;\n&#39;</span>;
+        <span class="kw-2">*</span>fresh69 = <span class="string">b'\n'</span>;
     };
     (<span class="kw-2">*</span>emitter).column = <span class="number">0</span>;
     <span class="kw">let </span>fresh70 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).line);
@@ -2472,7 +2466,7 @@
     <span class="kw">if </span>FLUSH(emitter).fail {
         <span class="kw">return </span>FAIL;
     }
-    <span class="kw">if </span><span class="macro">CHECK!</span>(<span class="kw-2">*</span>string, <span class="string">b&#39;\n&#39;</span>) {
+    <span class="kw">if </span><span class="macro">CHECK!</span>(<span class="kw-2">*</span>string, <span class="string">b'\n'</span>) {
         <span class="kw">let _ </span>= PUT_BREAK(emitter);
         (<span class="kw-2">*</span>string).pointer = (<span class="kw-2">*</span>string).pointer.wrapping_offset(<span class="number">1</span>);
     } <span class="kw">else </span>{
@@ -2590,7 +2584,7 @@
             }
             <span class="kw">return </span>yaml_emitter_set_emitter_error(
                 emitter,
-                <span class="string">b&quot;duplicate %TAG directive\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"duplicate %TAG directive\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             );
         }
         tag_directive = tag_directive.wrapping_offset(<span class="number">1</span>);
@@ -2660,7 +2654,7 @@
         }
         YAML_EMIT_END_STATE =&gt; yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;expected nothing after STREAM-END\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"expected nothing after STREAM-END\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         ),
     }
 }
@@ -2680,7 +2674,9 @@
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).best_indent &lt; <span class="number">2 </span>|| (<span class="kw-2">*</span>emitter).best_indent &gt; <span class="number">9 </span>{
             (<span class="kw-2">*</span>emitter).best_indent = <span class="number">2</span>;
         }
-        <span class="kw">if </span>(<span class="kw-2">*</span>emitter).best_width &gt;= <span class="number">0 </span>&amp;&amp; (<span class="kw-2">*</span>emitter).best_width &lt;= (<span class="kw-2">*</span>emitter).best_indent * <span class="number">2 </span>{
+        <span class="kw">if </span>(<span class="kw-2">*</span>emitter).best_width &gt;= <span class="number">0
+            </span>&amp;&amp; (<span class="kw-2">*</span>emitter).best_width &lt;= (<span class="kw-2">*</span>emitter).best_indent.force_mul(<span class="number">2</span>)
+        {
             (<span class="kw-2">*</span>emitter).best_width = <span class="number">80</span>;
         }
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).best_width &lt; <span class="number">0 </span>{
@@ -2704,7 +2700,7 @@
     }
     yaml_emitter_set_emitter_error(
         emitter,
-        <span class="string">b&quot;expected STREAM-START\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"expected STREAM-START\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
     )
 }
 
@@ -2716,12 +2712,12 @@
     <span class="kw">if </span>(<span class="kw-2">*</span>event).type_ == YAML_DOCUMENT_START_EVENT {
         <span class="kw">let </span><span class="kw-2">mut </span>default_tag_directives: [yaml_tag_directive_t; <span class="number">3</span>] = [
             yaml_tag_directive_t {
-                handle: <span class="string">b&quot;!\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
-                prefix: <span class="string">b&quot;!\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
+                handle: <span class="string">b"!\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
+                prefix: <span class="string">b"!\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
             },
             yaml_tag_directive_t {
-                handle: <span class="string">b&quot;!!\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
-                prefix: <span class="string">b&quot;tag:yaml.org,2002:\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
+                handle: <span class="string">b"!!\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
+                prefix: <span class="string">b"tag:yaml.org,2002:\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
                     <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t,
             },
             yaml_tag_directive_t {
@@ -2769,7 +2765,7 @@
         </span>{
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;...\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"...\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2787,7 +2783,7 @@
             implicit = <span class="bool-val">false</span>;
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;%YAML\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"%YAML\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2799,7 +2795,7 @@
             <span class="kw">if </span>(<span class="kw-2">*</span>(<span class="kw-2">*</span>event).data.document_start.version_directive).minor == <span class="number">1 </span>{
                 <span class="kw">if </span>yaml_emitter_write_indicator(
                     emitter,
-                    <span class="string">b&quot;1.1\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                    <span class="string">b"1.1\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                     <span class="bool-val">true</span>,
                     <span class="bool-val">false</span>,
                     <span class="bool-val">false</span>,
@@ -2810,7 +2806,7 @@
                 }
             } <span class="kw">else if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;1.2\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"1.2\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2831,7 +2827,7 @@
             <span class="kw">while </span>tag_directive != (<span class="kw-2">*</span>event).data.document_start.tag_directives.end {
                 <span class="kw">if </span>yaml_emitter_write_indicator(
                     emitter,
-                    <span class="string">b&quot;%TAG\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                    <span class="string">b"%TAG\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                     <span class="bool-val">true</span>,
                     <span class="bool-val">false</span>,
                     <span class="bool-val">false</span>,
@@ -2874,7 +2870,7 @@
             }
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;---\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"---\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2896,7 +2892,7 @@
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).open_ended == <span class="number">2 </span>{
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;...\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"...\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2918,7 +2914,7 @@
     }
     yaml_emitter_set_emitter_error(
         emitter,
-        <span class="string">b&quot;expected DOCUMENT-START or STREAM-END\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"expected DOCUMENT-START or STREAM-END\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
     )
 }
 
@@ -2941,7 +2937,7 @@
         <span class="kw">if </span>!(<span class="kw-2">*</span>event).data.document_end.implicit {
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;...\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b"...\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">true</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -2970,7 +2966,7 @@
     }
     yaml_emitter_set_emitter_error(
         emitter,
-        <span class="string">b&quot;expected DOCUMENT-END\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"expected DOCUMENT-END\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
     )
 }
 
@@ -2982,7 +2978,7 @@
     <span class="kw">if </span>first {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;[\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"[\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
@@ -3002,7 +2998,7 @@
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).canonical &amp;&amp; !first {
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;,\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b",\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -3017,7 +3013,7 @@
         }
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;]\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"]\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3032,7 +3028,7 @@
     <span class="kw">if </span>!first {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;,\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b",\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3059,7 +3055,7 @@
     <span class="kw">if </span>first {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;{\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"{\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
@@ -3082,7 +3078,7 @@
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).canonical &amp;&amp; !first {
             <span class="kw">if </span>yaml_emitter_write_indicator(
                 emitter,
-                <span class="string">b&quot;,\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                <span class="string">b",\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
@@ -3097,7 +3093,7 @@
         }
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;}\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"}\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3112,7 +3108,7 @@
     <span class="kw">if </span>!first {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;,\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b",\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3133,7 +3129,7 @@
     } <span class="kw">else </span>{
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;?\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"?\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3155,7 +3151,7 @@
     <span class="kw">if </span>simple {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;:\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b":\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3172,7 +3168,7 @@
         }
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;:\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b":\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3208,7 +3204,7 @@
     }
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;-\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"-\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">true</span>,
@@ -3246,7 +3242,7 @@
     } <span class="kw">else </span>{
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;?\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"?\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">true</span>,
@@ -3268,7 +3264,7 @@
     <span class="kw">if </span>simple {
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;:\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b":\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3283,7 +3279,7 @@
         }
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;:\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b":\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">true</span>,
@@ -3316,7 +3312,7 @@
         YAML_MAPPING_START_EVENT =&gt; yaml_emitter_emit_mapping_start(emitter, event),
         <span class="kw">_ </span>=&gt; yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;expected SCALAR, SEQUENCE-START, MAPPING-START, or ALIAS\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+            <span class="string">b"expected SCALAR, SEQUENCE-START, MAPPING-START, or ALIAS\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         ),
     }
@@ -3330,7 +3326,7 @@
         <span class="kw">return </span>FAIL;
     }
     <span class="kw">if </span>(<span class="kw-2">*</span>emitter).simple_key_context {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
@@ -3429,45 +3425,36 @@
     <span class="kw">let </span><span class="kw-2">mut </span>length: size_t = <span class="number">0_u64</span>;
     <span class="kw">match </span>(<span class="kw-2">*</span>event).type_ {
         YAML_ALIAS_EVENT =&gt; {
-            length = (length <span class="kw">as </span>libc::c_ulong).wrapping_add((<span class="kw-2">*</span>emitter).anchor_data.anchor_length)
-                <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+            length =
+                (length <span class="kw">as </span>libc::c_ulong).force_add((<span class="kw-2">*</span>emitter).anchor_data.anchor_length) <span class="kw">as </span>size_t;
         }
         YAML_SCALAR_EVENT =&gt; {
             <span class="kw">if </span>(<span class="kw-2">*</span>emitter).scalar_data.multiline {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            length = (length <span class="kw">as </span>libc::c_ulong).wrapping_add(
-                (<span class="kw-2">*</span>emitter)
-                    .anchor_data
-                    .anchor_length
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length)
-                    .wrapping_add((<span class="kw-2">*</span>emitter).scalar_data.length),
-            ) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+            length = (length <span class="kw">as </span>libc::c_ulong)
+                .force_add((<span class="kw-2">*</span>emitter).anchor_data.anchor_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length)
+                .force_add((<span class="kw-2">*</span>emitter).scalar_data.length) <span class="kw">as </span>size_t;
         }
         YAML_SEQUENCE_START_EVENT =&gt; {
             <span class="kw">if </span>!yaml_emitter_check_empty_sequence(emitter) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            length = (length <span class="kw">as </span>libc::c_ulong).wrapping_add(
-                (<span class="kw-2">*</span>emitter)
-                    .anchor_data
-                    .anchor_length
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length),
-            ) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+            length = (length <span class="kw">as </span>libc::c_ulong)
+                .force_add((<span class="kw-2">*</span>emitter).anchor_data.anchor_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length) <span class="kw">as </span>size_t;
         }
         YAML_MAPPING_START_EVENT =&gt; {
             <span class="kw">if </span>!yaml_emitter_check_empty_mapping(emitter) {
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
-            length = (length <span class="kw">as </span>libc::c_ulong).wrapping_add(
-                (<span class="kw-2">*</span>emitter)
-                    .anchor_data
-                    .anchor_length
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
-                    .wrapping_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length),
-            ) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+            length = (length <span class="kw">as </span>libc::c_ulong)
+                .force_add((<span class="kw-2">*</span>emitter).anchor_data.anchor_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.handle_length)
+                .force_add((<span class="kw-2">*</span>emitter).tag_data.suffix_length) <span class="kw">as </span>size_t;
         }
         <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
     }
@@ -3486,7 +3473,7 @@
     <span class="kw">if </span>no_tag &amp;&amp; !(<span class="kw-2">*</span>event).data.scalar.plain_implicit &amp;&amp; !(<span class="kw-2">*</span>event).data.scalar.quoted_implicit {
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;neither tag nor implicit flags are specified\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"neither tag nor implicit flags are specified\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
     <span class="kw">if </span>style == YAML_ANY_SCALAR_STYLE {
@@ -3528,7 +3515,7 @@
     }
     <span class="kw">if </span>no_tag &amp;&amp; !(<span class="kw-2">*</span>event).data.scalar.quoted_implicit &amp;&amp; style != YAML_PLAIN_SCALAR_STYLE {
         <span class="kw">let </span>fresh46 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).tag_data.handle);
-        <span class="kw-2">*</span>fresh46 = <span class="string">b&quot;!\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t;
+        <span class="kw-2">*</span>fresh46 = <span class="string">b"!\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t;
         (<span class="kw-2">*</span>emitter).tag_data.handle_length = <span class="number">1_u64</span>;
     }
     (<span class="kw-2">*</span>emitter).scalar_data.style = style;
@@ -3542,9 +3529,9 @@
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
         <span class="kw">if </span>(<span class="kw-2">*</span>emitter).anchor_data.alias {
-            <span class="string">b&quot;*\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
+            <span class="string">b"*\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
         } <span class="kw">else </span>{
-            <span class="string">b&quot;&amp;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
+            <span class="string">b"&amp;\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
         },
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
@@ -3590,7 +3577,7 @@
     } <span class="kw">else </span>{
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;!&lt;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"!&lt;\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">true</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3611,7 +3598,7 @@
         }
         <span class="kw">if </span>yaml_emitter_write_indicator(
             emitter,
-            <span class="string">b&quot;&gt;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"&gt;\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
             <span class="bool-val">false</span>,
@@ -3677,7 +3664,7 @@
     </span>{
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;incompatible %YAML directive\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"incompatible %YAML directive\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
     OK
@@ -3694,19 +3681,19 @@
     <span class="kw">if </span>handle.start == handle.end {
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;tag handle must not be empty\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"tag handle must not be empty\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
-    <span class="kw">if </span><span class="kw-2">*</span>handle.start != <span class="string">b&#39;!&#39; </span>{
+    <span class="kw">if </span><span class="kw-2">*</span>handle.start != <span class="string">b'!' </span>{
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;tag handle must start with &#39;!&#39;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"tag handle must start with '!'\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
-    <span class="kw">if </span><span class="kw-2">*</span>handle.end.wrapping_offset(-<span class="number">1_isize</span>) != <span class="string">b&#39;!&#39; </span>{
+    <span class="kw">if </span><span class="kw-2">*</span>handle.end.wrapping_offset(-<span class="number">1_isize</span>) != <span class="string">b'!' </span>{
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;tag handle must end with &#39;!&#39;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"tag handle must end with '!'\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
     handle.pointer = handle.pointer.wrapping_offset(<span class="number">1</span>);
@@ -3714,7 +3701,7 @@
         <span class="kw">if </span>!<span class="macro">IS_ALPHA!</span>(handle) {
             <span class="kw">return </span>yaml_emitter_set_emitter_error(
                 emitter,
-                <span class="string">b&quot;tag handle must contain alphanumerical characters only\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                <span class="string">b"tag handle must contain alphanumerical characters only\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                     <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             );
         }
@@ -3723,7 +3710,7 @@
     <span class="kw">if </span>prefix.start == prefix.end {
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;tag prefix must not be empty\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"tag prefix must not be empty\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
     OK
@@ -3740,9 +3727,9 @@
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
             <span class="kw">if </span>alias {
-                <span class="string">b&quot;alias value must not be empty\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
+                <span class="string">b"alias value must not be empty\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
             } <span class="kw">else </span>{
-                <span class="string">b&quot;anchor value must not be empty\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
+                <span class="string">b"anchor value must not be empty\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
             },
         );
     }
@@ -3751,10 +3738,10 @@
             <span class="kw">return </span>yaml_emitter_set_emitter_error(
                 emitter,
                 <span class="kw">if </span>alias {
-                    <span class="string">b&quot;alias value must contain alphanumerical characters only\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                    <span class="string">b"alias value must contain alphanumerical characters only\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                         <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
                 } <span class="kw">else </span>{
-                    <span class="string">b&quot;anchor value must contain alphanumerical characters only\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                    <span class="string">b"anchor value must contain alphanumerical characters only\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                         <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char
                 },
             );
@@ -3763,8 +3750,7 @@
     }
     <span class="kw">let </span>fresh47 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).anchor_data.anchor);
     <span class="kw-2">*</span>fresh47 = string.start;
-    (<span class="kw-2">*</span>emitter).anchor_data.anchor_length =
-        string.end.c_offset_from(string.start) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t;
+    (<span class="kw-2">*</span>emitter).anchor_data.anchor_length = string.end.c_offset_from(string.start) <span class="kw">as </span>size_t;
     (<span class="kw-2">*</span>emitter).anchor_data.alias = alias;
     OK
 }
@@ -3776,13 +3762,13 @@
     <span class="kw">if </span>string.start == string.end {
         <span class="kw">return </span>yaml_emitter_set_emitter_error(
             emitter,
-            <span class="string">b&quot;tag value must not be empty\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"tag value must not be empty\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         );
     }
     tag_directive = (<span class="kw-2">*</span>emitter).tag_directives.start;
     <span class="kw">while </span>tag_directive != (<span class="kw-2">*</span>emitter).tag_directives.top {
         <span class="kw">let </span>prefix_length: size_t = strlen((<span class="kw-2">*</span>tag_directive).prefix <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char);
-        <span class="kw">if </span>prefix_length &lt; string.end.c_offset_from(string.start) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t
+        <span class="kw">if </span>prefix_length &lt; string.end.c_offset_from(string.start) <span class="kw">as </span>size_t
             &amp;&amp; strncmp(
                 (<span class="kw-2">*</span>tag_directive).prefix <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
                 string.start <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_char,
@@ -3796,7 +3782,7 @@
             <span class="kw">let </span>fresh49 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).tag_data.suffix);
             <span class="kw-2">*</span>fresh49 = string.start.wrapping_offset(prefix_length <span class="kw">as </span>isize);
             (<span class="kw-2">*</span>emitter).tag_data.suffix_length = (string.end.c_offset_from(string.start)
-                <span class="kw">as </span>libc::c_long <span class="kw">as </span>libc::c_ulong)
+                <span class="kw">as </span>libc::c_ulong)
                 .wrapping_sub(prefix_length);
             <span class="kw">return </span>OK;
         }
@@ -3804,8 +3790,7 @@
     }
     <span class="kw">let </span>fresh50 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).tag_data.suffix);
     <span class="kw-2">*</span>fresh50 = string.start;
-    (<span class="kw-2">*</span>emitter).tag_data.suffix_length =
-        string.end.c_offset_from(string.start) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t;
+    (<span class="kw-2">*</span>emitter).tag_data.suffix_length = string.end.c_offset_from(string.start) <span class="kw">as </span>size_t;
     OK
 }
 
@@ -3840,8 +3825,8 @@
         (<span class="kw-2">*</span>emitter).scalar_data.block_allowed = <span class="bool-val">false</span>;
         <span class="kw">return </span>OK;
     }
-    <span class="kw">if </span><span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;-&#39;</span>, <span class="number">0</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;-&#39;</span>, <span class="number">1</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;-&#39;</span>, <span class="number">2</span>)
-        || <span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;.&#39;</span>, <span class="number">0</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;.&#39;</span>, <span class="number">1</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b&#39;.&#39;</span>, <span class="number">2</span>)
+    <span class="kw">if </span><span class="macro">CHECK_AT!</span>(string, <span class="string">b'-'</span>, <span class="number">0</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b'-'</span>, <span class="number">1</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b'-'</span>, <span class="number">2</span>)
+        || <span class="macro">CHECK_AT!</span>(string, <span class="string">b'.'</span>, <span class="number">0</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b'.'</span>, <span class="number">1</span>) &amp;&amp; <span class="macro">CHECK_AT!</span>(string, <span class="string">b'.'</span>, <span class="number">2</span>)
     {
         block_indicators = <span class="bool-val">true</span>;
         flow_indicators = <span class="bool-val">true</span>;
@@ -3850,53 +3835,53 @@
     followed_by_whitespace = <span class="macro">IS_BLANKZ_AT!</span>(string, <span class="macro">WIDTH!</span>(string));
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span>string.start == string.pointer {
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;#&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;,&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;[&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;]&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;{&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;}&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;&amp;&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;*&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;!&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;|&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;&gt;&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\&#39;&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;&quot;&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;%&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;@&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;`&#39;</span>)
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b'#'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b','</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'['</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b']'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'{'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'}'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'&amp;'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'*'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'!'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'|'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'&gt;'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'\''</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'"'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'%'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'@'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'`'</span>)
             {
                 flow_indicators = <span class="bool-val">true</span>;
                 block_indicators = <span class="bool-val">true</span>;
             }
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;?&#39;</span>) || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;:&#39;</span>) {
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b'?'</span>) || <span class="macro">CHECK!</span>(string, <span class="string">b':'</span>) {
                 flow_indicators = <span class="bool-val">true</span>;
                 <span class="kw">if </span>followed_by_whitespace {
                     block_indicators = <span class="bool-val">true</span>;
                 }
             }
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;-&#39;</span>) &amp;&amp; followed_by_whitespace {
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b'-'</span>) &amp;&amp; followed_by_whitespace {
                 flow_indicators = <span class="bool-val">true</span>;
                 block_indicators = <span class="bool-val">true</span>;
             }
         } <span class="kw">else </span>{
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;,&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;?&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;[&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;]&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;{&#39;</span>)
-                || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;}&#39;</span>)
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b','</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'?'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'['</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b']'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'{'</span>)
+                || <span class="macro">CHECK!</span>(string, <span class="string">b'}'</span>)
             {
                 flow_indicators = <span class="bool-val">true</span>;
             }
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;:&#39;</span>) {
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b':'</span>) {
                 flow_indicators = <span class="bool-val">true</span>;
                 <span class="kw">if </span>followed_by_whitespace {
                     block_indicators = <span class="bool-val">true</span>;
                 }
             }
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;#&#39;</span>) &amp;&amp; preceded_by_whitespace {
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b'#'</span>) &amp;&amp; preceded_by_whitespace {
                 flow_indicators = <span class="bool-val">true</span>;
                 block_indicators = <span class="bool-val">true</span>;
             }
@@ -4061,15 +4046,15 @@
     <span class="kw">let </span>fresh56 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
     <span class="kw">let </span>fresh57 = <span class="kw-2">*</span>fresh56;
     <span class="kw-2">*</span>fresh56 = (<span class="kw-2">*</span>fresh56).wrapping_offset(<span class="number">1</span>);
-    <span class="kw-2">*</span>fresh57 = <span class="string">b&#39;\xEF&#39;</span>;
+    <span class="kw-2">*</span>fresh57 = <span class="string">b'\xEF'</span>;
     <span class="kw">let </span>fresh58 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
     <span class="kw">let </span>fresh59 = <span class="kw-2">*</span>fresh58;
     <span class="kw-2">*</span>fresh58 = (<span class="kw-2">*</span>fresh58).wrapping_offset(<span class="number">1</span>);
-    <span class="kw-2">*</span>fresh59 = <span class="string">b&#39;\xBB&#39;</span>;
+    <span class="kw-2">*</span>fresh59 = <span class="string">b'\xBB'</span>;
     <span class="kw">let </span>fresh60 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>emitter).buffer.pointer);
     <span class="kw">let </span>fresh61 = <span class="kw-2">*</span>fresh60;
     <span class="kw-2">*</span>fresh60 = (<span class="kw-2">*</span>fresh60).wrapping_offset(<span class="number">1</span>);
-    <span class="kw-2">*</span>fresh61 = <span class="string">b&#39;\xBF&#39;</span>;
+    <span class="kw-2">*</span>fresh61 = <span class="string">b'\xBF'</span>;
     OK
 }
 
@@ -4088,7 +4073,7 @@
         }
     }
     <span class="kw">while </span>(<span class="kw-2">*</span>emitter).column &lt; indent {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
@@ -4107,7 +4092,7 @@
     <span class="kw">let </span>indicator_length: size_t = strlen(indicator);
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(indicator <span class="kw">as </span><span class="kw-2">*mut </span>yaml_char_t, indicator_length);
     <span class="kw">if </span>need_whitespace &amp;&amp; !(<span class="kw-2">*</span>emitter).whitespace {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
@@ -4144,7 +4129,7 @@
 ) -&gt; Success {
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>!(<span class="kw-2">*</span>emitter).whitespace {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
@@ -4166,31 +4151,31 @@
 ) -&gt; Success {
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>need_whitespace &amp;&amp; !(<span class="kw-2">*</span>emitter).whitespace {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span><span class="macro">IS_ALPHA!</span>(string)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;;&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;/&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;?&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;:&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;@&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;&amp;&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;=&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;+&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;$&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;,&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;_&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;.&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;~&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;*&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\&#39;&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;(&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;)&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;[&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;]&#39;</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b';'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'/'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'?'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b':'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'@'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'&amp;'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'='</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'+'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'$'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b','</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'_'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'.'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'~'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'*'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'\''</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'('</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b')'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'['</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b']'</span>)
         {
             <span class="kw">if </span><span class="macro">WRITE!</span>(emitter, string).fail {
                 <span class="kw">return </span>FAIL;
@@ -4206,12 +4191,12 @@
                 <span class="kw">let </span>fresh208 = string.pointer;
                 string.pointer = string.pointer.wrapping_offset(<span class="number">1</span>);
                 <span class="kw">let </span>value = <span class="kw-2">*</span>fresh208;
-                <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;%&#39;</span>).fail {
+                <span class="kw">if </span>PUT(emitter, <span class="string">b'%'</span>).fail {
                     <span class="kw">return </span>FAIL;
                 }
                 <span class="kw">if </span>PUT(
                     emitter,
-                    (value &gt;&gt; <span class="number">4</span>).wrapping_add(<span class="kw">if </span>(value &gt;&gt; <span class="number">4</span>) &lt; <span class="number">10 </span>{ <span class="string">b&#39;0&#39; </span>} <span class="kw">else </span>{ <span class="string">b&#39;A&#39; </span>- <span class="number">10 </span>}),
+                    (value &gt;&gt; <span class="number">4</span>).force_add(<span class="kw">if </span>(value &gt;&gt; <span class="number">4</span>) &lt; <span class="number">10 </span>{ <span class="string">b'0' </span>} <span class="kw">else </span>{ <span class="string">b'A' </span>- <span class="number">10 </span>}),
                 )
                 .fail
                 {
@@ -4219,7 +4204,7 @@
                 }
                 <span class="kw">if </span>PUT(
                     emitter,
-                    (value &amp; <span class="number">0x0F</span>).wrapping_add(<span class="kw">if </span>(value &amp; <span class="number">0x0F</span>) &lt; <span class="number">10 </span>{ <span class="string">b&#39;0&#39; </span>} <span class="kw">else </span>{ <span class="string">b&#39;A&#39; </span>- <span class="number">10 </span>}),
+                    (value &amp; <span class="number">0x0F</span>).force_add(<span class="kw">if </span>(value &amp; <span class="number">0x0F</span>) &lt; <span class="number">10 </span>{ <span class="string">b'0' </span>} <span class="kw">else </span>{ <span class="string">b'A' </span>- <span class="number">10 </span>}),
                 )
                 .fail
                 {
@@ -4243,7 +4228,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>breaks = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>!(<span class="kw-2">*</span>emitter).whitespace &amp;&amp; (length != <span class="number">0 </span>|| (<span class="kw-2">*</span>emitter).flow_level != <span class="number">0</span>) {
-        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39; &#39;</span>).fail {
+        <span class="kw">if </span>PUT(emitter, <span class="string">b' '</span>).fail {
             <span class="kw">return </span>FAIL;
         }
     }
@@ -4263,7 +4248,7 @@
             }
             spaces = <span class="bool-val">true</span>;
         } <span class="kw">else if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b'\n'</span>) {
                 <span class="kw">if </span>PUT_BREAK(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4303,7 +4288,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;&#39;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"'\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4330,7 +4315,7 @@
             }
             spaces = <span class="bool-val">true</span>;
         } <span class="kw">else if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b'\n'</span>) {
                 <span class="kw">if </span>PUT_BREAK(emitter).fail {
                     <span class="kw">return </span>FAIL;
                 }
@@ -4346,8 +4331,8 @@
                     <span class="kw">return </span>FAIL;
                 }
             }
-            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b&#39;\&#39;&#39;</span>) {
-                <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;\&#39;&#39;</span>).fail {
+            <span class="kw">if </span><span class="macro">CHECK!</span>(string, <span class="string">b'\''</span>) {
+                <span class="kw">if </span>PUT(emitter, <span class="string">b'\''</span>).fail {
                     <span class="kw">return </span>FAIL;
                 }
             }
@@ -4366,7 +4351,7 @@
     }
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;&#39;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"'\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4390,7 +4375,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;\&quot;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"\"\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4404,8 +4389,8 @@
             || !(<span class="kw-2">*</span>emitter).unicode &amp;&amp; !<span class="macro">IS_ASCII!</span>(string)
             || <span class="macro">IS_BOM!</span>(string)
             || <span class="macro">IS_BREAK!</span>(string)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;&quot;&#39;</span>)
-            || <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\\&#39;</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'"'</span>)
+            || <span class="macro">CHECK!</span>(string, <span class="string">b'\\'</span>)
         {
             <span class="kw">let </span><span class="kw-2">mut </span>octet: libc::c_uchar;
             <span class="kw">let </span><span class="kw-2">mut </span>width: libc::c_uint;
@@ -4437,102 +4422,102 @@
             k = <span class="number">1</span>;
             <span class="kw">while </span>k &lt; width <span class="kw">as </span>libc::c_int {
                 octet = <span class="kw-2">*</span>string.pointer.wrapping_offset(k <span class="kw">as </span>isize);
-                value_0 = (value_0 &lt;&lt; <span class="number">6</span>).wrapping_add((octet &amp; <span class="number">0x3F</span>) <span class="kw">as </span>libc::c_uint);
+                value_0 = (value_0 &lt;&lt; <span class="number">6</span>).force_add((octet &amp; <span class="number">0x3F</span>) <span class="kw">as </span>libc::c_uint);
                 k += <span class="number">1</span>;
             }
             string.pointer = string.pointer.wrapping_offset(width <span class="kw">as </span>isize);
-            <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;\\&#39;</span>).fail {
+            <span class="kw">if </span>PUT(emitter, <span class="string">b'\\'</span>).fail {
                 <span class="kw">return </span>FAIL;
             }
             <span class="kw">match </span>value_0 {
                 <span class="number">0x00 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;0&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'0'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x07 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;a&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'a'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x08 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;b&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'b'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x09 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;t&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b't'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x0A </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;n&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'n'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x0B </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;v&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'v'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x0C </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;f&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'f'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x0D </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;r&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'r'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x1B </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;e&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'e'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x22 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;&quot;&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'"'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x5C </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;\\&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'\\'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x85 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;N&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'N'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0xA0 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;_&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'_'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x2028 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;L&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'L'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="number">0x2029 </span>=&gt; {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;P&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'P'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
                 <span class="kw">_ </span>=&gt; {
                     <span class="kw">if </span>value_0 &lt;= <span class="number">0xFF </span>{
-                        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;x&#39;</span>).fail {
+                        <span class="kw">if </span>PUT(emitter, <span class="string">b'x'</span>).fail {
                             <span class="kw">return </span>FAIL;
                         }
                         width = <span class="number">2</span>;
                     } <span class="kw">else if </span>value_0 &lt;= <span class="number">0xFFFF </span>{
-                        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;u&#39;</span>).fail {
+                        <span class="kw">if </span>PUT(emitter, <span class="string">b'u'</span>).fail {
                             <span class="kw">return </span>FAIL;
                         }
                         width = <span class="number">4</span>;
                     } <span class="kw">else </span>{
-                        <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;U&#39;</span>).fail {
+                        <span class="kw">if </span>PUT(emitter, <span class="string">b'U'</span>).fail {
                             <span class="kw">return </span>FAIL;
                         }
                         width = <span class="number">8</span>;
@@ -4542,7 +4527,7 @@
                         <span class="kw">let </span>digit: libc::c_int = (value_0 &gt;&gt; k &amp; <span class="number">0x0F</span>) <span class="kw">as </span>libc::c_int;
                         <span class="kw">if </span>PUT(
                             emitter,
-                            (digit + <span class="kw">if </span>digit &lt; <span class="number">10 </span>{ <span class="string">b&#39;0&#39; </span>} <span class="kw">else </span>{ <span class="string">b&#39;A&#39; </span>- <span class="number">10 </span>} <span class="kw">as </span>i32) <span class="kw">as </span>u8,
+                            (digit + <span class="kw">if </span>digit &lt; <span class="number">10 </span>{ <span class="string">b'0' </span>} <span class="kw">else </span>{ <span class="string">b'A' </span>- <span class="number">10 </span>} <span class="kw">as </span>i32) <span class="kw">as </span>u8,
                         )
                         .fail
                         {
@@ -4564,7 +4549,7 @@
                     <span class="kw">return </span>FAIL;
                 }
                 <span class="kw">if </span><span class="macro">IS_SPACE_AT!</span>(string, <span class="number">1</span>) {
-                    <span class="kw">if </span>PUT(emitter, <span class="string">b&#39;\\&#39;</span>).fail {
+                    <span class="kw">if </span>PUT(emitter, <span class="string">b'\\'</span>).fail {
                         <span class="kw">return </span>FAIL;
                     }
                 }
@@ -4582,7 +4567,7 @@
     }
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;\&quot;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"\"\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4603,8 +4588,8 @@
     <span class="kw">let </span><span class="kw-2">mut </span>indent_hint: [libc::c_char; <span class="number">2</span>] = [<span class="number">0</span>; <span class="number">2</span>];
     <span class="kw">let </span><span class="kw-2">mut </span>chomp_hint: <span class="kw-2">*const </span>libc::c_char = ptr::null::&lt;libc::c_char&gt;();
     <span class="kw">if </span><span class="macro">IS_SPACE!</span>(string) || <span class="macro">IS_BREAK!</span>(string) {
-        indent_hint[<span class="number">0</span>] = (<span class="string">b&#39;0&#39; </span><span class="kw">as </span>libc::c_int + (<span class="kw-2">*</span>emitter).best_indent) <span class="kw">as </span>libc::c_char;
-        indent_hint[<span class="number">1</span>] = <span class="string">&#39;\0&#39; </span><span class="kw">as </span>libc::c_char;
+        indent_hint[<span class="number">0</span>] = (<span class="string">b'0' </span><span class="kw">as </span>libc::c_int + (<span class="kw-2">*</span>emitter).best_indent) <span class="kw">as </span>libc::c_char;
+        indent_hint[<span class="number">1</span>] = <span class="string">'\0' </span><span class="kw">as </span>libc::c_char;
         <span class="kw">if </span>yaml_emitter_write_indicator(emitter, indent_hint.as_mut_ptr(), <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>).fail
         {
             <span class="kw">return </span>FAIL;
@@ -4613,7 +4598,7 @@
     (<span class="kw-2">*</span>emitter).open_ended = <span class="number">0</span>;
     string.pointer = string.end;
     <span class="kw">if </span>string.start == string.pointer {
-        chomp_hint = <span class="string">b&quot;-\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+        chomp_hint = <span class="string">b"-\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
     } <span class="kw">else </span>{
         <span class="kw">loop </span>{
             string.pointer = string.pointer.wrapping_offset(-<span class="number">1</span>);
@@ -4622,9 +4607,9 @@
             }
         }
         <span class="kw">if </span>!<span class="macro">IS_BREAK!</span>(string) {
-            chomp_hint = <span class="string">b&quot;-\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+            chomp_hint = <span class="string">b"-\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
         } <span class="kw">else if </span>string.start == string.pointer {
-            chomp_hint = <span class="string">b&quot;+\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+            chomp_hint = <span class="string">b"+\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
             (<span class="kw-2">*</span>emitter).open_ended = <span class="number">2</span>;
         } <span class="kw">else </span>{
             <span class="kw">loop </span>{
@@ -4634,7 +4619,7 @@
                 }
             }
             <span class="kw">if </span><span class="macro">IS_BREAK!</span>(string) {
-                chomp_hint = <span class="string">b&quot;+\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+                chomp_hint = <span class="string">b"+\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
                 (<span class="kw-2">*</span>emitter).open_ended = <span class="number">2</span>;
             }
         }
@@ -4656,7 +4641,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;|\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"|\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4706,7 +4691,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>string = <span class="macro">STRING_ASSIGN!</span>(value, length);
     <span class="kw">if </span>yaml_emitter_write_indicator(
         emitter,
-        <span class="string">b&quot;&gt;\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+        <span class="string">b"&gt;\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
         <span class="bool-val">true</span>,
         <span class="bool-val">false</span>,
         <span class="bool-val">false</span>,
@@ -4725,7 +4710,7 @@
     (<span class="kw-2">*</span>emitter).whitespace = <span class="bool-val">true</span>;
     <span class="kw">while </span>string.pointer != string.end {
         <span class="kw">if </span><span class="macro">IS_BREAK!</span>(string) {
-            <span class="kw">if </span>!breaks &amp;&amp; !leading_spaces &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b&#39;\n&#39;</span>) {
+            <span class="kw">if </span>!breaks &amp;&amp; !leading_spaces &amp;&amp; <span class="macro">CHECK!</span>(string, <span class="string">b'\n'</span>) {
                 <span class="kw">let </span><span class="kw-2">mut </span>k: libc::c_int = <span class="number">0</span>;
                 <span class="kw">while </span><span class="macro">IS_BREAK_AT!</span>(string, k <span class="kw">as </span>isize) {
                     k += <span class="macro">WIDTH_AT!</span>(string, k <span class="kw">as </span>isize);

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-plugins/src/compression.rs`."><title>compression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_plugins" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tmc_langs_plugins/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-plugins/src/compression.rs`."><title>compression.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_plugins" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -315,8 +316,8 @@
         <span class="kw">let </span>relative = entry
             .path()
             .strip_prefix(root_directory)
-            .expect(<span class="string">&quot;all entries are inside root&quot;</span>);
-        <span class="macro">log::trace!</span>(<span class="string">&quot;processing {}&quot;</span>, entry.path().display());
+            .expect(<span class="string">"all entries are inside root"</span>);
+        <span class="macro">log::trace!</span>(<span class="string">"processing {}"</span>, entry.path().display());
         <span class="kw">if </span>policy.is_student_file(relative) {
             <span class="kw">let </span>path = root_directory
                 .parent()
@@ -324,7 +325,7 @@
                     entry
                         .path()
                         .strip_prefix(p)
-                        .expect(<span class="string">&quot;entries are inside root_directory&quot;</span>)
+                        .expect(<span class="string">"entries are inside root_directory"</span>)
                 })
                 .unwrap_or_else(|| entry.path());
             <span class="kw">if </span>entry.path().is_dir() {
@@ -343,7 +344,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
     <span class="kw">for </span>component <span class="kw">in </span>path.components() {
         <span class="kw">if </span>!string.is_empty() {
-            string.push(<span class="string">&#39;/&#39;</span>);
+            string.push(<span class="string">'/'</span>);
         }
         string.push_str(component.as_os_str().to_string_lossy().as_ref());
     }
@@ -352,12 +353,12 @@
 
 <span class="doccomment">/// Finds a project directory in the given zip and unzips it according to the given student policy. Also cleans unnecessary non-student files.
 </span><span class="kw">pub fn </span>unzip(zip: <span class="kw">impl </span>std::io::Read + std::io::Seek, target: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), TmcError&gt; {
-    <span class="macro">log::debug!</span>(<span class="string">&quot;Unzipping to {}&quot;</span>, target.display());
+    <span class="macro">log::debug!</span>(<span class="string">"Unzipping to {}"</span>, target.display());
 
     <span class="kw">let </span><span class="kw-2">mut </span>zip_archive = ZipArchive::new(zip)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>project_dir = find_project_dir(<span class="kw-2">&amp;mut </span>zip_archive)<span class="question-mark">?</span>;
-    <span class="macro">log::debug!</span>(<span class="string">&quot;Project dir in zip: {}&quot;</span>, project_dir.display());
+    <span class="macro">log::debug!</span>(<span class="string">"Project dir in zip: {}"</span>, project_dir.display());
 
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip_archive.len() {
         <span class="kw">let </span><span class="kw-2">mut </span>file = zip_archive.by_index(i)<span class="question-mark">?</span>;
@@ -365,18 +366,18 @@
         <span class="kw">let </span>relative = <span class="kw">match </span>file_path.strip_prefix(<span class="kw-2">&amp;</span>project_dir) {
             <span class="prelude-val">Ok</span>(relative) =&gt; relative,
             <span class="kw">_ </span>=&gt; {
-                <span class="macro">log::trace!</span>(<span class="string">&quot;skip {}, not in project dir&quot;</span>, file.name());
+                <span class="macro">log::trace!</span>(<span class="string">"skip {}, not in project dir"</span>, file.name());
                 <span class="kw">continue</span>;
             }
         };
         <span class="kw">let </span>path_in_target = target.join(relative);
-        <span class="macro">log::trace!</span>(<span class="string">&quot;processing {:?} -&gt; {:?}&quot;</span>, file_path, path_in_target);
+        <span class="macro">log::trace!</span>(<span class="string">"processing {:?} -&gt; {:?}"</span>, file_path, path_in_target);
 
         <span class="kw">if </span>file.is_dir() {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;creating {:?}&quot;</span>, path_in_target);
+            <span class="macro">log::trace!</span>(<span class="string">"creating {:?}"</span>, path_in_target);
             file_util::create_dir_all(<span class="kw-2">&amp;</span>path_in_target)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">log::trace!</span>(<span class="string">&quot;writing to {}&quot;</span>, path_in_target.display());
+            <span class="macro">log::trace!</span>(<span class="string">"writing to {}"</span>, path_in_target.display());
             <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_in_target.parent() {
                 file_util::create_dir_all(parent)<span class="question-mark">?</span>;
             }
@@ -409,7 +410,7 @@
             }
 
             <span class="kw">let </span>comp = component.as_os_str();
-            <span class="kw">if </span>comp == <span class="string">&quot;nbproject&quot; </span>|| comp == <span class="string">&quot;src&quot; </span>|| comp == <span class="string">&quot;test&quot; </span>{
+            <span class="kw">if </span>comp == <span class="string">"nbproject" </span>|| comp == <span class="string">"src" </span>|| comp == <span class="string">"test" </span>{
                 <span class="kw">let </span>path: PathBuf = collected.into_iter().collect();
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(path);
             }
@@ -417,21 +418,21 @@
         }
 
         <span class="kw">let </span>file_name = file_path.file_name().unwrap_or_default();
-        <span class="kw">if </span>file.is_dir() &amp;&amp; (file_name == <span class="string">&quot;nbproject&quot; </span>|| file_name == <span class="string">&quot;src&quot; </span>|| file_name == <span class="string">&quot;test&quot;</span>)
+        <span class="kw">if </span>file.is_dir() &amp;&amp; (file_name == <span class="string">"nbproject" </span>|| file_name == <span class="string">"src" </span>|| file_name == <span class="string">"test"</span>)
             || file.is_file()
-                &amp;&amp; (file_name == <span class="string">&quot;pom.xml&quot; </span>|| file_name == <span class="string">&quot;.idea&quot; </span>|| file_name == <span class="string">&quot;Makefile&quot;</span>)
+                &amp;&amp; (file_name == <span class="string">"pom.xml" </span>|| file_name == <span class="string">".idea" </span>|| file_name == <span class="string">"Makefile"</span>)
         {
-            <span class="kw">let </span>parent = file_path.parent().unwrap_or_else(|| Path::new(<span class="string">&quot;&quot;</span>));
-            <span class="macro">log::debug!</span>(<span class="string">&quot;found project dir {}&quot;</span>, parent.display());
+            <span class="kw">let </span>parent = file_path.parent().unwrap_or_else(|| Path::new(<span class="string">""</span>));
+            <span class="macro">log::debug!</span>(<span class="string">"found project dir {}"</span>, parent.display());
             <span class="kw">return </span><span class="prelude-val">Ok</span>(parent.to_path_buf());
         }
 
         <span class="kw">if </span>file_path
             .extension()
-            .map(|ext| ext == <span class="string">&quot;ipynb&quot;</span>)
+            .map(|ext| ext == <span class="string">"ipynb"</span>)
             .unwrap_or_default()
         {
-            <span class="kw">let </span>parent = file_path.parent().unwrap_or_else(|| Path::new(<span class="string">&quot;&quot;</span>));
+            <span class="kw">let </span>parent = file_path.parent().unwrap_or_else(|| Path::new(<span class="string">""</span>));
             <span class="kw">if let </span><span class="prelude-val">Some</span>(lowest_ipynb_dir) = lowest_ipynb_dir.as_mut() {
                 <span class="kw">if </span>lowest_ipynb_dir.components().count() &gt; parent.components().count() {
                     <span class="kw-2">*</span>lowest_ipynb_dir = parent.to_path_buf();
@@ -454,8 +455,8 @@
         .into_iter()
         .filter_map(|e| e.ok())
     {
-        <span class="kw">if </span>entry.file_name() == <span class="string">&quot;.tmcnosubmit&quot; </span>{
-            <span class="macro">log::debug!</span>(<span class="string">&quot;contains .tmcnosubmit: {}&quot;</span>, entry.path().display());
+        <span class="kw">if </span>entry.file_name() == <span class="string">".tmcnosubmit" </span>{
+            <span class="macro">log::debug!</span>(<span class="string">"contains .tmcnosubmit: {}"</span>, entry.path().display());
             <span class="kw">return </span><span class="bool-val">true</span>;
         }
     }
@@ -496,14 +497,14 @@
         <span class="kw">let </span>temp = tempdir().unwrap();
         <span class="kw">let </span>student_file_path = temp
             .path()
-            .join(<span class="string">&quot;exercise-name/src/main/java/AdaLovelace.java&quot;</span>);
-        <span class="kw">let </span>missing_file_path = temp.path().join(<span class="string">&quot;exercise-name/pom.xml&quot;</span>);
+            .join(<span class="string">"exercise-name/src/main/java/AdaLovelace.java"</span>);
+        <span class="kw">let </span>missing_file_path = temp.path().join(<span class="string">"exercise-name/pom.xml"</span>);
         fs::create_dir_all(student_file_path.parent().unwrap()).unwrap();
         File::create(student_file_path).unwrap();
         fs::create_dir_all(missing_file_path.parent().unwrap()).unwrap();
         File::create(missing_file_path).unwrap();
 
-        <span class="kw">let </span>path = temp.path().join(<span class="string">&quot;exercise-name&quot;</span>);
+        <span class="kw">let </span>path = temp.path().join(<span class="string">"exercise-name"</span>);
         <span class="kw">let </span>zipped = compress_student_files(
             <span class="kw-2">&amp;</span>EverythingIsStudentFilePolicy::new(<span class="kw-2">&amp;</span>path).unwrap(),
             <span class="kw-2">&amp;</span>path,
@@ -514,12 +515,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>archive = ZipArchive::new(Cursor::new(zipped)).unwrap();
         <span class="macro">assert!</span>(!archive.is_empty());
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..archive.len() {
-            <span class="macro">log::debug!</span>(<span class="string">&quot;{:?}&quot;</span>, archive.by_index(i).unwrap().name());
+            <span class="macro">log::debug!</span>(<span class="string">"{:?}"</span>, archive.by_index(i).unwrap().name());
         }
         <span class="macro">assert!</span>(archive
-            .by_name(<span class="string">&quot;exercise-name/src/main/java/AdaLovelace.java&quot;</span>)
+            .by_name(<span class="string">"exercise-name/src/main/java/AdaLovelace.java"</span>)
             .is_ok());
-        <span class="macro">assert!</span>(archive.by_name(<span class="string">&quot;exercise-name/pom.xml&quot;</span>).is_ok());
+        <span class="macro">assert!</span>(archive.by_name(<span class="string">"exercise-name/pom.xml"</span>).is_ok());
     }
 
     <span class="attr">#[test]
@@ -527,10 +528,10 @@
         init();
 
         <span class="kw">let </span>temp = tempdir().unwrap();
-        <span class="kw">let </span>zip = file_util::open_file(<span class="string">&quot;tests/data/zip/module-trivial.zip&quot;</span>).unwrap();
+        <span class="kw">let </span>zip = file_util::open_file(<span class="string">"tests/data/zip/module-trivial.zip"</span>).unwrap();
         unzip(zip, temp.path()).unwrap();
 
-        <span class="kw">let </span>expected = get_relative_file_paths(Path::new(<span class="string">&quot;tests/data/zip/module-trivial&quot;</span>));
+        <span class="kw">let </span>expected = get_relative_file_paths(Path::new(<span class="string">"tests/data/zip/module-trivial"</span>));
         <span class="kw">let </span>actual = get_relative_file_paths(temp.path());
         <span class="macro">assert_eq!</span>(expected, actual)
     }
@@ -540,10 +541,10 @@
         init();
 
         <span class="kw">let </span>temp = tempdir().unwrap();
-        <span class="kw">let </span>zip = file_util::open_file(<span class="string">&quot;tests/data/zip/course-module-trivial.zip&quot;</span>).unwrap();
+        <span class="kw">let </span>zip = file_util::open_file(<span class="string">"tests/data/zip/course-module-trivial.zip"</span>).unwrap();
         unzip(zip, temp.path()).unwrap();
 
-        <span class="kw">let </span>expected = get_relative_file_paths(Path::new(<span class="string">&quot;tests/data/zip/module-trivial&quot;</span>));
+        <span class="kw">let </span>expected = get_relative_file_paths(Path::new(<span class="string">"tests/data/zip/module-trivial"</span>));
         <span class="kw">let </span>actual = get_relative_file_paths(temp.path());
         <span class="macro">assert_eq!</span>(expected, actual)
     }
@@ -553,20 +554,20 @@
         init();
 
         <span class="kw">let </span>temp = tempdir().unwrap();
-        <span class="kw">let </span>zip = file_util::open_file(<span class="string">&quot;tests/data/zip/no-src-entry.zip&quot;</span>).unwrap();
+        <span class="kw">let </span>zip = file_util::open_file(<span class="string">"tests/data/zip/no-src-entry.zip"</span>).unwrap();
         unzip(zip, temp.path()).unwrap();
-        <span class="macro">assert!</span>(temp.path().join(<span class="string">&quot;src&quot;</span>).exists());
+        <span class="macro">assert!</span>(temp.path().join(<span class="string">"src"</span>).exists());
     }
 
     <span class="attr">#[cfg(windows)]
     #[test]
     </span><span class="kw">fn </span>windows_paths_get_converted() {
-        <span class="kw">let </span>zipped = file_util::read_file(<span class="string">&quot;tests/data/zip/compressed.zip&quot;</span>).unwrap();
+        <span class="kw">let </span>zipped = file_util::read_file(<span class="string">"tests/data/zip/compressed.zip"</span>).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>ziparch = ZipArchive::new(Cursor::new(zipped)).unwrap();
         <span class="macro">assert!</span>(ziparch.len() &gt; <span class="number">0</span>);
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..ziparch.len() {
             <span class="kw">let </span>file = ziparch.by_index(i).unwrap();
-            <span class="macro">assert!</span>(file.name().chars().find(|c| c == <span class="kw-2">&amp;</span><span class="string">&#39;\\&#39;</span>).is_none())
+            <span class="macro">assert!</span>(file.name().chars().find(|c| c == <span class="kw-2">&amp;</span><span class="string">'\\'</span>).is_none())
         }
     }
 }

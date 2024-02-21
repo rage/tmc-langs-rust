@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.19/src/reader/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../xml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.19/src/reader/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1077,7 +1078,7 @@
         <span class="kw">match </span><span class="kw-2">*</span>t {
             Token::SingleQuote =&gt; QuoteToken::SingleQuoteToken,
             Token::DoubleQuote =&gt; QuoteToken::DoubleQuoteToken,
-            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected token: {t}&quot;</span>),
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected token: {t}"</span>),
         }
     }
 
@@ -1207,9 +1208,9 @@
     <span class="attr">#[inline]
     #[track_caller]
     </span><span class="kw">fn </span>push_pos(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.pos.len() != <span class="self">self</span>.pos.capacity(), <span class="string">&quot;You&#39;ve found a bug in xml-rs, caused by calls to push_pos() in states that don&#39;t end up emitting events.
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.pos.len() != <span class="self">self</span>.pos.capacity(), <span class="string">"You've found a bug in xml-rs, caused by calls to push_pos() in states that don't end up emitting events.
             This case is ignored in release mode, and merely causes document positions to be out of sync.
-            Please file a bug and include the XML document that triggers this assert.&quot;</span>);
+            Please file a bug and include the XML document that triggers this assert."</span>);
 
         <span class="comment">// it has capacity preallocated for more than it ever needs, so this reduces code size
         </span><span class="kw">if </span><span class="self">self</span>.pos.len() != <span class="self">self</span>.pos.capacity() {
@@ -1290,13 +1291,13 @@
 
         <span class="kw">match </span>t {
             <span class="comment">// There can be only one colon, and not as the first character
-            </span>Token::Character(<span class="string">&#39;:&#39;</span>) <span class="kw">if </span><span class="self">self</span>.buf_has_data() &amp;&amp; !<span class="self">self</span>.read_prefix_separator =&gt; {
-                <span class="self">self</span>.buf.push(<span class="string">&#39;:&#39;</span>);
+            </span>Token::Character(<span class="string">':'</span>) <span class="kw">if </span><span class="self">self</span>.buf_has_data() &amp;&amp; !<span class="self">self</span>.read_prefix_separator =&gt; {
+                <span class="self">self</span>.buf.push(<span class="string">':'</span>);
                 <span class="self">self</span>.read_prefix_separator = <span class="bool-val">true</span>;
                 <span class="prelude-val">None
             </span>}
 
-            Token::Character(c) <span class="kw">if </span>c != <span class="string">&#39;:&#39; </span>&amp;&amp; (<span class="self">self</span>.buf.is_empty() &amp;&amp; is_name_start_char(c) ||
+            Token::Character(c) <span class="kw">if </span>c != <span class="string">':' </span>&amp;&amp; (<span class="self">self</span>.buf.is_empty() &amp;&amp; is_name_start_char(c) ||
                                           <span class="self">self</span>.buf_has_data() &amp;&amp; is_name_char(c)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.buf.len() &gt; <span class="self">self</span>.config.max_name_length {
                     <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::ExceededConfiguredLimit));
@@ -1363,7 +1364,7 @@
                 <span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::InvalidCharacterEntity(c <span class="kw">as </span>u32)))
             },
 
-            <span class="comment">// Every character except &quot; and &#39; and &lt; is okay
+            <span class="comment">// Every character except " and ' and &lt; is okay
             </span><span class="kw">_ if </span><span class="self">self</span>.data.quote.is_some() =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.buf.len() &gt; <span class="self">self</span>.config.max_attribute_length {
                     <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::ExceededConfiguredLimit));
@@ -1382,7 +1383,7 @@
 
         <span class="comment">// check whether the name prefix is bound and fix its namespace
         </span><span class="kw">match </span><span class="self">self</span>.nst.get(name.borrow().prefix_repr()) {
-            <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) =&gt; name.namespace = <span class="prelude-val">None</span>, <span class="comment">// default namespace
+            <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; name.namespace = <span class="prelude-val">None</span>, <span class="comment">// default namespace
             </span><span class="prelude-val">Some</span>(ns) =&gt; name.namespace = <span class="prelude-val">Some</span>(ns.into()),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnboundElementPrefix(name.to_string().into())))
         }
@@ -1391,7 +1392,7 @@
         </span><span class="kw">for </span>attr <span class="kw">in </span><span class="kw-2">&amp;mut </span>attributes {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>pfx) = attr.name.prefix {
                 <span class="kw">let </span>new_ns = <span class="kw">match </span><span class="self">self</span>.nst.get(pfx) {
-                    <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// default namespace
+                    <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; <span class="prelude-val">None</span>, <span class="comment">// default namespace
                     </span><span class="prelude-val">Some</span>(ns) =&gt; <span class="prelude-val">Some</span>(ns.into()),
                     <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnboundAttribute(attr.name.to_string().into())))
                 };
@@ -1420,7 +1421,7 @@
 
         <span class="comment">// check whether the name prefix is bound and fix its namespace
         </span><span class="kw">match </span><span class="self">self</span>.nst.get(name.borrow().prefix_repr()) {
-            <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) =&gt; name.namespace = <span class="prelude-val">None</span>, <span class="comment">// default namespace
+            <span class="prelude-val">Some</span>(<span class="string">""</span>) =&gt; name.namespace = <span class="prelude-val">None</span>, <span class="comment">// default namespace
             </span><span class="prelude-val">Some</span>(ns) =&gt; name.namespace = <span class="prelude-val">Some</span>(ns.into()),
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnboundElementPrefix(name.to_string().into())))
         }
@@ -1431,7 +1432,7 @@
             <span class="self">self</span>.pop_namespace = <span class="bool-val">true</span>;
             <span class="self">self</span>.into_state_emit(State::OutsideTag, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { name }))
         } <span class="kw">else </span>{
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedClosingTag(<span class="macro">format!</span>(<span class="string">&quot;{name} != {op_name}&quot;</span>).into())))
+            <span class="prelude-val">Some</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedClosingTag(<span class="macro">format!</span>(<span class="string">"{name} != {op_name}"</span>).into())))
         }
     }
 
@@ -1472,20 +1473,20 @@
         (<span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$p</span>:expr, <span class="macro-nonterminal">$t</span>:pat) =&gt; (
             <span class="kw">match </span><span class="macro-nonterminal">$p</span>.next(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$r</span>) {
                 <span class="macro-nonterminal">$t </span>=&gt; {}
-                e =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected event: {e:?}\nExpected: {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$t</span>))
+                e =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected event: {e:?}\nExpected: {}"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$t</span>))
             }
         );
         (<span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$p</span>:expr, <span class="macro-nonterminal">$t</span>:pat =&gt; <span class="macro-nonterminal">$c</span>:expr ) =&gt; (
             <span class="kw">match </span><span class="macro-nonterminal">$p</span>.next(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$r</span>) {
                 <span class="macro-nonterminal">$t </span><span class="kw">if </span><span class="macro-nonterminal">$c </span>=&gt; {}
-                e =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected event: {e:?}\nExpected: {} if {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$t</span>), <span class="macro">stringify!</span>(<span class="macro-nonterminal">$c</span>))
+                e =&gt; <span class="macro">panic!</span>(<span class="string">"Unexpected event: {e:?}\nExpected: {} if {}"</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$t</span>), <span class="macro">stringify!</span>(<span class="macro-nonterminal">$c</span>))
             }
         )
     );
 
     <span class="macro">macro_rules! </span>test_data(
         (<span class="macro-nonterminal">$d</span>:expr) =&gt; ({
-            <span class="kw">static </span>DATA: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="macro-nonterminal">$d</span>;
+            <span class="kw">static </span>DATA: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="macro-nonterminal">$d</span>;
             <span class="kw">let </span>r = BufReader::new(DATA.as_bytes());
             <span class="kw">let </span>p = new_parser();
             (r, p)
@@ -1494,71 +1495,71 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>issue_3_semicolon_in_attribute_value() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;
-            &lt;a attr=&quot;zzz;zzz&quot; /&gt;
-        &quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"
+            &lt;a attr="zzz;zzz" /&gt;
+        "#</span>);
 
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { <span class="kw-2">ref </span>name, <span class="kw-2">ref </span>attributes, <span class="kw-2">ref </span>namespace }) =&gt;
-            <span class="kw-2">*</span>name == OwnedName::local(<span class="string">&quot;a&quot;</span>) &amp;&amp;
+            <span class="kw-2">*</span>name == OwnedName::local(<span class="string">"a"</span>) &amp;&amp;
              attributes.len() == <span class="number">1 </span>&amp;&amp;
-             attributes[<span class="number">0</span>] == OwnedAttribute::new(OwnedName::local(<span class="string">&quot;attr&quot;</span>), <span class="string">&quot;zzz;zzz&quot;</span>) &amp;&amp;
+             attributes[<span class="number">0</span>] == OwnedAttribute::new(OwnedName::local(<span class="string">"attr"</span>), <span class="string">"zzz;zzz"</span>) &amp;&amp;
              namespace.is_essentially_empty()
         );
-        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { <span class="kw-2">ref </span>name }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">&quot;a&quot;</span>));
+        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { <span class="kw-2">ref </span>name }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">"a"</span>));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndDocument));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>issue_140_entity_reference_inside_tag() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"
             &lt;bla&gt;&amp;#9835;&lt;/bla&gt;
-        &quot;#</span>);
+        "#</span>);
 
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
-        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { <span class="kw-2">ref </span>name, .. }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">&quot;bla&quot;</span>));
-        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::Characters(<span class="kw-2">ref </span>s)) =&gt; s == <span class="string">&quot;\u{266b}&quot;</span>);
-        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { <span class="kw-2">ref </span>name, .. }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">&quot;bla&quot;</span>));
+        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { <span class="kw-2">ref </span>name, .. }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">"bla"</span>));
+        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::Characters(<span class="kw-2">ref </span>s)) =&gt; s == <span class="string">"\u{266b}"</span>);
+        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { <span class="kw-2">ref </span>name, .. }) =&gt; <span class="kw-2">*</span>name == OwnedName::local(<span class="string">"bla"</span>));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndDocument));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>issue_220_comment() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;x&gt;&lt;!-- &lt;!--&gt;&lt;/x&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;x&gt;&lt;!-- &lt;!--&gt;&lt;/x&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndDocument));
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;x&gt;&lt;!-- &lt;!---&gt;&lt;/x&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;x&gt;&lt;!-- &lt;!---&gt;&lt;/x&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>)); <span class="comment">// ---&gt; is forbidden in comments
 
-        </span><span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;x&gt;&lt;!--&lt;text&amp;x;&gt; &lt;!--&gt;&lt;/x&gt;&quot;#</span>);
+        </span><span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;x&gt;&lt;!--&lt;text&amp;x;&gt; &lt;!--&gt;&lt;/x&gt;"#</span>);
         p.config.c.ignore_comments = <span class="bool-val">false</span>;
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { .. }));
-        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::Comment(s)) =&gt; s == <span class="string">&quot;&lt;text&amp;x;&gt; &lt;!&quot;</span>);
+        <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::Comment(s)) =&gt; s == <span class="string">"&lt;text&amp;x;&gt; &lt;!"</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndElement { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::EndDocument));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>malformed_declaration_attrs() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;?xml version x=&quot;1.0&quot;?&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;?xml version x="1.0"?&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>));
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot; version=&quot;1.0&quot;?&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;?xml version="1.0" version="1.0"?&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>));
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot;encoding=&quot;utf-8&quot;?&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;?xml version="1.0"encoding="utf-8"?&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>));
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot;standalone=&quot;yes&quot;?&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;?xml version="1.0"standalone="yes"?&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>));
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;standalone=&quot;yes&quot;?&gt;&quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"&lt;?xml version="1.0" encoding="utf-8"standalone="yes"?&gt;"#</span>);
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw">_</span>));
     }
 
@@ -1566,9 +1567,9 @@
     </span><span class="kw">fn </span>opening_tag_in_attribute_value() {
         <span class="kw">use </span><span class="kw">crate</span>::reader::error::{SyntaxError, Error, ErrorKind};
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;
-            &lt;a attr=&quot;zzz&lt;zzz&quot; /&gt;
-        &quot;#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"
+            &lt;a attr="zzz&lt;zzz" /&gt;
+        "#</span>);
 
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Err</span>(<span class="kw-2">ref </span>e) =&gt;
@@ -1581,9 +1582,9 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>reference_err() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#&quot;
+        <span class="kw">let </span>(<span class="kw-2">mut </span>r, <span class="kw-2">mut </span>p) = <span class="macro">test_data!</span>(<span class="string">r#"
             &lt;a&gt;&amp;&amp;amp;&lt;/a&gt;
-        &quot;#</span>);
+        "#</span>);
 
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartDocument { .. }));
         <span class="macro">expect_event!</span>(r, p, <span class="prelude-val">Ok</span>(XmlEvent::StartElement { .. }));

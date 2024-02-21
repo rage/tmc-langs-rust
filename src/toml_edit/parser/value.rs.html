@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/parser/value.rs`."><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../toml_edit/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/parser/value.rs`."><title>value.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -153,6 +154,8 @@
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>winnow::combinator::alt;
 <span class="kw">use </span>winnow::combinator::fail;
 <span class="kw">use </span>winnow::combinator::peek;
@@ -170,8 +173,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::Value;
 
 <span class="comment">// val = string / boolean / array / inline-table / date-time / float / integer
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value&lt;<span class="lifetime">&#39;i</span>&gt;(check: RecursionCheck) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, v::Value, ContextError&gt; {
-    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>value&lt;<span class="lifetime">'i</span>&gt;(check: RecursionCheck) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, v::Value, ContextError&gt; {
+    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         <span class="macro">dispatch!</span>{peek(any);
             <span class="kw">crate</span>::parser::strings::QUOTATION_MARK |
             <span class="kw">crate</span>::parser::strings::APOSTROPHE =&gt; string.map(|s| {
@@ -182,7 +185,7 @@
             <span class="kw">crate</span>::parser::array::ARRAY_OPEN =&gt; array(check).map(v::Value::Array),
             <span class="kw">crate</span>::parser::inline_table::INLINE_TABLE_OPEN =&gt; inline_table(check).map(v::Value::InlineTable),
             <span class="comment">// Date/number starts
-            </span><span class="string">b&#39;+&#39; </span>| <span class="string">b&#39;-&#39; </span>| <span class="string">b&#39;0&#39;</span>..=<span class="string">b&#39;9&#39; </span>=&gt; {
+            </span><span class="string">b'+' </span>| <span class="string">b'-' </span>| <span class="string">b'0'</span>..=<span class="string">b'9' </span>=&gt; {
                 <span class="comment">// Uncommon enough not to be worth optimizing at this time
                 </span>alt((
                     date_time
@@ -194,46 +197,46 @@
                 ))
             },
             <span class="comment">// Report as if they were numbers because its most likely a typo
-            </span><span class="string">b&#39;_&#39; </span>=&gt; {
+            </span><span class="string">b'_' </span>=&gt; {
                     integer
                         .map(v::Value::from)
-                .context(StrContext::Expected(StrContextValue::Description(<span class="string">&quot;leading digit&quot;</span>)))
+                .context(StrContext::Expected(StrContextValue::Description(<span class="string">"leading digit"</span>)))
             },
             <span class="comment">// Report as if they were numbers because its most likely a typo
-            </span><span class="string">b&#39;.&#39; </span>=&gt;  {
+            </span><span class="string">b'.' </span>=&gt;  {
                     float
                         .map(v::Value::from)
-                .context(StrContext::Expected(StrContextValue::Description(<span class="string">&quot;leading digit&quot;</span>)))
+                .context(StrContext::Expected(StrContextValue::Description(<span class="string">"leading digit"</span>)))
             },
-            <span class="string">b&#39;t&#39; </span>=&gt; {
+            <span class="string">b't' </span>=&gt; {
                 <span class="kw">crate</span>::parser::numbers::true_.map(v::Value::from)
-                    .context(StrContext::Label(<span class="string">&quot;string&quot;</span>))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\&#39;&#39;</span>)))
+                    .context(StrContext::Label(<span class="string">"string"</span>))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\''</span>)))
             },
-            <span class="string">b&#39;f&#39; </span>=&gt; {
+            <span class="string">b'f' </span>=&gt; {
                 <span class="kw">crate</span>::parser::numbers::false_.map(v::Value::from)
-                    .context(StrContext::Label(<span class="string">&quot;string&quot;</span>))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\&#39;&#39;</span>)))
+                    .context(StrContext::Label(<span class="string">"string"</span>))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\''</span>)))
             },
-            <span class="string">b&#39;i&#39; </span>=&gt; {
+            <span class="string">b'i' </span>=&gt; {
                 <span class="kw">crate</span>::parser::numbers::inf.map(v::Value::from)
-                    .context(StrContext::Label(<span class="string">&quot;string&quot;</span>))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\&#39;&#39;</span>)))
+                    .context(StrContext::Label(<span class="string">"string"</span>))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\''</span>)))
             },
-            <span class="string">b&#39;n&#39; </span>=&gt; {
+            <span class="string">b'n' </span>=&gt; {
                 <span class="kw">crate</span>::parser::numbers::nan.map(v::Value::from)
-                    .context(StrContext::Label(<span class="string">&quot;string&quot;</span>))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\&#39;&#39;</span>)))
+                    .context(StrContext::Label(<span class="string">"string"</span>))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\''</span>)))
             },
             <span class="kw">_ </span>=&gt; {
                 fail
-                    .context(StrContext::Label(<span class="string">&quot;string&quot;</span>))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
-                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\&#39;&#39;</span>)))
+                    .context(StrContext::Label(<span class="string">"string"</span>))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\''</span>)))
             },
     }
         .with_span()
@@ -271,32 +274,34 @@
             table.span = <span class="prelude-val">Some</span>(span);
         }
     };
-    val.decorate(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>);
+    val.decorate(<span class="string">""</span>, <span class="string">""</span>);
     <span class="prelude-val">Ok</span>(val)
 }
 
 <span class="attr">#[cfg(test)]
+#[cfg(feature = <span class="string">"parse"</span>)]
+#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>values() {
         <span class="kw">let </span>inputs = [
-            <span class="string">&quot;1979-05-27T00:32:00.999999&quot;</span>,
-            <span class="string">&quot;-239&quot;</span>,
-            <span class="string">&quot;1e200&quot;</span>,
-            <span class="string">&quot;9_224_617.445_991_228_313&quot;</span>,
-            <span class="string">r#&quot;&#39;&#39;&#39;I [dw]on&#39;t need \d{2} apples&#39;&#39;&#39;&quot;#</span>,
-            <span class="string">r#&quot;&#39;&#39;&#39;
+            <span class="string">"1979-05-27T00:32:00.999999"</span>,
+            <span class="string">"-239"</span>,
+            <span class="string">"1e200"</span>,
+            <span class="string">"9_224_617.445_991_228_313"</span>,
+            <span class="string">r"'''I [dw]on't need \d{2} apples'''"</span>,
+            <span class="string">r#"'''
 The first newline is
 trimmed in raw strings.
    All other whitespace
    is preserved.
-&#39;&#39;&#39;&quot;#</span>,
-            <span class="string">r#&quot;&quot;Jos\u00E9\n&quot;&quot;#</span>,
-            <span class="string">r#&quot;&quot;\\\&quot;\b/\f\n\r\t\u00E9\U000A0000&quot;&quot;#</span>,
-            <span class="string">r#&quot;{ hello = &quot;world&quot;, a = 1}&quot;#</span>,
-            <span class="string">r#&quot;[ { x = 1, a = &quot;2&quot; }, {a = &quot;a&quot;,b = &quot;b&quot;,     c =    &quot;c&quot;} ]&quot;#</span>,
+'''"#</span>,
+            <span class="string">r#""Jos\u00E9\n""#</span>,
+            <span class="string">r#""\\\"\b/\f\n\r\t\u00E9\U000A0000""#</span>,
+            <span class="string">r#"{ hello = "world", a = 1}"#</span>,
+            <span class="string">r#"[ { x = 1, a = "2" }, {a = "a",b = "b",     c =    "c"} ]"#</span>,
         ];
         <span class="kw">for </span>input <span class="kw">in </span>inputs {
             <span class="macro">dbg!</span>(input);

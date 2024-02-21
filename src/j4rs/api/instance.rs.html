@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.17.1/src/api/instance.rs`."><title>instance.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../j4rs/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.17.2/src/api/instance.rs`."><title>instance.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -220,28 +221,45 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2022 astonbitecode
 //
-// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+// Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 // http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-</span><span class="kw">use </span>jni_sys::jobject;
+</span><span class="kw">use </span><span class="kw">crate</span>::logger::debug;
+<span class="kw">use crate</span>::{cache, errors, jni_utils, InvocationArg, Jvm};
+<span class="kw">use </span>jni_sys::jobject;
+<span class="kw">use </span>serde::de::DeserializeOwned;
 <span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::sync::mpsc::{Receiver, Sender};
-<span class="kw">use </span>std::any::Any;
-<span class="kw">use </span>serde::de::DeserializeOwned;
-<span class="kw">use crate</span>::{cache, errors, InvocationArg, jni_utils, Jvm};
-<span class="kw">use </span><span class="kw">crate</span>::logger::debug;
 
 <span class="doccomment">/// A Java instance
 </span><span class="attr">#[derive(Serialize)]
@@ -279,13 +297,15 @@
         <span class="self">self</span>.jinstance
     }
 
-    <span class="attr">#[deprecated(since = <span class="string">&quot;0.12.0&quot;</span>, note = <span class="string">&quot;Please use Instance::from_jobject or Instance::from_jobject_with_global_ref instead&quot;</span>)]
+    <span class="attr">#[deprecated(
+        since = <span class="string">"0.12.0"</span>,
+        note = <span class="string">"Please use Instance::from_jobject or Instance::from_jobject_with_global_ref instead"
+    </span>)]
     </span><span class="kw">pub fn </span>from(obj: jobject) -&gt; errors::Result&lt;Instance&gt; {
-        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| {
-            Jvm::attach_thread()
-        });
+        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| Jvm::attach_thread());
 
-        <span class="kw">let </span>global = jni_utils::create_global_ref_from_local_ref(obj, cache::get_thread_local_env()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>global =
+            jni_utils::create_global_ref_from_local_ref(obj, cache::get_thread_local_env()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Instance {
             jinstance: global,
             class_name: cache::UNKNOWN_FOR_RUST.to_string(),
@@ -294,9 +314,7 @@
     }
 
     <span class="kw">pub fn </span>from_jobject(obj: jobject) -&gt; errors::Result&lt;Instance&gt; {
-        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| {
-            Jvm::attach_thread()
-        });
+        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| Jvm::attach_thread());
 
         <span class="prelude-val">Ok</span>(Instance {
             jinstance: obj,
@@ -306,11 +324,10 @@
     }
 
     <span class="kw">pub fn </span>from_jobject_with_global_ref(obj: jobject) -&gt; errors::Result&lt;Instance&gt; {
-        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| {
-            Jvm::attach_thread()
-        });
+        <span class="kw">let </span>_jvm = cache::get_thread_local_env().map_err(|<span class="kw">_</span>| Jvm::attach_thread());
 
-        <span class="kw">let </span>global = jni_utils::create_global_ref_from_local_ref(obj, cache::get_thread_local_env()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>global =
+            jni_utils::create_global_ref_from_local_ref(obj, cache::get_thread_local_env()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Instance {
             jinstance: global,
             class_name: cache::UNKNOWN_FOR_RUST.to_string(),
@@ -322,7 +339,10 @@
     </span><span class="kw">fn </span>_weak_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; errors::Result&lt;Instance&gt; {
         <span class="prelude-val">Ok</span>(Instance {
             class_name: <span class="self">self</span>.class_name.clone(),
-            jinstance: jni_utils::_create_weak_global_ref_from_global_ref(<span class="self">self</span>.jinstance.clone(), cache::get_thread_local_env()<span class="question-mark">?</span>)<span class="question-mark">?</span>,
+            jinstance: jni_utils::_create_weak_global_ref_from_global_ref(
+                <span class="self">self</span>.jinstance.clone(),
+                cache::get_thread_local_env()<span class="question-mark">?</span>,
+            )<span class="question-mark">?</span>,
             skip_deleting_jobject: <span class="bool-val">false</span>,
         })
     }
@@ -338,7 +358,7 @@
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>Instance {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        debug(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Dropping an instance of {}&quot;</span>, <span class="self">self</span>.class_name));
+        debug(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"Dropping an instance of {}"</span>, <span class="self">self</span>.class_name));
         <span class="kw">if </span>!<span class="self">self</span>.skip_deleting_jobject {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(j_env) = cache::get_thread_local_env_opt() {
                 jni_utils::delete_java_ref(j_env, <span class="self">self</span>.jinstance);
@@ -358,11 +378,11 @@
 /// On Drop, the InstanceReceiver removes the Box from the heap.
 </span><span class="kw">pub struct </span>InstanceReceiver {
     <span class="kw">pub</span>(<span class="kw">crate</span>) rx: Box&lt;Receiver&lt;Instance&gt;&gt;,
-    tx_address: i64,
+    tx_address: u64,
 }
 
 <span class="kw">impl </span>InstanceReceiver {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rx: Receiver&lt;Instance&gt;, tx_address: i64) -&gt; InstanceReceiver {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(rx: Receiver&lt;Instance&gt;, tx_address: u64) -&gt; InstanceReceiver {
         InstanceReceiver {
             rx: Box::new(rx),
             tx_address,
@@ -377,7 +397,7 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>InstanceReceiver {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.tx_address &gt; <span class="number">0 </span>{
-            debug(<span class="string">&quot;Dropping an InstanceReceiver&quot;</span>);
+            debug(<span class="string">"Dropping an InstanceReceiver"</span>);
             <span class="kw">let </span>p = <span class="self">self</span>.tx_address <span class="kw">as </span><span class="kw-2">*mut </span>Sender&lt;Instance&gt;;
             <span class="kw">unsafe </span>{
                 <span class="kw">let </span>tx = Box::from_raw(p);
@@ -388,19 +408,25 @@
 }
 
 <span class="doccomment">/// Allows chained Jvm calls to created Instances
-</span><span class="kw">pub struct </span>ChainableInstance&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub struct </span>ChainableInstance&lt;<span class="lifetime">'a</span>&gt; {
     instance: Instance,
-    jvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Jvm,
+    jvm: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Jvm,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ChainableInstance&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(instance: Instance, jvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Jvm) -&gt; ChainableInstance {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ChainableInstance&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(instance: Instance, jvm: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Jvm) -&gt; ChainableInstance {
         ChainableInstance { instance, jvm }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_instance_ref(instance: <span class="kw-2">&amp;</span>Instance, jvm: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Jvm) -&gt; errors::Result&lt;ChainableInstance&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new_with_instance_ref(
+        instance: <span class="kw-2">&amp;</span>Instance,
+        jvm: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Jvm,
+    ) -&gt; errors::Result&lt;ChainableInstance&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">let </span>cloned = jvm.clone_instance(<span class="kw-2">&amp;</span>instance)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ChainableInstance { instance: cloned, jvm })
+        <span class="prelude-val">Ok</span>(ChainableInstance {
+            instance: cloned,
+            jvm,
+        })
     }
 
     <span class="kw">pub fn </span>collect(<span class="self">self</span>) -&gt; Instance {
@@ -408,7 +434,11 @@
     }
 
     <span class="doccomment">/// Invokes the method `method_name` of a this `Instance`, passing an array of `InvocationArg`s. It returns an `Instance` as the result of the invocation.
-    </span><span class="kw">pub fn </span>invoke(<span class="kw-2">&amp;</span><span class="self">self</span>, method_name: <span class="kw-2">&amp;</span>str, inv_args: <span class="kw-2">&amp;</span>[InvocationArg]) -&gt; errors::Result&lt;ChainableInstance&gt; {
+    </span><span class="kw">pub fn </span>invoke(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        method_name: <span class="kw-2">&amp;</span>str,
+        inv_args: <span class="kw-2">&amp;</span>[InvocationArg],
+    ) -&gt; errors::Result&lt;ChainableInstance&gt; {
         <span class="kw">let </span>instance = <span class="self">self</span>.jvm.invoke(<span class="kw-2">&amp;</span><span class="self">self</span>.instance, method_name, inv_args)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(ChainableInstance::new(instance, <span class="self">self</span>.jvm))
     }
@@ -432,14 +462,19 @@
     }
 
     <span class="doccomment">/// Returns the Rust representation of the provided instance
-    </span><span class="kw">pub fn </span>to_rust&lt;T: Any&gt;(<span class="self">self</span>) -&gt; errors::Result&lt;T&gt; <span class="kw">where </span>T: DeserializeOwned {
+    </span><span class="kw">pub fn </span>to_rust&lt;T: Any&gt;(<span class="self">self</span>) -&gt; errors::Result&lt;T&gt;
+    <span class="kw">where
+        </span>T: DeserializeOwned,
+    {
         <span class="self">self</span>.jvm.to_rust(<span class="self">self</span>.instance)
     }
 
     <span class="doccomment">/// Returns the Rust representation of the provided instance, boxed
-    </span><span class="kw">pub fn </span>to_rust_boxed&lt;T: Any&gt;(<span class="self">self</span>) -&gt; errors::Result&lt;Box&lt;T&gt;&gt; <span class="kw">where </span>T: DeserializeOwned {
+    </span><span class="kw">pub fn </span>to_rust_boxed&lt;T: Any&gt;(<span class="self">self</span>) -&gt; errors::Result&lt;Box&lt;T&gt;&gt;
+    <span class="kw">where
+        </span>T: DeserializeOwned,
+    {
         <span class="self">self</span>.jvm.to_rust_boxed(<span class="self">self</span>.instance)
     }
 }
-
 </code></pre></div></section></main></body></html>

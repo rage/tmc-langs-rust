@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/parser/array.rs`."><title>array.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../toml_edit/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/parser/array.rs`."><title>array.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -144,11 +145,13 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>winnow::combinator::cut_err;
 <span class="kw">use </span>winnow::combinator::delimited;
 <span class="kw">use </span>winnow::combinator::opt;
-<span class="kw">use </span>winnow::combinator::separated1;
-<span class="kw">use </span>winnow::trace::trace;
+<span class="kw">use </span>winnow::combinator::separated;
+<span class="kw">use </span>winnow::combinator::trace;
 
 <span class="kw">use </span><span class="kw">crate</span>::parser::trivia::ws_comment_newline;
 <span class="kw">use </span><span class="kw">crate</span>::parser::value::value;
@@ -159,47 +162,47 @@
 <span class="comment">// ;; Array
 
 // array = array-open array-values array-close
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array&lt;<span class="lifetime">&#39;i</span>&gt;(check: RecursionCheck) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, Array, ContextError&gt; {
-    trace(<span class="string">&quot;array&quot;</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array&lt;<span class="lifetime">'i</span>&gt;(check: RecursionCheck) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, Array, ContextError&gt; {
+    trace(<span class="string">"array"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         delimited(
             ARRAY_OPEN,
             cut_err(array_values(check)),
             cut_err(ARRAY_CLOSE)
-                .context(StrContext::Label(<span class="string">&quot;array&quot;</span>))
-                .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;]&#39;</span>))),
+                .context(StrContext::Label(<span class="string">"array"</span>))
+                .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">']'</span>))),
         )
         .parse_next(input)
     })
 }
 
-<span class="comment">// note: we&#39;re omitting ws and newlines here, because
+<span class="comment">// note: we're omitting ws and newlines here, because
 // they should be part of the formatted values
 // array-open  = %x5B ws-newline  ; [
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ARRAY_OPEN: u8 = <span class="string">b&#39;[&#39;</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ARRAY_OPEN: u8 = <span class="string">b'['</span>;
 <span class="comment">// array-close = ws-newline %x5D  ; ]
-</span><span class="kw">const </span>ARRAY_CLOSE: u8 = <span class="string">b&#39;]&#39;</span>;
+</span><span class="kw">const </span>ARRAY_CLOSE: u8 = <span class="string">b']'</span>;
 <span class="comment">// array-sep = ws %x2C ws  ; , Comma
-</span><span class="kw">const </span>ARRAY_SEP: u8 = <span class="string">b&#39;,&#39;</span>;
+</span><span class="kw">const </span>ARRAY_SEP: u8 = <span class="string">b','</span>;
 
 <span class="comment">// note: this rule is modified
 // array-values = [ ( array-value array-sep array-values ) /
 //                  array-value / ws-comment-newline ]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_values&lt;<span class="lifetime">&#39;i</span>&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_values&lt;<span class="lifetime">'i</span>&gt;(
     check: RecursionCheck,
-) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, Array, ContextError&gt; {
-    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, Array, ContextError&gt; {
+    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         <span class="kw">let </span>check = check.recursing(input)<span class="question-mark">?</span>;
         (
-            opt(
-                (separated1(array_value(check), ARRAY_SEP), opt(ARRAY_SEP)).map(
-                    |(v, trailing): (Vec&lt;Value&gt;, <span class="prelude-ty">Option</span>&lt;u8&gt;)| {
-                        (
-                            Array::with_vec(v.into_iter().map(Item::Value).collect()),
-                            trailing.is_some(),
-                        )
-                    },
-                ),
-            ),
+            opt((
+                separated(<span class="number">1</span>.., array_value(check), ARRAY_SEP),
+                opt(ARRAY_SEP),
+            )
+                .map(|(v, trailing): (Vec&lt;Value&gt;, <span class="prelude-ty">Option</span>&lt;u8&gt;)| {
+                    (
+                        Array::with_vec(v.into_iter().map(Item::Value).collect()),
+                        trailing.is_some(),
+                    )
+                })),
             ws_comment_newline.span(),
         )
             .try_map::&lt;<span class="kw">_</span>, <span class="kw">_</span>, std::str::Utf8Error&gt;(|(array, trailing)| {
@@ -212,10 +215,10 @@
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_value&lt;<span class="lifetime">&#39;i</span>&gt;(
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>array_value&lt;<span class="lifetime">'i</span>&gt;(
     check: RecursionCheck,
-) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, Value, ContextError&gt; {
-    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, Value, ContextError&gt; {
+    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         (
             ws_comment_newline.span(),
             value(check),
@@ -227,27 +230,29 @@
 }
 
 <span class="attr">#[cfg(test)]
+#[cfg(feature = <span class="string">"parse"</span>)]
+#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>arrays() {
         <span class="kw">let </span>inputs = [
-            <span class="string">r#&quot;[]&quot;#</span>,
-            <span class="string">r#&quot;[   ]&quot;#</span>,
-            <span class="string">r#&quot;[
+            <span class="string">r#"[]"#</span>,
+            <span class="string">r#"[   ]"#</span>,
+            <span class="string">r#"[
   1, 2, 3
-]&quot;#</span>,
-            <span class="string">r#&quot;[
+]"#</span>,
+            <span class="string">r#"[
   1,
   2, # this is ok
-]&quot;#</span>,
-            <span class="string">r#&quot;[# comment
+]"#</span>,
+            <span class="string">r#"[# comment
 # comment2
 
 
-   ]&quot;#</span>,
-            <span class="string">r#&quot;[# comment
+   ]"#</span>,
+            <span class="string">r#"[# comment
 # comment2
       1
 
@@ -255,17 +260,17 @@
 ,
 # comment3
 
-   ]&quot;#</span>,
-            <span class="string">r#&quot;[1]&quot;#</span>,
-            <span class="string">r#&quot;[1,]&quot;#</span>,
-            <span class="string">r#&quot;[ &quot;all&quot;, &#39;strings&#39;, &quot;&quot;&quot;are the same&quot;&quot;&quot;, &#39;&#39;&#39;type&#39;&#39;&#39;]&quot;#</span>,
-            <span class="string">r#&quot;[ 100, -2,]&quot;#</span>,
-            <span class="string">r#&quot;[1, 2, 3]&quot;#</span>,
-            <span class="string">r#&quot;[1.1, 2.1, 3.1]&quot;#</span>,
-            <span class="string">r#&quot;[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]&quot;#</span>,
-            <span class="string">r#&quot;[ [ 1, 2 ], [3, 4, 5] ]&quot;#</span>,
-            <span class="string">r#&quot;[ [ 1, 2 ], [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;] ]&quot;#</span>,
-            <span class="string">r#&quot;[ { x = 1, a = &quot;2&quot; }, {a = &quot;a&quot;,b = &quot;b&quot;,     c =    &quot;c&quot;} ]&quot;#</span>,
+   ]"#</span>,
+            <span class="string">r#"[1]"#</span>,
+            <span class="string">r#"[1,]"#</span>,
+            <span class="string">r#"[ "all", 'strings', """are the same""", '''type''']"#</span>,
+            <span class="string">r#"[ 100, -2,]"#</span>,
+            <span class="string">r#"[1, 2, 3]"#</span>,
+            <span class="string">r#"[1.1, 2.1, 3.1]"#</span>,
+            <span class="string">r#"["a", "b", "c"]"#</span>,
+            <span class="string">r#"[ [ 1, 2 ], [3, 4, 5] ]"#</span>,
+            <span class="string">r#"[ [ 1, 2 ], ["a", "b", "c"] ]"#</span>,
+            <span class="string">r#"[ { x = 1, a = "2" }, {a = "a",b = "b",     c =    "c"} ]"#</span>,
         ];
         <span class="kw">for </span>input <span class="kw">in </span>inputs {
             <span class="macro">dbg!</span>(input);
@@ -279,7 +284,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>invalid_arrays() {
-        <span class="kw">let </span>invalid_inputs = [<span class="string">r#&quot;[&quot;#</span>, <span class="string">r#&quot;[,]&quot;#</span>, <span class="string">r#&quot;[,2]&quot;#</span>, <span class="string">r#&quot;[1e165,,]&quot;#</span>];
+        <span class="kw">let </span>invalid_inputs = [<span class="string">r#"["#</span>, <span class="string">r#"[,]"#</span>, <span class="string">r#"[,2]"#</span>, <span class="string">r#"[1e165,,]"#</span>];
         <span class="kw">for </span>input <span class="kw">in </span>invalid_inputs {
             <span class="macro">dbg!</span>(input);
             <span class="kw">let </span><span class="kw-2">mut </span>parsed = array(Default::default()).parse(new_input(input));

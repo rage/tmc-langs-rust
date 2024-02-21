@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.32.0/src/signal/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/signal/unix.rs`."><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -534,7 +535,7 @@
 //! `Signal` type for receiving notifications of signals.
 
 </span><span class="attr">#![cfg(unix)]
-#![cfg_attr(docsrs, doc(cfg(all(unix, feature = <span class="string">&quot;signal&quot;</span>))))]
+#![cfg_attr(docsrs, doc(cfg(all(unix, feature = <span class="string">"signal"</span>))))]
 
 </span><span class="kw">use </span><span class="kw">crate</span>::runtime::scheduler;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::signal::Handle;
@@ -553,11 +554,11 @@
 <span class="kw">impl </span>Init <span class="kw">for </span>OsStorage {
     <span class="kw">fn </span>init() -&gt; <span class="self">Self </span>{
         <span class="comment">// There are reliable signals ranging from 1 to 33 available on every Unix platform.
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;linux&quot;</span>))]
+        </span><span class="attr">#[cfg(not(target_os = <span class="string">"linux"</span>))]
         </span><span class="kw">let </span>possible = <span class="number">0</span>..=<span class="number">33</span>;
 
         <span class="comment">// On Linux, there are additional real-time signals available.
-        </span><span class="attr">#[cfg(target_os = <span class="string">&quot;linux&quot;</span>)]
+        </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span><span class="kw">let </span>possible = <span class="number">0</span>..=libc::SIGRTMAX();
 
         possible.map(|<span class="kw">_</span>| SignalInfo::default()).collect()
@@ -569,11 +570,11 @@
         <span class="self">self</span>.get(id).map(|si| <span class="kw-2">&amp;</span>si.event_info)
     }
 
-    <span class="kw">fn </span>for_each&lt;<span class="lifetime">&#39;a</span>, F&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, f: F)
+    <span class="kw">fn </span>for_each&lt;<span class="lifetime">'a</span>, F&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, f: F)
     <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>EventInfo),
+        </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>EventInfo),
     {
-        <span class="self">self</span>.iter().map(|si| <span class="kw-2">&amp;</span>si.event_info).for_each(f)
+        <span class="self">self</span>.iter().map(|si| <span class="kw-2">&amp;</span>si.event_info).for_each(f);
     }
 }
 
@@ -585,7 +586,7 @@
 
 <span class="kw">impl </span>Init <span class="kw">for </span>OsExtraData {
     <span class="kw">fn </span>init() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>(receiver, sender) = UnixStream::pair().expect(<span class="string">&quot;failed to create UnixStream&quot;</span>);
+        <span class="kw">let </span>(receiver, sender) = UnixStream::pair().expect(<span class="string">"failed to create UnixStream"</span>);
 
         <span class="self">Self </span>{ sender, receiver }
     }
@@ -616,7 +617,7 @@
         <span class="self">Self</span>(signum <span class="kw">as </span>libc::c_int)
     }
 
-    <span class="doccomment">/// Get the signal&#39;s numeric value.
+    <span class="doccomment">/// Get the signal's numeric value.
     ///
     /// ```rust
     /// # use tokio::signal::unix::SignalKind;
@@ -627,7 +628,7 @@
         <span class="self">self</span>.<span class="number">0
     </span>}
 
-    <span class="doccomment">/// Represents the SIGALRM signal.
+    <span class="doccomment">/// Represents the `SIGALRM` signal.
     ///
     /// On Unix systems this signal is sent when a real-time timer has expired.
     /// By default, the process is terminated by this signal.
@@ -635,7 +636,7 @@
         <span class="self">Self</span>(libc::SIGALRM)
     }
 
-    <span class="doccomment">/// Represents the SIGCHLD signal.
+    <span class="doccomment">/// Represents the `SIGCHLD` signal.
     ///
     /// On Unix systems this signal is sent when the status of a child process
     /// has changed. By default, this signal is ignored.
@@ -643,7 +644,7 @@
         <span class="self">Self</span>(libc::SIGCHLD)
     }
 
-    <span class="doccomment">/// Represents the SIGHUP signal.
+    <span class="doccomment">/// Represents the `SIGHUP` signal.
     ///
     /// On Unix systems this signal is sent when the terminal is disconnected.
     /// By default, the process is terminated by this signal.
@@ -651,22 +652,22 @@
         <span class="self">Self</span>(libc::SIGHUP)
     }
 
-    <span class="doccomment">/// Represents the SIGINFO signal.
+    <span class="doccomment">/// Represents the `SIGINFO` signal.
     ///
     /// On Unix systems this signal is sent to request a status update from the
     /// process. By default, this signal is ignored.
     </span><span class="attr">#[cfg(any(
-        target_os = <span class="string">&quot;dragonfly&quot;</span>,
-        target_os = <span class="string">&quot;freebsd&quot;</span>,
-        target_os = <span class="string">&quot;macos&quot;</span>,
-        target_os = <span class="string">&quot;netbsd&quot;</span>,
-        target_os = <span class="string">&quot;openbsd&quot;
+        target_os = <span class="string">"dragonfly"</span>,
+        target_os = <span class="string">"freebsd"</span>,
+        target_os = <span class="string">"macos"</span>,
+        target_os = <span class="string">"netbsd"</span>,
+        target_os = <span class="string">"openbsd"
     </span>))]
     </span><span class="kw">pub const fn </span>info() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(libc::SIGINFO)
     }
 
-    <span class="doccomment">/// Represents the SIGINT signal.
+    <span class="doccomment">/// Represents the `SIGINT` signal.
     ///
     /// On Unix systems this signal is sent to interrupt a program.
     /// By default, the process is terminated by this signal.
@@ -674,7 +675,7 @@
         <span class="self">Self</span>(libc::SIGINT)
     }
 
-    <span class="doccomment">/// Represents the SIGIO signal.
+    <span class="doccomment">/// Represents the `SIGIO` signal.
     ///
     /// On Unix systems this signal is sent when I/O operations are possible
     /// on some file descriptor. By default, this signal is ignored.
@@ -682,7 +683,7 @@
         <span class="self">Self</span>(libc::SIGIO)
     }
 
-    <span class="doccomment">/// Represents the SIGPIPE signal.
+    <span class="doccomment">/// Represents the `SIGPIPE` signal.
     ///
     /// On Unix systems this signal is sent when the process attempts to write
     /// to a pipe which has no reader. By default, the process is terminated by
@@ -691,7 +692,7 @@
         <span class="self">Self</span>(libc::SIGPIPE)
     }
 
-    <span class="doccomment">/// Represents the SIGQUIT signal.
+    <span class="doccomment">/// Represents the `SIGQUIT` signal.
     ///
     /// On Unix systems this signal is sent to issue a shutdown of the
     /// process, after which the OS will dump the process core.
@@ -700,7 +701,7 @@
         <span class="self">Self</span>(libc::SIGQUIT)
     }
 
-    <span class="doccomment">/// Represents the SIGTERM signal.
+    <span class="doccomment">/// Represents the `SIGTERM` signal.
     ///
     /// On Unix systems this signal is sent to issue a shutdown of the
     /// process. By default, the process is terminated by this signal.
@@ -708,7 +709,7 @@
         <span class="self">Self</span>(libc::SIGTERM)
     }
 
-    <span class="doccomment">/// Represents the SIGUSR1 signal.
+    <span class="doccomment">/// Represents the `SIGUSR1` signal.
     ///
     /// On Unix systems this is a user defined signal.
     /// By default, the process is terminated by this signal.
@@ -716,7 +717,7 @@
         <span class="self">Self</span>(libc::SIGUSR1)
     }
 
-    <span class="doccomment">/// Represents the SIGUSR2 signal.
+    <span class="doccomment">/// Represents the `SIGUSR2` signal.
     ///
     /// On Unix systems this is a user defined signal.
     /// By default, the process is terminated by this signal.
@@ -724,7 +725,7 @@
         <span class="self">Self</span>(libc::SIGUSR2)
     }
 
-    <span class="doccomment">/// Represents the SIGWINCH signal.
+    <span class="doccomment">/// Represents the `SIGWINCH` signal.
     ///
     /// On Unix systems this signal is sent when the terminal window is resized.
     /// By default, this signal is ignored.
@@ -754,7 +755,7 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>SignalInfo {
     <span class="kw">fn </span>default() -&gt; SignalInfo {
         SignalInfo {
-            event_info: Default::default(),
+            event_info: EventInfo::default(),
             init: Once::new(),
             initialized: AtomicBool::new(<span class="bool-val">false</span>),
         }
@@ -769,7 +770,7 @@
 /// 2. Wake up the driver by writing a byte to a pipe
 ///
 /// Those two operations should both be async-signal safe.
-</span><span class="kw">fn </span>action(globals: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>Globals, signal: libc::c_int) {
+</span><span class="kw">fn </span>action(globals: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>Globals, signal: libc::c_int) {
     globals.record_event(signal <span class="kw">as </span>EventId);
 
     <span class="comment">// Send a wakeup, ignore any errors (anything reasonably possible is
@@ -781,14 +782,14 @@
 <span class="doccomment">/// Enables this module to receive signal notifications for the `signal`
 /// provided.
 ///
-/// This will register the signal handler if it hasn&#39;t already been registered,
+/// This will register the signal handler if it hasn't already been registered,
 /// returning any error along the way if that fails.
 </span><span class="kw">fn </span>signal_enable(signal: SignalKind, handle: <span class="kw-2">&amp;</span>Handle) -&gt; io::Result&lt;()&gt; {
     <span class="kw">let </span>signal = signal.<span class="number">0</span>;
     <span class="kw">if </span>signal &lt; <span class="number">0 </span>|| signal_hook_registry::FORBIDDEN.contains(<span class="kw-2">&amp;</span>signal) {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
             ErrorKind::Other,
-            <span class="macro">format!</span>(<span class="string">&quot;Refusing to register signal {}&quot;</span>, signal),
+            <span class="macro">format!</span>(<span class="string">"Refusing to register signal {}"</span>, signal),
         ));
     }
 
@@ -798,7 +799,7 @@
     <span class="kw">let </span>globals = globals();
     <span class="kw">let </span>siginfo = <span class="kw">match </span>globals.storage().get(signal <span class="kw">as </span>EventId) {
         <span class="prelude-val">Some</span>(slot) =&gt; slot,
-        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">&quot;signal too large&quot;</span>)),
+        <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(io::Error::new(io::ErrorKind::Other, <span class="string">"signal too large"</span>)),
     };
     <span class="kw">let </span><span class="kw-2">mut </span>registered = <span class="prelude-val">Ok</span>(());
     siginfo.init.call_once(|| {
@@ -810,14 +811,14 @@
         }
     });
     registered<span class="question-mark">?</span>;
-    <span class="comment">// If the call_once failed, it won&#39;t be retried on the next attempt to register the signal. In
+    <span class="comment">// If the call_once failed, it won't be retried on the next attempt to register the signal. In
     // such case it is not run, registered is still `Ok(())`, initialized is still `false`.
     </span><span class="kw">if </span>siginfo.initialized.load(Ordering::Relaxed) {
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else </span>{
         <span class="prelude-val">Err</span>(Error::new(
             ErrorKind::Other,
-            <span class="string">&quot;Failed to register signal handler&quot;</span>,
+            <span class="string">"Failed to register signal handler"</span>,
         ))
     }
 }
@@ -845,10 +846,10 @@
 ///   *at least one* signal, but possibly more.
 ///
 /// * Signal handling in general is relatively inefficient. Although some
-///   improvements are possible in this crate, it&#39;s recommended to not plan on
+///   improvements are possible in this crate, it's recommended to not plan on
 ///   having millions of signal channels open.
 ///
-/// If you&#39;ve got any questions about this feel free to open an issue on the
+/// If you've got any questions about this feel free to open an issue on the
 /// repo! New approaches to alleviate some of these limitations are always
 /// appreciated!
 ///
@@ -860,10 +861,10 @@
 /// entire process**.
 ///
 /// For example, Unix systems will terminate a process by default when it
-/// receives SIGINT. But, when a `Signal` instance is created to listen for
-/// this signal, the next SIGINT that arrives will be translated to a stream
+/// receives `SIGINT`. But, when a `Signal` instance is created to listen for
+/// this signal, the next `SIGINT` that arrives will be translated to a stream
 /// event, and the process will continue to execute. **Even if this `Signal`
-/// instance is dropped, subsequent SIGINT deliveries will end up captured by
+/// instance is dropped, subsequent `SIGINT` deliveries will end up captured by
 /// Tokio, and the default platform behavior will NOT be reset**.
 ///
 /// Thus, applications should take care to ensure the expected signal behavior
@@ -871,7 +872,7 @@
 ///
 /// # Examples
 ///
-/// Wait for SIGHUP
+/// Wait for `SIGHUP`
 ///
 /// ```rust,no_run
 /// use tokio::signal::unix::{signal, SignalKind};
@@ -884,11 +885,11 @@
 ///     // Print whenever a HUP signal is received
 ///     loop {
 ///         sig.recv().await;
-///         println!(&quot;got signal HUP&quot;);
+///         println!("got signal HUP");
 ///     }
 /// }
 /// ```
-</span><span class="attr">#[must_use = <span class="string">&quot;streams do nothing unless polled&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"streams do nothing unless polled"</span>]
 #[derive(Debug)]
 </span><span class="kw">pub struct </span>Signal {
     inner: RxFuture,
@@ -954,7 +955,7 @@
     ///
     /// # Examples
     ///
-    /// Wait for SIGHUP
+    /// Wait for `SIGHUP`
     ///
     /// ```rust,no_run
     /// use tokio::signal::unix::{signal, SignalKind};
@@ -967,7 +968,7 @@
     ///     // Print whenever a HUP signal is received
     ///     loop {
     ///         stream.recv().await;
-    ///         println!(&quot;got signal HUP&quot;);
+    ///         println!("got signal HUP");
     ///     }
     /// }
     /// ```
@@ -1003,24 +1004,24 @@
     /// impl Future for MyFuture {
     ///     type Output = Option&lt;()&gt;;
     ///
-    ///     fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;&#39;_&gt;) -&gt; Poll&lt;Self::Output&gt; {
-    ///         println!(&quot;polling MyFuture&quot;);
+    ///     fn poll(mut self: Pin&lt;&amp;mut Self&gt;, cx: &amp;mut Context&lt;'_&gt;) -&gt; Poll&lt;Self::Output&gt; {
+    ///         println!("polling MyFuture");
     ///         self.signal.poll_recv(cx)
     ///     }
     /// }
     /// ```
-    </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
+    </span><span class="kw">pub fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.inner.poll_recv(cx)
     }
 }
 
 <span class="comment">// Work around for abstracting streams internally
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>InternalStream {
-    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt;;
+    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt;;
 }
 
 <span class="kw">impl </span>InternalStream <span class="kw">for </span>Signal {
-    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;()&gt;&gt; {
         <span class="self">self</span>.poll_recv(cx)
     }
 }

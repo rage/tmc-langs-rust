@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.25/src/value/tagged.rs`."><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_yaml/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.32/src/value/tagged.rs`."><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -486,7 +487,7 @@
 <span class="kw">use </span>std::hash::{Hash, Hasher};
 <span class="kw">use </span>std::mem;
 
-<span class="doccomment">/// A representation of YAML&#39;s `!Tag` syntax, used for enums.
+<span class="doccomment">/// A representation of YAML's `!Tag` syntax, used for enums.
 ///
 /// Refer to the example code on [`TaggedValue`] for an example of deserializing
 /// tagged values.
@@ -501,7 +502,7 @@
 /// use serde_yaml::value::TaggedValue;
 /// use std::collections::BTreeMap;
 ///
-/// let yaml = &quot;
+/// let yaml = "
 ///     scalar: !Thing x
 ///     sequence_flow: !Thing [first]
 ///     sequence_block: !Thing
@@ -509,17 +510,17 @@
 ///     mapping_flow: !Thing {k: v}
 ///     mapping_block: !Thing
 ///       k: v
-/// &quot;;
+/// ";
 ///
 /// let data: BTreeMap&lt;String, TaggedValue&gt; = serde_yaml::from_str(yaml).unwrap();
-/// assert!(data[&quot;scalar&quot;].tag == &quot;Thing&quot;);
-/// assert!(data[&quot;sequence_flow&quot;].tag == &quot;Thing&quot;);
-/// assert!(data[&quot;sequence_block&quot;].tag == &quot;Thing&quot;);
-/// assert!(data[&quot;mapping_flow&quot;].tag == &quot;Thing&quot;);
-/// assert!(data[&quot;mapping_block&quot;].tag == &quot;Thing&quot;);
+/// assert!(data["scalar"].tag == "Thing");
+/// assert!(data["sequence_flow"].tag == "Thing");
+/// assert!(data["sequence_block"].tag == "Thing");
+/// assert!(data["mapping_flow"].tag == "Thing");
+/// assert!(data["mapping_block"].tag == "Thing");
 ///
-/// // The leading &#39;!&#39; in tags are not significant. The following is also true.
-/// assert!(data[&quot;scalar&quot;].tag == &quot;!Thing&quot;);
+/// // The leading '!' in tags are not significant. The following is also true.
+/// assert!(data["scalar"].tag == "!Thing");
 /// ```
 </span><span class="attr">#[derive(Clone, PartialEq, PartialOrd, Hash, Debug)]
 </span><span class="kw">pub struct </span>TaggedValue {
@@ -532,27 +533,27 @@
 <span class="kw">impl </span>Tag {
     <span class="doccomment">/// Create tag.
     ///
-    /// The leading &#39;!&#39; is not significant. It may be provided, but does not
+    /// The leading '!' is not significant. It may be provided, but does not
     /// have to be. The following are equivalent:
     ///
     /// ```
     /// use serde_yaml::value::Tag;
     ///
-    /// assert_eq!(Tag::new(&quot;!Thing&quot;), Tag::new(&quot;Thing&quot;));
+    /// assert_eq!(Tag::new("!Thing"), Tag::new("Thing"));
     ///
-    /// let tag = Tag::new(&quot;Thing&quot;);
-    /// assert!(tag == &quot;Thing&quot;);
-    /// assert!(tag == &quot;!Thing&quot;);
-    /// assert!(tag.to_string() == &quot;!Thing&quot;);
+    /// let tag = Tag::new("Thing");
+    /// assert!(tag == "Thing");
+    /// assert!(tag == "!Thing");
+    /// assert!(tag.to_string() == "!Thing");
     ///
-    /// let tag = Tag::new(&quot;!Thing&quot;);
-    /// assert!(tag == &quot;Thing&quot;);
-    /// assert!(tag == &quot;!Thing&quot;);
-    /// assert!(tag.to_string() == &quot;!Thing&quot;);
+    /// let tag = Tag::new("!Thing");
+    /// assert!(tag == "Thing");
+    /// assert!(tag == "!Thing");
+    /// assert!(tag.to_string() == "!Thing");
     /// ```
     ///
     /// Such a tag would serialize to `!Thing` in YAML regardless of whether a
-    /// &#39;!&#39; was included in the call to `Tag::new`.
+    /// '!' was included in the call to `Tag::new`.
     ///
     /// # Panics
     ///
@@ -560,7 +561,7 @@
     /// tag.
     </span><span class="kw">pub fn </span>new(string: <span class="kw">impl </span>Into&lt;String&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>tag: String = string.into();
-        <span class="macro">assert!</span>(!tag.is_empty(), <span class="string">&quot;empty YAML tag is not allowed&quot;</span>);
+        <span class="macro">assert!</span>(!tag.is_empty(), <span class="string">"empty YAML tag is not allowed"</span>);
         Tag { string: tag }
     }
 }
@@ -592,8 +593,8 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>nobang(maybe_banged: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
-    <span class="kw">match </span>maybe_banged.strip_prefix(<span class="string">&#39;!&#39;</span>) {
-        <span class="prelude-val">Some</span>(<span class="string">&quot;&quot;</span>) | <span class="prelude-val">None </span>=&gt; maybe_banged,
+    <span class="kw">match </span>maybe_banged.strip_prefix(<span class="string">'!'</span>) {
+        <span class="prelude-val">Some</span>(<span class="string">""</span>) | <span class="prelude-val">None </span>=&gt; maybe_banged,
         <span class="prelude-val">Some</span>(unbanged) =&gt; unbanged,
     }
 }
@@ -635,7 +636,7 @@
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Tag {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        <span class="macro">write!</span>(formatter, <span class="string">&quot;!{}&quot;</span>, nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string))
+        <span class="macro">write!</span>(formatter, <span class="string">"!{}"</span>, nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.string))
     }
 }
 
@@ -650,9 +651,9 @@
     <span class="kw">where
         </span>S: Serializer,
     {
-        <span class="kw">struct </span>SerializeTag&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Tag);
+        <span class="kw">struct </span>SerializeTag&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Tag);
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Serialize <span class="kw">for </span>SerializeTag&lt;<span class="lifetime">&#39;a</span>&gt; {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Serialize <span class="kw">for </span>SerializeTag&lt;<span class="lifetime">'a</span>&gt; {
             <span class="kw">fn </span>serialize&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
             <span class="kw">where
                 </span>S: Serializer,
@@ -667,23 +668,23 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TaggedValue {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">struct </span>TaggedValueVisitor;
 
-        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValueVisitor {
+        <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TaggedValueVisitor {
             <span class="kw">type </span>Value = TaggedValue;
 
             <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-                formatter.write_str(<span class="string">&quot;a YAML value with a !Tag&quot;</span>)
+                formatter.write_str(<span class="string">"a YAML value with a !Tag"</span>)
             }
 
             <span class="kw">fn </span>visit_enum&lt;A&gt;(<span class="self">self</span>, data: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
             <span class="kw">where
-                </span>A: EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
+                </span>A: EnumAccess&lt;<span class="lifetime">'de</span>&gt;,
             {
                 <span class="kw">let </span>(tag, contents) = data.variant_seed(TagStringVisitor)<span class="question-mark">?</span>;
                 <span class="kw">let </span>value = contents.newtype_variant()<span class="question-mark">?</span>;
@@ -695,19 +696,19 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TaggedValue {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_enum(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         drop(<span class="self">self</span>);
         visitor.visit_unit()
@@ -720,13 +721,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TaggedValue {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TaggedValue {
     <span class="kw">type </span>Error = Error;
     <span class="kw">type </span>Variant = Value;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), Error&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tag = StrDeserializer::&lt;Error&gt;::new(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.tag.string));
         <span class="kw">let </span>value = seed.deserialize(tag)<span class="question-mark">?</span>;
@@ -734,7 +735,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>Value {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Value {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -743,51 +744,51 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, Error&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         seed.deserialize(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span>Value::Sequence(v) = <span class="self">self </span>{
             Deserializer::deserialize_any(SeqDeserializer::new(v), visitor)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">"tuple variant"</span>))
         }
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span>Value::Mapping(v) = <span class="self">self </span>{
             Deserializer::deserialize_any(MapDeserializer::new(v), visitor)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">"struct variant"</span>))
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserializer&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>TaggedValue {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserializer&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'de </span>TaggedValue {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>deserialize_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_enum(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>deserialize_ignored_any&lt;V&gt;(<span class="self">self</span>, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         visitor.visit_unit()
     }
@@ -799,13 +800,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; EnumAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>TaggedValue {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; EnumAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'de </span>TaggedValue {
     <span class="kw">type </span>Error = Error;
-    <span class="kw">type </span>Variant = <span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>Value;
+    <span class="kw">type </span>Variant = <span class="kw-2">&amp;</span><span class="lifetime">'de </span>Value;
 
     <span class="kw">fn </span>variant_seed&lt;V&gt;(<span class="self">self</span>, seed: V) -&gt; <span class="prelude-ty">Result</span>&lt;(V::Value, <span class="self">Self</span>::Variant), Error&gt;
     <span class="kw">where
-        </span>V: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">let </span>tag = BorrowedStrDeserializer::&lt;Error&gt;::new(nobang(<span class="kw-2">&amp;</span><span class="self">self</span>.tag.string));
         <span class="kw">let </span>value = seed.deserialize(tag)<span class="question-mark">?</span>;
@@ -813,7 +814,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; VariantAccess&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de </span>Value {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; VariantAccess&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'de </span>Value {
     <span class="kw">type </span>Error = Error;
 
     <span class="kw">fn </span>unit_variant(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -822,45 +823,45 @@
 
     <span class="kw">fn </span>newtype_variant_seed&lt;T&gt;(<span class="self">self</span>, seed: T) -&gt; <span class="prelude-ty">Result</span>&lt;T::Value, Error&gt;
     <span class="kw">where
-        </span>T: DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>T: DeserializeSeed&lt;<span class="lifetime">'de</span>&gt;,
     {
         seed.deserialize(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>tuple_variant&lt;V&gt;(<span class="self">self</span>, _len: usize, visitor: V) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span>Value::Sequence(v) = <span class="self">self </span>{
             Deserializer::deserialize_any(SeqRefDeserializer::new(v), visitor)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;tuple variant&quot;</span>))
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">"tuple variant"</span>))
         }
     }
 
     <span class="kw">fn </span>struct_variant&lt;V&gt;(
         <span class="self">self</span>,
-        _fields: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str],
+        _fields: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str],
         visitor: V,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;V::Value, Error&gt;
     <span class="kw">where
-        </span>V: Visitor&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>V: Visitor&lt;<span class="lifetime">'de</span>&gt;,
     {
         <span class="kw">if let </span>Value::Mapping(v) = <span class="self">self </span>{
             Deserializer::deserialize_any(MapRefDeserializer::new(v), visitor)
         } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
+            <span class="prelude-val">Err</span>(Error::invalid_type(<span class="self">self</span>.unexpected(), <span class="kw-2">&amp;</span><span class="string">"struct variant"</span>))
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TagStringVisitor;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TagStringVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TagStringVisitor {
     <span class="kw">type </span>Value = Tag;
 
     <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        formatter.write_str(<span class="string">&quot;a YAML tag string&quot;</span>)
+        formatter.write_str(<span class="string">"a YAML tag string"</span>)
     }
 
     <span class="kw">fn </span>visit_str&lt;E&gt;(<span class="self">self</span>, string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, E&gt;
@@ -875,18 +876,18 @@
         </span>E: serde::de::Error,
     {
         <span class="kw">if </span>string.is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(E::custom(<span class="string">&quot;empty YAML tag is not allowed&quot;</span>));
+            <span class="kw">return </span><span class="prelude-val">Err</span>(E::custom(<span class="string">"empty YAML tag is not allowed"</span>));
         }
         <span class="prelude-val">Ok</span>(Tag::new(string))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; DeserializeSeed&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>TagStringVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; DeserializeSeed&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>TagStringVisitor {
     <span class="kw">type </span>Value = Tag;
 
     <span class="kw">fn </span>deserialize&lt;D&gt;(<span class="self">self</span>, deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         deserializer.deserialize_string(<span class="self">self</span>)
     }
@@ -915,7 +916,7 @@
             }
             <span class="kw">match </span><span class="self">self </span>{
                 CheckForTag::Empty =&gt; {
-                    <span class="kw">if </span>s == <span class="string">&quot;!&quot; </span>{
+                    <span class="kw">if </span>s == <span class="string">"!" </span>{
                         <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::Bang;
                     } <span class="kw">else </span>{
                         <span class="kw-2">*</span><span class="self">self </span>= CheckForTag::NotTag(s.to_owned());
@@ -938,10 +939,10 @@
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>check_for_tag = CheckForTag::Empty;
-    fmt::write(<span class="kw-2">&amp;mut </span>check_for_tag, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, value)).unwrap();
+    fmt::write(<span class="kw-2">&amp;mut </span>check_for_tag, <span class="macro">format_args!</span>(<span class="string">"{}"</span>, value)).unwrap();
     <span class="kw">match </span>check_for_tag {
         CheckForTag::Empty =&gt; MaybeTag::NotTag(String::new()),
-        CheckForTag::Bang =&gt; MaybeTag::NotTag(<span class="string">&quot;!&quot;</span>.to_owned()),
+        CheckForTag::Bang =&gt; MaybeTag::NotTag(<span class="string">"!"</span>.to_owned()),
         CheckForTag::Tag(string) =&gt; MaybeTag::Tag(string),
         CheckForTag::NotTag(string) =&gt; MaybeTag::NotTag(string),
     }

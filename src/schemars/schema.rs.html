@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars-0.8.15/src/schema.rs`."><title>schema.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="schemars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../schemars/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars-0.8.16/src/schema.rs`."><title>schema.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="schemars" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -553,9 +554,9 @@
 JSON Schema types.
 */
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;impl_json_schema&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"impl_json_schema"</span>)]
 </span><span class="kw">use crate as </span>schemars;
-<span class="attr">#[cfg(feature = <span class="string">&quot;impl_json_schema&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"impl_json_schema"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::JsonSchema;
 <span class="kw">use crate</span>::{Map, Set};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -565,7 +566,7 @@ JSON Schema types.
 <span class="doccomment">/// A JSON Schema.
 </span><span class="attr">#[allow(clippy::large_enum_variant)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>Schema {
     <span class="doccomment">/// A trivial boolean JSON Schema.
@@ -638,13 +639,13 @@ JSON Schema types.
 
 <span class="doccomment">/// The root object of a JSON Schema document.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>RootSchema {
     <span class="doccomment">/// The `$schema` keyword.
     ///
-    /// See [JSON Schema 8.1.1. The &quot;$schema&quot; Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.1.1).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;$schema&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 8.1.1. The "$schema" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.1.1).
+    </span><span class="attr">#[serde(rename = <span class="string">"$schema"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>meta_schema: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// The root schema itself.
     </span><span class="attr">#[serde(flatten)]
@@ -654,83 +655,83 @@ JSON Schema types.
     /// In JSON Schema draft 2019-09 this was replaced by $defs, but in Schemars this is still
     /// serialized as `definitions` for backward-compatibility.
     ///
-    /// See [JSON Schema 8.2.5. Schema Re-Use With &quot;$defs&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5),
-    /// and [JSON Schema (draft 07) 9. Schema Re-Use With &quot;definitions&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).
-    </span><span class="attr">#[serde(alias = <span class="string">&quot;$defs&quot;</span>, skip_serializing_if = <span class="string">&quot;Map::is_empty&quot;</span>)]
+    /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5),
+    /// and [JSON Schema (draft 07) 9. Schema Re-Use With "definitions"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).
+    </span><span class="attr">#[serde(alias = <span class="string">"$defs"</span>, skip_serializing_if = <span class="string">"Map::is_empty"</span>)]
     </span><span class="kw">pub </span>definitions: Map&lt;String, Schema&gt;,
 }
 
 <span class="doccomment">/// A JSON Schema object.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>SchemaObject {
     <span class="doccomment">/// Properties which annotate the [`SchemaObject`] which typically have no effect when an object is being validated against the schema.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>metadata: <span class="prelude-ty">Option</span>&lt;Box&lt;Metadata&gt;&gt;,
     <span class="doccomment">/// The `type` keyword.
     ///
-    /// See [JSON Schema Validation 6.1.1. &quot;type&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1)
+    /// See [JSON Schema Validation 6.1.1. "type"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1)
     /// and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;type&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">"type"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>instance_type: <span class="prelude-ty">Option</span>&lt;SingleOrVec&lt;InstanceType&gt;&gt;,
     <span class="doccomment">/// The `format` keyword.
     ///
-    /// See [JSON Schema Validation 7. A Vocabulary for Semantic Content With &quot;format&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-7).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 7. A Vocabulary for Semantic Content With "format"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-7).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>format: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// The `enum` keyword.
     ///
-    /// See [JSON Schema Validation 6.1.2. &quot;enum&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.2)
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;enum&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.1.2. "enum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.2)
+    </span><span class="attr">#[serde(rename = <span class="string">"enum"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>enum_values: <span class="prelude-ty">Option</span>&lt;Vec&lt;Value&gt;&gt;,
     <span class="doccomment">/// The `const` keyword.
     ///
-    /// See [JSON Schema Validation 6.1.3. &quot;const&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.3)
+    /// See [JSON Schema Validation 6.1.3. "const"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.3)
     </span><span class="attr">#[serde(
-        rename = <span class="string">&quot;const&quot;</span>,
-        skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>,
-        deserialize_with = <span class="string">&quot;allow_null&quot;
+        rename = <span class="string">"const"</span>,
+        skip_serializing_if = <span class="string">"Option::is_none"</span>,
+        deserialize_with = <span class="string">"allow_null"
     </span>)]
     </span><span class="kw">pub </span>const_value: <span class="prelude-ty">Option</span>&lt;Value&gt;,
     <span class="doccomment">/// Properties of the [`SchemaObject`] which define validation assertions in terms of other schemas.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>subschemas: <span class="prelude-ty">Option</span>&lt;Box&lt;SubschemaValidation&gt;&gt;,
     <span class="doccomment">/// Properties of the [`SchemaObject`] which define validation assertions for numbers.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>number: <span class="prelude-ty">Option</span>&lt;Box&lt;NumberValidation&gt;&gt;,
     <span class="doccomment">/// Properties of the [`SchemaObject`] which define validation assertions for strings.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>string: <span class="prelude-ty">Option</span>&lt;Box&lt;StringValidation&gt;&gt;,
     <span class="doccomment">/// Properties of the [`SchemaObject`] which define validation assertions for arrays.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>array: <span class="prelude-ty">Option</span>&lt;Box&lt;ArrayValidation&gt;&gt;,
     <span class="doccomment">/// Properties of the [`SchemaObject`] which define validation assertions for objects.
-    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">&quot;skip_if_default&quot;</span>)]
+    </span><span class="attr">#[serde(flatten, deserialize_with = <span class="string">"skip_if_default"</span>)]
     </span><span class="kw">pub </span>object: <span class="prelude-ty">Option</span>&lt;Box&lt;ObjectValidation&gt;&gt;,
     <span class="doccomment">/// The `$ref` keyword.
     ///
-    /// See [JSON Schema 8.2.4.1. Direct References with &quot;$ref&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.4.1).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;$ref&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 8.2.4.1. Direct References with "$ref"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.4.1).
+    </span><span class="attr">#[serde(rename = <span class="string">"$ref"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>reference: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// Arbitrary extra properties which are not part of the JSON Schema specification, or which `schemars` does not support.
     </span><span class="attr">#[serde(flatten)]
     </span><span class="kw">pub </span>extensions: Map&lt;String, Value&gt;,
 }
 
-<span class="comment">// Deserializing &quot;null&quot; to `Option&lt;Value&gt;` directly results in `None`,
+<span class="comment">// Deserializing "null" to `Option&lt;Value&gt;` directly results in `None`,
 // this function instead makes it deserialize to `Some(Value::Null)`.
-</span><span class="kw">fn </span>allow_null&lt;<span class="lifetime">&#39;de</span>, D&gt;(de: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Value&gt;, D::Error&gt;
+</span><span class="kw">fn </span>allow_null&lt;<span class="lifetime">'de</span>, D&gt;(de: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Value&gt;, D::Error&gt;
 <span class="kw">where
-    </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+    </span>D: serde::Deserializer&lt;<span class="lifetime">'de</span>&gt;,
 {
     Value::deserialize(de).map(Option::Some)
 }
 
-<span class="kw">fn </span>skip_if_default&lt;<span class="lifetime">&#39;de</span>, D, T&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt;, D::Error&gt;
+<span class="kw">fn </span>skip_if_default&lt;<span class="lifetime">'de</span>, D, T&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Box&lt;T&gt;&gt;, D::Error&gt;
 <span class="kw">where
-    </span>D: serde::Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
-    T: Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; + Default + PartialEq,
+    </span>D: serde::Deserializer&lt;<span class="lifetime">'de</span>&gt;,
+    T: Deserialize&lt;<span class="lifetime">'de</span>&gt; + Default + PartialEq,
 {
     <span class="kw">let </span>value = T::deserialize(deserializer)<span class="question-mark">?</span>;
     <span class="kw">if </span>value == T::default() {
@@ -744,11 +745,11 @@ JSON Schema types.
     (<span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$ret</span>:ty) =&gt; {
         <span class="macro">get_or_insert_default_fn!</span>(
             <span class="macro">concat!</span>(
-                <span class="string">&quot;Returns a mutable reference to this schema&#39;s [`&quot;</span>,
+                <span class="string">"Returns a mutable reference to this schema's [`"</span>,
                 <span class="macro">stringify!</span>(<span class="macro-nonterminal">$ret</span>),
-                <span class="string">&quot;`](#structfield.&quot;</span>,
+                <span class="string">"`](#structfield."</span>,
                 <span class="macro">stringify!</span>(<span class="macro-nonterminal">$name</span>),
-                <span class="string">&quot;), creating it if it was `None`.&quot;
+                <span class="string">"), creating it if it was `None`."
             </span>),
             <span class="macro-nonterminal">$name</span>,
             <span class="macro-nonterminal">$ret
@@ -785,7 +786,7 @@ JSON Schema types.
     <span class="doccomment">/// Returns `true` if `self` accepts values of the given type, according to the [`instance_type`](struct.SchemaObject.html#structfield.instance_type) field.
     ///
     /// This is a basic check that always returns `true` if no `instance_type` is specified on the schema,
-    /// and does not check any subschemas. Because of this, both `{}` and  `{&quot;not&quot;: {}}` accept any type according
+    /// and does not check any subschemas. Because of this, both `{}` and  `{"not": {}}` accept any type according
     /// to this method.
     </span><span class="kw">pub fn </span>has_type(<span class="kw-2">&amp;</span><span class="self">self</span>, ty: InstanceType) -&gt; bool {
         <span class="self">self</span>.instance_type
@@ -809,51 +810,51 @@ JSON Schema types.
 
 <span class="doccomment">/// Properties which annotate a [`SchemaObject`] which typically have no effect when an object is being validated against the schema.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>Metadata {
     <span class="doccomment">/// The `$id` keyword.
     ///
-    /// See [JSON Schema 8.2.2. The &quot;$id&quot; Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;$id&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 8.2.2. The "$id" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2).
+    </span><span class="attr">#[serde(rename = <span class="string">"$id"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>id: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// The `title` keyword.
     ///
-    /// See [JSON Schema Validation 9.1. &quot;title&quot; and &quot;description&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 9.1. "title" and "description"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>title: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// The `description` keyword.
     ///
-    /// See [JSON Schema Validation 9.1. &quot;title&quot; and &quot;description&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 9.1. "title" and "description"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>description: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// The `default` keyword.
     ///
-    /// See [JSON Schema Validation 9.2. &quot;default&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.2).
+    /// See [JSON Schema Validation 9.2. "default"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.2).
     </span><span class="attr">#[serde(
-        skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>,
-        deserialize_with = <span class="string">&quot;allow_null&quot;
+        skip_serializing_if = <span class="string">"Option::is_none"</span>,
+        deserialize_with = <span class="string">"allow_null"
     </span>)]
     </span><span class="kw">pub </span>default: <span class="prelude-ty">Option</span>&lt;Value&gt;,
     <span class="doccomment">/// The `deprecated` keyword.
     ///
-    /// See [JSON Schema Validation 9.3. &quot;deprecated&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;is_false&quot;</span>)]
+    /// See [JSON Schema Validation 9.3. "deprecated"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"is_false"</span>)]
     </span><span class="kw">pub </span>deprecated: bool,
     <span class="doccomment">/// The `readOnly` keyword.
     ///
-    /// See [JSON Schema Validation 9.4. &quot;readOnly&quot; and &quot;writeOnly&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;is_false&quot;</span>)]
+    /// See [JSON Schema Validation 9.4. "readOnly" and "writeOnly"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"is_false"</span>)]
     </span><span class="kw">pub </span>read_only: bool,
     <span class="doccomment">/// The `writeOnly` keyword.
     ///
-    /// See [JSON Schema Validation 9.4. &quot;readOnly&quot; and &quot;writeOnly&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;is_false&quot;</span>)]
+    /// See [JSON Schema Validation 9.4. "readOnly" and "writeOnly"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"is_false"</span>)]
     </span><span class="kw">pub </span>write_only: bool,
     <span class="doccomment">/// The `examples` keyword.
     ///
-    /// See [JSON Schema Validation 9.5. &quot;examples&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>)]
+    /// See [JSON Schema Validation 9.5. "examples"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Vec::is_empty"</span>)]
     </span><span class="kw">pub </span>examples: Vec&lt;Value&gt;,
 }
 
@@ -864,176 +865,176 @@ JSON Schema types.
 
 <span class="doccomment">/// Properties of a [`SchemaObject`] which define validation assertions in terms of other schemas.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>SubschemaValidation {
     <span class="doccomment">/// The `allOf` keyword.
     ///
-    /// See [JSON Schema 9.2.1.1. &quot;allOf&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.1.1. "allOf"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>all_of: <span class="prelude-ty">Option</span>&lt;Vec&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `anyOf` keyword.
     ///
-    /// See [JSON Schema 9.2.1.2. &quot;anyOf&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.1.2. "anyOf"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>any_of: <span class="prelude-ty">Option</span>&lt;Vec&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `oneOf` keyword.
     ///
-    /// See [JSON Schema 9.2.1.3. &quot;oneOf&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.1.3. "oneOf"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>one_of: <span class="prelude-ty">Option</span>&lt;Vec&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `not` keyword.
     ///
-    /// See [JSON Schema 9.2.1.4. &quot;not&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.4).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.1.4. "not"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.4).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>not: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `if` keyword.
     ///
-    /// See [JSON Schema 9.2.2.1. &quot;if&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.1).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;if&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.2.1. "if"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.1).
+    </span><span class="attr">#[serde(rename = <span class="string">"if"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>if_schema: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `then` keyword.
     ///
-    /// See [JSON Schema 9.2.2.2. &quot;then&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.2).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;then&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.2.2. "then"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.2).
+    </span><span class="attr">#[serde(rename = <span class="string">"then"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>then_schema: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `else` keyword.
     ///
-    /// See [JSON Schema 9.2.2.3. &quot;else&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.3).
-    </span><span class="attr">#[serde(rename = <span class="string">&quot;else&quot;</span>, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.2.2.3. "else"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.3).
+    </span><span class="attr">#[serde(rename = <span class="string">"else"</span>, skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>else_schema: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
 }
 
 <span class="doccomment">/// Properties of a [`SchemaObject`] which define validation assertions for numbers.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>NumberValidation {
     <span class="doccomment">/// The `multipleOf` keyword.
     ///
-    /// See [JSON Schema Validation 6.2.1. &quot;multipleOf&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.2.1. "multipleOf"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>multiple_of: <span class="prelude-ty">Option</span>&lt;f64&gt;,
     <span class="doccomment">/// The `maximum` keyword.
     ///
-    /// See [JSON Schema Validation 6.2.2. &quot;maximum&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.2.2. "maximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>maximum: <span class="prelude-ty">Option</span>&lt;f64&gt;,
     <span class="doccomment">/// The `exclusiveMaximum` keyword.
     ///
-    /// See [JSON Schema Validation 6.2.3. &quot;exclusiveMaximum&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.2.3. "exclusiveMaximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>exclusive_maximum: <span class="prelude-ty">Option</span>&lt;f64&gt;,
     <span class="doccomment">/// The `minimum` keyword.
     ///
-    /// See [JSON Schema Validation 6.2.4. &quot;minimum&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.2.4. "minimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>minimum: <span class="prelude-ty">Option</span>&lt;f64&gt;,
     <span class="doccomment">/// The `exclusiveMinimum` keyword.
     ///
-    /// See [JSON Schema Validation 6.2.5. &quot;exclusiveMinimum&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.5).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.2.5. "exclusiveMinimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.5).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>exclusive_minimum: <span class="prelude-ty">Option</span>&lt;f64&gt;,
 }
 
 <span class="doccomment">/// Properties of a [`SchemaObject`] which define validation assertions for strings.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>StringValidation {
     <span class="doccomment">/// The `maxLength` keyword.
     ///
-    /// See [JSON Schema Validation 6.3.1. &quot;maxLength&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.3.1. "maxLength"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>max_length: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `minLength` keyword.
     ///
-    /// See [JSON Schema Validation 6.3.2. &quot;minLength&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.3.2. "minLength"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>min_length: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `pattern` keyword.
     ///
-    /// See [JSON Schema Validation 6.3.3. &quot;pattern&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.3.3. "pattern"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>pattern: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="doccomment">/// Properties of a [`SchemaObject`] which define validation assertions for arrays.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>ArrayValidation {
     <span class="doccomment">/// The `items` keyword.
     ///
-    /// See [JSON Schema 9.3.1.1. &quot;items&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.3.1.1. "items"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>items: <span class="prelude-ty">Option</span>&lt;SingleOrVec&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `additionalItems` keyword.
     ///
-    /// See [JSON Schema 9.3.1.2. &quot;additionalItems&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.3.1.2. "additionalItems"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>additional_items: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `maxItems` keyword.
     ///
-    /// See [JSON Schema Validation 6.4.1. &quot;maxItems&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.4.1. "maxItems"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>max_items: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `minItems` keyword.
     ///
-    /// See [JSON Schema Validation 6.4.2. &quot;minItems&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.4.2. "minItems"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>min_items: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `uniqueItems` keyword.
     ///
-    /// See [JSON Schema Validation 6.4.3. &quot;uniqueItems&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.4.3. "uniqueItems"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>unique_items: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="doccomment">/// The `contains` keyword.
     ///
-    /// See [JSON Schema 9.3.1.4. &quot;contains&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.3.1.4. "contains"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>contains: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
 }
 
 <span class="doccomment">/// Properties of a [`SchemaObject`] which define validation assertions for objects.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>, default)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>, default)]
 </span><span class="kw">pub struct </span>ObjectValidation {
     <span class="doccomment">/// The `maxProperties` keyword.
     ///
-    /// See [JSON Schema Validation 6.5.1. &quot;maxProperties&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.5.1. "maxProperties"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>max_properties: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `minProperties` keyword.
     ///
-    /// See [JSON Schema Validation 6.5.2. &quot;minProperties&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema Validation 6.5.2. "minProperties"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>min_properties: <span class="prelude-ty">Option</span>&lt;u32&gt;,
     <span class="doccomment">/// The `required` keyword.
     ///
-    /// See [JSON Schema Validation 6.5.3. &quot;required&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Set::is_empty&quot;</span>)]
+    /// See [JSON Schema Validation 6.5.3. "required"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Set::is_empty"</span>)]
     </span><span class="kw">pub </span>required: Set&lt;String&gt;,
     <span class="doccomment">/// The `properties` keyword.
     ///
-    /// See [JSON Schema 9.3.2.1. &quot;properties&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Map::is_empty&quot;</span>)]
+    /// See [JSON Schema 9.3.2.1. "properties"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Map::is_empty"</span>)]
     </span><span class="kw">pub </span>properties: Map&lt;String, Schema&gt;,
     <span class="doccomment">/// The `patternProperties` keyword.
     ///
-    /// See [JSON Schema 9.3.2.2. &quot;patternProperties&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.2).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Map::is_empty&quot;</span>)]
+    /// See [JSON Schema 9.3.2.2. "patternProperties"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.2).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Map::is_empty"</span>)]
     </span><span class="kw">pub </span>pattern_properties: Map&lt;String, Schema&gt;,
     <span class="doccomment">/// The `additionalProperties` keyword.
     ///
-    /// See [JSON Schema 9.3.2.3. &quot;additionalProperties&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.3.2.3. "additionalProperties"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>additional_properties: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
     <span class="doccomment">/// The `propertyNames` keyword.
     ///
-    /// See [JSON Schema 9.3.2.5. &quot;propertyNames&quot;](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).
-    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    /// See [JSON Schema 9.3.2.5. "propertyNames"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).
+    </span><span class="attr">#[serde(skip_serializing_if = <span class="string">"Option::is_none"</span>)]
     </span><span class="kw">pub </span>property_names: <span class="prelude-ty">Option</span>&lt;Box&lt;Schema&gt;&gt;,
 }
 
@@ -1041,8 +1042,8 @@ JSON Schema types.
 ///
 /// See [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
-#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
+#[serde(rename_all = <span class="string">"camelCase"</span>)]
 </span><span class="kw">pub enum </span>InstanceType {
     Null,
     Boolean,
@@ -1057,7 +1058,7 @@ JSON Schema types.
 ///
 /// In some contexts, a `Single` may be semantically distinct from a `Vec` containing only item.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = <span class="string">&quot;impl_json_schema&quot;</span>, derive(JsonSchema))]
+#[cfg_attr(feature = <span class="string">"impl_json_schema"</span>, derive(JsonSchema))]
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>SingleOrVec&lt;T&gt; {
     Single(Box&lt;T&gt;),

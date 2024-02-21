@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/parser/strings.rs`."><title>strings.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../toml_edit/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/parser/strings.rs`."><title>strings.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -476,6 +477,7 @@
 <a href="#476" id="476">476</a>
 <a href="#477" id="477">477</a>
 <a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::char;
 <span class="kw">use </span>std::ops::RangeInclusive;
@@ -483,23 +485,22 @@
 <span class="kw">use </span>winnow::combinator::alt;
 <span class="kw">use </span>winnow::combinator::cut_err;
 <span class="kw">use </span>winnow::combinator::delimited;
+<span class="kw">use </span>winnow::combinator::empty;
 <span class="kw">use </span>winnow::combinator::fail;
 <span class="kw">use </span>winnow::combinator::opt;
 <span class="kw">use </span>winnow::combinator::peek;
 <span class="kw">use </span>winnow::combinator::preceded;
 <span class="kw">use </span>winnow::combinator::repeat;
-<span class="kw">use </span>winnow::combinator::success;
 <span class="kw">use </span>winnow::combinator::terminated;
+<span class="kw">use </span>winnow::combinator::trace;
 <span class="kw">use </span>winnow::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>winnow::stream::Stream;
 <span class="kw">use </span>winnow::token::any;
 <span class="kw">use </span>winnow::token::none_of;
 <span class="kw">use </span>winnow::token::one_of;
-<span class="kw">use </span>winnow::token::tag;
 <span class="kw">use </span>winnow::token::take_while;
-<span class="kw">use </span>winnow::trace::trace;
 
-<span class="kw">use </span><span class="kw">crate</span>::parser::errors::CustomError;
+<span class="kw">use </span><span class="kw">crate</span>::parser::error::CustomError;
 <span class="kw">use </span><span class="kw">crate</span>::parser::numbers::HEXDIG;
 <span class="kw">use </span><span class="kw">crate</span>::parser::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::parser::trivia::{from_utf8_unchecked, newline, ws, ws_newlines, NON_ASCII, WSCHAR};
@@ -507,9 +508,9 @@
 <span class="comment">// ;; String
 
 // string = ml-basic-string / basic-string / ml-literal-string / literal-string
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>string&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
     trace(
-        <span class="string">&quot;string&quot;</span>,
+        <span class="string">"string"</span>,
         alt((
             ml_basic_string,
             basic_string,
@@ -523,11 +524,11 @@
 <span class="comment">// ;; Basic String
 
 // basic-string = quotation-mark *basic-char quotation-mark
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>basic_string&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
-    trace(<span class="string">&quot;basic-string&quot;</span>, |input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>basic_string&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
+    trace(<span class="string">"basic-string"</span>, |input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         <span class="kw">let _ </span>= one_of(QUOTATION_MARK).parse_next(input)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>c = Cow::Borrowed(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>c = Cow::Borrowed(<span class="string">""</span>);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ci) = opt(basic_chars).parse_next(input)<span class="question-mark">? </span>{
             c = ci;
         }
@@ -536,7 +537,7 @@
         }
 
         <span class="kw">let _ </span>= cut_err(one_of(QUOTATION_MARK))
-            .context(StrContext::Label(<span class="string">&quot;basic string&quot;</span>))
+            .context(StrContext::Label(<span class="string">"basic string"</span>))
             .parse_next(input)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(c)
@@ -544,11 +545,11 @@
     .parse_next(input)
 }
 
-<span class="comment">// quotation-mark = %x22            ; &quot;
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>QUOTATION_MARK: u8 = <span class="string">b&#39;&quot;&#39;</span>;
+<span class="comment">// quotation-mark = %x22            ; "
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>QUOTATION_MARK: u8 = <span class="string">b'"'</span>;
 
 <span class="comment">// basic-char = basic-unescaped / escaped
-</span><span class="kw">fn </span>basic_chars&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
+</span><span class="kw">fn </span>basic_chars&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
     alt((
         <span class="comment">// Deviate from the official grammar by batching the unescaped chars so we build a string a
         // chunk at a time, rather than a `char` at a time.
@@ -570,14 +571,14 @@
 ) = (WSCHAR, <span class="number">0x21</span>, <span class="number">0x23</span>..=<span class="number">0x5B</span>, <span class="number">0x5D</span>..=<span class="number">0x7E</span>, NON_ASCII);
 
 <span class="comment">// escaped = escape escape-seq-char
-</span><span class="kw">fn </span>escaped(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;char&gt; {
+</span><span class="kw">fn </span>escaped(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;char&gt; {
     preceded(ESCAPE, escape_seq_char).parse_next(input)
 }
 
 <span class="comment">// escape = %x5C                    ; \
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ESCAPE: u8 = <span class="string">b&#39;\\&#39;</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ESCAPE: u8 = <span class="string">b'\\'</span>;
 
-<span class="comment">// escape-seq-char =  %x22         ; &quot;    quotation mark  U+0022
+<span class="comment">// escape-seq-char =  %x22         ; "    quotation mark  U+0022
 // escape-seq-char =/ %x5C         ; \    reverse solidus U+005C
 // escape-seq-char =/ %x62         ; b    backspace       U+0008
 // escape-seq-char =/ %x66         ; f    form feed       U+000C
@@ -586,38 +587,38 @@
 // escape-seq-char =/ %x74         ; t    tab             U+0009
 // escape-seq-char =/ %x75 4HEXDIG ; uXXXX                U+XXXX
 // escape-seq-char =/ %x55 8HEXDIG ; UXXXXXXXX            U+XXXXXXXX
-</span><span class="kw">fn </span>escape_seq_char(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;char&gt; {
+</span><span class="kw">fn </span>escape_seq_char(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;char&gt; {
     <span class="macro">dispatch! </span>{any;
-        <span class="string">b&#39;b&#39; </span>=&gt; success(<span class="string">&#39;\u{8}&#39;</span>),
-        <span class="string">b&#39;f&#39; </span>=&gt; success(<span class="string">&#39;\u{c}&#39;</span>),
-        <span class="string">b&#39;n&#39; </span>=&gt; success(<span class="string">&#39;\n&#39;</span>),
-        <span class="string">b&#39;r&#39; </span>=&gt; success(<span class="string">&#39;\r&#39;</span>),
-        <span class="string">b&#39;t&#39; </span>=&gt; success(<span class="string">&#39;\t&#39;</span>),
-        <span class="string">b&#39;u&#39; </span>=&gt; cut_err(hexescape::&lt;<span class="number">4</span>&gt;).context(StrContext::Label(<span class="string">&quot;unicode 4-digit hex code&quot;</span>)),
-        <span class="string">b&#39;U&#39; </span>=&gt; cut_err(hexescape::&lt;<span class="number">8</span>&gt;).context(StrContext::Label(<span class="string">&quot;unicode 8-digit hex code&quot;</span>)),
-        <span class="string">b&#39;\\&#39; </span>=&gt; success(<span class="string">&#39;\\&#39;</span>),
-        <span class="string">b&#39;&quot;&#39; </span>=&gt; success(<span class="string">&#39;&quot;&#39;</span>),
+        <span class="string">b'b' </span>=&gt; empty.value(<span class="string">'\u{8}'</span>),
+        <span class="string">b'f' </span>=&gt; empty.value(<span class="string">'\u{c}'</span>),
+        <span class="string">b'n' </span>=&gt; empty.value(<span class="string">'\n'</span>),
+        <span class="string">b'r' </span>=&gt; empty.value(<span class="string">'\r'</span>),
+        <span class="string">b't' </span>=&gt; empty.value(<span class="string">'\t'</span>),
+        <span class="string">b'u' </span>=&gt; cut_err(hexescape::&lt;<span class="number">4</span>&gt;).context(StrContext::Label(<span class="string">"unicode 4-digit hex code"</span>)),
+        <span class="string">b'U' </span>=&gt; cut_err(hexescape::&lt;<span class="number">8</span>&gt;).context(StrContext::Label(<span class="string">"unicode 8-digit hex code"</span>)),
+        <span class="string">b'\\' </span>=&gt; empty.value(<span class="string">'\\'</span>),
+        <span class="string">b'"' </span>=&gt; empty.value(<span class="string">'"'</span>),
         <span class="kw">_ </span>=&gt; {
             cut_err(fail::&lt;<span class="kw">_</span>, char, <span class="kw">_</span>&gt;)
-            .context(StrContext::Label(<span class="string">&quot;escape sequence&quot;</span>))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;b&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;f&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;n&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;r&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;t&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;u&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;U&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;\\&#39;</span>)))
-            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">&#39;&quot;&#39;</span>)))
+            .context(StrContext::Label(<span class="string">"escape sequence"</span>))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'b'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'f'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'n'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'r'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'t'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'u'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'U'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'\\'</span>)))
+            .context(StrContext::Expected(StrContextValue::CharLiteral(<span class="string">'"'</span>)))
         }
     }
     .parse_next(input)
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hexescape&lt;<span class="kw">const </span>N: usize&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;char&gt; {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>hexescape&lt;<span class="kw">const </span>N: usize&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;char&gt; {
     take_while(<span class="number">0</span>..=N, HEXDIG)
         .verify(|b: <span class="kw-2">&amp;</span>[u8]| b.len() == N)
-        .map(|b: <span class="kw-2">&amp;</span>[u8]| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`is_ascii_digit` filters out on-ASCII&quot;</span>) })
+        .map(|b: <span class="kw-2">&amp;</span>[u8]| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`is_ascii_digit` filters out on-ASCII"</span>) })
         .verify_map(|s| u32::from_str_radix(s, <span class="number">16</span>).ok())
         .try_map(|h| char::from_u32(h).ok_or(CustomError::OutOfRange))
         .parse_next(input)
@@ -627,25 +628,25 @@
 
 // ml-basic-string = ml-basic-string-delim [ newline ] ml-basic-body
 //                   ml-basic-string-delim
-</span><span class="kw">fn </span>ml_basic_string&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
+</span><span class="kw">fn </span>ml_basic_string&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
     trace(
-        <span class="string">&quot;ml-basic-string&quot;</span>,
+        <span class="string">"ml-basic-string"</span>,
         delimited(
             ML_BASIC_STRING_DELIM,
             preceded(opt(newline), cut_err(ml_basic_body)),
             cut_err(ML_BASIC_STRING_DELIM),
         )
-        .context(StrContext::Label(<span class="string">&quot;multiline basic string&quot;</span>)),
+        .context(StrContext::Label(<span class="string">"multiline basic string"</span>)),
     )
     .parse_next(input)
 }
 
 <span class="comment">// ml-basic-string-delim = 3quotation-mark
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ML_BASIC_STRING_DELIM: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\&quot;\&quot;\&quot;&quot;</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ML_BASIC_STRING_DELIM: <span class="kw-2">&amp;</span>[u8] = <span class="string">b"\"\"\""</span>;
 
 <span class="comment">// ml-basic-body = *mlb-content *( mlb-quotes 1*mlb-content ) [ mlb-quotes ]
-</span><span class="kw">fn </span>ml_basic_body&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>c = Cow::Borrowed(<span class="string">&quot;&quot;</span>);
+</span><span class="kw">fn </span>ml_basic_body&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>c = Cow::Borrowed(<span class="string">""</span>);
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ci) = opt(mlb_content).parse_next(input)<span class="question-mark">? </span>{
         c = ci;
     }
@@ -653,7 +654,7 @@
         c.to_mut().push_str(<span class="kw-2">&amp;</span>ci);
     }
 
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(qi) = opt(mlb_quotes(none_of(<span class="string">b&#39;\&quot;&#39;</span>).value(()))).parse_next(input)<span class="question-mark">? </span>{
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(qi) = opt(mlb_quotes(none_of(<span class="string">b'\"'</span>).value(()))).parse_next(input)<span class="question-mark">? </span>{
         <span class="kw">if let </span><span class="prelude-val">Some</span>(ci) = opt(mlb_content).parse_next(input)<span class="question-mark">? </span>{
             c.to_mut().push_str(qi);
             c.to_mut().push_str(<span class="kw-2">&amp;</span>ci);
@@ -665,7 +666,7 @@
         }
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(qi) = opt(mlb_quotes(tag(ML_BASIC_STRING_DELIM).value(()))).parse_next(input)<span class="question-mark">? </span>{
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(qi) = opt(mlb_quotes(ML_BASIC_STRING_DELIM.void())).parse_next(input)<span class="question-mark">? </span>{
         c.to_mut().push_str(qi);
     }
 
@@ -674,7 +675,7 @@
 
 <span class="comment">// mlb-content = mlb-char / newline / mlb-escaped-nl
 // mlb-char = mlb-unescaped / escaped
-</span><span class="kw">fn </span>mlb_content&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
+</span><span class="kw">fn </span>mlb_content&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
     alt((
         <span class="comment">// Deviate from the official grammar by batching the unescaped chars so we build a string a
         // chunk at a time, rather than a `char` at a time.
@@ -682,28 +683,28 @@
             .try_map(std::str::from_utf8)
             .map(Cow::Borrowed),
         <span class="comment">// Order changed fromg grammar so `escaped` can more easily `cut_err` on bad escape sequences
-        </span>mlb_escaped_nl.map(|<span class="kw">_</span>| Cow::Borrowed(<span class="string">&quot;&quot;</span>)),
+        </span>mlb_escaped_nl.map(|<span class="kw">_</span>| Cow::Borrowed(<span class="string">""</span>)),
         escaped.map(|c| Cow::Owned(String::from(c))),
-        newline.map(|<span class="kw">_</span>| Cow::Borrowed(<span class="string">&quot;\n&quot;</span>)),
+        newline.map(|<span class="kw">_</span>| Cow::Borrowed(<span class="string">"\n"</span>)),
     ))
     .parse_next(input)
 }
 
 <span class="comment">// mlb-quotes = 1*2quotation-mark
-</span><span class="kw">fn </span>mlb_quotes&lt;<span class="lifetime">&#39;i</span>&gt;(
-    <span class="kw-2">mut </span>term: <span class="kw">impl </span>winnow::Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, (), ContextError&gt;,
-) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str, ContextError&gt; {
-    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+</span><span class="kw">fn </span>mlb_quotes&lt;<span class="lifetime">'i</span>&gt;(
+    <span class="kw-2">mut </span>term: <span class="kw">impl </span>winnow::Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, (), ContextError&gt;,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'i </span>str, ContextError&gt; {
+    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         <span class="kw">let </span>start = input.checkpoint();
-        <span class="kw">let </span>res = terminated(<span class="string">b&quot;\&quot;\&quot;&quot;</span>, peek(term.by_ref()))
-            .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`bytes` out non-ASCII&quot;</span>) })
+        <span class="kw">let </span>res = terminated(<span class="string">b"\"\""</span>, peek(term.by_ref()))
+            .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`bytes` out non-ASCII"</span>) })
             .parse_next(input);
 
         <span class="kw">match </span>res {
             <span class="prelude-val">Err</span>(winnow::error::ErrMode::Backtrack(<span class="kw">_</span>)) =&gt; {
-                input.reset(start);
-                terminated(<span class="string">b&quot;\&quot;&quot;</span>, peek(term.by_ref()))
-                    .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`bytes` out non-ASCII&quot;</span>) })
+                input.reset(<span class="kw-2">&amp;</span>start);
+                terminated(<span class="string">b"\""</span>, peek(term.by_ref()))
+                    .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`bytes` out non-ASCII"</span>) })
                     .parse_next(input)
             }
             res =&gt; res,
@@ -725,7 +726,7 @@
 // it will be trimmed along with all whitespace
 // (including newlines) up to the next non-whitespace
 // character or closing delimiter.
-</span><span class="kw">fn </span>mlb_escaped_nl(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;()&gt; {
+</span><span class="kw">fn </span>mlb_escaped_nl(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;()&gt; {
     repeat(<span class="number">1</span>.., (ESCAPE, ws, ws_newlines))
         .map(|()| ())
         .value(())
@@ -735,22 +736,22 @@
 <span class="comment">// ;; Literal String
 
 // literal-string = apostrophe *literal-char apostrophe
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>literal_string&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>literal_string&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>str&gt; {
     trace(
-        <span class="string">&quot;literal-string&quot;</span>,
+        <span class="string">"literal-string"</span>,
         delimited(
             APOSTROPHE,
             cut_err(take_while(<span class="number">0</span>.., LITERAL_CHAR)),
             cut_err(APOSTROPHE),
         )
         .try_map(std::str::from_utf8)
-        .context(StrContext::Label(<span class="string">&quot;literal string&quot;</span>)),
+        .context(StrContext::Label(<span class="string">"literal string"</span>)),
     )
     .parse_next(input)
 }
 
-<span class="comment">// apostrophe = %x27 ; &#39; apostrophe
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>APOSTROPHE: u8 = <span class="string">b&#39;\&#39;&#39;</span>;
+<span class="comment">// apostrophe = %x27 ; ' apostrophe
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>APOSTROPHE: u8 = <span class="string">b'\''</span>;
 
 <span class="comment">// literal-char = %x09 / %x20-26 / %x28-7E / non-ascii
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LITERAL_CHAR: (
@@ -764,30 +765,30 @@
 
 // ml-literal-string = ml-literal-string-delim [ newline ] ml-literal-body
 //                     ml-literal-string-delim
-</span><span class="kw">fn </span>ml_literal_string&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">&#39;i</span>, str&gt;&gt; {
+</span><span class="kw">fn </span>ml_literal_string&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;Cow&lt;<span class="lifetime">'i</span>, str&gt;&gt; {
     trace(
-        <span class="string">&quot;ml-literal-string&quot;</span>,
+        <span class="string">"ml-literal-string"</span>,
         delimited(
             (ML_LITERAL_STRING_DELIM, opt(newline)),
             cut_err(ml_literal_body.map(|t| {
-                <span class="kw">if </span>t.contains(<span class="string">&quot;\r\n&quot;</span>) {
-                    Cow::Owned(t.replace(<span class="string">&quot;\r\n&quot;</span>, <span class="string">&quot;\n&quot;</span>))
+                <span class="kw">if </span>t.contains(<span class="string">"\r\n"</span>) {
+                    Cow::Owned(t.replace(<span class="string">"\r\n"</span>, <span class="string">"\n"</span>))
                 } <span class="kw">else </span>{
                     Cow::Borrowed(t)
                 }
             })),
             cut_err(ML_LITERAL_STRING_DELIM),
         )
-        .context(StrContext::Label(<span class="string">&quot;multiline literal string&quot;</span>)),
+        .context(StrContext::Label(<span class="string">"multiline literal string"</span>)),
     )
     .parse_next(input)
 }
 
 <span class="comment">// ml-literal-string-delim = 3apostrophe
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ML_LITERAL_STRING_DELIM: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;&#39;&#39;&#39;&quot;</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ML_LITERAL_STRING_DELIM: <span class="kw-2">&amp;</span>[u8] = <span class="string">b"'''"</span>;
 
 <span class="comment">// ml-literal-body = *mll-content *( mll-quotes 1*mll-content ) [ mll-quotes ]
-</span><span class="kw">fn </span>ml_literal_body&lt;<span class="lifetime">&#39;i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str&gt; {
+</span><span class="kw">fn </span>ml_literal_body&lt;<span class="lifetime">'i</span>&gt;(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;) -&gt; PResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>str&gt; {
     (
         repeat(<span class="number">0</span>.., mll_content).map(|()| ()),
         repeat(
@@ -798,7 +799,7 @@
             ),
         )
         .map(|()| ()),
-        opt(mll_quotes(tag(ML_LITERAL_STRING_DELIM).value(()))),
+        opt(mll_quotes(ML_LITERAL_STRING_DELIM.void())),
     )
         .recognize()
         .try_map(std::str::from_utf8)
@@ -806,7 +807,7 @@
 }
 
 <span class="comment">// mll-content = mll-char / newline
-</span><span class="kw">fn </span>mll_content(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; PResult&lt;u8&gt; {
+</span><span class="kw">fn </span>mll_content(input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'_</span>&gt;) -&gt; PResult&lt;u8&gt; {
     alt((one_of(MLL_CHAR), newline)).parse_next(input)
 }
 
@@ -819,20 +820,20 @@
 ) = (<span class="number">0x9</span>, <span class="number">0x20</span>..=<span class="number">0x26</span>, <span class="number">0x28</span>..=<span class="number">0x7E</span>, NON_ASCII);
 
 <span class="comment">// mll-quotes = 1*2apostrophe
-</span><span class="kw">fn </span>mll_quotes&lt;<span class="lifetime">&#39;i</span>&gt;(
-    <span class="kw-2">mut </span>term: <span class="kw">impl </span>winnow::Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, (), ContextError&gt;,
-) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">&#39;i</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>str, ContextError&gt; {
-    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">&#39;i</span>&gt;| {
+</span><span class="kw">fn </span>mll_quotes&lt;<span class="lifetime">'i</span>&gt;(
+    <span class="kw-2">mut </span>term: <span class="kw">impl </span>winnow::Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, (), ContextError&gt;,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input&lt;<span class="lifetime">'i</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'i </span>str, ContextError&gt; {
+    <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input&lt;<span class="lifetime">'i</span>&gt;| {
         <span class="kw">let </span>start = input.checkpoint();
-        <span class="kw">let </span>res = terminated(<span class="string">b&quot;&#39;&#39;&quot;</span>, peek(term.by_ref()))
-            .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`bytes` out non-ASCII&quot;</span>) })
+        <span class="kw">let </span>res = terminated(<span class="string">b"''"</span>, peek(term.by_ref()))
+            .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`bytes` out non-ASCII"</span>) })
             .parse_next(input);
 
         <span class="kw">match </span>res {
             <span class="prelude-val">Err</span>(winnow::error::ErrMode::Backtrack(<span class="kw">_</span>)) =&gt; {
-                input.reset(start);
-                terminated(<span class="string">b&quot;&#39;&quot;</span>, peek(term.by_ref()))
-                    .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">&quot;`bytes` out non-ASCII&quot;</span>) })
+                input.reset(<span class="kw-2">&amp;</span>start);
+                terminated(<span class="string">b"'"</span>, peek(term.by_ref()))
+                    .map(|b| <span class="kw">unsafe </span>{ from_utf8_unchecked(b, <span class="string">"`bytes` out non-ASCII"</span>) })
                     .parse_next(input)
             }
             res =&gt; res,
@@ -841,38 +842,40 @@
 }
 
 <span class="attr">#[cfg(test)]
+#[cfg(feature = <span class="string">"parse"</span>)]
+#[cfg(feature = <span class="string">"display"</span>)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>basic_string() {
         <span class="kw">let </span>input =
-            <span class="string">r#&quot;&quot;I&#39;m a string. \&quot;You can quote me\&quot;. Name\tJos\u00E9\nLocation\tSF. \U0002070E&quot;&quot;#</span>;
-        <span class="kw">let </span>expected = <span class="string">&quot;I\&#39;m a string. \&quot;You can quote me\&quot;. Name\tJosé\nLocation\tSF. \u{2070E}&quot;</span>;
+            <span class="string">r#""I'm a string. \"You can quote me\". Name\tJos\u00E9\nLocation\tSF. \U0002070E""#</span>;
+        <span class="kw">let </span>expected = <span class="string">"I\'m a string. \"You can quote me\". Name\tJosé\nLocation\tSF. \u{2070E}"</span>;
         <span class="kw">let </span>parsed = string.parse(new_input(input));
-        <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+        <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ml_basic_string() {
         <span class="kw">let </span>cases = [
             (
-                <span class="string">r#&quot;&quot;&quot;&quot;
+                <span class="string">r#""""
 Roses are red
-Violets are blue&quot;&quot;&quot;&quot;#</span>,
-                <span class="string">r#&quot;Roses are red
-Violets are blue&quot;#</span>,
+Violets are blue""""#</span>,
+                <span class="string">r#"Roses are red
+Violets are blue"#</span>,
             ),
-            (<span class="string">r#&quot;&quot;&quot;&quot; \&quot;&quot;&quot; &quot;&quot;&quot;&quot;#</span>, <span class="string">&quot; \&quot;\&quot;\&quot; &quot;</span>),
-            (<span class="string">r#&quot;&quot;&quot;&quot; \\&quot;&quot;&quot;&quot;#</span>, <span class="string">&quot; \\&quot;</span>),
+            (<span class="string">r#"""" \""" """"#</span>, <span class="string">" \"\"\" "</span>),
+            (<span class="string">r#"""" \\""""#</span>, <span class="string">" \\"</span>),
         ];
 
         <span class="kw">for </span><span class="kw-2">&amp;</span>(input, expected) <span class="kw">in </span><span class="kw-2">&amp;</span>cases {
             <span class="kw">let </span>parsed = string.parse(new_input(input));
-            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
         }
 
-        <span class="kw">let </span>invalid_cases = [<span class="string">r#&quot;&quot;&quot;&quot;  &quot;&quot;&quot;#</span>, <span class="string">r#&quot;&quot;&quot;&quot;  \&quot;&quot;&quot;&quot;#</span>];
+        <span class="kw">let </span>invalid_cases = [<span class="string">r#""""  """#</span>, <span class="string">r#""""  \""""#</span>];
 
         <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>invalid_cases {
             <span class="kw">let </span>parsed = string.parse(new_input(input));
@@ -883,75 +886,75 @@ Violets are blue&quot;#</span>,
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ml_basic_string_escape_ws() {
         <span class="kw">let </span>inputs = [
-            <span class="string">r#&quot;&quot;&quot;&quot;
+            <span class="string">r#""""
 The quick brown \
 
 
   fox jumps over \
-    the lazy dog.&quot;&quot;&quot;&quot;#</span>,
-            <span class="string">r#&quot;&quot;&quot;&quot;\
+    the lazy dog.""""#</span>,
+            <span class="string">r#""""\
        The quick brown \
        fox jumps over \
        the lazy dog.\
-       &quot;&quot;&quot;&quot;#</span>,
+       """"#</span>,
         ];
         <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>inputs {
-            <span class="kw">let </span>expected = <span class="string">&quot;The quick brown fox jumps over the lazy dog.&quot;</span>;
+            <span class="kw">let </span>expected = <span class="string">"The quick brown fox jumps over the lazy dog."</span>;
             <span class="kw">let </span>parsed = string.parse(new_input(input));
-            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
         }
         <span class="kw">let </span>empties = [
-            <span class="string">r#&quot;&quot;&quot;&quot;\
-       &quot;&quot;&quot;&quot;#</span>,
-            <span class="string">r#&quot;&quot;&quot;&quot;
+            <span class="string">r#""""\
+       """"#</span>,
+            <span class="string">r#""""
 \
   \
-&quot;&quot;&quot;&quot;#</span>,
+""""#</span>,
         ];
         <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>empties {
-            <span class="kw">let </span>expected = <span class="string">&quot;&quot;</span>;
+            <span class="kw">let </span>expected = <span class="string">""</span>;
             <span class="kw">let </span>parsed = string.parse(new_input(input));
-            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>literal_string() {
         <span class="kw">let </span>inputs = [
-            <span class="string">r#&quot;&#39;C:\Users\nodejs\templates&#39;&quot;#</span>,
-            <span class="string">r#&quot;&#39;\\ServerX\admin$\system32\&#39;&quot;#</span>,
-            <span class="string">r#&quot;&#39;Tom &quot;Dubs&quot; Preston-Werner&#39;&quot;#</span>,
-            <span class="string">r#&quot;&#39;&lt;\i\c*\s*&gt;&#39;&quot;#</span>,
+            <span class="string">r"'C:\Users\nodejs\templates'"</span>,
+            <span class="string">r"'\\ServerX\admin$\system32\'"</span>,
+            <span class="string">r#"'Tom "Dubs" Preston-Werner'"#</span>,
+            <span class="string">r"'&lt;\i\c*\s*&gt;'"</span>,
         ];
 
         <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>inputs {
             <span class="kw">let </span>expected = <span class="kw-2">&amp;</span>input[<span class="number">1</span>..input.len() - <span class="number">1</span>];
             <span class="kw">let </span>parsed = string.parse(new_input(input));
-            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
         }
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>ml_literal_string() {
         <span class="kw">let </span>inputs = [
-            <span class="string">r#&quot;&#39;&#39;&#39;I [dw]on&#39;t need \d{2} apples&#39;&#39;&#39;&quot;#</span>,
-            <span class="string">r#&quot;&#39;&#39;&#39;&#39;one_quote&#39;&#39;&#39;&#39;&quot;#</span>,
+            <span class="string">r"'''I [dw]on't need \d{2} apples'''"</span>,
+            <span class="string">r#"''''one_quote''''"#</span>,
         ];
         <span class="kw">for </span>input <span class="kw">in </span><span class="kw-2">&amp;</span>inputs {
             <span class="kw">let </span>expected = <span class="kw-2">&amp;</span>input[<span class="number">3</span>..input.len() - <span class="number">3</span>];
             <span class="kw">let </span>parsed = string.parse(new_input(input));
-            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+            <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
         }
 
-        <span class="kw">let </span>input = <span class="string">r#&quot;&#39;&#39;&#39;
+        <span class="kw">let </span>input = <span class="string">r#"'''
 The first newline is
 trimmed in raw strings.
    All other whitespace
    is preserved.
-&#39;&#39;&#39;&quot;#</span>;
+'''"#</span>;
         <span class="kw">let </span>expected = <span class="kw-2">&amp;</span>input[<span class="number">4</span>..input.len() - <span class="number">3</span>];
         <span class="kw">let </span>parsed = string.parse(new_input(input));
-        <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">&quot;Parsing {input:?}&quot;</span>);
+        <span class="macro">assert_eq!</span>(parsed.as_deref(), <span class="prelude-val">Ok</span>(expected), <span class="string">"Parsing {input:?}"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/subprocess-0.2.9/src/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="subprocess" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../subprocess/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/subprocess-0.2.9/src/builder.rs`."><title>builder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="subprocess" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1156,14 +1157,14 @@
 <a href="#1156" id="1156">1156</a>
 </pre></div><pre class="rust"><code><span class="attr">#[cfg(unix)]
 </span><span class="kw">mod </span>os {
-    <span class="kw">pub const </span>NULL_DEVICE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/dev/null&quot;</span>;
-    <span class="kw">pub const </span>SHELL: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>];
+    <span class="kw">pub const </span>NULL_DEVICE: <span class="kw-2">&amp;</span>str = <span class="string">"/dev/null"</span>;
+    <span class="kw">pub const </span>SHELL: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [<span class="string">"sh"</span>, <span class="string">"-c"</span>];
 }
 
 <span class="attr">#[cfg(windows)]
 </span><span class="kw">mod </span>os {
-    <span class="kw">pub const </span>NULL_DEVICE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;nul&quot;</span>;
-    <span class="kw">pub const </span>SHELL: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [<span class="string">&quot;cmd.exe&quot;</span>, <span class="string">&quot;/c&quot;</span>];
+    <span class="kw">pub const </span>NULL_DEVICE: <span class="kw-2">&amp;</span>str = <span class="string">"nul"</span>;
+    <span class="kw">pub const </span>SHELL: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [<span class="string">"cmd.exe"</span>, <span class="string">"/c"</span>];
 }
 
 <span class="kw">pub use </span><span class="self">self</span>::exec::{CaptureData, Exec, NullFile};
@@ -1205,29 +1206,29 @@
     /// ```no_run
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// # let dirname = &quot;some_dir&quot;;
-    /// let exit_status = Exec::cmd(&quot;umount&quot;).arg(dirname).join()?;
+    /// # let dirname = "some_dir";
+    /// let exit_status = Exec::cmd("umount").arg(dirname).join()?;
     /// # Ok(())
     /// # }
     /// ```
     ///
-    /// Execute the command using the OS shell, like C&#39;s `system`:
+    /// Execute the command using the OS shell, like C's `system`:
     ///
     /// ```no_run
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// Exec::shell(&quot;shutdown -h now&quot;).join()?;
+    /// Exec::shell("shutdown -h now").join()?;
     /// # Ok(())
     /// # }
     /// ```
     ///
     /// Start a subprocess and obtain its output as a `Read` trait object,
-    /// like C&#39;s `popen`:
+    /// like C's `popen`:
     ///
     /// ```
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// let stream = Exec::cmd(&quot;ls&quot;).stream_stdout()?;
+    /// let stream = Exec::cmd("ls").stream_stdout()?;
     /// // call stream.read_to_string, construct io::BufReader(stream), etc.
     /// # Ok(())
     /// # }
@@ -1238,7 +1239,7 @@
     /// ```
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// let out = Exec::cmd(&quot;ls&quot;)
+    /// let out = Exec::cmd("ls")
     ///   .stdout(Redirection::Pipe)
     ///   .capture()?
     ///   .stdout_str();
@@ -1251,7 +1252,7 @@
     /// ```
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// let out_and_err = Exec::cmd(&quot;ls&quot;)
+    /// let out_and_err = Exec::cmd("ls")
     ///   .stdout(Redirection::Pipe)
     ///   .stderr(Redirection::Merge)
     ///   .capture()?
@@ -1265,12 +1266,12 @@
     /// ```
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
-    /// let out = Exec::cmd(&quot;sort&quot;)
-    ///   .stdin(&quot;b\nc\na\n&quot;)
+    /// let out = Exec::cmd("sort")
+    ///   .stdin("b\nc\na\n")
     ///   .stdout(Redirection::Pipe)
     ///   .capture()?
     ///   .stdout_str();
-    /// assert!(out == &quot;a\nb\nc\n&quot;);
+    /// assert!(out == "a\nb\nc\n");
     /// # Ok(())
     /// # }
     /// ```
@@ -1312,18 +1313,18 @@
         /// `subprocess` never spawns shells without an explicit
         /// request.  This command requests the shell to be used; on
         /// Unix-like systems, this is equivalent to
-        /// `Exec::cmd(&quot;sh&quot;).arg(&quot;-c&quot;).arg(cmdstr)`.  On Windows, it
-        /// runs `Exec::cmd(&quot;cmd.exe&quot;).arg(&quot;/c&quot;)`.
+        /// `Exec::cmd("sh").arg("-c").arg(cmdstr)`.  On Windows, it
+        /// runs `Exec::cmd("cmd.exe").arg("/c")`.
         ///
         /// `shell` is useful for porting code that uses the C
         /// `system` function, which also spawns a shell.
         ///
         /// When invoking this function, be careful not to interpolate
         /// arguments into the string run by the shell, such as
-        /// `Exec::shell(format!(&quot;sort {}&quot;, filename))`.  Such code is
+        /// `Exec::shell(format!("sort {}", filename))`.  Such code is
         /// prone to errors and, if `filename` comes from an untrusted
         /// source, to shell injection attacks.  Instead, use
-        /// `Exec::cmd(&quot;sort&quot;).arg(filename)`.
+        /// `Exec::cmd("sort").arg(filename)`.
         </span><span class="kw">pub fn </span>shell(cmdstr: <span class="kw">impl </span>AsRef&lt;OsStr&gt;) -&gt; Exec {
             Exec::cmd(SHELL[<span class="number">0</span>]).args(<span class="kw-2">&amp;</span>SHELL[<span class="number">1</span>..]).arg(cmdstr)
         }
@@ -1449,7 +1450,7 @@
                     <span class="self">self</span>.config.stdin = Redirection::Pipe;
                     <span class="self">self</span>.stdin_data = <span class="prelude-val">Some</span>(data);
                 }
-                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;stdin is already set&quot;</span>),
+                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"stdin is already set"</span>),
             }
             <span class="self">self
         </span>}
@@ -1469,7 +1470,7 @@
             <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.config.stdout, stdout.into().into_redirection()) {
                 (<span class="kw-2">&amp;</span>Redirection::None, new) =&gt; <span class="self">self</span>.config.stdout = new,
                 (<span class="kw-2">&amp;</span>Redirection::Pipe, Redirection::Pipe) =&gt; (),
-                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;stdout is already set&quot;</span>),
+                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"stdout is already set"</span>),
             }
             <span class="self">self
         </span>}
@@ -1489,14 +1490,14 @@
             <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.config.stderr, stderr.into().into_redirection()) {
                 (<span class="kw-2">&amp;</span>Redirection::None, new) =&gt; <span class="self">self</span>.config.stderr = new,
                 (<span class="kw-2">&amp;</span>Redirection::Pipe, Redirection::Pipe) =&gt; (),
-                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;stderr is already set&quot;</span>),
+                (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"stderr is already set"</span>),
             }
             <span class="self">self
         </span>}
 
         <span class="kw">fn </span>check_no_stdin_data(<span class="kw-2">&amp;</span><span class="self">self</span>, meth: <span class="kw-2">&amp;</span>str) {
             <span class="kw">if </span><span class="self">self</span>.stdin_data.is_some() {
-                <span class="macro">panic!</span>(<span class="string">&quot;{} called with input data specified&quot;</span>, meth);
+                <span class="macro">panic!</span>(<span class="string">"{} called with input data specified"</span>, meth);
             }
         }
 
@@ -1504,7 +1505,7 @@
 
         </span><span class="doccomment">/// Starts the process, returning a `Popen` for the running process.
         </span><span class="kw">pub fn </span>popen(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; PopenResult&lt;Popen&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;popen&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"popen"</span>);
             <span class="self">self</span>.args.insert(<span class="number">0</span>, <span class="self">self</span>.command);
             <span class="kw">let </span>p = Popen::create(<span class="kw-2">&amp;</span><span class="self">self</span>.args, <span class="self">self</span>.config)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(p)
@@ -1517,7 +1518,7 @@
         /// finish.  If a timeout is needed, use
         /// `&lt;...&gt;.detached().popen()?.wait_timeout(...)` instead.
         </span><span class="kw">pub fn </span>join(<span class="self">self</span>) -&gt; PopenResult&lt;ExitStatus&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;join&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"join"</span>);
             <span class="self">self</span>.popen()<span class="question-mark">?</span>.wait()
         }
 
@@ -1532,7 +1533,7 @@
         /// process to finish.  If this is undesirable, use
         /// `detached()`.
         </span><span class="kw">pub fn </span>stream_stdout(<span class="self">self</span>) -&gt; PopenResult&lt;<span class="kw">impl </span>Read&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;stream_stdout&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"stream_stdout"</span>);
             <span class="kw">let </span>p = <span class="self">self</span>.stdout(Redirection::Pipe).popen()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(ReadOutAdapter(p))
         }
@@ -1548,7 +1549,7 @@
         /// process to finish.  If this is undesirable, use
         /// `detached()`.
         </span><span class="kw">pub fn </span>stream_stderr(<span class="self">self</span>) -&gt; PopenResult&lt;<span class="kw">impl </span>Read&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;stream_stderr&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"stream_stderr"</span>);
             <span class="kw">let </span>p = <span class="self">self</span>.stderr(Redirection::Pipe).popen()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(ReadErrAdapter(p))
         }
@@ -1563,7 +1564,7 @@
         /// process to finish.  If this is undesirable, use
         /// `detached()`.
         </span><span class="kw">pub fn </span>stream_stdin(<span class="self">self</span>) -&gt; PopenResult&lt;<span class="kw">impl </span>Write&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;stream_stdin&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"stream_stdin"</span>);
             <span class="kw">let </span>p = <span class="self">self</span>.stdin(Redirection::Pipe).popen()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(WriteAdapter(p))
         }
@@ -1586,7 +1587,7 @@
         /// communication is performed, such as read size limit and timeout,
         /// equivalent to [`Popen::communicate`].
         ///
-        /// Unlike `capture()`, this method doesn&#39;t wait for the process to
+        /// Unlike `capture()`, this method doesn't wait for the process to
         /// finish, effectively detaching it.
         ///
         /// [`Popen::communicate`]: struct.Popen.html#method.communicate
@@ -1617,16 +1618,16 @@
         }
 
         <span class="comment">// used for Debug impl
-        </span><span class="kw">fn </span>display_escape(s: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">&#39;_</span>, str&gt; {
+        </span><span class="kw">fn </span>display_escape(s: <span class="kw-2">&amp;</span>str) -&gt; Cow&lt;<span class="lifetime">'_</span>, str&gt; {
             <span class="kw">fn </span>nice_char(c: char) -&gt; bool {
                 <span class="kw">match </span>c {
-                    <span class="string">&#39;-&#39; </span>| <span class="string">&#39;_&#39; </span>| <span class="string">&#39;.&#39; </span>| <span class="string">&#39;,&#39; </span>| <span class="string">&#39;/&#39; </span>=&gt; <span class="bool-val">true</span>,
+                    <span class="string">'-' </span>| <span class="string">'_' </span>| <span class="string">'.' </span>| <span class="string">',' </span>| <span class="string">'/' </span>=&gt; <span class="bool-val">true</span>,
                     c <span class="kw">if </span>c.is_ascii_alphanumeric() =&gt; <span class="bool-val">true</span>,
                     <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
                 }
             }
             <span class="kw">if </span>!s.chars().all(nice_char) {
-                Cow::Owned(<span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, s.replace(<span class="string">&quot;&#39;&quot;</span>, <span class="string">r#&quot;&#39;\&#39;&#39;&quot;#</span>)))
+                Cow::Owned(<span class="macro">format!</span>(<span class="string">"'{}'"</span>, s.replace(<span class="string">"'"</span>, <span class="string">r#"'\''"#</span>)))
             } <span class="kw">else </span>{
                 Cow::Borrowed(s)
             }
@@ -1643,22 +1644,22 @@
                         <span class="kw">continue</span>;
                     }
                     out.push_str(<span class="kw-2">&amp;</span>Exec::display_escape(<span class="kw-2">&amp;</span>k.to_string_lossy()));
-                    out.push(<span class="string">&#39;=&#39;</span>);
+                    out.push(<span class="string">'='</span>);
                     out.push_str(<span class="kw-2">&amp;</span>Exec::display_escape(<span class="kw-2">&amp;</span>v.to_string_lossy()));
-                    out.push(<span class="string">&#39; &#39;</span>);
+                    out.push(<span class="string">' '</span>);
                 }
                 <span class="kw">let </span>cmd_env: HashMap&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt; = cmd_env.iter().map(|(k, v)| (k, v)).collect();
                 <span class="kw">for </span>(k, <span class="kw">_</span>) <span class="kw">in </span>current {
                     <span class="kw">if </span>!cmd_env.contains_key(<span class="kw-2">&amp;</span>k) {
                         out.push_str(<span class="kw-2">&amp;</span>Exec::display_escape(<span class="kw-2">&amp;</span>k.to_string_lossy()));
-                        out.push(<span class="string">&#39;=&#39;</span>);
-                        out.push(<span class="string">&#39; &#39;</span>);
+                        out.push(<span class="string">'='</span>);
+                        out.push(<span class="string">' '</span>);
                     }
                 }
             }
             out.push_str(<span class="kw-2">&amp;</span>Exec::display_escape(<span class="kw-2">&amp;</span><span class="self">self</span>.command.to_string_lossy()));
             <span class="kw">for </span>arg <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.args {
-                out.push(<span class="string">&#39; &#39;</span>);
+                out.push(<span class="string">' '</span>);
                 out.push_str(<span class="kw-2">&amp;</span>Exec::display_escape(<span class="kw-2">&amp;</span>arg.to_string_lossy()));
             }
             out
@@ -1694,8 +1695,8 @@
     }
 
     <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Exec {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-            <span class="macro">write!</span>(f, <span class="string">&quot;Exec {{ {} }}&quot;</span>, <span class="self">self</span>.to_cmdline_lossy())
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+            <span class="macro">write!</span>(f, <span class="string">"Exec {{ {} }}"</span>, <span class="self">self</span>.to_cmdline_lossy())
         }
     }
 
@@ -1783,7 +1784,7 @@
     <span class="kw">impl </span>From&lt;Redirection&gt; <span class="kw">for </span>InputRedirection {
         <span class="kw">fn </span>from(r: Redirection) -&gt; <span class="self">Self </span>{
             <span class="kw">if let </span>Redirection::Merge = r {
-                <span class="macro">panic!</span>(<span class="string">&quot;Redirection::Merge is only allowed for output streams&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">"Redirection::Merge is only allowed for output streams"</span>);
             }
             InputRedirection::AsRedirection(r)
         }
@@ -1822,8 +1823,8 @@
         }
     }
 
-    <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>InputRedirection {
-        <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str) -&gt; <span class="self">Self </span>{
+    <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>InputRedirection {
+        <span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
             InputRedirection::FeedData(s.as_bytes().to_vec())
         }
     }
@@ -1914,18 +1915,18 @@
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
     /// let exit_status =
-    ///   (Exec::shell(&quot;ls *.bak&quot;) | Exec::cmd(&quot;xargs&quot;).arg(&quot;rm&quot;)).join()?;
+    ///   (Exec::shell("ls *.bak") | Exec::cmd("xargs").arg("rm")).join()?;
     /// # Ok(())
     /// # }
     /// ```
     ///
-    /// Capture the pipeline&#39;s output:
+    /// Capture the pipeline's output:
     ///
     /// ```no_run
     /// # use subprocess::*;
     /// # fn dummy() -&gt; Result&lt;()&gt; {
     /// let dir_checksum = {
-    ///     Exec::cmd(&quot;find . -type f&quot;) | Exec::cmd(&quot;sort&quot;) | Exec::cmd(&quot;sha1sum&quot;)
+    ///     Exec::cmd("find . -type f") | Exec::cmd("sort") | Exec::cmd("sha1sum")
     /// }.capture()?.stdout_str();
     /// # Ok(())
     /// # }
@@ -1966,20 +1967,20 @@
         /// use subprocess::Exec;
         ///
         /// let commands = vec![
-        ///   Exec::shell(&quot;echo tset&quot;),
-        ///   Exec::shell(&quot;tr &#39;[:lower:]&#39; &#39;[:upper:]&#39;&quot;),
-        ///   Exec::shell(&quot;rev&quot;)
+        ///   Exec::shell("echo tset"),
+        ///   Exec::shell("tr '[:lower:]' '[:upper:]'"),
+        ///   Exec::shell("rev")
         /// ];
         ///
         /// let pipeline = subprocess::Pipeline::from_exec_iter(commands);
         /// let output = pipeline.capture().unwrap().stdout_str();
-        /// assert_eq!(output, &quot;TEST\n&quot;);
+        /// assert_eq!(output, "TEST\n");
         /// ```
         /// ```should_panic
         /// use subprocess::Exec;
         ///
         /// let commands = vec![
-        ///   Exec::shell(&quot;echo tset&quot;),
+        ///   Exec::shell("echo tset"),
         /// ];
         ///
         /// // This will panic as the iterator contains less than two (2) items.
@@ -1994,7 +1995,7 @@
             <span class="kw">let </span>cmds: Vec&lt;<span class="kw">_</span>&gt; = iterable.into_iter().collect();
 
             <span class="kw">if </span>cmds.len() &lt; <span class="number">2 </span>{
-                <span class="macro">panic!</span>(<span class="string">&quot;iterator needs to contain at least two (2) elements&quot;</span>)
+                <span class="macro">panic!</span>(<span class="string">"iterator needs to contain at least two (2) elements"</span>)
             }
 
             Pipeline {
@@ -2054,7 +2055,7 @@
         /// whole.  Unlike `stdout()`, which only affects the last command in
         /// the pipeline, this affects all commands.  The difference is
         /// because standard output is piped from one command to the next, so
-        /// only the output of the last command is &quot;free&quot;.  In contrast, the
+        /// only the output of the last command is "free".  In contrast, the
         /// standard errors are not connected in any way.  This is also the
         /// reason only a `File` is supported - it allows for efficient
         /// sharing of the same file by all commands.
@@ -2065,7 +2066,7 @@
 
         <span class="kw">fn </span>check_no_stdin_data(<span class="kw-2">&amp;</span><span class="self">self</span>, meth: <span class="kw-2">&amp;</span>str) {
             <span class="kw">if </span><span class="self">self</span>.stdin_data.is_some() {
-                <span class="macro">panic!</span>(<span class="string">&quot;{} called with input data specified&quot;</span>, meth);
+                <span class="macro">panic!</span>(<span class="string">"{} called with input data specified"</span>, meth);
             }
         }
 
@@ -2082,7 +2083,7 @@
         /// `detached()` was called.  This is equivalent to what the
         /// shell does.
         </span><span class="kw">pub fn </span>popen(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; PopenResult&lt;Vec&lt;Popen&gt;&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;popen&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"popen"</span>);
             <span class="macro">assert!</span>(<span class="self">self</span>.cmds.len() &gt;= <span class="number">2</span>);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(stderr_to) = <span class="self">self</span>.stderr_file {
@@ -2119,7 +2120,7 @@
         <span class="doccomment">/// Starts the pipeline, waits for it to finish, and returns
         /// the exit status of the last command.
         </span><span class="kw">pub fn </span>join(<span class="self">self</span>) -&gt; PopenResult&lt;ExitStatus&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;join&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"join"</span>);
             <span class="kw">let </span><span class="kw-2">mut </span>v = <span class="self">self</span>.popen()<span class="question-mark">?</span>;
             <span class="comment">// Waiting on a pipeline waits for all commands, but
             // returns the status of the last one.  This is how the
@@ -2139,7 +2140,7 @@
         /// pipeline to finish.  If this is undesirable, use
         /// `detached()`.
         </span><span class="kw">pub fn </span>stream_stdout(<span class="self">self</span>) -&gt; PopenResult&lt;<span class="kw">impl </span>Read&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;stream_stdout&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"stream_stdout"</span>);
             <span class="kw">let </span>v = <span class="self">self</span>.stdout(Redirection::Pipe).popen()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(ReadPipelineAdapter(v))
         }
@@ -2154,7 +2155,7 @@
         /// process to finish.  If this is undesirable, use
         /// `detached()`.
         </span><span class="kw">pub fn </span>stream_stdin(<span class="self">self</span>) -&gt; PopenResult&lt;<span class="kw">impl </span>Write&gt; {
-            <span class="self">self</span>.check_no_stdin_data(<span class="string">&quot;stream_stdin&quot;</span>);
+            <span class="self">self</span>.check_no_stdin_data(<span class="string">"stream_stdin"</span>);
             <span class="kw">let </span>v = <span class="self">self</span>.stdin(Redirection::Pipe).popen()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(WritePipelineAdapter(v))
         }
@@ -2184,7 +2185,7 @@
         /// communication is performed, such as read size limit and timeout,
         /// equivalent to [`Popen::communicate`].
         ///
-        /// Unlike `capture()`, this method doesn&#39;t wait for the pipeline to
+        /// Unlike `capture()`, this method doesn't wait for the pipeline to
         /// finish, effectively detaching it.
         ///
         /// [`Popen::communicate`]: struct.Popen.html#method.communicate
@@ -2264,12 +2265,12 @@
     }
 
     <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Pipeline {
-        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
             <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[];
             <span class="kw">for </span>cmd <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.cmds {
                 args.push(cmd.to_cmdline_lossy());
             }
-            <span class="macro">write!</span>(f, <span class="string">&quot;Pipeline {{ {} }}&quot;</span>, args.join(<span class="string">&quot; | &quot;</span>))
+            <span class="macro">write!</span>(f, <span class="string">"Pipeline {{ {} }}"</span>, args.join(<span class="string">" | "</span>))
         }
     }
 

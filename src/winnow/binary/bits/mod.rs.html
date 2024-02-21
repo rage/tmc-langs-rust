@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.5.15/src/binary/bits/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../../winnow/index.html"><img class="rust-logo" src="../../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.2/src/binary/bits/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -363,16 +364,18 @@
 <a href="#363" id="363">363</a>
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Bit level parsers
 //!
 
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
+<span class="kw">use </span><span class="kw">crate</span>::combinator::trace;
 <span class="kw">use </span><span class="kw">crate</span>::error::{ErrMode, ErrorConvert, ErrorKind, Needed, ParserError};
 <span class="kw">use </span><span class="kw">crate</span>::lib::std::ops::{AddAssign, Div, Shl, Shr};
 <span class="kw">use </span><span class="kw">crate</span>::stream::{AsBytes, Stream, StreamIsPartial, ToUsize};
-<span class="kw">use </span><span class="kw">crate</span>::trace::trace;
 <span class="kw">use crate</span>::{unpeek, IResult, PResult, Parser};
 
 <span class="doccomment">/// Number of bits in a byte
@@ -389,19 +392,19 @@
 /// use winnow::binary::bits::{bits, take};
 /// use winnow::error::InputError;
 ///
-/// type Stream&lt;&#39;i&gt; = &amp;&#39;i Bytes;
+/// type Stream&lt;'i&gt; = &amp;'i Bytes;
 ///
-/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;&#39;_&gt; {
+/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;'_&gt; {
 ///     Bytes::new(b)
 /// }
 ///
-/// fn parse(input: Stream&lt;&#39;_&gt;) -&gt; IResult&lt;Stream&lt;&#39;_&gt;, (u8, u8)&gt; {
+/// fn parse(input: Stream&lt;'_&gt;) -&gt; IResult&lt;Stream&lt;'_&gt;, (u8, u8)&gt; {
 ///     bits::&lt;_, _, InputError&lt;(_, usize)&gt;, _, _&gt;((take(4usize), take(8usize))).parse_peek(input)
 /// }
 ///
 /// let input = stream(&amp;[0x12, 0x34, 0xff, 0xff]);
 ///
-/// let output = parse(input).expect(&quot;We take 1.5 bytes and the input is longer than 2 bytes&quot;);
+/// let output = parse(input).expect("We take 1.5 bytes and the input is longer than 2 bytes");
 ///
 /// // The first byte is consumed, the second byte is partially consumed and dropped.
 /// let remaining = output.0;
@@ -415,17 +418,18 @@
 <span class="kw">where
     </span>E1: ParserError&lt;(I, usize)&gt; + ErrorConvert&lt;E2&gt;,
     E2: ParserError&lt;I&gt;,
+    (I, usize): Stream,
     I: Stream + Clone,
     P: Parser&lt;(I, usize), O, E1&gt;,
 {
     trace(
-        <span class="string">&quot;bits&quot;</span>,
+        <span class="string">"bits"</span>,
         unpeek(<span class="kw">move </span>|input: I| {
             <span class="kw">match </span>parser.parse_peek((input, <span class="number">0</span>)) {
                 <span class="prelude-val">Ok</span>(((rest, offset), result)) =&gt; {
                     <span class="comment">// If the next byte has been partially read, it will be sliced away as well.
                     // The parser functions might already slice away all fully read bytes.
-                    // That&#39;s why `offset / BYTE` isn&#39;t necessarily needed at all times.
+                    // That's why `offset / BYTE` isn't necessarily needed at all times.
                     </span><span class="kw">let </span>remaining_bytes_index =
                         offset / BYTE + <span class="kw">if </span>offset % BYTE == <span class="number">0 </span>{ <span class="number">0 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
                     <span class="kw">let </span>(input, <span class="kw">_</span>) = rest.peek_slice(remaining_bytes_index);
@@ -452,13 +456,13 @@
 /// use winnow::combinator::rest;
 /// use winnow::error::InputError;
 ///
-/// type Stream&lt;&#39;i&gt; = &amp;&#39;i Bytes;
+/// type Stream&lt;'i&gt; = &amp;'i Bytes;
 ///
-/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;&#39;_&gt; {
+/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;'_&gt; {
 ///     Bytes::new(b)
 /// }
 ///
-/// fn parse(input: Stream&lt;&#39;_&gt;) -&gt; IResult&lt;Stream&lt;&#39;_&gt;, (u8, u8, &amp;[u8])&gt; {
+/// fn parse(input: Stream&lt;'_&gt;) -&gt; IResult&lt;Stream&lt;'_&gt;, (u8, u8, &amp;[u8])&gt; {
 ///   bits::&lt;_, _, InputError&lt;(_, usize)&gt;, _, _&gt;((
 ///     take(4usize),
 ///     take(8usize),
@@ -478,7 +482,7 @@
     P: Parser&lt;I, O, E1&gt;,
 {
     trace(
-        <span class="string">&quot;bytes&quot;</span>,
+        <span class="string">"bytes"</span>,
         unpeek(<span class="kw">move </span>|(input, offset): (I, usize)| {
             <span class="kw">let </span>(inner, <span class="kw">_</span>) = <span class="kw">if </span>offset % BYTE != <span class="number">0 </span>{
                 input.peek_slice(<span class="number">1 </span>+ offset / BYTE)
@@ -496,7 +500,7 @@
                         <span class="prelude-val">Some</span>(v) =&gt; ErrMode::Incomplete(Needed::new(v)),
                         <span class="prelude-val">None </span>=&gt; ErrMode::Cut(E2::assert(
                             <span class="kw-2">&amp;</span>i,
-                            <span class="string">&quot;overflow in turning needed bytes into needed bits&quot;</span>,
+                            <span class="string">"overflow in turning needed bytes into needed bits"</span>,
                         )),
                     })
                 }
@@ -515,14 +519,14 @@
 /// # use winnow::error::{InputError, ErrorKind};
 /// use winnow::binary::bits::take;
 ///
-/// type Stream&lt;&#39;i&gt; = &amp;&#39;i Bytes;
+/// type Stream&lt;'i&gt; = &amp;'i Bytes;
 ///
-/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;&#39;_&gt; {
+/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;'_&gt; {
 ///     Bytes::new(b)
 /// }
 ///
-/// fn parser(input: (Stream&lt;&#39;_&gt;, usize), count: usize)-&gt; IResult&lt;(Stream&lt;&#39;_&gt;, usize), u8&gt; {
-///  take(count).parse_peek(input)
+/// fn parser(input: (Stream&lt;'_&gt;, usize), count: usize)-&gt; IResult&lt;(Stream&lt;'_&gt;, usize), u8&gt; {
+///   take(count).parse_peek(input)
 /// }
 ///
 /// // Consumes 0 bits, returns 0
@@ -546,7 +550,7 @@
 {
     <span class="kw">let </span>count = count.to_usize();
     trace(
-        <span class="string">&quot;take&quot;</span>,
+        <span class="string">"take"</span>,
         unpeek(<span class="kw">move </span>|input: (I, usize)| {
             <span class="kw">if </span>&lt;I <span class="kw">as </span>StreamIsPartial&gt;::is_partial_supported() {
                 take_::&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="bool-val">true</span>&gt;(input, count)
@@ -619,19 +623,19 @@
 /// # use winnow::prelude::*;
 /// # use winnow::Bytes;
 /// # use winnow::error::{InputError, ErrorKind};
-/// use winnow::binary::bits::tag;
+/// use winnow::binary::bits::pattern;
 ///
-/// type Stream&lt;&#39;i&gt; = &amp;&#39;i Bytes;
+/// type Stream&lt;'i&gt; = &amp;'i Bytes;
 ///
-/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;&#39;_&gt; {
+/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;'_&gt; {
 ///     Bytes::new(b)
 /// }
 ///
 /// /// Compare the lowest `count` bits of `input` against the lowest `count` bits of `pattern`.
-/// /// Return Ok and the matching section of `input` if there&#39;s a match.
-/// /// Return Err if there&#39;s no match.
-/// fn parser(pattern: u8, count: u8, input: (Stream&lt;&#39;_&gt;, usize)) -&gt; IResult&lt;(Stream&lt;&#39;_&gt;, usize), u8&gt; {
-///     tag(pattern, count).parse_peek(input)
+/// /// Return Ok and the matching section of `input` if there's a match.
+/// /// Return Err if there's no match.
+/// fn parser(bits: u8, count: u8, input: (Stream&lt;'_&gt;, usize)) -&gt; IResult&lt;(Stream&lt;'_&gt;, usize), u8&gt; {
+///     pattern(bits, count).parse_peek(input)
 /// }
 ///
 /// // The lowest 4 bits of 0b00001111 match the lowest 4 bits of 0b11111111.
@@ -665,9 +669,10 @@
 /// );
 /// ```
 </span><span class="attr">#[inline(always)]
-#[doc(alias = <span class="string">&quot;literal&quot;</span>)]
-#[doc(alias = <span class="string">&quot;just&quot;</span>)]
-</span><span class="kw">pub fn </span>tag&lt;I, O, C, E: ParserError&lt;(I, usize)&gt;&gt;(
+#[doc(alias = <span class="string">"literal"</span>)]
+#[doc(alias = <span class="string">"just"</span>)]
+#[doc(alias = <span class="string">"tag"</span>)]
+</span><span class="kw">pub fn </span>pattern&lt;I, O, C, E: ParserError&lt;(I, usize)&gt;&gt;(
     pattern: O,
     count: C,
 ) -&gt; <span class="kw">impl </span>Parser&lt;(I, usize), O, E&gt;
@@ -677,14 +682,14 @@
     O: From&lt;u8&gt; + AddAssign + Shl&lt;usize, Output = O&gt; + Shr&lt;usize, Output = O&gt; + PartialEq,
 {
     <span class="kw">let </span>count = count.to_usize();
-    trace(<span class="string">&quot;tag&quot;</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>(I, usize)| {
+    trace(<span class="string">"pattern"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>(I, usize)| {
         <span class="kw">let </span>start = input.checkpoint();
 
         take(count).parse_next(input).and_then(|o| {
             <span class="kw">if </span>pattern == o {
                 <span class="prelude-val">Ok</span>(o)
             } <span class="kw">else </span>{
-                input.reset(start);
+                input.reset(<span class="kw-2">&amp;</span>start);
                 <span class="prelude-val">Err</span>(ErrMode::Backtrack(E::from_error_kind(
                     input,
                     ErrorKind::Tag,
@@ -704,25 +709,25 @@
 /// # use winnow::error::{InputError, ErrorKind};
 /// use winnow::binary::bits::bool;
 ///
-/// type Stream&lt;&#39;i&gt; = &amp;&#39;i Bytes;
+/// type Stream&lt;'i&gt; = &amp;'i Bytes;
 ///
-/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;&#39;_&gt; {
+/// fn stream(b: &amp;[u8]) -&gt; Stream&lt;'_&gt; {
 ///     Bytes::new(b)
 /// }
 ///
-/// fn parse(input: (Stream&lt;&#39;_&gt;, usize)) -&gt; IResult&lt;(Stream&lt;&#39;_&gt;, usize), bool&gt; {
+/// fn parse(input: (Stream&lt;'_&gt;, usize)) -&gt; IResult&lt;(Stream&lt;'_&gt;, usize), bool&gt; {
 ///     bool.parse_peek(input)
 /// }
 ///
 /// assert_eq!(parse((stream(&amp;[0b10000000]), 0)), Ok(((stream(&amp;[0b10000000]), 1), true)));
 /// assert_eq!(parse((stream(&amp;[0b10000000]), 1)), Ok(((stream(&amp;[0b10000000]), 2), false)));
 /// ```
-</span><span class="attr">#[doc(alias = <span class="string">&quot;any&quot;</span>)]
+</span><span class="attr">#[doc(alias = <span class="string">"any"</span>)]
 </span><span class="kw">pub fn </span>bool&lt;I, E: ParserError&lt;(I, usize)&gt;&gt;(input: <span class="kw-2">&amp;mut </span>(I, usize)) -&gt; PResult&lt;bool, E&gt;
 <span class="kw">where
     </span>I: Stream&lt;Token = u8&gt; + AsBytes + StreamIsPartial + Clone,
 {
-    trace(<span class="string">&quot;bool&quot;</span>, |input: <span class="kw-2">&amp;mut </span>(I, usize)| {
+    trace(<span class="string">"bool"</span>, |input: <span class="kw-2">&amp;mut </span>(I, usize)| {
         <span class="kw">let </span>bit: u32 = take(<span class="number">1usize</span>).parse_next(input)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(bit != <span class="number">0</span>)
     })

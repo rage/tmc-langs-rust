@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/colored-2.0.4/src/control.rs`."><title>control.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="colored" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../colored/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/colored-2.1.0/src/control.rs`."><title>control.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="colored" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -406,13 +407,11 @@
 <a href="#406" id="406">406</a>
 <a href="#407" id="407">407</a>
 <a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A couple of functions to enable and disable coloring.
 
-</span><span class="kw">use </span>is_terminal::IsTerminal;
-<span class="kw">use </span>std::default::Default;
+</span><span class="kw">use </span>std::default::Default;
 <span class="kw">use </span>std::env;
-<span class="kw">use </span>std::io;
+<span class="kw">use </span>std::io::{<span class="self">self</span>, IsTerminal};
 <span class="kw">use </span>std::sync::atomic::{AtomicBool, Ordering};
 
 <span class="doccomment">/// Sets a flag to the console to use a virtual terminal environment.
@@ -430,10 +429,10 @@
 /// ```rust
 /// use colored::*;
 /// control::set_virtual_terminal(false).unwrap();
-/// println!(&quot;{}&quot;, &quot;bright cyan&quot;.bright_cyan());    // will print &#39;[96mbright cyan[0m&#39; on windows 10
+/// println!("{}", "bright cyan".bright_cyan());    // will print '[96mbright cyan[0m' on windows 10
 ///
 /// control::set_virtual_terminal(true).unwrap();
-/// println!(&quot;{}&quot;, &quot;bright cyan&quot;.bright_cyan());    // will print correctly
+/// println!("{}", "bright cyan".bright_cyan());    // will print correctly
 /// ```
 </span><span class="attr">#[allow(clippy::result_unit_err)]
 #[cfg(windows)]
@@ -471,7 +470,7 @@
 </span><span class="kw">pub struct </span>ShouldColorize {
     clicolor: bool,
     clicolor_force: <span class="prelude-ty">Option</span>&lt;bool&gt;,
-    <span class="comment">// XXX we can&#39;t use Option&lt;Atomic&gt; because we can&#39;t use &amp;mut references to ShouldColorize
+    <span class="comment">// XXX we can't use Option&lt;Atomic&gt; because we can't use &amp;mut references to ShouldColorize
     </span>has_manual_override: AtomicBool,
     manual_override: AtomicBool,
 }
@@ -482,7 +481,7 @@
     SHOULD_COLORIZE.set_override(override_colorize)
 }
 
-<span class="doccomment">/// Remove the manual override and let the environment decide if it&#39;s ok to colorize
+<span class="doccomment">/// Remove the manual override and let the environment decide if it's ok to colorize
 /// See example/control.rs
 </span><span class="kw">pub fn </span>unset_override() {
     SHOULD_COLORIZE.unset_override()
@@ -511,11 +510,11 @@
     /// followed by `CLICOLOR` combined with tty check.
     </span><span class="kw">pub fn </span>from_env() -&gt; <span class="self">Self </span>{
         ShouldColorize {
-            clicolor: ShouldColorize::normalize_env(env::var(<span class="string">&quot;CLICOLOR&quot;</span>)).unwrap_or(<span class="bool-val">true</span>)
+            clicolor: ShouldColorize::normalize_env(env::var(<span class="string">"CLICOLOR"</span>)).unwrap_or(<span class="bool-val">true</span>)
                 &amp;&amp; io::stdout().is_terminal(),
             clicolor_force: ShouldColorize::resolve_clicolor_force(
-                env::var(<span class="string">&quot;NO_COLOR&quot;</span>),
-                env::var(<span class="string">&quot;CLICOLOR_FORCE&quot;</span>),
+                env::var(<span class="string">"NO_COLOR"</span>),
+                env::var(<span class="string">"CLICOLOR_FORCE"</span>),
             ),
             ..ShouldColorize::default()
         }
@@ -541,7 +540,7 @@
             .store(override_colorize, Ordering::Relaxed);
     }
 
-    <span class="doccomment">/// Remove the manual override and let the environment decide if it&#39;s ok to colorize
+    <span class="doccomment">/// Remove the manual override and let the environment decide if it's ok to colorize
     </span><span class="kw">pub fn </span>unset_override(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="self">self</span>.has_manual_override.store(<span class="bool-val">false</span>, Ordering::Relaxed);
     }
@@ -550,7 +549,7 @@
 
     </span><span class="kw">fn </span>normalize_env(env_res: <span class="prelude-ty">Result</span>&lt;String, env::VarError&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;bool&gt; {
         <span class="kw">match </span>env_res {
-            <span class="prelude-val">Ok</span>(string) =&gt; <span class="prelude-val">Some</span>(string != <span class="string">&quot;0&quot;</span>),
+            <span class="prelude-val">Ok</span>(string) =&gt; <span class="prelude-val">Some</span>(string != <span class="string">"0"</span>),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -582,31 +581,31 @@
 
         <span class="kw">let </span>stdout = <span class="kw-2">&amp;mut </span>io::stdout();
         <span class="kw">let </span><span class="kw-2">mut </span>formatter = rspec::formatter::Simple::new(stdout);
-        <span class="kw">let </span><span class="kw-2">mut </span>runner = describe(<span class="string">&quot;ShouldColorize&quot;</span>, |ctx| {
-            ctx.describe(<span class="string">&quot;::normalize_env&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;should return None if error&quot;</span>, || {
+        <span class="kw">let </span><span class="kw-2">mut </span>runner = describe(<span class="string">"ShouldColorize"</span>, |ctx| {
+            ctx.describe(<span class="string">"::normalize_env"</span>, |ctx| {
+                ctx.it(<span class="string">"should return None if error"</span>, || {
                     <span class="macro">assert_eq!</span>(
                         <span class="prelude-val">None</span>,
                         ShouldColorize::normalize_env(<span class="prelude-val">Err</span>(env::VarError::NotPresent))
                     );
                     <span class="macro">assert_eq!</span>(
                         <span class="prelude-val">None</span>,
-                        ShouldColorize::normalize_env(<span class="prelude-val">Err</span>(env::VarError::NotUnicode(<span class="string">&quot;&quot;</span>.into())))
+                        ShouldColorize::normalize_env(<span class="prelude-val">Err</span>(env::VarError::NotUnicode(<span class="string">""</span>.into())))
                     )
                 });
 
-                ctx.it(<span class="string">&quot;should return Some(true) if != 0&quot;</span>, || {
-                    <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) == ShouldColorize::normalize_env(<span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)))
+                ctx.it(<span class="string">"should return Some(true) if != 0"</span>, || {
+                    <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) == ShouldColorize::normalize_env(<span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)))
                 });
 
-                ctx.it(<span class="string">&quot;should return Some(false) if == 0&quot;</span>, || {
-                    <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) == ShouldColorize::normalize_env(<span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;0&quot;</span>)))
+                ctx.it(<span class="string">"should return Some(false) if == 0"</span>, || {
+                    <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) == ShouldColorize::normalize_env(<span class="prelude-val">Ok</span>(String::from(<span class="string">"0"</span>)))
                 });
             });
 
-            ctx.describe(<span class="string">&quot;::resolve_clicolor_force&quot;</span>, |ctx| {
+            ctx.describe(<span class="string">"::resolve_clicolor_force"</span>, |ctx| {
                 ctx.it(
-                    <span class="string">&quot;should return None if NO_COLOR is not set and CLICOLOR_FORCE is not set or set to 0&quot;</span>,
+                    <span class="string">"should return None if NO_COLOR is not set and CLICOLOR_FORCE is not set or set to 0"</span>,
                     || {
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">None</span>,
@@ -619,79 +618,79 @@
                             <span class="prelude-val">None</span>,
                             ShouldColorize::resolve_clicolor_force(
                                 <span class="prelude-val">Err</span>(env::VarError::NotPresent),
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;0&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"0"</span>)),
                             )
                         );
                     },
                 );
 
                 ctx.it(
-                    <span class="string">&quot;should return Some(false) if NO_COLOR is set and CLICOLOR_FORCE is not enabled&quot;</span>,
+                    <span class="string">"should return Some(false) if NO_COLOR is set and CLICOLOR_FORCE is not enabled"</span>,
                     || {
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                             ShouldColorize::resolve_clicolor_force(
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;0&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"0"</span>)),
                                 <span class="prelude-val">Err</span>(env::VarError::NotPresent)
                             )
                         );
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                             ShouldColorize::resolve_clicolor_force(
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
                                 <span class="prelude-val">Err</span>(env::VarError::NotPresent)
                             )
                         );
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                             ShouldColorize::resolve_clicolor_force(
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;0&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"0"</span>)),
                             )
                         );
                     },
                 );
 
                 ctx.it(
-                    <span class="string">&quot;should prioritize CLICOLOR_FORCE over NO_COLOR if CLICOLOR_FORCE is set to non-zero value&quot;</span>,
+                    <span class="string">"should prioritize CLICOLOR_FORCE over NO_COLOR if CLICOLOR_FORCE is set to non-zero value"</span>,
                     || {
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
                             ShouldColorize::resolve_clicolor_force(
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
                             )
                         );
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">false</span>),
                             ShouldColorize::resolve_clicolor_force(
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;0&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"0"</span>)),
                             )
                         );
                         <span class="macro">assert_eq!</span>(
                             <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
                             ShouldColorize::resolve_clicolor_force(
                                 <span class="prelude-val">Err</span>(env::VarError::NotPresent),
-                                <span class="prelude-val">Ok</span>(String::from(<span class="string">&quot;1&quot;</span>)),
+                                <span class="prelude-val">Ok</span>(String::from(<span class="string">"1"</span>)),
                             )
                         );
                     },
                 );
             });
 
-            ctx.describe(<span class="string">&quot;constructors&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;should have a default constructor&quot;</span>, || {
+            ctx.describe(<span class="string">"constructors"</span>, |ctx| {
+                ctx.it(<span class="string">"should have a default constructor"</span>, || {
                     ShouldColorize::default();
                 });
 
-                ctx.it(<span class="string">&quot;should have an environment constructor&quot;</span>, || {
+                ctx.it(<span class="string">"should have an environment constructor"</span>, || {
                     ShouldColorize::from_env();
                 });
             });
 
-            ctx.describe(<span class="string">&quot;when only changing clicolors&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;clicolor == false means no colors&quot;</span>, || {
+            ctx.describe(<span class="string">"when only changing clicolors"</span>, |ctx| {
+                ctx.it(<span class="string">"clicolor == false means no colors"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize {
                         clicolor: <span class="bool-val">false</span>,
                         ..ShouldColorize::default()
@@ -699,7 +698,7 @@
                     <span class="bool-val">false </span>== colorize_control.should_colorize()
                 });
 
-                ctx.it(<span class="string">&quot;clicolor == true means colors !&quot;</span>, || {
+                ctx.it(<span class="string">"clicolor == true means colors !"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize {
                         clicolor: <span class="bool-val">true</span>,
                         ..ShouldColorize::default()
@@ -707,14 +706,14 @@
                     <span class="bool-val">true </span>== colorize_control.should_colorize()
                 });
 
-                ctx.it(<span class="string">&quot;unset clicolors implies true&quot;</span>, || {
+                ctx.it(<span class="string">"unset clicolors implies true"</span>, || {
                     <span class="bool-val">true </span>== ShouldColorize::default().should_colorize()
                 });
             });
 
-            ctx.describe(<span class="string">&quot;when using clicolor_force&quot;</span>, |ctx| {
+            ctx.describe(<span class="string">"when using clicolor_force"</span>, |ctx| {
                 ctx.it(
-                    <span class="string">&quot;clicolor_force should force to true no matter clicolor&quot;</span>,
+                    <span class="string">"clicolor_force should force to true no matter clicolor"</span>,
                     || {
                         <span class="kw">let </span>colorize_control = ShouldColorize {
                             clicolor: <span class="bool-val">false</span>,
@@ -727,7 +726,7 @@
                 );
 
                 ctx.it(
-                    <span class="string">&quot;clicolor_force should force to false no matter clicolor&quot;</span>,
+                    <span class="string">"clicolor_force should force to false no matter clicolor"</span>,
                     || {
                         <span class="kw">let </span>colorize_control = ShouldColorize {
                             clicolor: <span class="bool-val">true</span>,
@@ -740,8 +739,8 @@
                 );
             });
 
-            ctx.describe(<span class="string">&quot;using a manual override&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false&quot;</span>, || {
+            ctx.describe(<span class="string">"using a manual override"</span>, |ctx| {
+                ctx.it(<span class="string">"shoud colorize if manual_override is true, but clicolor is false and clicolor_force also false"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize {
                         clicolor: <span class="bool-val">false</span>,
                         clicolor_force: <span class="prelude-val">None</span>,
@@ -753,7 +752,7 @@
                     <span class="bool-val">true </span>== colorize_control.should_colorize()
                 });
 
-                ctx.it(<span class="string">&quot;should not colorize if manual_override is false, but clicolor is true or clicolor_force is true&quot;</span>, || {
+                ctx.it(<span class="string">"should not colorize if manual_override is false, but clicolor is true or clicolor_force is true"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize {
                         clicolor: <span class="bool-val">true</span>,
                         clicolor_force: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
@@ -766,13 +765,13 @@
                 })
             });
 
-            ctx.describe(<span class="string">&quot;::set_override&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;should exists&quot;</span>, || {
+            ctx.describe(<span class="string">"::set_override"</span>, |ctx| {
+                ctx.it(<span class="string">"should exists"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize::default();
                     colorize_control.set_override(<span class="bool-val">true</span>);
                 });
 
-                ctx.it(<span class="string">&quot;set the manual_override property&quot;</span>, || {
+                ctx.it(<span class="string">"set the manual_override property"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize::default();
                     colorize_control.set_override(<span class="bool-val">true</span>);
                     {
@@ -795,13 +794,13 @@
                 });
             });
 
-            ctx.describe(<span class="string">&quot;::unset_override&quot;</span>, |ctx| {
-                ctx.it(<span class="string">&quot;should exists&quot;</span>, || {
+            ctx.describe(<span class="string">"::unset_override"</span>, |ctx| {
+                ctx.it(<span class="string">"should exists"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize::default();
                     colorize_control.unset_override();
                 });
 
-                ctx.it(<span class="string">&quot;unset the manual_override property&quot;</span>, || {
+                ctx.it(<span class="string">"unset the manual_override property"</span>, || {
                     <span class="kw">let </span>colorize_control = ShouldColorize::default();
                     colorize_control.set_override(<span class="bool-val">true</span>);
                     colorize_control.unset_override();

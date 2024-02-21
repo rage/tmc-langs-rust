@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/inline_table.rs`."><title>inline_table.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../toml_edit/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/inline_table.rs`."><title>inline_table.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -705,6 +706,34 @@
 <a href="#705" id="705">705</a>
 <a href="#706" id="706">706</a>
 <a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::iter::FromIterator;
 
 <span class="kw">use </span><span class="kw">crate</span>::key::Key;
@@ -764,10 +793,10 @@
         values
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>append_values&lt;<span class="lifetime">&#39;s</span>, <span class="lifetime">&#39;c</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">self</span>,
-        parent: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Key],
-        values: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c </span><span class="kw-2">mut </span>Vec&lt;(Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Key&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Value)&gt;,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>append_values&lt;<span class="lifetime">'s</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="self">self</span>,
+        parent: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'s </span>Key],
+        values: <span class="kw-2">&amp;mut </span>Vec&lt;(Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>Key&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'s </span>Value)&gt;,
     ) {
         <span class="kw">for </span>value <span class="kw">in </span><span class="self">self</span>.items.values() {
             <span class="kw">let </span><span class="kw-2">mut </span>path = parent.to_vec();
@@ -791,7 +820,7 @@
 
     <span class="doccomment">/// Sorts the key/value pairs by key.
     </span><span class="kw">pub fn </span>sort_values(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// Assuming standard tables have their position set and this won&#39;t negatively impact them
+        <span class="comment">// Assuming standard tables have their position set and this won't negatively impact them
         </span><span class="self">self</span>.items.sort_keys();
         <span class="kw">for </span>kv <span class="kw">in </span><span class="self">self</span>.items.values_mut() {
             <span class="kw">match </span><span class="kw-2">&amp;mut </span>kv.value {
@@ -847,17 +876,21 @@
     /// # Examples
     ///
     /// ```notrust
-    /// [target.&quot;x86_64/windows.json&quot;.dependencies]
+    /// [target."x86_64/windows.json".dependencies]
     /// ```
     ///
-    /// In the document above, tables `target` and `target.&quot;x86_64/windows.json&quot;` are implicit.
+    /// In the document above, tables `target` and `target."x86_64/windows.json"` are implicit.
     ///
     /// ```
+    /// # #[cfg(feature = "parse")] {
+    /// # #[cfg(feature = "display")] {
     /// use toml_edit::Document;
-    /// let mut doc = &quot;[a]\n[a.b]\n&quot;.parse::&lt;Document&gt;().expect(&quot;invalid toml&quot;);
+    /// let mut doc = "[a]\n[a.b]\n".parse::&lt;Document&gt;().expect("invalid toml");
     ///
-    /// doc[&quot;a&quot;].as_table_mut().unwrap().set_implicit(true);
-    /// assert_eq!(doc.to_string(), &quot;[a.b]\n&quot;);
+    /// doc["a"].as_table_mut().unwrap().set_implicit(true);
+    /// assert_eq!(doc.to_string(), "[a.b]\n");
+    /// # }
+    /// # }
     /// ```
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>set_implicit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, implicit: bool) {
         <span class="self">self</span>.implicit = implicit;
@@ -868,7 +901,7 @@
         <span class="self">self</span>.implicit
     }
 
-    <span class="doccomment">/// Change this table&#39;s dotted status
+    <span class="doccomment">/// Change this table's dotted status
     </span><span class="kw">pub fn </span>set_dotted(<span class="kw-2">&amp;mut </span><span class="self">self</span>, yes: bool) {
         <span class="self">self</span>.dotted = yes;
     }
@@ -888,14 +921,28 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.decor
     }
 
-    <span class="doccomment">/// Returns the decor associated with a given key of the table.
-    </span><span class="kw">pub fn </span>key_decor_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Decor&gt; {
-        <span class="self">self</span>.items.get_mut(key).map(|kv| <span class="kw-2">&amp;mut </span>kv.key.decor)
+    <span class="doccomment">/// Returns an accessor to a key's formatting
+    </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Key&gt; {
+        <span class="self">self</span>.items.get(key).map(|kv| <span class="kw-2">&amp;</span>kv.key)
+    }
+
+    <span class="doccomment">/// Returns an accessor to a key's formatting
+    </span><span class="kw">pub fn </span>key_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;KeyMut&lt;<span class="lifetime">'_</span>&gt;&gt; {
+        <span class="self">self</span>.items.get_mut(key).map(|kv| kv.key.as_mut())
     }
 
     <span class="doccomment">/// Returns the decor associated with a given key of the table.
+    </span><span class="attr">#[deprecated(since = <span class="string">"0.21.1"</span>, note = <span class="string">"Replaced with `key_mut`"</span>)]
+    </span><span class="kw">pub fn </span>key_decor_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Decor&gt; {
+        <span class="attr">#![allow(deprecated)]
+        </span><span class="self">self</span>.items.get_mut(key).map(|kv| kv.key.leaf_decor_mut())
+    }
+
+    <span class="doccomment">/// Returns the decor associated with a given key of the table.
+    </span><span class="attr">#[deprecated(since = <span class="string">"0.21.1"</span>, note = <span class="string">"Replaced with `key_mut`"</span>)]
     </span><span class="kw">pub fn </span>key_decor(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Decor&gt; {
-        <span class="self">self</span>.items.get(key).map(|kv| <span class="kw-2">&amp;</span>kv.key.decor)
+        <span class="attr">#![allow(deprecated)]
+        </span><span class="self">self</span>.items.get(key).map(|kv| kv.key.leaf_decor())
     }
 
     <span class="doccomment">/// Set whitespace after before element
@@ -926,7 +973,7 @@
 
 <span class="kw">impl </span>InlineTable {
     <span class="doccomment">/// Returns an iterator over key/value pairs.
-    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InlineTableIter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; InlineTableIter&lt;<span class="lifetime">'_</span>&gt; {
         Box::new(
             <span class="self">self</span>.items
                 .iter()
@@ -936,7 +983,7 @@
     }
 
     <span class="doccomment">/// Returns an iterator over key/value pairs.
-    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; InlineTableIterMut&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; InlineTableIterMut&lt;<span class="lifetime">'_</span>&gt; {
         Box::new(
             <span class="self">self</span>.items
                 .iter_mut()
@@ -960,17 +1007,17 @@
         <span class="self">self</span>.items.clear()
     }
 
-    <span class="doccomment">/// Gets the given key&#39;s corresponding entry in the Table for in-place manipulation.
-    </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_ </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw">impl </span>Into&lt;InternalString&gt;) -&gt; InlineEntry&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="doccomment">/// Gets the given key's corresponding entry in the Table for in-place manipulation.
+    </span><span class="kw">pub fn </span>entry(<span class="kw-2">&amp;</span><span class="lifetime">'_ </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw">impl </span>Into&lt;InternalString&gt;) -&gt; InlineEntry&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw">match </span><span class="self">self</span>.items.entry(key.into()) {
             indexmap::map::Entry::Occupied(<span class="kw-2">mut </span>entry) =&gt; {
-                <span class="comment">// Ensure it is a `Value` to simplify `InlineOccupiedEntry`&#39;s code.
+                <span class="comment">// Ensure it is a `Value` to simplify `InlineOccupiedEntry`'s code.
                 </span><span class="kw">let </span>scratch = std::mem::take(<span class="kw-2">&amp;mut </span>entry.get_mut().value);
                 <span class="kw">let </span>scratch = Item::Value(
                     scratch
                         .into_value()
-                        <span class="comment">// HACK: `Item::None` is a corner case of a corner case, let&#39;s just pick a
-                        // &quot;safe&quot; value
+                        <span class="comment">// HACK: `Item::None` is a corner case of a corner case, let's just pick a
+                        // "safe" value
                         </span>.unwrap_or_else(|<span class="kw">_</span>| Value::InlineTable(Default::default())),
                 );
                 entry.get_mut().value = scratch;
@@ -983,18 +1030,18 @@
         }
     }
 
-    <span class="doccomment">/// Gets the given key&#39;s corresponding entry in the Table for in-place manipulation.
-    </span><span class="kw">pub fn </span>entry_format&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) -&gt; InlineEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Gets the given key's corresponding entry in the Table for in-place manipulation.
+    </span><span class="kw">pub fn </span>entry_format&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) -&gt; InlineEntry&lt;<span class="lifetime">'a</span>&gt; {
         <span class="comment">// Accept a `&amp;Key` to be consistent with `entry`
         </span><span class="kw">match </span><span class="self">self</span>.items.entry(key.get().into()) {
             indexmap::map::Entry::Occupied(<span class="kw-2">mut </span>entry) =&gt; {
-                <span class="comment">// Ensure it is a `Value` to simplify `InlineOccupiedEntry`&#39;s code.
+                <span class="comment">// Ensure it is a `Value` to simplify `InlineOccupiedEntry`'s code.
                 </span><span class="kw">let </span>scratch = std::mem::take(<span class="kw-2">&amp;mut </span>entry.get_mut().value);
                 <span class="kw">let </span>scratch = Item::Value(
                     scratch
                         .into_value()
-                        <span class="comment">// HACK: `Item::None` is a corner case of a corner case, let&#39;s just pick a
-                        // &quot;safe&quot; value
+                        <span class="comment">// HACK: `Item::None` is a corner case of a corner case, let's just pick a
+                        // "safe" value
                         </span>.unwrap_or_else(|<span class="kw">_</span>| Value::InlineTable(Default::default())),
                 );
                 entry.get_mut().value = scratch;
@@ -1020,7 +1067,7 @@
     }
 
     <span class="doccomment">/// Return references to the key-value pair stored for key, if it is present, else None.
-    </span><span class="kw">pub fn </span>get_key_value&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Key, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Item)&gt; {
+    </span><span class="kw">pub fn </span>get_key_value&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Key, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Item)&gt; {
         <span class="self">self</span>.items.get(key).and_then(|kv| {
             <span class="kw">if </span>!kv.value.is_none() {
                 <span class="prelude-val">Some</span>((<span class="kw-2">&amp;</span>kv.key, <span class="kw-2">&amp;</span>kv.value))
@@ -1031,7 +1078,7 @@
     }
 
     <span class="doccomment">/// Return mutable references to the key-value pair stored for key, if it is present, else None.
-    </span><span class="kw">pub fn </span>get_key_value_mut&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(KeyMut&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Item)&gt; {
+    </span><span class="kw">pub fn </span>get_key_value_mut&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(KeyMut&lt;<span class="lifetime">'a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Item)&gt; {
         <span class="self">self</span>.items.get_mut(key).and_then(|kv| {
             <span class="kw">if </span>!kv.value.is_none() {
                 <span class="prelude-val">Some</span>((kv.key.as_mut(), <span class="kw-2">&amp;mut </span>kv.value))
@@ -1063,7 +1110,7 @@
             .or_insert(TableKeyValue::new(Key::new(key), Item::Value(value.into())))
             .value
             .as_value_mut()
-            .expect(<span class="string">&quot;non-value type in inline table&quot;</span>)
+            .expect(<span class="string">"non-value type in inline table"</span>)
     }
 
     <span class="doccomment">/// Inserts a key-value pair into the map.
@@ -1118,9 +1165,10 @@
     }
 }
 
-<span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>InlineTable {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">crate</span>::encode::Encode::encode(<span class="self">self</span>, f, <span class="prelude-val">None</span>, (<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>))
+<span class="attr">#[cfg(feature = <span class="string">"display"</span>)]
+</span><span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>InlineTable {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">crate</span>::encode::encode_table(<span class="self">self</span>, f, <span class="prelude-val">None</span>, (<span class="string">""</span>, <span class="string">""</span>))
     }
 }
 
@@ -1161,9 +1209,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;s</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>InlineTable {
-    <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Value);
-    <span class="kw">type </span>IntoIter = InlineTableIter&lt;<span class="lifetime">&#39;s</span>&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'s</span>&gt; IntoIterator <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'s </span>InlineTable {
+    <span class="kw">type </span>Item = (<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'s </span>Value);
+    <span class="kw">type </span>IntoIter = InlineTableIter&lt;<span class="lifetime">'s</span>&gt;;
 
     <span class="kw">fn </span>into_iter(<span class="self">self</span>) -&gt; <span class="self">Self</span>::IntoIter {
         <span class="self">self</span>.iter()
@@ -1171,13 +1219,14 @@
 }
 
 <span class="kw">fn </span>decorate_inline_table(table: <span class="kw-2">&amp;mut </span>InlineTable) {
-    <span class="kw">for </span>(key_decor, value) <span class="kw">in </span>table
+    <span class="kw">for </span>(<span class="kw-2">mut </span>key, value) <span class="kw">in </span>table
         .items
         .iter_mut()
-        .filter(|<span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="kw-2">ref </span>kv)| kv.value.is_value())
-        .map(|(<span class="kw">_</span>, kv)| (<span class="kw-2">&amp;mut </span>kv.key.decor, kv.value.as_value_mut().unwrap()))
+        .filter(|(<span class="kw">_</span>, kv)| kv.value.is_value())
+        .map(|(<span class="kw">_</span>, kv)| (kv.key.as_mut(), kv.value.as_value_mut().unwrap()))
     {
-        key_decor.clear();
+        key.leaf_decor_mut().clear();
+        key.dotted_decor_mut().clear();
         value.decor_mut().clear();
     }
 }
@@ -1185,15 +1234,15 @@
 <span class="doccomment">/// An owned iterator type over key/value pairs of an inline table.
 </span><span class="kw">pub type </span>InlineTableIntoIter = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (InternalString, Value)&gt;&gt;;
 <span class="doccomment">/// An iterator type over key/value pairs of an inline table.
-</span><span class="kw">pub type </span>InlineTableIter&lt;<span class="lifetime">&#39;a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Value)&gt; + <span class="lifetime">&#39;a</span>&gt;;
+</span><span class="kw">pub type </span>InlineTableIter&lt;<span class="lifetime">'a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Value)&gt; + <span class="lifetime">'a</span>&gt;;
 <span class="doccomment">/// A mutable iterator type over key/value pairs of an inline table.
-</span><span class="kw">pub type </span>InlineTableIterMut&lt;<span class="lifetime">&#39;a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (KeyMut&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value)&gt; + <span class="lifetime">&#39;a</span>&gt;;
+</span><span class="kw">pub type </span>InlineTableIterMut&lt;<span class="lifetime">'a</span>&gt; = Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (KeyMut&lt;<span class="lifetime">'a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value)&gt; + <span class="lifetime">'a</span>&gt;;
 
 <span class="kw">impl </span>TableLike <span class="kw">for </span>InlineTable {
-    <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Iter&lt;<span class="lifetime">'_</span>&gt; {
         Box::new(<span class="self">self</span>.items.iter().map(|(key, kv)| (<span class="kw-2">&amp;</span>key[..], <span class="kw-2">&amp;</span>kv.value)))
     }
-    <span class="kw">fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; IterMut&lt;<span class="lifetime">'_</span>&gt; {
         Box::new(
             <span class="self">self</span>.items
                 .iter_mut()
@@ -1203,7 +1252,7 @@
     <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.clear();
     }
-    <span class="kw">fn </span>entry&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">crate</span>::Entry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>entry&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">crate</span>::Entry&lt;<span class="lifetime">'a</span>&gt; {
         <span class="comment">// Accept a `&amp;str` rather than an owned type to keep `InternalString`, well, internal
         </span><span class="kw">match </span><span class="self">self</span>.items.entry(key.into()) {
             indexmap::map::Entry::Occupied(entry) =&gt; {
@@ -1214,7 +1263,7 @@
             }
         }
     }
-    <span class="kw">fn </span>entry_format&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) -&gt; <span class="kw">crate</span>::Entry&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="kw">fn </span>entry_format&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Key) -&gt; <span class="kw">crate</span>::Entry&lt;<span class="lifetime">'a</span>&gt; {
         <span class="comment">// Accept a `&amp;Key` to be consistent with `entry`
         </span><span class="kw">match </span><span class="self">self</span>.items.entry(key.get().into()) {
             indexmap::map::Entry::Occupied(entry) =&gt; {
@@ -1226,16 +1275,16 @@
             }),
         }
     }
-    <span class="kw">fn </span>get&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span>Item&gt; {
+    <span class="kw">fn </span>get&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>Item&gt; {
         <span class="self">self</span>.items.get(key).map(|kv| <span class="kw-2">&amp;</span>kv.value)
     }
-    <span class="kw">fn </span>get_mut&lt;<span class="lifetime">&#39;s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;s </span><span class="kw-2">mut </span>Item&gt; {
+    <span class="kw">fn </span>get_mut&lt;<span class="lifetime">'s</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span><span class="kw-2">mut </span>Item&gt; {
         <span class="self">self</span>.items.get_mut(key).map(|kv| <span class="kw-2">&amp;mut </span>kv.value)
     }
-    <span class="kw">fn </span>get_key_value&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Key, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Item)&gt; {
+    <span class="kw">fn </span>get_key_value&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Key, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Item)&gt; {
         <span class="self">self</span>.get_key_value(key)
     }
-    <span class="kw">fn </span>get_key_value_mut&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(KeyMut&lt;<span class="lifetime">&#39;a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Item)&gt; {
+    <span class="kw">fn </span>get_key_value_mut&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;(KeyMut&lt;<span class="lifetime">'a</span>&gt;, <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Item)&gt; {
         <span class="self">self</span>.get_key_value_mut(key)
     }
     <span class="kw">fn </span>contains_key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; bool {
@@ -1265,26 +1314,34 @@
         <span class="self">self</span>.is_dotted()
     }
 
+    <span class="kw">fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'_ </span>Key&gt; {
+        <span class="self">self</span>.key(key)
+    }
+    <span class="kw">fn </span>key_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;KeyMut&lt;<span class="lifetime">'_</span>&gt;&gt; {
+        <span class="self">self</span>.key_mut(key)
+    }
     <span class="kw">fn </span>key_decor_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Decor&gt; {
-        <span class="self">self</span>.key_decor_mut(key)
+        <span class="attr">#![allow(deprecated)]
+        </span><span class="self">self</span>.key_decor_mut(key)
     }
     <span class="kw">fn </span>key_decor(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Decor&gt; {
-        <span class="self">self</span>.key_decor(key)
+        <span class="attr">#![allow(deprecated)]
+        </span><span class="self">self</span>.key_decor(key)
     }
 }
 
 <span class="comment">// `{ key1 = value1, ... }`
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_INLINE_KEY_DECOR: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str) = (<span class="string">&quot; &quot;</span>, <span class="string">&quot; &quot;</span>);
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_INLINE_KEY_DECOR: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str) = (<span class="string">" "</span>, <span class="string">" "</span>);
 
 <span class="doccomment">/// A view into a single location in a map, which may be vacant or occupied.
-</span><span class="kw">pub enum </span>InlineEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">pub enum </span>InlineEntry&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// An occupied Entry.
-    </span>Occupied(InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>&gt;),
+    </span>Occupied(InlineOccupiedEntry&lt;<span class="lifetime">'a</span>&gt;),
     <span class="doccomment">/// A vacant Entry.
-    </span>Vacant(InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>&gt;),
+    </span>Vacant(InlineVacantEntry&lt;<span class="lifetime">'a</span>&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InlineEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; InlineEntry&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Returns the entry key
     ///
     /// # Examples
@@ -1294,7 +1351,7 @@
     ///
     /// let mut map = Table::new();
     ///
-    /// assert_eq!(&quot;hello&quot;, map.entry(&quot;hello&quot;).key());
+    /// assert_eq!("hello", map.entry("hello").key());
     /// ```
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw">match </span><span class="self">self </span>{
@@ -1305,7 +1362,7 @@
 
     <span class="doccomment">/// Ensures a value is in the entry by inserting the default if empty, and returns
     /// a mutable reference to the value in the entry.
-    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
+    </span><span class="kw">pub fn </span>or_insert(<span class="self">self</span>, default: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value {
         <span class="kw">match </span><span class="self">self </span>{
             InlineEntry::Occupied(entry) =&gt; entry.into_mut(),
             InlineEntry::Vacant(entry) =&gt; entry.insert(default),
@@ -1314,7 +1371,7 @@
 
     <span class="doccomment">/// Ensures a value is in the entry by inserting the result of the default function if empty,
     /// and returns a mutable reference to the value in the entry.
-    </span><span class="kw">pub fn </span>or_insert_with&lt;F: FnOnce() -&gt; Value&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
+    </span><span class="kw">pub fn </span>or_insert_with&lt;F: FnOnce() -&gt; Value&gt;(<span class="self">self</span>, default: F) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value {
         <span class="kw">match </span><span class="self">self </span>{
             InlineEntry::Occupied(entry) =&gt; entry.into_mut(),
             InlineEntry::Vacant(entry) =&gt; entry.insert(default()),
@@ -1323,11 +1380,11 @@
 }
 
 <span class="doccomment">/// A view into a single occupied location in a `IndexMap`.
-</span><span class="kw">pub struct </span>InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    entry: indexmap::map::OccupiedEntry&lt;<span class="lifetime">&#39;a</span>, InternalString, TableKeyValue&gt;,
+</span><span class="kw">pub struct </span>InlineOccupiedEntry&lt;<span class="lifetime">'a</span>&gt; {
+    entry: indexmap::map::OccupiedEntry&lt;<span class="lifetime">'a</span>, InternalString, TableKeyValue&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InlineOccupiedEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; InlineOccupiedEntry&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Gets a reference to the entry key
     ///
     /// # Examples
@@ -1337,14 +1394,14 @@
     ///
     /// let mut map = Table::new();
     ///
-    /// assert_eq!(&quot;foo&quot;, map.entry(&quot;foo&quot;).key());
+    /// assert_eq!("foo", map.entry("foo").key());
     /// ```
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="self">self</span>.entry.key().as_str()
     }
 
     <span class="doccomment">/// Gets a mutable reference to the entry key
-    </span><span class="kw">pub fn </span>key_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; KeyMut&lt;<span class="lifetime">&#39;_</span>&gt; {
+    </span><span class="kw">pub fn </span>key_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; KeyMut&lt;<span class="lifetime">'_</span>&gt; {
         <span class="self">self</span>.entry.get_mut().key.as_mut()
     }
 
@@ -1360,11 +1417,11 @@
 
     <span class="doccomment">/// Converts the OccupiedEntry into a mutable reference to the value in the entry
     /// with a lifetime bound to the map itself
-    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
+    </span><span class="kw">pub fn </span>into_mut(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value {
         <span class="self">self</span>.entry.into_mut().value.as_value_mut().unwrap()
     }
 
-    <span class="doccomment">/// Sets the value of the entry, and returns the entry&#39;s old value
+    <span class="doccomment">/// Sets the value of the entry, and returns the entry's old value
     </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: Value) -&gt; Value {
         <span class="kw">let </span><span class="kw-2">mut </span>value = Item::Value(value);
         std::mem::swap(<span class="kw-2">&amp;mut </span>value, <span class="kw-2">&amp;mut </span><span class="self">self</span>.entry.get_mut().value);
@@ -1378,12 +1435,12 @@
 }
 
 <span class="doccomment">/// A view into a single empty location in a `IndexMap`.
-</span><span class="kw">pub struct </span>InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
-    entry: indexmap::map::VacantEntry&lt;<span class="lifetime">&#39;a</span>, InternalString, TableKeyValue&gt;,
+</span><span class="kw">pub struct </span>InlineVacantEntry&lt;<span class="lifetime">'a</span>&gt; {
+    entry: indexmap::map::VacantEntry&lt;<span class="lifetime">'a</span>, InternalString, TableKeyValue&gt;,
     key: <span class="prelude-ty">Option</span>&lt;Key&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; InlineVacantEntry&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; InlineVacantEntry&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Gets a reference to the entry key
     ///
     /// # Examples
@@ -1393,15 +1450,15 @@
     ///
     /// let mut map = Table::new();
     ///
-    /// assert_eq!(&quot;foo&quot;, map.entry(&quot;foo&quot;).key());
+    /// assert_eq!("foo", map.entry("foo").key());
     /// ```
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="self">self</span>.entry.key().as_str()
     }
 
-    <span class="doccomment">/// Sets the value of the entry with the VacantEntry&#39;s key,
+    <span class="doccomment">/// Sets the value of the entry with the VacantEntry's key,
     /// and returns a mutable reference to it
-    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Value {
+    </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value {
         <span class="kw">let </span>entry = <span class="self">self</span>.entry;
         <span class="kw">let </span>key = <span class="self">self</span>.key.unwrap_or_else(|| Key::new(entry.key().as_str()));
         <span class="kw">let </span>value = Item::Value(value);

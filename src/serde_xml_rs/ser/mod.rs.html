@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-xml-rs-0.6.0/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_xml_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../serde_xml_rs/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-xml-rs-0.6.0/src/ser/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="serde_xml_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -479,12 +480,12 @@
 ///
 /// # fn main() {
 /// let mut buffer = Vec::new();
-/// let joe = Person {name: &quot;Joe&quot;.to_string(), age: 42};
+/// let joe = Person {name: "Joe".to_string(), age: 42};
 ///
 /// to_writer(&amp;mut buffer, &amp;joe).unwrap();
 ///
 /// let serialized = String::from_utf8(buffer).unwrap();
-/// println!(&quot;{}&quot;, serialized);
+/// println!("{}", serialized);
 /// # }
 /// ```
 </span><span class="kw">pub fn </span>to_writer&lt;W: Write, S: Serialize&gt;(writer: W, value: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
@@ -507,9 +508,9 @@
 ///
 /// # fn main() {
 ///
-/// let joe = Person {name: &quot;Joe&quot;.to_string(), age: 42};
+/// let joe = Person {name: "Joe".to_string(), age: 42};
 /// let serialized = to_string(&amp;joe).unwrap();
-/// println!(&quot;{}&quot;, serialized);
+/// println!("{}", serialized);
 /// # }
 /// ```
 </span><span class="kw">pub fn </span>to_string&lt;S: Serialize&gt;(value: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;String&gt; {
@@ -530,7 +531,7 @@
     writer: EventWriter&lt;W&gt;,
     root: bool,
     current_tag: String,
-    current_tag_attrs: <span class="prelude-ty">Option</span>&lt;HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, String&gt;&gt;,
+    current_tag_attrs: <span class="prelude-ty">Option</span>&lt;HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, String&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;W&gt; Serializer&lt;W&gt;
@@ -541,7 +542,7 @@
         <span class="self">Self </span>{
             writer,
             root: <span class="bool-val">true</span>,
-            current_tag: <span class="string">&quot;&quot;</span>.into(),
+            current_tag: <span class="string">""</span>.into(),
             current_tag_attrs: <span class="prelude-val">None</span>,
         }
     }
@@ -567,7 +568,7 @@
         })
     }
 
-    <span class="kw">fn </span>open_root_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>open_root_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span><span class="self">self</span>.root {
             <span class="self">self</span>.root = <span class="bool-val">false</span>;
             <span class="self">self</span>.start_document()<span class="question-mark">?</span>;
@@ -588,16 +589,16 @@
     }
 
     <span class="kw">fn </span>abandon_tag(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-        <span class="self">self</span>.current_tag = <span class="string">&quot;&quot;</span>.into();
+        <span class="self">self</span>.current_tag = <span class="string">""</span>.into();
         <span class="self">self</span>.current_tag_attrs = <span class="prelude-val">None</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>add_attr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">fn </span>add_attr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: String) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.current_tag_attrs
             .as_mut()
             .ok_or(Error::Custom {
-                field: <span class="macro">format!</span>(<span class="string">&quot;Cannot add attribute {}&quot;</span>, name),
+                field: <span class="macro">format!</span>(<span class="string">"Cannot add attribute {}"</span>, name),
             })
             .map(|attrs| {
                 attrs.insert(name, value);
@@ -632,17 +633,17 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;ser</span>, W: Write&gt; serde::ser::Serializer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;ser </span><span class="kw-2">mut </span>Serializer&lt;W&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'ser</span>, W: Write&gt; serde::ser::Serializer <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'ser </span><span class="kw-2">mut </span>Serializer&lt;W&gt; {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = Error;
 
-    <span class="kw">type </span>SerializeSeq = SeqSeralizer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeTuple = TupleSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeTupleStruct = TupleSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeTupleVariant = TupleSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeMap = MapSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeStruct = StructSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
-    <span class="kw">type </span>SerializeStructVariant = StructSerializer&lt;<span class="lifetime">&#39;ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeSeq = SeqSeralizer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeTuple = TupleSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeTupleStruct = TupleSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeTupleVariant = TupleSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeMap = MapSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeStruct = StructSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
+    <span class="kw">type </span>SerializeStructVariant = StructSerializer&lt;<span class="lifetime">'ser</span>, W&gt;;
 
     <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
         <span class="self">self</span>.serialize_str(<span class="kw-2">&amp;</span>v.to_string())
@@ -711,7 +712,7 @@
     }
 
     <span class="kw">fn </span>serialize_none(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;None&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"None"</span>);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="kw">if </span>must_close_tag {
             <span class="self">self</span>.end_tag()<span class="question-mark">?</span>;
@@ -723,12 +724,12 @@
     <span class="kw">where
         </span>T: Serialize,
     {
-        <span class="macro">debug!</span>(<span class="string">&quot;Some&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Some"</span>);
         value.serialize(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>serialize_unit(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Unit&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Unit"</span>);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="kw">if </span>must_close_tag {
             <span class="self">self</span>.end_tag()<span class="question-mark">?</span>;
@@ -736,37 +737,37 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Unit struct {}&quot;</span>, name);
+    <span class="kw">fn </span>serialize_unit_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
+        <span class="macro">debug!</span>(<span class="string">"Unit struct {}"</span>, name);
         <span class="self">self</span>.serialize_unit()
     }
 
     <span class="kw">fn </span>serialize_unit_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Unit variant {}::{}&quot;</span>, name, variant);
+        <span class="macro">debug!</span>(<span class="string">"Unit variant {}::{}"</span>, name, variant);
         <span class="self">self</span>.start_tag(variant, HashMap::new())<span class="question-mark">?</span>;
         <span class="self">self</span>.serialize_unit()<span class="question-mark">?</span>;
         <span class="self">self</span>.end_tag()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
+    <span class="kw">fn </span>serialize_newtype_struct&lt;T: <span class="question-mark">?</span>Sized&gt;(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
     <span class="kw">where
         </span>T: Serialize,
     {
-        <span class="macro">debug!</span>(<span class="string">&quot;Newtype struct {}&quot;</span>, name);
+        <span class="macro">debug!</span>(<span class="string">"Newtype struct {}"</span>, name);
         value.serialize(<span class="self">self</span>)
     }
 
     <span class="kw">fn </span>serialize_newtype_variant&lt;T: <span class="question-mark">?</span>Sized&gt;(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         value: <span class="kw-2">&amp;</span>T,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok&gt;
     <span class="kw">where
@@ -774,7 +775,7 @@
     {
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Newtype variant {}::{}&quot;</span>, name, variant);
+        <span class="macro">debug!</span>(<span class="string">"Newtype variant {}::{}"</span>, name, variant);
         <span class="self">self</span>.open_tag(variant)<span class="question-mark">?</span>;
         value.serialize(<span class="kw-2">&amp;mut *</span><span class="self">self</span>)<span class="question-mark">?</span>;
 
@@ -785,34 +786,34 @@
     }
 
     <span class="kw">fn </span>serialize_seq(<span class="self">self</span>, _len: <span class="prelude-ty">Option</span>&lt;usize&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeSeq&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Sequence&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Sequence"</span>);
         <span class="prelude-val">Ok</span>(SeqSeralizer::new(<span class="self">self</span>))
     }
 
     <span class="kw">fn </span>serialize_tuple(<span class="self">self</span>, _len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTuple&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Tuple&quot;</span>);
+        <span class="macro">debug!</span>(<span class="string">"Tuple"</span>);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(TupleSerializer::new(<span class="self">self</span>, must_close_tag))
     }
 
     <span class="kw">fn </span>serialize_tuple_struct(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleStruct&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Tuple struct {}&quot;</span>, name);
+        <span class="macro">debug!</span>(<span class="string">"Tuple struct {}"</span>, name);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(TupleSerializer::new(<span class="self">self</span>, must_close_tag))
     }
 
     <span class="kw">fn </span>serialize_tuple_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeTupleVariant&gt; {
-        <span class="macro">debug!</span>(<span class="string">&quot;Tuple variant {}::{}&quot;</span>, name, variant);
+        <span class="macro">debug!</span>(<span class="string">"Tuple variant {}::{}"</span>, name, variant);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="self">self</span>.start_tag(variant, HashMap::new())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(TupleSerializer::new(<span class="self">self</span>, must_close_tag))
@@ -823,23 +824,23 @@
         <span class="prelude-val">Ok</span>(MapSerializer::new(<span class="self">self</span>, must_close_tag))
     }
 
-    <span class="kw">fn </span>serialize_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, _len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct&gt; {
+    <span class="kw">fn </span>serialize_struct(<span class="self">self</span>, name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, _len: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStruct&gt; {
         <span class="self">self</span>.open_root_tag(name)<span class="question-mark">?</span>;
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Struct {}&quot;</span>, name);
+        <span class="macro">debug!</span>(<span class="string">"Struct {}"</span>, name);
         <span class="prelude-val">Ok</span>(StructSerializer::new(<span class="self">self</span>, <span class="bool-val">false</span>))
     }
 
     <span class="kw">fn </span>serialize_struct_variant(
         <span class="self">self</span>,
-        name: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _variant_index: u32,
-        variant: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        variant: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         _len: usize,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SerializeStructVariant&gt; {
         <span class="self">self</span>.open_root_tag(name)<span class="question-mark">?</span>;
 
-        <span class="macro">debug!</span>(<span class="string">&quot;Struct variant {}&quot;</span>, variant);
+        <span class="macro">debug!</span>(<span class="string">"Struct variant {}"</span>, variant);
         <span class="kw">let </span>must_close_tag = <span class="self">self</span>.build_start_tag()<span class="question-mark">?</span>;
         <span class="self">self</span>.open_tag(variant)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(StructSerializer::new(<span class="self">self</span>, must_close_tag))
@@ -860,10 +861,10 @@
         }
 
         <span class="kw">let </span>bob = Person {
-            name: <span class="string">&quot;Bob&quot;</span>.to_string(),
+            name: <span class="string">"Bob"</span>.to_string(),
             age: <span class="number">42</span>,
         };
-        <span class="kw">let </span>should_be = <span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;&lt;Person&gt;&lt;name&gt;Bob&lt;/name&gt;&lt;age&gt;42&lt;/age&gt;&lt;/Person&gt;&quot;</span>;
+        <span class="kw">let </span>should_be = <span class="string">"&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;Person&gt;&lt;name&gt;Bob&lt;/name&gt;&lt;age&gt;42&lt;/age&gt;&lt;/Person&gt;"</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::new();
 
         {
@@ -886,7 +887,7 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = Vec::new();
-        <span class="kw">let </span>should_be = <span class="string">&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;utf-8\&quot;?&gt;&lt;Boolean&gt;true&lt;/Boolean&gt;&quot;</span>;
+        <span class="kw">let </span>should_be = <span class="string">"&lt;?xml version=\"1.0\" encoding=\"utf-8\"?&gt;&lt;Boolean&gt;true&lt;/Boolean&gt;"</span>;
 
         {
             <span class="kw">let </span><span class="kw-2">mut </span>ser = Serializer::new(<span class="kw-2">&amp;mut </span>buffer);

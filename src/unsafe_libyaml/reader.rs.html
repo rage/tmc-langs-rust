@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.9/src/reader.rs`."><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../unsafe_libyaml/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.10/src/reader.rs`."><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -466,8 +467,8 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::externs::{memcmp, memmove};
+<span class="kw">use </span><span class="kw">crate</span>::ops::ForceAdd <span class="kw">as _</span>;
 <span class="kw">use </span><span class="kw">crate</span>::success::{Success, FAIL, OK};
 <span class="kw">use </span><span class="kw">crate</span>::yaml::{size_t, yaml_char_t};
 <span class="kw">use crate</span>::{
@@ -490,9 +491,9 @@
     FAIL
 }
 
-<span class="kw">const </span>BOM_UTF8: <span class="kw-2">*const </span>libc::c_char = <span class="string">b&quot;\xEF\xBB\xBF\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
-<span class="kw">const </span>BOM_UTF16LE: <span class="kw-2">*const </span>libc::c_char = <span class="string">b&quot;\xFF\xFE\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
-<span class="kw">const </span>BOM_UTF16BE: <span class="kw-2">*const </span>libc::c_char = <span class="string">b&quot;\xFE\xFF\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+<span class="kw">const </span>BOM_UTF8: <span class="kw-2">*const </span>libc::c_char = <span class="string">b"\xEF\xBB\xBF\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+<span class="kw">const </span>BOM_UTF16LE: <span class="kw-2">*const </span>libc::c_char = <span class="string">b"\xFF\xFE\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
+<span class="kw">const </span>BOM_UTF16BE: <span class="kw-2">*const </span>libc::c_char = <span class="string">b"\xFE\xFF\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char;
 
 <span class="kw">unsafe fn </span>yaml_parser_determine_encoding(parser: <span class="kw-2">*mut </span>yaml_parser_t) -&gt; Success {
     <span class="kw">while </span>!(<span class="kw-2">*</span>parser).eof
@@ -521,7 +522,7 @@
         <span class="kw">let </span>fresh1 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).raw_buffer.pointer);
         <span class="kw-2">*</span>fresh1 = (<span class="kw-2">*</span>fresh1).wrapping_offset(<span class="number">2_isize</span>);
         <span class="kw">let </span>fresh2 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).offset);
-        <span class="kw-2">*</span>fresh2 = (<span class="kw-2">*</span>fresh2 <span class="kw">as </span>libc::c_ulong).wrapping_add(<span class="number">2_u64</span>) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+        <span class="kw-2">*</span>fresh2 = (<span class="kw-2">*</span>fresh2 <span class="kw">as </span>libc::c_ulong).force_add(<span class="number">2_u64</span>) <span class="kw">as </span>size_t;
     } <span class="kw">else if </span>(<span class="kw-2">*</span>parser)
         .raw_buffer
         .last
@@ -537,7 +538,7 @@
         <span class="kw">let </span>fresh3 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).raw_buffer.pointer);
         <span class="kw-2">*</span>fresh3 = (<span class="kw-2">*</span>fresh3).wrapping_offset(<span class="number">2_isize</span>);
         <span class="kw">let </span>fresh4 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).offset);
-        <span class="kw-2">*</span>fresh4 = (<span class="kw-2">*</span>fresh4 <span class="kw">as </span>libc::c_ulong).wrapping_add(<span class="number">2_u64</span>) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+        <span class="kw-2">*</span>fresh4 = (<span class="kw-2">*</span>fresh4 <span class="kw">as </span>libc::c_ulong).force_add(<span class="number">2_u64</span>) <span class="kw">as </span>size_t;
     } <span class="kw">else if </span>(<span class="kw-2">*</span>parser)
         .raw_buffer
         .last
@@ -553,7 +554,7 @@
         <span class="kw">let </span>fresh5 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).raw_buffer.pointer);
         <span class="kw-2">*</span>fresh5 = (<span class="kw-2">*</span>fresh5).wrapping_offset(<span class="number">3_isize</span>);
         <span class="kw">let </span>fresh6 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).offset);
-        <span class="kw-2">*</span>fresh6 = (<span class="kw-2">*</span>fresh6 <span class="kw">as </span>libc::c_ulong).wrapping_add(<span class="number">3_u64</span>) <span class="kw">as </span>size_t <span class="kw">as </span>size_t;
+        <span class="kw-2">*</span>fresh6 = (<span class="kw-2">*</span>fresh6 <span class="kw">as </span>libc::c_ulong).force_add(<span class="number">3_u64</span>) <span class="kw">as </span>size_t;
     } <span class="kw">else </span>{
         (<span class="kw-2">*</span>parser).encoding = YAML_UTF8_ENCODING;
     }
@@ -592,19 +593,19 @@
     );
     <span class="kw">let </span>fresh8 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).raw_buffer.pointer);
     <span class="kw-2">*</span>fresh8 = (<span class="kw-2">*</span>parser).raw_buffer.start;
-    <span class="kw">if </span>(<span class="kw-2">*</span>parser).read_handler.expect(<span class="string">&quot;non-null function pointer&quot;</span>)(
+    <span class="kw">if </span>(<span class="kw-2">*</span>parser).read_handler.expect(<span class="string">"non-null function pointer"</span>)(
         (<span class="kw-2">*</span>parser).read_handler_data,
         (<span class="kw-2">*</span>parser).raw_buffer.last,
         (<span class="kw-2">*</span>parser)
             .raw_buffer
             .end
-            .c_offset_from((<span class="kw-2">*</span>parser).raw_buffer.last) <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t,
+            .c_offset_from((<span class="kw-2">*</span>parser).raw_buffer.last) <span class="kw">as </span>size_t,
         <span class="macro">addr_of_mut!</span>(size_read),
     ) == <span class="number">0
     </span>{
         <span class="kw">return </span>yaml_parser_set_reader_error(
             parser,
-            <span class="string">b&quot;input error\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"input error\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             (<span class="kw-2">*</span>parser).offset,
             -<span class="number">1</span>,
         );
@@ -640,8 +641,7 @@
         <span class="kw">let </span>size: size_t = (<span class="kw-2">*</span>parser)
             .buffer
             .last
-            .c_offset_from((<span class="kw-2">*</span>parser).buffer.pointer) <span class="kw">as </span>libc::c_long
-            <span class="kw">as </span>size_t;
+            .c_offset_from((<span class="kw-2">*</span>parser).buffer.pointer) <span class="kw">as </span>size_t;
         memmove(
             (<span class="kw-2">*</span>parser).buffer.start <span class="kw">as </span><span class="kw-2">*mut </span>libc::c_void,
             (<span class="kw-2">*</span>parser).buffer.pointer <span class="kw">as </span><span class="kw-2">*const </span>libc::c_void,
@@ -677,7 +677,7 @@
                 .raw_buffer
                 .last
                 .c_offset_from((<span class="kw-2">*</span>parser).raw_buffer.pointer)
-                <span class="kw">as </span>libc::c_long <span class="kw">as </span>size_t;
+                <span class="kw">as </span>size_t;
             <span class="kw">match </span>(<span class="kw-2">*</span>parser).encoding {
                 YAML_UTF8_ENCODING =&gt; {
                     octet = <span class="kw-2">*</span>(<span class="kw-2">*</span>parser).raw_buffer.pointer;
@@ -695,7 +695,7 @@
                     <span class="kw">if </span>width == <span class="number">0 </span>{
                         <span class="kw">return </span>yaml_parser_set_reader_error(
                             parser,
-                            <span class="string">b&quot;invalid leading UTF-8 octet\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                            <span class="string">b"invalid leading UTF-8 octet\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                             (<span class="kw-2">*</span>parser).offset,
                             octet <span class="kw">as </span>libc::c_int,
                         );
@@ -704,7 +704,7 @@
                         <span class="kw">if </span>(<span class="kw-2">*</span>parser).eof {
                             <span class="kw">return </span>yaml_parser_set_reader_error(
                                 parser,
-                                <span class="string">b&quot;incomplete UTF-8 octet sequence\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                <span class="string">b"incomplete UTF-8 octet sequence\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                     <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                 (<span class="kw-2">*</span>parser).offset,
                                 -<span class="number">1</span>,
@@ -729,14 +729,14 @@
                             <span class="kw">if </span>octet &amp; <span class="number">0xC0 </span>!= <span class="number">0x80 </span>{
                                 <span class="kw">return </span>yaml_parser_set_reader_error(
                                     parser,
-                                    <span class="string">b&quot;invalid trailing UTF-8 octet\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                    <span class="string">b"invalid trailing UTF-8 octet\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                         <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
-                                    (<span class="kw-2">*</span>parser).offset.wrapping_add(k),
+                                    (<span class="kw-2">*</span>parser).offset.force_add(k),
                                     octet <span class="kw">as </span>libc::c_int,
                                 );
                             }
-                            value = (value &lt;&lt; <span class="number">6</span>).wrapping_add((octet &amp; <span class="number">0x3F</span>) <span class="kw">as </span>libc::c_uint);
-                            k = k.wrapping_add(<span class="number">1</span>);
+                            value = (value &lt;&lt; <span class="number">6</span>).force_add((octet &amp; <span class="number">0x3F</span>) <span class="kw">as </span>libc::c_uint);
+                            k = k.force_add(<span class="number">1</span>);
                         }
                         <span class="kw">if </span>!(width == <span class="number">1
                             </span>|| width == <span class="number">2 </span>&amp;&amp; value &gt;= <span class="number">0x80
@@ -745,7 +745,7 @@
                         {
                             <span class="kw">return </span>yaml_parser_set_reader_error(
                                 parser,
-                                <span class="string">b&quot;invalid length of a UTF-8 sequence\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                <span class="string">b"invalid length of a UTF-8 sequence\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                     <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                 (<span class="kw-2">*</span>parser).offset,
                                 -<span class="number">1</span>,
@@ -754,7 +754,7 @@
                         <span class="kw">if </span>value &gt;= <span class="number">0xD800 </span>&amp;&amp; value &lt;= <span class="number">0xDFFF </span>|| value &gt; <span class="number">0x10FFFF </span>{
                             <span class="kw">return </span>yaml_parser_set_reader_error(
                                 parser,
-                                <span class="string">b&quot;invalid Unicode character\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                                <span class="string">b"invalid Unicode character\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                 (<span class="kw-2">*</span>parser).offset,
                                 value <span class="kw">as </span>libc::c_int,
                             );
@@ -776,7 +776,7 @@
                         <span class="kw">if </span>(<span class="kw-2">*</span>parser).eof {
                             <span class="kw">return </span>yaml_parser_set_reader_error(
                                 parser,
-                                <span class="string">b&quot;incomplete UTF-16 character\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                <span class="string">b"incomplete UTF-16 character\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                     <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                 (<span class="kw-2">*</span>parser).offset,
                                 -<span class="number">1</span>,
@@ -792,7 +792,7 @@
                         <span class="kw">if </span>value &amp; <span class="number">0xFC00 </span>== <span class="number">0xDC00 </span>{
                             <span class="kw">return </span>yaml_parser_set_reader_error(
                                 parser,
-                                <span class="string">b&quot;unexpected low surrogate area\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                <span class="string">b"unexpected low surrogate area\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                     <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                 (<span class="kw-2">*</span>parser).offset,
                                 value <span class="kw">as </span>libc::c_int,
@@ -804,7 +804,7 @@
                                 <span class="kw">if </span>(<span class="kw-2">*</span>parser).eof {
                                     <span class="kw">return </span>yaml_parser_set_reader_error(
                                         parser,
-                                        <span class="string">b&quot;incomplete UTF-16 surrogate pair\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                        <span class="string">b"incomplete UTF-16 surrogate pair\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                             <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                         (<span class="kw-2">*</span>parser).offset,
                                         -<span class="number">1</span>,
@@ -827,15 +827,15 @@
                                 <span class="kw">if </span>value2 &amp; <span class="number">0xFC00 </span>!= <span class="number">0xDC00 </span>{
                                     <span class="kw">return </span>yaml_parser_set_reader_error(
                                         parser,
-                                        <span class="string">b&quot;expected low surrogate area\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                        <span class="string">b"expected low surrogate area\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                             <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
-                                        (<span class="kw-2">*</span>parser).offset.wrapping_add(<span class="number">2_u64</span>),
+                                        (<span class="kw-2">*</span>parser).offset.force_add(<span class="number">2_u64</span>),
                                         value2 <span class="kw">as </span>libc::c_int,
                                     );
                                 }
                                 value = <span class="number">0x10000_u32
-                                    </span>.wrapping_add((value &amp; <span class="number">0x3FF</span>) &lt;&lt; <span class="number">10</span>)
-                                    .wrapping_add(value2 &amp; <span class="number">0x3FF</span>);
+                                    </span>.force_add((value &amp; <span class="number">0x3FF</span>) &lt;&lt; <span class="number">10</span>)
+                                    .force_add(value2 &amp; <span class="number">0x3FF</span>);
                             }
                         } <span class="kw">else </span>{
                             width = <span class="number">2</span>;
@@ -858,7 +858,7 @@
             {
                 <span class="kw">return </span>yaml_parser_set_reader_error(
                     parser,
-                    <span class="string">b&quot;control characters are not allowed\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+                    <span class="string">b"control characters are not allowed\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                     (<span class="kw-2">*</span>parser).offset,
                     value <span class="kw">as </span>libc::c_int,
                 );
@@ -866,8 +866,7 @@
             <span class="kw">let </span>fresh14 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).raw_buffer.pointer);
             <span class="kw-2">*</span>fresh14 = (<span class="kw-2">*</span>fresh14).wrapping_offset(width <span class="kw">as </span>isize);
             <span class="kw">let </span>fresh15 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).offset);
-            <span class="kw-2">*</span>fresh15 = (<span class="kw-2">*</span>fresh15 <span class="kw">as </span>libc::c_ulong).wrapping_add(width <span class="kw">as </span>libc::c_ulong) <span class="kw">as </span>size_t
-                <span class="kw">as </span>size_t;
+            <span class="kw-2">*</span>fresh15 = (<span class="kw-2">*</span>fresh15 <span class="kw">as </span>libc::c_ulong).force_add(width <span class="kw">as </span>libc::c_ulong) <span class="kw">as </span>size_t;
             <span class="kw">if </span>value &lt;= <span class="number">0x7F </span>{
                 <span class="kw">let </span>fresh16 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh17 = <span class="kw-2">*</span>fresh16;
@@ -877,59 +876,59 @@
                 <span class="kw">let </span>fresh18 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh19 = <span class="kw-2">*</span>fresh18;
                 <span class="kw-2">*</span>fresh18 = (<span class="kw-2">*</span>fresh18).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh19 = <span class="number">0xC0_u32</span>.wrapping_add(value &gt;&gt; <span class="number">6</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh19 = <span class="number">0xC0_u32</span>.force_add(value &gt;&gt; <span class="number">6</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh20 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh21 = <span class="kw-2">*</span>fresh20;
                 <span class="kw-2">*</span>fresh20 = (<span class="kw-2">*</span>fresh20).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh21 = <span class="number">0x80_u32</span>.wrapping_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh21 = <span class="number">0x80_u32</span>.force_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
             } <span class="kw">else if </span>value &lt;= <span class="number">0xFFFF </span>{
                 <span class="kw">let </span>fresh22 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh23 = <span class="kw-2">*</span>fresh22;
                 <span class="kw-2">*</span>fresh22 = (<span class="kw-2">*</span>fresh22).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh23 = <span class="number">0xE0_u32</span>.wrapping_add(value &gt;&gt; <span class="number">12</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh23 = <span class="number">0xE0_u32</span>.force_add(value &gt;&gt; <span class="number">12</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh24 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh25 = <span class="kw-2">*</span>fresh24;
                 <span class="kw-2">*</span>fresh24 = (<span class="kw-2">*</span>fresh24).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh25 = <span class="number">0x80_u32</span>.wrapping_add(value &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh25 = <span class="number">0x80_u32</span>.force_add(value &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh26 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh27 = <span class="kw-2">*</span>fresh26;
                 <span class="kw-2">*</span>fresh26 = (<span class="kw-2">*</span>fresh26).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh27 = <span class="number">0x80_u32</span>.wrapping_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh27 = <span class="number">0x80_u32</span>.force_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
             } <span class="kw">else </span>{
                 <span class="kw">let </span>fresh28 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh29 = <span class="kw-2">*</span>fresh28;
                 <span class="kw-2">*</span>fresh28 = (<span class="kw-2">*</span>fresh28).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh29 = <span class="number">0xF0_u32</span>.wrapping_add(value &gt;&gt; <span class="number">18</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh29 = <span class="number">0xF0_u32</span>.force_add(value &gt;&gt; <span class="number">18</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh30 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh31 = <span class="kw-2">*</span>fresh30;
                 <span class="kw-2">*</span>fresh30 = (<span class="kw-2">*</span>fresh30).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh31 = <span class="number">0x80_u32</span>.wrapping_add(value &gt;&gt; <span class="number">12 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh31 = <span class="number">0x80_u32</span>.force_add(value &gt;&gt; <span class="number">12 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh32 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh33 = <span class="kw-2">*</span>fresh32;
                 <span class="kw-2">*</span>fresh32 = (<span class="kw-2">*</span>fresh32).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh33 = <span class="number">0x80_u32</span>.wrapping_add(value &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh33 = <span class="number">0x80_u32</span>.force_add(value &gt;&gt; <span class="number">6 </span>&amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
                 <span class="kw">let </span>fresh34 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
                 <span class="kw">let </span>fresh35 = <span class="kw-2">*</span>fresh34;
                 <span class="kw-2">*</span>fresh34 = (<span class="kw-2">*</span>fresh34).wrapping_offset(<span class="number">1</span>);
-                <span class="kw-2">*</span>fresh35 = <span class="number">0x80_u32</span>.wrapping_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
+                <span class="kw-2">*</span>fresh35 = <span class="number">0x80_u32</span>.force_add(value &amp; <span class="number">0x3F</span>) <span class="kw">as </span>yaml_char_t;
             }
             <span class="kw">let </span>fresh36 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).unread);
-            <span class="kw-2">*</span>fresh36 = (<span class="kw-2">*</span>fresh36).wrapping_add(<span class="number">1</span>);
+            <span class="kw-2">*</span>fresh36 = (<span class="kw-2">*</span>fresh36).force_add(<span class="number">1</span>);
         }
         <span class="kw">if </span>(<span class="kw-2">*</span>parser).eof {
             <span class="kw">let </span>fresh37 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).buffer.last);
             <span class="kw">let </span>fresh38 = <span class="kw-2">*</span>fresh37;
             <span class="kw-2">*</span>fresh37 = (<span class="kw-2">*</span>fresh37).wrapping_offset(<span class="number">1</span>);
-            <span class="kw-2">*</span>fresh38 = <span class="string">b&#39;\0&#39;</span>;
+            <span class="kw-2">*</span>fresh38 = <span class="string">b'\0'</span>;
             <span class="kw">let </span>fresh39 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).unread);
-            <span class="kw-2">*</span>fresh39 = (<span class="kw-2">*</span>fresh39).wrapping_add(<span class="number">1</span>);
+            <span class="kw-2">*</span>fresh39 = (<span class="kw-2">*</span>fresh39).force_add(<span class="number">1</span>);
             <span class="kw">return </span>OK;
         }
     }
     <span class="kw">if </span>(<span class="kw-2">*</span>parser).offset &gt;= (!<span class="number">0_u64</span>).wrapping_div(<span class="number">2_u64</span>) {
         <span class="kw">return </span>yaml_parser_set_reader_error(
             parser,
-            <span class="string">b&quot;input is too long\0&quot; </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
+            <span class="string">b"input is too long\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8 <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
             (<span class="kw-2">*</span>parser).offset,
             -<span class="number">1</span>,
         );

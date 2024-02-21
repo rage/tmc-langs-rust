@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64ct-1.6.0/src/decoder.rs`."><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64ct" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64ct/index.html"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64ct-1.6.0/src/decoder.rs`."><title>decoder.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64ct" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../base64ct/index.html"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="base64ct"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -627,10 +628,10 @@
 };
 <span class="kw">use </span>core::{cmp, marker::PhantomData};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>{alloc::vec::Vec, core::iter};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span>std::io;
 
 <span class="attr">#[cfg(doc)]
@@ -641,12 +642,12 @@
 /// The `E` type parameter can be any type which impls [`Encoding`] such as
 /// [`Base64`] or [`Base64Unpadded`].
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Decoder&lt;<span class="lifetime">&#39;i</span>, E: Encoding&gt; {
+</span><span class="kw">pub struct </span>Decoder&lt;<span class="lifetime">'i</span>, E: Encoding&gt; {
     <span class="doccomment">/// Current line being processed.
-    </span>line: Line&lt;<span class="lifetime">&#39;i</span>&gt;,
+    </span>line: Line&lt;<span class="lifetime">'i</span>&gt;,
 
     <span class="doccomment">/// Base64 input data reader.
-    </span>line_reader: LineReader&lt;<span class="lifetime">&#39;i</span>&gt;,
+    </span>line_reader: LineReader&lt;<span class="lifetime">'i</span>&gt;,
 
     <span class="doccomment">/// Length of the remaining data after Base64 decoding.
     </span>remaining_len: usize,
@@ -658,14 +659,14 @@
     </span>encoding: PhantomData&lt;E&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, E: Encoding&gt; Decoder&lt;<span class="lifetime">&#39;i</span>, E&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, E: Encoding&gt; Decoder&lt;<span class="lifetime">'i</span>, E&gt; {
     <span class="doccomment">/// Create a new decoder for a byte slice containing contiguous
     /// (non-newline-delimited) Base64-encoded data.
     ///
     /// # Returns
     /// - `Ok(decoder)` on success.
     /// - `Err(Error::InvalidLength)` if the input buffer is empty.
-    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    </span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span>line_reader = LineReader::new_unwrapped(input)<span class="question-mark">?</span>;
         <span class="kw">let </span>remaining_len = line_reader.decoded_len::&lt;E&gt;()<span class="question-mark">?</span>;
 
@@ -702,7 +703,7 @@
     ///   width is zero.
     ///
     /// [RFC7468]: https://datatracker.ietf.org/doc/html/rfc7468
-    </span><span class="kw">pub fn </span>new_wrapped(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8], line_width: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    </span><span class="kw">pub fn </span>new_wrapped(input: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8], line_width: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span>line_reader = LineReader::new_wrapped(input, line_width)<span class="question-mark">?</span>;
         <span class="kw">let </span>remaining_len = line_reader.decoded_len::&lt;E&gt;()<span class="question-mark">?</span>;
 
@@ -721,8 +722,8 @@
     ///
     /// # Returns
     /// - `Ok(bytes)` if the expected amount of data was read
-    /// - `Err(Error::InvalidLength)` if the exact amount of data couldn&#39;t be read
-    </span><span class="kw">pub fn </span>decode&lt;<span class="lifetime">&#39;o</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span>[u8], Error&gt; {
+    /// - `Err(Error::InvalidLength)` if the exact amount of data couldn't be read
+    </span><span class="kw">pub fn </span>decode&lt;<span class="lifetime">'o</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;</span><span class="lifetime">'o </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'o </span>[u8], Error&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_finished() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidLength);
         }
@@ -730,7 +731,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>out_pos = <span class="number">0</span>;
 
         <span class="kw">while </span>out_pos &lt; out.len() {
-            <span class="comment">// If there&#39;s data in the block buffer, use it
+            <span class="comment">// If there's data in the block buffer, use it
             </span><span class="kw">if </span>!<span class="self">self</span>.block_buffer.is_empty() {
                 <span class="kw">let </span>out_rem = out.len().checked_sub(out_pos).ok_or(InvalidLength)<span class="question-mark">?</span>;
                 <span class="kw">let </span>bytes = <span class="self">self</span>.block_buffer.take(out_rem)<span class="question-mark">?</span>;
@@ -758,13 +759,13 @@
 
             <span class="kw">if </span>out_pos &lt; out.len() {
                 <span class="kw">if </span><span class="self">self</span>.is_finished() {
-                    <span class="comment">// If we&#39;re out of input then we&#39;ve been requested to decode
+                    <span class="comment">// If we're out of input then we've been requested to decode
                     // more data than is actually available.
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(InvalidLength);
                 } <span class="kw">else </span>{
-                    <span class="comment">// If we still have data available but haven&#39;t completely
-                    // filled the output slice, we&#39;re in a situation where
-                    // either the input or output isn&#39;t block-aligned, so fill
+                    <span class="comment">// If we still have data available but haven't completely
+                    // filled the output slice, we're in a situation where
+                    // either the input or output isn't block-aligned, so fill
                     // the internal block buffer.
                     </span><span class="self">self</span>.fill_block_buffer()<span class="question-mark">?</span>;
                 }
@@ -783,8 +784,8 @@
     ///
     /// If successful, this function will return the total number of bytes
     /// decoded into `buf`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
-    </span><span class="kw">pub fn </span>decode_to_end&lt;<span class="lifetime">&#39;o</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span>[u8], Error&gt; {
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
+    </span><span class="kw">pub fn </span>decode_to_end&lt;<span class="lifetime">'o</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;</span><span class="lifetime">'o </span><span class="kw-2">mut </span>Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'o </span>[u8], Error&gt; {
         <span class="kw">let </span>start_len = buf.len();
         <span class="kw">let </span>remaining_len = <span class="self">self</span>.remaining_len();
         <span class="kw">let </span>total_len = start_len.checked_add(remaining_len).ok_or(InvalidLength)<span class="question-mark">?</span>;
@@ -845,7 +846,7 @@
 
     <span class="doccomment">/// Advance the internal buffer to the next line.
     </span><span class="kw">fn </span>advance_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="macro">debug_assert!</span>(<span class="self">self</span>.line.is_empty(), <span class="string">&quot;expected line buffer to be empty&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.line.is_empty(), <span class="string">"expected line buffer to be empty"</span>);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(line) = <span class="self">self</span>.line_reader.next().transpose()<span class="question-mark">? </span>{
             <span class="self">self</span>.line = line;
@@ -856,7 +857,7 @@
     }
 
     <span class="doccomment">/// Perform Base64 decoding operation.
-    </span><span class="kw">fn </span>perform_decode&lt;<span class="lifetime">&#39;o</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;o </span>[u8], Error&gt; {
+    </span><span class="kw">fn </span>perform_decode&lt;<span class="lifetime">'o</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">'o </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'o </span>[u8], Error&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_finished() {
             E::decode(src, dst)
         } <span class="kw">else </span>{
@@ -865,8 +866,8 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>, E: Encoding&gt; io::Read <span class="kw">for </span>Decoder&lt;<span class="lifetime">&#39;i</span>, E&gt; {
+<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'i</span>, E: Encoding&gt; io::Read <span class="kw">for </span>Decoder&lt;<span class="lifetime">'i</span>, E&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">if </span><span class="self">self</span>.is_finished() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="number">0</span>);
@@ -952,25 +953,25 @@
 
 <span class="doccomment">/// A single line of linewrapped data, providing a read buffer.
 </span><span class="attr">#[derive(Clone, Debug)]
-</span><span class="kw">pub struct </span>Line&lt;<span class="lifetime">&#39;i</span>&gt; {
+</span><span class="kw">pub struct </span>Line&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// Remaining data in the line
-    </span>remaining: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8],
+    </span>remaining: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8],
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; Default <span class="kw">for </span>Line&lt;<span class="lifetime">&#39;i</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; Default <span class="kw">for </span>Line&lt;<span class="lifetime">'i</span>&gt; {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(<span class="kw-2">&amp;</span>[])
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; Line&lt;<span class="lifetime">&#39;i</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; Line&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// Create a new line which wraps the given input data.
-    </span><span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8]) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">fn </span>new(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8]) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ remaining: bytes }
     }
 
     <span class="doccomment">/// Take up to `nbytes` from this line buffer.
-    </span><span class="kw">fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8] {
+    </span><span class="kw">fn </span>take(<span class="kw-2">&amp;mut </span><span class="self">self</span>, nbytes: usize) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8] {
         <span class="kw">let </span>(bytes, rest) = <span class="kw">if </span>nbytes &lt; <span class="self">self</span>.remaining.len() {
             <span class="self">self</span>.remaining.split_at(nbytes)
         } <span class="kw">else </span>{
@@ -982,7 +983,7 @@
     }
 
     <span class="doccomment">/// Slice off a tail of a given length.
-    </span><span class="kw">fn </span>slice_tail(<span class="kw-2">&amp;</span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8], Error&gt; {
+    </span><span class="kw">fn </span>slice_tail(<span class="kw-2">&amp;</span><span class="self">self</span>, nbytes: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8], Error&gt; {
         <span class="kw">let </span>offset = <span class="self">self</span>.len().checked_sub(nbytes).ok_or(InvalidLength)<span class="question-mark">?</span>;
         <span class="self">self</span>.remaining.get(offset..).ok_or(InvalidLength)
     }
@@ -1010,17 +1011,17 @@
 
 <span class="doccomment">/// Iterator over multi-line Base64 input.
 </span><span class="attr">#[derive(Clone)]
-</span><span class="kw">struct </span>LineReader&lt;<span class="lifetime">&#39;i</span>&gt; {
+</span><span class="kw">struct </span>LineReader&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// Remaining linewrapped data to be processed.
-    </span>remaining: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8],
+    </span>remaining: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8],
 
     <span class="doccomment">/// Line width.
     </span>line_width: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; LineReader&lt;<span class="lifetime">&#39;i</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; LineReader&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// Create a new reader which operates over continugous unwrapped data.
-    </span><span class="kw">fn </span>new_unwrapped(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    </span><span class="kw">fn </span>new_unwrapped(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">if </span>bytes.is_empty() {
             <span class="prelude-val">Err</span>(InvalidLength)
         } <span class="kw">else </span>{
@@ -1032,7 +1033,7 @@
     }
 
     <span class="doccomment">/// Create a new reader which operates over linewrapped data.
-    </span><span class="kw">fn </span>new_wrapped(bytes: <span class="kw-2">&amp;</span><span class="lifetime">&#39;i </span>[u8], line_width: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    </span><span class="kw">fn </span>new_wrapped(bytes: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>[u8], line_width: usize) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">if </span>line_width &lt; MIN_LINE_WIDTH {
             <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidLength);
         }
@@ -1118,10 +1119,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;i</span>&gt; Iterator <span class="kw">for </span>LineReader&lt;<span class="lifetime">&#39;i</span>&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">&#39;i</span>&gt;, Error&gt;;
+<span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; Iterator <span class="kw">for </span>LineReader&lt;<span class="lifetime">'i</span>&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">'i</span>&gt;, Error&gt;;
 
-    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">&#39;i</span>&gt;, Error&gt;&gt; {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;Line&lt;<span class="lifetime">'i</span>&gt;, Error&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(line_width) = <span class="self">self</span>.line_width {
             <span class="kw">let </span>rest = <span class="kw">match </span><span class="self">self</span>.remaining.get(line_width..) {
                 <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>([]) =&gt; {
@@ -1147,7 +1148,7 @@
             <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(line))
         } <span class="kw">else if </span>!<span class="self">self</span>.remaining.is_empty() {
             <span class="kw">let </span>line = Line::new(<span class="self">self</span>.remaining).trim_end();
-            <span class="self">self</span>.remaining = <span class="string">b&quot;&quot;</span>;
+            <span class="self">self</span>.remaining = <span class="string">b""</span>;
 
             <span class="kw">if </span>line.is_empty() {
                 <span class="prelude-val">None
@@ -1164,7 +1165,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use crate</span>::{alphabet::Alphabet, test_vectors::<span class="kw-2">*</span>, Base64, Base64Unpadded, Decoder};
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">use </span>{alloc::vec::Vec, std::io::Read};
 
     <span class="attr">#[test]
@@ -1196,7 +1197,7 @@
         })
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
     #[test]
     </span><span class="kw">fn </span>read_multiline_padded() {
         <span class="kw">let </span><span class="kw-2">mut </span>decoder =
@@ -1210,9 +1211,9 @@
     }
 
     <span class="doccomment">/// Core functionality of a decoding test
-    </span><span class="kw">fn </span>decode_test&lt;<span class="lifetime">&#39;a</span>, F, V&gt;(expected: <span class="kw-2">&amp;</span>[u8], f: F)
+    </span><span class="kw">fn </span>decode_test&lt;<span class="lifetime">'a</span>, F, V&gt;(expected: <span class="kw-2">&amp;</span>[u8], f: F)
     <span class="kw">where
-        </span>F: Fn() -&gt; Decoder&lt;<span class="lifetime">&#39;a</span>, V&gt;,
+        </span>F: Fn() -&gt; Decoder&lt;<span class="lifetime">'a</span>, V&gt;,
         V: Alphabet,
     {
         <span class="kw">for </span>chunk_size <span class="kw">in </span><span class="number">1</span>..expected.len() {

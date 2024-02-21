@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64ct-1.6.0/src/encoding.rs`."><title>encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64ct" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../base64ct/index.html"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/base64ct-1.6.0/src/encoding.rs`."><title>encoding.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="base64ct" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../base64ct/index.html"><img src="https://raw.githubusercontent.com/RustCrypto/media/6ee8e381/logo.svg" alt="base64ct"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -382,14 +383,14 @@
 };
 <span class="kw">use </span>core::str;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">use </span>alloc::{string::String, vec::Vec};
 
 <span class="attr">#[cfg(doc)]
 </span><span class="kw">use crate</span>::{Base64, Base64Bcrypt, Base64Crypt, Base64Unpadded, Base64Url, Base64UrlUnpadded};
 
 <span class="doccomment">/// Padding character
-</span><span class="kw">const </span>PAD: u8 = <span class="string">b&#39;=&#39;</span>;
+</span><span class="kw">const </span>PAD: u8 = <span class="string">b'='</span>;
 
 <span class="doccomment">/// Base64 encoding trait.
 ///
@@ -415,20 +416,20 @@
     </span><span class="kw">fn </span>decode_in_place(buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>[u8], InvalidEncodingError&gt;;
 
     <span class="doccomment">/// Decode a Base64 string into a byte vector.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="kw">fn </span>decode_vec(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt;;
 
     <span class="doccomment">/// Encode the input byte slice as Base64.
     ///
     /// Writes the result into the provided destination slice, returning an
     /// ASCII-encoded Base64 string value.
-    </span><span class="kw">fn </span>encode&lt;<span class="lifetime">&#39;a</span>&gt;(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, InvalidLengthError&gt;;
+    </span><span class="kw">fn </span>encode&lt;<span class="lifetime">'a</span>&gt;(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, InvalidLengthError&gt;;
 
     <span class="doccomment">/// Encode input byte slice into a [`String`] containing Base64.
     ///
     /// # Panics
     /// If `input` length is greater than `usize::MAX/4`.
-    </span><span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="kw">fn </span>encode_string(input: <span class="kw-2">&amp;</span>[u8]) -&gt; String;
 
     <span class="doccomment">/// Get the length of Base64 produced by encoding the given bytes.
@@ -464,7 +465,7 @@
 
         err |= !(src_rem.is_empty() || src_rem.len() &gt;= <span class="number">2</span>) <span class="kw">as </span>i16;
         <span class="kw">let </span><span class="kw-2">mut </span>tmp_out = [<span class="number">0u8</span>; <span class="number">3</span>];
-        <span class="kw">let </span><span class="kw-2">mut </span>tmp_in = [<span class="string">b&#39;A&#39;</span>; <span class="number">4</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>tmp_in = [<span class="string">b'A'</span>; <span class="number">4</span>];
         tmp_in[..src_rem.len()].copy_from_slice(src_rem);
         err |= <span class="self">Self</span>::decode_3bytes(<span class="kw-2">&amp;</span>tmp_in, <span class="kw-2">&amp;mut </span>tmp_out);
         dst_rem.copy_from_slice(<span class="kw-2">&amp;</span>tmp_out[..dst_rem.len()]);
@@ -517,14 +518,14 @@
         <span class="kw">let </span>dst_rem_len = dlen - dst_rem_pos;
 
         err |= !(src_rem_len == <span class="number">0 </span>|| src_rem_len &gt;= <span class="number">2</span>) <span class="kw">as </span>i16;
-        <span class="kw">let </span><span class="kw-2">mut </span>tmp_in = [<span class="string">b&#39;A&#39;</span>; <span class="number">4</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>tmp_in = [<span class="string">b'A'</span>; <span class="number">4</span>];
         tmp_in[..src_rem_len].copy_from_slice(<span class="kw-2">&amp;</span>buf[src_rem_pos..]);
         <span class="kw">let </span><span class="kw-2">mut </span>tmp_out = [<span class="number">0u8</span>; <span class="number">3</span>];
 
         err |= <span class="self">Self</span>::decode_3bytes(<span class="kw-2">&amp;</span>tmp_in, <span class="kw-2">&amp;mut </span>tmp_out);
 
         <span class="kw">if </span>err == <span class="number">0 </span>{
-            <span class="comment">// SAFETY: `dst_rem_len` is always smaller than 4, so we don&#39;t
+            <span class="comment">// SAFETY: `dst_rem_len` is always smaller than 4, so we don't
             // read outside of `tmp_out`, write and the final slicing never go
             // outside of `buf`.
             </span><span class="attr">#[allow(unsafe_code)]
@@ -545,7 +546,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="kw">fn </span>decode_vec(input: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[<span class="number">0u8</span>; decoded_len(input.len())];
         <span class="kw">let </span>len = <span class="self">Self</span>::decode(input, <span class="kw-2">&amp;mut </span>output)<span class="question-mark">?</span>.len();
@@ -558,7 +559,7 @@
         }
     }
 
-    <span class="kw">fn </span>encode&lt;<span class="lifetime">&#39;a</span>&gt;(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str, InvalidLengthError&gt; {
+    <span class="kw">fn </span>encode&lt;<span class="lifetime">'a</span>&gt;(src: <span class="kw-2">&amp;</span>[u8], dst: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, InvalidLengthError&gt; {
         <span class="kw">let </span>elen = <span class="kw">match </span>encoded_len_inner(src.len(), T::PADDED) {
             <span class="prelude-val">Some</span>(v) =&gt; v,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(InvalidLengthError),
@@ -607,11 +608,11 @@
         </span><span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ str::from_utf8_unchecked(dst) })
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;alloc&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
     </span><span class="kw">fn </span>encode_string(input: <span class="kw-2">&amp;</span>[u8]) -&gt; String {
-        <span class="kw">let </span>elen = encoded_len_inner(input.len(), T::PADDED).expect(<span class="string">&quot;input is too big&quot;</span>);
+        <span class="kw">let </span>elen = encoded_len_inner(input.len(), T::PADDED).expect(<span class="string">"input is too big"</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>dst = <span class="macro">vec!</span>[<span class="number">0u8</span>; elen];
-        <span class="kw">let </span>res = <span class="self">Self</span>::encode(input, <span class="kw-2">&amp;mut </span>dst).expect(<span class="string">&quot;encoding error&quot;</span>);
+        <span class="kw">let </span>res = <span class="self">Self</span>::encode(input, <span class="kw-2">&amp;mut </span>dst).expect(<span class="string">"encoding error"</span>);
 
         <span class="macro">debug_assert_eq!</span>(elen, res.len());
         <span class="macro">debug_assert!</span>(str::from_utf8(<span class="kw-2">&amp;</span>dst).is_ok());

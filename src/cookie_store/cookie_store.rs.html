@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cookie_store-0.16.2/src/cookie_store.rs`."><title>cookie_store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="cookie_store" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../cookie_store/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cookie_store-0.20.0/src/cookie_store.rs`."><title>cookie_store.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="cookie_store" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1642,34 +1643,80 @@
 <a href="#1642" id="1642">1642</a>
 <a href="#1643" id="1643">1643</a>
 <a href="#1644" id="1644">1644</a>
+<a href="#1645" id="1645">1645</a>
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fmt::{<span class="self">self</span>, Formatter};
 <span class="kw">use </span>std::io::{BufRead, Write};
 <span class="kw">use </span>std::iter;
 <span class="kw">use </span>std::ops::Deref;
 
-<span class="kw">use </span>::cookie::Cookie <span class="kw">as </span>RawCookie;
+<span class="kw">use </span>cookie::Cookie <span class="kw">as </span>RawCookie;
 <span class="kw">use </span>log::debug;
-<span class="kw">use </span>publicsuffix;
 <span class="kw">use </span>serde::de::{SeqAccess, Visitor};
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 <span class="kw">use </span>url::Url;
 
 <span class="kw">use </span><span class="kw">crate</span>::cookie::Cookie;
-<span class="kw">use </span><span class="kw">crate</span>::cookie_domain::{is_match <span class="kw">as </span>domain_match, CookieDomain};
+<span class="kw">use </span><span class="kw">crate</span>::cookie_domain::is_match <span class="kw">as </span>domain_match;
 <span class="kw">use </span><span class="kw">crate</span>::cookie_path::is_match <span class="kw">as </span>path_match;
 <span class="kw">use </span><span class="kw">crate</span>::utils::{is_http_scheme, is_secure};
 <span class="kw">use </span><span class="kw">crate</span>::CookieError;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"preserve_order"</span>)]
 </span><span class="kw">use </span>indexmap::IndexMap;
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"preserve_order"</span>))]
 </span><span class="kw">use </span>std::collections::HashMap;
-<span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"preserve_order"</span>)]
 </span><span class="kw">type </span>Map&lt;K, V&gt; = IndexMap&lt;K, V&gt;;
-<span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+<span class="attr">#[cfg(not(feature = <span class="string">"preserve_order"</span>))]
 </span><span class="kw">type </span>Map&lt;K, V&gt; = HashMap&lt;K, V&gt;;
 
-<span class="kw">type </span>NameMap = Map&lt;String, Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt;;
+<span class="kw">type </span>NameMap = Map&lt;String, Cookie&lt;<span class="lifetime">'static</span>&gt;&gt;;
 <span class="kw">type </span>PathMap = Map&lt;String, NameMap&gt;;
 <span class="kw">type </span>DomainMap = Map&lt;String, PathMap&gt;;
 
@@ -1686,27 +1733,28 @@
 <span class="kw">pub type </span>StoreResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, <span class="kw">crate</span>::Error&gt;;
 <span class="kw">pub type </span>InsertResult = <span class="prelude-ty">Result</span>&lt;StoreAction, CookieError&gt;;
 
-<span class="attr">#[derive(Debug, Default)]
+<span class="attr">#[derive(Debug, Default, Clone)]
 </span><span class="doccomment">/// An implementation for storing and retrieving [`Cookie`]s per the path and domain matching
 /// rules specified in [RFC6265](https://datatracker.ietf.org/doc/html/rfc6265).
 </span><span class="kw">pub struct </span>CookieStore {
     <span class="doccomment">/// Cookies stored by domain, path, then name
     </span>cookies: DomainMap,
-    <span class="doccomment">/// If set, enables [public suffix](https://datatracker.ietf.org/doc/html/rfc6265#section-5.3) rejection based on the provided `publicsuffix::List`
+    <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
+    </span><span class="doccomment">/// If set, enables [public suffix](https://datatracker.ietf.org/doc/html/rfc6265#section-5.3) rejection based on the provided `publicsuffix::List`
     </span>public_suffix_list: <span class="prelude-ty">Option</span>&lt;publicsuffix::List&gt;,
 }
 
 <span class="kw">impl </span>CookieStore {
     <span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.14.1&quot;</span>,
-        note = <span class="string">&quot;Please use the `get_request_values` function instead&quot;
+        since = <span class="string">"0.14.1"</span>,
+        note = <span class="string">"Please use the `get_request_values` function instead"
     </span>)]
     </span><span class="doccomment">/// Return an `Iterator` of the cookies for `url` in the store, suitable for submitting in an
     /// HTTP request. As the items are intended for use in creating a `Cookie` header in a GET request,
     /// they may contain only the `name` and `value` of a received cookie, eliding other parameters
     /// such as `path` or `expires`. For iteration over `Cookie` instances containing all data, please
     /// refer to [`CookieStore::matches`].
-    </span><span class="kw">pub fn </span>get_request_cookies(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span>Url) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>RawCookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_request_cookies(<span class="kw-2">&amp;</span><span class="self">self</span>, url: <span class="kw-2">&amp;</span>Url) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>RawCookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
         <span class="self">self</span>.matches(url).into_iter().map(|c| c.deref())
     }
 
@@ -1718,21 +1766,27 @@
     }
 
     <span class="doccomment">/// Store the `cookies` received from `url`
-    </span><span class="kw">pub fn </span>store_response_cookies&lt;I: Iterator&lt;Item = RawCookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt;&gt;(
+    </span><span class="kw">pub fn </span>store_response_cookies&lt;I: Iterator&lt;Item = RawCookie&lt;<span class="lifetime">'static</span>&gt;&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cookies: I,
         url: <span class="kw-2">&amp;</span>Url,
     ) {
         <span class="kw">for </span>cookie <span class="kw">in </span>cookies {
-            <span class="macro">debug!</span>(<span class="string">&quot;inserting Set-Cookie &#39;{:?}&#39;&quot;</span>, cookie);
+            <span class="kw">if </span>cookie.secure() != <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) || <span class="macro">cfg!</span>(feature = <span class="string">"log_secure_cookie_values"</span>) {
+                <span class="macro">debug!</span>(<span class="string">"inserting Set-Cookie '{:?}'"</span>, cookie);
+            } <span class="kw">else </span>{
+                <span class="macro">debug!</span>(<span class="string">"inserting secure cookie '{}'"</span>, cookie.name());
+            }
+
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.insert_raw(<span class="kw-2">&amp;</span>cookie, url) {
-                <span class="macro">debug!</span>(<span class="string">&quot;unable to store Set-Cookie: {:?}&quot;</span>, e);
+                <span class="macro">debug!</span>(<span class="string">"unable to store Set-Cookie: {:?}"</span>, e);
             }
         }
     }
 
     <span class="doccomment">/// Specify a `publicsuffix::List` for the `CookieStore` to allow [public suffix
     /// matching](https://datatracker.ietf.org/doc/html/rfc6265#section-5.3)
+    </span><span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
     </span><span class="kw">pub fn </span>with_suffix_list(<span class="self">self</span>, psl: publicsuffix::List) -&gt; CookieStore {
         CookieStore {
             cookies: <span class="self">self</span>.cookies,
@@ -1754,7 +1808,7 @@
 
     <span class="doccomment">/// Returns a reference to the __unexpired__ `Cookie` corresponding to the specified `domain`,
     /// `path`, and `name`.
-    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="self">self</span>.get_any(domain, path, name).and_then(|cookie| {
             <span class="kw">if </span>cookie.is_expired() {
                 <span class="prelude-val">None
@@ -1766,7 +1820,7 @@
 
     <span class="doccomment">/// Returns a mutable reference to the __unexpired__ `Cookie` corresponding to the specified
     /// `domain`, `path`, and `name`.
-    </span><span class="kw">fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    </span><span class="kw">fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
         <span class="self">self</span>.get_mut_any(domain, path, name).and_then(|cookie| {
             <span class="kw">if </span>cookie.is_expired() {
                 <span class="prelude-val">None
@@ -1778,7 +1832,7 @@
 
     <span class="doccomment">/// Returns a reference to the (possibly __expired__) `Cookie` corresponding to the specified
     /// `domain`, `path`, and `name`.
-    </span><span class="kw">pub fn </span>get_any(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>get_any(<span class="kw-2">&amp;</span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
         <span class="self">self</span>.cookies.get(domain).and_then(|domain_cookies| {
             domain_cookies
                 .get(path)
@@ -1793,7 +1847,7 @@
         domain: <span class="kw-2">&amp;</span>str,
         path: <span class="kw-2">&amp;</span>str,
         name: <span class="kw-2">&amp;</span>str,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
         <span class="self">self</span>.cookies.get_mut(domain).and_then(|domain_cookies| {
             domain_cookies
                 .get_mut(path)
@@ -1802,8 +1856,8 @@
     }
 
     <span class="doccomment">/// Removes a `Cookie` from the store, returning the `Cookie` if it was in the store
-    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;preserve_order&quot;</span>))]
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, domain: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>str, name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
+        <span class="attr">#[cfg(not(feature = <span class="string">"preserve_order"</span>))]
         </span><span class="kw">fn </span>map_remove&lt;K, V, Q&gt;(map: <span class="kw-2">&amp;mut </span>Map&lt;K, V&gt;, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
         <span class="kw">where
             </span>K: std::borrow::Borrow&lt;Q&gt; + std::cmp::Eq + std::hash::Hash,
@@ -1811,7 +1865,7 @@
         {
             map.remove(key)
         }
-        <span class="attr">#[cfg(feature = <span class="string">&quot;preserve_order&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"preserve_order"</span>)]
         </span><span class="kw">fn </span>map_remove&lt;K, V, Q&gt;(map: <span class="kw-2">&amp;mut </span>Map&lt;K, V&gt;, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;V&gt;
         <span class="kw">where
             </span>K: std::borrow::Borrow&lt;Q&gt; + std::cmp::Eq + std::hash::Hash,
@@ -1850,7 +1904,7 @@
     <span class="doccomment">/// Returns a collection of references to __unexpired__ cookies that path- and domain-match
     /// `request_url`, as well as having HttpOnly and Secure attributes compatible with the
     /// `request_url`.
-    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, request_url: <span class="kw-2">&amp;</span>Url) -&gt; Vec&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>matches(<span class="kw-2">&amp;</span><span class="self">self</span>, request_url: <span class="kw-2">&amp;</span>Url) -&gt; Vec&lt;<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; {
         <span class="comment">// although we domain_match and path_match as we descend through the tree, we
         // still need to
         // do a full Cookie::matches() check in the last filter. Otherwise, we cannot
@@ -1888,7 +1942,7 @@
 
     <span class="doccomment">/// Converts a `cookie::Cookie` (from the `cookie` crate) into a `cookie_store::Cookie` and
     /// inserts it into the store.
-    </span><span class="kw">pub fn </span>insert_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cookie: <span class="kw-2">&amp;</span>RawCookie&lt;<span class="lifetime">&#39;_</span>&gt;, request_url: <span class="kw-2">&amp;</span>Url) -&gt; InsertResult {
+    </span><span class="kw">pub fn </span>insert_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cookie: <span class="kw-2">&amp;</span>RawCookie&lt;<span class="lifetime">'_</span>&gt;, request_url: <span class="kw-2">&amp;</span>Url) -&gt; InsertResult {
         Cookie::try_from_raw_cookie(cookie, request_url)
             .and_then(|cookie| <span class="self">self</span>.insert(cookie.into_owned(), request_url))
     }
@@ -1899,14 +1953,18 @@
     /// `Ok(StoreAction::Inserted)`. If the `Cookie` is __expired__ *and* matches an existing
     /// `Cookie` in the store, the existing `Cookie` wil be `expired()` and
     /// `Ok(StoreAction::ExpiredExisting)` will be returned.
-    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>cookie: Cookie&lt;<span class="lifetime">&#39;static</span>&gt;, request_url: <span class="kw-2">&amp;</span>Url) -&gt; InsertResult {
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cookie: Cookie&lt;<span class="lifetime">'static</span>&gt;, request_url: <span class="kw-2">&amp;</span>Url) -&gt; InsertResult {
         <span class="kw">if </span>cookie.http_only().unwrap_or(<span class="bool-val">false</span>) &amp;&amp; !is_http_scheme(request_url) {
-            <span class="comment">// If the cookie was received from a &quot;non-HTTP&quot; API and the
-            // cookie&#39;s http-only-flag is set, abort these steps and ignore the
+            <span class="comment">// If the cookie was received from a "non-HTTP" API and the
+            // cookie's http-only-flag is set, abort these steps and ignore the
             // cookie entirely.
             </span><span class="kw">return </span><span class="prelude-val">Err</span>(CookieError::NonHttpScheme);
-        } <span class="kw">else if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>psl) = <span class="self">self</span>.public_suffix_list {
-            <span class="comment">// If the user agent is configured to reject &quot;public suffixes&quot;
+        }
+        <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>cookie = cookie;
+        <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>psl) = <span class="self">self</span>.public_suffix_list {
+            <span class="comment">// If the user agent is configured to reject "public suffixes"
             </span><span class="kw">if </span>cookie.domain.is_public_suffix(psl) {
                 <span class="comment">// and the domain-attribute is a public suffix:
                 </span><span class="kw">if </span>cookie.domain.host_is_identical(request_url) {
@@ -1915,14 +1973,15 @@
                     //     Let the domain-attribute be the empty string.
                     // (NB: at this point, an empty domain-attribute should be represented
                     // as the HostOnly variant of CookieDomain)
-                    </span>cookie.domain = CookieDomain::host_only(request_url)<span class="question-mark">?</span>;
+                    </span>cookie.domain = <span class="kw">crate</span>::cookie_domain::CookieDomain::host_only(request_url)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="comment">//   Otherwise:
                     //     Ignore the cookie entirely and abort these steps.
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(CookieError::PublicSuffix);
                 }
             }
-        } <span class="kw">else if </span>!cookie.domain.matches(request_url) {
+        }
+        <span class="kw">if </span>!cookie.domain.matches(request_url) {
             <span class="comment">// If the canonicalized request-host does not domain-match the
             // domain-attribute:
             //    Ignore the cookie entirely and abort these steps.
@@ -1942,8 +2001,8 @@
                 .ok_or_else(|| CookieError::UnspecifiedDomain)<span class="question-mark">?</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>(old_cookie) = <span class="self">self</span>.get_mut(<span class="kw-2">&amp;</span>cookie_domain, <span class="kw-2">&amp;</span>cookie.path, cookie.name()) {
                 <span class="kw">if </span>old_cookie.http_only().unwrap_or(<span class="bool-val">false</span>) &amp;&amp; !is_http_scheme(request_url) {
-                    <span class="comment">// 2.  If the newly created cookie was received from a &quot;non-HTTP&quot;
-                    //    API and the old-cookie&#39;s http-only-flag is set, abort these
+                    <span class="comment">// 2.  If the newly created cookie was received from a "non-HTTP"
+                    //    API and the old-cookie's http-only-flag is set, abort these
                     //    steps and ignore the newly created cookie entirely.
                     </span><span class="kw">return </span><span class="prelude-val">Err</span>(CookieError::NonHttpScheme);
                 } <span class="kw">else if </span>cookie.is_expired() {
@@ -1980,7 +2039,7 @@
     }
 
     <span class="doccomment">/// An iterator visiting all the __unexpired__ cookies in the store
-    </span><span class="kw">pub fn </span>iter_unexpired&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; + <span class="lifetime">&#39;a </span>{
+    </span><span class="kw">pub fn </span>iter_unexpired&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; + <span class="lifetime">'a </span>{
         <span class="self">self</span>.cookies
             .values()
             .flat_map(|dcs| dcs.values())
@@ -1989,7 +2048,7 @@
     }
 
     <span class="doccomment">/// An iterator visiting all (including __expired__) cookies in the store
-    </span><span class="kw">pub fn </span>iter_any&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;&gt; + <span class="lifetime">&#39;a </span>{
+    </span><span class="kw">pub fn </span>iter_any&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Cookie&lt;<span class="lifetime">'static</span>&gt;&gt; + <span class="lifetime">'a </span>{
         <span class="self">self</span>.cookies
             .values()
             .flat_map(|dcs| dcs.values())
@@ -2001,7 +2060,7 @@
     </span><span class="kw">pub fn </span>save&lt;W, E, F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, writer: <span class="kw-2">&amp;mut </span>W, cookie_to_string: F) -&gt; StoreResult&lt;()&gt;
     <span class="kw">where
         </span>W: Write,
-        F: Fn(<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">&#39;static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, E&gt;,
+        F: Fn(<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, E&gt;,
         <span class="kw">crate</span>::Error: From&lt;E&gt;,
     {
         <span class="kw">for </span>cookie <span class="kw">in </span><span class="self">self</span>.iter_unexpired().filter_map(|c| {
@@ -2011,7 +2070,7 @@
                 <span class="prelude-val">None
             </span>}
         }) {
-            <span class="macro">writeln!</span>(writer, <span class="string">&quot;{}&quot;</span>, cookie<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(writer, <span class="string">"{}"</span>, cookie<span class="question-mark">?</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -2022,12 +2081,37 @@
         <span class="self">self</span>.save(writer, ::serde_json::to_string)
     }
 
+    <span class="doccomment">/// Serialize all (including __expired__ and __non-persistent__) cookies in the store with `cookie_to_string` and write them to `writer`
+    </span><span class="kw">pub fn </span>save_incl_expired_and_nonpersistent&lt;W, E, F&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        writer: <span class="kw-2">&amp;mut </span>W,
+        cookie_to_string: F,
+    ) -&gt; StoreResult&lt;()&gt;
+    <span class="kw">where
+        </span>W: Write,
+        F: Fn(<span class="kw-2">&amp;</span>Cookie&lt;<span class="lifetime">'static</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, E&gt;,
+        <span class="kw">crate</span>::Error: From&lt;E&gt;,
+    {
+        <span class="kw">for </span>cookie <span class="kw">in </span><span class="self">self</span>.iter_any() {
+            <span class="macro">writeln!</span>(writer, <span class="string">"{}"</span>, cookie_to_string(cookie)<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Serialize all (including __expired__ and __non-persistent__) cookies in the store to JSON format and write them to `writer`
+    </span><span class="kw">pub fn </span>save_incl_expired_and_nonpersistent_json&lt;W: Write&gt;(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        writer: <span class="kw-2">&amp;mut </span>W,
+    ) -&gt; StoreResult&lt;()&gt; {
+        <span class="self">self</span>.save_incl_expired_and_nonpersistent(writer, ::serde_json::to_string)
+    }
+
     <span class="doccomment">/// Load cookies from `reader`, deserializing with `cookie_from_str`, skipping any __expired__
     /// cookies
     </span><span class="kw">pub fn </span>load&lt;R, E, F&gt;(reader: R, cookie_from_str: F) -&gt; StoreResult&lt;CookieStore&gt;
     <span class="kw">where
         </span>R: BufRead,
-        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">&#39;static</span>&gt;, E&gt;,
+        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">'static</span>&gt;, E&gt;,
         <span class="kw">crate</span>::Error: From&lt;E&gt;,
     {
         CookieStore::load_from(reader, cookie_from_str, <span class="bool-val">false</span>)
@@ -2038,7 +2122,7 @@
     </span><span class="kw">pub fn </span>load_all&lt;R, E, F&gt;(reader: R, cookie_from_str: F) -&gt; StoreResult&lt;CookieStore&gt;
     <span class="kw">where
         </span>R: BufRead,
-        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">&#39;static</span>&gt;, E&gt;,
+        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">'static</span>&gt;, E&gt;,
         <span class="kw">crate</span>::Error: From&lt;E&gt;,
     {
         CookieStore::load_from(reader, cookie_from_str, <span class="bool-val">true</span>)
@@ -2051,7 +2135,7 @@
     ) -&gt; StoreResult&lt;CookieStore&gt;
     <span class="kw">where
         </span>R: BufRead,
-        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">&#39;static</span>&gt;, E&gt;,
+        F: Fn(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">'static</span>&gt;, E&gt;,
         <span class="kw">crate</span>::Error: From&lt;E&gt;,
     {
         <span class="kw">let </span>cookies = reader.lines().map(|line_result| {
@@ -2079,7 +2163,7 @@
     /// out.
     </span><span class="kw">pub fn </span>from_cookies&lt;I, E&gt;(iter: I, include_expired: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, E&gt;
     <span class="kw">where
-        </span>I: IntoIterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">&#39;static</span>&gt;, E&gt;&gt;,
+        </span>I: IntoIterator&lt;Item = <span class="prelude-ty">Result</span>&lt;Cookie&lt;<span class="lifetime">'static</span>&gt;, E&gt;&gt;,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>cookies = Map::new();
         <span class="kw">for </span>cookie <span class="kw">in </span>iter {
@@ -2095,8 +2179,19 @@
         }
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             cookies,
-            public_suffix_list: <span class="prelude-val">None</span>,
+            <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
+            </span>public_suffix_list: <span class="prelude-val">None</span>,
         })
+    }
+
+    <span class="kw">pub fn </span>new(
+        <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)] </span>public_suffix_list: <span class="prelude-ty">Option</span>&lt;publicsuffix::List&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            cookies: DomainMap::new(),
+            <span class="attr">#[cfg(feature = <span class="string">"public_suffix"</span>)]
+            </span>public_suffix_list,
+        }
     }
 }
 
@@ -2111,25 +2206,25 @@
 
 <span class="kw">struct </span>CookieStoreVisitor;
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Visitor&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>CookieStoreVisitor {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>CookieStoreVisitor {
     <span class="kw">type </span>Value = CookieStore;
 
-    <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        <span class="macro">write!</span>(formatter, <span class="string">&quot;a sequence of cookies&quot;</span>)
+    <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(formatter, <span class="string">"a sequence of cookies"</span>)
     }
 
     <span class="kw">fn </span>visit_seq&lt;A&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>seq: A) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Value, A::Error&gt;
     <span class="kw">where
-        </span>A: SeqAccess&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>A: SeqAccess&lt;<span class="lifetime">'de</span>&gt;,
     {
         CookieStore::from_cookies(iter::from_fn(|| seq.next_element().transpose()), <span class="bool-val">false</span>)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;de</span>&gt; Deserialize&lt;<span class="lifetime">&#39;de</span>&gt; <span class="kw">for </span>CookieStore {
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>CookieStore {
     <span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, D::Error&gt;
     <span class="kw">where
-        </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
+        </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
         deserializer.deserialize_seq(CookieStoreVisitor)
     }
@@ -2150,13 +2245,13 @@
     <span class="macro">macro_rules! </span>has_str {
         (<span class="macro-nonterminal">$e</span>: expr, <span class="macro-nonterminal">$i</span>: ident) =&gt; {{
             <span class="kw">let </span>val = from_utf8(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$i</span>[..]).unwrap();
-            <span class="macro">assert!</span>(val.contains(<span class="macro-nonterminal">$e</span>), <span class="string">&quot;exp: {}\nval: {}&quot;</span>, <span class="macro-nonterminal">$e</span>, val);
+            <span class="macro">assert!</span>(val.contains(<span class="macro-nonterminal">$e</span>), <span class="string">"exp: {}\nval: {}"</span>, <span class="macro-nonterminal">$e</span>, val);
         }};
     }
     <span class="macro">macro_rules! </span>not_has_str {
         (<span class="macro-nonterminal">$e</span>: expr, <span class="macro-nonterminal">$i</span>: ident) =&gt; {{
             <span class="kw">let </span>val = from_utf8(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$i</span>[..]).unwrap();
-            <span class="macro">assert!</span>(!val.contains(<span class="macro-nonterminal">$e</span>), <span class="string">&quot;exp: {}\nval: {}&quot;</span>, <span class="macro-nonterminal">$e</span>, val);
+            <span class="macro">assert!</span>(!val.contains(<span class="macro-nonterminal">$e</span>), <span class="string">"exp: {}\nval: {}"</span>, <span class="macro-nonterminal">$e</span>, val);
         }};
     }
     <span class="macro">macro_rules! </span>inserted {
@@ -2208,7 +2303,7 @@
 
             <span class="macro">assert!</span>(
                 matched_values == values,
-                <span class="string">&quot;\n{:?}\n!=\n{:?}\n&quot;</span>,
+                <span class="string">"\n{:?}\n!=\n{:?}\n"</span>,
                 matched_values,
                 values
             );
@@ -2232,65 +2327,65 @@
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=2; Secure&quot;</span>,
-            <span class="string">&quot;https://example.com/sec/&quot;</span>,
+            <span class="string">"cookie2=2; Secure"</span>,
+            <span class="string">"https://example.com/sec/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=3; HttpOnly&quot;</span>,
-            <span class="string">&quot;https://example.com/sec/&quot;</span>,
+            <span class="string">"cookie3=3; HttpOnly"</span>,
+            <span class="string">"https://example.com/sec/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=4; Secure; HttpOnly&quot;</span>,
-            <span class="string">&quot;https://example.com/sec/&quot;</span>,
+            <span class="string">"cookie4=4; Secure; HttpOnly"</span>,
+            <span class="string">"https://example.com/sec/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie5=5&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/&quot;</span>,
+            <span class="string">"cookie5=5"</span>,
+            <span class="string">"http://example.com/foo/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie6=6&quot;</span>,
-            <span class="string">&quot;http://example.com/&quot;</span>,
+            <span class="string">"cookie6=6"</span>,
+            <span class="string">"http://example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie7=7&quot;</span>,
-            <span class="string">&quot;http://bar.example.com/foo/&quot;</span>,
+            <span class="string">"cookie7=7"</span>,
+            <span class="string">"http://bar.example.com/foo/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie8=8&quot;</span>,
-            <span class="string">&quot;http://example.org/foo/bar&quot;</span>,
+            <span class="string">"cookie8=8"</span>,
+            <span class="string">"http://example.org/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie9=9&quot;</span>,
-            <span class="string">&quot;http://bar.example.org/foo/bar&quot;</span>,
+            <span class="string">"cookie9=9"</span>,
+            <span class="string">"http://bar.example.org/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">60 </span>* <span class="number">5</span>),
         ));
@@ -2299,23 +2394,23 @@
 
     <span class="macro">macro_rules! </span>check_matches {
         (<span class="macro-nonterminal">$store</span>: expr) =&gt; {{
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://unknowndomain.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;8&quot;</span>]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://bar.example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;9&quot;</span>]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://bar.example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://unknowndomain.org/foo/bar"</span>, <span class="macro">vec!</span>[]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"8"</span>]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://bar.example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"9"</span>]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://bar.example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
             <span class="macro">values_are!</span>(
                 <span class="macro-nonterminal">$store</span>,
-                <span class="string">&quot;https://example.com/sec/foo&quot;</span>,
-                <span class="macro">vec!</span>[<span class="string">&quot;6&quot;</span>, <span class="string">&quot;4&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;2&quot;</span>]
+                <span class="string">"https://example.com/sec/foo"</span>,
+                <span class="macro">vec!</span>[<span class="string">"6"</span>, <span class="string">"4"</span>, <span class="string">"3"</span>, <span class="string">"2"</span>]
             );
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;6&quot;</span>, <span class="string">&quot;3&quot;</span>]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;ftp://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;6&quot;</span>]);
-            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">&quot;http://bar.example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;7&quot;</span>]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"6"</span>, <span class="string">"3"</span>]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"ftp://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"6"</span>]);
+            <span class="macro">values_are!</span>(<span class="macro-nonterminal">$store</span>, <span class="string">"http://bar.example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"7"</span>]);
             <span class="macro">values_are!</span>(
                 <span class="macro-nonterminal">$store</span>,
-                <span class="string">&quot;http://example.com/foo/bar/bus&quot;</span>,
-                <span class="macro">vec!</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;5&quot;</span>, <span class="string">&quot;6&quot;</span>]
+                <span class="string">"http://example.com/foo/bar/bus"</span>,
+                <span class="macro">vec!</span>[<span class="string">"1"</span>, <span class="string">"5"</span>, <span class="string">"6"</span>]
             );
         }};
     }
@@ -2324,36 +2419,36 @@
     </span><span class="kw">fn </span>insert_raw() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         <span class="macro">inserted!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">non_rel_scheme!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;data:nonrelativescheme&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"data:nonrelativescheme"</span>),
         ));
         <span class="macro">non_http_scheme!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1; HttpOnly&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;ftp://example.com/&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1; HttpOnly"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"ftp://example.com/"</span>),
         ));
         <span class="macro">expired_existing!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1; Max-Age=0&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1; Max-Age=0"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">expired_err!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1; Max-Age=-1&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1; Max-Age=-1"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">updated!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">expired_existing!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1; Max-Age=-1&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1; Max-Age=-1"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">domain_mismatch!</span>(store.insert_raw(
-            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">&quot;cookie1=value1; Domain=bar.example.com&quot;</span>).unwrap(),
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="kw-2">&amp;</span>RawCookie::parse(<span class="string">"cookie1=value1; Domain=bar.example.com"</span>).unwrap(),
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
     }
 
@@ -2361,33 +2456,33 @@
     </span><span class="kw">fn </span>parse() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         <span class="macro">inserted!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
-        <span class="macro">non_rel_scheme!</span>(store.parse(<span class="string">&quot;cookie1=value1&quot;</span>, <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;data:nonrelativescheme&quot;</span>),));
+        <span class="macro">non_rel_scheme!</span>(store.parse(<span class="string">"cookie1=value1"</span>, <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"data:nonrelativescheme"</span>),));
         <span class="macro">non_http_scheme!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1; HttpOnly&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;ftp://example.com/&quot;</span>),
+            <span class="string">"cookie1=value1; HttpOnly"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"ftp://example.com/"</span>),
         ));
         <span class="macro">expired_existing!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1; Max-Age=0&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1; Max-Age=0"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">expired_err!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1; Max-Age=-1&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1; Max-Age=-1"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">updated!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">expired_existing!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1; Max-Age=-1&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1; Max-Age=-1"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
         <span class="macro">domain_mismatch!</span>(store.parse(
-            <span class="string">&quot;cookie1=value1; Domain=bar.example.com&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1; Domain=bar.example.com"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         ));
     }
 
@@ -2396,97 +2491,97 @@
         <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">""</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
         <span class="comment">// non-persistent cookie, should not be saved
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie0=value0&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie0=value0"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">""</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
 
         <span class="comment">// persistent cookie, Max-Age
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">10</span>),
         ));
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
         output.clear();
 
         <span class="comment">// persistent cookie, Expires
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=value2&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie2=value2"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
         output.clear();
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value3; Domain=example.com&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value3; Domain=example.com"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=value4; Path=/foo/&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie4=value4; Path=/foo/"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie5=value5&quot;</span>,
-            <span class="string">&quot;http://127.0.0.1/foo/bar&quot;</span>,
+            <span class="string">"cookie5=value5"</span>,
+            <span class="string">"http://127.0.0.1/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie6=value6&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie6=value6"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie7=value7; Secure&quot;</span>,
-            <span class="string">&quot;https://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie7=value7; Secure"</span>,
+            <span class="string">"https://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie8=value8; HttpOnly"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie3=value3&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie4=value4&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie5=value5&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie6=value6&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie7=value7; Secure&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie3=value3"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie4=value4"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie5=value5"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie6=value6"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie7=value7; Secure"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie8=value8; HttpOnly"</span>, output);
         output.clear();
     }
 
@@ -2495,100 +2590,100 @@
         <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[]&quot;</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">"[]"</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
         output.clear();
 
         <span class="comment">// non-persistent cookie, should not be saved
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie0=value0&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie0=value0"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;[]&quot;</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">"[]"</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
         output.clear();
 
         <span class="comment">// persistent cookie, Max-Age
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">10</span>),
         ));
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
         output.clear();
 
         <span class="comment">// persistent cookie, Expires
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=value2&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie2=value2"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
         output.clear();
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value3; Domain=example.com&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value3; Domain=example.com"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=value4; Path=/foo/&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie4=value4; Path=/foo/"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie5=value5&quot;</span>,
-            <span class="string">&quot;http://127.0.0.1/foo/bar&quot;</span>,
+            <span class="string">"cookie5=value5"</span>,
+            <span class="string">"http://127.0.0.1/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie6=value6&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie6=value6"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie7=value7; Secure&quot;</span>,
-            <span class="string">&quot;https://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie7=value7; Secure"</span>,
+            <span class="string">"https://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie8=value8; HttpOnly"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie3=value3&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie4=value4&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie5=value5&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie6=value6&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie7=value7; Secure&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie3=value3"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie4=value4"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie5=value5"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie6=value6"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie7=value7; Secure"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie8=value8; HttpOnly"</span>, output);
         output.clear();
     }
 
@@ -2598,108 +2693,108 @@
         <span class="comment">//        The user agent will reject cookies unless the Domain attribute
         // specifies a scope for the cookie that would include the origin
         // server.  For example, the user agent will accept a cookie with a
-        // Domain attribute of &quot;example.com&quot; or of &quot;foo.example.com&quot; from
+        // Domain attribute of "example.com" or of "foo.example.com" from
         // foo.example.com, but the user agent will not accept a cookie with a
-        // Domain attribute of &quot;bar.example.com&quot; or of &quot;baz.foo.example.com&quot;.
-        </span><span class="kw">fn </span>domain_cookie_from(domain: <span class="kw-2">&amp;</span>str, request_url: <span class="kw-2">&amp;</span>str) -&gt; Cookie&lt;<span class="lifetime">&#39;static</span>&gt; {
-            <span class="kw">let </span>cookie_str = <span class="macro">format!</span>(<span class="string">&quot;cookie1=value1; Domain={}&quot;</span>, domain);
+        // Domain attribute of "bar.example.com" or of "baz.foo.example.com".
+        </span><span class="kw">fn </span>domain_cookie_from(domain: <span class="kw-2">&amp;</span>str, request_url: <span class="kw-2">&amp;</span>str) -&gt; Cookie&lt;<span class="lifetime">'static</span>&gt; {
+            <span class="kw">let </span>cookie_str = <span class="macro">format!</span>(<span class="string">"cookie1=value1; Domain={}"</span>, domain);
             Cookie::parse(cookie_str, <span class="kw-2">&amp;</span>test_utils::url(request_url)).unwrap()
         }
 
         {
-            <span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://foo.example.com&quot;</span>);
+            <span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://foo.example.com"</span>);
             <span class="comment">// foo.example.com can submit cookies for example.com and foo.example.com
             </span><span class="macro">inserted!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">inserted!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="comment">// not for bar.example.com
             </span><span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="comment">// not for bar.foo.example.com
             </span><span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;bar.foo.example.com&quot;</span>, <span class="string">&quot;http://bar.foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"bar.foo.example.com"</span>, <span class="string">"http://bar.foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.bar.foo.example.com&quot;</span>, <span class="string">&quot;http://bar.foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".bar.foo.example.com"</span>, <span class="string">"http://bar.foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
         }
 
         {
-            <span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://bar.example.com&quot;</span>);
+            <span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://bar.example.com"</span>);
             <span class="comment">// bar.example.com can submit for example.com and bar.example.com
             </span><span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">inserted!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="comment">// bar.example.com cannot submit for foo.example.com
             </span><span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
         }
         {
-            <span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://example.com&quot;</span>);
+            <span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://example.com"</span>);
             <span class="comment">// example.com can submit for example.com
             </span><span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">updated!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="comment">// example.com cannot submit for foo.example.com or bar.example.com
             </span><span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.foo.example.com&quot;</span>, <span class="string">&quot;http://foo.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".foo.example.com"</span>, <span class="string">"http://foo.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">"bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
             <span class="macro">domain_mismatch!</span>(store.insert(
-                domain_cookie_from(<span class="string">&quot;.bar.example.com&quot;</span>, <span class="string">&quot;http://bar.example.com&quot;</span>,),
+                domain_cookie_from(<span class="string">".bar.example.com"</span>, <span class="string">"http://bar.example.com"</span>,),
                 <span class="kw-2">&amp;</span>request_url,
             ));
         }
@@ -2709,12 +2804,12 @@
     </span><span class="kw">fn </span>http_only() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         <span class="kw">let </span>c = Cookie::parse(
-            <span class="string">&quot;cookie1=value1; HttpOnly&quot;</span>,
-            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;http://example.com/foo/bar&quot;</span>),
+            <span class="string">"cookie1=value1; HttpOnly"</span>,
+            <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"http://example.com/foo/bar"</span>),
         )
         .unwrap();
         <span class="comment">// cannot add a HttpOnly cookies from a non-http source
-        </span><span class="macro">non_http_scheme!</span>(store.insert(c, <span class="kw-2">&amp;</span>test_utils::url(<span class="string">&quot;ftp://example.com/foo/bar&quot;</span>),));
+        </span><span class="macro">non_http_scheme!</span>(store.insert(c, <span class="kw-2">&amp;</span>test_utils::url(<span class="string">"ftp://example.com/foo/bar"</span>),));
     }
 
     <span class="attr">#[test]
@@ -2723,96 +2818,96 @@
         <span class="comment">// non-persistent cookie, should not be saved
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie0=value0&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie0=value0"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="comment">// persistent cookie, Max-Age
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">10</span>),
         ));
         <span class="comment">// persistent cookie, Expires
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=value2&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie2=value2"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value3; Domain=example.com&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value3; Domain=example.com"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=value4; Path=/foo/&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie4=value4; Path=/foo/"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie5=value5&quot;</span>,
-            <span class="string">&quot;http://127.0.0.1/foo/bar&quot;</span>,
+            <span class="string">"cookie5=value5"</span>,
+            <span class="string">"http://127.0.0.1/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie6=value6&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie6=value6"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie7=value7; Secure&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie7=value7; Secure"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie8=value8; HttpOnly"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie3=value3&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie4=value4&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie5=value5&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie6=value6&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie7=value7; Secure&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie3=value3"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie4=value4"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie5=value5"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie6=value6"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie7=value7; Secure"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie8=value8; HttpOnly"</span>, output);
         <span class="kw">let </span>store = CookieStore::load_json(<span class="kw-2">&amp;</span>output[..]).unwrap();
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie0&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value1&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie3&quot;</span>).unwrap().value() == <span class="string">&quot;value3&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie0"</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value1"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).unwrap().value() == <span class="string">"value2"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie3"</span>).unwrap().value() == <span class="string">"value3"</span>);
         <span class="macro">assert!</span>(
             store
-                .get(<span class="string">&quot;foo.example.com&quot;</span>, <span class="string">&quot;/foo/&quot;</span>, <span class="string">&quot;cookie4&quot;</span>)
+                .get(<span class="string">"foo.example.com"</span>, <span class="string">"/foo/"</span>, <span class="string">"cookie4"</span>)
                 .unwrap()
                 .value()
-                == <span class="string">&quot;value4&quot;
+                == <span class="string">"value4"
         </span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie5&quot;</span>).unwrap().value() == <span class="string">&quot;value5&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;[::1]&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie6&quot;</span>).unwrap().value() == <span class="string">&quot;value6&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie7&quot;</span>).unwrap().value() == <span class="string">&quot;value7&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie8&quot;</span>).unwrap().value() == <span class="string">&quot;value8&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"127.0.0.1"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie5"</span>).unwrap().value() == <span class="string">"value5"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"[::1]"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie6"</span>).unwrap().value() == <span class="string">"value6"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie7"</span>).unwrap().value() == <span class="string">"value7"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie8"</span>).unwrap().value() == <span class="string">"value8"</span>);
 
         output.clear();
         <span class="kw">let </span>store = make_match_store();
@@ -2827,96 +2922,96 @@
         <span class="comment">// non-persistent cookie, should not be saved
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie0=value0&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie0=value0"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="comment">// persistent cookie, Max-Age
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="number">10</span>),
         ));
         <span class="comment">// persistent cookie, Expires
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=value2&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie2=value2"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value3; Domain=example.com&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value3; Domain=example.com"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=value4; Path=/foo/&quot;</span>,
-            <span class="string">&quot;http://foo.example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie4=value4; Path=/foo/"</span>,
+            <span class="string">"http://foo.example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie5=value5&quot;</span>,
-            <span class="string">&quot;http://127.0.0.1/foo/bar&quot;</span>,
+            <span class="string">"cookie5=value5"</span>,
+            <span class="string">"http://127.0.0.1/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie6=value6&quot;</span>,
-            <span class="string">&quot;http://[::1]/foo/bar&quot;</span>,
+            <span class="string">"cookie6=value6"</span>,
+            <span class="string">"http://[::1]/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie7=value7; Secure&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie7=value7; Secure"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie8=value8; HttpOnly"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         <span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         serde_json::to_writer(<span class="kw-2">&amp;mut </span>output, <span class="kw-2">&amp;</span>store).unwrap();
-        <span class="macro">not_has_str!</span>(<span class="string">&quot;cookie0=value0&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie2=value2&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie3=value3&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie4=value4&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie5=value5&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie6=value6&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie7=value7; Secure&quot;</span>, output);
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie8=value8; HttpOnly&quot;</span>, output);
+        <span class="macro">not_has_str!</span>(<span class="string">"cookie0=value0"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie2=value2"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie3=value3"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie4=value4"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie5=value5"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie6=value6"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie7=value7; Secure"</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie8=value8; HttpOnly"</span>, output);
         <span class="kw">let </span>store: CookieStore = serde_json::from_reader(<span class="kw-2">&amp;</span>output[..]).unwrap();
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie0&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value1&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie3&quot;</span>).unwrap().value() == <span class="string">&quot;value3&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie0"</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value1"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).unwrap().value() == <span class="string">"value2"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie3"</span>).unwrap().value() == <span class="string">"value3"</span>);
         <span class="macro">assert!</span>(
             store
-                .get(<span class="string">&quot;foo.example.com&quot;</span>, <span class="string">&quot;/foo/&quot;</span>, <span class="string">&quot;cookie4&quot;</span>)
+                .get(<span class="string">"foo.example.com"</span>, <span class="string">"/foo/"</span>, <span class="string">"cookie4"</span>)
                 .unwrap()
                 .value()
-                == <span class="string">&quot;value4&quot;
+                == <span class="string">"value4"
         </span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie5&quot;</span>).unwrap().value() == <span class="string">&quot;value5&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;[::1]&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie6&quot;</span>).unwrap().value() == <span class="string">&quot;value6&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie7&quot;</span>).unwrap().value() == <span class="string">&quot;value7&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie8&quot;</span>).unwrap().value() == <span class="string">&quot;value8&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"127.0.0.1"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie5"</span>).unwrap().value() == <span class="string">"value5"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"[::1]"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie6"</span>).unwrap().value() == <span class="string">"value6"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie7"</span>).unwrap().value() == <span class="string">"value7"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie8"</span>).unwrap().value() == <span class="string">"value8"</span>);
 
         output.clear();
         <span class="kw">let </span>store = make_match_store();
@@ -2931,76 +3026,76 @@
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">Some</span>(test_utils::in_days(<span class="number">1</span>)),
             <span class="prelude-val">None</span>,
         ));
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">has_str!</span>(<span class="string">&quot;cookie1=value1&quot;</span>, output);
+        <span class="macro">has_str!</span>(<span class="string">"cookie1=value1"</span>, output);
         output.clear();
         store.clear();
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
-        <span class="macro">assert_eq!</span>(<span class="string">&quot;&quot;</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
+        <span class="macro">assert_eq!</span>(<span class="string">""</span>, from_utf8(<span class="kw-2">&amp;</span>output[..]).unwrap());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>add_and_get() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).is_none());
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value1&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value1"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo/bar&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.org&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value1&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo/bar"</span>, <span class="string">"cookie1"</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.org"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value1"</span>);
 
         <span class="macro">updated!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=value2&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie1=value2"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value2"</span>);
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=value3&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie2=value3"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).unwrap().value() == <span class="string">&quot;value3&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value2"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).unwrap().value() == <span class="string">"value3"</span>);
 
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value4; HttpOnly&quot;</span>,
-            <span class="string">&quot;http://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value4; HttpOnly"</span>,
+            <span class="string">"http://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).unwrap().value() == <span class="string">&quot;value3&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie3&quot;</span>).unwrap().value() == <span class="string">&quot;value4&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value2"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).unwrap().value() == <span class="string">"value3"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie3"</span>).unwrap().value() == <span class="string">"value4"</span>);
 
         <span class="macro">non_http_scheme!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=value5&quot;</span>,
-            <span class="string">&quot;ftp://example.com/foo/bar&quot;</span>,
+            <span class="string">"cookie3=value5"</span>,
+            <span class="string">"ftp://example.com/foo/bar"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie1&quot;</span>).unwrap().value() == <span class="string">&quot;value2&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie2&quot;</span>).unwrap().value() == <span class="string">&quot;value3&quot;</span>);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie3&quot;</span>).unwrap().value() == <span class="string">&quot;value4&quot;</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie1"</span>).unwrap().value() == <span class="string">"value2"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie2"</span>).unwrap().value() == <span class="string">"value3"</span>);
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie3"</span>).unwrap().value() == <span class="string">"value4"</span>);
     }
 
     <span class="attr">#[test]
@@ -3012,44 +3107,44 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>expiry() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = make_match_store();
-        <span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://foo.example.com&quot;</span>);
-        <span class="kw">let </span>expired_cookie = Cookie::parse(<span class="string">&quot;cookie1=value1; Max-Age=-1&quot;</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
+        <span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://foo.example.com"</span>);
+        <span class="kw">let </span>expired_cookie = Cookie::parse(<span class="string">"cookie1=value1; Max-Age=-1"</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
         <span class="macro">expired_err!</span>(store.insert(expired_cookie, <span class="kw-2">&amp;</span>request_url));
         <span class="macro">check_matches!</span>(<span class="kw-2">&amp;</span>store);
-        <span class="kw">match </span>store.get_mut(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;cookie6&quot;</span>) {
+        <span class="kw">match </span>store.get_mut(<span class="string">"example.com"</span>, <span class="string">"/"</span>, <span class="string">"cookie6"</span>) {
             <span class="prelude-val">Some</span>(cookie) =&gt; cookie.expire(),
             <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(),
         }
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://unknowndomain.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;8&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;9&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;https://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;4&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;2&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;3&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;ftp://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;7&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;1&quot;</span>, <span class="string">&quot;5&quot;</span>]);
-        <span class="kw">match </span>store.get_any(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;cookie6&quot;</span>) {
+        <span class="macro">values_are!</span>(store, <span class="string">"http://unknowndomain.org/foo/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"8"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"9"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"https://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"4"</span>, <span class="string">"3"</span>, <span class="string">"2"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"3"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"ftp://example.com/sec/foo"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"7"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"1"</span>, <span class="string">"5"</span>]);
+        <span class="kw">match </span>store.get_any(<span class="string">"example.com"</span>, <span class="string">"/"</span>, <span class="string">"cookie6"</span>) {
             <span class="prelude-val">Some</span>(cookie) =&gt; <span class="macro">assert!</span>(cookie.is_expired()),
             <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(),
         }
         <span class="comment">// inserting an expired cookie that matches an existing cookie should expire
         // the existing
-        </span><span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://example.com/foo/&quot;</span>);
-        <span class="kw">let </span>expired_cookie = Cookie::parse(<span class="string">&quot;cookie5=value5; Max-Age=-1&quot;</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
+        </span><span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://example.com/foo/"</span>);
+        <span class="kw">let </span>expired_cookie = Cookie::parse(<span class="string">"cookie5=value5; Max-Age=-1"</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
         <span class="macro">expired_existing!</span>(store.insert(expired_cookie, <span class="kw-2">&amp;</span>request_url));
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://unknowndomain.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;8&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;9&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;https://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;4&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;2&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;3&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;ftp://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;7&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;1&quot;</span>]);
-        <span class="kw">match </span>store.get_any(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie5&quot;</span>) {
+        <span class="macro">values_are!</span>(store, <span class="string">"http://unknowndomain.org/foo/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"8"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"9"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"https://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"4"</span>, <span class="string">"3"</span>, <span class="string">"2"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"3"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"ftp://example.com/sec/foo"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"7"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"1"</span>]);
+        <span class="kw">match </span>store.get_any(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie5"</span>) {
             <span class="prelude-val">Some</span>(cookie) =&gt; <span class="macro">assert!</span>(cookie.is_expired()),
             <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(),
         }
@@ -3057,46 +3152,46 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
         store = CookieStore::load_json(<span class="kw-2">&amp;</span>output[..]).unwrap();
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://unknowndomain.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;8&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/foo/bar&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;9&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.org/bus/bar&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;https://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;4&quot;</span>, <span class="string">&quot;3&quot;</span>, <span class="string">&quot;2&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;3&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;ftp://example.com/sec/foo&quot;</span>, <span class="macro">vec!</span>[]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://bar.example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;7&quot;</span>]);
-        <span class="macro">values_are!</span>(store, <span class="string">&quot;http://example.com/foo/bar/bus&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;1&quot;</span>]);
-        <span class="macro">assert!</span>(store.get_any(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/&quot;</span>, <span class="string">&quot;cookie6&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get_any(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/foo&quot;</span>, <span class="string">&quot;cookie5&quot;</span>).is_none());
+        <span class="macro">values_are!</span>(store, <span class="string">"http://unknowndomain.org/foo/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"8"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/foo/bar"</span>, <span class="macro">vec!</span>[<span class="string">"9"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.org/bus/bar"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"https://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"4"</span>, <span class="string">"3"</span>, <span class="string">"2"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/sec/foo"</span>, <span class="macro">vec!</span>[<span class="string">"3"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"ftp://example.com/sec/foo"</span>, <span class="macro">vec!</span>[]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://bar.example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"7"</span>]);
+        <span class="macro">values_are!</span>(store, <span class="string">"http://example.com/foo/bar/bus"</span>, <span class="macro">vec!</span>[<span class="string">"1"</span>]);
+        <span class="macro">assert!</span>(store.get_any(<span class="string">"example.com"</span>, <span class="string">"/"</span>, <span class="string">"cookie6"</span>).is_none());
+        <span class="macro">assert!</span>(store.get_any(<span class="string">"example.com"</span>, <span class="string">"/foo"</span>, <span class="string">"cookie5"</span>).is_none());
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>non_persistent() {
         <span class="kw">let </span><span class="kw-2">mut </span>store = make_match_store();
         <span class="macro">check_matches!</span>(<span class="kw-2">&amp;</span>store);
-        <span class="kw">let </span>request_url = test_utils::url(<span class="string">&quot;http://example.com/tmp/&quot;</span>);
-        <span class="kw">let </span>non_persistent = Cookie::parse(<span class="string">&quot;cookie10=value10&quot;</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
+        <span class="kw">let </span>request_url = test_utils::url(<span class="string">"http://example.com/tmp/"</span>);
+        <span class="kw">let </span>non_persistent = Cookie::parse(<span class="string">"cookie10=value10"</span>, <span class="kw-2">&amp;</span>request_url).unwrap();
         <span class="macro">inserted!</span>(store.insert(non_persistent, <span class="kw-2">&amp;</span>request_url));
-        <span class="kw">match </span>store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/tmp&quot;</span>, <span class="string">&quot;cookie10&quot;</span>) {
+        <span class="kw">match </span>store.get(<span class="string">"example.com"</span>, <span class="string">"/tmp"</span>, <span class="string">"cookie10"</span>) {
             <span class="prelude-val">None </span>=&gt; <span class="macro">unreachable!</span>(),
-            <span class="prelude-val">Some</span>(cookie) =&gt; <span class="macro">assert_eq!</span>(<span class="string">&quot;value10&quot;</span>, cookie.value()),
+            <span class="prelude-val">Some</span>(cookie) =&gt; <span class="macro">assert_eq!</span>(<span class="string">"value10"</span>, cookie.value()),
         }
         <span class="comment">// save and loading the store should drop any non-persistent cookies
         </span><span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
         store.save_json(<span class="kw-2">&amp;mut </span>output).unwrap();
         store = CookieStore::load_json(<span class="kw-2">&amp;</span>output[..]).unwrap();
         <span class="macro">check_matches!</span>(<span class="kw-2">&amp;</span>store);
-        <span class="macro">assert!</span>(store.get(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/tmp&quot;</span>, <span class="string">&quot;cookie10&quot;</span>).is_none());
-        <span class="macro">assert!</span>(store.get_any(<span class="string">&quot;example.com&quot;</span>, <span class="string">&quot;/tmp&quot;</span>, <span class="string">&quot;cookie10&quot;</span>).is_none());
+        <span class="macro">assert!</span>(store.get(<span class="string">"example.com"</span>, <span class="string">"/tmp"</span>, <span class="string">"cookie10"</span>).is_none());
+        <span class="macro">assert!</span>(store.get_any(<span class="string">"example.com"</span>, <span class="string">"/tmp"</span>, <span class="string">"cookie10"</span>).is_none());
     }
 
     <span class="macro">macro_rules! </span>dump {
         (<span class="macro-nonterminal">$e</span>: expr, <span class="macro-nonterminal">$i</span>: ident) =&gt; {{
             <span class="kw">use </span>serde_json;
-            <span class="macro">println!</span>(<span class="string">&quot;&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">""</span>);
             <span class="macro">println!</span>(
-                <span class="string">&quot;==== {}: {} ====&quot;</span>,
+                <span class="string">"==== {}: {} ===="</span>,
                 <span class="macro-nonterminal">$e</span>,
                 time::OffsetDateTime::now_utc()
                     .format(<span class="kw">crate</span>::rfc3339_fmt::RFC3339_FORMAT)
@@ -3104,19 +3199,19 @@
             );
             <span class="kw">for </span>c <span class="kw">in </span><span class="macro-nonterminal">$i</span>.iter_any() {
                 <span class="macro">println!</span>(
-                    <span class="string">&quot;{} {}&quot;</span>,
+                    <span class="string">"{} {}"</span>,
                     <span class="kw">if </span>c.is_expired() {
-                        <span class="string">&quot;XXXXX&quot;
+                        <span class="string">"XXXXX"
                     </span>} <span class="kw">else if </span>c.is_persistent() {
-                        <span class="string">&quot;PPPPP&quot;
+                        <span class="string">"PPPPP"
                     </span>} <span class="kw">else </span>{
-                        <span class="string">&quot;     &quot;
+                        <span class="string">"     "
                     </span>},
                     serde_json::to_string(c).unwrap()
                 );
-                <span class="macro">println!</span>(<span class="string">&quot;----------------&quot;</span>);
+                <span class="macro">println!</span>(<span class="string">"----------------"</span>);
             }
-            <span class="macro">println!</span>(<span class="string">&quot;================&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">"================"</span>);
         }};
     }
 
@@ -3124,12 +3219,12 @@
         <span class="kw">let </span>matches = store
             .matches(<span class="kw-2">&amp;</span>test_utils::url(url))
             .iter()
-            .map(|c| <span class="macro">format!</span>(<span class="string">&quot;{}={}&quot;</span>, c.name(), c.value()))
+            .map(|c| <span class="macro">format!</span>(<span class="string">"{}={}"</span>, c.name(), c.value()))
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
         <span class="kw">for </span>e <span class="kw">in </span><span class="kw-2">&amp;</span>exp {
             <span class="macro">assert!</span>(
                 matches.iter().any(|m| <span class="kw-2">&amp;</span>m[..] == <span class="kw-2">*</span>e),
-                <span class="string">&quot;{}: matches missing &#39;{}&#39;\nmatches: {:?}\n    exp: {:?}&quot;</span>,
+                <span class="string">"{}: matches missing '{}'\nmatches: {:?}\n    exp: {:?}"</span>,
                 url,
                 e,
                 matches,
@@ -3138,7 +3233,7 @@
         }
         <span class="macro">assert!</span>(
             matches.len() == exp.len(),
-            <span class="string">&quot;{}: matches={:?} != exp={:?}&quot;</span>,
+            <span class="string">"{}: matches={:?} != exp={:?}"</span>,
             url,
             matches,
             exp
@@ -3147,26 +3242,26 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>some_non_https_uris_are_secure() {
-        <span class="comment">// Matching the list in Firefox&#39;s regression test:
+        <span class="comment">// Matching the list in Firefox's regression test:
         // https://hg.mozilla.org/integration/autoland/rev/c4d13b3ca1e2
         </span><span class="kw">let </span>secure_uris = <span class="macro">vec!</span>[
-            <span class="string">&quot;http://localhost&quot;</span>,
-            <span class="string">&quot;http://localhost:1234&quot;</span>,
-            <span class="string">&quot;http://127.0.0.1&quot;</span>,
-            <span class="string">&quot;http://127.0.0.2&quot;</span>,
-            <span class="string">&quot;http://127.1.0.1&quot;</span>,
-            <span class="string">&quot;http://[::1]&quot;</span>,
+            <span class="string">"http://localhost"</span>,
+            <span class="string">"http://localhost:1234"</span>,
+            <span class="string">"http://127.0.0.1"</span>,
+            <span class="string">"http://127.0.0.2"</span>,
+            <span class="string">"http://127.1.0.1"</span>,
+            <span class="string">"http://[::1]"</span>,
         ];
         <span class="kw">for </span>secure_uri <span class="kw">in </span>secure_uris {
             <span class="kw">let </span><span class="kw-2">mut </span>store = CookieStore::default();
             <span class="macro">inserted!</span>(add_cookie(
                 <span class="kw-2">&amp;mut </span>store,
-                <span class="string">&quot;cookie1=1a; Secure&quot;</span>,
+                <span class="string">"cookie1=1a; Secure"</span>,
                 secure_uri,
                 <span class="prelude-val">None</span>,
                 <span class="prelude-val">None</span>,
             ));
-            matches_are(<span class="kw-2">&amp;</span>store, secure_uri, <span class="macro">vec!</span>[<span class="string">&quot;cookie1=1a&quot;</span>]);
+            matches_are(<span class="kw-2">&amp;</span>store, secure_uri, <span class="macro">vec!</span>[<span class="string">"cookie1=1a"</span>]);
         }
     }
 
@@ -3176,47 +3271,47 @@
         <span class="comment">// - HostOnly, so no collisions here
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=1a&quot;</span>,
-            <span class="string">&quot;http://foo.bus.example.com/&quot;</span>,
+            <span class="string">"cookie1=1a"</span>,
+            <span class="string">"http://foo.bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie1=1b&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/&quot;</span>,
+            <span class="string">"cookie1=1b"</span>,
+            <span class="string">"http://bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="comment">// - Suffix
-        // both cookie2&#39;s domain-match bus.example.com
+        // both cookie2's domain-match bus.example.com
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=2a; Domain=bus.example.com&quot;</span>,
-            <span class="string">&quot;http://foo.bus.example.com/&quot;</span>,
+            <span class="string">"cookie2=2a; Domain=bus.example.com"</span>,
+            <span class="string">"http://foo.bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie2=2b; Domain=example.com&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/&quot;</span>,
+            <span class="string">"cookie2=2b; Domain=example.com"</span>,
+            <span class="string">"http://bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">dump!</span>(<span class="string">&quot;domain_collisions&quot;</span>, store);
+        <span class="macro">dump!</span>(<span class="string">"domain_collisions"</span>, store);
         matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://foo.bus.example.com/&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie1=1a&quot;</span>, <span class="string">&quot;cookie2=2a&quot;</span>, <span class="string">&quot;cookie2=2b&quot;</span>],
+            <span class="string">"http://foo.bus.example.com/"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie1=1a"</span>, <span class="string">"cookie2=2a"</span>, <span class="string">"cookie2=2b"</span>],
         );
         matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://bus.example.com/&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie1=1b&quot;</span>, <span class="string">&quot;cookie2=2a&quot;</span>, <span class="string">&quot;cookie2=2b&quot;</span>],
+            <span class="string">"http://bus.example.com/"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie1=1b"</span>, <span class="string">"cookie2=2a"</span>, <span class="string">"cookie2=2b"</span>],
         );
-        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://example.com/&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;cookie2=2b&quot;</span>]);
-        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://foo.example.com/&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;cookie2=2b&quot;</span>]);
+        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://example.com/"</span>, <span class="macro">vec!</span>[<span class="string">"cookie2=2b"</span>]);
+        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://foo.example.com/"</span>, <span class="macro">vec!</span>[<span class="string">"cookie2=2b"</span>]);
     }
 
     <span class="attr">#[test]
@@ -3226,64 +3321,64 @@
         // both should match /foo/bar/
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=3a&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/foo/bar/&quot;</span>,
+            <span class="string">"cookie3=3a"</span>,
+            <span class="string">"http://bus.example.com/foo/bar/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie3=3b&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/foo/&quot;</span>,
+            <span class="string">"cookie3=3b"</span>,
+            <span class="string">"http://bus.example.com/foo/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="comment">// - Path set explicitly
         </span><span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=4a; Path=/foo/bar/&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/&quot;</span>,
+            <span class="string">"cookie4=4a; Path=/foo/bar/"</span>,
+            <span class="string">"http://bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
         <span class="macro">inserted!</span>(add_cookie(
             <span class="kw-2">&amp;mut </span>store,
-            <span class="string">&quot;cookie4=4b; Path=/foo/&quot;</span>,
-            <span class="string">&quot;http://bus.example.com/&quot;</span>,
+            <span class="string">"cookie4=4b; Path=/foo/"</span>,
+            <span class="string">"http://bus.example.com/"</span>,
             <span class="prelude-val">None</span>,
             <span class="prelude-val">None</span>,
         ));
-        <span class="macro">dump!</span>(<span class="string">&quot;path_collisions&quot;</span>, store);
+        <span class="macro">dump!</span>(<span class="string">"path_collisions"</span>, store);
         matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://bus.example.com/foo/bar/&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie3=3a&quot;</span>, <span class="string">&quot;cookie3=3b&quot;</span>, <span class="string">&quot;cookie4=4a&quot;</span>, <span class="string">&quot;cookie4=4b&quot;</span>],
+            <span class="string">"http://bus.example.com/foo/bar/"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie3=3a"</span>, <span class="string">"cookie3=3b"</span>, <span class="string">"cookie4=4a"</span>, <span class="string">"cookie4=4b"</span>],
         );
         <span class="comment">// Agrees w/ chrome, but not FF... FF also sends cookie4=4a, but this should be
         // a path-match
         // fail since request-uri /foo/bar is a *prefix* of the cookie path /foo/bar/
         </span>matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://bus.example.com/foo/bar&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie3=3a&quot;</span>, <span class="string">&quot;cookie3=3b&quot;</span>, <span class="string">&quot;cookie4=4b&quot;</span>],
+            <span class="string">"http://bus.example.com/foo/bar"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie3=3a"</span>, <span class="string">"cookie3=3b"</span>, <span class="string">"cookie4=4b"</span>],
         );
         matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://bus.example.com/foo/ba&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie3=3b&quot;</span>, <span class="string">&quot;cookie4=4b&quot;</span>],
+            <span class="string">"http://bus.example.com/foo/ba"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie3=3b"</span>, <span class="string">"cookie4=4b"</span>],
         );
         matches_are(
             <span class="kw-2">&amp;</span>store,
-            <span class="string">&quot;http://bus.example.com/foo/&quot;</span>,
-            <span class="macro">vec!</span>[<span class="string">&quot;cookie3=3b&quot;</span>, <span class="string">&quot;cookie4=4b&quot;</span>],
+            <span class="string">"http://bus.example.com/foo/"</span>,
+            <span class="macro">vec!</span>[<span class="string">"cookie3=3b"</span>, <span class="string">"cookie4=4b"</span>],
         );
         <span class="comment">// Agrees w/ chrome, but not FF... FF also sends cookie4=4b, but this should be
         // a path-match
         // fail since request-uri /foo is a *prefix* of the cookie path /foo/
-        </span>matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://bus.example.com/foo&quot;</span>, <span class="macro">vec!</span>[<span class="string">&quot;cookie3=3b&quot;</span>]);
-        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://bus.example.com/fo&quot;</span>, <span class="macro">vec!</span>[]);
-        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://bus.example.com/&quot;</span>, <span class="macro">vec!</span>[]);
-        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">&quot;http://bus.example.com&quot;</span>, <span class="macro">vec!</span>[]);
+        </span>matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://bus.example.com/foo"</span>, <span class="macro">vec!</span>[<span class="string">"cookie3=3b"</span>]);
+        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://bus.example.com/fo"</span>, <span class="macro">vec!</span>[]);
+        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://bus.example.com/"</span>, <span class="macro">vec!</span>[]);
+        matches_are(<span class="kw-2">&amp;</span>store, <span class="string">"http://bus.example.com"</span>, <span class="macro">vec!</span>[]);
     }
 }
 </code></pre></div></section></main></body></html>

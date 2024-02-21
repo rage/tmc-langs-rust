@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-0.6.6/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../zip/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-0.6.6/src/read.rs`."><title>read.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1286,7 +1287,7 @@
 <a href="#1286" id="1286">1286</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Types for reading ZIP archives
 
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+</span><span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::aes::{AesReader, AesReaderValid};
 <span class="kw">use </span><span class="kw">crate</span>::compression::CompressionMethod;
 <span class="kw">use </span><span class="kw">crate</span>::cp437::FromCp437;
@@ -1303,16 +1304,16 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="attr">#[cfg(any(
-    feature = <span class="string">&quot;deflate&quot;</span>,
-    feature = <span class="string">&quot;deflate-miniz&quot;</span>,
-    feature = <span class="string">&quot;deflate-zlib&quot;
+    feature = <span class="string">"deflate"</span>,
+    feature = <span class="string">"deflate-miniz"</span>,
+    feature = <span class="string">"deflate-zlib"
 </span>))]
 </span><span class="kw">use </span>flate2::read::DeflateDecoder;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;bzip2&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"bzip2"</span>)]
 </span><span class="kw">use </span>bzip2::read::BzDecoder;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;zstd&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"zstd"</span>)]
 </span><span class="kw">use </span>zstd::stream::read::Decoder <span class="kw">as </span>ZstdDecoder;
 
 <span class="doccomment">/// Provides high level API for reading from a stream.
@@ -1342,7 +1343,7 @@
     ///
     ///     for i in 0..zip.len() {
     ///         let mut file = zip.by_index(i)?;
-    ///         println!(&quot;Filename: {}&quot;, file.name());
+    ///         println!("Filename: {}", file.name());
     ///         std::io::copy(&amp;mut file, &amp;mut std::io::stdout());
     ///     }
     ///
@@ -1358,41 +1359,41 @@
 
 <span class="kw">pub use </span>zip_archive::ZipArchive;
 <span class="attr">#[allow(clippy::large_enum_variant)]
-</span><span class="kw">enum </span>CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt; {
-    Plaintext(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;),
-    ZipCrypto(ZipCryptoReaderValid&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt;),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+</span><span class="kw">enum </span>CryptoReader&lt;<span class="lifetime">'a</span>&gt; {
+    Plaintext(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;),
+    ZipCrypto(ZipCryptoReaderValid&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
     </span>Aes {
-        reader: AesReaderValid&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt;,
+        reader: AesReaderValid&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt;,
         vendor_version: AesVendorVersion,
     },
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Read <span class="kw">for </span>CryptoReader&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CryptoReader::Plaintext(r) =&gt; r.read(buf),
             CryptoReader::ZipCrypto(r) =&gt; r.read(buf),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
             </span>CryptoReader::Aes { reader: r, .. } =&gt; r.read(buf),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; CryptoReader&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.
-    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt; {
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             CryptoReader::Plaintext(r) =&gt; r,
             CryptoReader::ZipCrypto(r) =&gt; r.into_inner(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
             </span>CryptoReader::Aes { reader: r, .. } =&gt; r.into_inner(),
         }
     }
 
     <span class="doccomment">/// Returns `true` if the data is encrypted using AE2.
     </span><span class="kw">pub fn </span>is_ae2_encrypted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
         </span><span class="kw">return </span><span class="macro">matches!</span>(
             <span class="self">self</span>,
             CryptoReader::Aes {
@@ -1400,84 +1401,84 @@
                 ..
             }
         );
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;aes-crypto&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"aes-crypto"</span>))]
         </span><span class="bool-val">false
     </span>}
 }
 
-<span class="kw">enum </span>ZipFileReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">enum </span>ZipFileReader&lt;<span class="lifetime">'a</span>&gt; {
     NoReader,
-    Raw(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read&gt;),
-    Stored(Crc32Reader&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;&gt;),
+    Raw(io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read&gt;),
+    Stored(Crc32Reader&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;&gt;),
     <span class="attr">#[cfg(any(
-        feature = <span class="string">&quot;deflate&quot;</span>,
-        feature = <span class="string">&quot;deflate-miniz&quot;</span>,
-        feature = <span class="string">&quot;deflate-zlib&quot;
+        feature = <span class="string">"deflate"</span>,
+        feature = <span class="string">"deflate-miniz"</span>,
+        feature = <span class="string">"deflate-zlib"
     </span>))]
-    </span>Deflated(Crc32Reader&lt;flate2::read::DeflateDecoder&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;bzip2&quot;</span>)]
-    </span>Bzip2(Crc32Reader&lt;BzDecoder&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;),
-    <span class="attr">#[cfg(feature = <span class="string">&quot;zstd&quot;</span>)]
-    </span>Zstd(Crc32Reader&lt;ZstdDecoder&lt;<span class="lifetime">&#39;a</span>, io::BufReader&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;&gt;&gt;&gt;),
+    </span>Deflated(Crc32Reader&lt;flate2::read::DeflateDecoder&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">"bzip2"</span>)]
+    </span>Bzip2(Crc32Reader&lt;BzDecoder&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;),
+    <span class="attr">#[cfg(feature = <span class="string">"zstd"</span>)]
+    </span>Zstd(Crc32Reader&lt;ZstdDecoder&lt;<span class="lifetime">'a</span>, io::BufReader&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;&gt;&gt;&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>ZipFileReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Read <span class="kw">for </span>ZipFileReader&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            ZipFileReader::NoReader =&gt; <span class="macro">panic!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
+            ZipFileReader::NoReader =&gt; <span class="macro">panic!</span>(<span class="string">"ZipFileReader was in an invalid state"</span>),
             ZipFileReader::Raw(r) =&gt; r.read(buf),
             ZipFileReader::Stored(r) =&gt; r.read(buf),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;deflate&quot;</span>,
-                feature = <span class="string">&quot;deflate-miniz&quot;</span>,
-                feature = <span class="string">&quot;deflate-zlib&quot;
+                feature = <span class="string">"deflate"</span>,
+                feature = <span class="string">"deflate-miniz"</span>,
+                feature = <span class="string">"deflate-zlib"
             </span>))]
             </span>ZipFileReader::Deflated(r) =&gt; r.read(buf),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;bzip2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"bzip2"</span>)]
             </span>ZipFileReader::Bzip2(r) =&gt; r.read(buf),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;zstd&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"zstd"</span>)]
             </span>ZipFileReader::Zstd(r) =&gt; r.read(buf),
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ZipFileReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ZipFileReader&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Consumes this decoder, returning the underlying reader.
-    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt; {
+    </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            ZipFileReader::NoReader =&gt; <span class="macro">panic!</span>(<span class="string">&quot;ZipFileReader was in an invalid state&quot;</span>),
+            ZipFileReader::NoReader =&gt; <span class="macro">panic!</span>(<span class="string">"ZipFileReader was in an invalid state"</span>),
             ZipFileReader::Raw(r) =&gt; r,
             ZipFileReader::Stored(r) =&gt; r.into_inner().into_inner(),
             <span class="attr">#[cfg(any(
-                feature = <span class="string">&quot;deflate&quot;</span>,
-                feature = <span class="string">&quot;deflate-miniz&quot;</span>,
-                feature = <span class="string">&quot;deflate-zlib&quot;
+                feature = <span class="string">"deflate"</span>,
+                feature = <span class="string">"deflate-miniz"</span>,
+                feature = <span class="string">"deflate-zlib"
             </span>))]
             </span>ZipFileReader::Deflated(r) =&gt; r.into_inner().into_inner().into_inner(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;bzip2&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"bzip2"</span>)]
             </span>ZipFileReader::Bzip2(r) =&gt; r.into_inner().into_inner().into_inner(),
-            <span class="attr">#[cfg(feature = <span class="string">&quot;zstd&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"zstd"</span>)]
             </span>ZipFileReader::Zstd(r) =&gt; r.into_inner().finish().into_inner().into_inner(),
         }
     }
 }
 
 <span class="doccomment">/// A struct for reading a zip file
-</span><span class="kw">pub struct </span>ZipFile&lt;<span class="lifetime">&#39;a</span>&gt; {
-    data: Cow&lt;<span class="lifetime">&#39;a</span>, ZipFileData&gt;,
-    crypto_reader: <span class="prelude-ty">Option</span>&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
-    reader: ZipFileReader&lt;<span class="lifetime">&#39;a</span>&gt;,
+</span><span class="kw">pub struct </span>ZipFile&lt;<span class="lifetime">'a</span>&gt; {
+    data: Cow&lt;<span class="lifetime">'a</span>, ZipFileData&gt;,
+    crypto_reader: <span class="prelude-ty">Option</span>&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    reader: ZipFileReader&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">fn </span>find_content&lt;<span class="lifetime">&#39;a</span>&gt;(
+<span class="kw">fn </span>find_content&lt;<span class="lifetime">'a</span>&gt;(
     data: <span class="kw-2">&amp;</span>ZipFileData,
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>(<span class="kw">impl </span>Read + Seek),
-) -&gt; ZipResult&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt; {
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>(<span class="kw">impl </span>Read + Seek),
+) -&gt; ZipResult&lt;io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>Read&gt;&gt; {
     <span class="comment">// Parse local header
     </span>reader.seek(io::SeekFrom::Start(data.header_start))<span class="question-mark">?</span>;
     <span class="kw">let </span>signature = reader.read_u32::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
     <span class="kw">if </span>signature != spec::LOCAL_FILE_HEADER_SIGNATURE {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid local file header&quot;</span>));
+        <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid local file header"</span>));
     }
 
     reader.seek(io::SeekFrom::Current(<span class="number">22</span>))<span class="question-mark">?</span>;
@@ -1492,31 +1493,31 @@
 }
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">fn </span>make_crypto_reader&lt;<span class="lifetime">&#39;a</span>&gt;(
+</span><span class="kw">fn </span>make_crypto_reader&lt;<span class="lifetime">'a</span>&gt;(
     compression_method: <span class="kw">crate</span>::compression::CompressionMethod,
     crc32: u32,
     last_modified_time: DateTime,
     using_data_descriptor: bool,
-    reader: io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read&gt;,
+    reader: io::Take&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read&gt;,
     password: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
     aes_info: <span class="prelude-ty">Option</span>&lt;(AesMode, AesVendorVersion)&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)] </span>compressed_size: u64,
-) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;CryptoReader&lt;<span class="lifetime">&#39;a</span>&gt;, InvalidPassword&gt;&gt; {
+    <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)] </span>compressed_size: u64,
+) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;CryptoReader&lt;<span class="lifetime">'a</span>&gt;, InvalidPassword&gt;&gt; {
     <span class="attr">#[allow(deprecated)]
     </span>{
         <span class="kw">if let </span>CompressionMethod::Unsupported(<span class="kw">_</span>) = compression_method {
-            <span class="kw">return </span>unsupported_zip_error(<span class="string">&quot;Compression method not supported&quot;</span>);
+            <span class="kw">return </span>unsupported_zip_error(<span class="string">"Compression method not supported"</span>);
         }
     }
 
     <span class="kw">let </span>reader = <span class="kw">match </span>(password, aes_info) {
-        <span class="attr">#[cfg(not(feature = <span class="string">&quot;aes-crypto&quot;</span>))]
+        <span class="attr">#[cfg(not(feature = <span class="string">"aes-crypto"</span>))]
         </span>(<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::UnsupportedArchive(
-                <span class="string">&quot;AES encrypted files cannot be decrypted without the aes-crypto feature.&quot;</span>,
+                <span class="string">"AES encrypted files cannot be decrypted without the aes-crypto feature."</span>,
             ))
         }
-        <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
         </span>(<span class="prelude-val">Some</span>(password), <span class="prelude-val">Some</span>((aes_mode, vendor_version))) =&gt; {
             <span class="kw">match </span>AesReader::new(reader, aes_mode, compressed_size).validate(password)<span class="question-mark">? </span>{
                 <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(InvalidPassword)),
@@ -1555,25 +1556,25 @@
             ZipFileReader::Stored(Crc32Reader::new(reader, crc32, ae2_encrypted))
         }
         <span class="attr">#[cfg(any(
-            feature = <span class="string">&quot;deflate&quot;</span>,
-            feature = <span class="string">&quot;deflate-miniz&quot;</span>,
-            feature = <span class="string">&quot;deflate-zlib&quot;
+            feature = <span class="string">"deflate"</span>,
+            feature = <span class="string">"deflate-miniz"</span>,
+            feature = <span class="string">"deflate-zlib"
         </span>))]
         </span>CompressionMethod::Deflated =&gt; {
             <span class="kw">let </span>deflate_reader = DeflateDecoder::new(reader);
             ZipFileReader::Deflated(Crc32Reader::new(deflate_reader, crc32, ae2_encrypted))
         }
-        <span class="attr">#[cfg(feature = <span class="string">&quot;bzip2&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"bzip2"</span>)]
         </span>CompressionMethod::Bzip2 =&gt; {
             <span class="kw">let </span>bzip2_reader = BzDecoder::new(reader);
             ZipFileReader::Bzip2(Crc32Reader::new(bzip2_reader, crc32, ae2_encrypted))
         }
-        <span class="attr">#[cfg(feature = <span class="string">&quot;zstd&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"zstd"</span>)]
         </span>CompressionMethod::Zstd =&gt; {
             <span class="kw">let </span>zstd_reader = ZstdDecoder::new(reader).unwrap();
             ZipFileReader::Zstd(Crc32Reader::new(zstd_reader, crc32, ae2_encrypted))
         }
-        <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Compression method not supported&quot;</span>),
+        <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"Compression method not supported"</span>),
     }
 }
 
@@ -1585,7 +1586,7 @@
         footer: <span class="kw-2">&amp;</span>spec::CentralDirectoryEnd,
         cde_start_pos: u64,
     ) -&gt; ZipResult&lt;(u64, u64, usize)&gt; {
-        <span class="comment">// See if there&#39;s a ZIP64 footer. The ZIP64 locator if present will
+        <span class="comment">// See if there's a ZIP64 footer. The ZIP64 locator if present will
         // have its signature 20 bytes in front of the standard footer. The
         // standard footer, in turn, is 22+N bytes large, where N is the
         // comment length. Therefore:
@@ -1598,7 +1599,7 @@
             <span class="kw">match </span>spec::Zip64CentralDirectoryEndLocator::parse(reader) {
                 <span class="prelude-val">Ok</span>(loc) =&gt; <span class="prelude-val">Some</span>(loc),
                 <span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="kw">_</span>)) =&gt; {
-                    <span class="comment">// No ZIP64 header; that&#39;s actually fine. We&#39;re done here.
+                    <span class="comment">// No ZIP64 header; that's actually fine. We're done here.
                     </span><span class="prelude-val">None
                 </span>}
                 <span class="prelude-val">Err</span>(e) =&gt; {
@@ -1608,7 +1609,7 @@
             }
         } <span class="kw">else </span>{
             <span class="comment">// Empty Zip files will have nothing else so this error might be fine. If
-            // not, we&#39;ll find out soon.
+            // not, we'll find out soon.
             </span><span class="prelude-val">None
         </span>};
 
@@ -1622,7 +1623,7 @@
                     .checked_sub(footer.central_directory_size <span class="kw">as </span>u64)
                     .and_then(|x| x.checked_sub(footer.central_directory_offset <span class="kw">as </span>u64))
                     .ok_or(ZipError::InvalidArchive(
-                        <span class="string">&quot;Invalid central directory size or offset&quot;</span>,
+                        <span class="string">"Invalid central directory size or offset"</span>,
                     ))<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>directory_start = footer.central_directory_offset <span class="kw">as </span>u64 + archive_offset;
@@ -1636,13 +1637,13 @@
                     &amp;&amp; footer.disk_number <span class="kw">as </span>u32 != locator64.disk_with_central_directory
                 {
                     <span class="kw">return </span>unsupported_zip_error(
-                        <span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>,
+                        <span class="string">"Support for multi-disk files is not implemented"</span>,
                     );
                 }
 
                 <span class="comment">// We need to reassess `archive_offset`. We know where the ZIP64
                 // central-directory-end structure *should* be, but unfortunately we
-                // don&#39;t know how to precisely relate that location to our current
+                // don't know how to precisely relate that location to our current
                 // actual offset in the file, since there may be junk at its
                 // beginning. Therefore we need to perform another search, as in
                 // read::CentralDirectoryEnd::find_and_parse, except now we search
@@ -1651,7 +1652,7 @@
                 </span><span class="kw">let </span>search_upper_bound = cde_start_pos
                     .checked_sub(<span class="number">60</span>) <span class="comment">// minimum size of Zip64CentralDirectoryEnd + Zip64CentralDirectoryEndLocator
                     </span>.ok_or(ZipError::InvalidArchive(
-                        <span class="string">&quot;File cannot contain ZIP64 central directory end&quot;</span>,
+                        <span class="string">"File cannot contain ZIP64 central directory end"</span>,
                     ))<span class="question-mark">?</span>;
                 <span class="kw">let </span>(footer, archive_offset) = spec::Zip64CentralDirectoryEnd::find_and_parse(
                     reader,
@@ -1661,7 +1662,7 @@
 
                 <span class="kw">if </span>footer.disk_number != footer.disk_with_central_directory {
                     <span class="kw">return </span>unsupported_zip_error(
-                        <span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>,
+                        <span class="string">"Support for multi-disk files is not implemented"</span>,
                     );
                 }
 
@@ -1669,7 +1670,7 @@
                     .central_directory_offset
                     .checked_add(archive_offset)
                     .ok_or({
-                        ZipError::InvalidArchive(<span class="string">&quot;Invalid central directory size or offset&quot;</span>)
+                        ZipError::InvalidArchive(<span class="string">"Invalid central directory size or offset"</span>)
                     })<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>((
@@ -1688,14 +1689,14 @@
         <span class="kw">let </span>(footer, cde_start_pos) = spec::CentralDirectoryEnd::find_and_parse(<span class="kw-2">&amp;mut </span>reader)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>!footer.record_too_small() &amp;&amp; footer.disk_number != footer.disk_with_central_directory {
-            <span class="kw">return </span>unsupported_zip_error(<span class="string">&quot;Support for multi-disk files is not implemented&quot;</span>);
+            <span class="kw">return </span>unsupported_zip_error(<span class="string">"Support for multi-disk files is not implemented"</span>);
         }
 
         <span class="kw">let </span>(archive_offset, directory_start, number_of_files) =
             <span class="self">Self</span>::get_directory_counts(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;</span>footer, cde_start_pos)<span class="question-mark">?</span>;
 
         <span class="comment">// If the parsed number of files is greater than the offset then
-        // something fishy is going on and we shouldn&#39;t trust number_of_files.
+        // something fishy is going on and we shouldn't trust number_of_files.
         </span><span class="kw">let </span>file_capacity = <span class="kw">if </span>number_of_files &gt; cde_start_pos <span class="kw">as </span>usize {
             <span class="number">0
         </span>} <span class="kw">else </span>{
@@ -1707,7 +1708,7 @@
 
         <span class="kw">if </span>reader.seek(io::SeekFrom::Start(directory_start)).is_err() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(
-                <span class="string">&quot;Could not seek to start of central directory&quot;</span>,
+                <span class="string">"Could not seek to start of central directory"</span>,
             ));
         }
 
@@ -1738,11 +1739,11 @@
             <span class="kw">let </span><span class="kw-2">mut </span>file = <span class="self">self</span>.by_index(i)<span class="question-mark">?</span>;
             <span class="kw">let </span>filepath = file
                 .enclosed_name()
-                .ok_or(ZipError::InvalidArchive(<span class="string">&quot;Invalid file path&quot;</span>))<span class="question-mark">?</span>;
+                .ok_or(ZipError::InvalidArchive(<span class="string">"Invalid file path"</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>outpath = directory.as_ref().join(filepath);
 
-            <span class="kw">if </span>file.name().ends_with(<span class="string">&#39;/&#39;</span>) {
+            <span class="kw">if </span>file.name().ends_with(<span class="string">'/'</span>) {
                 fs::create_dir_all(<span class="kw-2">&amp;</span>outpath)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = outpath.parent() {
@@ -1806,24 +1807,24 @@
     /// There are many passwords out there that will also pass the validity checks
     /// we are able to perform. This is a weakness of the ZipCrypto algorithm,
     /// due to its fairly primitive approach to cryptography.
-    </span><span class="kw">pub fn </span>by_name_decrypt&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+    </span><span class="kw">pub fn </span>by_name_decrypt&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         password: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">&#39;a</span>&gt;, InvalidPassword&gt;&gt; {
+    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">'a</span>&gt;, InvalidPassword&gt;&gt; {
         <span class="self">self</span>.by_name_with_optional_password(name, <span class="prelude-val">Some</span>(password))
     }
 
     <span class="doccomment">/// Search for a file entry by name
-    </span><span class="kw">pub fn </span>by_name&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>by_name&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.by_name_with_optional_password(name, <span class="prelude-val">None</span>)<span class="question-mark">?</span>.unwrap())
     }
 
-    <span class="kw">fn </span>by_name_with_optional_password&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+    <span class="kw">fn </span>by_name_with_optional_password&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         password: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
-    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">&#39;a</span>&gt;, InvalidPassword&gt;&gt; {
+    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">'a</span>&gt;, InvalidPassword&gt;&gt; {
         <span class="kw">let </span>index = <span class="kw">match </span><span class="self">self</span>.shared.names_map.get(name) {
             <span class="prelude-val">Some</span>(index) =&gt; <span class="kw-2">*</span>index,
             <span class="prelude-val">None </span>=&gt; {
@@ -1846,23 +1847,23 @@
     /// There are many passwords out there that will also pass the validity checks
     /// we are able to perform. This is a weakness of the ZipCrypto algorithm,
     /// due to its fairly primitive approach to cryptography.
-    </span><span class="kw">pub fn </span>by_index_decrypt&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+    </span><span class="kw">pub fn </span>by_index_decrypt&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>,
         file_number: usize,
         password: <span class="kw-2">&amp;</span>[u8],
-    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">&#39;a</span>&gt;, InvalidPassword&gt;&gt; {
+    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">'a</span>&gt;, InvalidPassword&gt;&gt; {
         <span class="self">self</span>.by_index_with_optional_password(file_number, <span class="prelude-val">Some</span>(password))
     }
 
     <span class="doccomment">/// Get a contained file by index
-    </span><span class="kw">pub fn </span>by_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file_number: usize) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>by_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file_number: usize) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">self
             </span>.by_index_with_optional_password(file_number, <span class="prelude-val">None</span>)<span class="question-mark">?
             </span>.unwrap())
     }
 
     <span class="doccomment">/// Get a contained file by index without decompressing it
-    </span><span class="kw">pub fn </span>by_index_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file_number: usize) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>by_index_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, file_number: usize) -&gt; ZipResult&lt;ZipFile&lt;<span class="lifetime">'_</span>&gt;&gt; {
         <span class="kw">let </span>reader = <span class="kw-2">&amp;mut </span><span class="self">self</span>.reader;
         <span class="self">self</span>.shared
             .files
@@ -1877,11 +1878,11 @@
             })
     }
 
-    <span class="kw">fn </span>by_index_with_optional_password&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="self">self</span>,
+    <span class="kw">fn </span>by_index_with_optional_password&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="self">self</span>,
         file_number: usize,
         <span class="kw-2">mut </span>password: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
-    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">&#39;a</span>&gt;, InvalidPassword&gt;&gt; {
+    ) -&gt; ZipResult&lt;<span class="prelude-ty">Result</span>&lt;ZipFile&lt;<span class="lifetime">'a</span>&gt;, InvalidPassword&gt;&gt; {
         <span class="kw">let </span>data = <span class="self">self
             </span>.shared
             .files
@@ -1903,7 +1904,7 @@
             limit_reader,
             password,
             data.aes_mode,
-            <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
             </span>data.compressed_size,
         ) {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(crypto_reader)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(ZipFile {
@@ -1924,7 +1925,7 @@
     }
 }
 
-<span class="kw">fn </span>unsupported_zip_error&lt;T&gt;(detail: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str) -&gt; ZipResult&lt;T&gt; {
+<span class="kw">fn </span>unsupported_zip_error&lt;T&gt;(detail: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str) -&gt; ZipResult&lt;T&gt; {
     <span class="prelude-val">Err</span>(ZipError::UnsupportedArchive(detail))
 }
 
@@ -1938,7 +1939,7 @@
     <span class="comment">// Parse central header
     </span><span class="kw">let </span>signature = reader.read_u32::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
     <span class="kw">if </span>signature != spec::CENTRAL_DIRECTORY_HEADER_SIGNATURE {
-        <span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid Central Directory header&quot;</span>))
+        <span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid Central Directory header"</span>))
     } <span class="kw">else </span>{
         central_header_to_zip_file_inner(reader, archive_offset, central_header_start)
     }
@@ -2020,7 +2021,7 @@
     <span class="kw">let </span>aes_enabled = result.compression_method == CompressionMethod::AES;
     <span class="kw">if </span>aes_enabled &amp;&amp; result.aes_mode.is_none() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(
-            <span class="string">&quot;AES encryption without AES extra data field&quot;</span>,
+            <span class="string">"AES encryption without AES extra data field"</span>,
         ));
     }
 
@@ -2028,7 +2029,7 @@
     </span>result.header_start = result
         .header_start
         .checked_add(archive_offset)
-        .ok_or(ZipError::InvalidArchive(<span class="string">&quot;Archive header is too large&quot;</span>))<span class="question-mark">?</span>;
+        .ok_or(ZipError::InvalidArchive(<span class="string">"Archive header is too large"</span>))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(result)
 }
@@ -2062,7 +2063,7 @@
                 <span class="comment">// AES
                 </span><span class="kw">if </span>len != <span class="number">7 </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::UnsupportedArchive(
-                        <span class="string">&quot;AES extra data field has an unsupported length&quot;</span>,
+                        <span class="string">"AES extra data field has an unsupported length"</span>,
                     ));
                 }
                 <span class="kw">let </span>vendor_version = reader.read_u16::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
@@ -2071,18 +2072,18 @@
                 <span class="kw">let </span>compression_method = reader.read_u16::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
 
                 <span class="kw">if </span>vendor_id != <span class="number">0x4541 </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid AES vendor&quot;</span>));
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid AES vendor"</span>));
                 }
                 <span class="kw">let </span>vendor_version = <span class="kw">match </span>vendor_version {
                     <span class="number">0x0001 </span>=&gt; AesVendorVersion::Ae1,
                     <span class="number">0x0002 </span>=&gt; AesVendorVersion::Ae2,
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid AES vendor version&quot;</span>)),
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid AES vendor version"</span>)),
                 };
                 <span class="kw">match </span>aes_mode {
                     <span class="number">0x01 </span>=&gt; file.aes_mode = <span class="prelude-val">Some</span>((AesMode::Aes128, vendor_version)),
                     <span class="number">0x02 </span>=&gt; file.aes_mode = <span class="prelude-val">Some</span>((AesMode::Aes192, vendor_version)),
                     <span class="number">0x03 </span>=&gt; file.aes_mode = <span class="prelude-val">Some</span>((AesMode::Aes256, vendor_version)),
-                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid AES encryption strength&quot;</span>)),
+                    <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid AES encryption strength"</span>)),
                 };
                 file.compression_method = {
                     <span class="attr">#[allow(deprecated)]
@@ -2103,11 +2104,11 @@
 }
 
 <span class="doccomment">/// Methods for retrieving information on zip files
-</span><span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; ZipFile&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">fn </span>get_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ZipFileReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; ZipFile&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>get_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>ZipFileReader&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">if let </span>ZipFileReader::NoReader = <span class="self">self</span>.reader {
             <span class="kw">let </span>data = <span class="kw-2">&amp;</span><span class="self">self</span>.data;
-            <span class="kw">let </span>crypto_reader = <span class="self">self</span>.crypto_reader.take().expect(<span class="string">&quot;Invalid reader state&quot;</span>);
+            <span class="kw">let </span>crypto_reader = <span class="self">self</span>.crypto_reader.take().expect(<span class="string">"Invalid reader state"</span>);
             <span class="self">self</span>.reader = make_reader(data.compression_method, data.crc32, crypto_reader)
         }
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.reader
@@ -2115,7 +2116,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_raw_reader(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Read {
         <span class="kw">if let </span>ZipFileReader::NoReader = <span class="self">self</span>.reader {
-            <span class="kw">let </span>crypto_reader = <span class="self">self</span>.crypto_reader.take().expect(<span class="string">&quot;Invalid reader state&quot;</span>);
+            <span class="kw">let </span>crypto_reader = <span class="self">self</span>.crypto_reader.take().expect(<span class="string">"Invalid reader state"</span>);
             <span class="self">self</span>.reader = ZipFileReader::Raw(crypto_reader.into_inner())
         }
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.reader
@@ -2153,11 +2154,11 @@
     }
 
     <span class="doccomment">/// Get the name of the file in a sanitized form. It truncates the name to the first NULL byte,
-    /// removes a leading &#39;/&#39; and removes &#39;..&#39; parts.
+    /// removes a leading '/' and removes '..' parts.
     </span><span class="attr">#[deprecated(
-        since = <span class="string">&quot;0.5.7&quot;</span>,
-        note = <span class="string">&quot;by stripping `..`s from the path, the meaning of paths can change.
-                `mangled_name` can be used if this behaviour is desirable&quot;
+        since = <span class="string">"0.5.7"</span>,
+        note = <span class="string">"by stripping `..`s from the path, the meaning of paths can change.
+                `mangled_name` can be used if this behaviour is desirable"
     </span>)]
     </span><span class="kw">pub fn </span>sanitized_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ::std::path::PathBuf {
         <span class="self">self</span>.mangled_name()
@@ -2181,10 +2182,10 @@
 
     <span class="doccomment">/// Ensure the file path is safe to use as a [`Path`].
     ///
-    /// - It can&#39;t contain NULL bytes
-    /// - It can&#39;t resolve to a path outside the current directory
+    /// - It can't contain NULL bytes
+    /// - It can't resolve to a path outside the current directory
     ///   &gt; `foo/../bar` is fine, `foo/../../bar` is not.
-    /// - It can&#39;t be an absolute path
+    /// - It can't be an absolute path
     ///
     /// This will read well-formed ZIP files correctly, and is resistant
     /// to path-based exploits. It is recommended over
@@ -2223,7 +2224,7 @@
             .chars()
             .rev()
             .next()
-            .map_or(<span class="bool-val">false</span>, |c| c == <span class="string">&#39;/&#39; </span>|| c == <span class="string">&#39;\\&#39;</span>)
+            .map_or(<span class="bool-val">false</span>, |c| c == <span class="string">'/' </span>|| c == <span class="string">'\\'</span>)
     }
 
     <span class="doccomment">/// Returns whether the file is a regular file
@@ -2261,13 +2262,13 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Read <span class="kw">for </span>ZipFile&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Read <span class="kw">for </span>ZipFile&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.get_reader().read(buf)
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Drop <span class="kw">for </span>ZipFile&lt;<span class="lifetime">&#39;a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Drop <span class="kw">for </span>ZipFile&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="comment">// self.data is Owned, this reader is constructed by a streaming reader.
         // In this case, we want to exhaust the reader so that the next file is accessible.
@@ -2278,7 +2279,7 @@
             </span><span class="kw">let </span><span class="kw-2">mut </span>reader: std::io::Take&lt;<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>std::io::Read&gt; = <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.reader {
                 ZipFileReader::NoReader =&gt; {
                     <span class="kw">let </span>innerreader = ::std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.crypto_reader, <span class="prelude-val">None</span>);
-                    innerreader.expect(<span class="string">&quot;Invalid reader state&quot;</span>).into_inner()
+                    innerreader.expect(<span class="string">"Invalid reader state"</span>).into_inner()
                 }
                 reader =&gt; {
                     <span class="kw">let </span>innerreader = ::std::mem::replace(reader, ZipFileReader::NoReader);
@@ -2291,7 +2292,7 @@
                     <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="kw">break</span>,
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; (),
                     <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="macro">panic!</span>(<span class="string">&quot;Could not consume all of the output of the current ZipFile: {e:?}&quot;</span>)
+                        <span class="macro">panic!</span>(<span class="string">"Could not consume all of the output of the current ZipFile: {e:?}"</span>)
                     }
                 }
             }
@@ -2315,15 +2316,15 @@
 /// * `comment`: set to an empty string
 /// * `data_start`: set to 0
 /// * `external_attributes`: `unix_mode()`: will return None
-</span><span class="kw">pub fn </span>read_zipfile_from_stream&lt;<span class="lifetime">&#39;a</span>, R: io::Read&gt;(
-    reader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>R,
-) -&gt; ZipResult&lt;<span class="prelude-ty">Option</span>&lt;ZipFile&lt;<span class="lifetime">&#39;_</span>&gt;&gt;&gt; {
+</span><span class="kw">pub fn </span>read_zipfile_from_stream&lt;<span class="lifetime">'a</span>, R: io::Read&gt;(
+    reader: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>R,
+) -&gt; ZipResult&lt;<span class="prelude-ty">Option</span>&lt;ZipFile&lt;<span class="lifetime">'_</span>&gt;&gt;&gt; {
     <span class="kw">let </span>signature = reader.read_u32::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
 
     <span class="kw">match </span>signature {
         spec::LOCAL_FILE_HEADER_SIGNATURE =&gt; (),
         spec::CENTRAL_DIRECTORY_HEADER_SIGNATURE =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">&quot;Invalid local file header&quot;</span>)),
+        <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(ZipError::InvalidArchive(<span class="string">"Invalid local file header"</span>)),
     }
 
     <span class="kw">let </span>version_made_by = reader.read_u16::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
@@ -2366,14 +2367,14 @@
         file_name_raw,
         extra_field,
         file_comment: String::new(), <span class="comment">// file comment is only available in the central directory
-        // header_start and data start are not available, but also don&#39;t matter, since seeking is
+        // header_start and data start are not available, but also don't matter, since seeking is
         // not available.
         </span>header_start: <span class="number">0</span>,
         data_start: AtomicU64::new(<span class="number">0</span>),
         central_header_start: <span class="number">0</span>,
         <span class="comment">// The external_attributes field is only available in the central directory.
-        // We set this to zero, which should be valid as the docs state &#39;If input came
-        // from standard input, this field is set to zero.&#39;
+        // We set this to zero, which should be valid as the docs state 'If input came
+        // from standard input, this field is set to zero.'
         </span>external_attributes: <span class="number">0</span>,
         large_file: <span class="bool-val">false</span>,
         aes_mode: <span class="prelude-val">None</span>,
@@ -2385,13 +2386,13 @@
     }
 
     <span class="kw">if </span>encrypted {
-        <span class="kw">return </span>unsupported_zip_error(<span class="string">&quot;Encrypted files are not supported&quot;</span>);
+        <span class="kw">return </span>unsupported_zip_error(<span class="string">"Encrypted files are not supported"</span>);
     }
     <span class="kw">if </span>using_data_descriptor {
-        <span class="kw">return </span>unsupported_zip_error(<span class="string">&quot;The file length is not available in the local header&quot;</span>);
+        <span class="kw">return </span>unsupported_zip_error(<span class="string">"The file length is not available in the local header"</span>);
     }
 
-    <span class="kw">let </span>limit_reader = (reader <span class="kw">as </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read).take(result.compressed_size);
+    <span class="kw">let </span>limit_reader = (reader <span class="kw">as </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">dyn </span>io::Read).take(result.compressed_size);
 
     <span class="kw">let </span>result_crc32 = result.crc32;
     <span class="kw">let </span>result_compression_method = result.compression_method;
@@ -2403,7 +2404,7 @@
         limit_reader,
         <span class="prelude-val">None</span>,
         <span class="prelude-val">None</span>,
-        <span class="attr">#[cfg(feature = <span class="string">&quot;aes-crypto&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"aes-crypto"</span>)]
         </span>result.compressed_size,
     )<span class="question-mark">?
     </span>.unwrap();
@@ -2423,7 +2424,7 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/invalid_offset.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/invalid_offset.zip"</span>));
         <span class="kw">let </span>reader = ZipArchive::new(io::Cursor::new(v));
         <span class="macro">assert!</span>(reader.is_err());
     }
@@ -2434,7 +2435,7 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/invalid_offset2.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/invalid_offset2.zip"</span>));
         <span class="kw">let </span>reader = ZipArchive::new(io::Cursor::new(v));
         <span class="macro">assert!</span>(reader.is_err());
     }
@@ -2445,7 +2446,7 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/zip64_demo.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/zip64_demo.zip"</span>));
         <span class="kw">let </span>reader = ZipArchive::new(io::Cursor::new(v)).unwrap();
         <span class="macro">assert_eq!</span>(reader.len(), <span class="number">1</span>);
     }
@@ -2456,9 +2457,9 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/mimetype.zip"</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>reader = ZipArchive::new(io::Cursor::new(v)).unwrap();
-        <span class="macro">assert_eq!</span>(reader.comment(), <span class="string">b&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(reader.comment(), <span class="string">b""</span>);
         <span class="macro">assert_eq!</span>(reader.by_index(<span class="number">0</span>).unwrap().central_header_start(), <span class="number">77</span>);
     }
 
@@ -2468,7 +2469,7 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/mimetype.zip"</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>reader = io::Cursor::new(v);
         <span class="kw">loop </span>{
             <span class="kw">if </span>read_zipfile_from_stream(<span class="kw-2">&amp;mut </span>reader).unwrap().is_none() {
@@ -2483,7 +2484,7 @@
         <span class="kw">use </span>std::io::{<span class="self">self</span>, Read};
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/mimetype.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/mimetype.zip"</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>reader1 = ZipArchive::new(io::Cursor::new(v)).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>reader2 = reader1.clone();
 
@@ -2524,7 +2525,7 @@
         <span class="kw">use </span>std::io;
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
-        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">&quot;../tests/data/files_and_dirs.zip&quot;</span>));
+        v.extend_from_slice(<span class="macro">include_bytes!</span>(<span class="string">"../tests/data/files_and_dirs.zip"</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>zip = ZipArchive::new(io::Cursor::new(v)).unwrap();
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..zip.len() {
@@ -2532,13 +2533,13 @@
             <span class="kw">let </span>full_name = zip_file.enclosed_name().unwrap();
             <span class="kw">let </span>file_name = full_name.file_name().unwrap().to_str().unwrap();
             <span class="macro">assert!</span>(
-                (file_name.starts_with(<span class="string">&quot;dir&quot;</span>) &amp;&amp; zip_file.is_dir())
-                    || (file_name.starts_with(<span class="string">&quot;file&quot;</span>) &amp;&amp; zip_file.is_file())
+                (file_name.starts_with(<span class="string">"dir"</span>) &amp;&amp; zip_file.is_dir())
+                    || (file_name.starts_with(<span class="string">"file"</span>) &amp;&amp; zip_file.is_file())
             );
         }
     }
 
-    <span class="doccomment">/// test case to ensure we don&#39;t preemptively over allocate based on the
+    <span class="doccomment">/// test case to ensure we don't preemptively over allocate based on the
     /// declared number of files in the CDE of an invalid zip when the number of
     /// files declared is more than the alleged offset in the CDE
     </span><span class="attr">#[test]
@@ -2548,13 +2549,13 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
         v.extend_from_slice(<span class="macro">include_bytes!</span>(
-            <span class="string">&quot;../tests/data/invalid_cde_number_of_files_allocation_smaller_offset.zip&quot;
+            <span class="string">"../tests/data/invalid_cde_number_of_files_allocation_smaller_offset.zip"
         </span>));
         <span class="kw">let </span>reader = ZipArchive::new(io::Cursor::new(v));
         <span class="macro">assert!</span>(reader.is_err());
     }
 
-    <span class="doccomment">/// test case to ensure we don&#39;t preemptively over allocate based on the
+    <span class="doccomment">/// test case to ensure we don't preemptively over allocate based on the
     /// declared number of files in the CDE of an invalid zip when the number of
     /// files declared is less than the alleged offset in the CDE
     </span><span class="attr">#[test]
@@ -2564,7 +2565,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>v = Vec::new();
         v.extend_from_slice(<span class="macro">include_bytes!</span>(
-            <span class="string">&quot;../tests/data/invalid_cde_number_of_files_allocation_greater_offset.zip&quot;
+            <span class="string">"../tests/data/invalid_cde_number_of_files_allocation_greater_offset.zip"
         </span>));
         <span class="kw">let </span>reader = ZipArchive::new(io::Cursor::new(v));
         <span class="macro">assert!</span>(reader.is_err());

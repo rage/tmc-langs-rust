@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.32.0/src/io/interest.rs`."><title>interest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/io/interest.rs`."><title>interest.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -308,7 +309,42 @@
 <a href="#308" id="308">308</a>
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
-</pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">&quot;net&quot;</span>), allow(dead_code, unreachable_pub))]
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+</pre></div><pre class="rust"><code><span class="attr">#![cfg_attr(not(feature = <span class="string">"net"</span>), allow(dead_code, unreachable_pub))]
 
 </span><span class="kw">use </span><span class="kw">crate</span>::io::ready::Ready;
 
@@ -320,11 +356,11 @@
 </span><span class="kw">const </span>READABLE: usize = <span class="number">0b0001</span>;
 <span class="kw">const </span>WRITABLE: usize = <span class="number">0b0010</span>;
 <span class="comment">// The following are not available on all platforms.
-</span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+</span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
 </span><span class="kw">const </span>AIO: usize = <span class="number">0b0100</span>;
-<span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+<span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
 </span><span class="kw">const </span>LIO: usize = <span class="number">0b1000</span>;
-<span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+<span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
 </span><span class="kw">const </span>PRIORITY: usize = <span class="number">0b0001_0000</span>;
 <span class="comment">// error is available on all platforms, but behavior is platform-specific
 // mio does not have this interest
@@ -334,7 +370,7 @@
 ///
 /// Specifies the readiness events the caller is interested in when awaiting on
 /// I/O resource readiness states.
-</span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">&quot;net&quot;</span>)))]
+</span><span class="attr">#[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"net"</span>)))]
 #[derive(Clone, Copy, Eq, PartialEq)]
 </span><span class="kw">pub struct </span>Interest(usize);
 
@@ -343,19 +379,19 @@
     // building documentation.
     </span><span class="macro">cfg_aio! </span>{
         <span class="doccomment">/// Interest for POSIX AIO.
-        </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">pub const </span>AIO: Interest = Interest(AIO);
 
         <span class="doccomment">/// Interest for POSIX AIO.
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;freebsd&quot;</span>))]
+        </span><span class="attr">#[cfg(not(target_os = <span class="string">"freebsd"</span>))]
         </span><span class="kw">pub const </span>AIO: Interest = Interest(READABLE);
 
-        <span class="doccomment">/// Interest for POSIX AIO lio_listio events.
-        </span><span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        <span class="doccomment">/// Interest for POSIX AIO `lio_listio` events.
+        </span><span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">pub const </span>LIO: Interest = Interest(LIO);
 
-        <span class="doccomment">/// Interest for POSIX AIO lio_listio events.
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">&quot;freebsd&quot;</span>))]
+        <span class="doccomment">/// Interest for POSIX AIO `lio_listio` events.
+        </span><span class="attr">#[cfg(not(target_os = <span class="string">"freebsd"</span>))]
         </span><span class="kw">pub const </span>LIO: Interest = Interest(READABLE);
     }
 
@@ -372,12 +408,12 @@
     <span class="doccomment">/// Interest in error events.
     ///
     /// Passes error interest to the underlying OS selector.
-    /// Behavior is platform-specific, read your platform&#39;s documentation.
+    /// Behavior is platform-specific, read your platform's documentation.
     </span><span class="kw">pub const </span>ERROR: Interest = Interest(ERROR);
 
     <span class="doccomment">/// Returns a `Interest` set representing priority completion interests.
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
+    #[cfg_attr(docsrs, doc(cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))))]
     </span><span class="kw">pub const </span>PRIORITY: Interest = Interest(PRIORITY);
 
     <span class="doccomment">/// Returns true if the value includes readable interest.
@@ -431,12 +467,12 @@
         <span class="self">self</span>.<span class="number">0 </span>&amp; ERROR != <span class="number">0
     </span>}
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">const fn </span>is_aio(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.<span class="number">0 </span>&amp; AIO != <span class="number">0
     </span>}
 
-    <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+    <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
     </span><span class="kw">const fn </span>is_lio(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.<span class="number">0 </span>&amp; LIO != <span class="number">0
     </span>}
@@ -454,8 +490,8 @@
     /// let both = Interest::READABLE | Interest::PRIORITY;
     /// assert!(both.is_priority());
     /// ```
-    </span><span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
-    #[cfg_attr(docsrs, doc(cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))))]
+    </span><span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
+    #[cfg_attr(docsrs, doc(cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))))]
     </span><span class="kw">pub const fn </span>is_priority(<span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.<span class="number">0 </span>&amp; PRIORITY != <span class="number">0
     </span>}
@@ -473,8 +509,43 @@
     ///
     /// assert!(BOTH.is_readable());
     /// assert!(BOTH.is_writable());
+    </span><span class="attr">#[must_use = <span class="string">"this returns the result of the operation, without modifying the original"</span>]
     </span><span class="kw">pub const fn </span>add(<span class="self">self</span>, other: Interest) -&gt; Interest {
         <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>| other.<span class="number">0</span>)
+    }
+
+    <span class="doccomment">/// Remove `Interest` from `self`.
+    ///
+    /// Interests present in `other` but *not* in `self` are ignored.
+    ///
+    /// Returns `None` if the set would be empty after removing `Interest`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tokio::io::Interest;
+    ///
+    /// const RW_INTEREST: Interest = Interest::READABLE.add(Interest::WRITABLE);
+    ///
+    /// let w_interest = RW_INTEREST.remove(Interest::READABLE).unwrap();
+    /// assert!(!w_interest.is_readable());
+    /// assert!(w_interest.is_writable());
+    ///
+    /// // Removing all interests from the set returns `None`.
+    /// assert_eq!(w_interest.remove(Interest::WRITABLE), None);
+    ///
+    /// // Remove all interests at once.
+    /// assert_eq!(RW_INTEREST.remove(RW_INTEREST), None);
+    /// ```
+    </span><span class="attr">#[must_use = <span class="string">"this returns the result of the operation, without modifying the original"</span>]
+    </span><span class="kw">pub fn </span>remove(<span class="self">self</span>, other: Interest) -&gt; <span class="prelude-ty">Option</span>&lt;Interest&gt; {
+        <span class="kw">let </span>value = <span class="self">self</span>.<span class="number">0 </span>&amp; !other.<span class="number">0</span>;
+
+        <span class="kw">if </span>value != <span class="number">0 </span>{
+            <span class="prelude-val">Some</span>(<span class="self">Self</span>(value))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 
     <span class="comment">// This function must be crate-private to avoid exposing a `mio` dependency.
@@ -497,24 +568,24 @@
             mio_add(<span class="kw-2">&amp;mut </span>mio, mio::Interest::WRITABLE);
         }
 
-        <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+        <span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
         </span><span class="kw">if </span><span class="self">self</span>.is_priority() {
             mio_add(<span class="kw-2">&amp;mut </span>mio, mio::Interest::PRIORITY);
         }
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_aio() {
             mio_add(<span class="kw-2">&amp;mut </span>mio, mio::Interest::AIO);
         }
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_lio() {
             mio_add(<span class="kw-2">&amp;mut </span>mio, mio::Interest::LIO);
         }
 
         <span class="kw">if </span><span class="self">self</span>.is_error() {
             <span class="comment">// There is no error interest in mio, because error events are always reported.
-            // But mio interests cannot be empty and an interest is needed just for the registeration.
+            // But mio interests cannot be empty and an interest is needed just for the registration.
             //
             // read readiness is filtered out in `Interest::mask` or `Ready::from_interest` if
             // the read interest was not specified by the user.
@@ -534,7 +605,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             Interest::READABLE =&gt; Ready::READABLE | Ready::READ_CLOSED,
             Interest::WRITABLE =&gt; Ready::WRITABLE | Ready::WRITE_CLOSED,
-            <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+            <span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
             </span>Interest::PRIORITY =&gt; Ready::PRIORITY | Ready::READ_CLOSED,
             Interest::ERROR =&gt; Ready::ERROR,
             <span class="kw">_ </span>=&gt; Ready::EMPTY,
@@ -554,62 +625,62 @@
 <span class="kw">impl </span>ops::BitOrAssign <span class="kw">for </span>Interest {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>bitor_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: <span class="self">Self</span>) {
-        <span class="kw-2">*</span><span class="self">self </span>= <span class="kw-2">*</span><span class="self">self </span>| other
+        <span class="kw-2">*</span><span class="self">self </span>= <span class="kw-2">*</span><span class="self">self </span>| other;
     }
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Interest {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span><span class="kw-2">mut </span>separator = <span class="bool-val">false</span>;
 
         <span class="kw">if </span><span class="self">self</span>.is_readable() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;READABLE&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"READABLE"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 
         <span class="kw">if </span><span class="self">self</span>.is_writable() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;WRITABLE&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"WRITABLE"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 
-        <span class="attr">#[cfg(any(target_os = <span class="string">&quot;linux&quot;</span>, target_os = <span class="string">&quot;android&quot;</span>))]
+        <span class="attr">#[cfg(any(target_os = <span class="string">"linux"</span>, target_os = <span class="string">"android"</span>))]
         </span><span class="kw">if </span><span class="self">self</span>.is_priority() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;PRIORITY&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"PRIORITY"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_aio() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;AIO&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"AIO"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;freebsd&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"freebsd"</span>)]
         </span><span class="kw">if </span><span class="self">self</span>.is_lio() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;LIO&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"LIO"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 
         <span class="kw">if </span><span class="self">self</span>.is_error() {
             <span class="kw">if </span>separator {
-                <span class="macro">write!</span>(fmt, <span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(fmt, <span class="string">" | "</span>)<span class="question-mark">?</span>;
             }
-            <span class="macro">write!</span>(fmt, <span class="string">&quot;ERROR&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(fmt, <span class="string">"ERROR"</span>)<span class="question-mark">?</span>;
             separator = <span class="bool-val">true</span>;
         }
 

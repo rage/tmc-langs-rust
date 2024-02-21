@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.2.0/src/matcher.rs`."><title>matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../mockito/index.html"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black-100.png" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.2.0/src/matcher.rs`."><title>matcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><a class="sub-logo-container" href="../../mockito/index.html"><img src="https://raw.githubusercontent.com/lipanski/mockito/master/docs/logo-black-100.png" alt="mockito"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -295,7 +296,7 @@
 </span><span class="attr">#[derive(Clone, PartialEq, Debug)]
 #[allow(deprecated)] </span><span class="comment">// Rust bug #38832
 </span><span class="kw">pub enum </span>Matcher {
-    <span class="doccomment">/// Matches the exact path or header value. There&#39;s also an implementation of `From&lt;&amp;str&gt;`
+    <span class="doccomment">/// Matches the exact path or header value. There's also an implementation of `From&lt;&amp;str&gt;`
     /// to keep things simple and backwards compatible.
     </span>Exact(String),
     <span class="doccomment">/// Matches the body content as a binary file
@@ -323,7 +324,7 @@
     </span>Missing,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt; <span class="kw">for </span>Matcher {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>Matcher {
     <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
         Matcher::Exact(value.to_string())
     }
@@ -350,7 +351,7 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Matcher {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>join_matches = |matches: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]| {
             matches
                 .iter()
@@ -359,28 +360,28 @@
                     <span class="kw">if </span>acc.is_empty() {
                         matcher
                     } <span class="kw">else </span>{
-                        <span class="macro">format!</span>(<span class="string">&quot;{}, {}&quot;</span>, acc, matcher)
+                        <span class="macro">format!</span>(<span class="string">"{}, {}"</span>, acc, matcher)
                     }
                 })
         };
 
         <span class="kw">let </span>result = <span class="kw">match </span><span class="self">self </span>{
             Matcher::Exact(<span class="kw-2">ref </span>value) =&gt; value.to_string(),
-            Matcher::Binary(<span class="kw-2">ref </span>file) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (binary)&quot;</span>, file),
-            Matcher::Regex(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (regex)&quot;</span>, value),
-            Matcher::Json(<span class="kw-2">ref </span>json_obj) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (json)&quot;</span>, json_obj),
-            Matcher::JsonString(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (json)&quot;</span>, value),
-            Matcher::PartialJson(<span class="kw-2">ref </span>json_obj) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (partial json)&quot;</span>, json_obj),
-            Matcher::PartialJsonString(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{} (partial json)&quot;</span>, value),
+            Matcher::Binary(<span class="kw-2">ref </span>file) =&gt; <span class="macro">format!</span>(<span class="string">"{} (binary)"</span>, file),
+            Matcher::Regex(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">"{} (regex)"</span>, value),
+            Matcher::Json(<span class="kw-2">ref </span>json_obj) =&gt; <span class="macro">format!</span>(<span class="string">"{} (json)"</span>, json_obj),
+            Matcher::JsonString(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">"{} (json)"</span>, value),
+            Matcher::PartialJson(<span class="kw-2">ref </span>json_obj) =&gt; <span class="macro">format!</span>(<span class="string">"{} (partial json)"</span>, json_obj),
+            Matcher::PartialJsonString(<span class="kw-2">ref </span>value) =&gt; <span class="macro">format!</span>(<span class="string">"{} (partial json)"</span>, value),
             Matcher::UrlEncoded(<span class="kw-2">ref </span>field, <span class="kw-2">ref </span>value) =&gt; {
-                <span class="macro">format!</span>(<span class="string">&quot;{}={} (urlencoded)&quot;</span>, field, value)
+                <span class="macro">format!</span>(<span class="string">"{}={} (urlencoded)"</span>, field, value)
             }
-            Matcher::Any =&gt; <span class="string">&quot;(any)&quot;</span>.to_string(),
-            Matcher::AnyOf(x) =&gt; <span class="macro">format!</span>(<span class="string">&quot;({}) (any of)&quot;</span>, join_matches(x)),
-            Matcher::AllOf(x) =&gt; <span class="macro">format!</span>(<span class="string">&quot;({}) (all of)&quot;</span>, join_matches(x)),
-            Matcher::Missing =&gt; <span class="string">&quot;(missing)&quot;</span>.to_string(),
+            Matcher::Any =&gt; <span class="string">"(any)"</span>.to_string(),
+            Matcher::AnyOf(x) =&gt; <span class="macro">format!</span>(<span class="string">"({}) (any of)"</span>, join_matches(x)),
+            Matcher::AllOf(x) =&gt; <span class="macro">format!</span>(<span class="string">"({}) (all of)"</span>, join_matches(x)),
+            Matcher::Missing =&gt; <span class="string">"(missing)"</span>.to_string(),
         };
-        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, result)
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, result)
     }
 }
 
@@ -390,7 +391,7 @@
             Matcher::Missing =&gt; header_values.is_empty(),
             <span class="comment">// AnyOf([…Missing…]) is handled here, but
             // AnyOf([Something]) is handled in the last block.
-            // That&#39;s because Missing matches against all values at once,
+            // That's because Missing matches against all values at once,
             // but other matchers match against individual values.
             </span>Matcher::AnyOf(<span class="kw-2">ref </span>matchers) <span class="kw">if </span>header_values.is_empty() =&gt; {
                 matchers.iter().any(|m| m.matches_values(header_values))
@@ -465,9 +466,9 @@
         <span class="kw">match </span><span class="self">self </span>{
             PathAndQueryMatcher::Unified(matcher) =&gt; matcher.matches_value(other),
             PathAndQueryMatcher::Split(<span class="kw-2">ref </span>path_matcher, <span class="kw-2">ref </span>query_matcher) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>parts = other.splitn(<span class="number">2</span>, <span class="string">&#39;?&#39;</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>parts = other.splitn(<span class="number">2</span>, <span class="string">'?'</span>);
                 <span class="kw">let </span>path = parts.next().unwrap();
-                <span class="kw">let </span>query = parts.next().unwrap_or(<span class="string">&quot;&quot;</span>);
+                <span class="kw">let </span>query = parts.next().unwrap_or(<span class="string">""</span>);
 
                 path_matcher.matches_value(path) &amp;&amp; query_matcher.matches_value(query)
             }
@@ -478,10 +479,10 @@
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>PathAndQueryMatcher {
     <span class="attr">#[allow(deprecated)]
     #[allow(clippy::write_with_newline)]
-    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            PathAndQueryMatcher::Unified(matcher) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}\r\n&quot;</span>, <span class="kw-2">&amp;</span>matcher),
-            PathAndQueryMatcher::Split(path, query) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;{}?{}\r\n&quot;</span>, <span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>query),
+            PathAndQueryMatcher::Unified(matcher) =&gt; <span class="macro">write!</span>(f, <span class="string">"{}\r\n"</span>, <span class="kw-2">&amp;</span>matcher),
+            PathAndQueryMatcher::Split(path, query) =&gt; <span class="macro">write!</span>(f, <span class="string">"{}?{}\r\n"</span>, <span class="kw-2">&amp;</span>path, <span class="kw-2">&amp;</span>query),
         }
     }
 }
@@ -542,13 +543,13 @@
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>BinaryBody {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(filepath) = <span class="self">self</span>.path.as_ref() {
-            <span class="macro">write!</span>(f, <span class="string">&quot;filepath: {}&quot;</span>, filepath)
+            <span class="macro">write!</span>(f, <span class="string">"filepath: {}"</span>, filepath)
         } <span class="kw">else </span>{
             <span class="kw">let </span>len: usize = std::cmp::min(<span class="self">self</span>.content.len(), <span class="number">8</span>);
             <span class="kw">let </span>first_bytes: Vec&lt;u8&gt; = <span class="self">self</span>.content.iter().copied().take(len).collect();
-            <span class="macro">write!</span>(f, <span class="string">&quot;filecontent: {:?}&quot;</span>, first_bytes)
+            <span class="macro">write!</span>(f, <span class="string">"filecontent: {:?}"</span>, first_bytes)
         }
     }
 }

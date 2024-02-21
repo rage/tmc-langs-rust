@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.32.0/src/process/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.36.0/src/process/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1672,19 +1673,23 @@
 <a href="#1672" id="1672">1672</a>
 <a href="#1673" id="1673">1673</a>
 <a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! An implementation of asynchronous process management for Tokio.
 //!
 //! This module provides a [`Command`] struct that imitates the interface of the
 //! [`std::process::Command`] type in the standard library, but provides asynchronous versions of
 //! functions that create processes. These functions (`spawn`, `status`, `output` and their
-//! variants) return &quot;future aware&quot; types that interoperate with Tokio. The asynchronous process
+//! variants) return "future aware" types that interoperate with Tokio. The asynchronous process
 //! support is provided through signal handling on Unix and system APIs on Windows.
 //!
 //! [`std::process::Command`]: std::process::Command
 //!
 //! # Examples
 //!
-//! Here&#39;s an example program which will spawn `echo hello world` and then wait
+//! Here's an example program which will spawn `echo hello world` and then wait
 //! for it complete.
 //!
 //! ```no_run
@@ -1692,21 +1697,21 @@
 //!
 //! #[tokio::main]
 //! async fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-//!     // The usage is similar as with the standard library&#39;s `Command` type
-//!     let mut child = Command::new(&quot;echo&quot;)
-//!         .arg(&quot;hello&quot;)
-//!         .arg(&quot;world&quot;)
+//!     // The usage is similar as with the standard library's `Command` type
+//!     let mut child = Command::new("echo")
+//!         .arg("hello")
+//!         .arg("world")
 //!         .spawn()
-//!         .expect(&quot;failed to spawn&quot;);
+//!         .expect("failed to spawn");
 //!
 //!     // Await until the command completes
 //!     let status = child.wait().await?;
-//!     println!(&quot;the command exited with: {}&quot;, status);
+//!     println!("the command exited with: {}", status);
 //!     Ok(())
 //! }
 //! ```
 //!
-//! Next, let&#39;s take a look at an example where we not only spawn `echo hello
+//! Next, let's take a look at an example where we not only spawn `echo hello
 //! world` but we also capture its output.
 //!
 //! ```no_run
@@ -1716,13 +1721,13 @@
 //! async fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
 //!     // Like above, but use `output` which returns a future instead of
 //!     // immediately returning the `Child`.
-//!     let output = Command::new(&quot;echo&quot;).arg(&quot;hello&quot;).arg(&quot;world&quot;)
+//!     let output = Command::new("echo").arg("hello").arg("world")
 //!                         .output();
 //!
 //!     let output = output.await?;
 //!
 //!     assert!(output.status.success());
-//!     assert_eq!(output.stdout, b&quot;hello world\n&quot;);
+//!     assert_eq!(output.stdout, b"hello world\n");
 //!     Ok(())
 //! }
 //! ```
@@ -1737,9 +1742,9 @@
 //!
 //! #[tokio::main]
 //! async fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-//!     let mut cmd = Command::new(&quot;cat&quot;);
+//!     let mut cmd = Command::new("cat");
 //!
-//!     // Specify that we want the command&#39;s standard output piped back to us.
+//!     // Specify that we want the command's standard output piped back to us.
 //!     // By default, standard input/output/error will be inherited from the
 //!     // current process (for example, this means that standard input will
 //!     // come from the keyboard and standard output/error will go directly to
@@ -1747,10 +1752,10 @@
 //!     cmd.stdout(Stdio::piped());
 //!
 //!     let mut child = cmd.spawn()
-//!         .expect(&quot;failed to spawn command&quot;);
+//!         .expect("failed to spawn command");
 //!
 //!     let stdout = child.stdout.take()
-//!         .expect(&quot;child did not have a handle to stdout&quot;);
+//!         .expect("child did not have a handle to stdout");
 //!
 //!     let mut reader = BufReader::new(stdout).lines();
 //!
@@ -1758,13 +1763,13 @@
 //!     // make progress on its own while we await for any output.
 //!     tokio::spawn(async move {
 //!         let status = child.wait().await
-//!             .expect(&quot;child process encountered an error&quot;);
+//!             .expect("child process encountered an error");
 //!
-//!         println!(&quot;child status was: {}&quot;, status);
+//!         println!("child status was: {}", status);
 //!     });
 //!
 //!     while let Some(line) = reader.next_line().await? {
-//!         println!(&quot;Line: {}&quot;, line);
+//!         println!("Line: {}", line);
 //!     }
 //!
 //!     Ok(())
@@ -1782,7 +1787,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-//!     let mut cmd = Command::new(&quot;sort&quot;);
+//!     let mut cmd = Command::new("sort");
 //!
 //!     // Specifying that we want pipe both the output and the input.
 //!     // Similarly to capturing the output, by configuring the pipe
@@ -1790,15 +1795,15 @@
 //!     cmd.stdout(Stdio::piped());
 //!     cmd.stdin(Stdio::piped());
 //!
-//!     let mut child = cmd.spawn().expect(&quot;failed to spawn command&quot;);
+//!     let mut child = cmd.spawn().expect("failed to spawn command");
 //!
 //!     // These are the animals we want to sort
-//!     let animals: &amp;[&amp;str] = &amp;[&quot;dog&quot;, &quot;bird&quot;, &quot;frog&quot;, &quot;cat&quot;, &quot;fish&quot;];
+//!     let animals: &amp;[&amp;str] = &amp;["dog", "bird", "frog", "cat", "fish"];
 //!
 //!     let mut stdin = child
 //!         .stdin
 //!         .take()
-//!         .expect(&quot;child did not have a handle to stdin&quot;);
+//!         .expect("child did not have a handle to stdin");
 //!
 //!     // Write our animals to the child process
 //!     // Note that the behavior of `sort` is to buffer _all input_ before writing any output.
@@ -1807,9 +1812,9 @@
 //!     // some output but gets stuck waiting on the parent to read from it, meanwhile the parent
 //!     // is stuck waiting to write its input completely before reading the output).
 //!     stdin
-//!         .write(animals.join(&quot;\n&quot;).as_bytes())
+//!         .write(animals.join("\n").as_bytes())
 //!         .await
-//!         .expect(&quot;could not write to stdin&quot;);
+//!         .expect("could not write to stdin");
 //!
 //!     // We drop the handle here which signals EOF to the child process.
 //!     // This tells the child process that it there is no more data on the pipe.
@@ -1818,7 +1823,7 @@
 //!     let op = child.wait_with_output().await?;
 //!
 //!     // Results should come back in sorted order
-//!     assert_eq!(op.stdout, &quot;bird\ncat\ndog\nfish\nfrog\n&quot;.as_bytes());
+//!     assert_eq!(op.stdout, "bird\ncat\ndog\nfish\nfrog\n".as_bytes());
 //!
 //!     Ok(())
 //! }
@@ -1834,35 +1839,35 @@
 //!
 //! #[tokio::main]
 //! async fn main() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-//!     let mut echo = Command::new(&quot;echo&quot;)
-//!         .arg(&quot;hello world!&quot;)
+//!     let mut echo = Command::new("echo")
+//!         .arg("hello world!")
 //!         .stdout(Stdio::piped())
 //!         .spawn()
-//!         .expect(&quot;failed to spawn echo&quot;);
+//!         .expect("failed to spawn echo");
 //!
 //!     let tr_stdin: Stdio = echo
 //!         .stdout
 //!         .take()
 //!         .unwrap()
 //!         .try_into()
-//!         .expect(&quot;failed to convert to Stdio&quot;);
+//!         .expect("failed to convert to Stdio");
 //!
-//!     let tr = Command::new(&quot;tr&quot;)
-//!         .arg(&quot;a-z&quot;)
-//!         .arg(&quot;A-Z&quot;)
+//!     let tr = Command::new("tr")
+//!         .arg("a-z")
+//!         .arg("A-Z")
 //!         .stdin(tr_stdin)
 //!         .stdout(Stdio::piped())
 //!         .spawn()
-//!         .expect(&quot;failed to spawn tr&quot;);
+//!         .expect("failed to spawn tr");
 //!
 //!     let (echo_result, tr_output) = join!(echo.wait(), tr.wait_with_output());
 //!
 //!     assert!(echo_result.unwrap().success());
 //!
-//!     let tr_output = tr_output.expect(&quot;failed to await tr&quot;);
+//!     let tr_output = tr_output.expect("failed to await tr");
 //!     assert!(tr_output.status.success());
 //!
-//!     assert_eq!(tr_output.stdout, b&quot;HELLO WORLD!\n&quot;);
+//!     assert_eq!(tr_output.stdout, b"HELLO WORLD!\n");
 //!
 //!     Ok(())
 //! }
@@ -1882,9 +1887,9 @@
 //!
 //! ## Unix Processes
 //!
-//! On Unix platforms processes must be &quot;reaped&quot; by their parent process after
+//! On Unix platforms processes must be "reaped" by their parent process after
 //! they have exited in order to release all OS resources. A child process which
-//! has exited, but has not yet been reaped by its parent is considered a &quot;zombie&quot;
+//! has exited, but has not yet been reaped by its parent is considered a "zombie"
 //! process. Such processes continue to count against limits imposed by the system,
 //! and having too many zombie processes present can prevent additional processes
 //! from being spawned.
@@ -1900,7 +1905,7 @@
 //! [`Command::kill_on_drop`]: crate::process::Command::kill_on_drop
 //! [`Child`]: crate::process::Child
 
-</span><span class="attr">#[path = <span class="string">&quot;unix/mod.rs&quot;</span>]
+</span><span class="attr">#[path = <span class="string">"unix/mod.rs"</span>]
 #[cfg(unix)]
 </span><span class="kw">mod </span>imp;
 
@@ -1909,7 +1914,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="kw">super</span>::imp::<span class="kw-2">*</span>;
 }
 
-<span class="attr">#[path = <span class="string">&quot;windows.rs&quot;</span>]
+<span class="attr">#[path = <span class="string">"windows.rs"</span>]
 #[cfg(windows)]
 </span><span class="kw">mod </span>imp;
 
@@ -1963,8 +1968,8 @@
     /// path `program`, with the following default configuration:
     ///
     /// * No arguments to the program
-    /// * Inherit the current process&#39;s environment
-    /// * Inherit the current process&#39;s working directory
+    /// * Inherit the current process's environment
+    /// * Inherit the current process's working directory
     /// * Inherit stdin/stdout/stderr for `spawn` or `status`, but create pipes for `output`
     ///
     /// Builder methods are provided to change these defaults and
@@ -1984,7 +1989,7 @@
     ///
     /// ```no_run
     /// use tokio::process::Command;
-    /// let mut command = Command::new(&quot;sh&quot;);
+    /// let mut command = Command::new("sh");
     /// # let _ = command.output(); // assert borrow checker
     /// ```
     ///
@@ -2004,8 +2009,8 @@
     /// Only one argument can be passed per use. So instead of:
     ///
     /// ```no_run
-    /// let mut command = tokio::process::Command::new(&quot;sh&quot;);
-    /// command.arg(&quot;-C /path/to/repo&quot;);
+    /// let mut command = tokio::process::Command::new("sh");
+    /// command.arg("-C /path/to/repo");
     ///
     /// # let _ = command.output(); // assert borrow checker
     /// ```
@@ -2013,9 +2018,9 @@
     /// usage would be:
     ///
     /// ```no_run
-    /// let mut command = tokio::process::Command::new(&quot;sh&quot;);
-    /// command.arg(&quot;-C&quot;);
-    /// command.arg(&quot;/path/to/repo&quot;);
+    /// let mut command = tokio::process::Command::new("sh");
+    /// command.arg("-C");
+    /// command.arg("/path/to/repo");
     ///
     /// # let _ = command.output(); // assert borrow checker
     /// ```
@@ -2032,9 +2037,9 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
-    ///         .arg(&quot;-l&quot;)
-    ///         .arg(&quot;-a&quot;)
+    /// let output = Command::new("ls")
+    ///         .arg("-l")
+    ///         .arg("-a")
     ///         .output().await.unwrap();
     /// # }
     ///
@@ -2058,8 +2063,8 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
-    ///         .args(&amp;[&quot;-l&quot;, &quot;-a&quot;])
+    /// let output = Command::new("ls")
+    ///         .args(&amp;["-l", "-a"])
     ///         .output().await.unwrap();
     /// # }
     /// ```
@@ -2075,7 +2080,7 @@
     <span class="macro">cfg_windows! </span>{
         <span class="doccomment">/// Append literal text to the command line without any quoting or escaping.
         ///
-        /// This is useful for passing arguments to `cmd.exe /c`, which doesn&#39;t follow
+        /// This is useful for passing arguments to `cmd.exe /c`, which doesn't follow
         /// `CommandLineToArgvW` escaping rules.
         </span><span class="kw">pub fn </span>raw_arg&lt;S: AsRef&lt;OsStr&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text_to_append_as_is: S) -&gt; <span class="kw-2">&amp;mut </span>Command {
             <span class="self">self</span>.std.raw_arg(text_to_append_as_is);
@@ -2096,8 +2101,8 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
-    ///         .env(&quot;PATH&quot;, &quot;/bin&quot;)
+    /// let output = Command::new("ls")
+    ///         .env("PATH", "/bin")
     ///         .output().await.unwrap();
     /// # }
     /// ```
@@ -2125,10 +2130,10 @@
     ///
     /// let filtered_env : HashMap&lt;String, String&gt; =
     ///     env::vars().filter(|&amp;(ref k, _)|
-    ///         k == &quot;TERM&quot; || k == &quot;TZ&quot; || k == &quot;LANG&quot; || k == &quot;PATH&quot;
+    ///         k == "TERM" || k == "TZ" || k == "LANG" || k == "PATH"
     ///     ).collect();
     ///
-    /// let output = Command::new(&quot;printenv&quot;)
+    /// let output = Command::new("printenv")
     ///         .stdin(Stdio::null())
     ///         .stdout(Stdio::inherit())
     ///         .env_clear()
@@ -2156,8 +2161,8 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
-    ///         .env_remove(&quot;PATH&quot;)
+    /// let output = Command::new("ls")
+    ///         .env_remove("PATH")
     ///         .output().await.unwrap();
     /// # }
     /// ```
@@ -2176,7 +2181,7 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
+    /// let output = Command::new("ls")
     ///         .env_clear()
     ///         .output().await.unwrap();
     /// # }
@@ -2190,10 +2195,10 @@
     ///
     /// # Platform-specific behavior
     ///
-    /// If the program path is relative (e.g., `&quot;./script.sh&quot;`), it&#39;s ambiguous
-    /// whether it should be interpreted relative to the parent&#39;s working
+    /// If the program path is relative (e.g., `"./script.sh"`), it's ambiguous
+    /// whether it should be interpreted relative to the parent's working
     /// directory or relative to `current_dir`. The behavior in this case is
-    /// platform specific and unstable, and it&#39;s recommended to use
+    /// platform specific and unstable, and it's recommended to use
     /// [`canonicalize`] to get an absolute program path instead.
     ///
     /// [`canonicalize`]: crate::fs::canonicalize()
@@ -2206,8 +2211,8 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
-    ///         .current_dir(&quot;/bin&quot;)
+    /// let output = Command::new("ls")
+    ///         .current_dir("/bin")
     ///         .output().await.unwrap();
     /// # }
     /// ```
@@ -2216,7 +2221,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets configuration for the child process&#39;s standard input (stdin) handle.
+    <span class="doccomment">/// Sets configuration for the child process's standard input (stdin) handle.
     ///
     /// Defaults to [`inherit`] when used with `spawn` or `status`, and
     /// defaults to [`piped`] when used with `output`.
@@ -2233,7 +2238,7 @@
     /// use std::process::{Stdio};
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
+    /// let output = Command::new("ls")
     ///         .stdin(Stdio::null())
     ///         .output().await.unwrap();
     /// # }
@@ -2243,7 +2248,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets configuration for the child process&#39;s standard output (stdout) handle.
+    <span class="doccomment">/// Sets configuration for the child process's standard output (stdout) handle.
     ///
     /// Defaults to [`inherit`] when used with `spawn` or `status`, and
     /// defaults to [`piped`] when used with `output`.
@@ -2260,7 +2265,7 @@
     /// use tokio::process::Command;
     /// use std::process::Stdio;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
+    /// let output = Command::new("ls")
     ///         .stdout(Stdio::null())
     ///         .output().await.unwrap();
     /// # }
@@ -2270,7 +2275,7 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets configuration for the child process&#39;s standard error (stderr) handle.
+    <span class="doccomment">/// Sets configuration for the child process's standard error (stderr) handle.
     ///
     /// Defaults to [`inherit`] when used with `spawn` or `status`, and
     /// defaults to [`piped`] when used with `output`.
@@ -2287,7 +2292,7 @@
     /// use tokio::process::Command;
     /// use std::process::{Stdio};
     ///
-    /// let output = Command::new(&quot;ls&quot;)
+    /// let output = Command::new("ls")
     ///         .stderr(Stdio::null())
     ///         .output().await.unwrap();
     /// # }
@@ -2306,9 +2311,9 @@
     ///
     /// # Caveats
     ///
-    /// On Unix platforms processes must be &quot;reaped&quot; by their parent process after
+    /// On Unix platforms processes must be "reaped" by their parent process after
     /// they have exited in order to release all OS resources. A child process which
-    /// has exited, but has not yet been reaped by its parent is considered a &quot;zombie&quot;
+    /// has exited, but has not yet been reaped by its parent is considered a "zombie"
     /// process. Such processes continue to count against limits imposed by the system,
     /// and having too many zombie processes present can prevent additional processes
     /// from being spawned.
@@ -2340,7 +2345,7 @@
         </span>}
     }
 
-    <span class="doccomment">/// Sets the child process&#39;s user ID. This translates to a
+    <span class="doccomment">/// Sets the child process's user ID. This translates to a
     /// `setuid` call in the child process. Failure in the `setuid`
     /// call will cause the spawn to fail.
     </span><span class="attr">#[cfg(unix)]
@@ -2406,22 +2411,22 @@
     #[cfg_attr(docsrs, doc(cfg(unix)))]
     </span><span class="kw">pub unsafe fn </span>pre_exec&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; <span class="kw-2">&amp;mut </span>Command
     <span class="kw">where
-        </span>F: FnMut() -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>F: FnMut() -&gt; io::Result&lt;()&gt; + Send + Sync + <span class="lifetime">'static</span>,
     {
         <span class="self">self</span>.std.pre_exec(f);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the process group ID (PGID) of the child process. Equivalent to a
-    /// setpgid call in the child process, but may be more efficient.
+    /// `setpgid` call in the child process, but may be more efficient.
     ///
     /// Process groups determine which processes receive signals.
     ///
     /// **Note**: This is an [unstable API][unstable] but will be stabilised once
-    /// tokio&#39;s MSRV is sufficiently new. See [the documentation on
+    /// tokio's `MSRV` is sufficiently new. See [the documentation on
     /// unstable features][unstable] for details about using unstable features.
     ///
-    /// If you want similar behaviour without using this unstable feature you can
+    /// If you want similar behavior without using this unstable feature you can
     /// create a [`std::process::Command`] and convert that into a
     /// [`tokio::process::Command`] using the `From` trait.
     ///
@@ -2432,7 +2437,7 @@
     /// # async fn test() { // allow using await
     /// use tokio::process::Command;
     ///
-    /// let output = Command::new(&quot;ls&quot;)
+    /// let output = Command::new("ls")
     ///         .process_group(0)
     ///         .output().await.unwrap();
     /// # }
@@ -2466,12 +2471,12 @@
     /// use tokio::process::Command;
     ///
     /// async fn run_ls() -&gt; std::process::ExitStatus {
-    ///     Command::new(&quot;ls&quot;)
+    ///     Command::new("ls")
     ///         .spawn()
-    ///         .expect(&quot;ls command failed to start&quot;)
+    ///         .expect("ls command failed to start")
     ///         .wait()
     ///         .await
-    ///         .expect(&quot;ls command failed to run&quot;)
+    ///         .expect("ls command failed to run")
     /// }
     /// ```
     ///
@@ -2489,9 +2494,9 @@
     ///
     /// ## Unix Processes
     ///
-    /// On Unix platforms processes must be &quot;reaped&quot; by their parent process after
+    /// On Unix platforms processes must be "reaped" by their parent process after
     /// they have exited in order to release all OS resources. A child process which
-    /// has exited, but has not yet been reaped by its parent is considered a &quot;zombie&quot;
+    /// has exited, but has not yet been reaped by its parent is considered a "zombie"
     /// process. Such processes continue to count against limits imposed by the system,
     /// and having too many zombie processes present can prevent additional processes
     /// from being spawned.
@@ -2556,10 +2561,10 @@
     /// use tokio::process::Command;
     ///
     /// async fn run_ls() -&gt; std::process::ExitStatus {
-    ///     Command::new(&quot;ls&quot;)
+    ///     Command::new("ls")
     ///         .status()
     ///         .await
-    ///         .expect(&quot;ls command failed to run&quot;)
+    ///         .expect("ls command failed to run")
     /// }
     /// ```
     </span><span class="kw">pub fn </span>status(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;ExitStatus&gt;&gt; {
@@ -2568,9 +2573,9 @@
         <span class="kw">async </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>child = child<span class="question-mark">?</span>;
 
-            <span class="comment">// Ensure we close any stdio handles so we can&#39;t deadlock
+            <span class="comment">// Ensure we close any stdio handles so we can't deadlock
             // waiting on the child which may be waiting to read/write
-            // to a pipe we&#39;re holding.
+            // to a pipe we're holding.
             </span>child.stdin.take();
             child.stdout.take();
             child.stderr.take();
@@ -2589,7 +2594,7 @@
     /// &gt; `wait_with_output` method on child.
     ///
     /// This method will return a future representing the collection of the
-    /// child process&#39;s stdout/stderr. It will resolve to
+    /// child process's stdout/stderr. It will resolve to
     /// the `Output` type in the standard library, containing `stdout` and
     /// `stderr` as `Vec&lt;u8&gt;` along with an `ExitStatus` representing how the
     /// process exited.
@@ -2618,11 +2623,11 @@
     /// use tokio::process::Command;
     ///
     /// async fn run_ls() {
-    ///     let output: std::process::Output = Command::new(&quot;ls&quot;)
+    ///     let output: std::process::Output = Command::new("ls")
     ///         .output()
     ///         .await
-    ///         .expect(&quot;ls command failed to run&quot;);
-    ///     println!(&quot;stderr of ls: {:?}&quot;, output.stderr);
+    ///         .expect("ls command failed to run");
+    ///     println!("stderr of ls: {:?}", output.stderr);
     /// }
     /// ```
     </span><span class="kw">pub fn </span>output(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Future&lt;Output = io::Result&lt;Output&gt;&gt; {
@@ -2677,7 +2682,7 @@
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;;
 
-    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+    <span class="kw">fn </span>poll(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
         <span class="macro">ready!</span>(<span class="kw">crate</span>::trace::trace_leaf(cx));
         <span class="comment">// Keep track of task budget
         </span><span class="kw">let </span>coop = <span class="macro">ready!</span>(<span class="kw">crate</span>::runtime::coop::poll_proceed(cx));
@@ -2719,22 +2724,22 @@
 </span><span class="kw">pub struct </span>Child {
     child: FusedChild,
 
-    <span class="doccomment">/// The handle for writing to the child&#39;s standard input (stdin), if it has
+    <span class="doccomment">/// The handle for writing to the child's standard input (stdin), if it has
     /// been captured. To avoid partially moving the `child` and thus blocking
     /// yourself from calling functions on `child` while using `stdin`, you might
     /// find it helpful to do:
     ///
     /// ```no_run
-    /// # let mut child = tokio::process::Command::new(&quot;echo&quot;).spawn().unwrap();
+    /// # let mut child = tokio::process::Command::new("echo").spawn().unwrap();
     /// let stdin = child.stdin.take().unwrap();
     /// ```
     </span><span class="kw">pub </span>stdin: <span class="prelude-ty">Option</span>&lt;ChildStdin&gt;,
 
-    <span class="doccomment">/// The handle for reading from the child&#39;s standard output (stdout), if it
+    <span class="doccomment">/// The handle for reading from the child's standard output (stdout), if it
     /// has been captured. You might find it helpful to do
     ///
     /// ```no_run
-    /// # let mut child = tokio::process::Command::new(&quot;echo&quot;).spawn().unwrap();
+    /// # let mut child = tokio::process::Command::new("echo").spawn().unwrap();
     /// let stdout = child.stdout.take().unwrap();
     /// ```
     ///
@@ -2742,11 +2747,11 @@
     /// functions on `child` while using `stdout`.
     </span><span class="kw">pub </span>stdout: <span class="prelude-ty">Option</span>&lt;ChildStdout&gt;,
 
-    <span class="doccomment">/// The handle for reading from the child&#39;s standard error (stderr), if it
+    <span class="doccomment">/// The handle for reading from the child's standard error (stderr), if it
     /// has been captured. You might find it helpful to do
     ///
     /// ```no_run
-    /// # let mut child = tokio::process::Command::new(&quot;echo&quot;).spawn().unwrap();
+    /// # let mut child = tokio::process::Command::new("echo").spawn().unwrap();
     /// let stderr = child.stderr.take().unwrap();
     /// ```
     ///
@@ -2783,7 +2788,7 @@
     <span class="doccomment">/// Attempts to force the child to exit, but does not wait for the request
     /// to take effect.
     ///
-    /// On Unix platforms, this is the equivalent to sending a SIGKILL. Note
+    /// On Unix platforms, this is the equivalent to sending a `SIGKILL`. Note
     /// that on Unix platforms it is possible for a zombie process to remain
     /// after a kill is sent; to avoid this, the caller should ensure that either
     /// `child.wait().await` or `child.try_wait()` is invoked successfully.
@@ -2792,19 +2797,19 @@
             FusedChild::Child(child) =&gt; child.kill(),
             FusedChild::Done(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(io::Error::new(
                 io::ErrorKind::InvalidInput,
-                <span class="string">&quot;invalid argument: can&#39;t kill an exited process&quot;</span>,
+                <span class="string">"invalid argument: can't kill an exited process"</span>,
             )),
         }
     }
 
     <span class="doccomment">/// Forces the child to exit.
     ///
-    /// This is equivalent to sending a SIGKILL on unix platforms.
+    /// This is equivalent to sending a `SIGKILL` on unix platforms.
     ///
     /// If the child has to be killed remotely, it is possible to do it using
-    /// a combination of the select! macro and a oneshot channel. In the following
+    /// a combination of the select! macro and a `oneshot` channel. In the following
     /// example, the child will run until completion unless a message is sent on
-    /// the oneshot channel. If that happens, the child is killed immediately
+    /// the `oneshot` channel. If that happens, the child is killed immediately
     /// using the `.kill()` method.
     ///
     /// ```no_run
@@ -2814,11 +2819,11 @@
     /// #[tokio::main]
     /// async fn main() {
     ///     let (send, recv) = channel::&lt;()&gt;();
-    ///     let mut child = Command::new(&quot;sleep&quot;).arg(&quot;1&quot;).spawn().unwrap();
+    ///     let mut child = Command::new("sleep").arg("1").spawn().unwrap();
     ///     tokio::spawn(async move { send.send(()) });
     ///     tokio::select! {
     ///         _ = child.wait() =&gt; {}
-    ///         _ = recv =&gt; child.kill().await.expect(&quot;kill failed&quot;),
+    ///         _ = recv =&gt; child.kill().await.expect("kill failed"),
     ///     }
     /// }
     /// ```
@@ -2837,8 +2842,12 @@
     /// child does not block waiting for input from the parent, while
     /// the parent waits for the child to exit.
     ///
-    /// If the caller wishes to explicitly control when the child&#39;s stdin
+    /// If the caller wishes to explicitly control when the child's stdin
     /// handle is closed, they may `.take()` it before calling `.wait()`:
+    ///
+    /// # Cancel safety
+    ///
+    /// This function is cancel safe.
     ///
     /// ```
     /// # #[cfg(not(unix))]fn main(){}
@@ -2852,7 +2861,7 @@
     /// # #[cfg(unix)]
     /// #[tokio::main]
     /// async fn main() {
-    ///     let mut child = Command::new(&quot;cat&quot;)
+    ///     let mut child = Command::new("cat")
     ///         .stdin(Stdio::piped())
     ///         .spawn()
     ///         .unwrap();
@@ -2860,7 +2869,7 @@
     ///     let mut stdin = child.stdin.take().unwrap();
     ///     tokio::spawn(async move {
     ///         // do something with stdin here...
-    ///         stdin.write_all(b&quot;hello world\n&quot;).await.unwrap();
+    ///         stdin.write_all(b"hello world\n").await.unwrap();
     ///
     ///         // then drop when finished
     ///         drop(stdin);
@@ -2871,7 +2880,7 @@
     /// }
     /// ```
     </span><span class="kw">pub async fn </span>wait(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; io::Result&lt;ExitStatus&gt; {
-        <span class="comment">// Ensure stdin is closed so the child isn&#39;t stuck waiting on
+        <span class="comment">// Ensure stdin is closed so the child isn't stuck waiting on
         // input while the parent is waiting for it to exit.
         </span>drop(<span class="self">self</span>.stdin.take());
 
@@ -3001,7 +3010,7 @@
     /// # Errors
     ///
     /// This method may fail if an error is encountered when setting the pipe to
-    /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
+    /// non-blocking mode, or when registering the pipe with the runtime's IO
     /// driver.
     </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStdin) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
@@ -3016,7 +3025,7 @@
     /// # Errors
     ///
     /// This method may fail if an error is encountered when setting the pipe to
-    /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
+    /// non-blocking mode, or when registering the pipe with the runtime's IO
     /// driver.
     </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStdout) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
@@ -3031,7 +3040,7 @@
     /// # Errors
     ///
     /// This method may fail if an error is encountered when setting the pipe to
-    /// non-blocking mode, or when registering the pipe with the runtime&#39;s IO
+    /// non-blocking mode, or when registering the pipe with the runtime's IO
     /// driver.
     </span><span class="kw">pub fn </span>from_std(inner: std::process::ChildStderr) -&gt; io::Result&lt;<span class="self">Self</span>&gt; {
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
@@ -3043,24 +3052,24 @@
 <span class="kw">impl </span>AsyncWrite <span class="kw">for </span>ChildStdin {
     <span class="kw">fn </span>poll_write(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
         buf: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; Poll&lt;io::Result&lt;usize&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write(cx, buf)
     }
 
-    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_flush(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_flush(cx)
     }
 
-    <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
+    <span class="kw">fn </span>poll_shutdown(<span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_shutdown(cx)
     }
 
     <span class="kw">fn </span>poll_write_vectored(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">&#39;_</span>&gt;],
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        bufs: <span class="kw-2">&amp;</span>[io::IoSlice&lt;<span class="lifetime">'_</span>&gt;],
     ) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;usize, io::Error&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_write_vectored(cx, bufs)
     }
@@ -3073,8 +3082,8 @@
 <span class="kw">impl </span>AsyncRead <span class="kw">for </span>ChildStdout {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf)
     }
@@ -3083,8 +3092,8 @@
 <span class="kw">impl </span>AsyncRead <span class="kw">for </span>ChildStderr {
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
-        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;,
+        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; Poll&lt;io::Result&lt;()&gt;&gt; {
         Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf)
     }
@@ -3140,7 +3149,7 @@
             }
 
             <span class="kw">impl </span>AsFd <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
-                <span class="kw">fn </span><span class="macro-nonterminal">as_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">&#39;_</span>&gt; {
+                <span class="kw">fn </span><span class="macro-nonterminal">as_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedFd&lt;<span class="lifetime">'_</span>&gt; {
                     <span class="kw">unsafe </span>{ BorrowedFd::borrow_raw(<span class="self">self</span>.as_raw_fd()) }
                 }
             }
@@ -3175,7 +3184,7 @@
             }
 
             <span class="kw">impl </span>AsHandle <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
-                <span class="kw">fn </span><span class="macro-nonterminal">as_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">&#39;_</span>&gt; {
+                <span class="kw">fn </span><span class="macro-nonterminal">as_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">'_</span>&gt; {
                     <span class="kw">unsafe </span>{ BorrowedHandle::borrow_raw(<span class="self">self</span>.as_raw_handle()) }
                 }
             }
@@ -3188,19 +3197,19 @@
             <span class="kw">impl </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
                 <span class="doccomment">/// Convert into [`OwnedHandle`].
                 </span><span class="kw">pub fn </span><span class="macro-nonterminal">into_owned_handle</span>(<span class="self">self</span>) -&gt; io::Result&lt;OwnedHandle&gt; {
-                    <span class="macro">todo!</span>(<span class="string">&quot;For doc generation only&quot;</span>)
+                    <span class="macro">todo!</span>(<span class="string">"For doc generation only"</span>)
                 }
             }
 
             <span class="kw">impl </span>AsRawHandle <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
                 <span class="kw">fn </span><span class="macro-nonterminal">as_raw_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawHandle {
-                    <span class="macro">todo!</span>(<span class="string">&quot;For doc generation only&quot;</span>)
+                    <span class="macro">todo!</span>(<span class="string">"For doc generation only"</span>)
                 }
             }
 
             <span class="kw">impl </span>AsHandle <span class="kw">for </span><span class="macro-nonterminal">$</span><span class="kw">type </span>{
-                <span class="kw">fn </span><span class="macro-nonterminal">as_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">&#39;_</span>&gt; {
-                    <span class="macro">todo!</span>(<span class="string">&quot;For doc generation only&quot;</span>)
+                <span class="kw">fn </span><span class="macro-nonterminal">as_handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BorrowedHandle&lt;<span class="lifetime">'_</span>&gt; {
+                    <span class="macro">todo!</span>(<span class="string">"For doc generation only"</span>)
                 }
             }
         };
@@ -3252,7 +3261,7 @@
     <span class="kw">impl </span>Future <span class="kw">for </span>Mock {
         <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), ()&gt;;
 
-        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, _cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
             <span class="kw">let </span>inner = Pin::get_mut(<span class="self">self</span>);
             inner.num_polls += <span class="number">1</span>;
             inner.poll_result

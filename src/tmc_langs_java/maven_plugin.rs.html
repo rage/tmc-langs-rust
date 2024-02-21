@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/java/src/maven_plugin.rs`."><title>maven_plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_java" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../tmc_langs_java/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/java/src/maven_plugin.rs`."><title>maven_plugin.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_java" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -616,9 +617,9 @@
 };
 <span class="kw">use </span>tmc_langs_util::{file_util, path_util};
 
-<span class="kw">const </span>MVN_ARCHIVE: <span class="kw-2">&amp;</span>[u8] = <span class="macro">include_bytes!</span>(<span class="string">&quot;../deps/apache-maven-3.8.1-bin.tar.gz&quot;</span>);
-<span class="kw">const </span>MVN_PATH_IN_ARCHIVE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;apache-maven-3.8.1&quot;</span>; <span class="comment">// the name of the base directory in the maven archive
-</span><span class="kw">const </span>MVN_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">&quot;3.8.1&quot;</span>;
+<span class="kw">const </span>MVN_ARCHIVE: <span class="kw-2">&amp;</span>[u8] = <span class="macro">include_bytes!</span>(<span class="string">"../deps/apache-maven-3.8.1-bin.tar.gz"</span>);
+<span class="kw">const </span>MVN_PATH_IN_ARCHIVE: <span class="kw-2">&amp;</span>str = <span class="string">"apache-maven-3.8.1"</span>; <span class="comment">// the name of the base directory in the maven archive
+</span><span class="kw">const </span>MVN_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">"3.8.1"</span>;
 
 <span class="kw">pub struct </span>MavenPlugin {
     jvm: JvmWrapper,
@@ -637,24 +638,24 @@
     // the executable used from within the extracted maven differs per platform
     </span><span class="kw">fn </span>get_mvn_command() -&gt; <span class="prelude-ty">Result</span>&lt;OsString, JavaError&gt; {
         <span class="comment">// check if mvn is in PATH
-        </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(status) = TmcCommand::piped(<span class="string">&quot;mvn&quot;</span>)
-            .with(|e| e.arg(<span class="string">&quot;--batch-mode&quot;</span>).arg(<span class="string">&quot;--version&quot;</span>))
+        </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(status) = TmcCommand::piped(<span class="string">"mvn"</span>)
+            .with(|e| e.arg(<span class="string">"--batch-mode"</span>).arg(<span class="string">"--version"</span>))
             .status()
         {
             <span class="kw">if </span>status.success() {
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(OsString::from(<span class="string">&quot;mvn&quot;</span>));
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(OsString::from(<span class="string">"mvn"</span>));
             }
         }
-        <span class="macro">log::debug!</span>(<span class="string">&quot;could not execute mvn, using bundled maven&quot;</span>);
-        <span class="kw">let </span>tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)<span class="question-mark">?</span>.join(<span class="string">&quot;tmc&quot;</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"could not execute mvn, using bundled maven"</span>);
+        <span class="kw">let </span>tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)<span class="question-mark">?</span>.join(<span class="string">"tmc"</span>);
 
         <span class="attr">#[cfg(windows)]
-        </span><span class="kw">let </span>mvn_exec = <span class="string">&quot;mvn.cmd&quot;</span>;
+        </span><span class="kw">let </span>mvn_exec = <span class="string">"mvn.cmd"</span>;
         <span class="attr">#[cfg(not(windows))]
-        </span><span class="kw">let </span>mvn_exec = <span class="string">&quot;mvn&quot;</span>;
+        </span><span class="kw">let </span>mvn_exec = <span class="string">"mvn"</span>;
 
-        <span class="kw">let </span>mvn_path = tmc_path.join(<span class="string">&quot;apache-maven&quot;</span>);
-        <span class="kw">let </span>mvn_version_path = mvn_path.join(<span class="string">&quot;VERSION&quot;</span>);
+        <span class="kw">let </span>mvn_path = tmc_path.join(<span class="string">"apache-maven"</span>);
+        <span class="kw">let </span>mvn_version_path = mvn_path.join(<span class="string">"VERSION"</span>);
 
         <span class="kw">let </span>needs_update = <span class="kw">if </span>mvn_version_path.exists() {
             <span class="kw">let </span>version_contents = file_util::read_file_to_string(<span class="kw-2">&amp;</span>mvn_version_path)<span class="question-mark">?</span>;
@@ -668,25 +669,25 @@
                 file_util::remove_dir_all(<span class="kw-2">&amp;</span>mvn_path)<span class="question-mark">?</span>;
             }
             <span class="comment">// TODO: remove this bit eventually, this is just to clean up the old maven cachce that had the version in the name
-            </span><span class="kw">let </span>old_path = tmc_path.join(<span class="string">&quot;apache-maven-3.6.3&quot;</span>);
+            </span><span class="kw">let </span>old_path = tmc_path.join(<span class="string">"apache-maven-3.6.3"</span>);
             <span class="kw">if </span>old_path.exists() {
                 file_util::remove_dir_all(old_path)<span class="question-mark">?</span>;
             }
 
-            <span class="macro">log::debug!</span>(<span class="string">&quot;extracting bundled tar&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"extracting bundled tar"</span>);
             <span class="kw">let </span>tar = GzDecoder::new(Cursor::new(MVN_ARCHIVE));
             <span class="kw">let </span><span class="kw-2">mut </span>tar = Tar::new(tar);
             tar.unpack(<span class="kw-2">&amp;</span>tmc_path)
                 .map_err(|e| JavaError::JarWrite(tmc_path.clone(), e))<span class="question-mark">?</span>;
 
-            <span class="macro">log::debug!</span>(<span class="string">&quot;renaming extracted archive to apache-maven&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"renaming extracted archive to apache-maven"</span>);
             file_util::rename(tmc_path.join(MVN_PATH_IN_ARCHIVE), <span class="kw-2">&amp;</span>mvn_path)<span class="question-mark">?</span>;
 
-            <span class="macro">log::debug!</span>(<span class="string">&quot;writing bundle version data&quot;</span>);
+            <span class="macro">log::debug!</span>(<span class="string">"writing bundle version data"</span>);
             file_util::write_to_file(MVN_VERSION.as_bytes(), <span class="kw-2">&amp;</span>mvn_version_path)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span>mvn_exec_path = mvn_path.join(<span class="string">&quot;bin&quot;</span>).join(mvn_exec);
+        <span class="kw">let </span>mvn_exec_path = mvn_path.join(<span class="string">"bin"</span>).join(mvn_exec);
         <span class="prelude-val">Ok</span>(mvn_exec_path.as_os_str().to_os_string())
     }
 }
@@ -694,10 +695,10 @@
 <span class="doccomment">/// Project directory:
 /// Contains pom.xml file
 </span><span class="kw">impl </span>LanguagePlugin <span class="kw">for </span>MavenPlugin {
-    <span class="kw">const </span>PLUGIN_NAME: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;apache-maven&quot;</span>;
-    <span class="kw">const </span>DEFAULT_SANDBOX_IMAGE: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;eu.gcr.io/moocfi-public/tmc-sandbox-java:latest&quot;</span>;
-    <span class="kw">const </span>LINE_COMMENT: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;//&quot;</span>;
-    <span class="kw">const </span>BLOCK_COMMENT: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str)&gt; = <span class="prelude-val">Some</span>((<span class="string">&quot;/*&quot;</span>, <span class="string">&quot;*/&quot;</span>));
+    <span class="kw">const </span>PLUGIN_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"apache-maven"</span>;
+    <span class="kw">const </span>DEFAULT_SANDBOX_IMAGE: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"eu.gcr.io/moocfi-public/tmc-sandbox-java:latest"</span>;
+    <span class="kw">const </span>LINE_COMMENT: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"//"</span>;
+    <span class="kw">const </span>BLOCK_COMMENT: <span class="prelude-ty">Option</span>&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str)&gt; = <span class="prelude-val">Some</span>((<span class="string">"/*"</span>, <span class="string">"*/"</span>));
     <span class="kw">type </span>StudentFilePolicy = MavenStudentFilePolicy;
 
     <span class="kw">fn </span>check_code_style(
@@ -735,7 +736,7 @@
 
                 <span class="kw">if </span>file.is_file() {
                     <span class="comment">// check for pom.xml
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">&quot;pom.xml&quot;</span>) {
+                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path_util::get_parent_of_named(<span class="kw-2">&amp;</span>file_path, <span class="string">"pom.xml"</span>) {
                         <span class="kw">return </span><span class="prelude-val">Ok</span>(Break(<span class="prelude-val">Some</span>(parent)));
                     }
                 }
@@ -755,27 +756,27 @@
 
     <span class="doccomment">/// Checks if the directory has a pom.xml file.
     </span><span class="kw">fn </span>is_exercise_type_correct(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
-        path.join(<span class="string">&quot;pom.xml&quot;</span>).exists()
+        path.join(<span class="string">"pom.xml"</span>).exists()
     }
 
     <span class="doccomment">/// Runs the Maven clean plugin.
     </span><span class="kw">fn </span>clean(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), TmcError&gt; {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Cleaning maven project at {}&quot;</span>, path.display());
+        <span class="macro">log::info!</span>(<span class="string">"Cleaning maven project at {}"</span>, path.display());
 
         <span class="kw">let </span>mvn_command = <span class="self">Self</span>::get_mvn_command()<span class="question-mark">?</span>;
         <span class="kw">let </span>_output = TmcCommand::piped(mvn_command)
-            .with(|e| e.cwd(path).arg(<span class="string">&quot;--batch-mode&quot;</span>).arg(<span class="string">&quot;clean&quot;</span>))
+            .with(|e| e.cwd(path).arg(<span class="string">"--batch-mode"</span>).arg(<span class="string">"clean"</span>))
             .output_checked()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn </span>get_default_student_file_paths() -&gt; Vec&lt;PathBuf&gt; {
-        <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;src/main&quot;</span>)]
+        <span class="macro">vec!</span>[PathBuf::from(<span class="string">"src/main"</span>)]
     }
 
     <span class="kw">fn </span>get_default_exercise_file_paths() -&gt; Vec&lt;PathBuf&gt; {
-        <span class="macro">vec!</span>[PathBuf::from(<span class="string">&quot;src/test&quot;</span>)]
+        <span class="macro">vec!</span>[PathBuf::from(<span class="string">"src/test"</span>)]
     }
 
     <span class="kw">fn </span>points_parser(i: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, Vec&lt;<span class="kw-2">&amp;</span>str&gt;, VerboseError&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
@@ -784,7 +785,7 @@
 }
 
 <span class="kw">impl </span>JavaPlugin <span class="kw">for </span>MavenPlugin {
-    <span class="kw">const </span>TEST_DIR: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;src&quot;</span>;
+    <span class="kw">const </span>TEST_DIR: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"src"</span>;
 
     <span class="kw">fn </span>jvm(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>JvmWrapper {
         <span class="kw-2">&amp;</span><span class="self">self</span>.jvm
@@ -793,18 +794,18 @@
     <span class="kw">fn </span>get_project_class_path(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;String, JavaError&gt; {
         <span class="comment">// canonicalize root path to avoid issues where the cwd and project root are different directories
         </span><span class="kw">let </span>path = file_util::canonicalize(path)<span class="question-mark">?</span>;
-        <span class="macro">log::info!</span>(<span class="string">&quot;Building classpath for maven project at {}&quot;</span>, path.display());
+        <span class="macro">log::info!</span>(<span class="string">"Building classpath for maven project at {}"</span>, path.display());
 
         <span class="kw">let </span>temp = tempfile::tempdir().map_err(JavaError::TempDir)<span class="question-mark">?</span>;
-        <span class="kw">let </span>class_path_file = temp.path().join(<span class="string">&quot;cp.txt&quot;</span>);
+        <span class="kw">let </span>class_path_file = temp.path().join(<span class="string">"cp.txt"</span>);
 
-        <span class="kw">let </span>output_arg = <span class="macro">format!</span>(<span class="string">&quot;-Dmdep.outputFile={}&quot;</span>, class_path_file.display());
+        <span class="kw">let </span>output_arg = <span class="macro">format!</span>(<span class="string">"-Dmdep.outputFile={}"</span>, class_path_file.display());
         <span class="kw">let </span>mvn_path = <span class="self">Self</span>::get_mvn_command()<span class="question-mark">?</span>;
         <span class="kw">let </span>_output = TmcCommand::piped(mvn_path)
             .with(|e| {
                 e.cwd(<span class="kw-2">&amp;</span>path)
-                    .arg(<span class="string">&quot;--batch-mode&quot;</span>)
-                    .arg(<span class="string">&quot;dependency:build-classpath&quot;</span>)
+                    .arg(<span class="string">"--batch-mode"</span>)
+                    .arg(<span class="string">"dependency:build-classpath"</span>)
                     .arg(output_arg)
             })
             .output_checked()<span class="question-mark">?</span>;
@@ -815,9 +816,9 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>class_path: Vec&lt;String&gt; = <span class="macro">vec!</span>[class_path];
-        class_path.push(path.join(<span class="string">&quot;target/classes&quot;</span>).to_string_lossy().into_owned());
+        class_path.push(path.join(<span class="string">"target/classes"</span>).to_string_lossy().into_owned());
         class_path.push(
-            path.join(<span class="string">&quot;target/test-classes&quot;</span>)
+            path.join(<span class="string">"target/test-classes"</span>)
                 .to_string_lossy()
                 .into_owned(),
         );
@@ -826,16 +827,16 @@
     }
 
     <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>, project_root_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;CompileResult, JavaError&gt; {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Building maven project at {}&quot;</span>, project_root_path.display());
+        <span class="macro">log::info!</span>(<span class="string">"Building maven project at {}"</span>, project_root_path.display());
 
         <span class="kw">let </span>mvn_path = <span class="self">Self</span>::get_mvn_command()<span class="question-mark">?</span>;
         <span class="kw">let </span>output = TmcCommand::piped(mvn_path)
             .with(|e| {
                 e.cwd(project_root_path)
-                    .arg(<span class="string">&quot;--batch-mode&quot;</span>)
-                    .arg(<span class="string">&quot;clean&quot;</span>)
-                    .arg(<span class="string">&quot;compile&quot;</span>)
-                    .arg(<span class="string">&quot;test-compile&quot;</span>)
+                    .arg(<span class="string">"--batch-mode"</span>)
+                    .arg(<span class="string">"clean"</span>)
+                    .arg(<span class="string">"compile"</span>)
+                    .arg(<span class="string">"test-compile"</span>)
             })
             .output()<span class="question-mark">?</span>;
 
@@ -853,13 +854,13 @@
         timeout: <span class="prelude-ty">Option</span>&lt;Duration&gt;,
         _compile_result: CompileResult,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TestRun, JavaError&gt; {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Running tests for maven project at {}&quot;</span>, path.display());
+        <span class="macro">log::info!</span>(<span class="string">"Running tests for maven project at {}"</span>, path.display());
 
         <span class="kw">let </span>mvn_path = <span class="self">Self</span>::get_mvn_command()<span class="question-mark">?</span>;
         <span class="kw">let </span>command = TmcCommand::piped(mvn_path).with(|e| {
             e.cwd(path)
-                .arg(<span class="string">&quot;--batch-mode&quot;</span>)
-                .arg(<span class="string">&quot;fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test&quot;</span>)
+                .arg(<span class="string">"--batch-mode"</span>)
+                .arg(<span class="string">"fi.helsinki.cs.tmc:tmc-maven-plugin:1.12:test"</span>)
         });
         <span class="kw">let </span>output = <span class="kw">if let </span><span class="prelude-val">Some</span>(timeout) = timeout {
             command.output_with_timeout_checked(timeout)<span class="question-mark">?
@@ -868,7 +869,7 @@
         </span>};
 
         <span class="prelude-val">Ok</span>(TestRun {
-            test_results: path.join(<span class="string">&quot;target/test_output.txt&quot;</span>),
+            test_results: path.join(<span class="string">"target/test_output.txt"</span>),
             stdout: output.stdout,
             stderr: output.stderr,
         })
@@ -876,7 +877,7 @@
 }
 
 <span class="attr">#[cfg(test)]
-#[cfg(not(target_os = <span class="string">&quot;macos&quot;</span>))] </span><span class="comment">// issues with maven dependencies
+#[cfg(not(target_os = <span class="string">"macos"</span>))] </span><span class="comment">// issues with maven dependencies
 </span><span class="attr">#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
 
@@ -899,13 +900,13 @@
         <span class="kw">use </span>simple_logger::<span class="kw-2">*</span>;
         <span class="kw">let _ </span>= SimpleLogger::new()
             .with_level(LevelFilter::Debug)
-            .with_module_level(<span class="string">&quot;j4rs&quot;</span>, LevelFilter::Warn)
+            .with_module_level(<span class="string">"j4rs"</span>, LevelFilter::Warn)
             .init();
     }
 
-    <span class="doccomment">/// Maven doesn&#39;t like being run in parallel, at least on Windows.
+    <span class="doccomment">/// Maven doesn't like being run in parallel, at least on Windows.
     /// For now the tests access the MavenPlugin with a function that locks a mutex.
-    </span><span class="kw">fn </span>get_maven() -&gt; (MavenPlugin, MutexGuard&lt;<span class="lifetime">&#39;static</span>, ()&gt;) {
+    </span><span class="kw">fn </span>get_maven() -&gt; (MavenPlugin, MutexGuard&lt;<span class="lifetime">'static</span>, ()&gt;) {
         (MavenPlugin::new().unwrap(), MAVEN_LOCK.lock().unwrap())
     }
 
@@ -980,12 +981,12 @@
     }
 
     <span class="attr">#[test]
-    #[ignore = <span class="string">&quot;changing PATH breaks other tests, figure out a better way to test this. or don&#39;t&quot;</span>]
+    #[ignore = <span class="string">"changing PATH breaks other tests, figure out a better way to test this. or don't"</span>]
     </span><span class="kw">fn </span>unpacks_bundled_mvn() {
-        std::env::set_var(<span class="string">&quot;PATH&quot;</span>, <span class="string">&quot;&quot;</span>);
+        std::env::set_var(<span class="string">"PATH"</span>, <span class="string">""</span>);
         <span class="kw">let </span>cmd = MavenPlugin::get_mvn_command().unwrap();
         <span class="kw">let </span>expected = <span class="macro">format!</span>(
-            <span class="string">&quot;tmc{0}apache-maven-3.8.1{0}bin{0}mvn&quot;</span>,
+            <span class="string">"tmc{0}apache-maven-3.8.1{0}bin{0}mvn"</span>,
             std::path::MAIN_SEPARATOR
         );
         <span class="macro">assert!</span>(cmd.to_string_lossy().ends_with(<span class="kw-2">&amp;</span>expected))
@@ -995,26 +996,26 @@
     </span><span class="kw">fn </span>runs_checkstyle() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>checkstyle_result = plugin
-            .check_code_style(temp_dir.path(), Language::from_639_3(<span class="string">&quot;fin&quot;</span>).unwrap())
+            .check_code_style(temp_dir.path(), Language::from_639_3(<span class="string">"fin"</span>).unwrap())
             .unwrap()
             .unwrap();
 
         <span class="macro">assert_eq!</span>(checkstyle_result.strategy, StyleValidationStrategy::Fail);
         <span class="kw">let </span>validation_errors = checkstyle_result.validation_errors.unwrap();
         <span class="kw">let </span>errors = validation_errors
-            .get(Path::new(<span class="string">&quot;fi/helsinki/cs/maventest/App.java&quot;</span>))
+            .get(Path::new(<span class="string">"fi/helsinki/cs/maventest/App.java"</span>))
             .unwrap();
         <span class="macro">assert_eq!</span>(errors.len(), <span class="number">1</span>);
         <span class="kw">let </span>error = <span class="kw-2">&amp;</span>errors[<span class="number">0</span>];
         <span class="macro">assert_eq!</span>(error.column, <span class="number">0</span>);
         <span class="macro">assert_eq!</span>(error.line, <span class="number">4</span>);
-        <span class="macro">assert!</span>(error.message.starts_with(<span class="string">&quot;Sisennys väärin&quot;</span>));
+        <span class="macro">assert!</span>(error.message.starts_with(<span class="string">"Sisennys väärin"</span>));
         <span class="macro">assert_eq!</span>(
             error.source_name,
-            <span class="string">&quot;com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck&quot;
+            <span class="string">"com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
         </span>);
     }
 
@@ -1022,28 +1023,28 @@
     </span><span class="kw">fn </span>scans_exercise() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>exercises = plugin
-            .scan_exercise(temp_dir.path(), <span class="string">&quot;test&quot;</span>.to_string())
+            .scan_exercise(temp_dir.path(), <span class="string">"test"</span>.to_string())
             .unwrap();
-        <span class="macro">assert_eq!</span>(exercises.name, <span class="string">&quot;test&quot;</span>);
+        <span class="macro">assert_eq!</span>(exercises.name, <span class="string">"test"</span>);
         <span class="macro">assert_eq!</span>(exercises.tests.len(), <span class="number">1</span>);
         <span class="macro">assert_eq!</span>(
             exercises.tests[<span class="number">0</span>].name,
-            <span class="string">&quot;fi.helsinki.cs.maventest.AppTest trol&quot;
+            <span class="string">"fi.helsinki.cs.maventest.AppTest trol"
         </span>);
-        <span class="macro">assert_eq!</span>(exercises.tests[<span class="number">0</span>].points, [<span class="string">&quot;maven-exercise&quot;</span>]);
+        <span class="macro">assert_eq!</span>(exercises.tests[<span class="number">0</span>].points, [<span class="string">"maven-exercise"</span>]);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>runs_tests() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>res = plugin.run_tests(temp_dir.path()).unwrap();
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{:#?}&quot;</span>, res);
+        <span class="macro">log::debug!</span>(<span class="string">"{:#?}"</span>, res);
         <span class="macro">assert_eq!</span>(res.status, tmc_langs_framework::RunStatus::TestsFailed);
     }
 
@@ -1051,14 +1052,14 @@
     </span><span class="kw">fn </span>runs_tests_timeout() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>test_result_err = plugin
             .run_tests_with_timeout(temp_dir.path(), <span class="prelude-val">Some</span>(std::time::Duration::from_nanos(<span class="number">1</span>)))
             .unwrap_err();
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{:#?}&quot;</span>, test_result_err);
+        <span class="macro">log::debug!</span>(<span class="string">"{:#?}"</span>, test_result_err);
 
-        <span class="comment">// verify that there&#39;s a timeout error in the source chain
+        <span class="comment">// verify that there's a timeout error in the source chain
         </span><span class="kw">use </span>std::error::Error;
         <span class="kw">let </span><span class="kw-2">mut </span>source = test_result_err.source();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(inner) = source {
@@ -1077,7 +1078,7 @@
         init();
 
         <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
-        file_to(temp_dir.path(), <span class="string">&quot;pom.xml&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(temp_dir.path(), <span class="string">"pom.xml"</span>, <span class="string">""</span>);
         <span class="macro">assert!</span>(MavenPlugin::is_exercise_type_correct(temp_dir.path()));
     }
 
@@ -1086,9 +1087,9 @@
         init();
 
         <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
-        file_to(temp_dir.path(), <span class="string">&quot;pom&quot;</span>, <span class="string">&quot;&quot;</span>);
-        file_to(temp_dir.path(), <span class="string">&quot;po.xml&quot;</span>, <span class="string">&quot;&quot;</span>);
-        file_to(temp_dir.path(), <span class="string">&quot;dir/pom.xml&quot;</span>, <span class="string">&quot;&quot;</span>);
+        file_to(temp_dir.path(), <span class="string">"pom"</span>, <span class="string">""</span>);
+        file_to(temp_dir.path(), <span class="string">"po.xml"</span>, <span class="string">""</span>);
+        file_to(temp_dir.path(), <span class="string">"dir/pom.xml"</span>, <span class="string">""</span>);
         <span class="macro">assert!</span>(!MavenPlugin::is_exercise_type_correct(temp_dir.path()));
     }
 
@@ -1096,15 +1097,15 @@
     </span><span class="kw">fn </span>cleans() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
-        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;target/output file&quot;</span>, <span class="string">&quot;&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">"target/output file"</span>, <span class="string">""</span>);
 
-        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">&quot;target/output file&quot;</span>).exists());
-        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">&quot;src&quot;</span>).exists());
+        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">"target/output file"</span>).exists());
+        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">"src"</span>).exists());
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         plugin.clean(temp_dir.path()).unwrap();
-        <span class="macro">assert!</span>(!temp_dir.path().join(<span class="string">&quot;target/output file&quot;</span>).exists());
-        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">&quot;src&quot;</span>).exists());
+        <span class="macro">assert!</span>(!temp_dir.path().join(<span class="string">"target/output file"</span>).exists());
+        <span class="macro">assert!</span>(temp_dir.path().join(<span class="string">"src"</span>).exists());
     }
 
     <span class="attr">#[test]
@@ -1112,12 +1113,12 @@
         init();
 
         <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
-        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;Outer/Inner/maven-exercise/pom.xml&quot;</span>, <span class="string">&quot;pom!&quot;</span>);
+        file_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">"Outer/Inner/maven-exercise/pom.xml"</span>, <span class="string">"pom!"</span>);
 
         <span class="kw">let </span>zip_contents = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
         <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
         <span class="kw">let </span>dir = MavenPlugin::find_project_dir_in_archive(<span class="kw-2">&amp;mut </span>zip).unwrap();
-        <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">&quot;Outer/Inner/maven-exercise&quot;</span>));
+        <span class="macro">assert_eq!</span>(dir, Path::new(<span class="string">"Outer/Inner/maven-exercise"</span>));
     }
 
     <span class="attr">#[test]
@@ -1125,7 +1126,7 @@
         init();
 
         <span class="kw">let </span>temp_dir = tempfile::tempdir().unwrap();
-        dir_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">&quot;Outer/Inner/maven-exercise/srcb&quot;</span>);
+        dir_to(<span class="kw-2">&amp;</span>temp_dir, <span class="string">"Outer/Inner/maven-exercise/srcb"</span>);
 
         <span class="kw">let </span>zip_contents = dir_to_zip(<span class="kw-2">&amp;</span>temp_dir);
         <span class="kw">let </span><span class="kw-2">mut </span>zip = Archive::zip(std::io::Cursor::new(zip_contents)).unwrap();
@@ -1137,11 +1138,11 @@
     </span><span class="kw">fn </span>gets_project_class_path() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>class_path = plugin.get_project_class_path(temp_dir.path()).unwrap();
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, class_path);
-        <span class="kw">let </span>expected = <span class="macro">format!</span>(<span class="string">&quot;{0}junit{0}&quot;</span>, std::path::MAIN_SEPARATOR);
+        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, class_path);
+        <span class="kw">let </span>expected = <span class="macro">format!</span>(<span class="string">"{0}junit{0}"</span>, std::path::MAIN_SEPARATOR);
         <span class="macro">assert!</span>(class_path.contains(<span class="kw-2">&amp;</span>expected));
     }
 
@@ -1150,9 +1151,9 @@
         init();
 
         <span class="kw">use </span>std::path::PathBuf;
-        <span class="macro">log::debug!</span>(<span class="string">&quot;{}&quot;</span>, PathBuf::from(<span class="string">&quot;.&quot;</span>).canonicalize().unwrap().display());
+        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, PathBuf::from(<span class="string">"."</span>).canonicalize().unwrap().display());
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>compile_result = plugin.build(temp_dir.path()).unwrap();
         <span class="macro">assert!</span>(compile_result.status_code.success());
@@ -1162,7 +1163,7 @@
     </span><span class="kw">fn </span>creates_run_result_file() {
         init();
 
-        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">&quot;tests/data/maven-exercise&quot;</span>);
+        <span class="kw">let </span>temp_dir = dir_to_temp(<span class="string">"tests/data/maven-exercise"</span>);
         <span class="kw">let </span>test_path = temp_dir.path();
         <span class="kw">let </span>(plugin, _lock) = get_maven();
         <span class="kw">let </span>compile_result = plugin.build(test_path).unwrap();
@@ -1174,20 +1175,20 @@
                 .unwrap();
         <span class="kw">let </span>test_case = <span class="kw-2">&amp;</span>test_result[<span class="number">0</span>];
 
-        <span class="macro">assert_eq!</span>(test_case.class_name, <span class="string">&quot;fi.helsinki.cs.maventest.AppTest&quot;</span>);
-        <span class="macro">assert_eq!</span>(test_case.point_names, [<span class="string">&quot;maven-exercise&quot;</span>]);
+        <span class="macro">assert_eq!</span>(test_case.class_name, <span class="string">"fi.helsinki.cs.maventest.AppTest"</span>);
+        <span class="macro">assert_eq!</span>(test_case.point_names, [<span class="string">"maven-exercise"</span>]);
         <span class="macro">assert_eq!</span>(test_case.status, TestCaseStatus::Failed);
         <span class="kw">let </span>message = test_case.message.as_ref().unwrap();
-        <span class="macro">assert!</span>(message.starts_with(<span class="string">&quot;ComparisonFailure&quot;</span>));
+        <span class="macro">assert!</span>(message.starts_with(<span class="string">"ComparisonFailure"</span>));
 
         <span class="kw">let </span>exception = test_case.exception.as_ref().unwrap();
-        <span class="comment">// assert_eq!(exception.class_name, &quot;org.junit.ComparisonFailure&quot;);
-        </span><span class="macro">assert!</span>(exception.message.as_ref().unwrap().starts_with(<span class="string">&quot;expected&quot;</span>));
+        <span class="comment">// assert_eq!(exception.class_name, "org.junit.ComparisonFailure");
+        </span><span class="macro">assert!</span>(exception.message.as_ref().unwrap().starts_with(<span class="string">"expected"</span>));
         <span class="kw">let </span>stack_trace = <span class="kw-2">&amp;</span>exception.stack_trace[<span class="number">0</span>];
-        <span class="macro">assert_eq!</span>(stack_trace.declaring_class, <span class="string">&quot;org.junit.Assert&quot;</span>);
-        <span class="macro">assert_eq!</span>(stack_trace.file_name.as_ref().unwrap(), <span class="string">&quot;Assert.java&quot;</span>);
+        <span class="macro">assert_eq!</span>(stack_trace.declaring_class, <span class="string">"org.junit.Assert"</span>);
+        <span class="macro">assert_eq!</span>(stack_trace.file_name.as_ref().unwrap(), <span class="string">"Assert.java"</span>);
         <span class="macro">assert_eq!</span>(stack_trace.line_number, <span class="number">115</span>);
-        <span class="macro">assert_eq!</span>(stack_trace.method_name, <span class="string">&quot;assertEquals&quot;</span>);
+        <span class="macro">assert_eq!</span>(stack_trace.method_name, <span class="string">"assertEquals"</span>);
     }
 }
 </code></pre></div></section></main></body></html>

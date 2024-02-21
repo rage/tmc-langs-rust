@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.20.2/src/encode.rs`."><title>encode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-9bb858ba049f1f21.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.1 (d5c2e9c34 2023-09-13)" data-channel="1.72.1" data-search-js="search-f6292fe389d70017.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../toml_edit/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml_edit-0.22.6/src/encode.rs`."><title>encode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml_edit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
+    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -526,47 +527,6 @@
 <a href="#526" id="526">526</a>
 <a href="#527" id="527">527</a>
 <a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
-<a href="#530" id="530">530</a>
-<a href="#531" id="531">531</a>
-<a href="#532" id="532">532</a>
-<a href="#533" id="533">533</a>
-<a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
-<a href="#548" id="548">548</a>
-<a href="#549" id="549">549</a>
-<a href="#550" id="550">550</a>
-<a href="#551" id="551">551</a>
-<a href="#552" id="552">552</a>
-<a href="#553" id="553">553</a>
-<a href="#554" id="554">554</a>
-<a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a>
-<a href="#557" id="557">557</a>
-<a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
-<a href="#565" id="565">565</a>
-<a href="#566" id="566">566</a>
-<a href="#567" id="567">567</a>
-<a href="#568" id="568">568</a>
-<a href="#569" id="569">569</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::fmt::{Display, Formatter, <span class="prelude-ty">Result</span>, Write};
 
@@ -582,223 +542,190 @@
 };
 <span class="kw">use crate</span>::{Array, InlineTable, Item, Table, Value};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait </span>Encode {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_key(this: <span class="kw-2">&amp;</span>Key, buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write, input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(input) = input {
+        <span class="kw">let </span>repr = this
+            .as_repr()
+            .map(Cow::Borrowed)
+            .unwrap_or_else(|| Cow::Owned(this.default_repr()));
+        repr.encode(buf, input)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>repr = this.display_repr();
+        <span class="macro">write!</span>(buf, <span class="string">"{}"</span>, repr)<span class="question-mark">?</span>;
+    };
+
+    <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl </span>Encode <span class="kw">for </span>Key {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span>decor = <span class="self">self</span>.decor();
-        decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
+<span class="kw">fn </span>encode_key_path(
+    this: <span class="kw-2">&amp;</span>[Key],
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">let </span>leaf_decor = this.last().expect(<span class="string">"always at least one key"</span>).leaf_decor();
+    <span class="kw">for </span>(i, key) <span class="kw">in </span>this.iter().enumerate() {
+        <span class="kw">let </span>dotted_decor = key.dotted_decor();
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(input) = input {
-            <span class="kw">let </span>repr = <span class="self">self
-                </span>.as_repr()
-                .map(Cow::Borrowed)
-                .unwrap_or_else(|| Cow::Owned(<span class="self">self</span>.default_repr()));
-            repr.encode(buf, input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>first = i == <span class="number">0</span>;
+        <span class="kw">let </span>last = i + <span class="number">1 </span>== this.len();
+
+        <span class="kw">if </span>first {
+            leaf_decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span>repr = <span class="self">self</span>.display_repr();
-            <span class="macro">write!</span>(buf, <span class="string">&quot;{}&quot;</span>, repr)<span class="question-mark">?</span>;
-        };
-
-        decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;k</span>&gt; Encode <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;k </span>[Key] {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">for </span>(i, key) <span class="kw">in </span><span class="self">self</span>.iter().enumerate() {
-            <span class="kw">let </span>first = i == <span class="number">0</span>;
-            <span class="kw">let </span>last = i + <span class="number">1 </span>== <span class="self">self</span>.len();
-
-            <span class="kw">let </span>prefix = <span class="kw">if </span>first {
-                default_decor.<span class="number">0
-            </span>} <span class="kw">else </span>{
-                DEFAULT_KEY_PATH_DECOR.<span class="number">0
-            </span>};
-            <span class="kw">let </span>suffix = <span class="kw">if </span>last {
-                default_decor.<span class="number">1
-            </span>} <span class="kw">else </span>{
-                DEFAULT_KEY_PATH_DECOR.<span class="number">1
-            </span>};
-
-            <span class="kw">if </span>!first {
-                <span class="macro">write!</span>(buf, <span class="string">&quot;.&quot;</span>)<span class="question-mark">?</span>;
-            }
-            key.encode(buf, input, (prefix, suffix))<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(buf, <span class="string">"."</span>)<span class="question-mark">?</span>;
+            dotted_decor.prefix_encode(buf, input, DEFAULT_KEY_PATH_DECOR.<span class="number">0</span>)<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(())
-    }
-}
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;k</span>&gt; Encode <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;k </span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;k </span>Key] {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">for </span>(i, key) <span class="kw">in </span><span class="self">self</span>.iter().enumerate() {
-            <span class="kw">let </span>first = i == <span class="number">0</span>;
-            <span class="kw">let </span>last = i + <span class="number">1 </span>== <span class="self">self</span>.len();
+        encode_key(key, buf, input)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>prefix = <span class="kw">if </span>first {
-                default_decor.<span class="number">0
-            </span>} <span class="kw">else </span>{
-                DEFAULT_KEY_PATH_DECOR.<span class="number">0
-            </span>};
-            <span class="kw">let </span>suffix = <span class="kw">if </span>last {
-                default_decor.<span class="number">1
-            </span>} <span class="kw">else </span>{
-                DEFAULT_KEY_PATH_DECOR.<span class="number">1
-            </span>};
-
-            <span class="kw">if </span>!first {
-                <span class="macro">write!</span>(buf, <span class="string">&quot;.&quot;</span>)<span class="question-mark">?</span>;
-            }
-            key.encode(buf, input, (prefix, suffix))<span class="question-mark">?</span>;
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">impl</span>&lt;T&gt; Encode <span class="kw">for </span>Formatted&lt;T&gt;
-<span class="kw">where
-    </span>T: ValueRepr,
-{
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span>decor = <span class="self">self</span>.decor();
-        decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(input) = input {
-            <span class="kw">let </span>repr = <span class="self">self
-                </span>.as_repr()
-                .map(Cow::Borrowed)
-                .unwrap_or_else(|| Cow::Owned(<span class="self">self</span>.default_repr()));
-            repr.encode(buf, input)<span class="question-mark">?</span>;
+        <span class="kw">if </span>last {
+            leaf_decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="kw">let </span>repr = <span class="self">self</span>.display_repr();
-            <span class="macro">write!</span>(buf, <span class="string">&quot;{}&quot;</span>, repr)<span class="question-mark">?</span>;
+            dotted_decor.suffix_encode(buf, input, DEFAULT_KEY_PATH_DECOR.<span class="number">1</span>)<span class="question-mark">?</span>;
+        }
+    }
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_key_path_ref(
+    this: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>Key],
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">let </span>leaf_decor = this.last().expect(<span class="string">"always at least one key"</span>).leaf_decor();
+    <span class="kw">for </span>(i, key) <span class="kw">in </span>this.iter().enumerate() {
+        <span class="kw">let </span>dotted_decor = key.dotted_decor();
+
+        <span class="kw">let </span>first = i == <span class="number">0</span>;
+        <span class="kw">let </span>last = i + <span class="number">1 </span>== this.len();
+
+        <span class="kw">if </span>first {
+            leaf_decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="macro">write!</span>(buf, <span class="string">"."</span>)<span class="question-mark">?</span>;
+            dotted_decor.prefix_encode(buf, input, DEFAULT_KEY_PATH_DECOR.<span class="number">0</span>)<span class="question-mark">?</span>;
+        }
+
+        encode_key(key, buf, input)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>last {
+            leaf_decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            dotted_decor.suffix_encode(buf, input, DEFAULT_KEY_PATH_DECOR.<span class="number">1</span>)<span class="question-mark">?</span>;
+        }
+    }
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_formatted&lt;T: ValueRepr&gt;(
+    this: <span class="kw-2">&amp;</span>Formatted&lt;T&gt;,
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">let </span>decor = this.decor();
+    decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(input) = input {
+        <span class="kw">let </span>repr = this
+            .as_repr()
+            .map(Cow::Borrowed)
+            .unwrap_or_else(|| Cow::Owned(this.default_repr()));
+        repr.encode(buf, input)<span class="question-mark">?</span>;
+    } <span class="kw">else </span>{
+        <span class="kw">let </span>repr = this.display_repr();
+        <span class="macro">write!</span>(buf, <span class="string">"{}"</span>, repr)<span class="question-mark">?</span>;
+    };
+
+    decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_array(
+    this: <span class="kw-2">&amp;</span>Array,
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">let </span>decor = this.decor();
+    decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
+    <span class="macro">write!</span>(buf, <span class="string">"["</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">for </span>(i, elem) <span class="kw">in </span>this.iter().enumerate() {
+        <span class="kw">let </span>inner_decor;
+        <span class="kw">if </span>i == <span class="number">0 </span>{
+            inner_decor = DEFAULT_LEADING_VALUE_DECOR;
+        } <span class="kw">else </span>{
+            inner_decor = DEFAULT_VALUE_DECOR;
+            <span class="macro">write!</span>(buf, <span class="string">","</span>)<span class="question-mark">?</span>;
+        }
+        encode_value(elem, buf, input, inner_decor)<span class="question-mark">?</span>;
+    }
+    <span class="kw">if </span>this.trailing_comma() &amp;&amp; !this.is_empty() {
+        <span class="macro">write!</span>(buf, <span class="string">","</span>)<span class="question-mark">?</span>;
+    }
+
+    this.trailing().encode_with_default(buf, input, <span class="string">""</span>)<span class="question-mark">?</span>;
+    <span class="macro">write!</span>(buf, <span class="string">"]"</span>)<span class="question-mark">?</span>;
+    decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_table(
+    this: <span class="kw-2">&amp;</span>InlineTable,
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">let </span>decor = this.decor();
+    decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
+    <span class="macro">write!</span>(buf, <span class="string">"{{"</span>)<span class="question-mark">?</span>;
+    this.preamble().encode_with_default(buf, input, <span class="string">""</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>children = this.get_values();
+    <span class="kw">let </span>len = children.len();
+    <span class="kw">for </span>(i, (key_path, value)) <span class="kw">in </span>children.into_iter().enumerate() {
+        <span class="kw">if </span>i != <span class="number">0 </span>{
+            <span class="macro">write!</span>(buf, <span class="string">","</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">let </span>inner_decor = <span class="kw">if </span>i == len - <span class="number">1 </span>{
+            DEFAULT_TRAILING_VALUE_DECOR
+        } <span class="kw">else </span>{
+            DEFAULT_VALUE_DECOR
         };
-
-        decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+        encode_key_path_ref(<span class="kw-2">&amp;</span>key_path, buf, input, DEFAULT_INLINE_KEY_DECOR)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"="</span>)<span class="question-mark">?</span>;
+        encode_value(value, buf, input, inner_decor)<span class="question-mark">?</span>;
     }
+
+    <span class="macro">write!</span>(buf, <span class="string">"}}"</span>)<span class="question-mark">?</span>;
+    decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">impl </span>Encode <span class="kw">for </span>Array {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span>decor = <span class="self">self</span>.decor();
-        decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">for </span>(i, elem) <span class="kw">in </span><span class="self">self</span>.iter().enumerate() {
-            <span class="kw">let </span>inner_decor;
-            <span class="kw">if </span>i == <span class="number">0 </span>{
-                inner_decor = DEFAULT_LEADING_VALUE_DECOR;
-            } <span class="kw">else </span>{
-                inner_decor = DEFAULT_VALUE_DECOR;
-                <span class="macro">write!</span>(buf, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
-            }
-            elem.encode(buf, input, inner_decor)<span class="question-mark">?</span>;
-        }
-        <span class="kw">if </span><span class="self">self</span>.trailing_comma() &amp;&amp; !<span class="self">self</span>.is_empty() {
-            <span class="macro">write!</span>(buf, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
-        }
-
-        <span class="self">self</span>.trailing().encode_with_default(buf, input, <span class="string">&quot;&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
-        decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">impl </span>Encode <span class="kw">for </span>InlineTable {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">let </span>decor = <span class="self">self</span>.decor();
-        decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;{{&quot;</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.preamble().encode_with_default(buf, input, <span class="string">&quot;&quot;</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>children = <span class="self">self</span>.get_values();
-        <span class="kw">let </span>len = children.len();
-        <span class="kw">for </span>(i, (key_path, value)) <span class="kw">in </span>children.into_iter().enumerate() {
-            <span class="kw">if </span>i != <span class="number">0 </span>{
-                <span class="macro">write!</span>(buf, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
-            }
-            <span class="kw">let </span>inner_decor = <span class="kw">if </span>i == len - <span class="number">1 </span>{
-                DEFAULT_TRAILING_VALUE_DECOR
-            } <span class="kw">else </span>{
-                DEFAULT_VALUE_DECOR
-            };
-            key_path
-                .as_slice()
-                .encode(buf, input, DEFAULT_INLINE_KEY_DECOR)<span class="question-mark">?</span>;
-            <span class="macro">write!</span>(buf, <span class="string">&quot;=&quot;</span>)<span class="question-mark">?</span>;
-            value.encode(buf, input, inner_decor)<span class="question-mark">?</span>;
-        }
-
-        <span class="macro">write!</span>(buf, <span class="string">&quot;}}&quot;</span>)<span class="question-mark">?</span>;
-        decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">impl </span>Encode <span class="kw">for </span>Value {
-    <span class="kw">fn </span>encode(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
-        input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-        default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
-    ) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="kw">match </span><span class="self">self </span>{
-            Value::String(repr) =&gt; repr.encode(buf, input, default_decor),
-            Value::Integer(repr) =&gt; repr.encode(buf, input, default_decor),
-            Value::Float(repr) =&gt; repr.encode(buf, input, default_decor),
-            Value::Boolean(repr) =&gt; repr.encode(buf, input, default_decor),
-            Value::Datetime(repr) =&gt; repr.encode(buf, input, default_decor),
-            Value::Array(array) =&gt; array.encode(buf, input, default_decor),
-            Value::InlineTable(table) =&gt; table.encode(buf, input, default_decor),
-        }
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>encode_value(
+    this: <span class="kw-2">&amp;</span>Value,
+    buf: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Write,
+    input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+    default_decor: (<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str),
+) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">match </span>this {
+        Value::String(repr) =&gt; encode_formatted(repr, buf, input, default_decor),
+        Value::Integer(repr) =&gt; encode_formatted(repr, buf, input, default_decor),
+        Value::Float(repr) =&gt; encode_formatted(repr, buf, input, default_decor),
+        Value::Boolean(repr) =&gt; encode_formatted(repr, buf, input, default_decor),
+        Value::Datetime(repr) =&gt; encode_formatted(repr, buf, input, default_decor),
+        Value::Array(array) =&gt; encode_array(array, buf, input, default_decor),
+        Value::InlineTable(table) =&gt; encode_table(table, buf, input, default_decor),
     }
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>Document {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>path = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>last_position = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>tables = Vec::new();
@@ -824,18 +751,18 @@
             )<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.trailing()
-            .encode_with_default(f, <span class="self">self</span>.original.as_deref(), <span class="string">&quot;&quot;</span>)
+            .encode_with_default(f, <span class="self">self</span>.original.as_deref(), <span class="string">""</span>)
     }
 }
 
-<span class="kw">fn </span>visit_nested_tables&lt;<span class="lifetime">&#39;t</span>, F&gt;(
-    table: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Table,
+<span class="kw">fn </span>visit_nested_tables&lt;<span class="lifetime">'t</span>, F&gt;(
+    table: <span class="kw-2">&amp;</span><span class="lifetime">'t </span>Table,
     path: <span class="kw-2">&amp;mut </span>Vec&lt;Key&gt;,
     is_array_of_tables: bool,
     callback: <span class="kw-2">&amp;mut </span>F,
 ) -&gt; <span class="prelude-ty">Result
 </span><span class="kw">where
-    </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">&#39;t </span>Table, <span class="kw-2">&amp;</span>Vec&lt;Key&gt;, bool) -&gt; <span class="prelude-ty">Result</span>,
+    </span>F: FnMut(<span class="kw-2">&amp;</span><span class="lifetime">'t </span>Table, <span class="kw-2">&amp;</span>Vec&lt;Key&gt;, bool) -&gt; <span class="prelude-ty">Result</span>,
 {
     <span class="kw">if </span>!table.is_dotted() {
         callback(table, path, is_array_of_tables)<span class="question-mark">?</span>;
@@ -844,11 +771,7 @@
     <span class="kw">for </span>kv <span class="kw">in </span>table.items.values() {
         <span class="kw">match </span>kv.value {
             Item::Table(<span class="kw-2">ref </span>t) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>key = kv.key.clone();
-                <span class="kw">if </span>t.is_dotted() {
-                    <span class="comment">// May have newlines and generally isn&#39;t written for standard tables
-                    </span>key.decor_mut().clear();
-                }
+                <span class="kw">let </span>key = kv.key.clone();
                 path.push(key);
                 visit_nested_tables(t, path, <span class="bool-val">false</span>, callback)<span class="question-mark">?</span>;
                 path.pop();
@@ -888,42 +811,42 @@
     </span><span class="kw">let </span>is_visible_std_table = !(table.implicit &amp;&amp; children.is_empty());
 
     <span class="kw">if </span>path.is_empty() {
-        <span class="comment">// don&#39;t print header for the root node
+        <span class="comment">// don't print header for the root node
         </span><span class="kw">if </span>!children.is_empty() {
             <span class="kw-2">*</span>first_table = <span class="bool-val">false</span>;
         }
     } <span class="kw">else if </span>is_array_of_tables {
         <span class="kw">let </span>default_decor = <span class="kw">if </span><span class="kw-2">*</span>first_table {
             <span class="kw-2">*</span>first_table = <span class="bool-val">false</span>;
-            (<span class="string">&quot;&quot;</span>, DEFAULT_TABLE_DECOR.<span class="number">1</span>)
+            (<span class="string">""</span>, DEFAULT_TABLE_DECOR.<span class="number">1</span>)
         } <span class="kw">else </span>{
             DEFAULT_TABLE_DECOR
         };
         table.decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;[[&quot;</span>)<span class="question-mark">?</span>;
-        path.encode(buf, input, DEFAULT_KEY_PATH_DECOR)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;]]&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"[["</span>)<span class="question-mark">?</span>;
+        encode_key_path(path, buf, input, DEFAULT_KEY_PATH_DECOR)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"]]"</span>)<span class="question-mark">?</span>;
         table.decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(buf)<span class="question-mark">?</span>;
     } <span class="kw">else if </span>is_visible_std_table {
         <span class="kw">let </span>default_decor = <span class="kw">if </span><span class="kw-2">*</span>first_table {
             <span class="kw-2">*</span>first_table = <span class="bool-val">false</span>;
-            (<span class="string">&quot;&quot;</span>, DEFAULT_TABLE_DECOR.<span class="number">1</span>)
+            (<span class="string">""</span>, DEFAULT_TABLE_DECOR.<span class="number">1</span>)
         } <span class="kw">else </span>{
             DEFAULT_TABLE_DECOR
         };
         table.decor.prefix_encode(buf, input, default_decor.<span class="number">0</span>)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
-        path.encode(buf, input, DEFAULT_KEY_PATH_DECOR)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"["</span>)<span class="question-mark">?</span>;
+        encode_key_path(path, buf, input, DEFAULT_KEY_PATH_DECOR)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"]"</span>)<span class="question-mark">?</span>;
         table.decor.suffix_encode(buf, input, default_decor.<span class="number">1</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(buf)<span class="question-mark">?</span>;
     }
     <span class="comment">// print table body
     </span><span class="kw">for </span>(key_path, value) <span class="kw">in </span>children {
-        key_path.as_slice().encode(buf, input, DEFAULT_KEY_DECOR)<span class="question-mark">?</span>;
-        <span class="macro">write!</span>(buf, <span class="string">&quot;=&quot;</span>)<span class="question-mark">?</span>;
-        value.encode(buf, input, DEFAULT_VALUE_DECOR)<span class="question-mark">?</span>;
+        encode_key_path_ref(<span class="kw-2">&amp;</span>key_path, buf, input, DEFAULT_KEY_DECOR)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(buf, <span class="string">"="</span>)<span class="question-mark">?</span>;
+        encode_value(value, buf, input, DEFAULT_VALUE_DECOR)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(buf)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
@@ -956,19 +879,19 @@
         output.push_str(style.standard_start());
         <span class="kw">for </span>ch <span class="kw">in </span>value.chars() {
             <span class="kw">match </span>ch {
-                <span class="string">&#39;\u{8}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\b&quot;</span>),
-                <span class="string">&#39;\u{9}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\t&quot;</span>),
-                <span class="string">&#39;\u{a}&#39; </span>=&gt; <span class="kw">match </span>style {
-                    StringStyle::NewlineTriple =&gt; output.push(<span class="string">&#39;\n&#39;</span>),
-                    StringStyle::OnelineSingle =&gt; output.push_str(<span class="string">&quot;\\n&quot;</span>),
+                <span class="string">'\u{8}' </span>=&gt; output.push_str(<span class="string">"\\b"</span>),
+                <span class="string">'\u{9}' </span>=&gt; output.push_str(<span class="string">"\\t"</span>),
+                <span class="string">'\u{a}' </span>=&gt; <span class="kw">match </span>style {
+                    StringStyle::NewlineTriple =&gt; output.push(<span class="string">'\n'</span>),
+                    StringStyle::OnelineSingle =&gt; output.push_str(<span class="string">"\\n"</span>),
                     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
                 },
-                <span class="string">&#39;\u{c}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\f&quot;</span>),
-                <span class="string">&#39;\u{d}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\r&quot;</span>),
-                <span class="string">&#39;\u{22}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\\&quot;&quot;</span>),
-                <span class="string">&#39;\u{5c}&#39; </span>=&gt; output.push_str(<span class="string">&quot;\\\\&quot;</span>),
-                c <span class="kw">if </span>c &lt;= <span class="string">&#39;\u{1f}&#39; </span>|| c == <span class="string">&#39;\u{7f}&#39; </span>=&gt; {
-                    <span class="macro">write!</span>(output, <span class="string">&quot;\\u{:04X}&quot;</span>, ch <span class="kw">as </span>u32).unwrap();
+                <span class="string">'\u{c}' </span>=&gt; output.push_str(<span class="string">"\\f"</span>),
+                <span class="string">'\u{d}' </span>=&gt; output.push_str(<span class="string">"\\r"</span>),
+                <span class="string">'\u{22}' </span>=&gt; output.push_str(<span class="string">"\\\""</span>),
+                <span class="string">'\u{5c}' </span>=&gt; output.push_str(<span class="string">"\\\\"</span>),
+                c <span class="kw">if </span>c &lt;= <span class="string">'\u{1f}' </span>|| c == <span class="string">'\u{7f}' </span>=&gt; {
+                    <span class="macro">write!</span>(output, <span class="string">"\\u{:04X}"</span>, ch <span class="kw">as </span>u32).unwrap();
                 }
                 ch =&gt; output.push(ch),
             }
@@ -987,54 +910,51 @@
 }
 
 <span class="kw">impl </span>StringStyle {
-    <span class="kw">fn </span>literal_start(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>literal_start(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">&quot;&#39;&#39;&#39;\n&quot;</span>,
-            <span class="self">Self</span>::OnelineTriple =&gt; <span class="string">&quot;&#39;&#39;&#39;&quot;</span>,
-            <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">&quot;&#39;&quot;</span>,
+            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">"'''\n"</span>,
+            <span class="self">Self</span>::OnelineTriple =&gt; <span class="string">"'''"</span>,
+            <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">"'"</span>,
         }
     }
-    <span class="kw">fn </span>literal_end(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>literal_end(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">&quot;&#39;&#39;&#39;&quot;</span>,
-            <span class="self">Self</span>::OnelineTriple =&gt; <span class="string">&quot;&#39;&#39;&#39;&quot;</span>,
-            <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">&quot;&#39;&quot;</span>,
-        }
-    }
-
-    <span class="kw">fn </span>standard_start(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">&quot;\&quot;\&quot;\&quot;\n&quot;</span>,
-            <span class="comment">// note: OnelineTriple can happen if do_pretty wants to do
-            // &#39;&#39;&#39;it&#39;s one line&#39;&#39;&#39;
-            // but literal == false
-            </span><span class="self">Self</span>::OnelineTriple | <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">&quot;\&quot;&quot;</span>,
+            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">"'''"</span>,
+            <span class="self">Self</span>::OnelineTriple =&gt; <span class="string">"'''"</span>,
+            <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">"'"</span>,
         }
     }
 
-    <span class="kw">fn </span>standard_end(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+    <span class="kw">fn </span>standard_start(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">&quot;\&quot;\&quot;\&quot;&quot;</span>,
+            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">"\"\"\"\n"</span>,
             <span class="comment">// note: OnelineTriple can happen if do_pretty wants to do
-            // &#39;&#39;&#39;it&#39;s one line&#39;&#39;&#39;
+            // '''it's one line'''
             // but literal == false
-            </span><span class="self">Self</span>::OnelineTriple | <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">&quot;\&quot;&quot;</span>,
+            </span><span class="self">Self</span>::OnelineTriple | <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">"\""</span>,
+        }
+    }
+
+    <span class="kw">fn </span>standard_end(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::NewlineTriple =&gt; <span class="string">"\"\"\""</span>,
+            <span class="comment">// note: OnelineTriple can happen if do_pretty wants to do
+            // '''it's one line'''
+            // but literal == false
+            </span><span class="self">Self</span>::OnelineTriple | <span class="self">Self</span>::OnelineSingle =&gt; <span class="string">"\""</span>,
         }
     }
 }
 
 <span class="kw">fn </span>infer_style(value: <span class="kw-2">&amp;</span>str) -&gt; (StringStyle, bool) {
-    <span class="comment">// For doing pretty prints we store in a new String
-    // because there are too many cases where pretty cannot
-    // work. We need to determine:
-    // - if we are a &quot;multi-line&quot; pretty (if there are \n)
-    // - if [&#39;&#39;&#39;] appears if multi or [&#39;] if single
+    <span class="comment">// We need to determine:
+    // - if we are a "multi-line" pretty (if there are \n)
+    // - if ['''] appears if multi or ['] if single
     // - if there are any invalid control characters
     //
     // Doing it any other way would require multiple passes
     // to determine if a pretty string works or not.
-    </span><span class="kw">let </span><span class="kw-2">mut </span>out = String::with_capacity(value.len() * <span class="number">2</span>);
-    <span class="kw">let </span><span class="kw-2">mut </span>ty = StringStyle::OnelineSingle;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>ty = StringStyle::OnelineSingle;
     <span class="comment">// found consecutive single quotes
     </span><span class="kw">let </span><span class="kw-2">mut </span>max_found_singles = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>found_singles = <span class="number">0</span>;
@@ -1043,7 +963,7 @@
 
     <span class="kw">for </span>ch <span class="kw">in </span>value.chars() {
         <span class="kw">if </span>can_be_pretty {
-            <span class="kw">if </span>ch == <span class="string">&#39;\&#39;&#39; </span>{
+            <span class="kw">if </span>ch == <span class="string">'\'' </span>{
                 found_singles += <span class="number">1</span>;
                 <span class="kw">if </span>found_singles &gt;= <span class="number">3 </span>{
                     can_be_pretty = <span class="bool-val">false</span>;
@@ -1055,27 +975,26 @@
                 found_singles = <span class="number">0
             </span>}
             <span class="kw">match </span>ch {
-                <span class="string">&#39;\t&#39; </span>=&gt; {}
-                <span class="string">&#39;\\&#39; </span>=&gt; {
+                <span class="string">'\t' </span>=&gt; {}
+                <span class="string">'\\' </span>=&gt; {
                     prefer_literal = <span class="bool-val">true</span>;
                 }
-                <span class="string">&#39;\n&#39; </span>=&gt; ty = StringStyle::NewlineTriple,
+                <span class="string">'\n' </span>=&gt; ty = StringStyle::NewlineTriple,
                 <span class="comment">// Escape codes are needed if any ascii control
                 // characters are present, including \b \f \r.
-                </span>c <span class="kw">if </span>c &lt;= <span class="string">&#39;\u{1f}&#39; </span>|| c == <span class="string">&#39;\u{7f}&#39; </span>=&gt; can_be_pretty = <span class="bool-val">false</span>,
+                </span>c <span class="kw">if </span>c &lt;= <span class="string">'\u{1f}' </span>|| c == <span class="string">'\u{7f}' </span>=&gt; can_be_pretty = <span class="bool-val">false</span>,
                 <span class="kw">_ </span>=&gt; {}
             }
-            out.push(ch);
         } <span class="kw">else </span>{
             <span class="comment">// the string cannot be represented as pretty,
             // still check if it should be multiline
-            </span><span class="kw">if </span>ch == <span class="string">&#39;\n&#39; </span>{
+            </span><span class="kw">if </span>ch == <span class="string">'\n' </span>{
                 ty = StringStyle::NewlineTriple;
             }
         }
     }
-    <span class="kw">if </span>found_singles &gt; <span class="number">0 </span>&amp;&amp; value.ends_with(<span class="string">&#39;\&#39;&#39;</span>) {
-        <span class="comment">// We cannot escape the ending quote so we must use &quot;&quot;&quot;
+    <span class="kw">if </span>found_singles &gt; <span class="number">0 </span>&amp;&amp; value.ends_with(<span class="string">'\''</span>) {
+        <span class="comment">// We cannot escape the ending quote so we must use """
         </span>can_be_pretty = <span class="bool-val">false</span>;
     }
     <span class="kw">if </span>!prefer_literal {
@@ -1090,7 +1009,7 @@
     }
     <span class="macro">debug_assert!</span>(max_found_singles &lt; <span class="number">3</span>);
     <span class="kw">if </span>ty == StringStyle::OnelineSingle &amp;&amp; max_found_singles &gt;= <span class="number">1 </span>{
-        <span class="comment">// no newlines, but must use &#39;&#39;&#39; because it has &#39; in it
+        <span class="comment">// no newlines, but must use ''' because it has ' in it
         </span>ty = StringStyle::OnelineTriple;
     }
     (ty, <span class="bool-val">true</span>)
@@ -1110,15 +1029,15 @@
 
 <span class="kw">fn </span>to_f64_repr(f: f64) -&gt; Repr {
     <span class="kw">let </span>repr = <span class="kw">match </span>(f.is_sign_negative(), f.is_nan(), f == <span class="number">0.0</span>) {
-        (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;-nan&quot;</span>.to_owned(),
-        (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; <span class="string">&quot;nan&quot;</span>.to_owned(),
-        (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;-0.0&quot;</span>.to_owned(),
-        (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">&quot;0.0&quot;</span>.to_owned(),
+        (<span class="bool-val">true</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; <span class="string">"-nan"</span>.to_owned(),
+        (<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="kw">_</span>) =&gt; <span class="string">"nan"</span>.to_owned(),
+        (<span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">"-0.0"</span>.to_owned(),
+        (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>) =&gt; <span class="string">"0.0"</span>.to_owned(),
         (<span class="kw">_</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>) =&gt; {
             <span class="kw">if </span>f % <span class="number">1.0 </span>== <span class="number">0.0 </span>{
-                <span class="macro">format!</span>(<span class="string">&quot;{}.0&quot;</span>, f)
+                <span class="macro">format!</span>(<span class="string">"{}.0"</span>, f)
             } <span class="kw">else </span>{
-                <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, f)
+                <span class="macro">format!</span>(<span class="string">"{}"</span>, f)
             }
         }
     };
