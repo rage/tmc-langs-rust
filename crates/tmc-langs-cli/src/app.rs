@@ -5,6 +5,7 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
+    mooc::CourseInstance,
     tmc::{
         response::{
             Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
@@ -541,6 +542,8 @@ pub struct Mooc {
 
 #[derive(Parser)]
 pub enum MoocCommand {
+    /// Fetches the user's enrolled courses.
+    #[clap(long_about = schema_leaked::<Vec<CourseInstance>>())]
     CourseInstances,
     CourseInstanceExercises {
         #[clap(long)]

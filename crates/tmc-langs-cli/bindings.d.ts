@@ -110,7 +110,7 @@ export interface TmcConfig { projects_dir: string, }
 
 export interface CourseInstance { id: string, course_id: string, course_slug: string, course_name: string, course_description: string | null, instance_name: string | null, instance_description: string | null, }
 
-export interface TmcExerciseSlide { slide_id: string, exercise_id: string, exercise_name: string, exercise_order_number: number, deadline: Date | null, tasks: Array<TmcExerciseTask>, }
+export interface TmcExerciseSlide { slide_id: string, exercise_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>, }
 
 export interface TmcExerciseTask { task_id: string, order_number: number, assignment: unknown, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, }
 

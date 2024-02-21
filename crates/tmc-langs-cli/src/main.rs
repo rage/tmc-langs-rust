@@ -12,6 +12,19 @@ use tmc_langs_cli::{
 };
 
 fn main() -> ExitCode {
+    // convert `TMC_LANGS_LOG` into the appropriate `RUST_LOG`
+    if let Ok(level) = std::env::var("TMC_LANGS_LOG") {
+        let level = level.to_uppercase();
+        let level = match level.as_str() {
+            "WARN" => "WARN,reqwest=ERROR,rustls=ERROR",
+            "INFO" => "INFO,reqwest=WARN,rustls=WARN",
+            "DEBUG" => "DEBUG,reqwest=INFO,rustls=INFO",
+            "TRACE" => "TRACE,reqwest=DEBUG,rustls=DEBUG",
+            other => other,
+        };
+        let _ = std::env::set_var("RUST_LOG", level);
+    }
+
     env_logger::init();
     match run() {
         Ok(()) => ExitCode::SUCCESS,

@@ -972,8 +972,8 @@ fn run_tmc_inner(
 }
 
 fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
-    let root_url =
-        env::var("TMC_LANGS_MOOC_ROOT_URL").unwrap_or_else(|_| "https://tmc.mooc.fi".to_string());
+    let root_url = env::var("TMC_LANGS_MOOC_ROOT_URL")
+        .unwrap_or_else(|_| "https://courses.mooc.fi".to_string());
 
     let (mut client, credentials) =
         tmc_langs::init_mooc_client_with_credentials(root_url, &mooc.client_name)?;

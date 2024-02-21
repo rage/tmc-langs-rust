@@ -40,6 +40,14 @@ cargo test
 
 The `docker.sh` script can be conveniently used to build and test the project. To build the binary and copy it out of the container to the project root, simply run `docker.sh`. To run tests, you can run `docker.sh "cargo test"`, or `docker.sh "cargo test -p tmc-langs-r"` and so on. The script also supports the special argument `interactive` to launch into an interactive bash shell inside the Docker container.
 
+## Generating the TypeScript bindings
+
+```bash
+cargo test --features ts-rs generate_cli_bindings -- --ignored
+```
+
+The bindings are written to `crates/tmc-langs-cli/bindings.d.ts`.
+
 ## Formatting and linting
 
 Use `cargo +nightly fmt` and `cargo clippy` for formatting and linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny to allow the CLI to have total control over stdout and stderr. The CLI has one function where writing to stdout is allowed.

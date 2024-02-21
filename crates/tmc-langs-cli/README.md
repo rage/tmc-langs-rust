@@ -22,7 +22,9 @@ Binaries for the supported targets are built and the binaries deployed to Google
 
 | var name                         | usage                                                          |
 | -------------------------------- | -------------------------------------------------------------- |
-| `TMC_LANGS_TMC_ROOT_URL`         | Sets the TMC server url.                                       |
+| `TMC_LANGS_LOG`                  | Sets the logging level.                                        |
+| `TMC_LANGS_TMC_ROOT_URL`         | Sets the courses.mooc.fi server url.                           |
+| `TMC_LANGS_MOOC_ROOT_URL`        | Sets the tmc.mooc.fi server url.                               |
 | `TMC_LANGS_CONFIG_DIR`           | Sets the config directory.                                     |
 | `TMC_LANGS_DEFAULT_PROJECTS_DIR` | Sets the default projects directory.                           |
 | `TMC_SANDBOX`                    | If set, the CLI considers itself to be running in tmc-sandbox. |

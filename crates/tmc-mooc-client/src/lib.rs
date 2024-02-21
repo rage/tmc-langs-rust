@@ -21,6 +21,7 @@ use reqwest::{
     },
     Method, StatusCode,
 };
+use schemars::JsonSchema;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{borrow::Cow, path::Path, sync::Arc};
 use tmc_langs_util::{serialize, JsonError};
@@ -61,7 +62,7 @@ impl MoocClient {
     fn request_to_url(&self, method: Method, url: String) -> MoocRequest {
         log::debug!("building a request to {url}");
 
-        let trusted_urls = &["https://courses.mooc.fi/", "http://project-331.local"];
+        let trusted_urls = &["https://courses.mooc.fi/", "http://project-331.local/"];
         let include_bearer_token = trusted_urls.iter().any(|tu| url.starts_with(tu));
         let mut builder = self.0.client.request(method.clone(), url.clone());
         if let Some(token) = self.0.token.as_ref() {
@@ -276,7 +277,7 @@ impl MoocRequest {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct CourseInstance {
     pub id: Uuid,

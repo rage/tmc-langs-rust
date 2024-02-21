@@ -37,6 +37,8 @@ fn main() {
         tmc_langs::ExerciseDownload,
         // getCourseData
         tmc_langs::CombinedCourseData,
+
+        // TMC
         // getCourseData
         tmc_langs::tmc::response::CourseDetails,
         tmc_langs::tmc::response::Exercise,
@@ -75,6 +77,10 @@ fn main() {
         tmc_langs::tmc::response::SubmissionFeedbackKind,
         // listSettings
         tmc_langs::TmcConfig,
+
+        // MOOC
+        // course-instances
+        tmc_langs::mooc::CourseInstance,
     }
     .unwrap();
     println!("Wrote bindings to `{path}`");

@@ -905,14 +905,6 @@ pub mod core {
 
         let mut form = Form::new();
         form = form
-            .text(
-                "client_time",
-                SystemTime::UNIX_EPOCH.elapsed()?.as_secs().to_string(),
-            )
-            .text(
-                "client_nanotime",
-                SystemTime::UNIX_EPOCH.elapsed()?.as_nanos().to_string(),
-            )
             .part(
                 "submission[file]",
                 Part::reader(submission_zip).file_name("submission.zip"),
