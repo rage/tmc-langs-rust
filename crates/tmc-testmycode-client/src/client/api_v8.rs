@@ -904,11 +904,10 @@ pub mod core {
         )?;
 
         let mut form = Form::new();
-        form = form
-            .part(
-                "submission[file]",
-                Part::reader(submission_zip).file_name("submission.zip"),
-            );
+        form = form.part(
+            "submission[file]",
+            Part::reader(submission_zip).file_name("submission.zip"),
+        );
 
         if let Some(submit_paste) = submit_paste {
             form = form.text("paste", "1");
