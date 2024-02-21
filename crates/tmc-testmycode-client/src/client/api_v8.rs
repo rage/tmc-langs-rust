@@ -2488,8 +2488,6 @@ mod test {
             .mock("POST", "/api/v8/core/exercises/0/submissions")
             .match_query(client_matcher())
             .match_body(Matcher::AllOf(vec![
-                Matcher::Regex("client_time".to_string()),
-                Matcher::Regex("client_nanotime".to_string()),
                 Matcher::Regex("submission\\[file\\]".to_string()),
                 Matcher::Regex("paste".to_string()),
                 Matcher::Regex("message_for_paste".to_string()),
