@@ -101,7 +101,7 @@ jobs:
           cd ./crates/bindings/tmc-langs-node && npm install && npm run build -- --release --target ${{ matrix.target }}
       - name: Deploy
         run: |
-          $env:python_version=$(python -c 'import sys; print(\".\".join(map(str, sys.version_info[:3])))')
+          $env:python_version=$(python -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
           $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
           gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node      gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
