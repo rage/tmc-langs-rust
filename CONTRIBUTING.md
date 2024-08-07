@@ -12,19 +12,19 @@ If you have any troubles building the project, please do make an issue!
 
 ## Testing
 
-Install [zstd 1.5.2](https://github.com/facebook/zstd). For example, on Ubuntu you need the package `libzstd1`. For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
+Install [zstd 1.5.2](https://github.com/facebook/zstd) (`sudo apt install libzstd1`). For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
-Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm). You may wish to use [nvm](https://github.com/nvm-sh/nvm).
 
 Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
 
 Install [OpenJDK 17](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
 
-Install [.NET 6.0](https://dotnet.microsoft.com/download).
+Install [.NET 8.0](https://dotnet.microsoft.com/download).
 
 Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15), [valgrind](https://valgrind.org/) and `libsubunit0` (or equivalent for your distribution).
 
-Install [R](https://www.r-project.org/), [devtools](https://devtools.r-lib.org/) by running either `sudo apt install r-cran-devtools` or `R -e 'install.packages("devtools", repos="http://cran.r-project.org")'` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'`. You can set the `R_LIBS_USER` environment variable to control where R packages get installed, for example by setting `export R_LIBS_USER="~/.R"` in your `.bashrc`. If you install `devtools` with the `R -e` command, it has several dependencies that need to be installed. For Ubuntu, they can be installed with
+Install [R](https://www.r-project.org/) (`sudo apt install r-base`), [devtools](https://devtools.r-lib.org/) by running either `sudo apt install r-cran-devtools` or `R -e 'install.packages("devtools", repos="http://cran.r-project.org")'` and [tmc-r-tester](https://github.com/testmycode/tmc-rstudio) by running `R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)'`. You can set the `R_LIBS_USER` environment variable to control where R packages get installed, for example by setting `export R_LIBS_USER="$HOME/.R"`and `export R_LIBS_SITE="$HOME/.R/site"` in your `.bashrc`. If you install `devtools` with the `R -e` command, it has several dependencies that need to be installed. For Ubuntu, they can be installed with
 
 ```bash
 sudo apt install libcurl-dev libxml2-dev libopenssl-dev gcc-c++ libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev

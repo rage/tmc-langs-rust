@@ -15,7 +15,7 @@ RUN apt update \
         npm \
         python3 \
         openjdk-17-jdk ant maven \
-        dotnet-sdk-6.0 \
+        dotnet-sdk-8.0 \
         check valgrind \
         r-base r-cran-devtools locales \
     # set up for https://github.com/testmycode/tmc-r-tester/
