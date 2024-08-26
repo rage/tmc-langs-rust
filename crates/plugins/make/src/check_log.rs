@@ -6,9 +6,11 @@ use tmc_langs_framework::{RunResult, RunStatus, TestResult};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckLog {
+    #[allow(dead_code)]
     pub datetime: String,
     #[serde(rename = "suite")]
     pub test_suites: Vec<TestSuite>,
+    #[allow(dead_code)]
     pub duration: String,
 }
 
@@ -51,6 +53,7 @@ impl CheckLog {
 
 #[derive(Debug, Deserialize)]
 pub struct TestSuite {
+    #[allow(dead_code)]
     pub title: String,
     #[serde(rename = "test")]
     pub tests: Vec<Test>,
@@ -59,11 +62,15 @@ pub struct TestSuite {
 #[derive(Debug, Deserialize)]
 pub struct Test {
     pub result: String,
+    #[allow(dead_code)]
     pub path: String,
+    #[allow(dead_code)]
     #[serde(rename = "fn")]
     pub function: String,
     pub id: String,
+    #[allow(dead_code)]
     pub iteration: String,
+    #[allow(dead_code)]
     pub duration: String,
     pub description: String,
     pub message: String,

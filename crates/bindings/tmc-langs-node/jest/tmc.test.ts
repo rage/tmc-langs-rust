@@ -17,6 +17,7 @@ function init(): Tmc {
   } else {
     addr = `http://localhost:3000`;
   }
+  console.log(`Running test against ${addr}`)
   const tmc = new Tmc("mock-client", "mock-version", addr);
   tmc.loginWithToken("");
   return tmc;
@@ -36,6 +37,7 @@ async function initWithTempDir(): Promise<Tmc> {
   } else {
     addr = `http://localhost:3000`;
   }
+  console.log(`Running test against ${addr}`)
   const tmc = new Tmc(
     "mock-client",
     "mock-version",

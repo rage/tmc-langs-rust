@@ -7,7 +7,7 @@ use std::{
 use tar::Builder;
 use tmc_langs_framework::{Compression, TmcError};
 use tmc_langs_util::file_util;
-use zip::{write::FileOptions, DateTime, ZipWriter};
+use zip::{write::SimpleFileOptions, DateTime, ZipWriter};
 
 pub enum ArchiveBuilder<W: Write + Seek> {
     Tar {
@@ -104,14 +104,14 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
                     .map_err(TmcError::ZstdWrite)?;
                 writer
             }
-            Self::Zip { mut builder, .. } => builder.finish()?,
+            Self::Zip { builder, .. } => builder.finish()?,
         };
         Ok(res)
     }
 }
 
-fn zip_file_options(deterministic: bool) -> FileOptions {
-    let file_options = FileOptions::default().unix_permissions(0o755);
+fn zip_file_options(deterministic: bool) -> SimpleFileOptions {
+    let file_options = SimpleFileOptions::default().unix_permissions(0o755);
     if deterministic {
         file_options.last_modified_time(
             DateTime::from_date_and_time(2023, 1, 1, 0, 0, 0).expect("known to work"),

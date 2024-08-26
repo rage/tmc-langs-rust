@@ -11,6 +11,7 @@ use std::{
 };
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
+use zip::write::SimpleFileOptions;
 
 /// Wrapper unifying the API of all the different compression formats supported by langs.
 /// Unfortunately the API is more complicated due to tar only supporting iterating through the files one by one,
@@ -320,9 +321,9 @@ impl Compression {
                 let mut writer = zip::ZipWriter::new(buf);
                 walk_dir_for_compression(path, |entry, relative_path| {
                     if entry.path().is_dir() {
-                        writer.add_directory(relative_path, Default::default())?;
+                        writer.add_directory(relative_path, SimpleFileOptions::default())?;
                     } else if entry.path().is_file() {
-                        writer.start_file(relative_path, Default::default())?;
+                        writer.start_file(relative_path, SimpleFileOptions::default())?;
                         let contents = file_util::read_file(entry.path())?;
                         writer
                             .write_all(&contents)

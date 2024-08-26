@@ -1092,6 +1092,7 @@ mod test {
     use mockito::Server;
     use std::io::Write;
     use tmc_testmycode_client::response::ExercisesDetails;
+    use zip::write::SimpleFileOptions;
 
     fn init() {
         use log::*;
@@ -1215,7 +1216,7 @@ checksum = 'old checksum'
         let mut server = Server::new();
 
         let mut zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
-        zw.start_file("src/file", zip::write::FileOptions::default())
+        zw.start_file("src/file", SimpleFileOptions::default())
             .unwrap();
         zw.write_all(b"file contents").unwrap();
         let z = zw.finish().unwrap();
@@ -1404,22 +1405,22 @@ checksum = 'new checksum'
 
         let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         template_zw
-            .start_file("src/student_file.py", zip::write::FileOptions::default())
+            .start_file("src/student_file.py", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
         template_zw
             .start_file(
                 "src/template_only_student_file.py",
-                zip::write::FileOptions::default(),
+                SimpleFileOptions::default(),
             )
             .unwrap();
         template_zw.write_all(b"template").unwrap();
         template_zw
-            .start_file("test/exercise_file.py", zip::write::FileOptions::default())
+            .start_file("test/exercise_file.py", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
         template_zw
-            .start_file("setup.py", zip::write::FileOptions::default())
+            .start_file("setup.py", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
         let template_z = template_zw.finish().unwrap();
@@ -1477,22 +1478,22 @@ checksum = 'new checksum'
 
         let mut sub_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         sub_zw
-            .start_file("src/student_file.py", zip::write::FileOptions::default())
+            .start_file("src/student_file.py", SimpleFileOptions::default())
             .unwrap();
         sub_zw.write_all(b"submission").unwrap();
         sub_zw
-            .start_file("test/exercise_file.py", zip::write::FileOptions::default())
+            .start_file("test/exercise_file.py", SimpleFileOptions::default())
             .unwrap();
         sub_zw.write_all(b"submission").unwrap();
         sub_zw
             .start_file(
                 "test/submission_only_exercise_file.py",
-                zip::write::FileOptions::default(),
+                SimpleFileOptions::default(),
             )
             .unwrap();
         sub_zw.write_all(b"submission").unwrap();
         sub_zw
-            .start_file("setup.py", zip::write::FileOptions::default())
+            .start_file("setup.py", SimpleFileOptions::default())
             .unwrap();
         sub_zw.write_all(b"submission").unwrap();
         let sub_z = sub_zw.finish().unwrap();
@@ -1571,23 +1572,17 @@ checksum = 'new checksum'
         // exercise template
         let mut template_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         template_zw
-            .start_file("pom.xml", zip::write::FileOptions::default())
+            .start_file("pom.xml", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
 
         template_zw
-            .start_file(
-                "src/main/java/File.java",
-                zip::write::FileOptions::default(),
-            )
+            .start_file("src/main/java/File.java", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
 
         template_zw
-            .start_file(
-                "src/test/java/FileTest.java",
-                zip::write::FileOptions::default(),
-            )
+            .start_file("src/test/java/FileTest.java", SimpleFileOptions::default())
             .unwrap();
         template_zw.write_all(b"template").unwrap();
 
@@ -1606,23 +1601,17 @@ checksum = 'new checksum'
         // submission
         let mut submission_zw = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
         submission_zw
-            .start_file("pom.xml", zip::write::FileOptions::default())
+            .start_file("pom.xml", SimpleFileOptions::default())
             .unwrap();
         submission_zw.write_all(b"old submission").unwrap();
 
         submission_zw
-            .start_file(
-                "src/main/java/File.java",
-                zip::write::FileOptions::default(),
-            )
+            .start_file("src/main/java/File.java", SimpleFileOptions::default())
             .unwrap();
         submission_zw.write_all(b"old submission").unwrap();
 
         submission_zw
-            .start_file(
-                "src/test/java/FileTest.java",
-                zip::write::FileOptions::default(),
-            )
+            .start_file("src/test/java/FileTest.java", SimpleFileOptions::default())
             .unwrap();
         submission_zw.write_all(b"old submission").unwrap();
 

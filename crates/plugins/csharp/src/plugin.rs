@@ -383,6 +383,7 @@ impl LanguagePlugin for CSharpPlugin {
 mod test {
     use super::*;
     use once_cell::sync::Lazy;
+    use zip::write::SimpleFileOptions;
     use std::sync::{Mutex, Once};
     use tempfile::TempDir;
 
@@ -430,10 +431,10 @@ mod test {
                 .to_str()
                 .unwrap();
             if entry.path().is_dir() {
-                zip.add_directory(rela, zip::write::FileOptions::default())
+                zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, zip::write::FileOptions::default())
+                zip.start_file(rela, SimpleFileOptions::default())
                     .unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
@@ -441,7 +442,6 @@ mod test {
         }
 
         zip.finish().unwrap();
-        drop(zip);
         target
     }
 

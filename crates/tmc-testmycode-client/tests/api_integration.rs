@@ -1,4 +1,3 @@
-use dotenv::dotenv;
 use std::{env, io::Read};
 use tmc_testmycode_client::{api_v8, request::FeedbackAnswer, TestMyCodeClient};
 
@@ -16,7 +15,7 @@ fn init_client() -> TestMyCodeClient {
     use simple_logger::*;
     let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
 
-    dotenv().ok();
+    dotenvy::dotenv().ok();
     let email = env::var("TMC_EMAIL").unwrap();
     let password = env::var("TMC_PASSWORD").unwrap();
 

@@ -12,7 +12,7 @@ use tmc_langs_framework::{Archive, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{file_util, FileError};
 use walkdir::WalkDir;
-use zip::{write::FileOptions, ZipWriter};
+use zip::{write::SimpleFileOptions, ZipWriter};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -199,12 +199,12 @@ pub fn prepare_submission(
                 if entry_path.is_dir() {
                     archive.add_directory(
                         stripped.to_string_lossy(),
-                        FileOptions::default().unix_permissions(0o755),
+                        SimpleFileOptions::default().unix_permissions(0o755),
                     )?;
                 } else {
                     archive.start_file(
                         stripped.to_string_lossy(),
-                        FileOptions::default().unix_permissions(0o755),
+                        SimpleFileOptions::default().unix_permissions(0o755),
                     )?;
                     let mut file = file_util::open_file(entry_path)?;
                     std::io::copy(&mut file, &mut archive)

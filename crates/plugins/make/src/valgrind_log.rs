@@ -12,6 +12,7 @@ use tmc_langs_util::{file_util, FileError};
 
 #[derive(Debug)]
 pub struct ValgrindLog {
+    #[allow(dead_code)]
     pub header: (String, Vec<String>),
     pub errors: bool,
     pub results: Vec<ValgrindResult>,
@@ -80,6 +81,7 @@ impl ValgrindLog {
 
 #[derive(Debug)]
 pub struct ValgrindResult {
+    #[allow(dead_code)]
     pub pid: String,
     pub errors: bool,
     pub log: Vec<String>,

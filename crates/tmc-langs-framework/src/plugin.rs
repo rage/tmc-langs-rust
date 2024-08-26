@@ -453,7 +453,7 @@ mod test {
     use nom::character;
     use std::io::Write;
     use tmc_langs_util::path_util;
-    use zip::ZipWriter;
+    use zip::{write::SimpleFileOptions, ZipWriter};
 
     fn init() {
         use log::*;
@@ -499,10 +499,10 @@ mod test {
                 .to_str()
                 .unwrap();
             if entry.path().is_dir() {
-                zip.add_directory(rela, zip::write::FileOptions::default())
+                zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, zip::write::FileOptions::default())
+                zip.start_file(rela, SimpleFileOptions::default())
                     .unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
@@ -510,7 +510,6 @@ mod test {
         }
 
         zip.finish().unwrap();
-        drop(zip);
         target
     }
 
@@ -1091,7 +1090,7 @@ force_update:
 
         let buf = vec![];
         let mut zw = ZipWriter::new(std::io::Cursor::new(buf));
-        zw.add_directory("src", zip::write::FileOptions::default())
+        zw.add_directory("src", SimpleFileOptions::default())
             .unwrap();
         let buf = zw.finish().unwrap();
 
