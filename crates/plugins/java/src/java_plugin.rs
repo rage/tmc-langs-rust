@@ -179,8 +179,10 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         log::info!("source files: {:?}", source_files);
 
         let scan_results = self.jvm().with(|jvm| {
-            let test_scanner =
-                jvm.create_instance("fi.helsinki.cs.tmc.testscanner.TestScanner", &[])?;
+            let test_scanner = jvm.create_instance(
+                "fi.helsinki.cs.tmc.testscanner.TestScanner",
+                InvocationArg::empty(),
+            )?;
 
             jvm.invoke(
                 &test_scanner,
@@ -195,8 +197,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                 )?;
                 jvm.invoke(&test_scanner, "addSource", &[InvocationArg::from(file)])?;
             }
-            let scan_results = jvm.invoke(&test_scanner, "findTests", &[])?;
-            jvm.invoke(&test_scanner, "clearSources", &[])?;
+            let scan_results = jvm.invoke(&test_scanner, "findTests", InvocationArg::empty())?;
+            jvm.invoke(&test_scanner, "clearSources", InvocationArg::empty())?;
 
             let scan_results: Vec<TestMethod> = jvm.to_rust(scan_results)?;
             Ok(scan_results)
@@ -251,7 +253,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                 "fi.helsinki.cs.tmc.stylerunner.CheckstyleRunner",
                 &[InvocationArg::from(file), InvocationArg::from(locale)],
             )?;
-            let result = jvm.invoke(&checkstyle_runner, "run", &[])?;
+            let result = jvm.invoke(&checkstyle_runner, "run", InvocationArg::empty())?;
             let result: StyleValidationResult = jvm.to_rust(result)?;
             Ok(result)
         })?;

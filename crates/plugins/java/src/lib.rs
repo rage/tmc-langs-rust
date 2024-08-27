@@ -29,7 +29,7 @@ const SEPARATOR: &str = ":";
 const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../deps/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.17.2-jar-with-dependencies.jar");
+const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.20.0-jar-with-dependencies.jar");
 
 struct JvmWrapper {
     jvm: Jvm,
@@ -210,7 +210,7 @@ fn create_print_stream(jvm: &Jvm, path: &str) -> Result<Instance, JavaError> {
             &[InvocationArg::try_from(path).map_err(JavaError::j4rs)?],
         )
         .map_err(JavaError::j4rs)?;
-    jvm.invoke(&file, "createNewFile", &[])
+    jvm.invoke(&file, "createNewFile", InvocationArg::empty())
         .map_err(JavaError::j4rs)?;
     let file_output_stream = jvm
         .create_instance("java.io.FileOutputStream", &[InvocationArg::from(file)])
