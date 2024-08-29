@@ -412,8 +412,7 @@ mod test {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, SimpleFileOptions::default())
-                    .unwrap();
+                zip.start_file(rela, SimpleFileOptions::default()).unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
             }
@@ -441,8 +440,8 @@ mod test {
 
         let temp = tempfile::TempDir::new().unwrap();
         let test_path = temp.path().join("dir");
-        file_to(&test_path, "lib/junit-4.10.jar", "");
-        file_to(&test_path, "lib/edu-test-utils-0.4.1.jar", "");
+        file_to(&test_path, "lib/junit-4.13.2.jar", "");
+        file_to(&test_path, "lib/edu-test-utils-0.5.0.jar", "");
 
         let plugin = AntPlugin::new().unwrap();
         let cp = plugin.get_project_class_path(&test_path).unwrap();
@@ -450,13 +449,13 @@ mod test {
         // get_project_class_path, do the same here to avoid mismatches in windows CI
         let test_path = file_util::canonicalize(&test_path).unwrap();
         let sep = std::path::MAIN_SEPARATOR;
-        let expected_junit = format!("{0}{1}lib{1}junit-4.10.jar", test_path.display(), sep);
+        let expected_junit = format!("{0}{1}lib{1}junit-4.13.2.jar", test_path.display(), sep);
         assert!(
             cp.contains(&expected_junit),
             "Classpath {cp} did not contain junit (looked for {expected_junit})",
         );
         let expected_utils = format!(
-            "{0}{1}lib{1}edu-test-utils-0.4.1.jar",
+            "{0}{1}lib{1}edu-test-utils-0.5.0.jar",
             test_path.display(),
             sep
         );

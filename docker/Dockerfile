@@ -9,15 +9,15 @@ RUN apt update \
 # install deps
 RUN apt update \
     && apt install -y \
-        # core libraries
-        libzstd-dev \
-        # languages
-        npm \
-        python3 \
-        openjdk-17-jdk ant maven \
-        dotnet-sdk-8.0 \
-        check valgrind \
-        r-base r-cran-devtools locales \
+    # core libraries
+    libzstd-dev \
+    # languages
+    npm \
+    python3 \
+    openjdk-21-jdk ant maven \
+    dotnet-sdk-8.0 \
+    check valgrind \
+    r-base r-cran-devtools locales \
     # set up for https://github.com/testmycode/tmc-r-tester/
     && R -e 'devtools::install_github("testmycode/tmc-r-tester/tmcRtestrunner", build = FALSE)' \
     && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \

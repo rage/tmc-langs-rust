@@ -12,15 +12,15 @@ If you have any troubles building the project, please do make an issue!
 
 ## Testing
 
-Install [zstd 1.5.2](https://github.com/facebook/zstd) (`sudo apt install libzstd1`). For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
+Install [zstd](https://github.com/facebook/zstd) (`sudo apt install libzstd1`). For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.
 
 Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm). You may wish to use [nvm](https://github.com/nvm-sh/nvm).
 
 Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
 
-Install [OpenJDK 17](https://openjdk.java.net/install/index.html) (other versions may work as well) and [ant](https://ant.apache.org/).
+Install [OpenJDK 21](https://adoptium.net/temurin/releases/?arch=any&os=any&version=21) (other versions may work as well) and [ant](https://ant.apache.org/).
 
-Install [.NET 8.0](https://dotnet.microsoft.com/download).
+Install [.NET 8](https://dotnet.microsoft.com/download).
 
 Install [check](https://libcheck.github.io/check/) (works with at least 0.14 and 0.15), [valgrind](https://valgrind.org/) and `libsubunit0` (or equivalent for your distribution).
 
@@ -53,6 +53,7 @@ The bindings are written to `crates/tmc-langs-cli/bindings.d.ts`.
 Use `cargo +nightly fmt` and `cargo clippy` for formatting and linting. All crates should have the clippy lints `print_stdout` and `print_stderr` set to deny to allow the CLI to have total control over stdout and stderr. The CLI has one function where writing to stdout is allowed.
 
 ## Logging
+
 tmc-langs-rust uses the `log` library for logging. The log levels should roughly follow the guidelines below:
 
 - ERROR: When something unexpectedly went wrong. For example, if a file that should be of a known JSON format fails to parse.

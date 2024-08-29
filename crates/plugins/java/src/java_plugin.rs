@@ -393,8 +393,9 @@ mod test {
         }
         fn get_project_class_path(&self, path: &Path) -> Result<String, JavaError> {
             let path = path.to_str().unwrap();
-            let cp =
-                format!("{path}/lib/edu-test-utils-0.4.1.jar{SEPARATOR}{path}/lib/junit-4.10.jar");
+            let cp = format!(
+                "{path}/lib/edu-test-utils-0.5.0.jar{SEPARATOR}{path}/lib/junit-4.13.2.jar"
+            );
             Ok(cp)
         }
 
