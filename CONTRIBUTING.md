@@ -18,7 +18,7 @@ Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node
 
 Install [Python 3](https://www.python.org/downloads/). You may wish to use [pyenv](https://github.com/pyenv/pyenv/) to manage different Python versions conveniently.
 
-Install [OpenJDK 21](https://adoptium.net/temurin/releases/?arch=any&os=any&version=21) (other versions may work as well) and [ant](https://ant.apache.org/).
+Install [OpenJDK 17](https://adoptium.net/temurin/releases/?arch=any&os=any&version=17) (other versions may work as well) and [ant](https://ant.apache.org/).
 
 Install [.NET 8](https://dotnet.microsoft.com/download).
 
