@@ -211,6 +211,12 @@ impl Python3Plugin {
     }
 }
 
+impl Default for Python3Plugin {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// Project directory:
 /// Contains setup.py, requirements.txt, test/__init__.py, or tmc/__main__.py
 /// OR
@@ -565,8 +571,7 @@ mod test {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, SimpleFileOptions::default())
-                    .unwrap();
+                zip.start_file(rela, SimpleFileOptions::default()).unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
             }

@@ -577,7 +577,7 @@ openjdk version "1.8.0_252"S
             .unwrap();
         log::debug!("{:#?}", validation_result);
         let validation_errors = validation_result.validation_errors.unwrap();
-        let validation_error = validation_errors.values().next().unwrap().get(0).unwrap();
+        let validation_error = validation_errors.values().next().unwrap().first().unwrap();
         assert!(validation_error.message.contains("Sisennys väärin"));
     }
 

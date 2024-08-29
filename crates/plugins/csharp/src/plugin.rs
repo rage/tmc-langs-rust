@@ -383,9 +383,9 @@ impl LanguagePlugin for CSharpPlugin {
 mod test {
     use super::*;
     use once_cell::sync::Lazy;
-    use zip::write::SimpleFileOptions;
     use std::sync::{Mutex, Once};
     use tempfile::TempDir;
+    use zip::write::SimpleFileOptions;
 
     static INIT_RUNNER: Once = Once::new();
     // running the runner in parallel seems to sometimes make tests run for an excessively long time
@@ -434,8 +434,7 @@ mod test {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, SimpleFileOptions::default())
-                    .unwrap();
+                zip.start_file(rela, SimpleFileOptions::default()).unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
             }

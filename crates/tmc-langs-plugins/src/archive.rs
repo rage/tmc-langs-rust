@@ -18,7 +18,7 @@ pub enum ArchiveBuilder<W: Write + Seek> {
         builder: Builder<Cursor<Vec<u8>>>,
     },
     Zip {
-        builder: ZipWriter<W>,
+        builder: Box<ZipWriter<W>>,
         deterministic: bool,
     },
 }
@@ -41,7 +41,7 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
                 Self::TarZstd { writer, builder }
             }
             Compression::Zip => Self::Zip {
-                builder: ZipWriter::new(writer),
+                builder: Box::new(ZipWriter::new(writer)),
                 deterministic,
             },
         }

@@ -289,13 +289,13 @@ mod test {
         *,
     };
     use once_cell::sync::Lazy;
-    use zip::write::SimpleFileOptions;
     use std::{
         fs,
         sync::{Mutex, MutexGuard},
     };
     use tmc_langs_framework::{Archive, StyleValidationStrategy};
     use tmc_langs_util::deserialize;
+    use zip::write::SimpleFileOptions;
 
     static MAVEN_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -372,8 +372,7 @@ mod test {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, SimpleFileOptions::default())
-                    .unwrap();
+                zip.start_file(rela, SimpleFileOptions::default()).unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
             }

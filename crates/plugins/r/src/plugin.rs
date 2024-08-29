@@ -258,8 +258,7 @@ mod test {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
             } else if entry.path().is_file() {
-                zip.start_file(rela, SimpleFileOptions::default())
-                    .unwrap();
+                zip.start_file(rela, SimpleFileOptions::default()).unwrap();
                 let bytes = std::fs::read(entry.path()).unwrap();
                 zip.write_all(&bytes).unwrap();
             }

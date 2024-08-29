@@ -93,7 +93,7 @@ fn test(f: impl Fn(&Path)) {
     }, {
         insta::glob!("../../../", "sample_exercises/*/*", |exercise| {
             let dir_name = exercise.file_name().unwrap();
-            let exercise = cp_exercise(&exercise);
+            let exercise = cp_exercise(exercise);
             println!("testing {:?}", exercise.path().join(dir_name));
             f(&exercise.path().join(dir_name))
         })

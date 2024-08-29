@@ -4,7 +4,6 @@ use crate::{error::LangsError, progress_reporter};
 use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
-use zip::write::SimpleFileOptions;
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -13,6 +12,7 @@ use std::{
 use tmc_langs_framework::{TmcCommand, TmcProjectYml};
 use tmc_langs_util::{deserialize, file_util};
 use walkdir::WalkDir;
+use zip::write::SimpleFileOptions;
 
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
@@ -493,7 +493,7 @@ mod test {
         let options = get_course_options(temp.path(), "some course").unwrap();
         assert_eq!(options.len(), 1);
         assert!(options
-            .get(&Value::String("option".to_string()))
+            .get(Value::String("option".to_string()))
             .unwrap()
             .as_bool()
             .unwrap())
@@ -515,7 +515,7 @@ mod test {
             .into_iter()
             .map(|ed| {
                 (
-                    ed.strip_prefix(&temp.path().join("course"))
+                    ed.strip_prefix(temp.path().join("course"))
                         .unwrap()
                         .to_path_buf(),
                     None,
@@ -559,7 +559,7 @@ mod test {
             .into_iter()
             .map(|ed| {
                 (
-                    ed.strip_prefix(&temp.path().join("clone"))
+                    ed.strip_prefix(temp.path().join("clone"))
                         .unwrap()
                         .to_path_buf(),
                     None,
