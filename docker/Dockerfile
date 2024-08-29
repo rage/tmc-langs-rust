@@ -1,4 +1,4 @@
-FROM rust:slim-bullseye AS base
+FROM rust:slim-bookworm AS base
 RUN rustup component add clippy
 # C# https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian
 RUN apt update \
@@ -14,7 +14,7 @@ RUN apt update \
     # languages
     npm \
     python3 \
-    openjdk-21-jdk ant maven \
+    openjdk-17-jdk ant maven \
     dotnet-sdk-8.0 \
     check valgrind \
     r-base r-cran-devtools locales \
