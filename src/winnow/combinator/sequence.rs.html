@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.2/src/combinator/sequence.rs`."><title>sequence.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.18/src/combinator/sequence.rs`."><title>sequence.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -165,11 +164,6 @@
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::combinator::trace;
 <span class="kw">use </span><span class="kw">crate</span>::error::ParserError;
 <span class="kw">use </span><span class="kw">crate</span>::stream::Stream;
@@ -179,10 +173,6 @@
 </span><span class="kw">pub use </span><span class="kw">crate</span>::seq;
 
 <span class="doccomment">/// Sequence two parsers, only returning the output from the second.
-///
-/// # Arguments
-/// * `first` The opening parser.
-/// * `second` The second parser to get object.
 ///
 /// See also [`seq`] to generalize this across any number of fields.
 ///
@@ -202,26 +192,23 @@
 /// assert_eq!(parser.parse_peek("123"), Err(ErrMode::Backtrack(InputError::new("123", ErrorKind::Tag))));
 /// ```
 </span><span class="attr">#[doc(alias = <span class="string">"ignore_then"</span>)]
-</span><span class="kw">pub fn </span>preceded&lt;I, O1, O2, E: ParserError&lt;I&gt;, F, G&gt;(
-    <span class="kw-2">mut </span>first: F,
-    <span class="kw-2">mut </span>second: G,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, O2, E&gt;
+</span><span class="kw">pub fn </span>preceded&lt;Input, Ignored, Output, Error, IgnoredParser, ParseNext&gt;(
+    <span class="kw-2">mut </span>ignored: IgnoredParser,
+    <span class="kw-2">mut </span>parser: ParseNext,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    F: Parser&lt;I, O1, E&gt;,
-    G: Parser&lt;I, O2, E&gt;,
+    </span>Input: Stream,
+    Error: ParserError&lt;Input&gt;,
+    IgnoredParser: Parser&lt;Input, Ignored, Error&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
 {
-    trace(<span class="string">"preceded"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>I| {
-        <span class="kw">let _ </span>= first.parse_next(input)<span class="question-mark">?</span>;
-        second.parse_next(input)
+    trace(<span class="string">"preceded"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input| {
+        <span class="kw">let _ </span>= ignored.parse_next(input)<span class="question-mark">?</span>;
+        parser.parse_next(input)
     })
 }
 
 <span class="doccomment">/// Sequence two parsers, only returning the output of the first.
-///
-/// # Arguments
-/// * `first` The first parser to apply.
-/// * `second` The second parser to match an object.
 ///
 /// See also [`seq`] to generalize this across any number of fields.
 ///
@@ -241,27 +228,23 @@
 /// assert_eq!(parser.parse_peek("123"), Err(ErrMode::Backtrack(InputError::new("123", ErrorKind::Tag))));
 /// ```
 </span><span class="attr">#[doc(alias = <span class="string">"then_ignore"</span>)]
-</span><span class="kw">pub fn </span>terminated&lt;I, O1, O2, E: ParserError&lt;I&gt;, F, G&gt;(
-    <span class="kw-2">mut </span>first: F,
-    <span class="kw-2">mut </span>second: G,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, O1, E&gt;
+</span><span class="kw">pub fn </span>terminated&lt;Input, Output, Ignored, Error, ParseNext, IgnoredParser&gt;(
+    <span class="kw-2">mut </span>parser: ParseNext,
+    <span class="kw-2">mut </span>ignored: IgnoredParser,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    F: Parser&lt;I, O1, E&gt;,
-    G: Parser&lt;I, O2, E&gt;,
+    </span>Input: Stream,
+    Error: ParserError&lt;Input&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    IgnoredParser: Parser&lt;Input, Ignored, Error&gt;,
 {
-    trace(<span class="string">"terminated"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>I| {
-        <span class="kw">let </span>o1 = first.parse_next(input)<span class="question-mark">?</span>;
-        second.parse_next(input).map(|<span class="kw">_</span>| o1)
+    trace(<span class="string">"terminated"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input| {
+        <span class="kw">let </span>o = parser.parse_next(input)<span class="question-mark">?</span>;
+        ignored.parse_next(input).map(|<span class="kw">_</span>| o)
     })
 }
 
 <span class="doccomment">/// Sequence three parsers, only returning the values of the first and third.
-///
-/// # Arguments
-/// * `first` The first parser to apply.
-/// * `sep` The separator parser to apply.
-/// * `second` The second parser to apply.
 ///
 /// See also [`seq`] to generalize this across any number of fields.
 ///
@@ -280,18 +263,19 @@
 /// assert_eq!(parser.parse_peek(""), Err(ErrMode::Backtrack(InputError::new("", ErrorKind::Tag))));
 /// assert_eq!(parser.parse_peek("123"), Err(ErrMode::Backtrack(InputError::new("123", ErrorKind::Tag))));
 /// ```
-</span><span class="kw">pub fn </span>separated_pair&lt;I, O1, O2, O3, E: ParserError&lt;I&gt;, F, G, H&gt;(
-    <span class="kw-2">mut </span>first: F,
-    <span class="kw-2">mut </span>sep: G,
-    <span class="kw-2">mut </span>second: H,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, (O1, O3), E&gt;
+</span><span class="kw">pub fn </span>separated_pair&lt;Input, O1, Sep, O2, Error, P1, SepParser, P2&gt;(
+    <span class="kw-2">mut </span>first: P1,
+    <span class="kw-2">mut </span>sep: SepParser,
+    <span class="kw-2">mut </span>second: P2,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, (O1, O2), Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    F: Parser&lt;I, O1, E&gt;,
-    G: Parser&lt;I, O2, E&gt;,
-    H: Parser&lt;I, O3, E&gt;,
+    </span>Input: Stream,
+    Error: ParserError&lt;Input&gt;,
+    P1: Parser&lt;Input, O1, Error&gt;,
+    SepParser: Parser&lt;Input, Sep, Error&gt;,
+    P2: Parser&lt;Input, O2, Error&gt;,
 {
-    trace(<span class="string">"separated_pair"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>I| {
+    trace(<span class="string">"separated_pair"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">let </span>o1 = first.parse_next(input)<span class="question-mark">?</span>;
         <span class="kw">let _ </span>= sep.parse_next(input)<span class="question-mark">?</span>;
         second.parse_next(input).map(|o2| (o1, o2))
@@ -299,11 +283,6 @@
 }
 
 <span class="doccomment">/// Sequence three parsers, only returning the output of the second.
-///
-/// # Arguments
-/// * `first` The first parser to apply and discard.
-/// * `second` The second parser to apply.
-/// * `third` The third parser to apply and discard.
 ///
 /// See also [`seq`] to generalize this across any number of fields.
 ///
@@ -324,21 +303,31 @@
 /// ```
 </span><span class="attr">#[doc(alias = <span class="string">"between"</span>)]
 #[doc(alias = <span class="string">"padded"</span>)]
-</span><span class="kw">pub fn </span>delimited&lt;I, O1, O2, O3, E: ParserError&lt;I&gt;, F, G, H&gt;(
-    <span class="kw-2">mut </span>first: F,
-    <span class="kw-2">mut </span>second: G,
-    <span class="kw-2">mut </span>third: H,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, O2, E&gt;
+</span><span class="kw">pub fn </span>delimited&lt;
+    Input,
+    Ignored1,
+    Output,
+    Ignored2,
+    Error,
+    IgnoredParser1,
+    ParseNext,
+    IgnoredParser2,
+&gt;(
+    <span class="kw-2">mut </span>ignored1: IgnoredParser1,
+    <span class="kw-2">mut </span>parser: ParseNext,
+    <span class="kw-2">mut </span>ignored2: IgnoredParser2,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    F: Parser&lt;I, O1, E&gt;,
-    G: Parser&lt;I, O2, E&gt;,
-    H: Parser&lt;I, O3, E&gt;,
+    </span>Input: Stream,
+    Error: ParserError&lt;Input&gt;,
+    IgnoredParser1: Parser&lt;Input, Ignored1, Error&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    IgnoredParser2: Parser&lt;Input, Ignored2, Error&gt;,
 {
-    trace(<span class="string">"delimited"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>I| {
-        <span class="kw">let _ </span>= first.parse_next(input)<span class="question-mark">?</span>;
-        <span class="kw">let </span>o2 = second.parse_next(input)<span class="question-mark">?</span>;
-        third.parse_next(input).map(|<span class="kw">_</span>| o2)
+    trace(<span class="string">"delimited"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input| {
+        <span class="kw">let _ </span>= ignored1.parse_next(input)<span class="question-mark">?</span>;
+        <span class="kw">let </span>o2 = parser.parse_next(input)<span class="question-mark">?</span>;
+        ignored2.parse_next(input).map(|<span class="kw">_</span>| o2)
     })
 }
 </code></pre></div></section></main></body></html>

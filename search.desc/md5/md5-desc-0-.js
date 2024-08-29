@@ -1,0 +1,1 @@
+searchState.loadedDescShard("md5", 0, "The MD5 hash function.\nA context.\nA digest.\nCompute the digest of data.\nFinalize and return the digest.\nConsume data.\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nCreate a context for computing a digest.")

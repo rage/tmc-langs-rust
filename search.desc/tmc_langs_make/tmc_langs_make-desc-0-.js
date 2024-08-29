@@ -1,0 +1,1 @@
+searchState.loadedDescShard("tmc_langs_make", 0, "TMC plugin for make.\nReturns the argument unchanged.\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nChecks if the directory has a src dir and a Makefile file …")

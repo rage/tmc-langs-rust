@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["as_mut_slice","data","new","new_external"]};

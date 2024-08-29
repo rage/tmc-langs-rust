@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BUILD_PROFILE","MAJOR","MINOR","PATCH","VERSION"],"fn":["version"]};
+window.SIDEBAR_ITEMS = {"constant":["MAJOR","MINOR","PATCH","VERSION"],"fn":["version"]};

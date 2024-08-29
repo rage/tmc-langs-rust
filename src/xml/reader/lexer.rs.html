@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.19/src/reader/lexer.rs`."><title>lexer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.21/src/reader/lexer.rs`."><title>lexer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1161,25 +1160,17 @@
 <a href="#1160" id="1160">1160</a>
 <a href="#1161" id="1161">1161</a>
 <a href="#1162" id="1162">1162</a>
-<a href="#1163" id="1163">1163</a>
-<a href="#1164" id="1164">1164</a>
-<a href="#1165" id="1165">1165</a>
-<a href="#1166" id="1166">1166</a>
-<a href="#1167" id="1167">1167</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains simple lexer for XML documents.
 //!
 //! This module is for internal use. Use `xml::pull` module to do parsing.
 
-
-</span><span class="kw">use </span><span class="kw">crate</span>::reader::ErrorKind;
+</span><span class="kw">use </span><span class="kw">crate</span>::common::{is_name_char, is_whitespace_char, is_xml10_char, is_xml11_char, Position, TextPosition};
 <span class="kw">use </span><span class="kw">crate</span>::reader::error::SyntaxError;
-<span class="kw">use </span>std::collections::VecDeque;
-<span class="kw">use </span>std::fmt;
-<span class="kw">use </span>std::io::Read;
-<span class="kw">use </span>std::result;
-<span class="kw">use </span><span class="kw">crate</span>::common::{is_name_char, is_whitespace_char, Position, TextPosition, is_xml10_char, is_xml11_char};
-<span class="kw">use </span><span class="kw">crate</span>::reader::Error;
+<span class="kw">use </span><span class="kw">crate</span>::reader::{Error, ErrorKind};
 <span class="kw">use </span><span class="kw">crate</span>::util::{CharReader, Encoding};
+<span class="kw">use </span>std::collections::VecDeque;
+<span class="kw">use </span>std::io::Read;
+<span class="kw">use </span>std::{fmt, result};
 
 <span class="kw">use </span><span class="kw">super</span>::ParserConfig2;
 
@@ -1191,7 +1182,7 @@
     </span>ProcessingInstructionStart,
     <span class="doccomment">/// `?&gt;`
     </span>ProcessingInstructionEnd,
-    <span class="doccomment">/// `&lt;!DOCTYPE
+    <span class="doccomment">/// `&lt;!DOCTYPE…`
     </span>DoctypeStart,
     <span class="doccomment">/// `&lt;`
     </span>OpeningTagStart,
@@ -1223,6 +1214,8 @@
     </span>ReferenceEnd,
     <span class="doccomment">/// `&lt;!` of `ENTITY`
     </span>MarkupDeclarationStart,
+    <span class="doccomment">/// End of file
+    </span>Eof,
 }
 
 <span class="kw">impl </span>fmt::Display <span class="kw">for </span>Token {
@@ -1248,15 +1241,18 @@
                 Token::SingleQuote                =&gt; <span class="string">"'"</span>,
                 Token::DoubleQuote                =&gt; <span class="string">"\""</span>,
                 Token::MarkupDeclarationStart     =&gt; <span class="string">"&lt;!"</span>,
-                <span class="kw">_                          </span>=&gt; <span class="macro">unreachable!</span>()
+                Token::Eof | Token::Character(<span class="kw">_</span>)  =&gt; {
+                    <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>);
+                    <span class="string">""
+                </span>},
             }.fmt(f),
         }
     }
 }
 
 <span class="kw">impl </span>Token {
-    <span class="kw">pub fn </span>as_static_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+    <span class="kw">pub fn </span>as_static_str(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
             Token::OpeningTagStart            =&gt; <span class="prelude-val">Some</span>(<span class="string">"&lt;"</span>),
             Token::ProcessingInstructionStart =&gt; <span class="prelude-val">Some</span>(<span class="string">"&lt;?"</span>),
             Token::DoctypeStart               =&gt; <span class="prelude-val">Some</span>(<span class="string">"&lt;!DOCTYPE"</span>),
@@ -1278,11 +1274,11 @@
     }
 
     <span class="comment">// using String.push_str(token.to_string()) is simply way too slow
-    </span><span class="kw">pub fn </span>push_to_string(<span class="kw-2">&amp;</span><span class="self">self</span>, target: <span class="kw-2">&amp;mut </span>String) {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+    </span><span class="kw">pub fn </span>push_to_string(<span class="self">self</span>, target: <span class="kw-2">&amp;mut </span>String) {
+        <span class="kw">match </span><span class="self">self </span>{
             Token::Character(c) =&gt; {
                 <span class="macro">debug_assert!</span>(is_xml10_char(c) || is_xml11_char(c));
-                target.push(c)
+                target.push(c);
             },
             <span class="kw">_ </span>=&gt; <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <span class="self">self</span>.as_static_str() {
                 target.push_str(s);
@@ -1305,7 +1301,7 @@
     </span>DoctypeStarted(DoctypeStartedSubstate),
     <span class="doccomment">/// Other items like `&lt;!ELEMENT` in DTD
     </span>InsideMarkupDeclaration,
-    <span class="doccomment">/// Triggered after DoctypeStarted to handle sub elements
+    <span class="doccomment">/// Triggered after `DoctypeStarted` to handle sub elements
     </span>InsideDoctype,
     <span class="doccomment">/// Triggered on '&lt;![' up to '&lt;![CDATA'
     </span>CDataStarted(CDataStartedSubstate),
@@ -1340,11 +1336,13 @@
 }
 
 <span class="attr">#[derive(Copy, Clone)]
+#[allow(clippy::upper_case_acronyms)]
 </span><span class="kw">enum </span>DoctypeStartedSubstate {
     D, DO, DOC, DOCT, DOCTY, DOCTYP
 }
 
 <span class="attr">#[derive(Copy, Clone)]
+#[allow(clippy::upper_case_acronyms)]
 </span><span class="kw">enum </span>CDataStartedSubstate {
     E, C, CD, CDA, CDAT, CDATA
 }
@@ -1354,14 +1352,14 @@
 
 <span class="doccomment">/// Helps to set up a dispatch table for lexing large unambigous tokens like
 /// `&lt;![CDATA[` or `&lt;!DOCTYPE `.
-</span><span class="macro">macro_rules! </span>dispatch_on_enum_state(
+</span><span class="macro">macro_rules!</span> dispatch_on_enum_state(
     (<span class="macro-nonterminal">$_self</span>:ident, <span class="macro-nonterminal">$s</span>:expr, <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$is</span>:expr,
      $(<span class="macro-nonterminal">$st</span>:ident; <span class="macro-nonterminal">$stc</span>:expr ; <span class="macro-nonterminal">$next_st</span>:ident ; <span class="macro-nonterminal">$chunk</span>:expr),+;
      <span class="macro-nonterminal">$end_st</span>:ident ; <span class="macro-nonterminal">$end_c</span>:expr ; <span class="macro-nonterminal">$end_chunk</span>:expr ; <span class="macro-nonterminal">$e</span>:expr) =&gt; (
         <span class="kw">match </span><span class="macro-nonterminal">$s </span>{
             $(
             <span class="macro-nonterminal">$st </span>=&gt; <span class="kw">match </span><span class="macro-nonterminal">$c </span>{
-                <span class="macro-nonterminal">$stc </span>=&gt; <span class="macro-nonterminal">$_self</span>.move_to(<span class="macro-nonterminal">$is</span>(<span class="macro-nonterminal">$next_st</span>)),
+                <span class="macro-nonterminal">$stc </span>=&gt; <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$_self</span>.move_to(<span class="macro-nonterminal">$is</span>(<span class="macro-nonterminal">$next_st</span>))),
                 <span class="kw">_  </span>=&gt; <span class="macro-nonterminal">$_self</span>.handle_error(<span class="macro-nonterminal">$chunk</span>, <span class="macro-nonterminal">$c</span>)
             },
             )+
@@ -1413,7 +1411,7 @@
             reader: CharReader::new(),
             pos: TextPosition::new(),
             head_pos: TextPosition::new(),
-            char_queue: VecDeque::with_capacity(<span class="number">4</span>),  <span class="comment">// TODO: check size
+            char_queue: VecDeque::with_capacity(<span class="number">4</span>), <span class="comment">// TODO: check size
             </span>st: State::Normal,
             normal_state: State::Normal,
             inside_token: <span class="bool-val">false</span>,
@@ -1450,12 +1448,12 @@
     ///
     /// Return value:
     /// * `Err(reason) where reason: reader::Error` - when an error occurs;
-    /// * `Ok(None)` - upon end of stream is reached;
-    /// * `Ok(Some(token)) where token: Token` - in case a complete-token has been read from the stream.
-    </span><span class="kw">pub fn </span>next_token&lt;B: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Result </span>{
+    /// * `Ok(Token::Eof)` - upon end of stream is reached;
+    /// * `Ok(token) where token: Token` - in case a complete-token has been read from the stream.
+    </span><span class="kw">pub fn </span>next_token&lt;B: Read&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, b: <span class="kw-2">&amp;mut </span>B) -&gt; <span class="prelude-ty">Result</span>&lt;Token&gt; {
         <span class="comment">// Already reached end of buffer
         </span><span class="kw">if </span><span class="self">self</span>.eof_handled {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(Token::Eof);
         }
 
         <span class="kw">if </span>!<span class="self">self</span>.inside_token {
@@ -1465,13 +1463,10 @@
 
         <span class="comment">// Check if we have saved a char or two for ourselves
         </span><span class="kw">while let </span><span class="prelude-val">Some</span>(c) = <span class="self">self</span>.char_queue.pop_front() {
-            <span class="kw">match </span><span class="self">self</span>.dispatch_char(c)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(t) =&gt; {
-                    <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
-                }
-                <span class="prelude-val">None </span>=&gt; {} <span class="comment">// continue
-            </span>}
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.dispatch_char(c)<span class="question-mark">? </span>{
+                <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(t);
+            }
         }
         <span class="comment">// if char_queue is empty, all circular reparsing is done
         </span><span class="self">self</span>.reparse_depth = <span class="number">0</span>;
@@ -1487,14 +1482,9 @@
                 <span class="self">self</span>.head_pos.advance(<span class="number">1</span>);
             }
 
-            <span class="kw">match </span><span class="self">self</span>.dispatch_char(c)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(t) =&gt; {
-                    <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(t));
-                }
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="comment">// continue
-                </span>}
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(t) = <span class="self">self</span>.dispatch_char(c)<span class="question-mark">? </span>{
+                <span class="self">self</span>.inside_token = <span class="bool-val">false</span>;
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(t);
             }
         }
 
@@ -1502,7 +1492,7 @@
     }
 
     <span class="attr">#[inline(never)]
-    </span><span class="kw">fn </span>end_of_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>end_of_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Token&gt; {
         <span class="comment">// Handle end of stream
         </span><span class="self">self</span>.eof_handled = <span class="bool-val">true</span>;
         <span class="self">self</span>.pos = <span class="self">self</span>.head_pos;
@@ -1516,21 +1506,21 @@
             State::InsideDoctype | State::InsideMarkupDeclarationQuotedString(<span class="kw">_</span>) =&gt;
                 <span class="prelude-val">Err</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedEof)),
             State::EmptyTagClosing =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">'/'</span>))),
+                <span class="prelude-val">Ok</span>(Token::Character(<span class="string">'/'</span>)),
             State::CommentClosing(ClosingSubstate::First) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">'-'</span>))),
+                <span class="prelude-val">Ok</span>(Token::Character(<span class="string">'-'</span>)),
             State::InvalidCDataClosing(ClosingSubstate::First) =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(<span class="string">']'</span>))),
+                <span class="prelude-val">Ok</span>(Token::Character(<span class="string">']'</span>)),
             State::InvalidCDataClosing(ClosingSubstate::Second) =&gt; {
                 <span class="self">self</span>.eof_handled = <span class="bool-val">false</span>;
-                <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[<span class="string">']'</span>], Token::Character(<span class="string">']'</span>))
+                <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[<span class="string">']'</span>], Token::Character(<span class="string">']'</span>)))
             },
-            State::Normal =&gt;
-                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+            State::Normal =&gt; <span class="prelude-val">Ok</span>(Token::Eof),
         }
     }
 
     <span class="attr">#[cold]
+    #[allow(clippy::needless_pass_by_value)]
     </span><span class="kw">fn </span>error(<span class="kw-2">&amp;</span><span class="self">self</span>, e: SyntaxError) -&gt; Error {
         Error {
             pos: <span class="self">self</span>.position(),
@@ -1538,50 +1528,49 @@
         }
     }
 
-
     <span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>dispatch_char(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span><span class="self">self</span>.st {
-            State::Normal                         =&gt; <span class="self">self</span>.normal(c),
+            State::Normal                         =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.normal(c)),
             State::TagStarted                     =&gt; <span class="self">self</span>.tag_opened(c),
-            State::EmptyTagClosing                =&gt; <span class="self">self</span>.empty_element_closing(c),
+            State::EmptyTagClosing                =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.empty_element_closing(c))),
             State::CommentOrCDataOrDoctypeStarted =&gt; <span class="self">self</span>.comment_or_cdata_or_doctype_started(c),
-            State::InsideCdata                    =&gt; <span class="self">self</span>.inside_cdata(c),
+            State::InsideCdata                    =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.inside_cdata(c)),
             State::CDataStarted(s)                =&gt; <span class="self">self</span>.cdata_started(c, s),
-            State::InsideComment                  =&gt; <span class="self">self</span>.inside_comment_state(c),
+            State::InsideComment                  =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.inside_comment_state(c)),
             State::CommentStarted                 =&gt; <span class="self">self</span>.comment_started(c),
-            State::InsideProcessingInstruction    =&gt; <span class="self">self</span>.inside_processing_instruction(c),
-            State::ProcessingInstructionClosing   =&gt; <span class="self">self</span>.processing_instruction_closing(c),
+            State::InsideProcessingInstruction    =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.inside_processing_instruction(c)),
+            State::ProcessingInstructionClosing   =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.processing_instruction_closing(c))),
             State::CommentClosing(s)              =&gt; <span class="self">self</span>.comment_closing(c, s),
-            State::CDataClosing(s)                =&gt; <span class="self">self</span>.cdata_closing(c, s),
-            State::InsideDoctype                  =&gt; <span class="self">self</span>.inside_doctype(c),
+            State::CDataClosing(s)                =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.cdata_closing(c, s)),
+            State::InsideDoctype                  =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.inside_doctype(c)),
             State::DoctypeStarted(s)              =&gt; <span class="self">self</span>.doctype_started(c, s),
-            State::InvalidCDataClosing(s)         =&gt; <span class="self">self</span>.invalid_cdata_closing(c, s),
+            State::InvalidCDataClosing(s)         =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.invalid_cdata_closing(c, s)),
             State::InsideMarkupDeclaration        =&gt; <span class="self">self</span>.markup_declaration(c),
-            State::InsideMarkupDeclarationQuotedString(q) =&gt; <span class="self">self</span>.markup_declaration_string(c, q),
+            State::InsideMarkupDeclarationQuotedString(q) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.markup_declaration_string(c, q))),
         }
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>move_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>move_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="self">self</span>.st = st;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>move_to_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, token: Token) -&gt; Token {
+        <span class="self">self</span>.st = st;
+        token
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>move_to_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, token: Token) -&gt; <span class="prelude-ty">Result </span>{
-        <span class="self">self</span>.st = st;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(token))
-    }
-
-    <span class="attr">#[inline]
-    </span><span class="kw">fn </span>move_to_and_reset_normal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, token: Token) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>move_to_and_reset_normal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, token: Token) -&gt; Token {
         <span class="self">self</span>.normal_state = st;
         <span class="self">self</span>.st = st;
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(token))
+        token
     }
 
-    <span class="kw">fn </span>move_to_with_unread(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, cs: <span class="kw-2">&amp;</span>[char], token: Token) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>move_to_with_unread(<span class="kw-2">&amp;mut </span><span class="self">self</span>, st: State, cs: <span class="kw-2">&amp;</span>[char], token: Token) -&gt; Token {
         <span class="kw">for </span>c <span class="kw">in </span>cs.iter().rev().copied() {
             <span class="self">self</span>.char_queue.push_front(c);
         }
@@ -1616,65 +1605,65 @@
             <span class="kw">let </span>first = chars.next().unwrap_or(<span class="string">'\0'</span>);
             <span class="self">self</span>.char_queue.extend(chars);
             <span class="self">self</span>.char_queue.push_back(c);
-            <span class="kw">return </span><span class="self">self</span>.move_to_with(State::Normal, Token::Character(first));
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::Normal, Token::Character(first))));
         }
         <span class="prelude-val">Err</span>(<span class="self">self</span>.error(SyntaxError::UnexpectedTokenBefore(chunk, c)))
     }
 
     <span class="doccomment">/// Encountered a char
-    </span><span class="kw">fn </span>normal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>normal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>c {
             <span class="string">'&lt;'                        </span>=&gt; <span class="self">self</span>.move_to(State::TagStarted),
-            <span class="string">'&gt;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::TagEnd)),
+            <span class="string">'&gt;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::TagEnd),
             <span class="string">'/'                        </span>=&gt; <span class="self">self</span>.move_to(State::EmptyTagClosing),
-            <span class="string">'='                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::EqualsSign)),
-            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::DoubleQuote)),
-            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::SingleQuote)),
+            <span class="string">'='                        </span>=&gt; <span class="prelude-val">Some</span>(Token::EqualsSign),
+            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::DoubleQuote),
+            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Some</span>(Token::SingleQuote),
             <span class="string">']'                        </span>=&gt; <span class="self">self</span>.move_to(State::InvalidCDataClosing(ClosingSubstate::First)),
-            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceStart)),
-            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceEnd)),
-            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c)))
+            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceStart),
+            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceEnd),
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Some</span>(Token::Character(c))
         }
     }
 
-    <span class="kw">fn </span>inside_cdata(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>inside_cdata(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>c {
             <span class="string">']'                        </span>=&gt; <span class="self">self</span>.move_to(State::CDataClosing(ClosingSubstate::First)),
-            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c)))
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Some</span>(Token::Character(c)),
         }
     }
 
-    <span class="kw">fn </span>inside_processing_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>inside_processing_instruction(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="comment">// These tokens are used by `&lt;?xml?&gt;` parser
         </span><span class="kw">match </span>c {
             <span class="string">'?'                        </span>=&gt; <span class="self">self</span>.move_to(State::ProcessingInstructionClosing),
-            <span class="string">'&lt;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::OpeningTagStart)),
-            <span class="string">'&gt;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::TagEnd)),
-            <span class="string">'/'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ClosingTagStart)),
-            <span class="string">'='                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::EqualsSign)),
-            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::DoubleQuote)),
-            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::SingleQuote)),
-            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceStart)),
-            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceEnd)),
-            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c)))
+            <span class="string">'&lt;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::OpeningTagStart),
+            <span class="string">'&gt;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::TagEnd),
+            <span class="string">'/'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ClosingTagStart),
+            <span class="string">'='                        </span>=&gt; <span class="prelude-val">Some</span>(Token::EqualsSign),
+            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::DoubleQuote),
+            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Some</span>(Token::SingleQuote),
+            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceStart),
+            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceEnd),
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Some</span>(Token::Character(c))
         }
     }
 
-    <span class="kw">fn </span>inside_comment_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>inside_comment_state(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>c {
             <span class="string">'-'                        </span>=&gt; <span class="self">self</span>.move_to(State::CommentClosing(ClosingSubstate::First)),
-            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c)))
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Some</span>(Token::Character(c)),
         }
     }
 
     <span class="doccomment">/// Encountered '&lt;'
     </span><span class="kw">fn </span>tag_opened(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span>c {
-            <span class="string">'?'                        </span>=&gt; <span class="self">self</span>.move_to_with(State::InsideProcessingInstruction, Token::ProcessingInstructionStart),
-            <span class="string">'/'                        </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::ClosingTagStart),
-            <span class="string">'!'                        </span>=&gt; <span class="self">self</span>.move_to(State::CommentOrCDataOrDoctypeStarted),
-            <span class="kw">_ if </span>is_whitespace_char(c) =&gt; <span class="self">self</span>.move_to_with_unread(<span class="self">self</span>.normal_state, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart),
-            <span class="kw">_ if </span>is_name_char(c)       =&gt; <span class="self">self</span>.move_to_with_unread(<span class="self">self</span>.normal_state, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart),
+            <span class="string">'?'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::InsideProcessingInstruction, Token::ProcessingInstructionStart))),
+            <span class="string">'/'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::ClosingTagStart))),
+            <span class="string">'!'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to(State::CommentOrCDataOrDoctypeStarted)),
+            <span class="kw">_ if </span>is_whitespace_char(c) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(<span class="self">self</span>.normal_state, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart))),
+            <span class="kw">_ if </span>is_name_char(c)       =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(<span class="self">self</span>.normal_state, <span class="kw-2">&amp;</span>[c], Token::OpeningTagStart))),
             <span class="kw">_                          </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">"&lt;"</span>, c)
         }
     }
@@ -1682,11 +1671,11 @@
     <span class="doccomment">/// Encountered '&lt;!'
     </span><span class="kw">fn </span>comment_or_cdata_or_doctype_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span>c {
-            <span class="string">'-' </span>=&gt; <span class="self">self</span>.move_to(State::CommentStarted),
-            <span class="string">'[' </span>=&gt; <span class="self">self</span>.move_to(State::CDataStarted(CDataStartedSubstate::E)),
-            <span class="string">'D' </span>=&gt; <span class="self">self</span>.move_to(State::DoctypeStarted(DoctypeStartedSubstate::D)),
+            <span class="string">'-' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to(State::CommentStarted)),
+            <span class="string">'[' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to(State::CDataStarted(CDataStartedSubstate::E))),
+            <span class="string">'D' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to(State::DoctypeStarted(DoctypeStartedSubstate::D))),
             <span class="string">'E' </span>| <span class="string">'A' </span>| <span class="string">'N' </span><span class="kw">if </span><span class="macro">matches!</span>(<span class="self">self</span>.normal_state, State::InsideDoctype) =&gt; {
-                <span class="self">self</span>.move_to_with_unread(State::InsideMarkupDeclaration, <span class="kw-2">&amp;</span>[c], Token::MarkupDeclarationStart)
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::InsideMarkupDeclaration, <span class="kw-2">&amp;</span>[c], Token::MarkupDeclarationStart)))
             },
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">"&lt;!"</span>, c),
         }
@@ -1695,7 +1684,7 @@
     <span class="doccomment">/// Encountered '&lt;!-'
     </span><span class="kw">fn </span>comment_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span>c {
-            <span class="string">'-' </span>=&gt; <span class="self">self</span>.move_to_with(State::InsideComment, Token::CommentStart),
+            <span class="string">'-' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::InsideComment, Token::CommentStart))),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">"&lt;!-"</span>, c),
         }
     }
@@ -1709,7 +1698,7 @@
             CD    ; <span class="string">'A' </span>; CDA   ; <span class="string">"&lt;![CD"</span>,
             CDA   ; <span class="string">'T' </span>; CDAT  ; <span class="string">"&lt;![CDA"</span>,
             CDAT  ; <span class="string">'A' </span>; CDATA ; <span class="string">"&lt;![CDAT"</span>;
-            CDATA ; <span class="string">'[' </span>; <span class="string">"&lt;![CDATA" </span>; <span class="self">self</span>.move_to_with(State::InsideCdata, Token::CDataStart)
+            CDATA ; <span class="string">'[' </span>; <span class="string">"&lt;![CDATA" </span>; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::InsideCdata, Token::CDataStart)))
         )
     }
 
@@ -1717,20 +1706,20 @@
     </span><span class="kw">fn </span>markup_declaration(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span>c {
             <span class="string">'&lt;'                        </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">"&lt;!"</span>, c),
-            <span class="string">'&gt;'                        </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::TagEnd),
+            <span class="string">'&gt;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::TagEnd))),
             <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceStart)),
             <span class="string">';'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceEnd)),
-            <span class="string">'"'                        </span>=&gt; <span class="self">self</span>.move_to_with(State::InsideMarkupDeclarationQuotedString(QuoteStyle::Double), Token::DoubleQuote),
-            <span class="string">'\''                       </span>=&gt; <span class="self">self</span>.move_to_with(State::InsideMarkupDeclarationQuotedString(QuoteStyle::Single), Token::SingleQuote),
+            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::InsideMarkupDeclarationQuotedString(QuoteStyle::Double), Token::DoubleQuote))),
+            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::InsideMarkupDeclarationQuotedString(QuoteStyle::Single), Token::SingleQuote))),
             <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c))),
         }
     }
 
-    <span class="kw">fn </span>markup_declaration_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, q: QuoteStyle) -&gt; <span class="prelude-ty">Result </span>{
+    <span class="kw">fn </span>markup_declaration_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, q: QuoteStyle) -&gt; Token {
         <span class="kw">match </span>c {
             <span class="string">'"' </span><span class="kw">if </span>q == QuoteStyle::Double  =&gt; <span class="self">self</span>.move_to_with(State::InsideMarkupDeclaration, Token::DoubleQuote),
             <span class="string">'\'' </span><span class="kw">if </span>q == QuoteStyle::Single =&gt; <span class="self">self</span>.move_to_with(State::InsideMarkupDeclaration, Token::SingleQuote),
-            <span class="kw">_                               </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c))),
+            <span class="kw">_                               </span>=&gt; Token::Character(c),
         }
     }
 
@@ -1743,25 +1732,25 @@
             DOC    ; <span class="string">'T' </span>; DOCT   ; <span class="string">"&lt;!DOC"</span>,
             DOCT   ; <span class="string">'Y' </span>; DOCTY  ; <span class="string">"&lt;!DOCT"</span>,
             DOCTY  ; <span class="string">'P' </span>; DOCTYP ; <span class="string">"&lt;!DOCTY"</span>;
-            DOCTYP ; <span class="string">'E' </span>; <span class="string">"&lt;!DOCTYP" </span>; <span class="self">self</span>.move_to_and_reset_normal(State::InsideDoctype, Token::DoctypeStart)
+            DOCTYP ; <span class="string">'E' </span>; <span class="string">"&lt;!DOCTYP" </span>; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_and_reset_normal(State::InsideDoctype, Token::DoctypeStart)))
         )
     }
 
     <span class="doccomment">/// State used while awaiting the closing bracket for the &lt;!DOCTYPE tag
-    </span><span class="kw">fn </span>inside_doctype(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>inside_doctype(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>c {
-            <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_and_reset_normal(State::Normal, Token::TagEnd),
+            <span class="string">'&gt;' </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_and_reset_normal(State::Normal, Token::TagEnd)),
             <span class="string">'&lt;'                        </span>=&gt; <span class="self">self</span>.move_to(State::TagStarted),
-            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceStart)),
-            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::ReferenceEnd)),
-            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::DoubleQuote)),
-            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::SingleQuote)),
-            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c))),
+            <span class="string">'&amp;'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceStart),
+            <span class="string">';'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::ReferenceEnd),
+            <span class="string">'"'                        </span>=&gt; <span class="prelude-val">Some</span>(Token::DoubleQuote),
+            <span class="string">'\''                       </span>=&gt; <span class="prelude-val">Some</span>(Token::SingleQuote),
+            <span class="kw">_                          </span>=&gt; <span class="prelude-val">Some</span>(Token::Character(c)),
         }
     }
 
     <span class="doccomment">/// Encountered '?'
-    </span><span class="kw">fn </span>processing_instruction_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>processing_instruction_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; Token {
         <span class="kw">match </span>c {
             <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::ProcessingInstructionEnd),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::InsideProcessingInstruction, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">'?'</span>)),
@@ -1769,7 +1758,7 @@
     }
 
     <span class="doccomment">/// Encountered '/'
-    </span><span class="kw">fn </span>empty_element_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>empty_element_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char) -&gt; Token {
         <span class="kw">match </span>c {
             <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::EmptyTagEnd),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(<span class="self">self</span>.normal_state, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">'/'</span>)),
@@ -1780,11 +1769,11 @@
     </span><span class="kw">fn </span>comment_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Result </span>{
         <span class="kw">match </span>s {
             ClosingSubstate::First =&gt; <span class="kw">match </span>c {
-                <span class="string">'-' </span>=&gt; <span class="self">self</span>.move_to(State::CommentClosing(ClosingSubstate::Second)),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::InsideComment, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">'-'</span>)),
+                <span class="string">'-' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.move_to(State::CommentClosing(ClosingSubstate::Second))),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::InsideComment, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">'-'</span>)))),
             },
             ClosingSubstate::Second =&gt; <span class="kw">match </span>c {
-                <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::CommentEnd),
+                <span class="string">'&gt;' </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::CommentEnd))),
                 <span class="comment">// double dash not followed by a greater-than is a hard error inside comment
                 </span><span class="kw">_ </span>=&gt; <span class="self">self</span>.handle_error(<span class="string">"--"</span>, c),
             },
@@ -1792,29 +1781,29 @@
     }
 
     <span class="doccomment">/// Encountered ']'
-    </span><span class="kw">fn </span>cdata_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>cdata_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>s {
             ClosingSubstate::First =&gt; <span class="kw">match </span>c {
                 <span class="string">']' </span>=&gt; <span class="self">self</span>.move_to(State::CDataClosing(ClosingSubstate::Second)),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::InsideCdata, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">']'</span>)),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::InsideCdata, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">']'</span>))),
             },
             ClosingSubstate::Second =&gt; <span class="kw">match </span>c {
-                <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_with(State::Normal, Token::CDataEnd),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::InsideCdata, <span class="kw-2">&amp;</span>[<span class="string">']'</span>, c], Token::Character(<span class="string">']'</span>)),
+                <span class="string">'&gt;' </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(State::Normal, Token::CDataEnd)),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::InsideCdata, <span class="kw-2">&amp;</span>[<span class="string">']'</span>, c], Token::Character(<span class="string">']'</span>))),
             },
         }
     }
 
     <span class="doccomment">/// Encountered ']'
-    </span><span class="kw">fn </span>invalid_cdata_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Result </span>{
+    </span><span class="kw">fn </span>invalid_cdata_closing(<span class="kw-2">&amp;mut </span><span class="self">self</span>, c: char, s: ClosingSubstate) -&gt; <span class="prelude-ty">Option</span>&lt;Token&gt; {
         <span class="kw">match </span>s {
             ClosingSubstate::First =&gt; <span class="kw">match </span>c {
                 <span class="string">']' </span>=&gt; <span class="self">self</span>.move_to(State::InvalidCDataClosing(ClosingSubstate::Second)),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">']'</span>)),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[c], Token::Character(<span class="string">']'</span>))),
             },
             ClosingSubstate::Second =&gt; <span class="kw">match </span>c {
-                <span class="string">'&gt;' </span>=&gt; <span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::CDataEnd),
-                <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[<span class="string">']'</span>, c], Token::Character(<span class="string">']'</span>)),
+                <span class="string">'&gt;' </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with(<span class="self">self</span>.normal_state, Token::CDataEnd)),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>.move_to_with_unread(State::Normal, <span class="kw-2">&amp;</span>[<span class="string">']'</span>, c], Token::Character(<span class="string">']'</span>))),
             },
         }
     }
@@ -1827,15 +1816,15 @@
 
     <span class="kw">use super</span>::{Lexer, Token};
 
-    <span class="macro">macro_rules! </span>assert_oks(
+    <span class="macro">macro_rules!</span> assert_oks(
         (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident ; $(<span class="macro-nonterminal">$e</span>:expr)+) =&gt; ({
             $(
-                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$e</span>)), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>));
+                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$e</span>), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>));
              )+
         })
     );
 
-    <span class="macro">macro_rules! </span>assert_err(
+    <span class="macro">macro_rules!</span> assert_err(
         (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident expect row <span class="macro-nonterminal">$r</span>:expr ; <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$s</span>:expr) =&gt; ({
             <span class="kw">let </span>err = <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>);
             <span class="macro">assert!</span>(err.is_err());
@@ -1845,9 +1834,9 @@
         })
     );
 
-    <span class="macro">macro_rules! </span>assert_none(
+    <span class="macro">macro_rules!</span> assert_none(
         (<span class="kw">for </span><span class="macro-nonterminal">$lex</span>:ident and <span class="macro-nonterminal">$buf</span>:ident) =&gt; (
-            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>))
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(Token::Eof), <span class="macro-nonterminal">$lex</span>.next_token(<span class="kw-2">&amp;mut </span><span class="macro-nonterminal">$buf</span>))
         )
     );
 
@@ -1857,7 +1846,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>tricky_pi() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">r#"&lt;?x&lt;!-- &amp;??&gt;&lt;x&gt;"#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">r"&lt;?x&lt;!-- &amp;??&gt;&lt;x&gt;"</span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
             Token::ProcessingInstructionStart
@@ -1879,7 +1868,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>reparser() {
-        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">r#"&amp;a;"#</span>);
+        <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="string">r"&amp;a;"</span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
             Token::ReferenceStart
@@ -1962,7 +1951,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>special_chars_test() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"?x!+ // -| ]z]]"#
+            <span class="string">r"?x!+ // -| ]z]]"
         </span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
@@ -1988,7 +1977,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdata_test() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"&lt;a&gt;&lt;![CDATA[x y ?]]&gt; &lt;/a&gt;"#
+            <span class="string">r"&lt;a&gt;&lt;![CDATA[x y ?]]&gt; &lt;/a&gt;"
         </span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
@@ -2013,7 +2002,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>cdata_closers_test() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"&lt;![CDATA[] &gt; ]&gt; ]]&gt;&lt;!----&gt;]]&lt;a&gt;"#
+            <span class="string">r"&lt;![CDATA[] &gt; ]&gt; ]]&gt;&lt;!----&gt;]]&lt;a&gt;"
         </span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
@@ -2040,7 +2029,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>doctype_test() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"&lt;a&gt;&lt;!DOCTYPE ab xx z&gt; "#
+            <span class="string">r"&lt;a&gt;&lt;!DOCTYPE ab xx z&gt; "
         </span>);
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
             Token::OpeningTagStart
@@ -2064,7 +2053,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>tricky_comments() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"&lt;a&gt;&lt;!-- C -&gt;--&gt;&lt;/a&gt;"#
+            <span class="string">r"&lt;a&gt;&lt;!-- C -&gt;--&gt;&lt;/a&gt;"
         </span>);
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
             Token::OpeningTagStart
@@ -2180,7 +2169,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>end_of_stream_handling_ok() {
-        <span class="macro">macro_rules! </span>eof_check(
+        <span class="macro">macro_rules!</span> eof_check(
             (<span class="macro-nonterminal">$data</span>:expr ; <span class="macro-nonterminal">$token</span>:expr) =&gt; ({
                 <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
                 <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ; <span class="macro-nonterminal">$token</span>);
@@ -2197,7 +2186,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>end_of_stream_handling_error() {
-        <span class="macro">macro_rules! </span>eof_check(
+        <span class="macro">macro_rules!</span> eof_check(
             (<span class="macro-nonterminal">$data</span>:expr; <span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$c</span>:expr) =&gt; ({
                 <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
                 <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="macro-nonterminal">$r </span>; <span class="macro-nonterminal">$c</span>, <span class="string">"Unexpected end of stream"</span>);
@@ -2266,7 +2255,7 @@
         );
     }
 
-    <span class="macro">macro_rules! </span>check_case(
+    <span class="macro">macro_rules!</span> check_case(
         (<span class="macro-nonterminal">$chunk</span>:expr, <span class="macro-nonterminal">$app</span>:expr; <span class="macro-nonterminal">$data</span>:expr; <span class="macro-nonterminal">$r</span>:expr, <span class="macro-nonterminal">$c</span>:expr, <span class="macro-nonterminal">$s</span>:expr) =&gt; ({
             <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
             <span class="macro">assert_err!</span>(<span class="kw">for </span>lex and buf expect row <span class="macro-nonterminal">$r </span>; <span class="macro-nonterminal">$c</span>, <span class="macro-nonterminal">$s</span>);
@@ -2274,7 +2263,7 @@
             <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(<span class="macro-nonterminal">$data</span>);
             lex.disable_errors();
             <span class="kw">for </span>c <span class="kw">in </span><span class="macro-nonterminal">$chunk</span>.chars() {
-                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(Token::Character(c))), lex.next_token(<span class="kw-2">&amp;mut </span>buf));
+                <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(Token::Character(c)), lex.next_token(<span class="kw-2">&amp;mut </span>buf));
             }
             <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;
                 Token::Character(<span class="macro-nonterminal">$app</span>)
@@ -2314,7 +2303,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>issue_98_cdata_ending_with_right_bracket() {
         <span class="kw">let </span>(<span class="kw-2">mut </span>lex, <span class="kw-2">mut </span>buf) = make_lex_and_buf(
-            <span class="string">r#"&lt;![CDATA[Foo [Bar]]]&gt;"#
+            <span class="string">r"&lt;![CDATA[Foo [Bar]]]&gt;"
         </span>);
 
         <span class="macro">assert_oks!</span>(<span class="kw">for </span>lex and buf ;

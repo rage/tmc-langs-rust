@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars_derive-0.8.16/src/attr/schemars_to_serde.rs`."><title>schemars_to_serde.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="schemars_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars_derive-0.8.21/src/attr/schemars_to_serde.rs`."><title>schemars_to_serde.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="schemars_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -171,45 +170,13 @@
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>quote::ToTokens;
 <span class="kw">use </span>serde_derive_internals::Ctxt;
 <span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>syn::parse::Parser;
-<span class="kw">use </span>syn::{Attribute, Data, Field, Meta, NestedMeta, Variant};
+<span class="kw">use </span>syn::{Attribute, Data, Field, Meta, Variant};
+
+<span class="kw">use </span><span class="kw">super</span>::get_meta_items;
 
 <span class="comment">// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SERDE_KEYWORDS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[
@@ -239,7 +206,7 @@
 
 <span class="comment">// If a struct/variant/field has any #[schemars] attributes, then create copies of them
 // as #[serde] attributes so that serde_derive_internals will parse them for us.
-</span><span class="kw">pub fn </span>process_serde_attrs(input: <span class="kw-2">&amp;mut </span>syn::DeriveInput) -&gt; <span class="prelude-ty">Result</span>&lt;(), Vec&lt;syn::Error&gt;&gt; {
+</span><span class="kw">pub fn </span>process_serde_attrs(input: <span class="kw-2">&amp;mut </span>syn::DeriveInput) -&gt; syn::Result&lt;()&gt; {
     <span class="kw">let </span>ctxt = Ctxt::new();
     process_attrs(<span class="kw-2">&amp;</span>ctxt, <span class="kw-2">&amp;mut </span>input.attrs);
     <span class="kw">match </span>input.data {
@@ -267,28 +234,22 @@
 <span class="kw">fn </span>process_attrs(ctxt: <span class="kw-2">&amp;</span>Ctxt, attrs: <span class="kw-2">&amp;mut </span>Vec&lt;Attribute&gt;) {
     <span class="comment">// Remove #[serde(...)] attributes (some may be re-added later)
     </span><span class="kw">let </span>(serde_attrs, other_attrs): (Vec&lt;<span class="kw">_</span>&gt;, Vec&lt;<span class="kw">_</span>&gt;) =
-        attrs.drain(..).partition(|at| at.path.is_ident(<span class="string">"serde"</span>));
+        attrs.drain(..).partition(|at| at.path().is_ident(<span class="string">"serde"</span>));
     <span class="kw-2">*</span>attrs = other_attrs;
 
-    <span class="kw">let </span>schemars_attrs: Vec&lt;<span class="kw">_</span>&gt; = attrs
-        .iter()
-        .filter(|at| at.path.is_ident(<span class="string">"schemars"</span>))
-        .collect();
-
     <span class="comment">// Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
-    </span><span class="kw">let </span>(<span class="kw-2">mut </span>serde_meta, <span class="kw-2">mut </span>schemars_meta_names): (Vec&lt;<span class="kw">_</span>&gt;, HashSet&lt;<span class="kw">_</span>&gt;) = schemars_attrs
-        .iter()
-        .flat_map(|at| get_meta_items(ctxt, at))
-        .flatten()
-        .filter_map(|meta| {
-            <span class="kw">let </span>keyword = get_meta_ident(ctxt, <span class="kw-2">&amp;</span>meta).ok()<span class="question-mark">?</span>;
-            <span class="kw">if </span>keyword.ends_with(<span class="string">"with"</span>) || !SERDE_KEYWORDS.contains(<span class="kw-2">&amp;</span>keyword.as_ref()) {
-                <span class="prelude-val">None
-            </span>} <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>((meta, keyword))
-            }
-        })
-        .unzip();
+    </span><span class="kw">let </span>(<span class="kw-2">mut </span>serde_meta, <span class="kw-2">mut </span>schemars_meta_names): (Vec&lt;<span class="kw">_</span>&gt;, HashSet&lt;<span class="kw">_</span>&gt;) =
+        get_meta_items(attrs, <span class="string">"schemars"</span>, ctxt, <span class="bool-val">false</span>)
+            .into_iter()
+            .filter_map(|meta| {
+                <span class="kw">let </span>keyword = get_meta_ident(<span class="kw-2">&amp;</span>meta)<span class="question-mark">?</span>;
+                <span class="kw">if </span>SERDE_KEYWORDS.contains(<span class="kw-2">&amp;</span>keyword.as_ref()) &amp;&amp; !keyword.ends_with(<span class="string">"with"</span>) {
+                    <span class="prelude-val">Some</span>((meta, keyword))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
+            })
+            .unzip();
 
     <span class="kw">if </span>schemars_meta_names.contains(<span class="string">"skip"</span>) {
         schemars_meta_names.insert(<span class="string">"skip_serializing"</span>.to_string());
@@ -296,12 +257,8 @@
     }
 
     <span class="comment">// Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
-    </span><span class="kw">for </span>meta <span class="kw">in </span>serde_attrs
-        .into_iter()
-        .flat_map(|at| get_meta_items(ctxt, <span class="kw-2">&amp;</span>at))
-        .flatten()
-    {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(i) = get_meta_ident(ctxt, <span class="kw-2">&amp;</span>meta) {
+    </span><span class="kw">for </span>meta <span class="kw">in </span>get_meta_items(<span class="kw-2">&amp;</span>serde_attrs, <span class="string">"serde"</span>, ctxt, <span class="bool-val">false</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(i) = get_meta_ident(<span class="kw-2">&amp;</span>meta) {
             <span class="kw">if </span>!schemars_meta_names.contains(<span class="kw-2">&amp;</span>i)
                 &amp;&amp; SERDE_KEYWORDS.contains(<span class="kw-2">&amp;</span>i.as_ref())
                 &amp;&amp; i != <span class="string">"bound"
@@ -312,7 +269,7 @@
     }
 
     <span class="kw">if </span>!serde_meta.is_empty() {
-        <span class="kw">let </span>new_serde_attr = <span class="macro">quote! </span>{
+        <span class="kw">let </span>new_serde_attr = <span class="macro">quote!</span> {
             <span class="attr">#[serde(#(#serde_meta),<span class="kw-2">*</span>)]
         </span>};
 
@@ -332,34 +289,8 @@
     tokens
 }
 
-<span class="kw">fn </span>get_meta_items(ctxt: <span class="kw-2">&amp;</span>Ctxt, attr: <span class="kw-2">&amp;</span>Attribute) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;NestedMeta&gt;, ()&gt; {
-    <span class="kw">match </span>attr.parse_meta() {
-        <span class="prelude-val">Ok</span>(Meta::List(meta)) =&gt; <span class="prelude-val">Ok</span>(meta.nested.into_iter().collect()),
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-            ctxt.error_spanned_by(attr, <span class="string">"expected #[schemars(...)] or #[serde(...)]"</span>);
-            <span class="prelude-val">Err</span>(())
-        }
-        <span class="prelude-val">Err</span>(err) =&gt; {
-            ctxt.error_spanned_by(attr, err);
-            <span class="prelude-val">Err</span>(())
-        }
-    }
-}
-
-<span class="kw">fn </span>get_meta_ident(ctxt: <span class="kw-2">&amp;</span>Ctxt, meta: <span class="kw-2">&amp;</span>NestedMeta) -&gt; <span class="prelude-ty">Result</span>&lt;String, ()&gt; {
-    <span class="kw">match </span>meta {
-        NestedMeta::Meta(m) =&gt; m.path().get_ident().map(|i| i.to_string()).ok_or(()),
-        NestedMeta::Lit(lit) =&gt; {
-            ctxt.error_spanned_by(
-                meta,
-                <span class="macro">format!</span>(
-                    <span class="string">"unexpected literal in attribute: {}"</span>,
-                    lit.into_token_stream()
-                ),
-            );
-            <span class="prelude-val">Err</span>(())
-        }
-    }
+<span class="kw">fn </span>get_meta_ident(meta: <span class="kw-2">&amp;</span>Meta) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+    meta.path().get_ident().map(|i| i.to_string())
 }
 
 <span class="attr">#[cfg(test)]
@@ -370,7 +301,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_process_serde_attrs() {
-        <span class="kw">let </span><span class="kw-2">mut </span>input: DeriveInput = <span class="macro">parse_quote! </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>input: DeriveInput = <span class="macro">parse_quote!</span> {
             <span class="attr">#[serde(rename(serialize = <span class="string">"ser_name"</span>), rename_all = <span class="string">"camelCase"</span>)]
             #[serde(default, unknown_word)]
             #[schemars(rename = <span class="string">"overriden"</span>, another_unknown_word)]
@@ -387,7 +318,7 @@
                 </span>field3: i32,
             }
         };
-        <span class="kw">let </span>expected: DeriveInput = <span class="macro">parse_quote! </span>{
+        <span class="kw">let </span>expected: DeriveInput = <span class="macro">parse_quote!</span> {
             <span class="attr">#[schemars(rename = <span class="string">"overriden"</span>, another_unknown_word)]
             #[misc]
             #[serde(rename = <span class="string">"overriden"</span>, rename_all = <span class="string">"camelCase"</span>, default)]
@@ -405,7 +336,7 @@
         };
 
         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = process_serde_attrs(<span class="kw-2">&amp;mut </span>input) {
-            <span class="macro">panic!</span>(<span class="string">"process_serde_attrs returned error: {}"</span>, e[<span class="number">0</span>])
+            <span class="macro">panic!</span>(<span class="string">"process_serde_attrs returned error: {}"</span>, e)
         };
 
         <span class="macro">assert_eq!</span>(input, expected);

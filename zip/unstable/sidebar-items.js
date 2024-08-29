@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["stream","write"]};
+window.SIDEBAR_ITEMS = {"fn":["path_to_string"],"mod":["stream","write"],"trait":["LittleEndianReadExt","LittleEndianWriteExt"]};

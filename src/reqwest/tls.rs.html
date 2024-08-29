@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.24/src/tls.rs`."><title>tls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/reqwest-0.11.27/src/tls.rs`."><title>tls.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -592,6 +591,40 @@
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
 <a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! TLS configuration and types
 //!
 //! A `Client` will use transport layer security (TLS) by default to connect to
@@ -613,7 +646,7 @@
 //!
 //! &lt;div class="warning"&gt;This feature is enabled by default, and takes
 //! precedence if any other crate enables it. This is true even if you declare
-//! `features = []`. You must set `no-default-features = false` instead.&lt;/div&gt;
+//! `features = []`. You must set `default-features = false` instead.&lt;/div&gt;
 //!
 //! Since Cargo features are additive, other crates in your dependency tree can
 //! cause the default backend to be enabled. If you wish to ensure your
@@ -692,7 +725,7 @@
     /// ```
     /// # use std::fs::File;
     /// # use std::io::Read;
-    /// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn cert() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let mut buf = Vec::new();
     /// File::open("my_cert.der")?
     ///     .read_to_end(&amp;mut buf)?;
@@ -717,7 +750,7 @@
     /// ```
     /// # use std::fs::File;
     /// # use std::io::Read;
-    /// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn cert() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let mut buf = Vec::new();
     /// File::open("my_cert.pem")?
     ///     .read_to_end(&amp;mut buf)?;
@@ -743,7 +776,7 @@
     /// ```
     /// # use std::fs::File;
     /// # use std::io::Read;
-    /// # fn cert() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn cert() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let mut buf = Vec::new();
     /// File::open("ca-bundle.crt")?
     ///     .read_to_end(&amp;mut buf)?;
@@ -757,7 +790,7 @@
 
         <span class="self">Self</span>::read_pem_certs(<span class="kw-2">&amp;mut </span>reader)<span class="question-mark">?
             </span>.iter()
-            .map(|cert_vec| Certificate::from_pem(<span class="kw-2">&amp;</span>cert_vec))
+            .map(|cert_vec| Certificate::from_der(<span class="kw-2">&amp;</span>cert_vec))
             .collect::&lt;<span class="kw">crate</span>::Result&lt;Vec&lt;Certificate&gt;&gt;&gt;()
     }
 
@@ -815,7 +848,7 @@
     /// ```
     /// # use std::fs::File;
     /// # use std::io::Read;
-    /// # fn pkcs12() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn pkcs12() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let mut buf = Vec::new();
     /// File::open("my-ident.pfx")?
     ///     .read_to_end(&amp;mut buf)?;
@@ -850,7 +883,7 @@
     ///
     /// ```
     /// # use std::fs;
-    /// # fn pkcs8() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn pkcs8() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let cert = fs::read("client.pem")?;
     /// let key = fs::read("key.pem")?;
     /// let pkcs8 = reqwest::Identity::from_pkcs8_pem(&amp;cert, &amp;key)?;
@@ -883,7 +916,7 @@
     /// ```
     /// # use std::fs::File;
     /// # use std::io::Read;
-    /// # fn pem() -&gt; Result&lt;(), Box&lt;std::error::Error&gt;&gt; {
+    /// # fn pem() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     /// let mut buf = Vec::new();
     /// File::open("my-ident.pem")?
     ///     .read_to_end(&amp;mut buf)?;
@@ -1183,6 +1216,40 @@
             -----END RSA PRIVATE KEY-----\n"</span>;
 
         Identity::from_pem(pem).unwrap();
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>certificates_from_pem_bundle() {
+        <span class="kw">const </span>PEM_BUNDLE: <span class="kw-2">&amp;</span>[u8] = <span class="string">b"
+            -----BEGIN CERTIFICATE-----
+            MIIBtjCCAVugAwIBAgITBmyf1XSXNmY/Owua2eiedgPySjAKBggqhkjOPQQDAjA5
+            MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g
+            Um9vdCBDQSAzMB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG
+            A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg
+            Q0EgMzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCmXp8ZBf8ANm+gBG1bG8lKl
+            ui2yEujSLtf6ycXYqm0fc4E7O5hrOXwzpcVOho6AF2hiRVd9RFgdszflZwjrZt6j
+            QjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgGGMB0GA1UdDgQWBBSr
+            ttvXBp43rDCGB5Fwx5zEGbF4wDAKBggqhkjOPQQDAgNJADBGAiEA4IWSoxe3jfkr
+            BqWTrBqYaGFy+uGh0PsceGCmQ5nFuMQCIQCcAu/xlJyzlvnrxir4tiz+OpAUFteM
+            YyRIHN8wfdVoOw==
+            -----END CERTIFICATE-----
+
+            -----BEGIN CERTIFICATE-----
+            MIIB8jCCAXigAwIBAgITBmyf18G7EEwpQ+Vxe3ssyBrBDjAKBggqhkjOPQQDAzA5
+            MQswCQYDVQQGEwJVUzEPMA0GA1UEChMGQW1hem9uMRkwFwYDVQQDExBBbWF6b24g
+            Um9vdCBDQSA0MB4XDTE1MDUyNjAwMDAwMFoXDTQwMDUyNjAwMDAwMFowOTELMAkG
+            A1UEBhMCVVMxDzANBgNVBAoTBkFtYXpvbjEZMBcGA1UEAxMQQW1hem9uIFJvb3Qg
+            Q0EgNDB2MBAGByqGSM49AgEGBSuBBAAiA2IABNKrijdPo1MN/sGKe0uoe0ZLY7Bi
+            9i0b2whxIdIA6GO9mif78DluXeo9pcmBqqNbIJhFXRbb/egQbeOc4OO9X4Ri83Bk
+            M6DLJC9wuoihKqB1+IGuYgbEgds5bimwHvouXKNCMEAwDwYDVR0TAQH/BAUwAwEB
+            /zAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFNPsxzplbszh2naaVvuc84ZtV+WB
+            MAoGCCqGSM49BAMDA2gAMGUCMDqLIfG9fhGt0O9Yli/W651+kI0rz2ZVwyzjKKlw
+            CkcO8DdZEv8tmZQoTipPNU0zWgIxAOp1AE47xDqUEpHJWEadIRNyp4iciuRMStuW
+            1KyLa2tJElMzrdfkviT8tQp21KW8EA==
+            -----END CERTIFICATE-----
+        "</span>;
+
+        <span class="macro">assert!</span>(Certificate::from_pem_bundle(PEM_BUNDLE).is_ok())
     }
 }
 </code></pre></div></section></main></body></html>

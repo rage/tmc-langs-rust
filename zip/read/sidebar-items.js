@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["read_zipfile_from_stream"],"struct":["ZipArchive","ZipFile"]};
+window.SIDEBAR_ITEMS = {"enum":["ArchiveOffset"],"fn":["read_zipfile_from_stream"],"struct":["AesInfo","Config","ZipArchive","ZipFile","ZipFileSeek"],"trait":["HasZipMetadata"]};

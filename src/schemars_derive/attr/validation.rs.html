@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars_derive-0.8.16/src/attr/validation.rs`."><title>validation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="schemars_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/schemars_derive-0.8.21/src/attr/validation.rs`."><title>validation.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="schemars_derive" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -530,10 +529,18 @@
 <a href="#529" id="529">529</a>
 <a href="#530" id="530">530</a>
 <a href="#531" id="531">531</a>
-</pre></div><pre class="rust"><code><span class="kw">use super</span>::{get_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+</pre></div><pre class="rust"><code><span class="kw">use super</span>::{expr_as_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
 <span class="kw">use </span>proc_macro2::TokenStream;
+<span class="kw">use </span>quote::ToTokens;
 <span class="kw">use </span>serde_derive_internals::Ctxt;
-<span class="kw">use </span>syn::{Expr, ExprLit, ExprPath, Lit, Meta, MetaNameValue, NestedMeta, Path};
+<span class="kw">use </span>syn::{
+    parse::Parser, punctuated::Punctuated, Expr, ExprPath, Lit, Meta, MetaList, MetaNameValue, Path,
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>VALIDATION_KEYWORDS: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[
     <span class="string">"range"</span>, <span class="string">"regex"</span>, <span class="string">"contains"</span>, <span class="string">"email"</span>, <span class="string">"phone"</span>, <span class="string">"url"</span>, <span class="string">"length"</span>, <span class="string">"required"</span>,
@@ -594,7 +601,7 @@
 
     <span class="kw">fn </span>populate(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        meta_items: Vec&lt;syn::NestedMeta&gt;,
+        meta_items: Vec&lt;Meta&gt;,
         attr_type: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
         ignore_errors: bool,
         errors: <span class="kw-2">&amp;</span>Ctxt,
@@ -632,31 +639,43 @@
                 errors.error_spanned_by(path, msg)
             }
         };
+        <span class="kw">let </span>parse_nested_meta = |meta_list: MetaList| {
+            <span class="kw">let </span>parser = Punctuated::&lt;syn::Meta, <span class="macro">Token!</span>[,]&gt;::parse_terminated;
+            <span class="kw">match </span>parser.parse2(meta_list.tokens) {
+                <span class="prelude-val">Ok</span>(p) =&gt; p,
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="kw">if </span>!ignore_errors {
+                        errors.syn_error(e);
+                    }
+                    Default::default()
+                }
+            }
+        };
 
         <span class="kw">for </span>meta_item <span class="kw">in </span>meta_items {
-            <span class="kw">match </span><span class="kw-2">&amp;</span>meta_item {
-                NestedMeta::Meta(Meta::List(meta_list)) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"length"</span>) =&gt; {
-                    <span class="kw">for </span>nested <span class="kw">in </span>meta_list.nested.iter() {
+            <span class="kw">match </span>meta_item {
+                Meta::List(meta_list) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"length"</span>) =&gt; {
+                    <span class="kw">for </span>nested <span class="kw">in </span>parse_nested_meta(meta_list) {
                         <span class="kw">match </span>nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"min"</span>) =&gt; {
+                            Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"min"</span>) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.length_min.is_some() {
                                     duplicate_error(<span class="kw-2">&amp;</span>nv.path)
                                 } <span class="kw">else if </span><span class="self">self</span>.length_equal.is_some() {
                                     mutual_exclusive_error(<span class="kw-2">&amp;</span>nv.path, <span class="string">"equal"</span>)
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.length_min = str_or_num_to_expr(errors, <span class="string">"min"</span>, <span class="kw-2">&amp;</span>nv.lit);
+                                    <span class="self">self</span>.length_min = str_or_num_to_expr(errors, <span class="string">"min"</span>, nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"max"</span>) =&gt; {
+                            Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"max"</span>) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.length_max.is_some() {
                                     duplicate_error(<span class="kw-2">&amp;</span>nv.path)
                                 } <span class="kw">else if </span><span class="self">self</span>.length_equal.is_some() {
                                     mutual_exclusive_error(<span class="kw-2">&amp;</span>nv.path, <span class="string">"equal"</span>)
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.length_max = str_or_num_to_expr(errors, <span class="string">"max"</span>, <span class="kw-2">&amp;</span>nv.lit);
+                                    <span class="self">self</span>.length_max = str_or_num_to_expr(errors, <span class="string">"max"</span>, nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"equal"</span>) =&gt; {
+                            Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"equal"</span>) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.length_equal.is_some() {
                                     duplicate_error(<span class="kw-2">&amp;</span>nv.path)
                                 } <span class="kw">else if </span><span class="self">self</span>.length_min.is_some() {
@@ -665,7 +684,7 @@
                                     mutual_exclusive_error(<span class="kw-2">&amp;</span>nv.path, <span class="string">"max"</span>)
                                 } <span class="kw">else </span>{
                                     <span class="self">self</span>.length_equal =
-                                        str_or_num_to_expr(errors, <span class="string">"equal"</span>, <span class="kw-2">&amp;</span>nv.lit);
+                                        str_or_num_to_expr(errors, <span class="string">"equal"</span>, nv.value);
                                 }
                             }
                             meta =&gt; {
@@ -680,21 +699,21 @@
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"range"</span>) =&gt; {
-                    <span class="kw">for </span>nested <span class="kw">in </span>meta_list.nested.iter() {
+                Meta::List(meta_list) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"range"</span>) =&gt; {
+                    <span class="kw">for </span>nested <span class="kw">in </span>parse_nested_meta(meta_list) {
                         <span class="kw">match </span>nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"min"</span>) =&gt; {
+                            Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"min"</span>) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.range_min.is_some() {
                                     duplicate_error(<span class="kw-2">&amp;</span>nv.path)
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.range_min = str_or_num_to_expr(errors, <span class="string">"min"</span>, <span class="kw-2">&amp;</span>nv.lit);
+                                    <span class="self">self</span>.range_min = str_or_num_to_expr(errors, <span class="string">"min"</span>, nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"max"</span>) =&gt; {
+                            Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"max"</span>) =&gt; {
                                 <span class="kw">if </span><span class="self">self</span>.range_max.is_some() {
                                     duplicate_error(<span class="kw-2">&amp;</span>nv.path)
                                 } <span class="kw">else </span>{
-                                    <span class="self">self</span>.range_max = str_or_num_to_expr(errors, <span class="string">"max"</span>, <span class="kw-2">&amp;</span>nv.lit);
+                                    <span class="self">self</span>.range_max = str_or_num_to_expr(errors, <span class="string">"max"</span>, nv.value);
                                 }
                             }
                             meta =&gt; {
@@ -709,71 +728,61 @@
                     }
                 }
 
-                NestedMeta::Meta(Meta::Path(m))
-                    <span class="kw">if </span>m.is_ident(<span class="string">"required"</span>) || m.is_ident(<span class="string">"required_nested"</span>) =&gt;
-                {
+                Meta::Path(m) <span class="kw">if </span>m.is_ident(<span class="string">"required"</span>) || m.is_ident(<span class="string">"required_nested"</span>) =&gt; {
                     <span class="self">self</span>.required = <span class="bool-val">true</span>;
                 }
 
-                NestedMeta::Meta(Meta::Path(p)) <span class="kw">if </span>p.is_ident(Format::Email.attr_str()) =&gt; {
-                    <span class="kw">match </span><span class="self">self</span>.format {
-                        <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Email, p),
-                        <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Email),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) <span class="kw">if </span>p.is_ident(Format::Uri.attr_str()) =&gt; {
-                    <span class="kw">match </span><span class="self">self</span>.format {
-                        <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Uri, p),
-                        <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Uri),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) <span class="kw">if </span>p.is_ident(Format::Phone.attr_str()) =&gt; {
-                    <span class="kw">match </span><span class="self">self</span>.format {
-                        <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Phone, p),
-                        <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Phone),
-                    }
-                }
+                Meta::Path(p) <span class="kw">if </span>p.is_ident(Format::Email.attr_str()) =&gt; <span class="kw">match </span><span class="self">self</span>.format {
+                    <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Email, <span class="kw-2">&amp;</span>p),
+                    <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Email),
+                },
+                Meta::Path(p) <span class="kw">if </span>p.is_ident(Format::Uri.attr_str()) =&gt; <span class="kw">match </span><span class="self">self</span>.format {
+                    <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Uri, <span class="kw-2">&amp;</span>p),
+                    <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Uri),
+                },
+                Meta::Path(p) <span class="kw">if </span>p.is_ident(Format::Phone.attr_str()) =&gt; <span class="kw">match </span><span class="self">self</span>.format {
+                    <span class="prelude-val">Some</span>(f) =&gt; duplicate_format_error(f, Format::Phone, <span class="kw-2">&amp;</span>p),
+                    <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.format = <span class="prelude-val">Some</span>(Format::Phone),
+                },
 
-                NestedMeta::Meta(Meta::NameValue(nv)) <span class="kw">if </span>nv.path.is_ident(<span class="string">"regex"</span>) =&gt; {
+                Meta::NameValue(nv) <span class="kw">if </span>nv.path.is_ident(<span class="string">"regex"</span>) =&gt; {
                     <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.regex, <span class="kw-2">&amp;</span><span class="self">self</span>.contains) {
                         (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>nv.path),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; mutual_exclusive_error(<span class="kw-2">&amp;</span>nv.path, <span class="string">"contains"</span>),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
                             <span class="self">self</span>.regex =
-                                parse_lit_into_expr_path(errors, attr_type, <span class="string">"regex"</span>, <span class="kw-2">&amp;</span>nv.lit).ok()
+                                parse_lit_into_expr_path(errors, attr_type, <span class="string">"regex"</span>, <span class="kw-2">&amp;</span>nv.value).ok()
                         }
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"regex"</span>) =&gt; {
+                Meta::List(meta_list) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"regex"</span>) =&gt; {
                     <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.regex, <span class="kw-2">&amp;</span><span class="self">self</span>.contains) {
                         (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>meta_list.path),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; mutual_exclusive_error(<span class="kw-2">&amp;</span>meta_list.path, <span class="string">"contains"</span>),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-                            <span class="kw">for </span>x <span class="kw">in </span>meta_list.nested.iter() {
+                            <span class="kw">for </span>x <span class="kw">in </span>parse_nested_meta(meta_list) {
                                 <span class="kw">match </span>x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) <span class="kw">if </span>path.is_ident(<span class="string">"path"</span>) =&gt; {
-                                        <span class="self">self</span>.regex =
-                                            parse_lit_into_expr_path(errors, attr_type, <span class="string">"path"</span>, lit)
-                                                .ok()
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        <span class="kw">if </span>path.is_ident(<span class="string">"path"</span>) =&gt;
+                                    {
+                                        <span class="self">self</span>.regex = parse_lit_into_expr_path(
+                                            errors, attr_type, <span class="string">"path"</span>, <span class="kw-2">&amp;</span>value,
+                                        )
+                                        .ok()
                                     }
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) <span class="kw">if </span>path.is_ident(<span class="string">"pattern"</span>) =&gt; {
-                                        <span class="self">self</span>.regex = get_lit_str(errors, attr_type, <span class="string">"pattern"</span>, lit)
-                                            .ok()
-                                            .map(|litstr| {
-                                                Expr::Lit(syn::ExprLit {
-                                                    attrs: Vec::new(),
-                                                    lit: Lit::Str(litstr.clone()),
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        <span class="kw">if </span>path.is_ident(<span class="string">"pattern"</span>) =&gt;
+                                    {
+                                        <span class="self">self</span>.regex =
+                                            expr_as_lit_str(errors, attr_type, <span class="string">"pattern"</span>, <span class="kw-2">&amp;</span>value)
+                                                .ok()
+                                                .map(|litstr| {
+                                                    Expr::Lit(syn::ExprLit {
+                                                        attrs: Vec::new(),
+                                                        lit: Lit::Str(litstr.clone()),
+                                                    })
                                                 })
-                                            })
                                     }
                                     meta =&gt; {
                                         <span class="kw">if </span>!ignore_errors {
@@ -790,34 +799,30 @@
                     }
                 }
 
-                NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, lit, .. }))
-                    <span class="kw">if </span>path.is_ident(<span class="string">"contains"</span>) =&gt;
-                {
+                Meta::NameValue(MetaNameValue { path, value, .. }) <span class="kw">if </span>path.is_ident(<span class="string">"contains"</span>) =&gt; {
                     <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.contains, <span class="kw-2">&amp;</span><span class="self">self</span>.regex) {
-                        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; duplicate_error(path),
-                        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; mutual_exclusive_error(path, <span class="string">"regex"</span>),
+                        (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>path),
+                        (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; mutual_exclusive_error(<span class="kw-2">&amp;</span>path, <span class="string">"regex"</span>),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-                            <span class="self">self</span>.contains = get_lit_str(errors, attr_type, <span class="string">"contains"</span>, lit)
+                            <span class="self">self</span>.contains = expr_as_lit_str(errors, attr_type, <span class="string">"contains"</span>, <span class="kw-2">&amp;</span>value)
                                 .map(|litstr| litstr.value())
                                 .ok()
                         }
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"contains"</span>) =&gt; {
+                Meta::List(meta_list) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"contains"</span>) =&gt; {
                     <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.contains, <span class="kw-2">&amp;</span><span class="self">self</span>.regex) {
                         (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>meta_list.path),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; mutual_exclusive_error(<span class="kw-2">&amp;</span>meta_list.path, <span class="string">"regex"</span>),
                         (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) =&gt; {
-                            <span class="kw">for </span>x <span class="kw">in </span>meta_list.nested.iter() {
+                            <span class="kw">for </span>x <span class="kw">in </span>parse_nested_meta(meta_list) {
                                 <span class="kw">match </span>x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) <span class="kw">if </span>path.is_ident(<span class="string">"pattern"</span>) =&gt; {
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        <span class="kw">if </span>path.is_ident(<span class="string">"pattern"</span>) =&gt;
+                                    {
                                         <span class="self">self</span>.contains =
-                                            get_lit_str(errors, attr_type, <span class="string">"contains"</span>, lit)
+                                            expr_as_lit_str(errors, attr_type, <span class="string">"contains"</span>, <span class="kw-2">&amp;</span>value)
                                                 .ok()
                                                 .map(|litstr| litstr.value())
                                     }
@@ -836,20 +841,18 @@
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"inner"</span>) =&gt; {
-                    <span class="kw">match </span><span class="self">self</span>.inner {
-                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>meta_list.path),
-                        <span class="prelude-val">None </span>=&gt; {
-                            <span class="kw">let </span>inner_attrs = ValidationAttrs::default().populate(
-                                meta_list.nested.clone().into_iter().collect(),
-                                attr_type,
-                                ignore_errors,
-                                errors,
-                            );
-                            <span class="self">self</span>.inner = <span class="prelude-val">Some</span>(Box::new(inner_attrs));
-                        }
+                Meta::List(meta_list) <span class="kw">if </span>meta_list.path.is_ident(<span class="string">"inner"</span>) =&gt; <span class="kw">match </span><span class="self">self</span>.inner {
+                    <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; duplicate_error(<span class="kw-2">&amp;</span>meta_list.path),
+                    <span class="prelude-val">None </span>=&gt; {
+                        <span class="kw">let </span>inner_attrs = ValidationAttrs::default().populate(
+                            parse_nested_meta(meta_list).into_iter().collect(),
+                            attr_type,
+                            ignore_errors,
+                            errors,
+                        );
+                        <span class="self">self</span>.inner = <span class="prelude-val">Some</span>(Box::new(inner_attrs));
                     }
-                }
+                },
 
                 <span class="kw">_ </span>=&gt; {}
             }
@@ -859,7 +862,7 @@
 
     <span class="kw">pub fn </span>apply_to_schema(<span class="kw-2">&amp;</span><span class="self">self</span>, schema_expr: <span class="kw-2">&amp;mut </span>TokenStream) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(apply_expr) = <span class="self">self</span>.apply_to_schema_expr() {
-            <span class="kw-2">*</span>schema_expr = <span class="macro">quote! </span>{
+            <span class="kw-2">*</span>schema_expr = <span class="macro">quote!</span> {
                 {
                     <span class="kw">let </span><span class="kw-2">mut </span>schema = #schema_expr;
                     #apply_expr
@@ -876,49 +879,49 @@
         <span class="kw">let </span><span class="kw-2">mut </span>string_validation = Vec::new();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(length_min) = <span class="self">self</span>.length_min.as_ref().or(<span class="self">self</span>.length_equal.as_ref()) {
-            string_validation.push(<span class="macro">quote! </span>{
+            string_validation.push(<span class="macro">quote!</span> {
                 validation.min_length = <span class="prelude-val">Some</span>(#length_min <span class="kw">as </span>u32);
             });
-            array_validation.push(<span class="macro">quote! </span>{
+            array_validation.push(<span class="macro">quote!</span> {
                 validation.min_items = <span class="prelude-val">Some</span>(#length_min <span class="kw">as </span>u32);
             });
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(length_max) = <span class="self">self</span>.length_max.as_ref().or(<span class="self">self</span>.length_equal.as_ref()) {
-            string_validation.push(<span class="macro">quote! </span>{
+            string_validation.push(<span class="macro">quote!</span> {
                 validation.max_length = <span class="prelude-val">Some</span>(#length_max <span class="kw">as </span>u32);
             });
-            array_validation.push(<span class="macro">quote! </span>{
+            array_validation.push(<span class="macro">quote!</span> {
                 validation.max_items = <span class="prelude-val">Some</span>(#length_max <span class="kw">as </span>u32);
             });
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(range_min) = <span class="kw-2">&amp;</span><span class="self">self</span>.range_min {
-            number_validation.push(<span class="macro">quote! </span>{
+            number_validation.push(<span class="macro">quote!</span> {
                 validation.minimum = <span class="prelude-val">Some</span>(#range_min <span class="kw">as </span>f64);
             });
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(range_max) = <span class="kw-2">&amp;</span><span class="self">self</span>.range_max {
-            number_validation.push(<span class="macro">quote! </span>{
+            number_validation.push(<span class="macro">quote!</span> {
                 validation.maximum = <span class="prelude-val">Some</span>(#range_max <span class="kw">as </span>f64);
             });
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(regex) = <span class="kw-2">&amp;</span><span class="self">self</span>.regex {
-            string_validation.push(<span class="macro">quote! </span>{
+            string_validation.push(<span class="macro">quote!</span> {
                 validation.pattern = <span class="prelude-val">Some</span>(#regex.to_string());
             });
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(contains) = <span class="kw-2">&amp;</span><span class="self">self</span>.contains {
-            object_validation.push(<span class="macro">quote! </span>{
+            object_validation.push(<span class="macro">quote!</span> {
                 validation.required.insert(#contains.to_string());
             });
 
             <span class="kw">if </span><span class="self">self</span>.regex.is_none() {
                 <span class="kw">let </span>pattern = <span class="kw">crate</span>::regex_syntax::escape(contains);
-                string_validation.push(<span class="macro">quote! </span>{
+                string_validation.push(<span class="macro">quote!</span> {
                     validation.pattern = <span class="prelude-val">Some</span>(#pattern.to_string());
                 });
             }
@@ -926,7 +929,7 @@
 
         <span class="kw">let </span>format = <span class="self">self</span>.format.as_ref().map(|f| {
             <span class="kw">let </span>f = f.schema_str();
-            <span class="macro">quote! </span>{
+            <span class="macro">quote!</span> {
                 schema_object.format = <span class="prelude-val">Some</span>(#f.to_string());
             }
         });
@@ -936,7 +939,7 @@
             .as_deref()
             .and_then(|inner| inner.apply_to_schema_expr())
             .map(|apply_expr| {
-                <span class="macro">quote! </span>{
+                <span class="macro">quote!</span> {
                     <span class="kw">if </span>schema_object.has_type(schemars::schema::InstanceType::Array) {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(schemars::schema::SingleOrVec::Single(inner_schema)) = <span class="kw-2">&amp;mut </span>schema_object.array().items {
                             <span class="kw">let </span><span class="kw-2">mut </span>schema = <span class="kw-2">&amp;mut **</span>inner_schema;
@@ -958,7 +961,7 @@
             || format.is_some()
             || inner_validation.is_some()
         {
-            <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+            <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
                 <span class="kw">if let </span>schemars::schema::Schema::Object(schema_object) = <span class="kw-2">&amp;mut </span>schema {
                     #array_validation
                     #number_validation
@@ -978,7 +981,7 @@
     cx: <span class="kw-2">&amp;</span>Ctxt,
     attr_type: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
     meta_item_name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
-    lit: <span class="kw-2">&amp;</span>syn::Lit,
+    lit: <span class="kw-2">&amp;</span>Expr,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Expr, ()&gt; {
     parse_lit_into_path(cx, attr_type, meta_item_name, lit).map(|path| {
         Expr::Path(ExprPath {
@@ -993,7 +996,7 @@
     <span class="kw">if </span>v.is_empty() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="kw">if </span>schema_object.has_type(schemars::schema::InstanceType::Array) {
                 <span class="kw">let </span>validation = schema_object.array();
                 #(#v)*
@@ -1006,7 +1009,7 @@
     <span class="kw">if </span>v.is_empty() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="kw">if </span>schema_object.has_type(schemars::schema::InstanceType::Integer)
                 || schema_object.has_type(schemars::schema::InstanceType::Number) {
                 <span class="kw">let </span>validation = schema_object.number();
@@ -1020,7 +1023,7 @@
     <span class="kw">if </span>v.is_empty() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="kw">if </span>schema_object.has_type(schemars::schema::InstanceType::Object) {
                 <span class="kw">let </span>validation = schema_object.object();
                 #(#v)*
@@ -1033,7 +1036,7 @@
     <span class="kw">if </span>v.is_empty() {
         <span class="prelude-val">None
     </span>} <span class="kw">else </span>{
-        <span class="prelude-val">Some</span>(<span class="macro">quote! </span>{
+        <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="kw">if </span>schema_object.has_type(schemars::schema::InstanceType::String) {
                 <span class="kw">let </span>validation = schema_object.string();
                 #(#v)*
@@ -1042,19 +1045,25 @@
     }
 }
 
-<span class="kw">fn </span>str_or_num_to_expr(cx: <span class="kw-2">&amp;</span>Ctxt, meta_item_name: <span class="kw-2">&amp;</span>str, lit: <span class="kw-2">&amp;</span>Lit) -&gt; <span class="prelude-ty">Option</span>&lt;Expr&gt; {
+<span class="kw">fn </span>str_or_num_to_expr(cx: <span class="kw-2">&amp;</span>Ctxt, meta_item_name: <span class="kw-2">&amp;</span>str, expr: Expr) -&gt; <span class="prelude-ty">Option</span>&lt;Expr&gt; {
+    <span class="comment">// this odd double-parsing is to make `-10` parsed as an Lit instead of an Expr::Unary
+    </span><span class="kw">let </span>lit: Lit = <span class="kw">match </span>syn::parse2(expr.to_token_stream()) {
+        <span class="prelude-val">Ok</span>(l) =&gt; l,
+        <span class="prelude-val">Err</span>(err) =&gt; {
+            cx.syn_error(err);
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+    };
+
     <span class="kw">match </span>lit {
-        Lit::Str(s) =&gt; parse_lit_str::&lt;ExprPath&gt;(s).ok().map(Expr::Path),
-        Lit::Int(<span class="kw">_</span>) | Lit::Float(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(Expr::Lit(ExprLit {
-            attrs: Vec::new(),
-            lit: lit.clone(),
-        })),
+        Lit::Str(s) =&gt; parse_lit_str::&lt;ExprPath&gt;(<span class="kw-2">&amp;</span>s).ok().map(Expr::Path),
+        Lit::Int(<span class="kw">_</span>) | Lit::Float(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(expr),
         <span class="kw">_ </span>=&gt; {
             cx.error_spanned_by(
-                lit,
+                <span class="kw-2">&amp;</span>expr,
                 <span class="macro">format!</span>(
-                    <span class="string">"expected `{}` to be a string or number literal"</span>,
-                    meta_item_name
+                    <span class="string">"expected `{}` to be a string or number literal, not {:?}"</span>,
+                    meta_item_name, <span class="kw-2">&amp;</span>expr
                 ),
             );
             <span class="prelude-val">None

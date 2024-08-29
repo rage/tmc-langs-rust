@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrorKind","Matcher"],"struct":["Error","Mock","Request","Server","ServerGuard"]};
+window.SIDEBAR_ITEMS = {"enum":["ErrorKind","Matcher"],"struct":["Error","Mock","Request","Server","ServerGuard","ServerOpts"],"trait":["IntoHeaderName"]};

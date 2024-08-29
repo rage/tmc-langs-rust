@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Identifier","ReqParseError","SemVerError"],"struct":["Version","VersionReq"]};
+window.SIDEBAR_ITEMS = {"enum":["Op"],"struct":["BuildMetadata","Comparator","Error","Prerelease","Version","VersionReq"]};

@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-0.6.6/src/read/stream.rs`."><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-2.2.0/src/read/stream.rs`."><title>stream.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -362,25 +361,15 @@
 <a href="#361" id="361">361</a>
 <a href="#362" id="362">362</a>
 <a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>std::fs;
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Read};
-<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::path::{Path, PathBuf};
 
 <span class="kw">use super</span>::{
-    central_header_to_zip_file_inner, read_zipfile_from_stream, spec, ZipError, ZipFile,
-    ZipFileData, ZipResult,
+    central_header_to_zip_file_inner, read_zipfile_from_stream, ZipCentralEntryBlock, ZipError,
+    ZipFile, ZipFileData, ZipResult,
 };
-
-<span class="kw">use </span>byteorder::{LittleEndian, ReadBytesExt};
+<span class="kw">use </span><span class="kw">crate</span>::spec::FixedSizeBlock;
 
 <span class="doccomment">/// Stream decoder for zip.
 </span><span class="attr">#[derive(Debug)]
@@ -388,37 +377,37 @@
 
 <span class="kw">impl</span>&lt;R&gt; ZipStreamReader&lt;R&gt; {
     <span class="doccomment">/// Create a new ZipStreamReader
-    </span><span class="kw">pub fn </span>new(reader: R) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub const fn </span>new(reader: R) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>(reader)
     }
 }
 
 <span class="kw">impl</span>&lt;R: Read&gt; ZipStreamReader&lt;R&gt; {
-    <span class="kw">fn </span>parse_central_directory(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ZipResult&lt;<span class="prelude-ty">Option</span>&lt;ZipStreamFileMetadata&gt;&gt; {
+    <span class="kw">fn </span>parse_central_directory(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; ZipResult&lt;ZipStreamFileMetadata&gt; {
         <span class="comment">// Give archive_offset and central_header_start dummy value 0, since
         // they are not used in the output.
         </span><span class="kw">let </span>archive_offset = <span class="number">0</span>;
         <span class="kw">let </span>central_header_start = <span class="number">0</span>;
 
         <span class="comment">// Parse central header
-        </span><span class="kw">let </span>signature = <span class="self">self</span>.<span class="number">0</span>.read_u32::&lt;LittleEndian&gt;()<span class="question-mark">?</span>;
-        <span class="kw">if </span>signature != spec::CENTRAL_DIRECTORY_HEADER_SIGNATURE {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
-        } <span class="kw">else </span>{
-            central_header_to_zip_file_inner(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>, archive_offset, central_header_start)
-                .map(ZipStreamFileMetadata)
-                .map(<span class="prelude-val">Some</span>)
-        }
+        </span><span class="kw">let </span>block = ZipCentralEntryBlock::parse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>file = central_header_to_zip_file_inner(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>,
+            archive_offset,
+            central_header_start,
+            block,
+        )<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(ZipStreamFileMetadata(file))
     }
 
-    <span class="doccomment">/// Iteraate over the stream and extract all file and their
+    <span class="doccomment">/// Iterate over the stream and extract all file and their
     /// metadata.
     </span><span class="kw">pub fn </span>visit&lt;V: ZipStreamVisitor&gt;(<span class="kw-2">mut </span><span class="self">self</span>, visitor: <span class="kw-2">&amp;mut </span>V) -&gt; ZipResult&lt;()&gt; {
         <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>file) = read_zipfile_from_stream(<span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0</span>)<span class="question-mark">? </span>{
             visitor.visit_file(<span class="kw-2">&amp;mut </span>file)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(metadata) = <span class="self">self</span>.parse_central_directory()<span class="question-mark">? </span>{
+        <span class="kw">while let </span><span class="prelude-val">Ok</span>(metadata) = <span class="self">self</span>.parse_central_directory() {
             visitor.visit_additional_metadata(<span class="kw-2">&amp;</span>metadata)<span class="question-mark">?</span>;
         }
 
@@ -440,7 +429,7 @@
 
                 <span class="kw">let </span>outpath = <span class="self">self</span>.<span class="number">0</span>.join(filepath);
 
-                <span class="kw">if </span>file.name().ends_with(<span class="string">'/'</span>) {
+                <span class="kw">if </span>file.is_dir() {
                     fs::create_dir_all(<span class="kw-2">&amp;</span>outpath)<span class="question-mark">?</span>;
                 } <span class="kw">else </span>{
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = outpath.parent() {
@@ -526,16 +515,14 @@
     <span class="doccomment">/// Rewrite the path, ignoring any path components with special meaning.
     ///
     /// - Absolute paths are made relative
-    /// - [`ParentDir`]s are ignored
+    /// - [std::path::Component::ParentDir]s are ignored
     /// - Truncates the filename at a NULL byte
     ///
     /// This is appropriate if you need to be able to extract *something* from
     /// any archive, but will easily misrepresent trivial paths like
     /// `foo/../bar` as `foo/bar` (instead of `bar`). Because of this,
     /// [`ZipFile::enclosed_name`] is the better option in most scenarios.
-    ///
-    /// [`ParentDir`]: `Component::ParentDir`
-    </span><span class="kw">pub fn </span>mangled_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; ::std::path::PathBuf {
+    </span><span class="kw">pub fn </span>mangled_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PathBuf {
         <span class="self">self</span>.<span class="number">0</span>.file_name_sanitized()
     }
 
@@ -549,7 +536,7 @@
     /// This will read well-formed ZIP files correctly, and is resistant
     /// to path-based exploits. It is recommended over
     /// [`ZipFile::mangled_name`].
-    </span><span class="kw">pub fn </span>enclosed_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Path&gt; {
+    </span><span class="kw">pub fn </span>enclosed_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
         <span class="self">self</span>.<span class="number">0</span>.enclosed_name()
     }
 
@@ -557,8 +544,7 @@
     </span><span class="kw">pub fn </span>is_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.name()
             .chars()
-            .rev()
-            .next()
+            .next_back()
             .map_or(<span class="bool-val">false</span>, |c| c == <span class="string">'/' </span>|| c == <span class="string">'\\'</span>)
     }
 
@@ -572,13 +558,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.file_comment
     }
 
-    <span class="doccomment">/// Get the starting offset of the data of the compressed file
-    </span><span class="kw">pub fn </span>data_start(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
-        <span class="self">self</span>.<span class="number">0</span>.data_start.load()
-    }
-
     <span class="doccomment">/// Get unix mode for the file
-    </span><span class="kw">pub fn </span>unix_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+    </span><span class="kw">pub const fn </span>unix_mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
         <span class="self">self</span>.<span class="number">0</span>.unix_mode()
     }
 }
@@ -587,7 +568,6 @@
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::collections::BTreeSet;
-    <span class="kw">use </span>std::io;
 
     <span class="kw">struct </span>DummyVisitor;
     <span class="kw">impl </span>ZipStreamVisitor <span class="kw">for </span>DummyVisitor {
@@ -603,7 +583,8 @@
         }
     }
 
-    <span class="attr">#[derive(Default, Debug, Eq, PartialEq)]
+    <span class="attr">#[allow(dead_code)]
+    #[derive(Default, Debug, Eq, PartialEq)]
     </span><span class="kw">struct </span>CounterVisitor(u64, u64);
     <span class="kw">impl </span>ZipStreamVisitor <span class="kw">for </span>CounterVisitor {
         <span class="kw">fn </span>visit_file(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _file: <span class="kw-2">&amp;mut </span>ZipFile&lt;<span class="lifetime">'_</span>&gt;) -&gt; ZipResult&lt;()&gt; {

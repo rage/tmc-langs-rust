@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Lzma2Decoder","LzmaDecoder","LzmaParams","LzmaProperties"]};

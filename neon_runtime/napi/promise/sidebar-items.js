@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["create","reject","reject_err_message","resolve"]};

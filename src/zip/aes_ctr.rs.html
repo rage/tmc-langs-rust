@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-0.6.6/src/aes_ctr.rs`."><title>aes_ctr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zip-2.2.0/src/aes_ctr.rs`."><title>aes_ctr.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="zip" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -280,17 +279,15 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A counter mode (CTR) for AES to work with the encryption used in zip files.
 //!
 //! This was implemented since the zip specification requires the mode to not use a nonce and uses a
 //! different byte order (little endian) than NIST (big endian).
 //! See [AesCtrZipKeyStream] for more information.
 
-</span><span class="kw">use </span>aes::cipher::generic_array::GenericArray;
-<span class="comment">// use aes::{BlockEncrypt, NewBlockCipher};
-</span><span class="kw">use </span>aes::cipher::{BlockEncrypt, KeyInit};
-<span class="kw">use </span>byteorder::WriteBytesExt;
+</span><span class="kw">use </span><span class="kw">crate</span>::unstable::LittleEndianWriteExt;
+<span class="kw">use </span>aes::cipher::generic_array::GenericArray;
+<span class="kw">use </span>aes::cipher::{BlockEncrypt, KeyInit};
 <span class="kw">use </span>std::{any, fmt};
 
 <span class="doccomment">/// Internal block size of an AES cipher.
@@ -311,7 +308,7 @@
     <span class="doccomment">/// Key type.
     </span><span class="kw">type </span>Key: AsRef&lt;[u8]&gt;;
     <span class="doccomment">/// Cipher used to decrypt.
-    </span><span class="kw">type </span>Cipher;
+    </span><span class="kw">type </span>Cipher: KeyInit;
 }
 
 <span class="kw">impl </span>AesKind <span class="kw">for </span>Aes128 {
@@ -396,7 +393,7 @@
                 <span class="comment">// Note: AES block size is always 16 bytes, same as u128.
                 </span><span class="self">self</span>.buffer
                     .as_mut()
-                    .write_u128::&lt;byteorder::LittleEndian&gt;(<span class="self">self</span>.counter)
+                    .write_u128_le(<span class="self">self</span>.counter)
                     .expect(<span class="string">"did not expect u128 le conversion to fail"</span>);
                 <span class="self">self</span>.cipher
                     .encrypt_block(GenericArray::from_mut_slice(<span class="kw-2">&amp;mut </span><span class="self">self</span>.buffer));
@@ -438,21 +435,21 @@
 
     <span class="doccomment">/// Checks whether `crypt_in_place` produces the correct plaintext after one use and yields the
     /// cipertext again after applying it again.
-    </span><span class="kw">fn </span>roundtrip&lt;Aes&gt;(key: <span class="kw-2">&amp;</span>[u8], ciphertext: <span class="kw-2">&amp;mut </span>[u8], expected_plaintext: <span class="kw-2">&amp;</span>[u8])
+    </span><span class="kw">fn </span>roundtrip&lt;Aes&gt;(key: <span class="kw-2">&amp;</span>[u8], ciphertext: <span class="kw-2">&amp;</span>[u8], expected_plaintext: <span class="kw-2">&amp;</span>[u8])
     <span class="kw">where
         </span>Aes: AesKind,
         Aes::Cipher: KeyInit + BlockEncrypt,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>key_stream = AesCtrZipKeyStream::&lt;Aes&gt;::new(key);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>plaintext: Vec&lt;u8&gt; = ciphertext.to_vec();
-        key_stream.crypt_in_place(plaintext.as_mut_slice());
-        <span class="macro">assert_eq!</span>(plaintext, expected_plaintext.to_vec());
+        <span class="kw">let </span><span class="kw-2">mut </span>plaintext = ciphertext.to_vec().into_boxed_slice();
+        key_stream.crypt_in_place(<span class="kw-2">&amp;mut </span>plaintext);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>plaintext, <span class="kw-2">*</span>expected_plaintext);
 
         <span class="comment">// Round-tripping should yield the ciphertext again.
         </span><span class="kw">let </span><span class="kw-2">mut </span>key_stream = AesCtrZipKeyStream::&lt;Aes&gt;::new(key);
         key_stream.crypt_in_place(<span class="kw-2">&amp;mut </span>plaintext);
-        <span class="macro">assert_eq!</span>(plaintext, ciphertext.to_vec());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>plaintext, <span class="kw-2">*</span>ciphertext);
     }
 
     <span class="attr">#[test]
@@ -466,7 +463,7 @@
     // `7z a -phelloworld -mem=AES256 -mx=0 aes256_40byte.zip 40byte_data.txt`
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_256_0_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [];
+        <span class="kw">let </span>ciphertext = [];
         <span class="kw">let </span>expected_plaintext = <span class="kw-2">&amp;</span>[];
         <span class="kw">let </span>key = [
             <span class="number">0x0b</span>, <span class="number">0xec</span>, <span class="number">0x2e</span>, <span class="number">0xf2</span>, <span class="number">0x46</span>, <span class="number">0xf0</span>, <span class="number">0x7e</span>, <span class="number">0x35</span>, <span class="number">0x16</span>, <span class="number">0x54</span>, <span class="number">0xe0</span>, <span class="number">0x98</span>, <span class="number">0x10</span>, <span class="number">0xb3</span>,
@@ -474,36 +471,36 @@
             <span class="number">0x5c</span>, <span class="number">0xd0</span>, <span class="number">0xc0</span>, <span class="number">0x54</span>,
         ];
 
-        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_128_5_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [<span class="number">0x98</span>, <span class="number">0xa9</span>, <span class="number">0x8c</span>, <span class="number">0x26</span>, <span class="number">0x0e</span>];
+        <span class="kw">let </span>ciphertext = [<span class="number">0x98</span>, <span class="number">0xa9</span>, <span class="number">0x8c</span>, <span class="number">0x26</span>, <span class="number">0x0e</span>];
         <span class="kw">let </span>expected_plaintext = <span class="string">b"asdf\n"</span>;
         <span class="kw">let </span>key = [
             <span class="number">0xe0</span>, <span class="number">0x25</span>, <span class="number">0x7b</span>, <span class="number">0x57</span>, <span class="number">0x97</span>, <span class="number">0x6a</span>, <span class="number">0xa4</span>, <span class="number">0x23</span>, <span class="number">0xab</span>, <span class="number">0x94</span>, <span class="number">0xaa</span>, <span class="number">0x44</span>, <span class="number">0xfd</span>, <span class="number">0x47</span>,
             <span class="number">0x4f</span>, <span class="number">0xa5</span>,
         ];
 
-        roundtrip::&lt;Aes128&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes128&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_192_5_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [<span class="number">0x36</span>, <span class="number">0x55</span>, <span class="number">0x5c</span>, <span class="number">0x61</span>, <span class="number">0x3c</span>];
+        <span class="kw">let </span>ciphertext = [<span class="number">0x36</span>, <span class="number">0x55</span>, <span class="number">0x5c</span>, <span class="number">0x61</span>, <span class="number">0x3c</span>];
         <span class="kw">let </span>expected_plaintext = <span class="string">b"asdf\n"</span>;
         <span class="kw">let </span>key = [
             <span class="number">0xe4</span>, <span class="number">0x4a</span>, <span class="number">0x88</span>, <span class="number">0x52</span>, <span class="number">0x8f</span>, <span class="number">0xf7</span>, <span class="number">0x0b</span>, <span class="number">0x81</span>, <span class="number">0x7b</span>, <span class="number">0x75</span>, <span class="number">0xf1</span>, <span class="number">0x74</span>, <span class="number">0x21</span>, <span class="number">0x37</span>,
             <span class="number">0x8c</span>, <span class="number">0x90</span>, <span class="number">0xad</span>, <span class="number">0xbe</span>, <span class="number">0x4a</span>, <span class="number">0x65</span>, <span class="number">0xa8</span>, <span class="number">0x96</span>, <span class="number">0x0e</span>, <span class="number">0xcc</span>,
         ];
 
-        roundtrip::&lt;Aes192&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes192&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_256_5_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [<span class="number">0xc2</span>, <span class="number">0x47</span>, <span class="number">0xc0</span>, <span class="number">0xdc</span>, <span class="number">0x56</span>];
+        <span class="kw">let </span>ciphertext = [<span class="number">0xc2</span>, <span class="number">0x47</span>, <span class="number">0xc0</span>, <span class="number">0xdc</span>, <span class="number">0x56</span>];
         <span class="kw">let </span>expected_plaintext = <span class="string">b"asdf\n"</span>;
         <span class="kw">let </span>key = [
             <span class="number">0x79</span>, <span class="number">0x5e</span>, <span class="number">0x17</span>, <span class="number">0xf2</span>, <span class="number">0xc6</span>, <span class="number">0x3d</span>, <span class="number">0x28</span>, <span class="number">0x9b</span>, <span class="number">0x4b</span>, <span class="number">0x4b</span>, <span class="number">0xbb</span>, <span class="number">0xa9</span>, <span class="number">0xba</span>, <span class="number">0xc9</span>,
@@ -511,12 +508,12 @@
             <span class="number">0x15</span>, <span class="number">0xb2</span>, <span class="number">0x86</span>, <span class="number">0xab</span>,
         ];
 
-        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_128_40_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [
+        <span class="kw">let </span>ciphertext = [
             <span class="number">0xcf</span>, <span class="number">0x72</span>, <span class="number">0x6b</span>, <span class="number">0xa1</span>, <span class="number">0xb2</span>, <span class="number">0x0f</span>, <span class="number">0xdf</span>, <span class="number">0xaa</span>, <span class="number">0x10</span>, <span class="number">0xad</span>, <span class="number">0x9c</span>, <span class="number">0x7f</span>, <span class="number">0x6d</span>, <span class="number">0x1c</span>,
             <span class="number">0x8d</span>, <span class="number">0xb5</span>, <span class="number">0x16</span>, <span class="number">0x7e</span>, <span class="number">0xbb</span>, <span class="number">0x11</span>, <span class="number">0x69</span>, <span class="number">0x52</span>, <span class="number">0x8c</span>, <span class="number">0x89</span>, <span class="number">0x80</span>, <span class="number">0x32</span>, <span class="number">0xaa</span>, <span class="number">0x76</span>,
             <span class="number">0xa6</span>, <span class="number">0x18</span>, <span class="number">0x31</span>, <span class="number">0x98</span>, <span class="number">0xee</span>, <span class="number">0xdd</span>, <span class="number">0x22</span>, <span class="number">0x68</span>, <span class="number">0xb7</span>, <span class="number">0xe6</span>, <span class="number">0x77</span>, <span class="number">0xd2</span>,
@@ -527,12 +524,12 @@
             <span class="number">0x81</span>, <span class="number">0xb6</span>,
         ];
 
-        roundtrip::&lt;Aes128&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes128&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_192_40_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [
+        <span class="kw">let </span>ciphertext = [
             <span class="number">0xa6</span>, <span class="number">0xfc</span>, <span class="number">0x52</span>, <span class="number">0x79</span>, <span class="number">0x2c</span>, <span class="number">0x6c</span>, <span class="number">0xfe</span>, <span class="number">0x68</span>, <span class="number">0xb1</span>, <span class="number">0xa8</span>, <span class="number">0xb3</span>, <span class="number">0x07</span>, <span class="number">0x52</span>, <span class="number">0x8b</span>,
             <span class="number">0x82</span>, <span class="number">0xa6</span>, <span class="number">0x87</span>, <span class="number">0x9c</span>, <span class="number">0x72</span>, <span class="number">0x42</span>, <span class="number">0x3a</span>, <span class="number">0xf8</span>, <span class="number">0xc6</span>, <span class="number">0xa9</span>, <span class="number">0xc9</span>, <span class="number">0xfb</span>, <span class="number">0x61</span>, <span class="number">0x19</span>,
             <span class="number">0x37</span>, <span class="number">0xb9</span>, <span class="number">0x56</span>, <span class="number">0x62</span>, <span class="number">0xf4</span>, <span class="number">0xfc</span>, <span class="number">0x5e</span>, <span class="number">0x7a</span>, <span class="number">0xdd</span>, <span class="number">0x55</span>, <span class="number">0x0a</span>, <span class="number">0x48</span>,
@@ -543,12 +540,12 @@
             <span class="number">0xfe</span>, <span class="number">0xae</span>, <span class="number">0x1b</span>, <span class="number">0xba</span>, <span class="number">0x01</span>, <span class="number">0x97</span>, <span class="number">0x97</span>, <span class="number">0x79</span>, <span class="number">0xbb</span>, <span class="number">0xa6</span>,
         ];
 
-        roundtrip::&lt;Aes192&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes192&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>crypt_aes_256_40_byte() {
-        <span class="kw">let </span><span class="kw-2">mut </span>ciphertext = [
+        <span class="kw">let </span>ciphertext = [
             <span class="number">0xa9</span>, <span class="number">0x99</span>, <span class="number">0xbd</span>, <span class="number">0xea</span>, <span class="number">0x82</span>, <span class="number">0x9b</span>, <span class="number">0x8f</span>, <span class="number">0x2f</span>, <span class="number">0xb7</span>, <span class="number">0x52</span>, <span class="number">0x2f</span>, <span class="number">0x6b</span>, <span class="number">0xd8</span>, <span class="number">0xf6</span>,
             <span class="number">0xab</span>, <span class="number">0x0e</span>, <span class="number">0x24</span>, <span class="number">0x51</span>, <span class="number">0x9e</span>, <span class="number">0x18</span>, <span class="number">0x0f</span>, <span class="number">0xc0</span>, <span class="number">0x8f</span>, <span class="number">0x54</span>, <span class="number">0x15</span>, <span class="number">0x80</span>, <span class="number">0xae</span>, <span class="number">0xbc</span>,
             <span class="number">0xa0</span>, <span class="number">0x5c</span>, <span class="number">0x8a</span>, <span class="number">0x11</span>, <span class="number">0x8d</span>, <span class="number">0x14</span>, <span class="number">0x7e</span>, <span class="number">0xc5</span>, <span class="number">0xb4</span>, <span class="number">0xae</span>, <span class="number">0xd3</span>, <span class="number">0x37</span>,
@@ -560,7 +557,7 @@
             <span class="number">0xc2</span>, <span class="number">0x07</span>, <span class="number">0x36</span>, <span class="number">0xb6</span>,
         ];
 
-        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;mut </span>ciphertext, expected_plaintext);
+        roundtrip::&lt;Aes256&gt;(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>ciphertext, expected_plaintext);
     }
 }
 </code></pre></div></section></main></body></html>

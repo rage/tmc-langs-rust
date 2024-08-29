@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.2/src/combinator/multi.rs`."><title>multi.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.18/src/combinator/multi.rs`."><title>multi.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1302,6 +1301,19 @@
 <a href="#1301" id="1301">1301</a>
 <a href="#1302" id="1302">1302</a>
 <a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Combinators applying their child parser multiple times
 
 </span><span class="kw">use </span><span class="kw">crate</span>::combinator::trace;
@@ -1319,12 +1331,9 @@
 /// This stops before `n` when the parser returns [`ErrMode::Backtrack`]. To instead chain an error up, see
 /// [`cut_err`][crate::combinator::cut_err].
 ///
-/// # Arguments
-/// * `m` The minimum number of iterations.
-/// * `n` The maximum number of iterations.
-/// * `f` The parser to apply.
-///
-/// To recognize a series of tokens, [`Accumulate`] into a `()` and then [`Parser::recognize`].
+/// To take a series of tokens, [`Accumulate`] into a `()`
+/// (e.g. with [`.map(|()| ())`][Parser::map])
+/// and then [`Parser::take`].
 ///
 /// **Warning:** If the parser passed to `repeat` accepts empty inputs
 /// (like `alpha0` or `digit0`), `repeat` will return an error,
@@ -1415,15 +1424,18 @@
 #[doc(alias = <span class="string">"skip_many"</span>)]
 #[doc(alias = <span class="string">"skip_many1"</span>)]
 #[inline(always)]
-</span><span class="kw">pub fn </span>repeat&lt;I, O, C, E, P&gt;(range: <span class="kw">impl </span>Into&lt;Range&gt;, parser: P) -&gt; Repeat&lt;P, I, O, C, E&gt;
+</span><span class="kw">pub fn </span>repeat&lt;Input, Output, Accumulator, Error, ParseNext&gt;(
+    occurrences: <span class="kw">impl </span>Into&lt;Range&gt;,
+    parser: ParseNext,
+) -&gt; Repeat&lt;ParseNext, Input, Output, Accumulator, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    C: Accumulate&lt;O&gt;,
-    P: Parser&lt;I, O, E&gt;,
-    E: ParserError&lt;I&gt;,
+    </span>Input: Stream,
+    Accumulator: Accumulate&lt;Output&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    Error: ParserError&lt;Input&gt;,
 {
     Repeat {
-        range: range.into(),
+        occurrences: occurrences.into(),
         parser,
         i: Default::default(),
         o: Default::default(),
@@ -1433,7 +1445,6 @@
 }
 
 <span class="doccomment">/// Implementation of [`repeat`]
-</span><span class="attr">#[cfg_attr(nightly, warn(rustdoc::missing_doc_code_examples))]
 </span><span class="kw">pub struct </span>Repeat&lt;P, I, O, C, E&gt;
 <span class="kw">where
     </span>P: Parser&lt;I, O, E&gt;,
@@ -1441,7 +1452,7 @@
     C: Accumulate&lt;O&gt;,
     E: ParserError&lt;I&gt;,
 {
-    range: Range,
+    occurrences: Range,
     parser: P,
     i: core::marker::PhantomData&lt;I&gt;,
     o: core::marker::PhantomData&lt;O&gt;,
@@ -1449,11 +1460,11 @@
     e: core::marker::PhantomData&lt;E&gt;,
 }
 
-<span class="kw">impl</span>&lt;P, I, O, E&gt; Repeat&lt;P, I, O, (), E&gt;
+<span class="kw">impl</span>&lt;ParseNext, Input, Output, Error&gt; Repeat&lt;ParseNext, Input, Output, (), Error&gt;
 <span class="kw">where
-    </span>P: Parser&lt;I, O, E&gt;,
-    I: Stream,
-    E: ParserError&lt;I&gt;,
+    </span>ParseNext: Parser&lt;Input, Output, Error&gt;,
+    Input: Stream,
+    Error: ParserError&lt;Input&gt;,
 {
     <span class="doccomment">/// Repeats the embedded parser, calling `g` to gather the results
     ///
@@ -1551,25 +1562,29 @@
     #[doc(alias = <span class="string">"fold_many_m_n"</span>)]
     #[doc(alias = <span class="string">"fold_repeat"</span>)]
     #[inline(always)]
-    </span><span class="kw">pub fn </span>fold&lt;H, G, R&gt;(<span class="kw-2">mut </span><span class="self">self</span>, <span class="kw-2">mut </span>init: H, <span class="kw-2">mut </span>g: G) -&gt; <span class="kw">impl </span>Parser&lt;I, R, E&gt;
+    </span><span class="kw">pub fn </span>fold&lt;Init, Op, <span class="prelude-ty">Result</span>&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        <span class="kw-2">mut </span>init: Init,
+        <span class="kw-2">mut </span>op: Op,
+    ) -&gt; <span class="kw">impl </span>Parser&lt;Input, <span class="prelude-ty">Result</span>, Error&gt;
     <span class="kw">where
-        </span>G: FnMut(R, O) -&gt; R,
-        H: FnMut() -&gt; R,
+        </span>Init: FnMut() -&gt; <span class="prelude-ty">Result</span>,
+        Op: FnMut(<span class="prelude-ty">Result</span>, Output) -&gt; <span class="prelude-ty">Result</span>,
     {
         <span class="kw">let </span>Range {
             start_inclusive,
             end_inclusive,
-        } = <span class="self">self</span>.range;
-        trace(<span class="string">"repeat_fold"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
+        } = <span class="self">self</span>.occurrences;
+        trace(<span class="string">"repeat_fold"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>Input| {
             <span class="kw">match </span>(start_inclusive, end_inclusive) {
-                (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; fold_repeat0_(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span>init, <span class="kw-2">&amp;mut </span>g, i),
-                (<span class="number">1</span>, <span class="prelude-val">None</span>) =&gt; fold_repeat1_(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span>init, <span class="kw-2">&amp;mut </span>g, i),
+                (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; fold_repeat0_(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span>init, <span class="kw-2">&amp;mut </span>op, i),
+                (<span class="number">1</span>, <span class="prelude-val">None</span>) =&gt; fold_repeat1_(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, <span class="kw-2">&amp;mut </span>init, <span class="kw-2">&amp;mut </span>op, i),
                 (start, end) =&gt; fold_repeat_m_n_(
                     start,
                     end.unwrap_or(usize::MAX),
                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.parser,
                     <span class="kw-2">&amp;mut </span>init,
-                    <span class="kw-2">&amp;mut </span>g,
+                    <span class="kw-2">&amp;mut </span>op,
                     i,
                 ),
             }
@@ -1589,7 +1604,7 @@
         <span class="kw">let </span>Range {
             start_inclusive,
             end_inclusive,
-        } = <span class="self">self</span>.range;
+        } = <span class="self">self</span>.occurrences;
         trace(<span class="string">"repeat"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
             <span class="kw">match </span>(start_inclusive, end_inclusive) {
                 (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; repeat0_(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parser, i),
@@ -1752,7 +1767,13 @@
 ///
 /// `f` keeps going so long as `g` produces [`ErrMode::Backtrack`]. To instead chain an error up, see [`cut_err`][crate::combinator::cut_err].
 ///
-/// To recognize a series of tokens, [`Accumulate`] into a `()` and then [`Parser::recognize`].
+/// To take a series of tokens, [`Accumulate`] into a `()`
+/// (e.g. with [`.map(|()| ())`][Parser::map])
+/// and then [`Parser::take`].
+///
+/// See also
+/// - [`take_till`][crate::token::take_till] for recognizing up-to a member of a [set of tokens][crate::stream::ContainsToken]
+/// - [`take_until`][crate::token::take_until] for recognizing up-to a [`literal`][crate::token::literal] (w/ optional simd optimizations)
 ///
 /// # Example
 ///
@@ -1774,26 +1795,32 @@
 /// # }
 /// ```
 </span><span class="attr">#[doc(alias = <span class="string">"many_till0"</span>)]
-</span><span class="kw">pub fn </span>repeat_till&lt;I, O, C, P, E, F, G&gt;(
-    range: <span class="kw">impl </span>Into&lt;Range&gt;,
-    <span class="kw-2">mut </span>f: F,
-    <span class="kw-2">mut </span>g: G,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, (C, P), E&gt;
+</span><span class="kw">pub fn </span>repeat_till&lt;Input, Output, Accumulator, Terminator, Error, ParseNext, TerminatorParser&gt;(
+    occurrences: <span class="kw">impl </span>Into&lt;Range&gt;,
+    <span class="kw-2">mut </span>parse: ParseNext,
+    <span class="kw-2">mut </span>terminator: TerminatorParser,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, (Accumulator, Terminator), Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    C: Accumulate&lt;O&gt;,
-    F: Parser&lt;I, O, E&gt;,
-    G: Parser&lt;I, P, E&gt;,
-    E: ParserError&lt;I&gt;,
+    </span>Input: Stream,
+    Accumulator: Accumulate&lt;Output&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    TerminatorParser: Parser&lt;Input, Terminator, Error&gt;,
+    Error: ParserError&lt;Input&gt;,
 {
     <span class="kw">let </span>Range {
         start_inclusive,
         end_inclusive,
-    } = range.into();
-    trace(<span class="string">"repeat_till"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
+    } = occurrences.into();
+    trace(<span class="string">"repeat_till"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">match </span>(start_inclusive, end_inclusive) {
-            (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; repeat_till0_(<span class="kw-2">&amp;mut </span>f, <span class="kw-2">&amp;mut </span>g, i),
-            (start, end) =&gt; repeat_till_m_n_(start, end.unwrap_or(usize::MAX), <span class="kw-2">&amp;mut </span>f, <span class="kw-2">&amp;mut </span>g, i),
+            (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; repeat_till0_(<span class="kw-2">&amp;mut </span>parse, <span class="kw-2">&amp;mut </span>terminator, i),
+            (start, end) =&gt; repeat_till_m_n_(
+                start,
+                end.unwrap_or(usize::MAX),
+                <span class="kw-2">&amp;mut </span>parse,
+                <span class="kw-2">&amp;mut </span>terminator,
+                i,
+            ),
         }
     })
 }
@@ -1900,10 +1927,9 @@
 /// This stops when either parser returns [`ErrMode::Backtrack`]. To instead chain an error up, see
 /// [`cut_err`][crate::combinator::cut_err].
 ///
-/// # Arguments
-/// * `range` The minimum and maximum number of iterations.
-/// * `parser` The parser that parses the elements of the list.
-/// * `sep` The parser that parses the separator between list elements.
+/// To take a series of tokens, [`Accumulate`] into a `()`
+/// (e.g. with [`.map(|()| ())`][Parser::map])
+/// and then [`Parser::take`].
 ///
 /// **Warning:** If the separator parser accepts empty inputs
 /// (like `alpha0` or `digit0`), `separated` will return an error,
@@ -1992,23 +2018,23 @@
 #[doc(alias = <span class="string">"separated_list1"</span>)]
 #[doc(alias = <span class="string">"separated_m_n"</span>)]
 #[inline(always)]
-</span><span class="kw">pub fn </span>separated&lt;I, O, C, O2, E, P, S&gt;(
-    range: <span class="kw">impl </span>Into&lt;Range&gt;,
-    <span class="kw-2">mut </span>parser: P,
-    <span class="kw-2">mut </span>separator: S,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, C, E&gt;
+</span><span class="kw">pub fn </span>separated&lt;Input, Output, Accumulator, Sep, Error, ParseNext, SepParser&gt;(
+    occurrences: <span class="kw">impl </span>Into&lt;Range&gt;,
+    <span class="kw-2">mut </span>parser: ParseNext,
+    <span class="kw-2">mut </span>separator: SepParser,
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Accumulator, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    C: Accumulate&lt;O&gt;,
-    P: Parser&lt;I, O, E&gt;,
-    S: Parser&lt;I, O2, E&gt;,
-    E: ParserError&lt;I&gt;,
+    </span>Input: Stream,
+    Accumulator: Accumulate&lt;Output&gt;,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    SepParser: Parser&lt;Input, Sep, Error&gt;,
+    Error: ParserError&lt;Input&gt;,
 {
     <span class="kw">let </span>Range {
         start_inclusive,
         end_inclusive,
-    } = range.into();
-    trace(<span class="string">"separated"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>I| {
+    } = occurrences.into();
+    trace(<span class="string">"separated"</span>, <span class="kw">move </span>|input: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">match </span>(start_inclusive, end_inclusive) {
             (<span class="number">0</span>, <span class="prelude-val">None</span>) =&gt; separated0_(<span class="kw-2">&amp;mut </span>parser, <span class="kw-2">&amp;mut </span>separator, input),
             (<span class="number">1</span>, <span class="prelude-val">None</span>) =&gt; separated1_(<span class="kw-2">&amp;mut </span>parser, <span class="kw-2">&amp;mut </span>separator, input),
@@ -2311,19 +2337,19 @@
 /// assert_eq!(parser(""), Err(ErrMode::Backtrack(InputError::new("", ErrorKind::Token))));
 /// assert_eq!(parser("def|abc"), Err(ErrMode::Backtrack(InputError::new("def|abc", ErrorKind::Verify))));
 /// ```
-</span><span class="kw">pub fn </span>separated_foldl1&lt;I, O, O2, E, P, S, Op&gt;(
-    <span class="kw-2">mut </span>parser: P,
-    <span class="kw-2">mut </span>sep: S,
+</span><span class="kw">pub fn </span>separated_foldl1&lt;Input, Output, Sep, Error, ParseNext, SepParser, Op&gt;(
+    <span class="kw-2">mut </span>parser: ParseNext,
+    <span class="kw-2">mut </span>sep: SepParser,
     <span class="kw-2">mut </span>op: Op,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, O, E&gt;
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    P: Parser&lt;I, O, E&gt;,
-    S: Parser&lt;I, O2, E&gt;,
-    E: ParserError&lt;I&gt;,
-    Op: FnMut(O, O2, O) -&gt; O,
+    </span>Input: Stream,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    SepParser: Parser&lt;Input, Sep, Error&gt;,
+    Error: ParserError&lt;Input&gt;,
+    Op: FnMut(Output, Sep, Output) -&gt; Output,
 {
-    trace(<span class="string">"separated_foldl1"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
+    trace(<span class="string">"separated_foldl1"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">let </span><span class="kw-2">mut </span>ol = parser.parse_next(i)<span class="question-mark">?</span>;
 
         <span class="kw">loop </span>{
@@ -2380,21 +2406,21 @@
 /// assert_eq!(parser("def|abc"), Err(ErrMode::Backtrack(InputError::new("def|abc", ErrorKind::Verify))));
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
-</span><span class="kw">pub fn </span>separated_foldr1&lt;I, O, O2, E, P, S, Op&gt;(
-    <span class="kw-2">mut </span>parser: P,
-    <span class="kw-2">mut </span>sep: S,
+</span><span class="kw">pub fn </span>separated_foldr1&lt;Input, Output, Sep, Error, ParseNext, SepParser, Op&gt;(
+    <span class="kw-2">mut </span>parser: ParseNext,
+    <span class="kw-2">mut </span>sep: SepParser,
     <span class="kw-2">mut </span>op: Op,
-) -&gt; <span class="kw">impl </span>Parser&lt;I, O, E&gt;
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, Output, Error&gt;
 <span class="kw">where
-    </span>I: Stream,
-    P: Parser&lt;I, O, E&gt;,
-    S: Parser&lt;I, O2, E&gt;,
-    E: ParserError&lt;I&gt;,
-    Op: FnMut(O, O2, O) -&gt; O,
+    </span>Input: Stream,
+    ParseNext: Parser&lt;Input, Output, Error&gt;,
+    SepParser: Parser&lt;Input, Sep, Error&gt;,
+    Error: ParserError&lt;Input&gt;,
+    Op: FnMut(Output, Sep, Output) -&gt; Output,
 {
-    trace(<span class="string">"separated_foldr1"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
+    trace(<span class="string">"separated_foldr1"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">let </span>ol = parser.parse_next(i)<span class="question-mark">?</span>;
-        <span class="kw">let </span>all: <span class="kw">crate</span>::lib::std::vec::Vec&lt;(O2, O)&gt; =
+        <span class="kw">let </span>all: <span class="kw">crate</span>::lib::std::vec::Vec&lt;(Sep, Output)&gt; =
             repeat(<span class="number">0</span>.., (sep.by_ref(), parser.by_ref())).parse_next(i)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>((s, or)) = all
             .into_iter()
@@ -2412,10 +2438,6 @@
 <span class="doccomment">/// Repeats the embedded parser, filling the given slice with results.
 ///
 /// This parser fails if the input runs out before the given slice is full.
-///
-/// # Arguments
-/// * `f` The parser to apply.
-/// * `buf` The slice to fill
 ///
 /// # Example
 ///
@@ -2436,16 +2458,19 @@
 /// assert_eq!(parser(""), Err(ErrMode::Backtrack(InputError::new("", ErrorKind::Tag))));
 /// assert_eq!(parser("abcabcabc"), Ok(("abc", ["abc", "abc"])));
 /// ```
-</span><span class="kw">pub fn </span>fill&lt;<span class="lifetime">'a</span>, I, O, E, F&gt;(<span class="kw-2">mut </span>f: F, buf: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>[O]) -&gt; <span class="kw">impl </span>Parser&lt;I, (), E&gt; + <span class="lifetime">'a
+</span><span class="kw">pub fn </span>fill&lt;<span class="lifetime">'i</span>, Input, Output, Error, ParseNext&gt;(
+    <span class="kw-2">mut </span>parser: ParseNext,
+    buf: <span class="kw-2">&amp;</span><span class="lifetime">'i </span><span class="kw-2">mut </span>[Output],
+) -&gt; <span class="kw">impl </span>Parser&lt;Input, (), Error&gt; + <span class="lifetime">'i
 </span><span class="kw">where
-    </span>I: Stream + <span class="lifetime">'a</span>,
-    F: Parser&lt;I, O, E&gt; + <span class="lifetime">'a</span>,
-    E: ParserError&lt;I&gt; + <span class="lifetime">'a</span>,
+    </span>Input: Stream + <span class="lifetime">'i</span>,
+    ParseNext: Parser&lt;Input, Output, Error&gt; + <span class="lifetime">'i</span>,
+    Error: ParserError&lt;Input&gt; + <span class="lifetime">'i</span>,
 {
-    trace(<span class="string">"fill"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>I| {
+    trace(<span class="string">"fill"</span>, <span class="kw">move </span>|i: <span class="kw-2">&amp;mut </span>Input| {
         <span class="kw">for </span>elem <span class="kw">in </span>buf.iter_mut() {
             <span class="kw">let </span>start = i.checkpoint();
-            <span class="kw">match </span>f.parse_next(i) {
+            <span class="kw">match </span>parser.parse_next(i) {
                 <span class="prelude-val">Ok</span>(o) =&gt; {
                     <span class="kw-2">*</span>elem = o;
                 }

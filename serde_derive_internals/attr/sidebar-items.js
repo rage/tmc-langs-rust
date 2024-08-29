@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Default","Identifier","RenameRule","TagType"],"fn":["get_serde_meta_items"],"struct":["Container","Field","Name","RenameAllRules","Variant"]};
+window.SIDEBAR_ITEMS = {"enum":["Default","Identifier","RenameRule","TagType"],"struct":["Container","Field","Name","RenameAllRules","Variant"]};

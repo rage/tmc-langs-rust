@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.10/src/scanner.rs`."><title>scanner.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/unsafe-libyaml-0.2.11/src/scanner.rs`."><title>scanner.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="unsafe_libyaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2659,6 +2658,37 @@
 <a href="#2658" id="2658">2658</a>
 <a href="#2659" id="2659">2659</a>
 <a href="#2660" id="2660">2660</a>
+<a href="#2661" id="2661">2661</a>
+<a href="#2662" id="2662">2662</a>
+<a href="#2663" id="2663">2663</a>
+<a href="#2664" id="2664">2664</a>
+<a href="#2665" id="2665">2665</a>
+<a href="#2666" id="2666">2666</a>
+<a href="#2667" id="2667">2667</a>
+<a href="#2668" id="2668">2668</a>
+<a href="#2669" id="2669">2669</a>
+<a href="#2670" id="2670">2670</a>
+<a href="#2671" id="2671">2671</a>
+<a href="#2672" id="2672">2672</a>
+<a href="#2673" id="2673">2673</a>
+<a href="#2674" id="2674">2674</a>
+<a href="#2675" id="2675">2675</a>
+<a href="#2676" id="2676">2676</a>
+<a href="#2677" id="2677">2677</a>
+<a href="#2678" id="2678">2678</a>
+<a href="#2679" id="2679">2679</a>
+<a href="#2680" id="2680">2680</a>
+<a href="#2681" id="2681">2681</a>
+<a href="#2682" id="2682">2682</a>
+<a href="#2683" id="2683">2683</a>
+<a href="#2684" id="2684">2684</a>
+<a href="#2685" id="2685">2685</a>
+<a href="#2686" id="2686">2686</a>
+<a href="#2687" id="2687">2687</a>
+<a href="#2688" id="2688">2688</a>
+<a href="#2689" id="2689">2689</a>
+<a href="#2690" id="2690">2690</a>
+<a href="#2691" id="2691">2691</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::api::{
     yaml_free, yaml_malloc, yaml_queue_extend, yaml_stack_extend, yaml_string_extend,
     yaml_string_join,
@@ -2771,13 +2801,13 @@
     };
 }
 
-<span class="macro">macro_rules! </span>READ {
+<span class="macro">macro_rules!</span> READ {
     (<span class="macro-nonterminal">$parser</span>:expr, <span class="macro-nonterminal">$string</span>:expr) =&gt; {
         READ(<span class="macro-nonterminal">$parser</span>, <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$string</span>))
     };
 }
 
-<span class="macro">macro_rules! </span>READ_LINE {
+<span class="macro">macro_rules!</span> READ_LINE {
     (<span class="macro-nonterminal">$parser</span>:expr, <span class="macro-nonterminal">$string</span>:expr) =&gt; {
         READ_LINE(<span class="macro-nonterminal">$parser</span>, <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$string</span>))
     };
@@ -2847,7 +2877,10 @@
             <span class="kw">if </span>yaml_parser_stale_simple_keys(parser).fail {
                 <span class="kw">return </span>FAIL;
             }
-            simple_key = (<span class="kw-2">*</span>parser).simple_keys.start;
+            simple_key = (<span class="kw-2">*</span>parser)
+                .simple_keys
+                .start
+                .add((<span class="kw-2">*</span>parser).not_simple_keys <span class="kw">as </span>usize);
             <span class="kw">while </span>simple_key != (<span class="kw-2">*</span>parser).simple_keys.top {
                 <span class="kw">if </span>(<span class="kw-2">*</span>simple_key).possible &amp;&amp; (<span class="kw-2">*</span>simple_key).token_number == (<span class="kw-2">*</span>parser).tokens_parsed {
                     need_more_tokens = <span class="bool-val">true</span>;
@@ -2995,7 +3028,10 @@
 
 <span class="kw">unsafe fn </span>yaml_parser_stale_simple_keys(parser: <span class="kw-2">*mut </span>yaml_parser_t) -&gt; Success {
     <span class="kw">let </span><span class="kw-2">mut </span>simple_key: <span class="kw-2">*mut </span>yaml_simple_key_t;
-    simple_key = (<span class="kw-2">*</span>parser).simple_keys.start;
+    simple_key = (<span class="kw-2">*</span>parser)
+        .simple_keys
+        .start
+        .add((<span class="kw-2">*</span>parser).not_simple_keys <span class="kw">as </span>usize);
     <span class="kw">while </span>simple_key != (<span class="kw-2">*</span>parser).simple_keys.top {
         <span class="kw">if </span>(<span class="kw-2">*</span>simple_key).possible
             &amp;&amp; ((<span class="kw-2">*</span>simple_key).mark.line &lt; (<span class="kw-2">*</span>parser).mark.line
@@ -3011,6 +3047,14 @@
                 <span class="kw">return </span>FAIL;
             }
             (<span class="kw-2">*</span>simple_key).possible = <span class="bool-val">false</span>;
+            <span class="kw">if </span>(<span class="kw-2">*</span>parser)
+                .simple_keys
+                .start
+                .add((<span class="kw-2">*</span>parser).not_simple_keys <span class="kw">as </span>usize)
+                == simple_key
+            {
+                (<span class="kw-2">*</span>parser).not_simple_keys += <span class="number">1</span>;
+            }
         }
         simple_key = simple_key.wrapping_offset(<span class="number">1</span>);
     }
@@ -3033,6 +3077,14 @@
             <span class="kw">return </span>FAIL;
         }
         <span class="kw-2">*</span>(<span class="kw-2">*</span>parser).simple_keys.top.wrapping_offset(-<span class="number">1_isize</span>) = simple_key;
+        <span class="kw">if </span>(<span class="kw-2">*</span>parser)
+            .simple_keys
+            .start
+            .add((<span class="kw-2">*</span>parser).not_simple_keys <span class="kw">as </span>usize)
+            == (<span class="kw-2">*</span>parser).simple_keys.top
+        {
+            (<span class="kw-2">*</span>parser).not_simple_keys -= <span class="number">1</span>;
+        }
     }
     OK
 }
@@ -3079,6 +3131,14 @@
     <span class="kw">if </span>(<span class="kw-2">*</span>parser).flow_level != <span class="number">0 </span>{
         <span class="kw">let </span>fresh8 = <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span>parser).flow_level);
         <span class="kw-2">*</span>fresh8 -= <span class="number">1</span>;
+        <span class="kw">if </span>(<span class="kw-2">*</span>parser)
+            .simple_keys
+            .start
+            .add((<span class="kw-2">*</span>parser).not_simple_keys <span class="kw">as </span>usize)
+            == (<span class="kw-2">*</span>parser).simple_keys.top
+        {
+            (<span class="kw-2">*</span>parser).not_simple_keys -= <span class="number">1</span>;
+        }
         <span class="kw">let _ </span>= <span class="macro">POP!</span>((<span class="kw-2">*</span>parser).simple_keys);
     }
 }
@@ -3158,6 +3218,7 @@
     <span class="kw">let </span>token = token.as_mut_ptr();
     (<span class="kw-2">*</span>parser).indent = -<span class="number">1</span>;
     <span class="macro">PUSH!</span>((<span class="kw-2">*</span>parser).simple_keys, simple_key);
+    (<span class="kw-2">*</span>parser).not_simple_keys = <span class="number">1</span>;
     (<span class="kw-2">*</span>parser).simple_key_allowed = <span class="bool-val">true</span>;
     (<span class="kw-2">*</span>parser).stream_start_produced = <span class="bool-val">true</span>;
     memset(
@@ -4968,7 +5029,7 @@
                                         <span class="string">b"while parsing a quoted scalar\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                             <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                         start_mark,
-                                        <span class="string">b"did not find expected hexdecimal number\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
+                                        <span class="string">b"did not find expected hexadecimal number\0" </span><span class="kw">as </span><span class="kw-2">*const </span>u8
                                             <span class="kw">as </span><span class="kw-2">*const </span>libc::c_char,
                                     );
                                     current_block = <span class="number">8114179180390253173</span>;

@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.2/src/parser.rs`."><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.18/src/parser.rs`."><title>parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1205,15 +1204,46 @@
 <a href="#1204" id="1204">1204</a>
 <a href="#1205" id="1205">1205</a>
 <a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Basic types to build the parsers
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ascii::Caseless <span class="kw">as </span>AsciiCaseless;
 <span class="kw">use </span><span class="kw">crate</span>::combinator::<span class="kw-2">*</span>;
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::error::FromRecoverableError;
 <span class="kw">use </span><span class="kw">crate</span>::error::{AddContext, FromExternalError, IResult, PResult, ParseError, ParserError};
 <span class="kw">use </span><span class="kw">crate</span>::stream::{Compare, Location, ParseSlice, Stream, StreamIsPartial};
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::stream::{Recover, Recoverable};
 
 <span class="doccomment">/// Core trait for parsing
@@ -1259,7 +1289,6 @@
         I: Stream,
         <span class="comment">// Force users to deal with `Incomplete` when `StreamIsPartial&lt;true&gt;`
         </span>I: StreamIsPartial,
-        I: Clone,
         E: ParserError&lt;I&gt;,
     {
         <span class="macro">debug_assert!</span>(
@@ -1460,25 +1489,37 @@
     /// use winnow::combinator::separated_pair;
     /// # fn main() {
     ///
-    /// let mut parser = separated_pair(alpha1, ',', alpha1).recognize();
+    /// let mut parser = separated_pair(alpha1, ',', alpha1).take();
     ///
     /// assert_eq!(parser.parse_peek("abcd,efgh"), Ok(("", "abcd,efgh")));
     /// assert_eq!(parser.parse_peek("abcd;"),Err(ErrMode::Backtrack(InputError::new(";", ErrorKind::Tag))));
     /// # }
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">"concat"</span>)]
+    #[doc(alias = <span class="string">"recognize"</span>)]
     #[inline(always)]
-    </span><span class="kw">fn </span>recognize(<span class="self">self</span>) -&gt; Recognize&lt;<span class="self">Self</span>, I, O, E&gt;
+    </span><span class="kw">fn </span>take(<span class="self">self</span>) -&gt; Take&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         I: Stream,
     {
-        Recognize::new(<span class="self">self</span>)
+        Take::new(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Replaced with [`Parser::take`]
+    </span><span class="attr">#[inline(always)]
+    #[deprecated(since = <span class="string">"0.6.14"</span>, note = <span class="string">"Replaced with `Parser::take`"</span>)]
+    </span><span class="kw">fn </span>recognize(<span class="self">self</span>) -&gt; Take&lt;<span class="self">Self</span>, I, O, E&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: core::marker::Sized,
+        I: Stream,
+    {
+        Take::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Produce the consumed input with the output
     ///
-    /// Functions similarly to [recognize][Parser::recognize] except it
+    /// Functions similarly to [take][Parser::take] except it
     /// returns the parser output as well.
     ///
     /// This can be useful especially in cases where the output is not the same type
@@ -1499,27 +1540,39 @@
     ///     "1234".value(true).parse_next(input)
     /// }
     ///
-    /// let mut consumed_parser = separated_pair(alpha1, ',', alpha1).value(true).with_recognized();
+    /// let mut consumed_parser = separated_pair(alpha1, ',', alpha1).value(true).with_taken();
     ///
     /// assert_eq!(consumed_parser.parse_peek("abcd,efgh1"), Ok(("1", (true, "abcd,efgh"))));
     /// assert_eq!(consumed_parser.parse_peek("abcd;"),Err(ErrMode::Backtrack(InputError::new(";", ErrorKind::Tag))));
     ///
     /// // the second output (representing the consumed input)
-    /// // should be the same as that of the `recognize` parser.
-    /// let mut recognize_parser = inner_parser.recognize();
-    /// let mut consumed_parser = inner_parser.with_recognized().map(|(output, consumed)| consumed);
+    /// // should be the same as that of the `take` parser.
+    /// let mut take_parser = inner_parser.take();
+    /// let mut consumed_parser = inner_parser.with_taken().map(|(output, consumed)| consumed);
     ///
-    /// assert_eq!(recognize_parser.parse_peek("1234"), consumed_parser.parse_peek("1234"));
-    /// assert_eq!(recognize_parser.parse_peek("abcd"), consumed_parser.parse_peek("abcd"));
+    /// assert_eq!(take_parser.parse_peek("1234"), consumed_parser.parse_peek("1234"));
+    /// assert_eq!(take_parser.parse_peek("abcd"), consumed_parser.parse_peek("abcd"));
     /// ```
     </span><span class="attr">#[doc(alias = <span class="string">"consumed"</span>)]
+    #[doc(alias = <span class="string">"with_recognized"</span>)]
     #[inline(always)]
-    </span><span class="kw">fn </span>with_recognized(<span class="self">self</span>) -&gt; WithRecognized&lt;<span class="self">Self</span>, I, O, E&gt;
+    </span><span class="kw">fn </span>with_taken(<span class="self">self</span>) -&gt; WithTaken&lt;<span class="self">Self</span>, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
         I: Stream,
     {
-        WithRecognized::new(<span class="self">self</span>)
+        WithTaken::new(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Replaced with [`Parser::with_taken`]
+    </span><span class="attr">#[inline(always)]
+    #[deprecated(since = <span class="string">"0.6.14"</span>, note = <span class="string">"Replaced with `Parser::with_taken`"</span>)]
+    </span><span class="kw">fn </span>with_recognized(<span class="self">self</span>) -&gt; WithTaken&lt;<span class="self">Self</span>, I, O, E&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: core::marker::Sized,
+        I: Stream,
+    {
+        WithTaken::new(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Produce the location of the consumed input as produced value.
@@ -1580,11 +1633,11 @@
     ///
     /// // the second output (representing the consumed input)
     /// // should be the same as that of the `span` parser.
-    /// let mut recognize_parser = inner_parser.span();
+    /// let mut span_parser = inner_parser.span();
     /// let mut consumed_parser = inner_parser.with_span().map(|(output, consumed)| consumed);
     ///
-    /// assert_eq!(recognize_parser.parse_peek(Located::new("1234")), consumed_parser.parse_peek(Located::new("1234")));
-    /// assert_eq!(recognize_parser.parse_peek(Located::new("abcd")), consumed_parser.parse_peek(Located::new("abcd")));
+    /// assert_eq!(span_parser.parse_peek(Located::new("1234")), consumed_parser.parse_peek(Located::new("1234")));
+    /// assert_eq!(span_parser.parse_peek(Located::new("abcd")), consumed_parser.parse_peek(Located::new("abcd")));
     /// # }
     /// ```
     </span><span class="attr">#[inline(always)]
@@ -1883,6 +1936,7 @@
     /// [`winnow::combinator::alt`][crate::combinator::alt].
     </span><span class="attr">#[inline(always)]
     #[cfg(feature = <span class="string">"unstable-recover"</span>)]
+    #[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>retry_after&lt;R&gt;(<span class="self">self</span>, recover: R) -&gt; RetryAfter&lt;<span class="self">Self</span>, R, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
@@ -1900,6 +1954,7 @@
     /// [`winnow::combinator::alt`][crate::combinator::alt].
     </span><span class="attr">#[inline(always)]
     #[cfg(feature = <span class="string">"unstable-recover"</span>)]
+    #[cfg(feature = <span class="string">"std"</span>)]
     </span><span class="kw">fn </span>resume_after&lt;R&gt;(<span class="self">self</span>, recover: R) -&gt; ResumeAfter&lt;<span class="self">Self</span>, R, I, O, E&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: core::marker::Sized,
@@ -2170,7 +2225,7 @@
     }
 }
 
-<span class="macro">macro_rules! </span>impl_parser_for_tuple {
+<span class="macro">macro_rules!</span> impl_parser_for_tuple {
   ($(<span class="macro-nonterminal">$parser</span>:ident <span class="macro-nonterminal">$output</span>:ident),+) =&gt; (
     <span class="attr">#[allow(non_snake_case)]
     </span><span class="kw">impl</span>&lt;I: Stream, $(<span class="macro-nonterminal">$output</span>),+, E: ParserError&lt;I&gt;, $(<span class="macro-nonterminal">$parser</span>),+&gt; Parser&lt;I, ($(<span class="macro-nonterminal">$output</span>),+,), E&gt; <span class="kw">for </span>($(<span class="macro-nonterminal">$parser</span>),+,)
@@ -2189,7 +2244,7 @@
   )
 }
 
-<span class="macro">macro_rules! </span>impl_parser_for_tuples {
+<span class="macro">macro_rules!</span> impl_parser_for_tuples {
     (<span class="macro-nonterminal">$parser1</span>:ident <span class="macro-nonterminal">$output1</span>:ident, $(<span class="macro-nonterminal">$parser</span>:ident <span class="macro-nonterminal">$output</span>:ident),+) =&gt; {
         <span class="macro">impl_parser_for_tuples!</span>(__impl <span class="macro-nonterminal">$parser1 $output1</span>; $(<span class="macro-nonterminal">$parser $output</span>),+);
     };
@@ -2206,6 +2261,7 @@
 ///
 /// [`Parser`]s will need to use [`Recoverable&lt;I, _&gt;`] for their input.
 </span><span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub trait </span>RecoverableParser&lt;I, O, R, E&gt; {
     <span class="doccomment">/// Collect all errors when parsing the input
     ///
@@ -2218,6 +2274,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;P, I, O, R, E&gt; RecoverableParser&lt;I, O, R, E&gt; <span class="kw">for </span>P
 <span class="kw">where
     </span>P: Parser&lt;Recoverable&lt;I, R&gt;, O, E&gt;,
@@ -2292,7 +2349,7 @@
 );
 
 <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
-</span><span class="kw">use </span>alloc::boxed::Box;
+</span><span class="kw">use </span><span class="kw">crate</span>::lib::std::boxed::Box;
 
 <span class="attr">#[cfg(feature = <span class="string">"alloc"</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, I, O, E&gt; Parser&lt;I, O, E&gt; <span class="kw">for </span>Box&lt;<span class="kw">dyn </span>Parser&lt;I, O, E&gt; + <span class="lifetime">'a</span>&gt; {
@@ -2332,7 +2389,7 @@
 
     <span class="attr">#[doc(hidden)]
     #[macro_export]
-    </span><span class="macro">macro_rules! </span>assert_size (
+    </span><span class="macro">macro_rules!</span> assert_size (
     (<span class="macro-nonterminal">$t</span>:ty, <span class="macro-nonterminal">$sz</span>:expr) =&gt; (
       <span class="macro">assert!</span>(<span class="macro-nonterminal">$crate::lib::std::mem::size_of</span>::&lt;<span class="macro-nonterminal">$t</span>&gt;() &lt;= <span class="macro-nonterminal">$sz</span>, <span class="string">"{} &lt;= {} failed"</span>, <span class="macro-nonterminal">$crate::lib::std::mem::size_of</span>::&lt;<span class="macro-nonterminal">$t</span>&gt;(), <span class="macro-nonterminal">$sz</span>);
     );

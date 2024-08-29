@@ -1,0 +1,1 @@
+searchState.loadedDescShard("tmc_server_mock", 0, "This library can be used to easily set up a mock …\nFormats a mock config with the given projects dir and a …\nFormats a mock course config with 4 exercises. This should …")

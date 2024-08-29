@@ -1,0 +1,1 @@
+searchState.loadedDescShard("tmc_langs_r", 0, "Language plugin for the R language\nNo operation for now. To be possibly implemented later: …\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\nChecks if the directory contains R or tests/testthat")

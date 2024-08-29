@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/syn-mid-0.5.4/src/func.rs`."><title>func.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn_mid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/syn-mid-0.6.0/src/func.rs`."><title>func.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="syn_mid" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -266,15 +265,156 @@
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
 <a href="#267" id="267">267</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>proc_macro2::TokenStream;
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+</pre></div><pre class="rust"><code><span class="comment">// SPDX-License-Identifier: Apache-2.0 OR MIT
+
+// Based on https://github.com/dtolnay/syn/blob/2.0.37/src/item.rs.
+
+</span><span class="kw">use </span>proc_macro2::TokenStream;
 <span class="kw">use </span>syn::{
     punctuated::Punctuated, token, Abi, Attribute, Generics, Ident, Lifetime, ReturnType, Token,
-    Variadic, Visibility,
+    Type, Visibility,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::PatType;
+<span class="kw">use super</span>::{Pat, PatType};
 
-<span class="macro">ast_struct! </span>{
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A free-standing function: `fn process(n: usize) -&gt; Result&lt;()&gt; { ...
     /// }`.
     </span><span class="kw">pub struct </span>ItemFn {
@@ -285,7 +425,7 @@
     }
 }
 
-<span class="macro">ast_struct! </span>{
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A braced block containing Rust statements.
     </span><span class="kw">pub struct </span>Block {
         <span class="kw">pub </span>brace_token: token::Brace,
@@ -294,7 +434,7 @@
     }
 }
 
-<span class="macro">ast_struct! </span>{
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A function signature in a trait or implementation: `unsafe fn
     /// initialize(&amp;self)`.
     </span><span class="kw">pub struct </span>Signature {
@@ -312,7 +452,7 @@
     }
 }
 
-<span class="macro">ast_enum_of_structs! </span>{
+<span class="macro">ast_enum_of_structs!</span> {
     <span class="doccomment">/// An argument in a function signature: the `n: usize` in `fn f(n: usize)`.
     </span><span class="kw">pub enum </span>FnArg {
         <span class="doccomment">/// The `self` argument of an associated method, whether taken by value
@@ -324,7 +464,7 @@
     }
 }
 
-<span class="macro">ast_struct! </span>{
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// The `self` argument of an associated method, whether taken by value
     /// or by reference.
     </span><span class="kw">pub struct </span>Receiver {
@@ -332,6 +472,18 @@
         <span class="kw">pub </span>reference: <span class="prelude-ty">Option</span>&lt;(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>], <span class="prelude-ty">Option</span>&lt;Lifetime&gt;)&gt;,
         <span class="kw">pub </span>mutability: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt;,
         <span class="kw">pub </span>self_token: <span class="macro">Token!</span>[<span class="self">self</span>],
+        <span class="kw">pub </span>colon_token: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[:]&gt;,
+        <span class="kw">pub </span>ty: Box&lt;Type&gt;,
+    }
+}
+
+<span class="macro">ast_struct!</span> {
+    <span class="doccomment">/// The variadic argument of a foreign function.
+    </span><span class="kw">pub struct </span>Variadic {
+        <span class="kw">pub </span>attrs: Vec&lt;Attribute&gt;,
+        <span class="kw">pub </span>pat: <span class="prelude-ty">Option</span>&lt;(Box&lt;Pat&gt;, <span class="macro">Token!</span>[:])&gt;,
+        <span class="kw">pub </span>dots: <span class="macro">Token!</span>[...],
+        <span class="kw">pub </span>comma: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[,]&gt;,
     }
 }
 
@@ -339,10 +491,13 @@
     <span class="kw">use </span>syn::{
         braced, parenthesized,
         parse::{discouraged::Speculative, Parse, ParseStream, <span class="prelude-ty">Result</span>},
-        parse2, Abi, Attribute, Generics, Ident, ReturnType, Token, Type, Variadic, Visibility,
+        punctuated::Punctuated,
+        Abi, Attribute, Error, Generics, Ident, Lifetime, Path, ReturnType, Token, Type, TypePath,
+        TypeReference, Visibility,
     };
 
-    <span class="kw">use super</span>::{Block, FnArg, ItemFn, PatType, Receiver, Signature};
+    <span class="kw">use super</span>::{Block, FnArg, ItemFn, Receiver, Signature, Variadic};
+    <span class="kw">use </span><span class="kw">crate</span>::pat::{Pat, PatType, PatWild};
 
     <span class="kw">impl </span>Parse <span class="kw">for </span>Block {
         <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
@@ -353,18 +508,6 @@
 
     <span class="kw">impl </span>Parse <span class="kw">for </span>Signature {
         <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
-            <span class="attr">#[allow(clippy::trivially_copy_pass_by_ref)]
-            </span><span class="kw">fn </span>get_variadic(input: &amp;&amp;FnArg) -&gt; <span class="prelude-ty">Option</span>&lt;Variadic&gt; {
-                <span class="kw">if let </span>FnArg::Typed(PatType { ty, .. }) = input {
-                    <span class="kw">if let </span>Type::Verbatim(tokens) = <span class="kw-2">&amp;**</span>ty {
-                        <span class="kw">if let </span><span class="prelude-val">Ok</span>(dots) = parse2(tokens.clone()) {
-                            <span class="kw">return </span><span class="prelude-val">Some</span>(Variadic { attrs: Vec::new(), dots });
-                        }
-                    }
-                }
-                <span class="prelude-val">None
-            </span>}
-
             <span class="kw">let </span>constness: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw">const</span>]&gt; = input.parse()<span class="question-mark">?</span>;
             <span class="kw">let </span>asyncness: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw">async</span>]&gt; = input.parse()<span class="question-mark">?</span>;
             <span class="kw">let </span>unsafety: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw">unsafe</span>]&gt; = input.parse()<span class="question-mark">?</span>;
@@ -375,8 +518,7 @@
 
             <span class="kw">let </span>content;
             <span class="kw">let </span>paren_token = <span class="macro">parenthesized!</span>(content <span class="kw">in </span>input);
-            <span class="kw">let </span>inputs = content.parse_terminated(FnArg::parse)<span class="question-mark">?</span>;
-            <span class="kw">let </span>variadic = inputs.last().as_ref().and_then(get_variadic);
+            <span class="kw">let </span>(inputs, variadic) = parse_fn_args(<span class="kw-2">&amp;</span>content)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>output: ReturnType = input.parse()<span class="question-mark">?</span>;
             generics.where_clause = input.parse()<span class="question-mark">?</span>;
@@ -401,7 +543,7 @@
         <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
             <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
             <span class="kw">let </span>vis: Visibility = input.parse()<span class="question-mark">?</span>;
-            <span class="kw">let </span>sig = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>sig: Signature = input.parse()<span class="question-mark">?</span>;
             <span class="kw">let </span>block = input.parse()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{ attrs, vis, sig, block: Box::new(block) })
         }
@@ -409,56 +551,185 @@
 
     <span class="kw">impl </span>Parse <span class="kw">for </span>FnArg {
         <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>allow_variadic = <span class="bool-val">false</span>;
             <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>ahead = input.fork();
-            <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>receiver) = ahead.parse::&lt;Receiver&gt;() {
-                <span class="kw">if </span>!ahead.peek(<span class="macro">Token!</span>[:]) {
-                    input.advance_to(<span class="kw-2">&amp;</span>ahead);
-                    receiver.attrs = attrs;
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>(FnArg::Receiver(receiver));
-                }
+            <span class="kw">match </span>parse_fn_arg_or_variadic(input, attrs, allow_variadic)<span class="question-mark">? </span>{
+                FnArgOrVariadic::FnArg(arg) =&gt; <span class="prelude-val">Ok</span>(arg),
+                FnArgOrVariadic::Variadic(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
             }
-
-            <span class="kw">let </span><span class="kw-2">mut </span>typed = input.call(fn_arg_typed)<span class="question-mark">?</span>;
-            typed.attrs = attrs;
-            <span class="prelude-val">Ok</span>(FnArg::Typed(typed))
         }
+    }
+
+    <span class="kw">enum </span>FnArgOrVariadic {
+        FnArg(FnArg),
+        Variadic(Variadic),
+    }
+
+    <span class="kw">fn </span>parse_fn_arg_or_variadic(
+        input: ParseStream&lt;<span class="lifetime">'_</span>&gt;,
+        attrs: Vec&lt;Attribute&gt;,
+        allow_variadic: bool,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;FnArgOrVariadic&gt; {
+        <span class="kw">let </span>ahead = input.fork();
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>receiver) = ahead.parse::&lt;Receiver&gt;() {
+            input.advance_to(<span class="kw-2">&amp;</span>ahead);
+            receiver.attrs = attrs;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(FnArgOrVariadic::FnArg(FnArg::Receiver(receiver)));
+        }
+
+        <span class="comment">// Hack to parse pre-2018 syntax in
+        // test/ui/rfc-2565-param-attrs/param-attrs-pretty.rs
+        // because the rest of the test case is valuable.
+        </span><span class="kw">if </span>input.peek(Ident) &amp;&amp; input.peek2(<span class="macro">Token!</span>[&lt;]) {
+            <span class="kw">let </span>span = input.fork().parse::&lt;Ident&gt;()<span class="question-mark">?</span>.span();
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(FnArgOrVariadic::FnArg(FnArg::Typed(PatType {
+                attrs,
+                pat: Box::new(Pat::Wild(PatWild {
+                    attrs: Vec::new(),
+                    underscore_token: <span class="macro">Token!</span>[<span class="kw">_</span>](span),
+                })),
+                colon_token: <span class="macro">Token!</span>[:](span),
+                ty: input.parse()<span class="question-mark">?</span>,
+            })));
+        }
+
+        <span class="kw">let </span>pat = Box::new(Pat::parse_single(input)<span class="question-mark">?</span>);
+        <span class="kw">let </span>colon_token: <span class="macro">Token!</span>[:] = input.parse()<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>allow_variadic {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dots) = input.parse::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[...]&gt;&gt;()<span class="question-mark">? </span>{
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(FnArgOrVariadic::Variadic(Variadic {
+                    attrs,
+                    pat: <span class="prelude-val">Some</span>((pat, colon_token)),
+                    dots,
+                    comma: <span class="prelude-val">None</span>,
+                }));
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(FnArgOrVariadic::FnArg(FnArg::Typed(PatType {
+            attrs,
+            pat,
+            colon_token,
+            ty: input.parse()<span class="question-mark">?</span>,
+        })))
     }
 
     <span class="kw">impl </span>Parse <span class="kw">for </span>Receiver {
         <span class="kw">fn </span>parse(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt; {
+            <span class="kw">let </span>reference = <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
+                <span class="kw">let </span>ampersand: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>] = input.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>lifetime: <span class="prelude-ty">Option</span>&lt;Lifetime&gt; = input.parse()<span class="question-mark">?</span>;
+                <span class="prelude-val">Some</span>((ampersand, lifetime))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>};
+            <span class="kw">let </span>mutability: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[<span class="kw-2">mut</span>]&gt; = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>self_token: <span class="macro">Token!</span>[<span class="self">self</span>] = input.parse()<span class="question-mark">?</span>;
+            <span class="kw">let </span>colon_token: <span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[:]&gt; =
+                <span class="kw">if </span>reference.is_some() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ input.parse()<span class="question-mark">? </span>};
+            <span class="kw">let </span>ty: Type = <span class="kw">if </span>colon_token.is_some() {
+                input.parse()<span class="question-mark">?
+            </span>} <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>ty = Type::Path(TypePath {
+                    qself: <span class="prelude-val">None</span>,
+                    path: Path::from(Ident::new(<span class="string">"Self"</span>, self_token.span)),
+                });
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((ampersand, lifetime)) = reference.as_ref() {
+                    ty = Type::Reference(TypeReference {
+                        and_token: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>](ampersand.span),
+                        lifetime: lifetime.clone(),
+                        mutability: mutability.as_ref().map(|m| <span class="macro">Token!</span>[<span class="kw-2">mut</span>](m.span)),
+                        elem: Box::new(ty),
+                    });
+                }
+                ty
+            };
             <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
                 attrs: Vec::new(),
-                reference: {
-                    <span class="kw">if </span>input.peek(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
-                        <span class="prelude-val">Some</span>((input.parse()<span class="question-mark">?</span>, input.parse()<span class="question-mark">?</span>))
-                    } <span class="kw">else </span>{
-                        <span class="prelude-val">None
-                    </span>}
-                },
-                mutability: input.parse()<span class="question-mark">?</span>,
-                self_token: input.parse()<span class="question-mark">?</span>,
+                reference,
+                mutability,
+                self_token,
+                colon_token,
+                ty: Box::new(ty),
             })
         }
     }
 
-    <span class="kw">fn </span>fn_arg_typed(input: ParseStream&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;PatType&gt; {
-        <span class="prelude-val">Ok</span>(PatType {
-            attrs: Vec::new(),
-            pat: input.parse()<span class="question-mark">?</span>,
-            colon_token: input.parse()<span class="question-mark">?</span>,
-            ty: Box::new(input.parse()<span class="question-mark">?</span>),
-        })
+    <span class="kw">fn </span>parse_fn_args(
+        input: ParseStream&lt;<span class="lifetime">'_</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(Punctuated&lt;FnArg, <span class="macro">Token!</span>[,]&gt;, <span class="prelude-ty">Option</span>&lt;Variadic&gt;)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>args = Punctuated::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>variadic = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>has_receiver = <span class="bool-val">false</span>;
+
+        <span class="kw">while </span>!input.is_empty() {
+            <span class="kw">let </span>attrs = input.call(Attribute::parse_outer)<span class="question-mark">?</span>;
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(dots) = input.parse::&lt;<span class="prelude-ty">Option</span>&lt;<span class="macro">Token!</span>[...]&gt;&gt;()<span class="question-mark">? </span>{
+                variadic = <span class="prelude-val">Some</span>(Variadic {
+                    attrs,
+                    pat: <span class="prelude-val">None</span>,
+                    dots,
+                    comma: <span class="kw">if </span>input.is_empty() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>) },
+                });
+                <span class="kw">break</span>;
+            }
+
+            <span class="kw">let </span>allow_variadic = <span class="bool-val">true</span>;
+            <span class="kw">let </span>arg = <span class="kw">match </span>parse_fn_arg_or_variadic(input, attrs, allow_variadic)<span class="question-mark">? </span>{
+                FnArgOrVariadic::FnArg(arg) =&gt; arg,
+                FnArgOrVariadic::Variadic(arg) =&gt; {
+                    variadic = <span class="prelude-val">Some</span>(Variadic {
+                        comma: <span class="kw">if </span>input.is_empty() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(input.parse()<span class="question-mark">?</span>) },
+                        ..arg
+                    });
+                    <span class="kw">break</span>;
+                }
+            };
+
+            <span class="kw">match </span><span class="kw-2">&amp;</span>arg {
+                FnArg::Receiver(receiver) <span class="kw">if </span>has_receiver =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(
+                        receiver.self_token.span,
+                        <span class="string">"unexpected second method receiver"</span>,
+                    ));
+                }
+                FnArg::Receiver(receiver) <span class="kw">if </span>!args.is_empty() =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::new(receiver.self_token.span, <span class="string">"unexpected method receiver"</span>));
+                }
+                FnArg::Receiver(<span class="kw">_</span>) =&gt; has_receiver = <span class="bool-val">true</span>,
+                FnArg::Typed(<span class="kw">_</span>) =&gt; {}
+            }
+            args.push_value(arg);
+
+            <span class="kw">if </span>input.is_empty() {
+                <span class="kw">break</span>;
+            }
+
+            <span class="kw">let </span>comma: <span class="macro">Token!</span>[,] = input.parse()<span class="question-mark">?</span>;
+            args.push_punct(comma);
+        }
+
+        <span class="prelude-val">Ok</span>((args, variadic))
     }
 }
 
 <span class="kw">mod </span>printing {
     <span class="kw">use </span>proc_macro2::TokenStream;
     <span class="kw">use </span>quote::{ToTokens, TokenStreamExt};
-    <span class="kw">use </span>syn::{punctuated::Punctuated, Token, Type};
+    <span class="kw">use </span>syn::{Token, Type};
 
-    <span class="kw">use super</span>::{Block, FnArg, ItemFn, Receiver, Signature};
+    <span class="kw">use super</span>::{Block, ItemFn, Receiver, Signature, Variadic};
+
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>ItemFn {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append_all(<span class="kw-2">&amp;</span><span class="self">self</span>.attrs);
+            <span class="self">self</span>.vis.to_tokens(tokens);
+            <span class="self">self</span>.sig.to_tokens(tokens);
+            <span class="self">self</span>.block.to_tokens(tokens);
+        }
+    }
 
     <span class="kw">impl </span>ToTokens <span class="kw">for </span>Block {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
@@ -467,25 +738,6 @@
             });
         }
     }
-
-    <span class="kw">fn </span>has_variadic(inputs: <span class="kw-2">&amp;</span>Punctuated&lt;FnArg, <span class="macro">Token!</span>[,]&gt;) -&gt; bool {
-        <span class="kw">let </span>last = <span class="kw">match </span>inputs.last() {
-            <span class="prelude-val">Some</span>(last) =&gt; last,
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
-        };
-
-        <span class="kw">let </span>pat = <span class="kw">match </span>last {
-            FnArg::Typed(pat) =&gt; pat,
-            FnArg::Receiver(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="bool-val">false</span>,
-        };
-
-        <span class="kw">let </span>tokens = <span class="kw">match </span><span class="kw-2">&amp;*</span>pat.ty {
-            Type::Verbatim(tokens) =&gt; tokens,
-            <span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
-        };
-
-        tokens.to_string() == <span class="string">"..."
-    </span>}
 
     <span class="kw">impl </span>ToTokens <span class="kw">for </span>Signature {
         <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
@@ -498,26 +750,15 @@
             <span class="self">self</span>.generics.to_tokens(tokens);
             <span class="self">self</span>.paren_token.surround(tokens, |tokens| {
                 <span class="self">self</span>.inputs.to_tokens(tokens);
-                <span class="kw">if </span><span class="self">self</span>.variadic.is_some() &amp;&amp; !has_variadic(<span class="kw-2">&amp;</span><span class="self">self</span>.inputs) {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(variadic) = <span class="kw-2">&amp;</span><span class="self">self</span>.variadic {
                     <span class="kw">if </span>!<span class="self">self</span>.inputs.empty_or_trailing() {
                         &lt;<span class="macro">Token!</span>[,]&gt;::default().to_tokens(tokens);
                     }
-                    <span class="self">self</span>.variadic.to_tokens(tokens);
+                    variadic.to_tokens(tokens);
                 }
             });
             <span class="self">self</span>.output.to_tokens(tokens);
             <span class="self">self</span>.generics.where_clause.to_tokens(tokens);
-        }
-    }
-
-    <span class="kw">impl </span>ToTokens <span class="kw">for </span>ItemFn {
-        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
-            tokens.append_all(<span class="kw-2">&amp;</span><span class="self">self</span>.attrs);
-            <span class="self">self</span>.vis.to_tokens(tokens);
-            <span class="self">self</span>.sig.to_tokens(tokens);
-            <span class="self">self</span>.block.brace_token.surround(tokens, |tokens| {
-                tokens.append_all(<span class="self">self</span>.block.stmts.clone());
-            });
         }
     }
 
@@ -530,6 +771,38 @@
             }
             <span class="self">self</span>.mutability.to_tokens(tokens);
             <span class="self">self</span>.self_token.to_tokens(tokens);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(colon_token) = <span class="kw-2">&amp;</span><span class="self">self</span>.colon_token {
+                colon_token.to_tokens(tokens);
+                <span class="self">self</span>.ty.to_tokens(tokens);
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>consistent = <span class="kw">match </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.reference, <span class="kw-2">&amp;</span><span class="self">self</span>.mutability, <span class="kw-2">&amp;*</span><span class="self">self</span>.ty) {
+                    (<span class="prelude-val">Some</span>(<span class="kw">_</span>), mutability, Type::Reference(ty)) =&gt; {
+                        mutability.is_some() == ty.mutability.is_some()
+                            &amp;&amp; <span class="kw">match </span><span class="kw-2">&amp;*</span>ty.elem {
+                                Type::Path(ty) =&gt; ty.qself.is_none() &amp;&amp; ty.path.is_ident(<span class="string">"Self"</span>),
+                                <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+                            }
+                    }
+                    (<span class="prelude-val">None</span>, <span class="kw">_</span>, Type::Path(ty)) =&gt; ty.qself.is_none() &amp;&amp; ty.path.is_ident(<span class="string">"Self"</span>),
+                    <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+                };
+                <span class="kw">if </span>!consistent {
+                    &lt;<span class="macro">Token!</span>[:]&gt;::default().to_tokens(tokens);
+                    <span class="self">self</span>.ty.to_tokens(tokens);
+                }
+            }
+        }
+    }
+
+    <span class="kw">impl </span>ToTokens <span class="kw">for </span>Variadic {
+        <span class="kw">fn </span>to_tokens(<span class="kw-2">&amp;</span><span class="self">self</span>, tokens: <span class="kw-2">&amp;mut </span>TokenStream) {
+            tokens.append_all(<span class="kw-2">&amp;</span><span class="self">self</span>.attrs);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((pat, colon)) = <span class="kw-2">&amp;</span><span class="self">self</span>.pat {
+                pat.to_tokens(tokens);
+                colon.to_tokens(tokens);
+            }
+            <span class="self">self</span>.dots.to_tokens(tokens);
+            <span class="self">self</span>.comma.to_tokens(tokens);
         }
     }
 }

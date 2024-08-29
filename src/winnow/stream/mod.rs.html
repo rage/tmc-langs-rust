@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.2/src/stream/mod.rs`."><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-ac92e1bbe349e143.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0 (07dca489a 2024-02-04)" data-channel="1.76.0" data-search-js="search-2b6ce74ff89ae146.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../../static.files/src-script-39ed315d46fb705f.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-305769736d49e732.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-feafe1bb7466e4bd.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/winnow-0.6.18/src/stream/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="winnow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -3624,6 +3623,150 @@
 <a href="#3623" id="3623">3623</a>
 <a href="#3624" id="3624">3624</a>
 <a href="#3625" id="3625">3625</a>
+<a href="#3626" id="3626">3626</a>
+<a href="#3627" id="3627">3627</a>
+<a href="#3628" id="3628">3628</a>
+<a href="#3629" id="3629">3629</a>
+<a href="#3630" id="3630">3630</a>
+<a href="#3631" id="3631">3631</a>
+<a href="#3632" id="3632">3632</a>
+<a href="#3633" id="3633">3633</a>
+<a href="#3634" id="3634">3634</a>
+<a href="#3635" id="3635">3635</a>
+<a href="#3636" id="3636">3636</a>
+<a href="#3637" id="3637">3637</a>
+<a href="#3638" id="3638">3638</a>
+<a href="#3639" id="3639">3639</a>
+<a href="#3640" id="3640">3640</a>
+<a href="#3641" id="3641">3641</a>
+<a href="#3642" id="3642">3642</a>
+<a href="#3643" id="3643">3643</a>
+<a href="#3644" id="3644">3644</a>
+<a href="#3645" id="3645">3645</a>
+<a href="#3646" id="3646">3646</a>
+<a href="#3647" id="3647">3647</a>
+<a href="#3648" id="3648">3648</a>
+<a href="#3649" id="3649">3649</a>
+<a href="#3650" id="3650">3650</a>
+<a href="#3651" id="3651">3651</a>
+<a href="#3652" id="3652">3652</a>
+<a href="#3653" id="3653">3653</a>
+<a href="#3654" id="3654">3654</a>
+<a href="#3655" id="3655">3655</a>
+<a href="#3656" id="3656">3656</a>
+<a href="#3657" id="3657">3657</a>
+<a href="#3658" id="3658">3658</a>
+<a href="#3659" id="3659">3659</a>
+<a href="#3660" id="3660">3660</a>
+<a href="#3661" id="3661">3661</a>
+<a href="#3662" id="3662">3662</a>
+<a href="#3663" id="3663">3663</a>
+<a href="#3664" id="3664">3664</a>
+<a href="#3665" id="3665">3665</a>
+<a href="#3666" id="3666">3666</a>
+<a href="#3667" id="3667">3667</a>
+<a href="#3668" id="3668">3668</a>
+<a href="#3669" id="3669">3669</a>
+<a href="#3670" id="3670">3670</a>
+<a href="#3671" id="3671">3671</a>
+<a href="#3672" id="3672">3672</a>
+<a href="#3673" id="3673">3673</a>
+<a href="#3674" id="3674">3674</a>
+<a href="#3675" id="3675">3675</a>
+<a href="#3676" id="3676">3676</a>
+<a href="#3677" id="3677">3677</a>
+<a href="#3678" id="3678">3678</a>
+<a href="#3679" id="3679">3679</a>
+<a href="#3680" id="3680">3680</a>
+<a href="#3681" id="3681">3681</a>
+<a href="#3682" id="3682">3682</a>
+<a href="#3683" id="3683">3683</a>
+<a href="#3684" id="3684">3684</a>
+<a href="#3685" id="3685">3685</a>
+<a href="#3686" id="3686">3686</a>
+<a href="#3687" id="3687">3687</a>
+<a href="#3688" id="3688">3688</a>
+<a href="#3689" id="3689">3689</a>
+<a href="#3690" id="3690">3690</a>
+<a href="#3691" id="3691">3691</a>
+<a href="#3692" id="3692">3692</a>
+<a href="#3693" id="3693">3693</a>
+<a href="#3694" id="3694">3694</a>
+<a href="#3695" id="3695">3695</a>
+<a href="#3696" id="3696">3696</a>
+<a href="#3697" id="3697">3697</a>
+<a href="#3698" id="3698">3698</a>
+<a href="#3699" id="3699">3699</a>
+<a href="#3700" id="3700">3700</a>
+<a href="#3701" id="3701">3701</a>
+<a href="#3702" id="3702">3702</a>
+<a href="#3703" id="3703">3703</a>
+<a href="#3704" id="3704">3704</a>
+<a href="#3705" id="3705">3705</a>
+<a href="#3706" id="3706">3706</a>
+<a href="#3707" id="3707">3707</a>
+<a href="#3708" id="3708">3708</a>
+<a href="#3709" id="3709">3709</a>
+<a href="#3710" id="3710">3710</a>
+<a href="#3711" id="3711">3711</a>
+<a href="#3712" id="3712">3712</a>
+<a href="#3713" id="3713">3713</a>
+<a href="#3714" id="3714">3714</a>
+<a href="#3715" id="3715">3715</a>
+<a href="#3716" id="3716">3716</a>
+<a href="#3717" id="3717">3717</a>
+<a href="#3718" id="3718">3718</a>
+<a href="#3719" id="3719">3719</a>
+<a href="#3720" id="3720">3720</a>
+<a href="#3721" id="3721">3721</a>
+<a href="#3722" id="3722">3722</a>
+<a href="#3723" id="3723">3723</a>
+<a href="#3724" id="3724">3724</a>
+<a href="#3725" id="3725">3725</a>
+<a href="#3726" id="3726">3726</a>
+<a href="#3727" id="3727">3727</a>
+<a href="#3728" id="3728">3728</a>
+<a href="#3729" id="3729">3729</a>
+<a href="#3730" id="3730">3730</a>
+<a href="#3731" id="3731">3731</a>
+<a href="#3732" id="3732">3732</a>
+<a href="#3733" id="3733">3733</a>
+<a href="#3734" id="3734">3734</a>
+<a href="#3735" id="3735">3735</a>
+<a href="#3736" id="3736">3736</a>
+<a href="#3737" id="3737">3737</a>
+<a href="#3738" id="3738">3738</a>
+<a href="#3739" id="3739">3739</a>
+<a href="#3740" id="3740">3740</a>
+<a href="#3741" id="3741">3741</a>
+<a href="#3742" id="3742">3742</a>
+<a href="#3743" id="3743">3743</a>
+<a href="#3744" id="3744">3744</a>
+<a href="#3745" id="3745">3745</a>
+<a href="#3746" id="3746">3746</a>
+<a href="#3747" id="3747">3747</a>
+<a href="#3748" id="3748">3748</a>
+<a href="#3749" id="3749">3749</a>
+<a href="#3750" id="3750">3750</a>
+<a href="#3751" id="3751">3751</a>
+<a href="#3752" id="3752">3752</a>
+<a href="#3753" id="3753">3753</a>
+<a href="#3754" id="3754">3754</a>
+<a href="#3755" id="3755">3755</a>
+<a href="#3756" id="3756">3756</a>
+<a href="#3757" id="3757">3757</a>
+<a href="#3758" id="3758">3758</a>
+<a href="#3759" id="3759">3759</a>
+<a href="#3760" id="3760">3760</a>
+<a href="#3761" id="3761">3761</a>
+<a href="#3762" id="3762">3762</a>
+<a href="#3763" id="3763">3763</a>
+<a href="#3764" id="3764">3764</a>
+<a href="#3765" id="3765">3765</a>
+<a href="#3766" id="3766">3766</a>
+<a href="#3767" id="3767">3767</a>
+<a href="#3768" id="3768">3768</a>
+<a href="#3769" id="3769">3769</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Stream capability for combinators to parse
 //!
 //! Stream types include:
@@ -3640,6 +3783,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::ascii::Caseless <span class="kw">as </span>AsciiCaseless;
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::error::FromRecoverableError;
 <span class="kw">use </span><span class="kw">crate</span>::error::Needed;
 <span class="kw">use </span><span class="kw">crate</span>::lib::std::iter::{Cloned, Enumerate};
@@ -3673,7 +3817,7 @@
 </span><span class="kw">pub type </span>Str&lt;<span class="lifetime">'i</span>&gt; = <span class="kw-2">&amp;</span><span class="lifetime">'i </span>str;
 
 <span class="doccomment">/// Improved `Debug` experience for `&amp;[u8]` byte streams
-</span><span class="attr">#[allow(clippy::derive_hash_xor_eq)]
+</span><span class="attr">#[allow(clippy::derived_hash_with_manual_eq)]
 #[derive(Hash)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>Bytes([u8]);
@@ -3697,7 +3841,7 @@
 }
 
 <span class="doccomment">/// Improved `Debug` experience for `&amp;[u8]` UTF-8-ish streams
-</span><span class="attr">#[allow(clippy::derive_hash_xor_eq)]
+</span><span class="attr">#[allow(clippy::derived_hash_with_manual_eq)]
 #[derive(Hash)]
 #[repr(transparent)]
 </span><span class="kw">pub struct </span>BStr([u8]);
@@ -3732,7 +3876,7 @@
 /// byte offsets to line numbers.
 ///
 /// See [`Parser::span`][crate::Parser::span] and [`Parser::with_span`][crate::Parser::with_span] for more details
-</span><span class="attr">#[derive(Copy, Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="attr">#[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 #[doc(alias = <span class="string">"LocatedSpan"</span>)]
 </span><span class="kw">pub struct </span>Located&lt;I&gt; {
     initial: I,
@@ -3776,12 +3920,20 @@
     }
 }
 
+<span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Debug&gt; <span class="kw">crate</span>::lib::std::fmt::Debug <span class="kw">for </span>Located&lt;I&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
+        <span class="self">self</span>.input.fmt(f)
+    }
+}
+
 <span class="doccomment">/// Allow recovering from parse errors, capturing them as the parser continues
 ///
 /// Generally, this will be used indirectly via
 /// [`RecoverableParser::recoverable_parse`][crate::RecoverableParser::recoverable_parse].
 </span><span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
-#[derive(Clone, Debug)]
+#[derive(Clone)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub struct </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -3792,6 +3944,18 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">impl</span>&lt;I, E&gt; Default <span class="kw">for </span>Recoverable&lt;I, E&gt;
+<span class="kw">where
+    </span>I: Default + Stream,
+{
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(I::default())
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -3821,6 +3985,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; AsRef&lt;I&gt; <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -3832,6 +3997,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; <span class="kw">crate</span>::lib::std::ops::Deref <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -3845,12 +4011,32 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Display, E&gt; <span class="kw">crate</span>::lib::std::fmt::Display <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
         <span class="kw">crate</span>::lib::std::fmt::Display::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.input, f)
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
+</span><span class="kw">impl</span>&lt;I: Stream + <span class="kw">crate</span>::lib::std::fmt::Debug, E: <span class="kw">crate</span>::lib::std::fmt::Debug&gt;
+    <span class="kw">crate</span>::lib::std::fmt::Debug <span class="kw">for </span>Recoverable&lt;I, E&gt;
+{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
+        <span class="kw">if </span>f.alternate() {
+            <span class="self">self</span>.input.fmt(f)
+        } <span class="kw">else </span>{
+            f.debug_struct(<span class="string">"Recoverable"</span>)
+                .field(<span class="string">"input"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.input)
+                .field(<span class="string">"errors"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.errors)
+                .field(<span class="string">"is_recoverable"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.is_recoverable)
+                .finish()
+        }
     }
 }
 
@@ -3870,12 +4056,12 @@
 /// # use winnow::ascii::alpha1;
 /// # type Error = ();
 ///
-/// #[derive(Clone, Debug)]
-/// struct State&lt;'s&gt;(&amp;'s Cell&lt;u32&gt;);
+/// #[derive(Debug)]
+/// struct State&lt;'s&gt;(&amp;'s mut u32);
 ///
 /// impl&lt;'s&gt; State&lt;'s&gt; {
-///     fn count(&amp;self) {
-///         self.0.set(self.0.get() + 1);
+///     fn count(&amp;mut self) {
+///         *self.0 += 1;
 ///     }
 /// }
 ///
@@ -3887,12 +4073,12 @@
 /// }
 ///
 /// let data = "Hello";
-/// let state = Cell::new(0);
-/// let input = Stream { input: data, state: State(&amp;state) };
+/// let mut state = 0;
+/// let input = Stream { input: data, state: State(&amp;mut state) };
 /// let output = word.parse(input).unwrap();
-/// assert_eq!(state.get(), 1);
+/// assert_eq!(state, 1);
 /// ```
-</span><span class="attr">#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Clone, Copy, Default, Eq, PartialEq)]
 #[doc(alias = <span class="string">"LocatedSpan"</span>)]
 </span><span class="kw">pub struct </span>Stateful&lt;I, S&gt; {
     <span class="doccomment">/// Inner input being wrapped in state
@@ -3920,6 +4106,22 @@
 <span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Display, S&gt; <span class="kw">crate</span>::lib::std::fmt::Display <span class="kw">for </span>Stateful&lt;I, S&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
         <span class="self">self</span>.input.fmt(f)
+    }
+}
+
+<span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Debug, S: <span class="kw">crate</span>::lib::std::fmt::Debug&gt; <span class="kw">crate</span>::lib::std::fmt::Debug
+    <span class="kw">for </span>Stateful&lt;I, S&gt;
+{
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
+        <span class="kw">if </span>f.alternate() {
+            <span class="self">self</span>.input.fmt(f)
+        } <span class="kw">else </span>{
+            f.debug_struct(<span class="string">"Stateful"</span>)
+                .field(<span class="string">"input"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.input)
+                .field(<span class="string">"state"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.state)
+                .finish()
+        }
     }
 }
 
@@ -3966,7 +4168,7 @@
 /// // but the complete parser will return an error
 /// assert_eq!(take_complete.parse_peek(&amp;b"abc"[..]), Err(ErrMode::Backtrack(InputError::new(&amp;b"abc"[..], ErrorKind::Slice))));
 ///
-/// // the alpha0 function recognizes 0 or more alphabetic characters
+/// // the alpha0 function takes 0 or more alphabetic characters
 /// fn alpha0_partial&lt;'s&gt;(i: &amp;mut Partial&lt;&amp;'s str&gt;) -&gt; PResult&lt;&amp;'s str, InputError&lt;Partial&lt;&amp;'s str&gt;&gt;&gt; {
 ///   ascii::alpha0.parse_next(i)
 /// }
@@ -3975,19 +4177,19 @@
 ///   ascii::alpha0.parse_next(i)
 /// }
 ///
-/// // if there's a clear limit to the recognized characters, both parsers work the same way
+/// // if there's a clear limit to the taken characters, both parsers work the same way
 /// assert_eq!(alpha0_partial.parse_peek(Partial::new("abcd;")), Ok((Partial::new(";"), "abcd")));
 /// assert_eq!(alpha0_complete.parse_peek("abcd;"), Ok((";", "abcd")));
 ///
 /// // but when there's no limit, the partial version returns `Incomplete`, because it cannot
-/// // know if more input data should be recognized. The whole input could be "abcd;", or
+/// // know if more input data should be taken. The whole input could be "abcd;", or
 /// // "abcde;"
 /// assert_eq!(alpha0_partial.parse_peek(Partial::new("abcd")), Err(ErrMode::Incomplete(Needed::new(1))));
 ///
 /// // while the complete version knows that all of the data is there
 /// assert_eq!(alpha0_complete.parse_peek("abcd"), Ok(("", "abcd")));
 /// ```
-</span><span class="attr">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="attr">#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>Partial&lt;I&gt; {
     input: I,
     partial: bool,
@@ -4035,6 +4237,20 @@
 <span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Display&gt; <span class="kw">crate</span>::lib::std::fmt::Display <span class="kw">for </span>Partial&lt;I&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
         <span class="self">self</span>.input.fmt(f)
+    }
+}
+
+<span class="kw">impl</span>&lt;I: <span class="kw">crate</span>::lib::std::fmt::Debug&gt; <span class="kw">crate</span>::lib::std::fmt::Debug <span class="kw">for </span>Partial&lt;I&gt; {
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
+        <span class="kw">if </span>f.alternate() {
+            <span class="self">self</span>.input.fmt(f)
+        } <span class="kw">else </span>{
+            f.debug_struct(<span class="string">"Partial"</span>)
+                .field(<span class="string">"input"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.input)
+                .field(<span class="string">"partial"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.partial)
+                .finish()
+        }
     }
 }
 
@@ -4129,6 +4345,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; SliceLen <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: SliceLen,
@@ -4708,6 +4925,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E: <span class="kw">crate</span>::lib::std::fmt::Debug&gt; Stream <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -4889,6 +5107,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Location <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Location,
@@ -4924,6 +5143,7 @@
 ///
 /// See [`Recoverable`] for adding error recovery tracking to your [`Stream`]
 </span><span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub trait </span>Recover&lt;E&gt;: Stream {
     <span class="doccomment">/// Capture a top-level error
     ///
@@ -4941,6 +5161,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, E&gt; Recover&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]
 <span class="kw">where
     </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T]: Stream,
@@ -4963,6 +5184,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E&gt; Recover&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>str {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>record_err(
@@ -4982,6 +5204,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E&gt; Recover&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>Bytes {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>record_err(
@@ -5001,6 +5224,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, E&gt; Recover&lt;E&gt; <span class="kw">for </span><span class="kw-2">&amp;</span><span class="lifetime">'a </span>BStr {
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>record_err(
@@ -5020,6 +5244,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Recover&lt;E&gt; <span class="kw">for </span>(I, usize)
 <span class="kw">where
     </span>I: Recover&lt;E&gt;,
@@ -5043,6 +5268,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Recover&lt;E&gt; <span class="kw">for </span>Located&lt;I&gt;
 <span class="kw">where
     </span>I: Recover&lt;E&gt;,
@@ -5066,6 +5292,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E, R&gt; Recover&lt;E&gt; <span class="kw">for </span>Recoverable&lt;I, R&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -5100,6 +5327,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E, S&gt; Recover&lt;E&gt; <span class="kw">for </span>Stateful&lt;I, S&gt;
 <span class="kw">where
     </span>I: Recover&lt;E&gt;,
@@ -5124,6 +5352,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Recover&lt;E&gt; <span class="kw">for </span>Partial&lt;I&gt;
 <span class="kw">where
     </span>I: Recover&lt;E&gt;,
@@ -5279,6 +5508,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; StreamIsPartial <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: StreamIsPartial,
@@ -5471,6 +5701,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Offset <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -5483,6 +5714,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; Offset&lt;&lt;Recoverable&lt;I, E&gt; <span class="kw">as </span>Stream&gt;::Checkpoint&gt; <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -5577,6 +5809,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; AsBytes <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -5646,6 +5879,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; AsBStr <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -5867,6 +6101,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E, U&gt; Compare&lt;U&gt; <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -6140,6 +6375,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E, T&gt; FindSlice&lt;T&gt; <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -6173,7 +6409,7 @@
 
 <span class="doccomment">/// Used to integrate `str`'s `parse()` method
 </span><span class="kw">pub trait </span>ParseSlice&lt;R&gt; {
-    <span class="doccomment">/// Succeeds if `parse()` succeededThe
+    <span class="doccomment">/// Succeeds if `parse()` succeeded
     ///
     /// The byte slice implementation will first convert it to a `&amp;str`, then apply the `parse()`
     /// function
@@ -6243,6 +6479,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"unstable-recover"</span>)]
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">impl</span>&lt;I, E&gt; UpdateSlice <span class="kw">for </span>Recoverable&lt;I, E&gt;
 <span class="kw">where
     </span>I: Stream,
@@ -6299,13 +6536,37 @@
 <span class="kw">impl</span>&lt;T: Copy, S&gt; Copy <span class="kw">for </span>Checkpoint&lt;T, S&gt; {}
 
 <span class="kw">impl</span>&lt;T: Clone, S&gt; Clone <span class="kw">for </span>Checkpoint&lt;T, S&gt; {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             inner: <span class="self">self</span>.inner.clone(),
             stream: Default::default(),
         }
     }
 }
+
+<span class="kw">impl</span>&lt;T: PartialOrd, S&gt; PartialOrd <span class="kw">for </span>Checkpoint&lt;T, S&gt; {
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>partial_cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;core::cmp::Ordering&gt; {
+        <span class="self">self</span>.inner.partial_cmp(<span class="kw-2">&amp;</span>other.inner)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: Ord, S&gt; Ord <span class="kw">for </span>Checkpoint&lt;T, S&gt; {
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>cmp(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; core::cmp::Ordering {
+        <span class="self">self</span>.inner.cmp(<span class="kw-2">&amp;</span>other.inner)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: PartialEq, S&gt; PartialEq <span class="kw">for </span>Checkpoint&lt;T, S&gt; {
+    <span class="attr">#[inline(always)]
+    </span><span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+        <span class="self">self</span>.inner.eq(<span class="kw-2">&amp;</span>other.inner)
+    }
+}
+
+<span class="kw">impl</span>&lt;T: Eq, S&gt; Eq <span class="kw">for </span>Checkpoint&lt;T, S&gt; {}
 
 <span class="kw">impl</span>&lt;T: <span class="kw">crate</span>::lib::std::fmt::Debug, S&gt; <span class="kw">crate</span>::lib::std::fmt::Debug <span class="kw">for </span>Checkpoint&lt;T, S&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span><span class="kw">crate</span>::lib::std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; <span class="kw">crate</span>::lib::std::fmt::Result {
@@ -6314,6 +6575,33 @@
 }
 
 <span class="doccomment">/// A range bounded inclusively for counting parses performed
+///
+/// This is flexible in what can be converted to a [Range]:
+/// ```rust
+/// # #[cfg(feature = "std")] {
+/// # use winnow::prelude::*;
+/// # use winnow::token::any;
+/// # use winnow::combinator::repeat;
+/// # fn inner(input: &amp;mut &amp;str) -&gt; PResult&lt;char&gt; {
+/// #     any.parse_next(input)
+/// # }
+/// # let mut input = "0123456789012345678901234567890123456789";
+/// # let input = &amp;mut input;
+/// let parser: Vec&lt;_&gt; = repeat(5, inner).parse_next(input).unwrap();
+/// # let mut input = "0123456789012345678901234567890123456789";
+/// # let input = &amp;mut input;
+/// let parser: Vec&lt;_&gt; = repeat(.., inner).parse_next(input).unwrap();
+/// # let mut input = "0123456789012345678901234567890123456789";
+/// # let input = &amp;mut input;
+/// let parser: Vec&lt;_&gt; = repeat(1.., inner).parse_next(input).unwrap();
+/// # let mut input = "0123456789012345678901234567890123456789";
+/// # let input = &amp;mut input;
+/// let parser: Vec&lt;_&gt; = repeat(5..8, inner).parse_next(input).unwrap();
+/// # let mut input = "0123456789012345678901234567890123456789";
+/// # let input = &amp;mut input;
+/// let parser: Vec&lt;_&gt; = repeat(5..=8, inner).parse_next(input).unwrap();
+/// # }
+/// ```
 </span><span class="attr">#[derive(PartialEq, Eq)]
 </span><span class="kw">pub struct </span>Range {
     <span class="kw">pub</span>(<span class="kw">crate</span>) start_inclusive: usize,
@@ -6674,7 +6962,7 @@
 
     <span class="doccomment">/// Tests that self is an alphabetic character
     ///
-    /// **Warning:** for `&amp;str` it recognizes alphabetic
+    /// **Warning:** for `&amp;str` it matches alphabetic
     /// characters outside of the 52 ASCII letters
     </span><span class="kw">fn </span>is_alpha(<span class="self">self</span>) -&gt; bool;
 
@@ -6851,15 +7139,14 @@
     }
 }
 
-<span class="doccomment">/// Check if a token in in a set of possible tokens
+<span class="doccomment">/// Check if a token is in a set of possible tokens
 ///
-/// This is generally implemented on patterns that a token may match and supports `u8` and `char`
-/// tokens along with the following patterns
+/// While this can be implemented manually, you can also build up sets using:
 /// - `b'c'` and `'c'`
-/// - `b""` and `""`
+/// - `b""`
 /// - `|c| true`
 /// - `b'a'..=b'z'`, `'a'..='z'` (etc for each [range type][std::ops])
-/// - `(pattern1, pattern2, ...)`
+/// - `(set1, set2, ...)`
 ///
 /// # Example
 ///
@@ -7031,7 +7318,7 @@
     </span>}
 }
 
-<span class="macro">macro_rules! </span>impl_contains_token_for_tuple {
+<span class="macro">macro_rules!</span> impl_contains_token_for_tuple {
   ($(<span class="macro-nonterminal">$haystack</span>:ident),+) =&gt; (
     <span class="attr">#[allow(non_snake_case)]
     </span><span class="kw">impl</span>&lt;T, $(<span class="macro-nonterminal">$haystack</span>),+&gt; ContainsToken&lt;T&gt; <span class="kw">for </span>($(<span class="macro-nonterminal">$haystack</span>),+,)
@@ -7048,7 +7335,7 @@
   )
 }
 
-<span class="macro">macro_rules! </span>impl_contains_token_for_tuples {
+<span class="macro">macro_rules!</span> impl_contains_token_for_tuples {
     (<span class="macro-nonterminal">$haystack1</span>:ident, $(<span class="macro-nonterminal">$haystack</span>:ident),+) =&gt; {
         <span class="macro">impl_contains_token_for_tuples!</span>(__impl <span class="macro-nonterminal">$haystack1</span>; $(<span class="macro-nonterminal">$haystack</span>),+);
     };
@@ -7105,19 +7392,19 @@
 
 <span class="attr">#[inline(always)]
 </span><span class="kw">fn </span>memmem(slice: <span class="kw-2">&amp;</span>[u8], literal: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::lib::std::ops::Range&lt;usize&gt;&gt; {
-    <span class="kw">if </span>literal.len() == <span class="number">1 </span>{
-        memchr(literal[<span class="number">0</span>], slice).map(|i| i..i + <span class="number">1</span>)
-    } <span class="kw">else </span>{
-        memmem_(slice, literal)
+    <span class="kw">match </span>literal.len() {
+        <span class="number">0 </span>=&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>..<span class="number">0</span>),
+        <span class="number">1 </span>=&gt; memchr(literal[<span class="number">0</span>], slice).map(|i| i..i + <span class="number">1</span>),
+        <span class="kw">_ </span>=&gt; memmem_(slice, literal),
     }
 }
 
 <span class="attr">#[inline(always)]
 </span><span class="kw">fn </span>memmem2(slice: <span class="kw-2">&amp;</span>[u8], literal: (<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span>[u8])) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::lib::std::ops::Range&lt;usize&gt;&gt; {
-    <span class="kw">if </span>literal.<span class="number">0</span>.len() == <span class="number">1 </span>&amp;&amp; literal.<span class="number">1</span>.len() == <span class="number">1 </span>{
-        memchr2((literal.<span class="number">0</span>[<span class="number">0</span>], literal.<span class="number">1</span>[<span class="number">0</span>]), slice).map(|i| i..i + <span class="number">1</span>)
-    } <span class="kw">else </span>{
-        memmem2_(slice, literal)
+    <span class="kw">match </span>(literal.<span class="number">0</span>.len(), literal.<span class="number">1</span>.len()) {
+        (<span class="number">0</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="number">0</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>..<span class="number">0</span>),
+        (<span class="number">1</span>, <span class="number">1</span>) =&gt; memchr2((literal.<span class="number">0</span>[<span class="number">0</span>], literal.<span class="number">1</span>[<span class="number">0</span>]), slice).map(|i| i..i + <span class="number">1</span>),
+        <span class="kw">_ </span>=&gt; memmem2_(slice, literal),
     }
 }
 
@@ -7126,10 +7413,10 @@
     slice: <span class="kw-2">&amp;</span>[u8],
     literal: (<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span>[u8]),
 ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw">crate</span>::lib::std::ops::Range&lt;usize&gt;&gt; {
-    <span class="kw">if </span>literal.<span class="number">0</span>.len() == <span class="number">1 </span>&amp;&amp; literal.<span class="number">1</span>.len() == <span class="number">1 </span>&amp;&amp; literal.<span class="number">2</span>.len() == <span class="number">1 </span>{
-        memchr3((literal.<span class="number">0</span>[<span class="number">0</span>], literal.<span class="number">1</span>[<span class="number">0</span>], literal.<span class="number">2</span>[<span class="number">0</span>]), slice).map(|i| i..i + <span class="number">1</span>)
-    } <span class="kw">else </span>{
-        memmem3_(slice, literal)
+    <span class="kw">match </span>(literal.<span class="number">0</span>.len(), literal.<span class="number">1</span>.len(), literal.<span class="number">2</span>.len()) {
+        (<span class="number">0</span>, <span class="kw">_</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="number">0</span>, <span class="kw">_</span>) | (<span class="kw">_</span>, <span class="kw">_</span>, <span class="number">0</span>) =&gt; <span class="prelude-val">Some</span>(<span class="number">0</span>..<span class="number">0</span>),
+        (<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>) =&gt; memchr3((literal.<span class="number">0</span>[<span class="number">0</span>], literal.<span class="number">1</span>[<span class="number">0</span>], literal.<span class="number">2</span>[<span class="number">0</span>]), slice).map(|i| i..i + <span class="number">1</span>),
+        <span class="kw">_ </span>=&gt; memmem3_(slice, literal),
     }
 }
 

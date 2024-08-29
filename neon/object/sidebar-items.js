@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Object","PropertyKey","This"]};
+window.SIDEBAR_ITEMS = {"trait":["Object","PropertyKey"]};
