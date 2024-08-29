@@ -34,9 +34,14 @@ impl StudentFilePolicy for CSharpStudentFilePolicy {
         &self.project_config
     }
 
-    // false for files in bin or obj directories, true for other files in src.
+    // false for .csproj files and files in bin or obj directories
+    // true for files in src except for .csproj files
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        path.starts_with("src") && !Self::is_child_of_binary_dir(path)
+        path.starts_with("src")
+            // exclude files in bin
+            && !Self::is_child_of_binary_dir(path)
+            // exclude .csproj files
+            && !path.extension().map(|ext| ext == "csproj").unwrap_or_default()
     }
 }
 
@@ -56,5 +61,11 @@ mod test {
         let policy = CSharpStudentFilePolicy::new(Path::new(".")).unwrap();
         assert!(policy.is_student_file(Path::new("src/file")));
         assert!(policy.is_student_file(Path::new("src/any/file")));
+    }
+
+    #[test]
+    fn csproj_is_not_student_file() {
+        let policy = CSharpStudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_file(Path::new("src/Project.csproj")));
     }
 }
