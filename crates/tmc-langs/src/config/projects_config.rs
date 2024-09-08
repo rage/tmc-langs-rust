@@ -9,6 +9,7 @@ use std::{
 use tmc_langs_util::{deserialize, file_util, FileError};
 use walkdir::WalkDir;
 
+/// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
 #[derive(Debug)]
 pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
@@ -19,26 +20,39 @@ impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         file_util::lock!(projects_dir);
         let mut course_configs = HashMap::new();
-        for file in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
-            let file = file?;
-            let course_config_path = file.path().join("course_config.toml");
+
+        let mut unexpected_entries = Vec::new();
+        for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
+            let entry = entry?;
+            let course_config_path = entry.path().join("course_config.toml");
             if course_config_path.exists() {
-                let file_name = file.file_name();
+                let file_name = entry.file_name();
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
-                    LangsError::FileError(FileError::NoFileName(file.path().to_path_buf()))
+                    LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
                 })?;
                 let file = file_util::read_file_to_string(&course_config_path)?;
                 let course_config: CourseConfig = deserialize::toml_from_str(&file)?;
 
                 course_configs.insert(course_dir_name.to_string(), course_config);
             } else {
-                log::warn!(
-                    "File or directory {} with no config file found while loading projects from {}",
-                    file.path().display(),
-                    projects_dir.display()
-                );
+                unexpected_entries.push(entry);
             }
         }
+
+        // no need to warn if the directory has no valid course directories at all
+        if !course_configs.is_empty() {
+            log::warn!(
+                "Files or directories with no config files found \
+                while loading projects from {}: [{}]",
+                projects_dir.display(),
+                unexpected_entries
+                    .iter()
+                    .filter_map(|ue| ue.path().as_os_str().to_str())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            );
+        }
+
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
         for (_, course_config) in course_configs.iter_mut() {
