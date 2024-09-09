@@ -18,6 +18,8 @@ pub use tmc_langs_framework::{
     NothingIsStudentFilePolicy, RunResult, StudentFilePolicy, StyleValidationResult,
     StyleValidationStrategy,
 };
+// the Java plugin is disabled on musl
+#[cfg(not(target_env = "musl"))]
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
 pub use tmc_langs_make::MakePlugin;
 pub use tmc_langs_notests::NoTestsPlugin;
@@ -62,19 +64,17 @@ pub fn compress_project(
 }
 
 /// Enum containing variants for each language plugin.
-#[impl_enum::with_methods(
-    pub fn clean(&self, path: &Path) -> Result<(), TmcError>
-    pub fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>
-    pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError>
-    pub fn check_code_style(&self, path: &Path, locale: Language) -> Result<Option<StyleValidationResult>, TmcError>
-)]
 pub enum Plugin {
     CSharp(CSharpPlugin),
     Make(MakePlugin),
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
     Maven(MavenPlugin),
     NoTests(NoTestsPlugin),
     Python3(Python3Plugin),
     R(RPlugin),
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
     Ant(AntPlugin),
 }
 
@@ -87,10 +87,86 @@ impl Plugin {
             PluginType::Make => Plugin::Make(MakePlugin::new()),
             PluginType::Python3 => Plugin::Python3(Python3Plugin::new()),
             PluginType::R => Plugin::R(RPlugin::new()),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
             PluginType::Maven => Plugin::Maven(MavenPlugin::new()?),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
             PluginType::Ant => Plugin::Ant(AntPlugin::new()?),
         };
         Ok(plugin)
+    }
+
+    pub fn clean(&self, path: &Path) -> Result<(), TmcError> {
+        match self {
+            Plugin::CSharp(plugin) => plugin.clean(path),
+            Plugin::Make(plugin) => plugin.clean(path),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Maven(plugin) => plugin.clean(path),
+            Plugin::NoTests(plugin) => plugin.clean(path),
+            Plugin::Python3(plugin) => plugin.clean(path),
+            Plugin::R(plugin) => plugin.clean(path),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Ant(plugin) => plugin.clean(path),
+        }
+    }
+
+    pub fn scan_exercise(
+        &self,
+        path: &Path,
+        exercise_name: String,
+    ) -> Result<ExerciseDesc, TmcError> {
+        match self {
+            Plugin::CSharp(plugin) => plugin.scan_exercise(path, exercise_name),
+            Plugin::Make(plugin) => plugin.scan_exercise(path, exercise_name),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Maven(plugin) => plugin.scan_exercise(path, exercise_name),
+            Plugin::NoTests(plugin) => plugin.scan_exercise(path, exercise_name),
+            Plugin::Python3(plugin) => plugin.scan_exercise(path, exercise_name),
+            Plugin::R(plugin) => plugin.scan_exercise(path, exercise_name),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Ant(plugin) => plugin.scan_exercise(path, exercise_name),
+        }
+    }
+
+    pub fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
+        match self {
+            Plugin::CSharp(plugin) => plugin.run_tests(path),
+            Plugin::Make(plugin) => plugin.run_tests(path),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Maven(plugin) => plugin.run_tests(path),
+            Plugin::NoTests(plugin) => plugin.run_tests(path),
+            Plugin::Python3(plugin) => plugin.run_tests(path),
+            Plugin::R(plugin) => plugin.run_tests(path),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Ant(plugin) => plugin.run_tests(path),
+        }
+    }
+
+    pub fn check_code_style(
+        &self,
+        path: &Path,
+        locale: Language,
+    ) -> Result<Option<StyleValidationResult>, TmcError> {
+        match self {
+            Plugin::CSharp(plugin) => plugin.check_code_style(path, locale),
+            Plugin::Make(plugin) => plugin.check_code_style(path, locale),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Maven(plugin) => plugin.check_code_style(path, locale),
+            Plugin::NoTests(plugin) => plugin.check_code_style(path, locale),
+            Plugin::Python3(plugin) => plugin.check_code_style(path, locale),
+            Plugin::R(plugin) => plugin.check_code_style(path, locale),
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            Plugin::Ant(plugin) => plugin.check_code_style(path, locale),
+        }
     }
 }
 
@@ -99,10 +175,14 @@ impl Plugin {
 pub enum PluginType {
     CSharp,
     Make,
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
     Maven,
     NoTests,
     Python3,
     R,
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
     Ant,
 }
 
@@ -111,10 +191,14 @@ macro_rules! delegate_plugin_type {
         match $self {
             Self::CSharp => CSharpPlugin::$($args)*,
             Self::Make => MakePlugin::$($args)*,
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
             Self::Maven => MavenPlugin::$($args)*,
             Self::NoTests => NoTestsPlugin::$($args)*,
             Self::Python3 => Python3Plugin::$($args)*,
             Self::R => RPlugin::$($args)*,
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
             Self::Ant => AntPlugin::$($args)*,
         }
     };
@@ -132,12 +216,18 @@ impl PluginType {
             (Python3Plugin::PLUGIN_NAME, PluginType::Python3)
         } else if RPlugin::is_exercise_type_correct(path) {
             (RPlugin::PLUGIN_NAME, PluginType::R)
-        } else if MavenPlugin::is_exercise_type_correct(path) {
-            (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
-        } else if AntPlugin::is_exercise_type_correct(path) {
-            // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
-            (AntPlugin::PLUGIN_NAME, PluginType::Ant)
         } else {
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            if MavenPlugin::is_exercise_type_correct(path) {
+                (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
+            } else if AntPlugin::is_exercise_type_correct(path) {
+                // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
+                (AntPlugin::PLUGIN_NAME, PluginType::Ant)
+            } else {
+                return Err(PluginError::PluginNotFound(path.to_path_buf()));
+            }
+            #[cfg(target_env = "musl")]
             return Err(PluginError::PluginNotFound(path.to_path_buf()));
         };
         log::info!("Detected project at {} as {}", path.display(), plugin_name);
@@ -155,12 +245,18 @@ impl PluginType {
             (Python3Plugin::PLUGIN_NAME, PluginType::Python3)
         } else if RPlugin::is_archive_type_correct(archive) {
             (RPlugin::PLUGIN_NAME, PluginType::R)
-        } else if MavenPlugin::is_archive_type_correct(archive) {
-            (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
-        } else if AntPlugin::is_archive_type_correct(archive) {
-            // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
-            (AntPlugin::PLUGIN_NAME, PluginType::Ant)
         } else {
+            // the Java plugin is disabled on musl
+            #[cfg(not(target_env = "musl"))]
+            if MavenPlugin::is_archive_type_correct(archive) {
+                (MavenPlugin::PLUGIN_NAME, PluginType::Maven)
+            } else if AntPlugin::is_archive_type_correct(archive) {
+                // TODO: currently, ant needs to be last because any project with src and test are recognized as ant
+                (AntPlugin::PLUGIN_NAME, PluginType::Ant)
+            } else {
+                return Err(PluginError::PluginNotFoundInArchive);
+            }
+            #[cfg(target_env = "musl")]
             return Err(PluginError::PluginNotFoundInArchive);
         };
         log::info!("Detected project in archive as {}", plugin_name);
@@ -222,9 +318,13 @@ pub fn get_student_file_policy(path: &Path) -> Result<Box<dyn StudentFilePolicy>
             path,
         )?),
         PluginType::R => Box::new(<RPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
+        // the Java plugin is disabled on musl
+        #[cfg(not(target_env = "musl"))]
         PluginType::Maven => Box::new(<MavenPlugin as LanguagePlugin>::StudentFilePolicy::new(
             path,
         )?),
+        // the Java plugin is disabled on musl
+        #[cfg(not(target_env = "musl"))]
         PluginType::Ant => Box::new(<AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
     };
     Ok(policy)

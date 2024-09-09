@@ -15,6 +15,8 @@ The `./deps` directory contains some Java dependencies, such as a bundled Maven 
   - https://maven.mooc.fi/snapshots/fi/helsinki/cs/tmc/tmc-junit-runner/{VERSION}/maven-metadata.xml (Find the `snapshotVersion.value`)
   - https://maven.mooc.fi/snapshots/fi/helsinki/cs/tmc/tmc-junit-runner/{VERSION}/tmc-junit-runner-{SNAPSHOT_VERSION}.jar
 
+Note that this plugin is not supported on musl due to dynamic loading not being supported on the platform.
+
 ## Maven
 
 ### Student file policy

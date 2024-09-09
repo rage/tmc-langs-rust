@@ -41,16 +41,16 @@ use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
-use tmc_langs_framework::{Archive, TmcError};
+use tmc_langs_framework::Archive;
 pub use tmc_langs_framework::{
     CommandError, Compression, ExerciseDesc, ExercisePackagingConfiguration, Language,
     LanguagePlugin, PythonVer, RunResult, RunStatus, StyleValidationError, StyleValidationResult,
     StyleValidationStrategy, TestDesc, TestResult, TmcProjectYml,
 };
 use tmc_langs_plugins::{
-    AntPlugin, CSharpPlugin, MakePlugin, MavenPlugin, NoTestsPlugin, Plugin, PluginType,
-    Python3Plugin, RPlugin,
+    CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
+// the Java plugin is disabled on musl
 pub use tmc_langs_util::{
     file_util::{self, FileLockGuard},
     notification_reporter, progress_reporter,
@@ -60,6 +60,11 @@ pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
 use walkdir::WalkDir;
+#[cfg(not(target_env = "musl"))]
+use {
+    tmc_langs_framework::TmcError,
+    tmc_langs_plugins::{AntPlugin, MavenPlugin},
+};
 
 const TMC_LANGS_CONFIG_DIR_VAR: &str = "TMC_LANGS_CONFIG_DIR";
 
@@ -920,6 +925,8 @@ pub fn prepare_stub(exercise_path: &Path, dest_path: &Path) -> Result<(), LangsE
     submission_processing::prepare_stub(exercise_path, dest_path)?;
 
     // The Ant plugin needs some additional files to be copied over.
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
     if let Ok(PluginType::Ant) = PluginType::from_exercise(exercise_path) {
         AntPlugin::copy_tmc_junit_runner(dest_path).map_err(|e| TmcError::Plugin(Box::new(e)))?;
     }
@@ -1076,7 +1083,11 @@ fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
     let img = match PluginType::from_exercise(path)? {
         PluginType::CSharp => CSharpPlugin::DEFAULT_SANDBOX_IMAGE,
         PluginType::Make => MakePlugin::DEFAULT_SANDBOX_IMAGE,
+        // the Java plugin is disabled on musl
+        #[cfg(not(target_env = "musl"))]
         PluginType::Maven => MavenPlugin::DEFAULT_SANDBOX_IMAGE,
+        // the Java plugin is disabled on musl
+        #[cfg(not(target_env = "musl"))]
         PluginType::Ant => AntPlugin::DEFAULT_SANDBOX_IMAGE,
         PluginType::NoTests => NoTestsPlugin::DEFAULT_SANDBOX_IMAGE,
         PluginType::Python3 => Python3Plugin::DEFAULT_SANDBOX_IMAGE,
