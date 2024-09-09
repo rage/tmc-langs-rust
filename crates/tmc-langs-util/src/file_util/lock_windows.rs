@@ -47,7 +47,7 @@ impl FileLock {
             let lock = self.lock.as_mut().expect("set to Some before this call");
             let guard = lock.write().expect("cannot fail on Windows");
             Ok(FileLockGuard {
-                _guard: LockInner::RwLockWriteGuard(guard),
+                _guard: LockInner::RwLockWriteGuard { _guard: guard },
                 path: Cow::Borrowed(&self.path),
             })
         } else if self.path.is_dir() {
@@ -72,7 +72,7 @@ impl FileLock {
                     Ok(file) => {
                         // was able to create a new lock file
                         return Ok(FileLockGuard {
-                            _guard: LockInner::LockFile(file),
+                            _guard: LockInner::LockFile { _file: file },
                             path: Cow::Owned(lock_path),
                         });
                     }
@@ -122,8 +122,8 @@ pub struct FileLockGuard<'a> {
 }
 
 enum LockInner<'a> {
-    LockFile(File),
-    RwLockWriteGuard(RwLockWriteGuard<'a, File>),
+    LockFile { _file: File },
+    RwLockWriteGuard { _guard: RwLockWriteGuard<'a, File> },
 }
 
 impl Drop for FileLockGuard<'_> {
