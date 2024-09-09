@@ -1,1 +1,0 @@
-searchState.loadedDescShard("impl_enum", 0, "Macros that make it more convenient to work with enums …\nGenerates methods for an enum that match on the enum and …\nGenerates methods for an enum that match on the enum and …")

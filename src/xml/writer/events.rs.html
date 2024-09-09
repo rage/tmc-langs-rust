@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.21/src/writer/events.rs`."><title>events.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.22/src/writer/events.rs`."><title>events.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -255,8 +255,6 @@
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains `XmlEvent` datatype, instances of which are consumed by the writer.
 
 </span><span class="kw">use </span>std::borrow::Cow;
@@ -413,7 +411,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; <span class="kw">for </span>XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
+    </span><span class="kw">fn </span>from(s: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self </span>{
         XmlEvent::Characters(s)
     }
 }
@@ -433,14 +431,14 @@
     /// closing element name is correct manually.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; EndElementBuilder&lt;<span class="lifetime">'a</span>&gt; <span class="kw">where </span>N: Into&lt;Name&lt;<span class="lifetime">'a</span>&gt;&gt; {
+    </span><span class="kw">pub fn </span>name&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N) -&gt; <span class="self">Self </span><span class="kw">where </span>N: Into&lt;Name&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="self">self</span>.name = <span class="prelude-val">Some</span>(name.into());
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;EndElementBuilder&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="kw">fn </span>from(b: EndElementBuilder&lt;<span class="lifetime">'a</span>&gt;) -&gt; XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
+    <span class="kw">fn </span>from(b: EndElementBuilder&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
         XmlEvent::EndElement { name: b.name }
     }
 }
@@ -465,9 +463,8 @@
     /// The writer checks that you don't specify reserved prefix names, for example `xmlns`.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>attr&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N, value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;
-        <span class="kw">where </span>N: Into&lt;Name&lt;<span class="lifetime">'a</span>&gt;&gt;
-    {
+    </span><span class="kw">pub fn </span>attr&lt;N&gt;(<span class="kw-2">mut </span><span class="self">self</span>, name: N, value: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; <span class="self">Self
+    </span><span class="kw">where </span>N: Into&lt;Name&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="self">self</span>.attributes.push(Attribute::new(name.into(), value));
         <span class="self">self
     </span>}
@@ -486,8 +483,8 @@
     /// the outer binding.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>ns&lt;S1, S2&gt;(<span class="kw-2">mut </span><span class="self">self</span>, prefix: S1, uri: S2) -&gt; StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;
-        <span class="kw">where </span>S1: Into&lt;String&gt;, S2: Into&lt;String&gt;
+    </span><span class="kw">pub fn </span>ns&lt;S1, S2&gt;(<span class="kw-2">mut </span><span class="self">self</span>, prefix: S1, uri: S2) -&gt; <span class="self">Self
+        </span><span class="kw">where </span>S1: Into&lt;String&gt;, S2: Into&lt;String&gt;
     {
         <span class="self">self</span>.namespace.put(prefix, uri);
         <span class="self">self
@@ -498,9 +495,8 @@
     /// Same rules as for `ns()` are also valid for the default namespace mapping.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>default_ns&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, uri: S) -&gt; StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;
-        <span class="kw">where </span>S: Into&lt;String&gt;
-    {
+    </span><span class="kw">pub fn </span>default_ns&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, uri: S) -&gt; <span class="self">Self
+    </span><span class="kw">where </span>S: Into&lt;String&gt; {
         <span class="self">self</span>.namespace.put(NS_NO_PREFIX, uri);
         <span class="self">self
     </span>}
@@ -508,7 +504,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; From&lt;StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;&gt; <span class="kw">for </span>XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from(b: StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;) -&gt; XmlEvent&lt;<span class="lifetime">'a</span>&gt; {
+    </span><span class="kw">fn </span>from(b: StartElementBuilder&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
         XmlEvent::StartElement {
             name: b.name,
             attributes: Cow::Owned(b.attributes),

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.21/src/reader/parser.rs`."><title>parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.22/src/reader/parser.rs`."><title>parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -804,6 +804,12 @@
 <a href="#804" id="804">804</a>
 <a href="#805" id="805">805</a>
 <a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains an implementation of pull-based XML parser.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::common::{is_xml10_char, is_xml11_char, is_xml11_char_not_restricted, is_name_char, is_name_start_char, is_whitespace_char};
@@ -902,13 +908,13 @@
 <span class="kw">impl </span>PullParser {
     <span class="doccomment">/// Returns a new parser using the given config.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(config: <span class="kw">impl </span>Into&lt;ParserConfig2&gt;) -&gt; PullParser {
+    </span><span class="kw">pub fn </span>new(config: <span class="kw">impl </span>Into&lt;ParserConfig2&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>config = config.into();
         <span class="self">Self</span>::new_with_config2(config)
     }
 
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>new_with_config2(config: ParserConfig2) -&gt; PullParser {
+    </span><span class="kw">fn </span>new_with_config2(config: ParserConfig2) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>lexer = Lexer::new(<span class="kw-2">&amp;</span>config);
         <span class="kw">if let </span><span class="prelude-val">Some</span>(enc) = config.override_encoding {
             lexer.set_encoding(enc);
@@ -917,7 +923,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>pos = Vec::with_capacity(<span class="number">16</span>);
         pos.push(TextPosition::new());
 
-        PullParser {
+        <span class="self">Self </span>{
             config,
             lexer,
             st: State::DocumentStart,
@@ -928,6 +934,7 @@
 
             data: MarkupData {
                 name: String::new(),
+                doctype: <span class="prelude-val">None</span>,
                 version: <span class="prelude-val">None</span>,
                 encoding: <span class="prelude-val">None</span>,
                 standalone: <span class="prelude-val">None</span>,
@@ -951,6 +958,12 @@
 
     <span class="doccomment">/// Checks if this parser ignores the end of stream errors.
     </span><span class="kw">pub fn </span>is_ignoring_end_of_stream(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool { <span class="self">self</span>.config.c.ignore_end_of_stream }
+
+    <span class="doccomment">/// Retrieves the Doctype from the document if any
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>doctype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.data.doctype.as_deref()
+    }
 
     <span class="attr">#[inline(never)]
     </span><span class="kw">fn </span>set_encountered(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_encounter: Encountered) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
@@ -979,7 +992,7 @@
     <span class="doccomment">/// Returns the position of the last event produced by the parser
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TextPosition {
-        <span class="self">self</span>.pos.get(<span class="number">0</span>).cloned().unwrap_or_else(TextPosition::new)
+        <span class="self">self</span>.pos.first().copied().unwrap_or_else(TextPosition::new)
     }
 }
 
@@ -1082,10 +1095,10 @@
 
 <span class="kw">impl </span>QuoteToken {
     <span class="attr">#[inline]
-    </span><span class="kw">fn </span>from_token(t: Token) -&gt; <span class="prelude-ty">Option</span>&lt;QuoteToken&gt; {
+    </span><span class="kw">fn </span>from_token(t: Token) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">match </span>t {
-            Token::SingleQuote =&gt; <span class="prelude-val">Some</span>(QuoteToken::SingleQuoteToken),
-            Token::DoubleQuote =&gt; <span class="prelude-val">Some</span>(QuoteToken::DoubleQuoteToken),
+            Token::SingleQuote =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::SingleQuoteToken),
+            Token::DoubleQuote =&gt; <span class="prelude-val">Some</span>(<span class="self">Self</span>::DoubleQuoteToken),
             <span class="kw">_ </span>=&gt; {
                 <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>);
                 <span class="prelude-val">None
@@ -1093,10 +1106,10 @@
         }
     }
 
-    <span class="kw">fn </span>as_token(<span class="self">self</span>) -&gt; Token {
+    <span class="kw">const fn </span>as_token(<span class="self">self</span>) -&gt; Token {
         <span class="kw">match </span><span class="self">self </span>{
-            QuoteToken::SingleQuoteToken =&gt; Token::SingleQuote,
-            QuoteToken::DoubleQuoteToken =&gt; Token::DoubleQuote,
+            <span class="self">Self</span>::SingleQuoteToken =&gt; Token::SingleQuote,
+            <span class="self">Self</span>::DoubleQuoteToken =&gt; Token::DoubleQuote,
         }
     }
 }
@@ -1105,6 +1118,7 @@
     name: String,     <span class="comment">// used for processing instruction name
     </span>ref_data: String,  <span class="comment">// used for reference content
 
+    </span>doctype: <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="comment">// keeps a copy of the original doctype
     </span>version: <span class="prelude-ty">Option</span>&lt;XmlVersion&gt;,  <span class="comment">// used for XML declaration version
     </span>encoding: <span class="prelude-ty">Option</span>&lt;String&gt;,  <span class="comment">// used for XML declaration encoding
     </span>standalone: <span class="prelude-ty">Option</span>&lt;bool&gt;,  <span class="comment">// used for XML declaration standalone parameter
@@ -1145,24 +1159,22 @@
                 <span class="prelude-val">Ok</span>(Token::Eof) =&gt; {
                     <span class="comment">// Forward pos to the lexer head
                     </span><span class="self">self</span>.next_pos();
-                    <span class="kw">return </span><span class="self">self</span>.handle_eof()
+                    <span class="kw">return </span><span class="self">self</span>.handle_eof();
                 },
-                <span class="prelude-val">Ok</span>(token) =&gt; {
-                    <span class="kw">match </span><span class="self">self</span>.dispatch_token(token) {
-                        <span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
-                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(xml_event)) =&gt; {
-                            <span class="self">self</span>.next_pos();
-                            <span class="kw">return </span><span class="prelude-val">Ok</span>(xml_event);
-                        },
-                        <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(xml_error)) =&gt; {
-                            <span class="self">self</span>.next_pos();
-                            <span class="kw">return </span><span class="self">self</span>.set_final_result(<span class="prelude-val">Err</span>(xml_error));
-                        },
-                    }
+                <span class="prelude-val">Ok</span>(token) =&gt; <span class="kw">match </span><span class="self">self</span>.dispatch_token(token) {
+                    <span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(xml_event)) =&gt; {
+                        <span class="self">self</span>.next_pos();
+                        <span class="kw">return </span><span class="prelude-val">Ok</span>(xml_event);
+                    },
+                    <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(xml_error)) =&gt; {
+                        <span class="self">self</span>.next_pos();
+                        <span class="kw">return </span><span class="self">self</span>.set_final_result(<span class="prelude-val">Err</span>(xml_error));
+                    },
                 },
                 <span class="prelude-val">Err</span>(lexer_error) =&gt; {
                     <span class="self">self</span>.next_pos();
-                    <span class="kw">return </span><span class="self">self</span>.set_final_result(<span class="prelude-val">Err</span>(lexer_error))
+                    <span class="kw">return </span><span class="self">self</span>.set_final_result(<span class="prelude-val">Err</span>(lexer_error));
                 },
             }
         }
@@ -1287,14 +1299,14 @@
     /// * `t`       --- next token;
     /// * `on_name` --- a callback which is executed when whitespace is encountered.
     </span><span class="kw">fn </span>read_qualified_name&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token, target: QualifiedNameTarget, on_name: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt;
-      <span class="kw">where </span>F: Fn(<span class="kw-2">&amp;mut </span>PullParser, Token, OwnedName) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+      <span class="kw">where </span>F: Fn(<span class="kw-2">&amp;mut </span><span class="self">Self</span>, Token, OwnedName) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
         <span class="comment">// We can get here for the first time only when self.data.name contains zero or one character,
         // but first character cannot be a colon anyway
         </span><span class="kw">if </span><span class="self">self</span>.buf.len() &lt;= <span class="number">1 </span>{
             <span class="self">self</span>.read_prefix_separator = <span class="bool-val">false</span>;
         }
 
-        <span class="kw">let </span>invoke_callback = <span class="kw">move </span>|this: <span class="kw-2">&amp;mut </span>PullParser, t| {
+        <span class="kw">let </span>invoke_callback = <span class="kw">move </span>|this: <span class="kw-2">&amp;mut </span><span class="self">Self</span>, t| {
             <span class="kw">let </span>name = this.take_buf();
             <span class="kw">match </span>name.parse() {
                 <span class="prelude-val">Ok</span>(name) =&gt; on_name(this, t, name),
@@ -1338,7 +1350,7 @@
     /// * `t`        --- next token;
     /// * `on_value` --- a callback which is called when terminating quote is encountered.
     </span><span class="kw">fn </span>read_attribute_value&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, t: Token, on_value: F) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt;
-      <span class="kw">where </span>F: Fn(<span class="kw-2">&amp;mut </span>PullParser, String) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
+      <span class="kw">where </span>F: Fn(<span class="kw-2">&amp;mut </span><span class="self">Self</span>, String) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&gt; {
         <span class="kw">match </span>t {
             Token::Character(c) <span class="kw">if </span><span class="self">self</span>.data.quote.is_none() &amp;&amp; is_whitespace_char(c) =&gt; <span class="prelude-val">None</span>, <span class="comment">// skip leading whitespace
 

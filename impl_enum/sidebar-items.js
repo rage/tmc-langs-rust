@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["as_dyn","with_methods"]};

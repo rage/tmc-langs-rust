@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gimli-0.29.0/src/read/rnglists.rs`."><title>rnglists.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/gimli-0.31.0/src/read/rnglists.rs`."><title>rnglists.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="gimli" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1469,11 +1469,6 @@
 <a href="#1469" id="1469">1469</a>
 <a href="#1470" id="1470">1470</a>
 <a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::common::{
     DebugAddrBase, DebugAddrIndex, DebugRngListsBase, DebugRngListsIndex, DwarfFileType, Encoding,
     RangeListsOffset, SectionId,
@@ -1481,8 +1476,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::constants;
 <span class="kw">use </span><span class="kw">crate</span>::endianity::Endianity;
 <span class="kw">use </span><span class="kw">crate</span>::read::{
-    lists::ListsHeader, DebugAddr, EndianSlice, Error, Reader, ReaderOffset, ReaderOffsetId,
-    <span class="prelude-ty">Result</span>, Section,
+    lists::ListsHeader, DebugAddr, EndianSlice, Error, Reader, ReaderAddress, ReaderOffset,
+    ReaderOffsetId, <span class="prelude-ty">Result</span>, Section,
 };
 
 <span class="doccomment">/// The raw contents of the `.debug_ranges` section.
@@ -1891,8 +1886,8 @@
                     begin: input.read_address(encoding.address_size)<span class="question-mark">?</span>,
                     length: input.read_uleb128()<span class="question-mark">?</span>,
                 }),
-                <span class="kw">_ </span>=&gt; {
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidAddressRange);
+                entry =&gt; {
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(Error::UnknownRangeListsEntry(entry));
                 }
             },
         })
@@ -2003,7 +1998,8 @@
     /// The raw range should have been obtained from `next_raw`.
     </span><span class="attr">#[doc(hidden)]
     </span><span class="kw">pub fn </span>convert_raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, raw_range: RawRngListEntry&lt;R::Offset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Range&gt;&gt; {
-        <span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- <span class="self">self</span>.raw.encoding.address_size * <span class="number">8</span>);
+        <span class="kw">let </span>address_size = <span class="self">self</span>.raw.encoding.address_size;
+        <span class="kw">let </span>mask = u64::ones_sized(address_size);
         <span class="kw">let </span>tombstone = <span class="kw">if </span><span class="self">self</span>.raw.encoding.version &lt;= <span class="number">4 </span>{
             mask - <span class="number">1
         </span>} <span class="kw">else </span>{
@@ -2026,7 +2022,7 @@
             }
             RawRngListEntry::StartxLength { begin, length } =&gt; {
                 <span class="kw">let </span>begin = <span class="self">self</span>.get_address(begin)<span class="question-mark">?</span>;
-                <span class="kw">let </span>end = begin.wrapping_add(length) &amp; mask;
+                <span class="kw">let </span>end = begin.wrapping_add_sized(length, address_size);
                 Range { begin, end }
             }
             RawRngListEntry::AddressOrOffsetPair { begin, end }
@@ -2040,18 +2036,13 @@
             }
             RawRngListEntry::StartEnd { begin, end } =&gt; Range { begin, end },
             RawRngListEntry::StartLength { begin, length } =&gt; {
-                <span class="kw">let </span>end = begin.wrapping_add(length) &amp; mask;
+                <span class="kw">let </span>end = begin.wrapping_add_sized(length, address_size);
                 Range { begin, end }
             }
         };
 
-        <span class="kw">if </span>range.begin == tombstone {
+        <span class="kw">if </span>range.begin == tombstone || range.begin &gt; range.end {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
-
-        <span class="kw">if </span>range.begin &gt; range.end {
-            <span class="self">self</span>.raw.input.empty();
-            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::InvalidAddressRange);
         }
 
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(range))
@@ -2105,7 +2096,7 @@
 }
 
 <span class="doccomment">/// An address range from the `.debug_ranges`, `.debug_rnglists`, or `.debug_aranges` sections.
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 </span><span class="kw">pub struct </span>Range {
     <span class="doccomment">/// The beginning address of the range.
     </span><span class="kw">pub </span>begin: u64,
@@ -2118,9 +2109,8 @@
     <span class="doccomment">/// Add a base address to this range.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_base_address(<span class="kw-2">&amp;mut </span><span class="self">self</span>, base_address: u64, address_size: u8) {
-        <span class="kw">let </span>mask = !<span class="number">0 </span>&gt;&gt; (<span class="number">64 </span>- address_size * <span class="number">8</span>);
-        <span class="self">self</span>.begin = base_address.wrapping_add(<span class="self">self</span>.begin) &amp; mask;
-        <span class="self">self</span>.end = base_address.wrapping_add(<span class="self">self</span>.end) &amp; mask;
+        <span class="self">self</span>.begin = base_address.wrapping_add_sized(<span class="self">self</span>.begin, address_size);
+        <span class="self">self</span>.end = base_address.wrapping_add_sized(<span class="self">self</span>.end, address_size);
     }
 }
 
@@ -2878,7 +2868,7 @@
                 debug_addr_base,
             )
             .unwrap();
-        <span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Err</span>(Error::InvalidAddressRange));
+        <span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
 
         <span class="comment">// An invalid range after wrapping.
         </span><span class="kw">let </span><span class="kw-2">mut </span>ranges = rnglists
@@ -2890,7 +2880,7 @@
                 debug_addr_base,
             )
             .unwrap();
-        <span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Err</span>(Error::InvalidAddressRange));
+        <span class="macro">assert_eq!</span>(ranges.next(), <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>));
 
         <span class="comment">// An invalid offset.
         </span><span class="kw">match </span>rnglists.ranges(

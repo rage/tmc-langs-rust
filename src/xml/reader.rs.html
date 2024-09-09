@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.21/src/reader.rs`."><title>reader.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.80.1 (3f5fd8dd4 2024-08-06)" data-channel="1.80.1" data-search-js="search-d52510db62a78183.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/xml-rs-0.8.22/src/reader.rs`."><title>reader.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="xml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -169,6 +169,14 @@
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
 <a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains high-level interface for a pull-based XML parser.
 //!
 //! The most important type in this module is `EventReader`, which provides an iterator
@@ -205,14 +213,14 @@
 <span class="kw">impl</span>&lt;R: Read&gt; EventReader&lt;R&gt; {
     <span class="doccomment">/// Creates a new reader, consuming the given stream.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new(source: R) -&gt; EventReader&lt;R&gt; {
-        EventReader::new_with_config(source, ParserConfig2::new())
+    </span><span class="kw">pub fn </span>new(source: R) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new_with_config(source, ParserConfig2::new())
     }
 
     <span class="doccomment">/// Creates a new reader with the provded configuration, consuming the given stream.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>new_with_config(source: R, config: <span class="kw">impl </span>Into&lt;ParserConfig2&gt;) -&gt; EventReader&lt;R&gt; {
-        EventReader { source, parser: PullParser::new(config) }
+    </span><span class="kw">pub fn </span>new_with_config(source: R, config: <span class="kw">impl </span>Into&lt;ParserConfig2&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{ source, parser: PullParser::new(config) }
     }
 
     <span class="doccomment">/// Pulls and returns next XML event from the stream.
@@ -265,6 +273,14 @@
     /// to parse an XML document from the beginning.
     </span><span class="kw">pub fn </span>into_inner(<span class="self">self</span>) -&gt; R {
         <span class="self">self</span>.source
+    }
+
+    <span class="doccomment">/// Returns the DOCTYPE of the document if it has already been seen
+    ///
+    /// Available only after the root `StartElement` event
+    </span><span class="attr">#[inline]
+    </span><span class="kw">pub fn </span>doctype(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
+        <span class="self">self</span>.parser.doctype()
     }
 }
 
@@ -336,7 +352,7 @@
     <span class="doccomment">/// A convenience method to create an `XmlReader` from a string slice.
     </span><span class="attr">#[inline]
     #[must_use]
-    </span><span class="kw">pub fn </span>from_str(source: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>str) -&gt; EventReader&lt;<span class="kw-2">&amp;</span><span class="lifetime">'r </span>[u8]&gt; {
+    </span><span class="kw">pub fn </span>from_str(source: <span class="kw-2">&amp;</span><span class="lifetime">'r </span>str) -&gt; <span class="self">Self </span>{
         EventReader::new(source.as_bytes())
     }
 }
