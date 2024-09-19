@@ -1,4 +1,5 @@
 (function() {var type_impls = {
+"jni_sys":[],
 "linux_raw_sys":[],
 "rustix":[],
 "serde":[]

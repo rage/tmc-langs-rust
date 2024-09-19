@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rpassword-7.3.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rpassword" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/rpassword-5.0.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rpassword" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -289,83 +289,126 @@
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! This library makes it easy to read passwords in a console application on all platforms, Unix,
-//! Windows, WASM, etc.
-//!
-//! Here's how you can read a password:
-//! ```no_run
-//! let password = rpassword::read_password().unwrap();
-//! println!("Your password is {}", password);
-//! ```
-//!
-//! You can also prompt for a password:
-//! ```no_run
-//! let password = rpassword::prompt_password("Your password: ").unwrap();
-//! println!("Your password is {}", password);
-//! ```
-//!
-//! Finally, in unit tests, you might want to pass a `Cursor`, which implements `BufRead`. In that
-//! case, you can use `read_password_from_bufread` and `prompt_password_from_bufread`:
-//! ```
-//! use std::io::Cursor;
-//!
-//! let mut mock_input = Cursor::new("my-password\n".as_bytes().to_owned());
-//! let password = rpassword::read_password_from_bufread(&amp;mut mock_input).unwrap();
-//! println!("Your password is {}", password);
-//!
-//! let mut mock_input = Cursor::new("my-password\n".as_bytes().to_owned());
-//! let mut mock_output = Cursor::new(Vec::new());
-//! let password = rpassword::prompt_password_from_bufread(&amp;mut mock_input, &amp;mut mock_output, "Your password: ").unwrap();
-//! println!("Your password is {}", password);
-//! ```
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+</pre></div><pre class="rust"><code><span class="comment">// Copyright 2014-2017 The Rpassword Developers
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-</span><span class="kw">use </span>rtoolbox::fix_line_issues::fix_line_issues;
-<span class="kw">use </span>rtoolbox::print_tty::{print_tty, print_writer};
-<span class="kw">use </span>rtoolbox::safe_string::SafeString;
-<span class="kw">use </span>std::io::{BufRead, Write};
+</span><span class="attr">#[cfg(unix)]
+</span><span class="kw">extern crate </span>libc;
 
-<span class="attr">#[cfg(target_family = <span class="string">"wasm"</span>)]
-</span><span class="kw">mod </span>wasm {
-    <span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead};
+<span class="attr">#[cfg(windows)]
+</span><span class="kw">extern crate </span>winapi;
 
-    <span class="doccomment">/// Reads a password from the TTY
-    </span><span class="kw">pub fn </span>read_password() -&gt; std::io::Result&lt;String&gt; {
-        <span class="kw">let </span>tty = std::fs::File::open(<span class="string">"/dev/tty"</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = io::BufReader::new(tty);
+<span class="kw">use </span>std::io::Write;
 
-        read_password_from_fd_with_hidden_input(<span class="kw-2">&amp;mut </span>reader)
-    }
+<span class="kw">mod </span>zero_on_drop;
+<span class="kw">use </span>zero_on_drop::ZeroOnDrop;
 
-    <span class="doccomment">/// Reads a password from a given file descriptor
-    </span><span class="kw">fn </span>read_password_from_fd_with_hidden_input(
-        reader: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>BufRead,
-    ) -&gt; std::io::Result&lt;String&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="kw">super</span>::SafeString::new();
+<span class="doccomment">/// Removes the \n from the read line
+</span><span class="kw">fn </span>fixes_newline(password: <span class="kw-2">&amp;mut </span>ZeroOnDrop) {
+    <span class="comment">// We may not have a newline, e.g. if user sent CTRL-D or if
+    // this is not a TTY.
 
-        reader.read_line(<span class="kw-2">&amp;mut </span>password)<span class="question-mark">?</span>;
-        <span class="kw">super</span>::fix_line_issues(password.into_inner())
+    </span><span class="kw">if </span>password.ends_with(<span class="string">'\n'</span>) {
+        <span class="comment">// Remove the \n from the line if present
+        </span>password.pop();
+
+        <span class="comment">// Remove the \r from the line if present
+        </span><span class="kw">if </span>password.ends_with(<span class="string">'\r'</span>) {
+            password.pop();
+        }
     }
 }
 
-<span class="attr">#[cfg(target_family = <span class="string">"unix"</span>)]
+<span class="attr">#[cfg(unix)]
 </span><span class="kw">mod </span>unix {
-    <span class="kw">use </span>libc::{c_int, tcsetattr, termios, ECHO, ECHONL, TCSANOW};
-    <span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead};
+    <span class="kw">use </span>libc::{c_int, isatty, tcsetattr, termios, ECHO, ECHONL, STDIN_FILENO, TCSANOW};
+    <span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead, Write};
     <span class="kw">use </span>std::mem;
     <span class="kw">use </span>std::os::unix::io::AsRawFd;
 
-    <span class="kw">struct </span>HiddenInput {
-        fd: i32,
-        term_orig: termios,
+    <span class="doccomment">/// Turns a C function return into an IO Result
+    </span><span class="kw">fn </span>io_result(ret: c_int) -&gt; ::std::io::Result&lt;()&gt; {
+        <span class="kw">match </span>ret {
+            <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(()),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(::std::io::Error::last_os_error()),
+        }
     }
 
-    <span class="kw">impl </span>HiddenInput {
-        <span class="kw">fn </span>new(fd: i32) -&gt; io::Result&lt;HiddenInput&gt; {
+    <span class="kw">fn </span>safe_tcgetattr(fd: c_int) -&gt; ::std::io::Result&lt;termios&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>term = mem::MaybeUninit::&lt;::unix::termios&gt;::uninit();
+        io_result(<span class="kw">unsafe </span>{ ::libc::tcgetattr(fd, term.as_mut_ptr()) })<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ term.assume_init() })
+    }
+
+    <span class="doccomment">/// Reads a password from stdin
+    </span><span class="kw">pub fn </span>read_password_from_stdin(open_tty: bool) -&gt; ::std::io::Result&lt;String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="kw">super</span>::ZeroOnDrop::new();
+
+        <span class="kw">enum </span>Source {
+            Tty(io::BufReader&lt;::std::fs::File&gt;),
+            Stdin(io::Stdin),
+        }
+
+        <span class="kw">let </span>(tty_fd, <span class="kw-2">mut </span>source) = <span class="kw">if </span>open_tty {
+            <span class="kw">let </span>tty = ::std::fs::File::open(<span class="string">"/dev/tty"</span>)<span class="question-mark">?</span>;
+            (tty.as_raw_fd(), Source::Tty(io::BufReader::new(tty)))
+        } <span class="kw">else </span>{
+            (STDIN_FILENO, Source::Stdin(io::stdin()))
+        };
+
+        <span class="kw">let </span>input_is_tty = <span class="kw">unsafe </span>{ isatty(tty_fd) } == <span class="number">1</span>;
+
+        <span class="comment">// When we ask for a password in a terminal, we'll want to hide the password as it is
+        // typed by the user
+        </span><span class="kw">if </span>input_is_tty {
             <span class="comment">// Make two copies of the terminal settings. The first one will be modified
             // and the second one will act as a backup for when we want to set the
             // terminal back to its original state.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>term = safe_tcgetattr(fd)<span class="question-mark">?</span>;
-            <span class="kw">let </span>term_orig = safe_tcgetattr(fd)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span><span class="kw-2">mut </span>term = safe_tcgetattr(tty_fd)<span class="question-mark">?</span>;
+            <span class="kw">let </span>term_orig = safe_tcgetattr(tty_fd)<span class="question-mark">?</span>;
 
             <span class="comment">// Hide the password. This is what makes this function useful.
             </span>term.c_lflag &amp;= !ECHO;
@@ -374,210 +417,231 @@
             </span>term.c_lflag |= ECHONL;
 
             <span class="comment">// Save the settings for now.
-            </span>io_result(<span class="kw">unsafe </span>{ tcsetattr(fd, TCSANOW, <span class="kw-2">&amp;</span>term) })<span class="question-mark">?</span>;
+            </span>io_result(<span class="kw">unsafe </span>{ tcsetattr(tty_fd, TCSANOW, <span class="kw-2">&amp;</span>term) })<span class="question-mark">?</span>;
 
-            <span class="prelude-val">Ok</span>(HiddenInput { fd, term_orig })
+            <span class="comment">// Read the password.
+            </span><span class="kw">let </span>input = <span class="kw">match </span>source {
+                Source::Tty(<span class="kw-2">ref mut </span>tty) =&gt; tty.read_line(<span class="kw-2">&amp;mut </span>password),
+                Source::Stdin(<span class="kw-2">ref mut </span>stdin) =&gt; stdin.read_line(<span class="kw-2">&amp;mut </span>password),
+            };
+
+            <span class="comment">// Reset the terminal.
+            </span>io_result(<span class="kw">unsafe </span>{ tcsetattr(tty_fd, TCSANOW, <span class="kw-2">&amp;</span>term_orig) })<span class="question-mark">?</span>;
+
+            <span class="comment">// Return if we have an error
+            </span>input<span class="question-mark">?</span>;
+        } <span class="kw">else </span>{
+            <span class="comment">// If we don't have a TTY, the input was piped so we bypass
+            // terminal hiding code
+            </span><span class="kw">match </span>source {
+                Source::Tty(<span class="kw-2">mut </span>tty) =&gt; tty.read_line(<span class="kw-2">&amp;mut </span>password)<span class="question-mark">?</span>,
+                Source::Stdin(stdin) =&gt; stdin.read_line(<span class="kw-2">&amp;mut </span>password)<span class="question-mark">?</span>,
+            };
         }
+
+        <span class="kw">super</span>::fixes_newline(<span class="kw-2">&amp;mut </span>password);
+
+        <span class="prelude-val">Ok</span>(password.into_inner())
     }
 
-    <span class="kw">impl </span>Drop <span class="kw">for </span>HiddenInput {
-        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-            <span class="comment">// Set the the mode back to normal
-            </span><span class="kw">unsafe </span>{
-                tcsetattr(<span class="self">self</span>.fd, TCSANOW, <span class="kw-2">&amp;</span><span class="self">self</span>.term_orig);
-            }
-        }
-    }
-
-    <span class="doccomment">/// Turns a C function return into an IO Result
-    </span><span class="kw">fn </span>io_result(ret: c_int) -&gt; std::io::Result&lt;()&gt; {
-        <span class="kw">match </span>ret {
-            <span class="number">0 </span>=&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(std::io::Error::last_os_error()),
-        }
-    }
-
-    <span class="kw">fn </span>safe_tcgetattr(fd: c_int) -&gt; std::io::Result&lt;termios&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>term = mem::MaybeUninit::&lt;termios&gt;::uninit();
-        io_result(<span class="kw">unsafe </span>{ ::libc::tcgetattr(fd, term.as_mut_ptr()) })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">unsafe </span>{ term.assume_init() })
-    }
-
-    <span class="doccomment">/// Reads a password from the TTY
-    </span><span class="kw">pub fn </span>read_password() -&gt; std::io::Result&lt;String&gt; {
-        <span class="kw">let </span>tty = std::fs::File::open(<span class="string">"/dev/tty"</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>fd = tty.as_raw_fd();
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = io::BufReader::new(tty);
-
-        read_password_from_fd_with_hidden_input(<span class="kw-2">&amp;mut </span>reader, fd)
-    }
-
-    <span class="doccomment">/// Reads a password from a given file descriptor
-    </span><span class="kw">fn </span>read_password_from_fd_with_hidden_input(
-        reader: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>BufRead,
-        fd: i32,
-    ) -&gt; std::io::Result&lt;String&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="kw">super</span>::SafeString::new();
-
-        <span class="kw">let </span>hidden_input = HiddenInput::new(fd)<span class="question-mark">?</span>;
-
-        reader.read_line(<span class="kw-2">&amp;mut </span>password)<span class="question-mark">?</span>;
-
-        std::mem::drop(hidden_input);
-
-        <span class="kw">super</span>::fix_line_issues(password.into_inner())
+    <span class="doccomment">/// Displays a prompt on the terminal
+    </span><span class="kw">pub fn </span>display_on_tty(prompt: <span class="kw-2">&amp;</span>str) -&gt; ::std::io::Result&lt;()&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = ::std::fs::OpenOptions::new().write(<span class="bool-val">true</span>).open(<span class="string">"/dev/tty"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(stream, <span class="string">"{}"</span>, prompt)<span class="question-mark">?</span>;
+        stream.flush()
     }
 }
 
-<span class="attr">#[cfg(target_family = <span class="string">"windows"</span>)]
+<span class="attr">#[cfg(windows)]
 </span><span class="kw">mod </span>windows {
-    <span class="kw">use </span>std::io::BufRead;
-    <span class="kw">use </span>std::io::{<span class="self">self</span>, BufReader};
-    <span class="kw">use </span>std::os::windows::io::FromRawHandle;
-    <span class="kw">use </span>windows_sys::core::PCSTR;
-    <span class="kw">use </span>windows_sys::Win32::Foundation::{GENERIC_READ, GENERIC_WRITE, HANDLE, INVALID_HANDLE_VALUE};
-    <span class="kw">use </span>windows_sys::Win32::Storage::FileSystem::{
-        CreateFileA, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
-    };
-    <span class="kw">use </span>windows_sys::Win32::System::Console::{
-        GetConsoleMode, SetConsoleMode, CONSOLE_MODE, ENABLE_LINE_INPUT, ENABLE_PROCESSED_INPUT,
-    };
+    <span class="kw">use </span>std::io::{<span class="self">self</span>, Write};
+    <span class="kw">use </span>std::os::windows::io::{AsRawHandle, FromRawHandle};
+    <span class="kw">use </span>std::ptr;
+    <span class="kw">use </span>winapi::shared::minwindef::LPDWORD;
+    <span class="kw">use </span>winapi::um::consoleapi::{GetConsoleMode, SetConsoleMode};
+    <span class="kw">use </span>winapi::um::fileapi::{CreateFileA, GetFileType, OPEN_EXISTING};
+    <span class="kw">use </span>winapi::um::handleapi::INVALID_HANDLE_VALUE;
+    <span class="kw">use </span>winapi::um::processenv::GetStdHandle;
+    <span class="kw">use </span>winapi::um::winbase::{FILE_TYPE_PIPE, STD_INPUT_HANDLE};
+    <span class="kw">use </span>winapi::um::wincon::{ENABLE_LINE_INPUT, ENABLE_PROCESSED_INPUT};
+    <span class="kw">use </span>winapi::um::winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE};
 
-    <span class="kw">struct </span>HiddenInput {
-        mode: u32,
-        handle: HANDLE,
-    }
+    <span class="doccomment">/// Reads a password from stdin
+    </span><span class="kw">pub fn </span>read_password_from_stdin(open_tty: bool) -&gt; io::Result&lt;String&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="kw">super</span>::ZeroOnDrop::new();
 
-    <span class="kw">impl </span>HiddenInput {
-        <span class="kw">fn </span>new(handle: HANDLE) -&gt; io::Result&lt;HiddenInput&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>mode = <span class="number">0</span>;
+        <span class="comment">// Get the stdin handle
+        </span><span class="kw">let </span>handle = <span class="kw">if </span>open_tty {
+            <span class="kw">unsafe </span>{
+                CreateFileA(
+                    <span class="string">b"CONIN$\x00"</span>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8,
+                    GENERIC_READ | GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    ptr::null_mut(),
+                    OPEN_EXISTING,
+                    <span class="number">0</span>,
+                    ptr::null_mut(),
+                )
+            }
+        } <span class="kw">else </span>{
+            <span class="kw">unsafe </span>{ GetStdHandle(STD_INPUT_HANDLE) }
+        };
+        <span class="kw">if </span>handle == INVALID_HANDLE_VALUE {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(::std::io::Error::last_os_error());
+        }
 
+        <span class="kw">let </span><span class="kw-2">mut </span>mode = <span class="number">0</span>;
+
+        <span class="comment">// Console mode does not apply when stdin is piped
+        </span><span class="kw">let </span>handle_type = <span class="kw">unsafe </span>{ GetFileType(handle) };
+        <span class="kw">if </span>handle_type != FILE_TYPE_PIPE {
             <span class="comment">// Get the old mode so we can reset back to it when we are done
-            </span><span class="kw">if unsafe </span>{ GetConsoleMode(handle, <span class="kw-2">&amp;mut </span>mode <span class="kw">as </span><span class="kw-2">*mut </span>CONSOLE_MODE) } == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(std::io::Error::last_os_error());
+            </span><span class="kw">if unsafe </span>{ GetConsoleMode(handle, <span class="kw-2">&amp;mut </span>mode <span class="kw">as </span>LPDWORD) } == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(::std::io::Error::last_os_error());
             }
 
             <span class="comment">// We want to be able to read line by line, and we still want backspace to work
             </span><span class="kw">let </span>new_mode_flags = ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT;
             <span class="kw">if unsafe </span>{ SetConsoleMode(handle, new_mode_flags) } == <span class="number">0 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(std::io::Error::last_os_error());
+                <span class="kw">return </span><span class="prelude-val">Err</span>(::std::io::Error::last_os_error());
             }
-
-            <span class="prelude-val">Ok</span>(HiddenInput { mode, handle })
         }
-    }
 
-    <span class="kw">impl </span>Drop <span class="kw">for </span>HiddenInput {
-        <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// Read the password.
+        </span><span class="kw">let </span>source = io::stdin();
+        <span class="kw">let </span>input = source.read_line(<span class="kw-2">&amp;mut </span>password);
+        <span class="kw">let </span>handle = source.as_raw_handle();
+
+        <span class="comment">// Check the response.
+        </span>input<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>handle_type != FILE_TYPE_PIPE {
             <span class="comment">// Set the the mode back to normal
-            </span><span class="kw">unsafe </span>{
-                SetConsoleMode(<span class="self">self</span>.handle, <span class="self">self</span>.mode);
+            </span><span class="kw">if unsafe </span>{ SetConsoleMode(handle, mode) } == <span class="number">0 </span>{
+                <span class="kw">return </span><span class="prelude-val">Err</span>(::std::io::Error::last_os_error());
             }
         }
-    }
 
-    <span class="doccomment">/// Reads a password from the TTY
-    </span><span class="kw">pub fn </span>read_password() -&gt; std::io::Result&lt;String&gt; {
-        <span class="kw">let </span>handle = <span class="kw">unsafe </span>{
-            CreateFileA(
-                <span class="string">b"CONIN$\x00"</span>.as_ptr() <span class="kw">as </span>PCSTR,
-                GENERIC_READ | GENERIC_WRITE,
-                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                std::ptr::null(),
-                OPEN_EXISTING,
-                <span class="number">0</span>,
-                INVALID_HANDLE_VALUE,
-            )
-        };
-
-        <span class="kw">if </span>handle == INVALID_HANDLE_VALUE {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(std::io::Error::last_os_error());
-        }
-
-        <span class="kw">let </span><span class="kw-2">mut </span>stream = BufReader::new(<span class="kw">unsafe </span>{ std::fs::File::from_raw_handle(handle <span class="kw">as _</span>) });
-        read_password_from_handle_with_hidden_input(<span class="kw-2">&amp;mut </span>stream, handle)
-    }
-
-    <span class="doccomment">/// Reads a password from a given file handle
-    </span><span class="kw">fn </span>read_password_from_handle_with_hidden_input(
-        reader: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>BufRead,
-        handle: HANDLE,
-    ) -&gt; io::Result&lt;String&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>password = <span class="kw">super</span>::SafeString::new();
-
-        <span class="kw">let </span>hidden_input = HiddenInput::new(handle)<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>reader_return = reader.read_line(<span class="kw-2">&amp;mut </span>password);
+        <span class="kw">super</span>::fixes_newline(<span class="kw-2">&amp;mut </span>password);
 
         <span class="comment">// Newline for windows which otherwise prints on the same line.
         </span><span class="macro">println!</span>();
 
-        <span class="kw">if </span>reader_return.is_err() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(reader_return.unwrap_err());
+        <span class="prelude-val">Ok</span>(password.into_inner())
+    }
+
+    <span class="doccomment">/// Displays a prompt on the terminal
+    </span><span class="kw">pub fn </span>display_on_tty(prompt: <span class="kw-2">&amp;</span>str) -&gt; ::std::io::Result&lt;()&gt; {
+        <span class="kw">let </span>handle = <span class="kw">unsafe </span>{
+            CreateFileA(
+                <span class="string">b"CONOUT$\x00"</span>.as_ptr() <span class="kw">as </span><span class="kw-2">*const </span>i8,
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                ::std::ptr::null_mut(),
+                OPEN_EXISTING,
+                <span class="number">0</span>,
+                ::std::ptr::null_mut(),
+            )
+        };
+        <span class="kw">if </span>handle == INVALID_HANDLE_VALUE {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(::std::io::Error::last_os_error());
         }
 
-        std::mem::drop(hidden_input);
+        <span class="kw">let </span><span class="kw-2">mut </span>stream = <span class="kw">unsafe </span>{ ::std::fs::File::from_raw_handle(handle) };
 
-        <span class="kw">super</span>::fix_line_issues(password.into_inner())
+        <span class="macro">write!</span>(stream, <span class="string">"{}"</span>, prompt)<span class="question-mark">?</span>;
+        stream.flush()
     }
 }
 
-<span class="attr">#[cfg(target_family = <span class="string">"unix"</span>)]
-</span><span class="kw">pub use </span>unix::read_password;
-<span class="attr">#[cfg(target_family = <span class="string">"wasm"</span>)]
-</span><span class="kw">pub use </span>wasm::read_password;
-<span class="attr">#[cfg(target_family = <span class="string">"windows"</span>)]
-</span><span class="kw">pub use </span>windows::read_password;
+<span class="attr">#[cfg(unix)]
+</span><span class="kw">use </span>unix::{display_on_tty, read_password_from_stdin};
+<span class="attr">#[cfg(windows)]
+</span><span class="kw">use </span>windows::{display_on_tty, read_password_from_stdin};
 
 <span class="doccomment">/// Reads a password from anything that implements BufRead
-</span><span class="kw">pub fn </span>read_password_from_bufread(reader: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>BufRead) -&gt; std::io::Result&lt;String&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>password = SafeString::new();
-    reader.read_line(<span class="kw-2">&amp;mut </span>password)<span class="question-mark">?</span>;
+</span><span class="kw">mod </span>mock {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    fix_line_issues(password.into_inner())
-}
-
-<span class="doccomment">/// Prompts on the TTY and then reads a password from anything that implements BufRead
-</span><span class="kw">pub fn </span>prompt_password_from_bufread(
-    reader: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>BufRead,
-    writer: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write,
-    prompt: <span class="kw">impl </span>ToString,
-) -&gt; std::io::Result&lt;String&gt; {
-    print_writer(writer, prompt.to_string().as_str())
-        .and_then(|<span class="kw">_</span>| read_password_from_bufread(reader))
-}
-
-<span class="doccomment">/// Prompts on the TTY and then reads a password from TTY
-</span><span class="kw">pub fn </span>prompt_password(prompt: <span class="kw">impl </span>ToString) -&gt; std::io::Result&lt;String&gt; {
-    print_tty(prompt.to_string().as_str()).and_then(|<span class="kw">_</span>| read_password())
-}
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-    <span class="kw">use </span>std::io::Cursor;
-
-    <span class="kw">fn </span>mock_input_crlf() -&gt; Cursor&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
-        Cursor::new(<span class="kw-2">&amp;</span><span class="string">b"A mocked response.\r\nAnother mocked response.\r\n"</span>[..])
+    <span class="doccomment">/// Reads a password from STDIN
+    </span><span class="kw">pub fn </span>read_password() -&gt; ::std::io::Result&lt;String&gt; {
+        read_password_with_reader(<span class="prelude-val">None</span>::&lt;<span class="kw-2">&amp;mut </span>::std::io::Empty&gt;)
     }
 
-    <span class="kw">fn </span>mock_input_lf() -&gt; Cursor&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
-        Cursor::new(<span class="kw-2">&amp;</span><span class="string">b"A mocked response.\nAnother mocked response.\n"</span>[..])
+    <span class="doccomment">/// Reads a password from anything that implements BufRead
+    </span><span class="kw">pub fn </span>read_password_with_reader&lt;T&gt;(source: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt;) -&gt; ::std::io::Result&lt;String&gt;
+    <span class="kw">where
+        </span>T: ::std::io::BufRead,
+    {
+        <span class="kw">match </span>source {
+            <span class="prelude-val">Some</span>(reader) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>password = ZeroOnDrop::new();
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = reader.read_line(<span class="kw-2">&amp;mut </span>password) {
+                    <span class="prelude-val">Err</span>(err)
+                } <span class="kw">else </span>{
+                    fixes_newline(<span class="kw-2">&amp;mut </span>password);
+                    <span class="prelude-val">Ok</span>(password.into_inner())
+                }
+            }
+            <span class="prelude-val">None </span>=&gt; read_password_from_stdin(<span class="bool-val">false</span>),
+        }
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>can_read_from_redirected_input_many_times() {
-        <span class="kw">let </span><span class="kw-2">mut </span>reader_crlf = mock_input_crlf();
+    <span class="attr">#[cfg(test)]
+    </span><span class="kw">mod </span>tests {
+        <span class="kw">use </span>std::io::Cursor;
 
-        <span class="kw">let </span>response = <span class="kw">super</span>::read_password_from_bufread(<span class="kw-2">&amp;mut </span>reader_crlf).unwrap();
-        <span class="macro">assert_eq!</span>(response, <span class="string">"A mocked response."</span>);
-        <span class="kw">let </span>response = <span class="kw">super</span>::read_password_from_bufread(<span class="kw-2">&amp;mut </span>reader_crlf).unwrap();
-        <span class="macro">assert_eq!</span>(response, <span class="string">"Another mocked response."</span>);
+        <span class="kw">fn </span>mock_input_crlf() -&gt; Cursor&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
+            Cursor::new(<span class="kw-2">&amp;</span><span class="string">b"A mocked response.\r\nAnother mocked response.\r\n"</span>[..])
+        }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>reader_lf = mock_input_lf();
-        <span class="kw">let </span>response = <span class="kw">super</span>::read_password_from_bufread(<span class="kw-2">&amp;mut </span>reader_lf).unwrap();
-        <span class="macro">assert_eq!</span>(response, <span class="string">"A mocked response."</span>);
-        <span class="kw">let </span>response = <span class="kw">super</span>::read_password_from_bufread(<span class="kw-2">&amp;mut </span>reader_lf).unwrap();
-        <span class="macro">assert_eq!</span>(response, <span class="string">"Another mocked response."</span>);
+        <span class="kw">fn </span>mock_input_lf() -&gt; Cursor&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
+            Cursor::new(<span class="kw-2">&amp;</span><span class="string">b"A mocked response.\nAnother mocked response.\n"</span>[..])
+        }
+
+        <span class="attr">#[test]
+        </span><span class="kw">fn </span>can_read_from_redirected_input_many_times() {
+            <span class="kw">let </span><span class="kw-2">mut </span>reader_crlf = mock_input_crlf();
+
+            <span class="kw">let </span>response = ::read_password_with_reader(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>reader_crlf)).unwrap();
+            <span class="macro">assert_eq!</span>(response, <span class="string">"A mocked response."</span>);
+            <span class="kw">let </span>response = ::read_password_with_reader(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>reader_crlf)).unwrap();
+            <span class="macro">assert_eq!</span>(response, <span class="string">"Another mocked response."</span>);
+
+            <span class="kw">let </span><span class="kw-2">mut </span>reader_lf = mock_input_lf();
+            <span class="kw">let </span>response = ::read_password_with_reader(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>reader_lf)).unwrap();
+            <span class="macro">assert_eq!</span>(response, <span class="string">"A mocked response."</span>);
+            <span class="kw">let </span>response = ::read_password_with_reader(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;mut </span>reader_lf)).unwrap();
+            <span class="macro">assert_eq!</span>(response, <span class="string">"Another mocked response."</span>);
+        }
     }
+}
+
+<span class="kw">pub use </span>mock::{read_password, read_password_with_reader};
+
+<span class="doccomment">/// Reads a password from the terminal
+</span><span class="kw">pub fn </span>read_password_from_tty(prompt: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;) -&gt; ::std::io::Result&lt;String&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(prompt) = prompt {
+        display_on_tty(prompt)<span class="question-mark">?</span>;
+    }
+    read_password_from_stdin(<span class="bool-val">true</span>)
+}
+
+<span class="doccomment">/// Prompts for a password on STDOUT and reads it from STDIN
+</span><span class="kw">pub fn </span>prompt_password_stdout(prompt: <span class="kw-2">&amp;</span>str) -&gt; std::io::Result&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stdout = std::io::stdout();
+
+    <span class="macro">write!</span>(stdout, <span class="string">"{}"</span>, prompt)<span class="question-mark">?</span>;
+    stdout.flush()<span class="question-mark">?</span>;
+    read_password()
+}
+
+<span class="doccomment">/// Prompts for a password on STDERR and reads it from STDIN
+</span><span class="kw">pub fn </span>prompt_password_stderr(prompt: <span class="kw-2">&amp;</span>str) -&gt; std::io::Result&lt;String&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>stderr = std::io::stderr();
+
+    <span class="macro">write!</span>(stderr, <span class="string">"{}"</span>, prompt)<span class="question-mark">?</span>;
+    stderr.flush()<span class="question-mark">?</span>;
+    read_password()
 }
 </code></pre></div></section></main></body></html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`switch!(I -&gt; IResult&lt;I,P&gt;, P =&gt; I -&gt; IResult&lt;I,O&gt; | ... | P =&gt; I -&gt; IResult&lt;I,O&gt; ) =&gt; I -&gt; IResult&lt;I, O&gt;` choose the next parser depending on the result of the first one, if successful, and returns the result of the second parser"><title>switch in nom - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../nom/index.html">nom</a><span class="version">6.2.2</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">nom</a>::<wbr><a class="macro" href="#">switch</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/nom/branch/macros.rs.html#334-383">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> switch {
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args</span>:tt)* ), $( $(<span class="macro-nonterminal">$p</span>:pat)|+ =&gt; <span class="macro-nonterminal">$subrule</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args2</span>:tt)* ))|* ) =&gt; { ... };
+    (<span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>), $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+    (<span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$e</span>:path, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>switch!(I -&gt; IResult&lt;I,P&gt;, P =&gt; I -&gt; IResult&lt;I,O&gt; | ... | P =&gt; I -&gt; IResult&lt;I,O&gt; ) =&gt; I -&gt; IResult&lt;I, O&gt;</code>
+choose the next parser depending on the result of the first one, if successful,
+and returns the result of the second parser</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>(sw,
+   <span class="macro">switch!</span>(<span class="macro">take!</span>(<span class="number">4</span>),
+     <span class="string">b"abcd" </span>=&gt; <span class="macro">tag!</span>(<span class="string">"XYZ"</span>) |
+     <span class="string">b"efgh" </span>=&gt; <span class="macro">tag!</span>(<span class="string">"123"</span>)
+   )
+ );
+
+ <span class="kw">let </span>a = <span class="string">b"abcdXYZ123"</span>;
+ <span class="kw">let </span>b = <span class="string">b"abcdef"</span>;
+ <span class="kw">let </span>c = <span class="string">b"efgh123"</span>;
+ <span class="kw">let </span>d = <span class="string">b"blah"</span>;
+
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>a[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">b"123"</span>[..], <span class="kw-2">&amp;</span><span class="string">b"XYZ"</span>[..])));
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>b[..]), <span class="prelude-val">Err</span>(Err::Error(<span class="macro">error_node_position!</span>(<span class="kw-2">&amp;</span><span class="string">b"abcdef"</span>[..], ErrorKind::Switch,
+   <span class="macro">error_position!</span>(<span class="kw-2">&amp;</span><span class="string">b"ef"</span>[..], ErrorKind::Tag)))));
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>c[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">b""</span>[..], <span class="kw-2">&amp;</span><span class="string">b"123"</span>[..])));
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>d[..]), <span class="prelude-val">Err</span>(Err::Error(<span class="macro">error_position!</span>(<span class="kw-2">&amp;</span><span class="string">b"blah"</span>[..], ErrorKind::Switch))));</code></pre></div>
+<p>You can specify a default case like with a normal match, using <code>_</code></p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>(sw,
+   <span class="macro">switch!</span>(<span class="macro">take!</span>(<span class="number">4</span>),
+     <span class="string">b"abcd" </span>=&gt; <span class="macro">tag!</span>(<span class="string">"XYZ"</span>) |
+     <span class="kw">_       </span>=&gt; <span class="macro">value!</span>(<span class="kw-2">&amp;</span><span class="string">b"default"</span>[..])
+   )
+ );
+
+ <span class="kw">let </span>a = <span class="string">b"abcdXYZ123"</span>;
+ <span class="kw">let </span>b = <span class="string">b"blah"</span>;
+
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>a[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">b"123"</span>[..], <span class="kw-2">&amp;</span><span class="string">b"XYZ"</span>[..])));
+ <span class="macro">assert_eq!</span>(sw(<span class="kw-2">&amp;</span>b[..]), <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="string">b""</span>[..], <span class="kw-2">&amp;</span><span class="string">b"default"</span>[..])));</code></pre></div>
+<p>Due to limitations in Rust macros, it is not possible to have simple functions on the right hand
+side of pattern, like this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>(xyz, <span class="macro">tag!</span>(<span class="string">"XYZ"</span>));
+ <span class="macro">named!</span>(num, <span class="macro">tag!</span>(<span class="string">"123"</span>));
+ <span class="macro">named!</span>(sw,
+   <span class="macro">switch!</span>(<span class="macro">take!</span>(<span class="number">4</span>),
+     <span class="string">b"abcd" </span>=&gt; xyz |
+     <span class="string">b"efgh" </span>=&gt; <span class="number">123
+   </span>)
+ );</code></pre></div>
+<p>If you want to pass your own functions instead, you can use the <code>call!</code> combinator as follows:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>(xyz, <span class="macro">tag!</span>(<span class="string">"XYZ"</span>));
+ <span class="macro">named!</span>(num, <span class="macro">tag!</span>(<span class="string">"123"</span>));
+ <span class="macro">named!</span>(sw,
+   <span class="macro">switch!</span>(<span class="macro">take!</span>(<span class="number">4</span>),
+     <span class="string">b"abcd" </span>=&gt; <span class="macro">call!</span>(xyz) |
+     <span class="string">b"efgh" </span>=&gt; <span class="macro">call!</span>(num)
+   )
+ );</code></pre></div>
+</div></details></section></div></main></body></html>

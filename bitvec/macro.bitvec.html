@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Constructs a `BitVec` out of a literal array in source code, like `vec!`."><title>bitvec in bitvec - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="bitvec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../bitvec/index.html">bitvec</a><span class="version">0.19.6</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">bitvec</a>::<wbr><a class="macro" href="#">bitvec</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/bitvec/macros.rs.html#325-344">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> bitvec {
+    (<span class="macro-nonterminal">$order</span>:ty, <span class="macro-nonterminal">$store</span>:ident; <span class="macro-nonterminal">$val</span>:expr; <span class="macro-nonterminal">$rep</span>:expr) =&gt; { ... };
+    (<span class="macro-nonterminal">$order</span>:ty; <span class="macro-nonterminal">$val</span>:expr; <span class="macro-nonterminal">$rep</span>:expr) =&gt; { ... };
+    (<span class="macro-nonterminal">$val</span>:expr; <span class="macro-nonterminal">$rep</span>:expr) =&gt; { ... };
+    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Constructs a <code>BitVec</code> out of a literal array in source code, like <code>vec!</code>.</p>
+<p><code>bitvec!</code> can be invoked in a number of ways. It takes the name of a <code>BitOrder</code>
+implementation, the name of a <code>BitStore</code>-implementing fundamental, and zero or
+more fundamentals (integer, floating-point, or boolean) which are used to build
+the bits. Each fundamental literal corresponds to one bit, and is considered to
+represent <code>1</code> if it is any other value than exactly zero.</p>
+<p><code>bitvec!</code> can be invoked with no specifiers, a <code>BitOrder</code> specifier, or a
+<code>BitOrder</code> and a <code>BitStore</code> specifier. It cannot be invoked with a <code>BitStore</code>
+specifier but no <code>BitOrder</code> specifier, due to overlap in how those tokens are
+matched by the macro system.</p>
+<p>Like <code>vec!</code>, <code>bitvec!</code> supports bit lists <code>[0, 1, …]</code> and repetition markers
+<code>[1; n]</code>.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>bitvec::prelude::<span class="kw-2">*</span>;
+
+<span class="macro">bitvec!</span>[Msb0, u8; <span class="number">0</span>, <span class="number">1</span>];
+<span class="macro">bitvec!</span>[Lsb0, u8; <span class="number">0</span>, <span class="number">1</span>,];
+<span class="macro">bitvec!</span>[Msb0; <span class="number">0</span>, <span class="number">1</span>];
+<span class="macro">bitvec!</span>[Lsb0; <span class="number">0</span>, <span class="number">1</span>,];
+<span class="macro">bitvec!</span>[<span class="number">0</span>, <span class="number">1</span>];
+<span class="macro">bitvec!</span>[<span class="number">0</span>, <span class="number">1</span>,];
+<span class="macro">bitvec!</span>[Msb0, u8; <span class="number">1</span>; <span class="number">5</span>];
+<span class="macro">bitvec!</span>[Lsb0; <span class="number">0</span>; <span class="number">5</span>];
+<span class="macro">bitvec!</span>[<span class="number">1</span>; <span class="number">5</span>];</code></pre></div>
+</div></details></section></div></main></body></html>

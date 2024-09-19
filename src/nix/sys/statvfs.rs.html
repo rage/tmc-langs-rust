@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.29.0/src/sys/statvfs.rs`."><title>statvfs.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.20.2/src/sys/statvfs.rs`."><title>statvfs.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -148,39 +148,49 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Get filesystem statistics
 //!
-//! See [the man pages](https://pubs.opengroup.org/onlinepubs/9699919799/functions/fstatvfs.html)
+//! See [the man pages](http://pubs.opengroup.org/onlinepubs/9699919799/functions/fstatvfs.html)
 //! for more details.
 </span><span class="kw">use </span>std::mem;
-<span class="kw">use </span>std::os::unix::io::{AsFd, AsRawFd};
+<span class="kw">use </span>std::os::unix::io::AsRawFd;
 
 <span class="kw">use </span>libc::{<span class="self">self</span>, c_ulong};
 
-<span class="kw">use crate</span>::{errno::Errno, NixPath, <span class="prelude-ty">Result</span>};
+<span class="kw">use crate</span>::{<span class="prelude-ty">Result</span>, NixPath, errno::Errno};
 
 <span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
 </span><span class="macro">libc_bitflags!</span>(
     <span class="doccomment">/// File system mount Flags
-    </span><span class="attr">#[derive(Default)]
+    </span><span class="attr">#[repr(C)]
+    #[derive(Default)]
     </span><span class="kw">pub struct </span>FsFlags: c_ulong {
         <span class="doccomment">/// Read Only
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">"haiku"</span>))]
         </span>ST_RDONLY;
         <span class="doccomment">/// Do not allow the set-uid bits to have an effect
-        </span><span class="attr">#[cfg(not(target_os = <span class="string">"haiku"</span>))]
         </span>ST_NOSUID;
         <span class="doccomment">/// Do not interpret character or block-special devices
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_NODEV;
         <span class="doccomment">/// Do not allow execution of binaries on the filesystem
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_NOEXEC;
         <span class="doccomment">/// All IO should be done synchronously
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_SYNCHRONOUS;
         <span class="doccomment">/// Allow mandatory locks on the filesystem
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_MANDLOCK;
         <span class="doccomment">/// Write on file/directory/symlink
         </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
@@ -192,20 +202,20 @@
         </span><span class="attr">#[cfg(target_os = <span class="string">"linux"</span>)]
         </span>ST_IMMUTABLE;
         <span class="doccomment">/// Do not update access times on files
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_NOATIME;
         <span class="doccomment">/// Do not update access times on files
-        </span><span class="attr">#[cfg(linux_android)]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>))]
         </span>ST_NODIRATIME;
         <span class="doccomment">/// Update access time relative to modify/change time
-        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, all(target_os = <span class="string">"linux"</span>, not(target_env = <span class="string">"musl"</span>), not(target_env = <span class="string">"ohos"</span>))))]
+        </span><span class="attr">#[cfg(any(target_os = <span class="string">"android"</span>, all(target_os = <span class="string">"linux"</span>, not(target_env = <span class="string">"musl"</span>))))]
         </span>ST_RELATIME;
     }
 );
 
 <span class="doccomment">/// Wrapper around the POSIX `statvfs` struct
 ///
-/// For more information see the [`statvfs(3)` man pages](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_statvfs.h.html).
+/// For more information see the [`statvfs(3)` man pages](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/sys_statvfs.h.html).
 </span><span class="attr">#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 </span><span class="kw">pub struct </span>Statvfs(libc::statvfs);
@@ -254,13 +264,7 @@
     }
 
     <span class="doccomment">/// Get the file system id
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">"hurd"</span>))]
     </span><span class="kw">pub fn </span>filesystem_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_ulong {
-        <span class="self">self</span>.<span class="number">0</span>.f_fsid
-    }
-    <span class="doccomment">/// Get the file system id
-    </span><span class="attr">#[cfg(target_os = <span class="string">"hurd"</span>)]
-    </span><span class="kw">pub fn </span>filesystem_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.<span class="number">0</span>.f_fsid
     }
 
@@ -274,6 +278,7 @@
     </span><span class="kw">pub fn </span>name_max(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; c_ulong {
         <span class="self">self</span>.<span class="number">0</span>.f_namemax
     }
+
 }
 
 <span class="doccomment">/// Return a `Statvfs` object with information about the `path`
@@ -281,21 +286,38 @@
     <span class="kw">unsafe </span>{
         Errno::clear();
         <span class="kw">let </span><span class="kw-2">mut </span>stat = mem::MaybeUninit::&lt;libc::statvfs&gt;::uninit();
-        <span class="kw">let </span>res = path.with_nix_path(|path| {
+        <span class="kw">let </span>res = path.with_nix_path(|path|
             libc::statvfs(path.as_ptr(), stat.as_mut_ptr())
-        })<span class="question-mark">?</span>;
+        )<span class="question-mark">?</span>;
 
         Errno::result(res).map(|<span class="kw">_</span>| Statvfs(stat.assume_init()))
     }
 }
 
 <span class="doccomment">/// Return a `Statvfs` object with information about `fd`
-</span><span class="kw">pub fn </span>fstatvfs&lt;Fd: AsFd&gt;(fd: Fd) -&gt; <span class="prelude-ty">Result</span>&lt;Statvfs&gt; {
+</span><span class="kw">pub fn </span>fstatvfs&lt;T: AsRawFd&gt;(fd: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;Statvfs&gt; {
     <span class="kw">unsafe </span>{
         Errno::clear();
         <span class="kw">let </span><span class="kw-2">mut </span>stat = mem::MaybeUninit::&lt;libc::statvfs&gt;::uninit();
-        Errno::result(libc::fstatvfs(fd.as_fd().as_raw_fd(), stat.as_mut_ptr()))
+        Errno::result(libc::fstatvfs(fd.as_raw_fd(), stat.as_mut_ptr()))
             .map(|<span class="kw">_</span>| Statvfs(stat.assume_init()))
+    }
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use </span>std::fs::File;
+    <span class="kw">use </span><span class="kw">crate</span>::sys::statvfs::<span class="kw-2">*</span>;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>statvfs_call() {
+        statvfs(<span class="string">"/"</span>.as_bytes()).unwrap();
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>fstatvfs_call() {
+        <span class="kw">let </span>root = File::open(<span class="string">"/"</span>).unwrap();
+        fstatvfs(<span class="kw-2">&amp;</span>root).unwrap();
     }
 }
 </code></pre></div></section></main></body></html>

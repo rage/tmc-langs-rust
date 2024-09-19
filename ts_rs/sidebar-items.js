@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":["TS"],"enum":["ExportError"],"macro":["export_to"],"mod":["typelist"],"struct":["Dependency"],"trait":["TS"]};

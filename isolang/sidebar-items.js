@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Language"],"struct":["ParseLanguageError"]};
+window.SIDEBAR_ITEMS = {"enum":["Language"]};

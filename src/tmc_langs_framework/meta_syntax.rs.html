@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-framework/src/meta_syntax.rs`."><title>meta_syntax.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_framework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-framework/src/meta_syntax.rs`."><title>meta_syntax.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_framework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -399,30 +399,23 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains utilities for parsing annotated exercise source files, separating lines into
 //! strings, stubs and solutions so that they can be more easily filtered later.
 
-</span><span class="kw">use </span>once_cell::sync::Lazy;
+</span><span class="kw">use </span><span class="kw">crate</span>::TmcError;
+<span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>regex::{Captures, Regex};
+<span class="kw">use </span>std::io::{BufRead, BufReader, Read};
 
 <span class="comment">// rules for finding comments in various languages
-</span><span class="kw">static </span>META_SYNTAXES_C: Lazy&lt;[MetaSyntax; <span class="number">2</span>]&gt; = Lazy::new(|| {
-    [
+</span><span class="macro">lazy_static!</span> {
+    <span class="kw">static </span><span class="kw-2">ref </span>META_SYNTAXES_C: [MetaSyntax; <span class="number">2</span>] = [
         MetaSyntax::new(<span class="string">"//"</span>, <span class="prelude-val">None</span>),
-        MetaSyntax::new(<span class="string">r"/\*"</span>, <span class="prelude-val">Some</span>(<span class="string">r"\*/"</span>)),
-    ]
-});
-<span class="kw">static </span>META_SYNTAXES_HTML: Lazy&lt;[MetaSyntax; <span class="number">1</span>]&gt; =
-    Lazy::new(|| [MetaSyntax::new(<span class="string">"&lt;!--"</span>, <span class="prelude-val">Some</span>(<span class="string">"--&gt;"</span>))]);
-<span class="kw">static </span>META_SYNTAXES_PY: Lazy&lt;[MetaSyntax; <span class="number">1</span>]&gt; = Lazy::new(|| [MetaSyntax::new(<span class="string">"#"</span>, <span class="prelude-val">None</span>)]);
+        MetaSyntax::new(<span class="string">r"/\*"</span>, <span class="prelude-val">Some</span>(<span class="string">r"\*/"</span>))
+    ];
+    <span class="kw">static </span><span class="kw-2">ref </span>META_SYNTAXES_HTML: [MetaSyntax; <span class="number">1</span>] = [MetaSyntax::new(<span class="string">"&lt;!--"</span>, <span class="prelude-val">Some</span>(<span class="string">"--&gt;"</span>))];
+    <span class="kw">static </span><span class="kw-2">ref </span>META_SYNTAXES_PY: [MetaSyntax; <span class="number">1</span>] = [MetaSyntax::new(<span class="string">"#"</span>, <span class="prelude-val">None</span>)];
+}
 
 <span class="doccomment">/// Used to classify lines of code based on the annotations in the file.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq)]
@@ -448,42 +441,48 @@
     hidden_end: Regex,
 }
 
-<span class="attr">#[allow(clippy::unwrap_used)]
-</span><span class="kw">impl </span>MetaSyntax {
+<span class="kw">impl </span>MetaSyntax {
     <span class="kw">fn </span>new(comment_start: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, comment_end: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;) -&gt; <span class="self">Self </span>{
         <span class="comment">// comment patterns
-        </span><span class="kw">let </span>comment_start_pattern = <span class="macro">format!</span>(<span class="string">r"^(\s*){comment_start}\s*"</span>);
+        </span><span class="kw">let </span>comment_start_pattern = <span class="macro">format!</span>(<span class="string">r"^(\s*){}\s*"</span>, comment_start);
         <span class="kw">let </span>comment_end_pattern = <span class="kw">match </span>comment_end {
-            <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">format!</span>(<span class="string">r"(.*){s}\s*"</span>),
+            <span class="prelude-val">Some</span>(s) =&gt; <span class="macro">format!</span>(<span class="string">r"(.*){}\s*"</span>, s),
             <span class="prelude-val">None </span>=&gt; <span class="string">"(.*)"</span>.to_string(),
         };
 
         <span class="comment">// annotation patterns
         </span><span class="kw">let </span>solution_file = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}SOLUTION\s+FILE{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}SOLUTION\s+FILE{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
         <span class="kw">let </span>solution_begin = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}BEGIN\s+SOLUTION{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}BEGIN\s+SOLUTION{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
         <span class="kw">let </span>solution_end = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}END\s+SOLUTION{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}END\s+SOLUTION{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
-        <span class="kw">let </span>stub_begin = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r"{comment_start_pattern}STUB:[\s&amp;&amp;[^\n]]*"</span>)).unwrap();
+        <span class="kw">let </span>stub_begin =
+            Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">r"{}STUB:[\s&amp;&amp;[^\n]]*"</span>, comment_start_pattern)).unwrap();
         <span class="kw">let </span>stub_end = Regex::new(<span class="kw-2">&amp;</span>comment_end_pattern).unwrap();
         <span class="kw">let </span>hidden_file = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}HIDDEN\s+FILE{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}HIDDEN\s+FILE{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
         <span class="kw">let </span>hidden_begin = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}BEGIN\s+HIDDEN{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}BEGIN\s+HIDDEN{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
         <span class="kw">let </span>hidden_end = Regex::new(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">r"{comment_start_pattern}END\s+HIDDEN{comment_end_pattern}"
-        </span>))
+            <span class="string">r"{}END\s+HIDDEN{}"</span>,
+            comment_start_pattern, comment_end_pattern
+        ))
         .unwrap();
 
         <span class="self">Self </span>{
@@ -501,9 +500,9 @@
 
 <span class="doccomment">/// Parses a given text file into an iterator of `MetaString`s.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>MetaSyntaxParser&lt;I&gt; {
+</span><span class="kw">pub struct </span>MetaSyntaxParser&lt;B: BufRead&gt; {
     meta_syntaxes: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[MetaSyntax],
-    line_iterator: I,
+    reader: B,
     <span class="comment">// contains the syntax that started the current stub block
     // used to make sure only the appropriate terminator ends the block
     </span>in_stub: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>MetaSyntax&gt;,
@@ -511,23 +510,22 @@
     in_hidden: bool,
 }
 
-<span class="kw">impl</span>&lt;E, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, E&gt;&gt;&gt; MetaSyntaxParser&lt;I&gt; {
-    <span class="kw">pub fn </span>new(line_iterator: I, target_extension: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;R: Read&gt; MetaSyntaxParser&lt;BufReader&lt;R&gt;&gt; {
+    <span class="kw">pub fn </span>new(target: R, target_extension: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>reader = BufReader::new(target);
         <span class="comment">// assigns each supported file extension with the proper comment syntax
-        // todo: stop checking extension twice here and in submission_processing
-        // NOTE: if you change these extensions make sure to change them in submission_processing.rs as well
         </span><span class="kw">let </span>meta_syntaxes: <span class="kw-2">&amp;</span>[MetaSyntax] = <span class="kw">match </span>target_extension {
             <span class="string">"java" </span>| <span class="string">"c" </span>| <span class="string">"cpp" </span>| <span class="string">"h" </span>| <span class="string">"hpp" </span>| <span class="string">"js" </span>| <span class="string">"css" </span>| <span class="string">"rs" </span>| <span class="string">"qml" </span>| <span class="string">"cs" </span>=&gt; {
                 <span class="kw-2">&amp;*</span>META_SYNTAXES_C
             }
             <span class="string">"xml" </span>| <span class="string">"http" </span>| <span class="string">"html" </span>| <span class="string">"qrc" </span>=&gt; <span class="kw-2">&amp;*</span>META_SYNTAXES_HTML,
-            <span class="string">"properties" </span>| <span class="string">"py" </span>| <span class="string">"R" </span>| <span class="string">"pro" </span>| <span class="string">"ipynb" </span>=&gt; <span class="kw-2">&amp;*</span>META_SYNTAXES_PY,
+            <span class="string">"properties" </span>| <span class="string">"py" </span>| <span class="string">"R" </span>| <span class="string">"pro" </span>=&gt; <span class="kw-2">&amp;*</span>META_SYNTAXES_PY,
             <span class="kw">_ </span>=&gt; <span class="kw-2">&amp;</span>[],
         };
 
         <span class="self">Self </span>{
             meta_syntaxes,
-            line_iterator,
+            reader,
             in_stub: <span class="prelude-val">None</span>,
             in_solution: <span class="bool-val">false</span>,
             in_hidden: <span class="bool-val">false</span>,
@@ -536,12 +534,17 @@
 }
 
 <span class="comment">// iterates through the lines in the underlying file, parsing them to MetaStrings
-</span><span class="kw">impl</span>&lt;E, I: Iterator&lt;Item = <span class="prelude-ty">Result</span>&lt;String, E&gt;&gt;&gt; Iterator <span class="kw">for </span>MetaSyntaxParser&lt;I&gt; {
-    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;MetaString, E&gt;;
+</span><span class="kw">impl</span>&lt;B: BufRead&gt; Iterator <span class="kw">for </span>MetaSyntaxParser&lt;B&gt; {
+    <span class="kw">type </span>Item = <span class="prelude-ty">Result</span>&lt;MetaString, TmcError&gt;;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
-        <span class="kw">match </span><span class="self">self</span>.line_iterator.next() {
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>s)) =&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>raw_string_buffer: Vec&lt;u8&gt; = Vec::new();
+
+        <span class="kw">match </span><span class="self">self</span>.reader.read_until(<span class="string">b'\n'</span>, <span class="kw-2">&amp;mut </span>raw_string_buffer) {
+            <span class="comment">// read 0 bytes = reader empty = iterator empty
+            </span><span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span><span class="kw-2">mut </span>s = String::from_utf8_lossy(<span class="kw-2">&amp;</span>raw_string_buffer).to_string();
                 <span class="comment">// check line with each meta syntax
                 </span><span class="kw">for </span>meta_syntax <span class="kw">in </span><span class="self">self</span>.meta_syntaxes {
                     <span class="comment">// check for stub
@@ -624,17 +627,14 @@
                     <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(MetaString::String(s)))
                 }
             }
-            <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+            <span class="prelude-val">Err</span>(err) =&gt; <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(TmcError::ReadLine(err))),
         }
     }
 }
 
 <span class="attr">#[cfg(test)]
-#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>std::convert::Infallible;
 
     <span class="kw">fn </span>init() {
         <span class="kw">use </span>log::<span class="kw-2">*</span>;
@@ -678,12 +678,8 @@ public class JavaTestCase {
             MetaString::str(<span class="string">"}\n"</span>),
         ];
 
-        <span class="kw">let </span>filter = MetaSyntaxParser::new(
-            JAVA_FILE
-                .lines()
-                .map(|s| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Infallible&gt;(<span class="macro">format!</span>(<span class="string">"{s}\n"</span>))),
-            <span class="string">"java"</span>,
-        );
+        <span class="kw">let </span>source = JAVA_FILE.as_bytes();
+        <span class="kw">let </span>filter = MetaSyntaxParser::new(source, <span class="string">"java"</span>);
         <span class="kw">let </span>actual = filter.map(|l| l.unwrap()).collect::&lt;Vec&lt;MetaString&gt;&gt;();
         <span class="macro">assert_eq!</span>(expected, actual);
     }
@@ -710,12 +706,8 @@ public class JavaTestCase {
             MetaString::str(<span class="string">"}\n"</span>),
         ];
 
-        <span class="kw">let </span>filter = MetaSyntaxParser::new(
-            JAVA_FILE_SOLUTION
-                .lines()
-                .map(|s| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Infallible&gt;(<span class="macro">format!</span>(<span class="string">"{s}\n"</span>))),
-            <span class="string">"java"</span>,
-        );
+        <span class="kw">let </span>source = JAVA_FILE_SOLUTION.as_bytes();
+        <span class="kw">let </span>filter = MetaSyntaxParser::new(source, <span class="string">"java"</span>);
         <span class="kw">let </span>actual = filter.map(|l| l.unwrap()).collect::&lt;Vec&lt;MetaString&gt;&gt;();
         <span class="macro">assert_eq!</span>(expected, actual);
     }
@@ -749,12 +741,8 @@ public class JavaTestCase {
             MetaString::str(<span class="string">"}\n"</span>),
         ];
 
-        <span class="kw">let </span>filter = MetaSyntaxParser::new(
-            JAVA_FILE_STUB
-                .lines()
-                .map(|s| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Infallible&gt;(<span class="macro">format!</span>(<span class="string">"{s}\n"</span>))),
-            <span class="string">"java"</span>,
-        );
+        <span class="kw">let </span>source = JAVA_FILE_STUB.as_bytes();
+        <span class="kw">let </span>filter = MetaSyntaxParser::new(source, <span class="string">"java"</span>);
         <span class="kw">let </span>actual = filter.map(|l| l.unwrap()).collect::&lt;Vec&lt;MetaString&gt;&gt;();
         <span class="macro">assert_eq!</span>(expected, actual);
     }
@@ -806,12 +794,8 @@ print("a")
             MetaString::stub(<span class="string">"            return self.uotteet[n - 1][1]\n"</span>),
         ];
 
-        <span class="kw">let </span>filter = MetaSyntaxParser::new(
-            PYTHON_FILE_STUB
-                .lines()
-                .map(|s| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Infallible&gt;(<span class="macro">format!</span>(<span class="string">"{s}\n"</span>))),
-            <span class="string">"py"</span>,
-        );
+        <span class="kw">let </span>source = PYTHON_FILE_STUB.as_bytes();
+        <span class="kw">let </span>filter = MetaSyntaxParser::new(source, <span class="string">"py"</span>);
         <span class="kw">let </span>actual = filter.map(|l| l.unwrap()).collect::&lt;Vec&lt;MetaString&gt;&gt;();
         <span class="macro">assert_eq!</span>(expected, actual);
     }

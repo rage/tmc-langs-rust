@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Fast lexical conversion routines for a no_std environment."><title>lexical_core - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="lexical_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../lexical_core/index.html">lexical_core</a><span class="version">0.7.6</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Aliases</a></li></ul></section></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <a class="mod" href="#">lexical_core</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/lexical_core/lib.rs.html#1-572">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Fast lexical conversion routines for a no_std environment.</p>
+<p>lexical-core is a low-level API for number-to-string and
+string-to-number conversions, without requiring a system
+allocator. If you would like to use a convenient, high-level
+API, please look at <a href="https://crates.io/crates/lexical">lexical</a>
+instead.</p>
+<h2 id="getting-started"><a class="doc-anchor" href="#getting-started">§</a>Getting Started</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>lexical_core;
+
+<span class="comment">// String to number using Rust slices.
+// The argument is the byte string parsed.
+</span><span class="kw">let </span>f: f32 = lexical_core::parse(<span class="string">b"3.5"</span>).unwrap();   <span class="comment">// 3.5
+</span><span class="kw">let </span>i: i32 = lexical_core::parse(<span class="string">b"15"</span>).unwrap();    <span class="comment">// 15
+
+// All lexical_core parsers are checked, they validate the
+// input data is entirely correct, and stop parsing when invalid data
+// is found, or upon numerical overflow.
+</span><span class="kw">let </span>r = lexical_core::parse::&lt;u8&gt;(<span class="string">b"256"</span>); <span class="comment">// Err(ErrorCode::Overflow.into())
+</span><span class="kw">let </span>r = lexical_core::parse::&lt;u8&gt;(<span class="string">b"1a5"</span>); <span class="comment">// Err(ErrorCode::InvalidDigit.into())
+
+// In order to extract and parse a number from a substring of the input
+// data, use `parse_partial`. These functions return the parsed value and
+// the number of processed digits, allowing you to extract and parse the
+// number in a single pass.
+</span><span class="kw">let </span>r = lexical_core::parse_partial::&lt;i8&gt;(<span class="string">b"3a5"</span>); <span class="comment">// Ok((3, 1))
+
+// If an insufficiently long buffer is passed, the serializer will panic.
+// PANICS
+</span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="string">b'0'</span>; <span class="number">1</span>];
+<span class="comment">//let slc = lexical_core::write::&lt;i64&gt;(15, &amp;mut buf);
+
+// In order to guarantee the buffer is long enough, always ensure there
+// are at least `T::FORMATTED_SIZE` bytes, which requires the
+// `lexical_core::Number` trait to be in scope.
+</span><span class="kw">use </span>lexical_core::Number;
+<span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="string">b'0'</span>; f64::FORMATTED_SIZE];
+<span class="kw">let </span>slc = lexical_core::write::&lt;f64&gt;(<span class="number">15.1</span>, <span class="kw-2">&amp;mut </span>buf);
+<span class="macro">assert_eq!</span>(slc, <span class="string">b"15.1"</span>);
+
+<span class="comment">// When the `radix` feature is enabled, for decimal floats, using
+// `T::FORMATTED_SIZE` may significantly overestimate the space
+// required to format the number. Therefore, the
+// `T::FORMATTED_SIZE_DECIMAL` constants allow you to get a much
+// tighter bound on the space required.
+</span><span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="string">b'0'</span>; f64::FORMATTED_SIZE_DECIMAL];
+<span class="kw">let </span>slc = lexical_core::write::&lt;f64&gt;(<span class="number">15.1</span>, <span class="kw-2">&amp;mut </span>buf);
+<span class="macro">assert_eq!</span>(slc, <span class="string">b"15.1"</span>);</code></pre></div>
+<h2 id="conversion-api"><a class="doc-anchor" href="#conversion-api">§</a>Conversion API</h2>
+<p><strong>To String</strong></p>
+<ul>
+<li><a href="fn.write.html"><code>write</code></a></li>
+</ul>
+<p><strong>From String</strong></p>
+<ul>
+<li><a href="fn.parse.html"><code>parse</code></a></li>
+<li><a href="fn.parse_partial.html"><code>parse_partial</code></a></li>
+<li><a href="fn.parse_lossy.html"><code>parse_lossy</code></a></li>
+<li><a href="fn.parse_partial_lossy.html"><code>parse_partial_lossy</code></a></li>
+</ul>
+<h2 id="configuration-settings"><a class="doc-anchor" href="#configuration-settings">§</a>Configuration Settings</h2>
+<p><strong>Get Configuration</strong></p>
+<ul>
+<li><a href="fn.get_exponent_default_char.html"><code>get_exponent_default_char</code></a></li>
+<li><a href="fn.get_nan_string.html"><code>get_nan_string</code></a></li>
+<li><a href="fn.get_inf_string.html"><code>get_inf_string</code></a></li>
+<li><a href="fn.get_infinity_string.html"><code>get_infinity_string</code></a></li>
+</ul>
+<p><strong>Set Configuration</strong></p>
+<ul>
+<li><a href="fn.set_exponent_default_char.html"><code>set_exponent_default_char</code></a></li>
+<li><a href="fn.set_nan_string.html"><code>set_nan_string</code></a></li>
+<li><a href="fn.set_inf_string.html"><code>set_inf_string</code></a></li>
+<li><a href="fn.set_infinity_string.html"><code>set_infinity_string</code></a></li>
+</ul>
+</div></details><h2 id="macros" class="section-header">Macros<a href="#macros" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="macro" href="macro.arrvec.html" title="macro lexical_core::arrvec">arrvec</a></div><div class="desc docblock-short">Macro to automate simplify the creation of an ArrayVec.</div></li></ul><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.Error.html" title="struct lexical_core::Error">Error</a></div><div class="desc docblock-short">Error type for lexical parsing.</div></li></ul><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="enum" href="enum.ErrorCode.html" title="enum lexical_core::ErrorCode">ErrorCode</a></div><div class="desc docblock-short">Error code, indicating failure type.</div></li></ul><h2 id="constants" class="section-header">Constants<a href="#constants" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="constant" href="constant.BUFFER_SIZE.html" title="constant lexical_core::BUFFER_SIZE">BUFFER_SIZE</a></div><div class="desc docblock-short">Maximum number of bytes required to serialize any number to string.</div></li></ul><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="trait" href="trait.FromLexical.html" title="trait lexical_core::FromLexical">FromLexical</a></div><div class="desc docblock-short">Trait for numerical types that can be parsed from bytes.</div></li><li><div class="item-name"><a class="trait" href="trait.FromLexicalLossy.html" title="trait lexical_core::FromLexicalLossy">FromLexicalLossy</a></div><div class="desc docblock-short">Trait for floating-point types that can be parsed using lossy algorithms from bytes.</div></li><li><div class="item-name"><a class="trait" href="trait.ToLexical.html" title="trait lexical_core::ToLexical">ToLexical</a></div><div class="desc docblock-short">Trait for numerical types that can be serialized to bytes.</div></li></ul><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="fn" href="fn.get_exponent_default_char.html" title="fn lexical_core::get_exponent_default_char">get_exponent_default_char</a></div><div class="desc docblock-short">Get default character for the exponent symbol.</div></li><li><div class="item-name"><a class="fn" href="fn.get_inf_string.html" title="fn lexical_core::get_inf_string">get_inf_string</a></div><div class="desc docblock-short">Get the short representation of an Infinity literal as a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.get_infinity_string.html" title="fn lexical_core::get_infinity_string">get_infinity_string</a></div><div class="desc docblock-short">Get the long representation of an Infinity literal as a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.get_nan_string.html" title="fn lexical_core::get_nan_string">get_nan_string</a></div><div class="desc docblock-short">Get string representation of Not a Number as a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.parse.html" title="fn lexical_core::parse">parse</a></div><div class="desc docblock-short">Parse number from string.</div></li><li><div class="item-name"><a class="fn" href="fn.parse_lossy.html" title="fn lexical_core::parse_lossy">parse_lossy</a></div><div class="desc docblock-short">Lossily parse number from string.</div></li><li><div class="item-name"><a class="fn" href="fn.parse_partial.html" title="fn lexical_core::parse_partial">parse_partial</a></div><div class="desc docblock-short">Parse number from string.</div></li><li><div class="item-name"><a class="fn" href="fn.parse_partial_lossy.html" title="fn lexical_core::parse_partial_lossy">parse_partial_lossy</a></div><div class="desc docblock-short">Lossily parse number from string.</div></li><li><div class="item-name"><a class="fn" href="fn.set_exponent_default_char.html" title="fn lexical_core::set_exponent_default_char">set_exponent_default_char</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Set the default character for the exponent symbol.</div></li><li><div class="item-name"><a class="fn" href="fn.set_inf_string.html" title="fn lexical_core::set_inf_string">set_inf_string</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Set the short representation of Infinity from a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.set_infinity_string.html" title="fn lexical_core::set_infinity_string">set_infinity_string</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Set the long representation of Infinity from a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.set_nan_string.html" title="fn lexical_core::set_nan_string">set_nan_string</a><sup title="unsafe function">⚠</sup></div><div class="desc docblock-short">Set representation of Not a Number from a byte slice.</div></li><li><div class="item-name"><a class="fn" href="fn.write.html" title="fn lexical_core::write">write</a></div><div class="desc docblock-short">Write number to string.</div></li></ul><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><ul class="item-table"><li><div class="item-name"><a class="type" href="type.Result.html" title="type lexical_core::Result">Result</a></div><div class="desc docblock-short">A specialized Result type for lexical operations.</div></li></ul></section></div></main></body></html>

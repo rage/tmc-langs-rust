@@ -1,0 +1,1 @@
+searchState.loadedDescShard("quit_macros", 0, "This crate provides procedural macros for quit.")

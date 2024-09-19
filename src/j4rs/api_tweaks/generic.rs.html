@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.20.0/src/api_tweaks/generic.rs`."><title>generic.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.13.0/src/api_tweaks/generic.rs`."><title>generic.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -78,6 +78,10 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2018 astonbitecode
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,13 +99,19 @@
 <span class="kw">use </span>std::path::MAIN_SEPARATOR;
 
 <span class="kw">use </span>java_locator::{get_jvm_dyn_lib_file_name, locate_jvm_dyn_library};
-<span class="kw">use </span>jni_sys::{jclass, jint, jsize, JNIEnv, JavaVM};
+<span class="kw">use </span>jni_sys::{
+    JavaVM,
+    jclass,
+    jint,
+    JNIEnv,
+    jsize,
+};
 <span class="kw">use </span>libloading;
 
-<span class="kw">use crate</span>::{errors, utils};
+<span class="kw">use crate</span>::{utils, errors};
+<span class="kw">use </span><span class="kw">crate</span>::errors::opt_to_res;
 
-<span class="kw">type </span>JNIGetCreatedJavaVMs =
-    <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(vmBuf: <span class="kw-2">*mut *mut </span>JavaVM, bufLen: jsize, nVMs: <span class="kw-2">*mut </span>jsize) -&gt; jint;
+<span class="kw">type </span>JNIGetCreatedJavaVMs = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(vmBuf: <span class="kw-2">*mut *mut </span>JavaVM, bufLen: jsize, nVMs: <span class="kw-2">*mut </span>jsize) -&gt; jint;
 
 <span class="kw">type </span>JNICreateJavaVM = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
     pvm: <span class="kw-2">*mut *mut </span>JavaVM,
@@ -111,34 +121,27 @@
 
 <span class="macro">lazy_static!</span> {
     <span class="kw">static </span><span class="kw-2">ref </span>JVM_LIB: libloading::Library = {
-        <span class="kw">let </span>full_path = <span class="macro">format!</span>(
-            <span class="string">"{}{}{}"</span>,
+        <span class="kw">let </span>full_path = <span class="macro">format!</span>(<span class="string">"{}{}{}"</span>,
             locate_jvm_dyn_library().expect(<span class="string">"Could find the jvm dynamic library"</span>),
             MAIN_SEPARATOR,
             get_jvm_dyn_lib_file_name()
         );
-        <span class="kw">unsafe </span>{
-            libloading::Library::new(full_path).expect(<span class="string">"Could not load the jvm dynamic library"</span>)
-        }
+        libloading::Library::new(full_path).expect(<span class="string">"Could not load the jvm dynamic library"</span>)
     };
+
     <span class="kw">static </span><span class="kw-2">ref </span>GET_CREATED_JVMS: libloading::Symbol&lt;<span class="lifetime">'static</span>, JNIGetCreatedJavaVMs&gt; = <span class="kw">unsafe </span>{
-        JVM_LIB
-            .get(<span class="string">b"JNI_GetCreatedJavaVMs"</span>)
-            .expect(<span class="string">"Could not find symbol: JNI_GetCreatedJavaVMs"</span>)
+        JVM_LIB.get(<span class="string">b"JNI_GetCreatedJavaVMs"</span>).expect(<span class="string">"Could not find symbol: JNI_GetCreatedJavaVMs"</span>)
     };
+
     <span class="kw">static </span><span class="kw-2">ref </span>CREATE_JVM: libloading::Symbol&lt;<span class="lifetime">'static</span>, JNICreateJavaVM&gt; = <span class="kw">unsafe </span>{
-        JVM_LIB
-            .get(<span class="string">b"JNI_CreateJavaVM"</span>)
-            .expect(<span class="string">"Could not find symbol: JNI_CreateJavaVM"</span>)
+        JVM_LIB.get(<span class="string">b"JNI_CreateJavaVM"</span>).expect(<span class="string">"Could not find symbol: JNI_CreateJavaVM"</span>)
     };
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_created_java_vms(
-    vm_buf: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw-2">*mut </span>JavaVM&gt;,
-    buf_len: jsize,
-    n_vms: <span class="kw-2">*mut </span>jsize,
-) -&gt; jint {
-    <span class="kw">unsafe </span>{ GET_CREATED_JVMS(vm_buf.as_mut_ptr(), buf_len, n_vms) }
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_created_java_vms(vm_buf: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="kw-2">*mut </span>JavaVM&gt;, buf_len: jsize, n_vms: <span class="kw-2">*mut </span>jsize) -&gt; jint {
+    <span class="kw">unsafe </span>{
+        GET_CREATED_JVMS(vm_buf.as_mut_ptr(), buf_len, n_vms)
+    }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>create_java_vm(
@@ -146,16 +149,20 @@
     penv: <span class="kw-2">*mut *mut </span>c_void,
     args: <span class="kw-2">*mut </span>c_void,
 ) -&gt; jint {
-    <span class="kw">unsafe </span>{ CREATE_JVM(jvm, penv, args) }
+    <span class="kw">unsafe </span>{
+        CREATE_JVM(jvm, penv, args)
+    }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find_class(env: <span class="kw-2">*mut </span>JNIEnv, classname: <span class="kw-2">&amp;</span>str) -&gt; errors::Result&lt;jclass&gt; {
     <span class="kw">unsafe </span>{
         <span class="kw">let </span>cstr = utils::to_c_string(classname);
-        <span class="kw">let </span>fc = (<span class="kw-2">**</span>env).v1_6.FindClass;
-        <span class="kw">let </span>jc = (fc)(env, cstr);
+        <span class="kw">let </span>fc = opt_to_res((<span class="kw-2">**</span>env).FindClass)<span class="question-mark">?</span>;
+        <span class="kw">let </span>jc = (fc)(
+            env,
+            cstr,
+        );
         utils::drop_c_string(cstr);
         <span class="prelude-val">Ok</span>(jc)
     }
-}
-</code></pre></div></section></main></body></html>
+}</code></pre></div></section></main></body></html>

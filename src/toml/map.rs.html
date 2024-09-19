@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.8.19/src/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/toml-0.5.11/src/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -593,20 +593,6 @@
 <a href="#593" id="593">593</a>
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2017 Serde Developers
 //
 // Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or
@@ -615,13 +601,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-</span><span class="doccomment">//! A map of `String` to [Value].
+</span><span class="doccomment">//! A map of String to toml::Value.
 //!
 //! By default the map is backed by a [`BTreeMap`]. Enable the `preserve_order`
-//! feature of toml-rs to use [`IndexMap`] instead.
+//! feature of toml-rs to use [`LinkedHashMap`] instead.
 //!
 //! [`BTreeMap`]: https://doc.rust-lang.org/std/collections/struct.BTreeMap.html
-//! [`IndexMap`]: https://docs.rs/indexmap
+//! [`LinkedHashMap`]: https://docs.rs/linked-hash-map/*/linked_hash_map/struct.LinkedHashMap.html
 
 </span><span class="kw">use </span><span class="kw">crate</span>::value::Value;
 <span class="kw">use </span>serde::{de, ser};
@@ -679,7 +665,7 @@
     <span class="doccomment">/// Clears the map, removing all values.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.map.clear();
+        <span class="self">self</span>.map.clear()
     }
 
     <span class="doccomment">/// Returns a reference to the value corresponding to the key.
@@ -687,10 +673,10 @@
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;
+    </span><span class="kw">pub fn </span>get&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
-        Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+        Q: Ord + Eq + Hash,
     {
         <span class="self">self</span>.map.get(key)
     }
@@ -700,10 +686,10 @@
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>contains_key&lt;Q&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; bool
+    </span><span class="kw">pub fn </span>contains_key&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; bool
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
-        Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+        Q: Ord + Eq + Hash,
     {
         <span class="self">self</span>.map.contains_key(key)
     }
@@ -713,10 +699,10 @@
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>get_mut&lt;Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Value&gt;
+    </span><span class="kw">pub fn </span>get_mut&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
-        Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+        Q: Ord + Eq + Hash,
     {
         <span class="self">self</span>.map.get_mut(key)
     }
@@ -739,26 +725,12 @@
     /// The key may be any borrowed form of the map's key type, but the ordering
     /// on the borrowed form *must* match the ordering on the key type.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>remove&lt;Q&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt;
+    </span><span class="kw">pub fn </span>remove&lt;Q: <span class="question-mark">?</span>Sized&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>Q) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt;
     <span class="kw">where
         </span>String: Borrow&lt;Q&gt;,
-        Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+        Q: Ord + Eq + Hash,
     {
         <span class="self">self</span>.map.remove(key)
-    }
-
-    <span class="doccomment">/// Retains only the elements specified by the `keep` predicate.
-    ///
-    /// In other words, remove all pairs `(k, v)` for which `keep(&amp;k, &amp;mut v)`
-    /// returns `false`.
-    ///
-    /// The elements are visited in iteration order.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>retain&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>keep: F)
-    <span class="kw">where
-        </span>F: FnMut(<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;mut </span>Value) -&gt; bool,
-    {
-        <span class="self">self</span>.map.retain(|key, value| keep(key.as_str(), value));
     }
 
     <span class="doccomment">/// Gets the given key's corresponding entry in the map for in-place
@@ -850,10 +822,10 @@
 
 <span class="doccomment">/// Access an element of this map. Panics if the given key is not present in the
 /// map.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Q&gt; ops::Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q&gt; <span class="kw">for </span>Map&lt;String, Value&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Q: <span class="question-mark">?</span>Sized&gt; ops::Index&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q&gt; <span class="kw">for </span>Map&lt;String, Value&gt;
 <span class="kw">where
     </span>String: Borrow&lt;Q&gt;,
-    Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+    Q: Ord + Eq + Hash,
 {
     <span class="kw">type </span>Output = Value;
 
@@ -864,10 +836,10 @@
 
 <span class="doccomment">/// Mutably access an element of this map. Panics if the given key is not
 /// present in the map.
-</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Q&gt; ops::IndexMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q&gt; <span class="kw">for </span>Map&lt;String, Value&gt;
+</span><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Q: <span class="question-mark">?</span>Sized&gt; ops::IndexMut&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>Q&gt; <span class="kw">for </span>Map&lt;String, Value&gt;
 <span class="kw">where
     </span>String: Borrow&lt;Q&gt;,
-    Q: Ord + Eq + Hash + <span class="question-mark">?</span>Sized,
+    Q: Ord + Eq + Hash,
 {
     <span class="kw">fn </span>index_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Q) -&gt; <span class="kw-2">&amp;mut </span>Value {
         <span class="self">self</span>.map.get_mut(index).expect(<span class="string">"no entry found for key"</span>)
@@ -1061,13 +1033,13 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; VacantEntry&lt;<span class="lifetime">'a</span>&gt; {
     <span class="doccomment">/// Gets a reference to the key that would be used when inserting a value
-    /// through the `VacantEntry`.
+    /// through the VacantEntry.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>key(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>String {
         <span class="self">self</span>.vacant.key()
     }
 
-    <span class="doccomment">/// Sets the value of the entry with the `VacantEntry`'s key, and returns a
+    <span class="doccomment">/// Sets the value of the entry with the VacantEntry's key, and returns a
     /// mutable reference to it.
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>insert(<span class="self">self</span>, value: Value) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Value {
@@ -1127,7 +1099,7 @@
     }
 }
 
-<span class="doccomment">/// An iterator over a `toml::Map`'s entries.
+<span class="doccomment">/// An iterator over a toml::Map's entries.
 </span><span class="kw">pub struct </span>Iter&lt;<span class="lifetime">'a</span>&gt; {
     iter: IterImpl&lt;<span class="lifetime">'a</span>&gt;,
 }
@@ -1152,7 +1124,7 @@
     }
 }
 
-<span class="doccomment">/// A mutable iterator over a `toml::Map`'s entries.
+<span class="doccomment">/// A mutable iterator over a toml::Map's entries.
 </span><span class="kw">pub struct </span>IterMut&lt;<span class="lifetime">'a</span>&gt; {
     iter: IterMutImpl&lt;<span class="lifetime">'a</span>&gt;,
 }
@@ -1177,7 +1149,7 @@
     }
 }
 
-<span class="doccomment">/// An owning iterator over a `toml::Map`'s entries.
+<span class="doccomment">/// An owning iterator over a toml::Map's entries.
 </span><span class="kw">pub struct </span>IntoIter {
     iter: IntoIterImpl,
 }
@@ -1191,7 +1163,7 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="doccomment">/// An iterator over a `toml::Map`'s keys.
+</span><span class="doccomment">/// An iterator over a toml::Map's keys.
 </span><span class="kw">pub struct </span>Keys&lt;<span class="lifetime">'a</span>&gt; {
     iter: KeysImpl&lt;<span class="lifetime">'a</span>&gt;,
 }
@@ -1205,7 +1177,7 @@
 
 <span class="comment">//////////////////////////////////////////////////////////////////////////////
 
-</span><span class="doccomment">/// An iterator over a `toml::Map`'s values.
+</span><span class="doccomment">/// An iterator over a toml::Map's values.
 </span><span class="kw">pub struct </span>Values&lt;<span class="lifetime">'a</span>&gt; {
     iter: ValuesImpl&lt;<span class="lifetime">'a</span>&gt;,
 }

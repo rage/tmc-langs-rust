@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ClientUpdateData","Language","TestMyCodeClientError"],"mod":["api_v8","request","response"],"struct":["TestMyCodeClient","UpdateResult"],"type":["TestMyCodeClientResult","Token"]};

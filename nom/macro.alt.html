@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Try a list of parsers and return the result of the first successful one"><title>alt in nom - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../nom/index.html">nom</a><span class="version">6.2.2</span></h2></div><div class="sidebar-elems"></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Macro <a href="index.html">nom</a>::<wbr><a class="macro" href="#">alt</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../src/nom/branch/macros.rs.html#166-255">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><span class="macro">macro_rules!</span> alt {
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$submac</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args</span>:tt)* ), $(<span class="macro-nonterminal">$rest</span>:tt)* ) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$e</span>:path, $(<span class="macro-nonterminal">$rest</span>:tt)* ) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$e</span>:path | $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$subrule</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args</span>:tt)<span class="kw-2">*</span>) | $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$subrule</span>:<span class="macro">ident!</span>( $(<span class="macro-nonterminal">$args</span>:tt)* ) =&gt; { <span class="macro-nonterminal">$gen</span>:expr } | $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, <span class="macro-nonterminal">$e</span>:path =&gt; { <span class="macro-nonterminal">$gen</span>:expr } | $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+    (__impl <span class="macro-nonterminal">$i</span>:expr, __end) =&gt; { ... };
+    (<span class="macro-nonterminal">$i</span>:expr, $(<span class="macro-nonterminal">$rest</span>:tt)<span class="kw-2">*</span>) =&gt; { ... };
+}</pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Try a list of parsers and return the result of the first successful one</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="macro">alt!</span>(I -&gt; IResult&lt;I,O&gt; | I -&gt; IResult&lt;I,O&gt; | ... | I -&gt; IResult&lt;I,O&gt; ) =&gt; I -&gt; IResult&lt;I, O&gt;</code></pre></div>
+<p>All the parsers must have the same return type.</p>
+<p>If one of the parsers returns <code>Incomplete</code>, <code>alt!</code> will return <code>Incomplete</code>, to retry
+once you get more input. Note that it is better for performance to know the
+minimum size of data you need before you get into <code>alt!</code>.</p>
+<p>The <code>alt!</code> combinator is used in the following way:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="macro">alt!</span>(parser_1 | parser_2 | ... | parser_n)</code></pre></div>
+<h2 id="basic-example"><a class="doc-anchor" href="#basic-example">§</a>Basic example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code> <span class="comment">// Create a parser that will match either "dragon" or "beast"
+ </span><span class="macro">named!</span>( dragon_or_beast, <span class="macro">alt!</span>( <span class="macro">tag!</span>( <span class="string">"dragon" </span>) | <span class="macro">tag!</span>( <span class="string">"beast" </span>) ) );
+
+ <span class="comment">// Given the input "dragon slayer", the parser will match "dragon"
+ // and the rest will be " slayer"
+ </span><span class="kw">let </span>(rest, result) = dragon_or_beast(<span class="string">b"dragon slayer"</span>).unwrap();
+ <span class="macro">assert_eq!</span>(result, <span class="string">b"dragon"</span>);
+ <span class="macro">assert_eq!</span>(rest, <span class="string">b" slayer"</span>);
+
+ <span class="comment">// Given the input "beast of Gevaudan", the parser will match "beast"
+ // and the rest will be " of Gevaudan"
+ </span><span class="kw">let </span>(rest, result) = dragon_or_beast(<span class="kw-2">&amp;</span><span class="string">b"beast of Gevaudan"</span>[..]).unwrap();
+ <span class="macro">assert_eq!</span>(result, <span class="string">b"beast"</span>);
+ <span class="macro">assert_eq!</span>(rest, <span class="string">b" of Gevaudan"</span>);</code></pre></div>
+<h2 id="manipulate-results"><a class="doc-anchor" href="#manipulate-results">§</a>Manipulate results</h2>
+<p>There exists another syntax for <code>alt!</code> that gives you the ability to
+manipulate the result from each parser:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// We create an enum to represent our creatures
+</span><span class="attr">#[derive(Debug,PartialEq,Eq)]
+</span><span class="kw">enum </span>Creature {
+    Dragon,
+    Beast,
+    Unknown(usize)
+}
+
+<span class="comment">// Let's make a helper function that returns true when not a space
+// we are required to do this because the `take_while!` macro is limited
+// to idents, so we can't negate `ìs_space` at the call site
+</span><span class="kw">fn </span>is_not_space(c: u8) -&gt; bool { ! nom::character::is_space(c) }
+
+<span class="comment">// Our parser will return the `Dragon` variant when matching "dragon",
+// the `Beast` variant when matching "beast" and otherwise it will consume
+// the input until a space is found and return an `Unknown` creature with
+// the size of it's name.
+</span><span class="macro">named!</span>(creature&lt;Creature&gt;, <span class="macro">alt!</span>(
+    <span class="macro">tag!</span>(<span class="string">"dragon"</span>)            =&gt; { |<span class="kw">_</span>| Creature::Dragon } |
+    <span class="macro">tag!</span>(<span class="string">"beast"</span>)             =&gt; { |<span class="kw">_</span>| Creature::Beast }  |
+    <span class="macro">take_while!</span>(is_not_space) =&gt; { |r: <span class="kw-2">&amp;</span>[u8]| Creature::Unknown(r.len()) }
+    <span class="comment">// the closure takes the result as argument if the parser is successful
+</span>));
+
+<span class="comment">// Given the input "dragon slayer" the parser will return `Creature::Dragon`
+// and the rest will be " slayer"
+</span><span class="kw">let </span>(rest, result) = creature(<span class="string">b"dragon slayer"</span>).unwrap();
+<span class="macro">assert_eq!</span>(result, Creature::Dragon);
+<span class="macro">assert_eq!</span>(rest, <span class="string">b" slayer"</span>);
+
+<span class="comment">// Given the input "beast of Gevaudan" the parser will return `Creature::Beast`
+// and the rest will be " of Gevaudan"
+</span><span class="kw">let </span>(rest, result) = creature(<span class="string">b"beast of Gevaudan"</span>).unwrap();
+<span class="macro">assert_eq!</span>(result, Creature::Beast);
+<span class="macro">assert_eq!</span>(rest, <span class="string">b" of Gevaudan"</span>);
+
+<span class="comment">// Given the input "demon hunter" the parser will return `Creature::Unknown(5)`
+// and the rest will be " hunter"
+</span><span class="kw">let </span>(rest, result) = creature(<span class="string">b"demon hunter"</span>).unwrap();
+<span class="macro">assert_eq!</span>(result, Creature::Unknown(<span class="number">5</span>));
+<span class="macro">assert_eq!</span>(rest, <span class="string">b" hunter"</span>);</code></pre></div>
+<h2 id="behaviour-of-alt"><a class="doc-anchor" href="#behaviour-of-alt">§</a>Behaviour of <code>alt!</code></h2>
+<p><strong>BE CAREFUL</strong> there is a case where the behaviour of <code>alt!</code> can be confusing:</p>
+<p>When the alternatives have different lengths, like this case:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>( test, <span class="macro">alt!</span>( <span class="macro">tag!</span>( <span class="string">"abcd" </span>) | <span class="macro">tag!</span>( <span class="string">"ef" </span>) | <span class="macro">tag!</span>( <span class="string">"ghi" </span>) | <span class="macro">tag!</span>( <span class="string">"kl" </span>) ) );</code></pre></div>
+<p>With this parser, if you pass <code>"abcd"</code> as input, the first alternative parses it correctly,
+but if you pass <code>"efg"</code>, the first alternative will return <code>Incomplete</code>, since it needs an input
+of 4 bytes. This behaviour of <code>alt!</code> is expected: if you get a partial input that isn’t matched
+by the first alternative, but would match if the input was complete, you want <code>alt!</code> to indicate
+that it cannot decide with limited information.</p>
+<p>There are two ways to fix this behaviour. The first one consists in ordering the alternatives
+by size, like this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>( test, <span class="macro">alt!</span>( <span class="macro">tag!</span>( <span class="string">"ef" </span>) | <span class="macro">tag!</span>( <span class="string">"kl"</span>) | <span class="macro">tag!</span>( <span class="string">"ghi" </span>) | <span class="macro">tag!</span>( <span class="string">"abcd" </span>) ) );</code></pre></div>
+<p>With this solution, the largest alternative will be tested last.</p>
+<p>The other solution uses the <code>complete!</code> combinator, which transforms an <code>Incomplete</code> in an
+<code>Error</code>. If one of the alternatives returns <code>Incomplete</code> but is wrapped by <code>complete!</code>,
+<code>alt!</code> will try the next alternative. This is useful when you know that
+you will not get partial input:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>( test,
+   <span class="macro">alt!</span>(
+     <span class="macro">complete!</span>( <span class="macro">tag!</span>( <span class="string">"abcd" </span>) ) |
+     <span class="macro">complete!</span>( <span class="macro">tag!</span>( <span class="string">"ef"   </span>) ) |
+     <span class="macro">complete!</span>( <span class="macro">tag!</span>( <span class="string">"ghi"  </span>) ) |
+     <span class="macro">complete!</span>( <span class="macro">tag!</span>( <span class="string">"kl"   </span>) )
+   )
+ );</code></pre></div>
+<p>This behaviour of <code>alt!</code> can get especially confusing if multiple alternatives have different
+sizes but a common prefix, like this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>( test, <span class="macro">alt!</span>( <span class="macro">tag!</span>( <span class="string">"abcd" </span>) | <span class="macro">tag!</span>( <span class="string">"ab" </span>) | <span class="macro">tag!</span>( <span class="string">"ef" </span>) ) );</code></pre></div>
+<p>In that case, if you order by size, passing <code>"abcd"</code> as input will always be matched by the
+smallest parser, so the solution using <code>complete!</code> is better suited.</p>
+<p>You can also nest multiple <code>alt!</code>, like this:</p>
+
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code> <span class="macro">named!</span>( test,
+   <span class="macro">alt!</span>(
+     <span class="macro">preceded!</span>(
+       <span class="macro">tag!</span>(<span class="string">"ab"</span>),
+       <span class="macro">alt!</span>(
+         <span class="macro">tag!</span>( <span class="string">"cd" </span>) |
+         <span class="macro">eof!</span>()
+       )
+     )
+   | <span class="macro">tag!</span>( <span class="string">"ef" </span>)
+   )
+ );</code></pre></div>
+<p><code>preceded!</code> will first parse <code>"ab"</code> then, if successful, try the alternatives “cd”,
+or empty input (End Of File). If none of them work, <code>preceded!</code> will fail and
+“ef” will be tested.</p>
+</div></details></section></div></main></body></html>

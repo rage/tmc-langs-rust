@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["jni_to_union"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.8.5/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="libloading" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/libloading-0.6.7/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="libloading" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -128,13 +128,7 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::{CString, CStr};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::CString;
 
 <span class="doccomment">/// A `dlerror` error.
 </span><span class="kw">pub struct </span>DlDescription(<span class="kw">pub</span>(<span class="kw">crate</span>) CString);
@@ -142,12 +136,6 @@
 <span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>DlDescription {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter) -&gt; std::fmt::Result {
         std::fmt::Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, f)
-    }
-}
-
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>CStr&gt; <span class="kw">for </span>DlDescription {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>CStr) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(value.into())
     }
 }
 
@@ -186,12 +174,12 @@
     <span class="doccomment">/// The `dlclose` call failed and system did not report an error.
     </span>DlCloseUnknown,
     <span class="doccomment">/// The `LoadLibraryW` call failed.
-    </span>LoadLibraryExW {
+    </span>LoadLibraryW {
         <span class="doccomment">/// The source error.
         </span>source: WindowsError
     },
     <span class="doccomment">/// The `LoadLibraryW` call failed and system did not report an error.
-    </span>LoadLibraryExWUnknown,
+    </span>LoadLibraryWUnknown,
     <span class="doccomment">/// The `GetModuleHandleExW` call failed.
     </span>GetModuleHandleExW {
         <span class="doccomment">/// The source error.
@@ -233,7 +221,7 @@
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
             CreateCString { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(source),
             CreateCStringWithTrailing { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(source),
-            LoadLibraryExW { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>source.<span class="number">0</span>),
+            LoadLibraryW { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>source.<span class="number">0</span>),
             GetProcAddress { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>source.<span class="number">0</span>),
             FreeLibrary { <span class="kw-2">ref </span>source } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>source.<span class="number">0</span>),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -251,8 +239,8 @@
             DlSymUnknown =&gt; <span class="macro">write!</span>(f, <span class="string">"dlsym failed, but system did not report the error"</span>),
             DlClose { <span class="kw-2">ref </span>desc } =&gt; <span class="macro">write!</span>(f, <span class="string">"{}"</span>, desc.<span class="number">0</span>.to_string_lossy()),
             DlCloseUnknown =&gt; <span class="macro">write!</span>(f, <span class="string">"dlclose failed, but system did not report the error"</span>),
-            LoadLibraryExW { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"LoadLibraryExW failed"</span>),
-            LoadLibraryExWUnknown =&gt;
+            LoadLibraryW { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"LoadLibraryExW failed"</span>),
+            LoadLibraryWUnknown =&gt;
                 <span class="macro">write!</span>(f, <span class="string">"LoadLibraryExW failed, but system did not report the error"</span>),
             GetModuleHandleExW { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"GetModuleHandleExW failed"</span>),
             GetModuleHandleExWUnknown =&gt;

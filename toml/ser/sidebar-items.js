@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["to_string","to_string_pretty"],"struct":["Error","Serializer","ValueSerializer"]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["tables_last","to_string","to_string_pretty","to_vec"],"struct":["Serializer"]};

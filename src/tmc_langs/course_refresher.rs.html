@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs/src/course_refresher.rs`."><title>course_refresher.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs/src/course_refresher.rs`."><title>course_refresher.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -710,49 +710,52 @@
 <a href="#710" id="710">710</a>
 <a href="#711" id="711">711</a>
 <a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Course refresher.
 
 </span><span class="kw">use crate</span>::{error::LangsError, progress_reporter};
 <span class="kw">use </span>md5::Context;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>serde_yaml::Mapping;
-<span class="kw">use </span>std::{
-    io::Write,
-    path::{Path, PathBuf},
-    time::Duration,
-};
+<span class="kw">use </span>std::io::Write;
+<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tmc_langs_framework::{TmcCommand, TmcProjectYml};
-<span class="kw">use </span>tmc_langs_util::{deserialize, file_util};
+<span class="kw">use </span>tmc_langs_util::file_util;
 <span class="kw">use </span>walkdir::WalkDir;
-<span class="kw">use </span>zip::write::SimpleFileOptions;
 
 <span class="attr">#[cfg(unix)]
 </span><span class="kw">pub type </span>ModeBits = nix::sys::stat::mode_t;
+<span class="attr">#[cfg(not(unix))]
+</span><span class="kw">pub type </span>ModeBits = u32;
 
 <span class="doccomment">/// Data from a finished course refresh.
 </span><span class="attr">#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">"kebab-case"</span>)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>RefreshData {
     <span class="kw">pub </span>new_cache_path: PathBuf,
-    <span class="attr">#[cfg_attr(feature = <span class="string">"ts-rs"</span>, ts(<span class="kw">type </span>= <span class="string">"object"</span>))]
-    </span><span class="kw">pub </span>course_options: Mapping,
+    <span class="kw">pub </span>course_options: Mapping,
     <span class="kw">pub </span>exercises: Vec&lt;RefreshExercise&gt;,
 }
 
 <span class="doccomment">/// An exercise from a finished course refresh.
 </span><span class="attr">#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">"kebab-case"</span>)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>RefreshExercise {
     name: String,
     checksum: String,
     points: Vec&lt;String&gt;,
     <span class="attr">#[serde(skip)]
     </span>path: PathBuf,
-    sandbox_image: String,
-    <span class="attr">#[cfg_attr(feature = <span class="string">"ts-rs"</span>, ts(<span class="kw">type </span>= <span class="string">"TmcProjectYml | null"</span>))]
-    </span>tmcproject_yml: <span class="prelude-ty">Option</span>&lt;TmcProjectYml&gt;,
+    tmcproject_yml: <span class="prelude-ty">Option</span>&lt;TmcProjectYml&gt;,
 }
 
 <span class="doccomment">/// Used by tmc-server. Refreshes the course.
@@ -803,12 +806,8 @@
 
     <span class="kw">let </span>exercise_dirs = <span class="kw">super</span>::find_exercise_directories(<span class="kw-2">&amp;</span>new_clone_path)<span class="question-mark">?
         </span>.into_iter()
-        .map(|ed| {
-            ed.strip_prefix(<span class="kw-2">&amp;</span>new_clone_path)
-                .expect(<span class="string">"exercise directories are inside new_clone_path"</span>)
-                .to_path_buf()
-        })
-        .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        .map(|ed| ed.strip_prefix(<span class="kw-2">&amp;</span>new_clone_path).unwrap().to_path_buf()) <span class="comment">// safe
+        </span>.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
 
     <span class="comment">// collect .tmcproject.ymls and merge the root config with each exercise's, if any
     </span><span class="kw">let </span>root_tmcproject_yml = TmcProjectYml::load(<span class="kw-2">&amp;</span>new_clone_path)<span class="question-mark">?</span>;
@@ -820,8 +819,8 @@
     </span><span class="macro">log::info!</span>(<span class="string">"preparing solutions to {}"</span>, new_solution_path.display());
     <span class="kw">for </span>(exercise, merged_tmcproject) <span class="kw">in </span><span class="kw-2">&amp;</span>exercise_dirs_and_tmcprojects {
         <span class="comment">// save merged config to solution
-        </span><span class="kw">let </span>dest_root = new_solution_path.join(exercise);
-        <span class="kw">super</span>::prepare_solution(<span class="kw-2">&amp;</span>new_clone_path.join(exercise), <span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>dest_root = new_solution_path.join(<span class="kw-2">&amp;</span>exercise);
+        <span class="kw">super</span>::prepare_solution(<span class="kw-2">&amp;</span>new_clone_path.join(<span class="kw-2">&amp;</span>exercise), <span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(merged_tmcproject) = merged_tmcproject {
             merged_tmcproject.save_to_dir(<span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
         }
@@ -832,8 +831,8 @@
     </span><span class="macro">log::info!</span>(<span class="string">"preparing stubs to {}"</span>, new_stub_path.display());
     <span class="kw">for </span>(exercise, merged_tmcproject) <span class="kw">in </span><span class="kw-2">&amp;</span>exercise_dirs_and_tmcprojects {
         <span class="comment">// save merged config to stub
-        </span><span class="kw">let </span>dest_root = new_stub_path.join(exercise);
-        <span class="kw">super</span>::prepare_stub(<span class="kw-2">&amp;</span>new_clone_path.join(exercise), <span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>dest_root = new_stub_path.join(<span class="kw-2">&amp;</span>exercise);
+        <span class="kw">super</span>::prepare_stub(<span class="kw-2">&amp;</span>new_clone_path.join(<span class="kw-2">&amp;</span>exercise), <span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(merged_tmcproject) = merged_tmcproject {
             merged_tmcproject.save_to_dir(<span class="kw-2">&amp;</span>dest_root)<span class="question-mark">?</span>;
         }
@@ -897,14 +896,14 @@
             file_util::copy(old_clone_path, new_course_root)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>run_git = |args: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str]| {
-                TmcCommand::piped(<span class="string">"git"</span>)
+                TmcCommand::piped(<span class="string">"git"</span>.to_string())
                     .with(|e| e.cwd(new_clone_path).args(args))
                     .output_with_timeout_checked(Duration::from_secs(<span class="number">60 </span>* <span class="number">2</span>))
             };
 
             run_git(<span class="kw-2">&amp;</span>[<span class="string">"remote"</span>, <span class="string">"set-url"</span>, <span class="string">"origin"</span>, course_source_url])<span class="question-mark">?</span>;
             run_git(<span class="kw-2">&amp;</span>[<span class="string">"fetch"</span>, <span class="string">"origin"</span>])<span class="question-mark">?</span>;
-            run_git(<span class="kw-2">&amp;</span>[<span class="string">"checkout"</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"origin/{course_git_branch}"</span>)])<span class="question-mark">?</span>;
+            run_git(<span class="kw-2">&amp;</span>[<span class="string">"checkout"</span>, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"origin/{}"</span>, course_git_branch)])<span class="question-mark">?</span>;
             run_git(<span class="kw-2">&amp;</span>[<span class="string">"clean"</span>, <span class="string">"-df"</span>])<span class="question-mark">?</span>;
             run_git(<span class="kw-2">&amp;</span>[<span class="string">"checkout"</span>, <span class="string">"."</span>])<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(())
@@ -925,7 +924,7 @@
     <span class="macro">log::info!</span>(<span class="string">"could not copy from previous cache, cloning"</span>);
 
     <span class="comment">// clone_repository
-    </span>TmcCommand::piped(<span class="string">"git"</span>)
+    </span>TmcCommand::piped(<span class="string">"git"</span>.to_string())
         .with(|e| {
             e.args(<span class="kw-2">&amp;</span>[<span class="string">"clone"</span>, <span class="string">"-q"</span>, <span class="string">"-b"</span>])
                 .arg(course_git_branch)
@@ -989,9 +988,8 @@
 
     <span class="kw">let </span>options_file = course_clone_path.join(<span class="string">"course_options.yml"</span>);
     <span class="kw">if </span>options_file.exists() {
-        <span class="kw">let </span>file = file_util::open_file(<span class="kw-2">&amp;</span>options_file)<span class="question-mark">?</span>;
-        <span class="kw">let </span>course_options: Mapping = deserialize::yaml_from_reader(file)
-            .map_err(|e| LangsError::DeserializeYaml(options_file, e))<span class="question-mark">?</span>;
+        <span class="kw">let </span>file = file_util::open_file(options_file)<span class="question-mark">?</span>;
+        <span class="kw">let </span>course_options: Mapping = serde_yaml::from_reader(file)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(course_options)
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(Mapping::new())
@@ -1014,26 +1012,16 @@
                 <span class="string">"processing points and checksum for {}"</span>,
                 exercise_dir.display()
             );
-            <span class="kw">let </span>name = exercise_dir.to_string_lossy().replace(<span class="string">'/'</span>, <span class="string">"-"</span>);
+            <span class="kw">let </span>name = exercise_dir.to_string_lossy().replace(<span class="string">"/"</span>, <span class="string">"-"</span>);
             <span class="kw">let </span>checksum = calculate_checksum(<span class="kw-2">&amp;</span>course_stub_path.join(<span class="kw-2">&amp;</span>exercise_dir))<span class="question-mark">?</span>;
             <span class="kw">let </span>exercise_path = course_clone_path.join(<span class="kw-2">&amp;</span>exercise_dir);
             <span class="kw">let </span>points = <span class="kw">super</span>::get_available_points(<span class="kw-2">&amp;</span>exercise_path)<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>sandbox_image = <span class="kw">if let </span><span class="prelude-val">Some</span>(image_override) = tmcproject_yml
-                .as_ref()
-                .and_then(|y| y.sandbox_image.as_ref())
-            {
-                image_override.clone()
-            } <span class="kw">else </span>{
-                <span class="kw">crate</span>::get_default_sandbox_image(<span class="kw-2">&amp;</span>exercise_path)<span class="question-mark">?</span>.to_string()
-            };
 
             <span class="prelude-val">Ok</span>(RefreshExercise {
                 name,
                 points,
                 checksum,
                 path: exercise_dir,
-                sandbox_image,
                 tmcproject_yml,
             })
         })
@@ -1064,7 +1052,7 @@
 
     <span class="comment">// convert the digest into a hex string
     </span><span class="kw">let </span>digest = digest.compute();
-    <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"{digest:x}"</span>))
+    <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">"{:x}"</span>, digest))
 }
 
 <span class="kw">fn </span>execute_zip(
@@ -1084,17 +1072,35 @@
         <span class="kw">let </span>zip_file_path = zip_dir.join(<span class="macro">format!</span>(<span class="string">"{}.zip"</span>, exercise.name));
 
         <span class="kw">let </span><span class="kw-2">mut </span>writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)<span class="question-mark">?</span>);
-        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(exercise_root) {
-            <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
-            <span class="kw">let </span>relative_path = entry
-                .path()
-                .strip_prefix(root_path)
-                .expect(<span class="string">"entries are inside root_path"</span>);
 
-            <span class="kw">if </span>entry.path().is_file() {
+        <span class="comment">// hidden files are filtered, so we handle .tmcproject.yml here
+        </span><span class="kw">let </span>tmcproject_yml_path = exercise_root.join(<span class="string">".tmcproject.yml"</span>);
+        <span class="kw">if </span>tmcproject_yml_path.exists() {
+            <span class="kw">let </span>tmcproject_yml = file_util::read_file(<span class="kw-2">&amp;</span>tmcproject_yml_path)<span class="question-mark">?</span>;
+            <span class="kw">let </span>relative_path = tmcproject_yml_path.strip_prefix(<span class="kw-2">&amp;</span>root_path).unwrap(); <span class="comment">// safe
+            </span>writer.start_file(
+                relative_path.to_string_lossy(),
+                zip::write::FileOptions::default(),
+            )<span class="question-mark">?</span>;
+            writer
+                .write_all(<span class="kw-2">&amp;</span>tmcproject_yml)
+                .map_err(LangsError::ZipWrite)<span class="question-mark">?</span>;
+        }
+        <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(<span class="kw-2">&amp;</span>exercise_root).into_iter().filter_entry(|e| {
+            !e.file_name()
+                .to_str()
+                .map(|e| e.starts_with(<span class="string">'.'</span>))
+                .unwrap_or_default()
+        })
+        <span class="comment">// filter hidden
+        </span>{
+            <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
+            <span class="kw">let </span>relative_path = entry.path().strip_prefix(<span class="kw-2">&amp;</span>root_path).unwrap(); <span class="comment">// safe
+
+            </span><span class="kw">if </span>entry.path().is_file() {
                 writer.start_file(
                     relative_path.to_string_lossy(),
-                    SimpleFileOptions::default().unix_permissions(<span class="number">0o755</span>),
+                    zip::write::FileOptions::default().unix_permissions(<span class="number">0o755</span>),
                 )<span class="question-mark">?</span>;
                 <span class="kw">let </span>bytes = file_util::read_file(entry.path())<span class="question-mark">?</span>;
                 writer.write_all(<span class="kw-2">&amp;</span>bytes).map_err(LangsError::ZipWrite)<span class="question-mark">?</span>;
@@ -1102,7 +1108,7 @@
                 <span class="comment">// java-langs expects directories to have their own entries
                 </span>writer.start_file(
                     relative_path.join(<span class="string">""</span>).to_string_lossy(), <span class="comment">// java-langs expects directory entries to have a trailing slash
-                    </span>SimpleFileOptions::default().unix_permissions(<span class="number">0o755</span>),
+                    </span>zip::write::FileOptions::default().unix_permissions(<span class="number">0o755</span>),
                 )<span class="question-mark">?</span>;
             }
         }
@@ -1138,7 +1144,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>start_stage(steps: u32, message: <span class="kw">impl </span>Into&lt;String&gt;) {
+<span class="kw">fn </span>start_stage(steps: usize, message: <span class="kw">impl </span>Into&lt;String&gt;) {
     progress_reporter::start_stage::&lt;()&gt;(steps, message.into(), <span class="prelude-val">None</span>)
 }
 
@@ -1152,12 +1158,12 @@
 
 <span class="attr">#[cfg(test)]
 #[cfg(unix)] </span><span class="comment">// not used on windows
-</span><span class="attr">#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
+    <span class="kw">use </span>std::io::Read;
+
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::find_exercise_directories;
     <span class="kw">use </span>serde_yaml::Value;
-    <span class="kw">use </span>std::io::Read;
     <span class="kw">use </span>tempfile::tempdir;
 
     <span class="kw">fn </span>init() {
@@ -1205,7 +1211,7 @@
         <span class="kw">let </span>options = get_course_options(temp.path(), <span class="string">"some course"</span>).unwrap();
         <span class="macro">assert_eq!</span>(options.len(), <span class="number">1</span>);
         <span class="macro">assert!</span>(options
-            .get(Value::String(<span class="string">"option"</span>.to_string()))
+            .get(<span class="kw-2">&amp;</span>Value::String(<span class="string">"option"</span>.to_string()))
             .unwrap()
             .as_bool()
             .unwrap())
@@ -1227,7 +1233,7 @@
             .into_iter()
             .map(|ed| {
                 (
-                    ed.strip_prefix(temp.path().join(<span class="string">"course"</span>))
+                    ed.strip_prefix(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">"course"</span>))
                         .unwrap()
                         .to_path_buf(),
                     <span class="prelude-val">None</span>,
@@ -1258,12 +1264,14 @@
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"clone/part2/ex1/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"clone/part2/ex2/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"clone/part2/ex2/dir/subdir/file"</span>, <span class="string">""</span>);
+        file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"clone/part2/ex2/dir/subdir/.hidden"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"clone/part2/ex2/.tmcproject.yml"</span>, <span class="string">"some: 'yaml'"</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part1/ex1/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part1/ex2/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part2/ex1/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part2/ex2/setup.py"</span>, <span class="string">""</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part2/ex2/dir/subdir/file"</span>, <span class="string">"some file"</span>);
+        file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part2/ex2/dir/subdir/.hidden"</span>, <span class="string">"hidden file"</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"stub/part2/ex2/.tmcproject.yml"</span>, <span class="string">"some: 'yaml'"</span>);
 
         <span class="kw">let </span>exercise_dirs = find_exercise_directories(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">"clone"</span>))
@@ -1271,7 +1279,7 @@
             .into_iter()
             .map(|ed| {
                 (
-                    ed.strip_prefix(temp.path().join(<span class="string">"clone"</span>))
+                    ed.strip_prefix(<span class="kw-2">&amp;</span>temp.path().join(<span class="string">"clone"</span>))
                         .unwrap()
                         .to_path_buf(),
                     <span class="prelude-val">None</span>,
@@ -1306,6 +1314,16 @@
                     .join(<span class="string">"ex2"</span>)
                     .join(<span class="string">"dir"</span>)
                     .join(<span class="string">"subdir"</span>)
+                    .join(<span class="string">".hidden"</span>)
+                    .to_string_lossy()
+            )
+            .is_err()); <span class="comment">// hidden files filtered
+        </span><span class="macro">assert!</span>(fz
+            .by_name(
+                <span class="kw-2">&amp;</span>Path::new(<span class="string">"part2"</span>)
+                    .join(<span class="string">"ex2"</span>)
+                    .join(<span class="string">"dir"</span>)
+                    .join(<span class="string">"subdir"</span>)
                     .join(<span class="string">""</span>)
                     .to_string_lossy(),
             )
@@ -1332,8 +1350,8 @@
                     .join(<span class="string">".tmcproject.yml"</span>)
                     .to_string_lossy(),
             )
-            .unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
+            .unwrap(); <span class="comment">// .tmcproject.yml is not filtered out
+        </span><span class="kw">let </span><span class="kw-2">mut </span>buf = String::new();
         file.read_to_string(<span class="kw-2">&amp;mut </span>buf).unwrap();
         <span class="macro">assert_eq!</span>(buf, <span class="string">"some: 'yaml'"</span>);
     }

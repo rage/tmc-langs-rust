@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["LIST_URL"],"enum":["Error","Type"],"struct":["Domain","IcannList","Info","List","PrivateList","Suffix"],"trait":["Psl"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.8.4/src/hir/visitor.rs`."><title>visitor.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/regex-syntax-0.6.29/src/hir/visitor.rs`."><title>visitor.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_syntax" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -201,21 +201,7 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>alloc::{vec, vec::Vec};
-
-<span class="kw">use </span><span class="kw">crate</span>::hir::{<span class="self">self</span>, Hir, HirKind};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::hir::{<span class="self">self</span>, Hir, HirKind};
 
 <span class="doccomment">/// A trait for visiting the high-level IR (HIR) in depth first order.
 ///
@@ -226,7 +212,7 @@
 /// important since the size of an HIR may be proportional to end user input.
 ///
 /// Typical usage of this trait involves providing an implementation and then
-/// running it using the [`visit`] function.
+/// running it using the [`visit`](fn.visit.html) function.
 </span><span class="kw">pub trait </span>Visitor {
     <span class="doccomment">/// The result of visiting an HIR.
     </span><span class="kw">type </span>Output;
@@ -256,17 +242,13 @@
     </span><span class="kw">fn </span>visit_alternation_in(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
         <span class="prelude-val">Ok</span>(())
     }
-
-    <span class="doccomment">/// This method is called between child nodes of a concatenation.
-    </span><span class="kw">fn </span>visit_concat_in(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Err&gt; {
-        <span class="prelude-val">Ok</span>(())
-    }
 }
 
 <span class="doccomment">/// Executes an implementation of `Visitor` in constant stack space.
 ///
 /// This function will visit every node in the given `Hir` while calling
-/// appropriate methods provided by the [`Visitor`] trait.
+/// appropriate methods provided by the
+/// [`Visitor`](trait.Visitor.html) trait.
 ///
 /// The primary use case for this method is when one wants to perform case
 /// analysis over an `Hir` without using a stack size proportional to the depth
@@ -295,9 +277,9 @@
     <span class="doccomment">/// A stack frame allocated just before descending into a repetition
     /// operator's child node.
     </span>Repetition(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>hir::Repetition),
-    <span class="doccomment">/// A stack frame allocated just before descending into a capture's child
+    <span class="doccomment">/// A stack frame allocated just before descending into a group's child
     /// node.
-    </span>Capture(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>hir::Capture),
+    </span>Group(<span class="kw-2">&amp;</span><span class="lifetime">'a </span>hir::Group),
     <span class="doccomment">/// The stack frame used while visiting every child node of a concatenation
     /// of expressions.
     </span>Concat {
@@ -351,14 +333,8 @@
                 <span class="comment">// If this is a concat/alternate, then we might have additional
                 // inductive steps to process.
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(x) = <span class="self">self</span>.pop(frame) {
-                    <span class="kw">match </span>x {
-                        Frame::Alternation { .. } =&gt; {
-                            visitor.visit_alternation_in()<span class="question-mark">?</span>;
-                        }
-                        Frame::Concat { .. } =&gt; {
-                            visitor.visit_concat_in()<span class="question-mark">?</span>;
-                        }
-                        <span class="kw">_ </span>=&gt; {}
+                    <span class="kw">if let </span>Frame::Alternation { .. } = x {
+                        visitor.visit_alternation_in()<span class="question-mark">?</span>;
                     }
                     hir = x.child();
                     <span class="self">self</span>.stack.push((post_hir, x));
@@ -376,7 +352,7 @@
     </span><span class="kw">fn </span>induct(<span class="kw-2">&amp;mut </span><span class="self">self</span>, hir: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Hir) -&gt; <span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">match </span><span class="kw-2">*</span>hir.kind() {
             HirKind::Repetition(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Repetition(x)),
-            HirKind::Capture(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Capture(x)),
+            HirKind::Group(<span class="kw-2">ref </span>x) =&gt; <span class="prelude-val">Some</span>(Frame::Group(x)),
             HirKind::Concat(<span class="kw-2">ref </span>x) <span class="kw">if </span>x.is_empty() =&gt; <span class="prelude-val">None</span>,
             HirKind::Concat(<span class="kw-2">ref </span>x) =&gt; {
                 <span class="prelude-val">Some</span>(Frame::Concat { head: <span class="kw-2">&amp;</span>x[<span class="number">0</span>], tail: <span class="kw-2">&amp;</span>x[<span class="number">1</span>..] })
@@ -394,7 +370,7 @@
     </span><span class="kw">fn </span>pop(<span class="kw-2">&amp;</span><span class="self">self</span>, induct: Frame&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Frame&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">match </span>induct {
             Frame::Repetition(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-            Frame::Capture(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Frame::Group(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
             Frame::Concat { tail, .. } =&gt; {
                 <span class="kw">if </span>tail.is_empty() {
                     <span class="prelude-val">None
@@ -421,8 +397,8 @@
     /// child HIR node to visit.
     </span><span class="kw">fn </span>child(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Hir {
         <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            Frame::Repetition(rep) =&gt; <span class="kw-2">&amp;</span>rep.sub,
-            Frame::Capture(capture) =&gt; <span class="kw-2">&amp;</span>capture.sub,
+            Frame::Repetition(rep) =&gt; <span class="kw-2">&amp;</span>rep.hir,
+            Frame::Group(group) =&gt; <span class="kw-2">&amp;</span>group.hir,
             Frame::Concat { head, .. } =&gt; head,
             Frame::Alternation { head, .. } =&gt; head,
         }

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["cases","numbers","suffix"],"trait":["Inflector","InflectorNumbers"]};

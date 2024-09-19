@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["lock"],"mod":["deserialize","error","file_util","notification_reporter","parse_util","path_util","progress_reporter","serialize"],"type":["JsonError","TomlError","YamlError"]};
+window.SIDEBAR_ITEMS = {"macro":["lock"],"mod":["error","file_util","notification_reporter","parse_util","progress_reporter"]};

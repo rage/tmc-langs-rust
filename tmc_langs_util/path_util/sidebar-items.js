@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["get_parent_of_component_in_path","get_parent_of_named"]};

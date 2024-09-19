@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/make/src/valgrind_log.rs`."><title>valgrind_log.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_make" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `plugins/make/src/valgrind_log.rs`."><title>valgrind_log.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_make" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -155,29 +155,19 @@
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
 <a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains a struct representing valgrind's log output.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::MakeError;
-<span class="kw">use </span>once_cell::sync::Lazy;
+<span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>regex::Regex;
-<span class="kw">use </span>std::{
-    collections::HashMap,
-    io::{BufRead, BufReader},
-    path::Path,
-};
+<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::io::{BufRead, BufReader};
+<span class="kw">use </span>std::path::Path;
 <span class="kw">use </span>tmc_langs_util::{file_util, FileError};
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ValgrindLog {
-    <span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub </span>header: (String, Vec&lt;String&gt;),
+    <span class="kw">pub </span>header: (String, Vec&lt;String&gt;),
     <span class="kw">pub </span>errors: bool,
     <span class="kw">pub </span>results: Vec&lt;ValgrindResult&gt;,
 }
@@ -188,11 +178,11 @@
         <span class="comment">// TODO: use parsing lib?
         </span><span class="macro">log::debug!</span>(<span class="string">"parsing {}"</span>, valgrind_log_path.display());
 
-        <span class="attr">#[allow(clippy::unwrap_used)]
-        </span><span class="kw">static </span>PID_REGEX: Lazy&lt;Regex&gt; = Lazy::new(|| Regex::new(<span class="string">r#"==(?P&lt;pid&gt;\d+)=="#</span>).unwrap());
-        <span class="attr">#[allow(clippy::unwrap_used)]
-        </span><span class="kw">static </span>ERR_REGEX: Lazy&lt;Regex&gt; =
-            Lazy::new(|| Regex::new(<span class="string">r#"== ERROR SUMMARY: (?P&lt;error_count&gt;\d+)"#</span>).unwrap());
+        <span class="macro">lazy_static!</span> {
+            <span class="kw">static </span><span class="kw-2">ref </span>PID_REGEX: Regex = Regex::new(<span class="string">r#"==(?P&lt;pid&gt;\d+)=="#</span>).unwrap();
+            <span class="kw">static </span><span class="kw-2">ref </span>ERR_REGEX: Regex =
+                Regex::new(<span class="string">r#"== ERROR SUMMARY: (?P&lt;error_count&gt;\d+)"#</span>).unwrap();
+        }
 
         <span class="kw">let </span>valgrind_log_file = file_util::open_file(valgrind_log_path)<span class="question-mark">?</span>;
         <span class="kw">let </span>valgrind_log = BufReader::new(valgrind_log_file);
@@ -210,7 +200,7 @@
             first_pid.get_or_insert(pid.clone());
             <span class="kw">let </span>info = pid_info.entry(pid).or_insert((<span class="macro">vec!</span>[], <span class="number">0</span>));
             <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = ERR_REGEX.captures(<span class="kw-2">&amp;</span>line) {
-                <span class="kw">let </span>errors = captures[<span class="string">"error_count"</span>].parse::&lt;u32&gt;()<span class="question-mark">?</span>;
+                <span class="kw">let </span>errors = u32::from_str_radix(<span class="kw-2">&amp;</span>captures[<span class="string">"error_count"</span>], <span class="number">10</span>)<span class="question-mark">?</span>;
                 info.<span class="number">1 </span>= errors;
             }
             info.<span class="number">0</span>.push(line);
@@ -220,16 +210,14 @@
             <span class="prelude-val">Some</span>(first_pid) =&gt; first_pid,
             <span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(MakeError::NoPidsInValgrindLogs),
         };
-        <span class="kw">let </span>(header_log, _header_errors) = pid_info
-            .remove(<span class="kw-2">&amp;</span>first_pid)
-            .expect(<span class="string">"pid_info should have info for every pid"</span>);
+        <span class="kw">let </span>(header_log, _header_errors) = pid_info.remove(<span class="kw-2">&amp;</span>first_pid).unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>contains_errors = <span class="bool-val">false</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>results = <span class="macro">vec!</span>[];
         <span class="kw">for </span>(pid, (log, errors)) <span class="kw">in </span>pid_info {
             <span class="kw">let </span>errors = errors &gt; <span class="number">0</span>;
             contains_errors = contains_errors || errors;
-            results.push(ValgrindResult { pid, errors, log })
+            results.push(ValgrindResult { pid, log, errors })
         }
 
         <span class="kw">let </span>log = ValgrindLog {
@@ -245,14 +233,12 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>ValgrindResult {
-    <span class="attr">#[allow(dead_code)]
-    </span><span class="kw">pub </span>pid: String,
+    <span class="kw">pub </span>pid: String,
     <span class="kw">pub </span>errors: bool,
     <span class="kw">pub </span>log: Vec&lt;String&gt;,
 }
 
 <span class="attr">#[cfg(test)]
-#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 

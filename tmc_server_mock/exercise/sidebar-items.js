@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["download_course_exercise","get_course_exercises","get_course_exercises_by_id","get_exercise_submissions_for_current_user","get_exercise_submissions_for_user"]};

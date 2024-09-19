@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ExerciseTaskSubmissionStatus","GradingProgress","ModelSolutionSpec","PublicSpec"],"struct":["CourseInstance","ExerciseFile","ExerciseTaskSubmissionResult","MoocClient","TmcExerciseSlide","TmcExerciseTask"]};

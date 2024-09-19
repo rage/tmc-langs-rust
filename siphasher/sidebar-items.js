@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["prelude","sip","sip128"]};
+window.SIDEBAR_ITEMS = {"mod":["sip","sip128"]};

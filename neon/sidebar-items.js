@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["main"],"mod":["context","event","handle","meta","object","prelude","reflect","result","thread","types"]};

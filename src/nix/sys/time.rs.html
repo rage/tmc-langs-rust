@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.29.0/src/sys/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nix-0.20.2/src/sys/time.rs`."><title>time.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nix" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -599,262 +599,12 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
-<a href="#607" id="607">607</a>
-<a href="#608" id="608">608</a>
-<a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
-<a href="#691" id="691">691</a>
-<a href="#692" id="692">692</a>
-<a href="#693" id="693">693</a>
-<a href="#694" id="694">694</a>
-<a href="#695" id="695">695</a>
-<a href="#696" id="696">696</a>
-<a href="#697" id="697">697</a>
-<a href="#698" id="698">698</a>
-<a href="#699" id="699">699</a>
-<a href="#700" id="700">700</a>
-<a href="#701" id="701">701</a>
-<a href="#702" id="702">702</a>
-<a href="#703" id="703">703</a>
-<a href="#704" id="704">704</a>
-<a href="#705" id="705">705</a>
-<a href="#706" id="706">706</a>
-<a href="#707" id="707">707</a>
-<a href="#708" id="708">708</a>
-<a href="#709" id="709">709</a>
-<a href="#710" id="710">710</a>
-<a href="#711" id="711">711</a>
-<a href="#712" id="712">712</a>
-<a href="#713" id="713">713</a>
-<a href="#714" id="714">714</a>
-<a href="#715" id="715">715</a>
-<a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a>
-<a href="#718" id="718">718</a>
-<a href="#719" id="719">719</a>
-</pre></div><pre class="rust"><code><span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-</span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-</span><span class="kw">pub use </span>libc::{suseconds_t, time_t};
-<span class="kw">use </span>libc::{timespec, timeval};
+</pre></div><pre class="rust"><code><span class="kw">use </span>std::{cmp, fmt, ops};
 <span class="kw">use </span>std::time::Duration;
-<span class="kw">use </span>std::{cmp, fmt, ops};
-
-<span class="kw">const fn </span>zero_init_timespec() -&gt; timespec {
-    <span class="comment">// `std::mem::MaybeUninit::zeroed()` is not yet a const fn
-    // (https://github.com/rust-lang/rust/issues/91850) so we will instead initialize an array of
-    // the appropriate size to zero and then transmute it to a timespec value.
-    </span><span class="kw">unsafe </span>{ std::mem::transmute([<span class="number">0u8</span>; std::mem::size_of::&lt;timespec&gt;()]) }
-}
-
-<span class="attr">#[cfg(any(
-    all(feature = <span class="string">"time"</span>, any(target_os = <span class="string">"android"</span>, target_os = <span class="string">"linux"</span>)),
-    all(
-        any(
-            target_os = <span class="string">"freebsd"</span>,
-            solarish,
-            target_os = <span class="string">"linux"</span>,
-            target_os = <span class="string">"netbsd"
-        </span>),
-        feature = <span class="string">"time"</span>,
-        feature = <span class="string">"signal"
-    </span>)
-))]
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>timer {
-    <span class="kw">use </span><span class="kw">crate</span>::sys::time::{zero_init_timespec, TimeSpec};
-    <span class="kw">use </span>bitflags::bitflags;
-
-    <span class="attr">#[derive(Debug, Clone, Copy)]
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TimerSpec(libc::itimerspec);
-
-    <span class="kw">impl </span>TimerSpec {
-        <span class="kw">pub const fn </span>none() -&gt; <span class="self">Self </span>{
-            <span class="self">Self</span>(libc::itimerspec {
-                it_interval: zero_init_timespec(),
-                it_value: zero_init_timespec(),
-            })
-        }
-    }
-
-    <span class="kw">impl </span>AsMut&lt;libc::itimerspec&gt; <span class="kw">for </span>TimerSpec {
-        <span class="kw">fn </span>as_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>libc::itimerspec {
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
-        </span>}
-    }
-
-    <span class="kw">impl </span>AsRef&lt;libc::itimerspec&gt; <span class="kw">for </span>TimerSpec {
-        <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>libc::itimerspec {
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
-        </span>}
-    }
-
-    <span class="kw">impl </span>From&lt;Expiration&gt; <span class="kw">for </span>TimerSpec {
-        <span class="kw">fn </span>from(expiration: Expiration) -&gt; TimerSpec {
-            <span class="kw">match </span>expiration {
-                Expiration::OneShot(t) =&gt; TimerSpec(libc::itimerspec {
-                    it_interval: zero_init_timespec(),
-                    it_value: <span class="kw-2">*</span>t.as_ref(),
-                }),
-                Expiration::IntervalDelayed(start, interval) =&gt; {
-                    TimerSpec(libc::itimerspec {
-                        it_interval: <span class="kw-2">*</span>interval.as_ref(),
-                        it_value: <span class="kw-2">*</span>start.as_ref(),
-                    })
-                }
-                Expiration::Interval(t) =&gt; TimerSpec(libc::itimerspec {
-                    it_interval: <span class="kw-2">*</span>t.as_ref(),
-                    it_value: <span class="kw-2">*</span>t.as_ref(),
-                }),
-            }
-        }
-    }
-
-    <span class="doccomment">/// An enumeration allowing the definition of the expiration time of an alarm,
-    /// recurring or not.
-    </span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-    </span><span class="kw">pub enum </span>Expiration {
-        <span class="doccomment">/// Alarm will trigger once after the time given in `TimeSpec`
-        </span>OneShot(TimeSpec),
-        <span class="doccomment">/// Alarm will trigger after a specified delay and then every interval of
-        /// time.
-        </span>IntervalDelayed(TimeSpec, TimeSpec),
-        <span class="doccomment">/// Alarm will trigger every specified interval of time.
-        </span>Interval(TimeSpec),
-    }
-
-    <span class="attr">#[cfg(linux_android)]
-    </span><span class="macro">bitflags!</span> {
-        <span class="doccomment">/// Flags that are used for arming the timer.
-        </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-        </span><span class="kw">pub struct </span>TimerSetTimeFlags: libc::c_int {
-            <span class="kw">const </span>TFD_TIMER_ABSTIME = libc::TFD_TIMER_ABSTIME;
-            <span class="kw">const </span>TFD_TIMER_CANCEL_ON_SET = libc::TFD_TIMER_CANCEL_ON_SET;
-        }
-    }
-    <span class="attr">#[cfg(any(freebsdlike, target_os = <span class="string">"netbsd"</span>, solarish))]
-    </span><span class="macro">bitflags!</span> {
-        <span class="doccomment">/// Flags that are used for arming the timer.
-        </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-        </span><span class="kw">pub struct </span>TimerSetTimeFlags: libc::c_int {
-            <span class="kw">const </span>TFD_TIMER_ABSTIME = libc::TIMER_ABSTIME;
-        }
-    }
-
-    <span class="kw">impl </span>From&lt;TimerSpec&gt; <span class="kw">for </span>Expiration {
-        <span class="kw">fn </span>from(timerspec: TimerSpec) -&gt; Expiration {
-            <span class="kw">match </span>timerspec {
-                TimerSpec(libc::itimerspec {
-                    it_interval:
-                        libc::timespec {
-                            tv_sec: <span class="number">0</span>,
-                            tv_nsec: <span class="number">0</span>,
-                            ..
-                        },
-                    it_value: ts,
-                }) =&gt; Expiration::OneShot(ts.into()),
-                TimerSpec(libc::itimerspec {
-                    it_interval: int_ts,
-                    it_value: val_ts,
-                }) =&gt; {
-                    <span class="kw">if </span>(int_ts.tv_sec == val_ts.tv_sec)
-                        &amp;&amp; (int_ts.tv_nsec == val_ts.tv_nsec)
-                    {
-                        Expiration::Interval(int_ts.into())
-                    } <span class="kw">else </span>{
-                        Expiration::IntervalDelayed(
-                            val_ts.into(),
-                            int_ts.into(),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+<span class="kw">use </span>std::convert::From;
+<span class="kw">use </span>libc::{timespec, timeval};
+<span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+</span><span class="kw">pub use </span>libc::{time_t, suseconds_t};
 
 <span class="kw">pub trait </span>TimeValLike: Sized {
     <span class="attr">#[inline]
@@ -864,16 +614,14 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>hours(hours: i64) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>secs = hours
-            .checked_mul(SECS_PER_HOUR)
+        <span class="kw">let </span>secs = hours.checked_mul(SECS_PER_HOUR)
             .expect(<span class="string">"TimeValLike::hours ouf of bounds"</span>);
         <span class="self">Self</span>::seconds(secs)
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>minutes(minutes: i64) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>secs = minutes
-            .checked_mul(SECS_PER_MINUTE)
+        <span class="kw">let </span>secs = minutes.checked_mul(SECS_PER_MINUTE)
             .expect(<span class="string">"TimeValLike::minutes out of bounds"</span>);
         <span class="self">Self</span>::seconds(secs)
     }
@@ -908,10 +656,10 @@
 <span class="kw">const </span>SECS_PER_HOUR: i64 = <span class="number">3600</span>;
 
 <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
-</span><span class="kw">const </span>TS_MAX_SECONDS: i64 = (i64::MAX / NANOS_PER_SEC) - <span class="number">1</span>;
+</span><span class="kw">const </span>TS_MAX_SECONDS: i64 = (::std::i64::MAX / NANOS_PER_SEC) - <span class="number">1</span>;
 
 <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
-</span><span class="kw">const </span>TS_MAX_SECONDS: i64 = isize::MAX <span class="kw">as </span>i64;
+</span><span class="kw">const </span>TS_MAX_SECONDS: i64 = ::std::isize::MAX <span class="kw">as </span>i64;
 
 <span class="kw">const </span>TS_MIN_SECONDS: i64 = -TS_MAX_SECONDS;
 
@@ -930,7 +678,11 @@
 
 <span class="kw">impl </span>From&lt;Duration&gt; <span class="kw">for </span>TimeSpec {
     <span class="kw">fn </span>from(duration: Duration) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::from_duration(duration)
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeSpec(timespec {
+            tv_sec: duration.as_secs() <span class="kw">as </span>time_t,
+            tv_nsec: duration.subsec_nanos() <span class="kw">as </span>timespec_tv_nsec_t
+        })
     }
 }
 
@@ -972,22 +724,16 @@
 
 <span class="kw">impl </span>TimeValLike <span class="kw">for </span>TimeSpec {
     <span class="attr">#[inline]
-    #[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-    </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
     </span><span class="kw">fn </span>seconds(seconds: i64) -&gt; TimeSpec {
-        <span class="macro">assert!</span>(
-            (TS_MIN_SECONDS..=TS_MAX_SECONDS).contains(<span class="kw-2">&amp;</span>seconds),
-            <span class="string">"TimeSpec out of bounds; seconds={seconds}"</span>,
-        );
-        <span class="kw">let </span><span class="kw-2">mut </span>ts = zero_init_timespec();
-        ts.tv_sec = seconds <span class="kw">as </span>time_t;
-        TimeSpec(ts)
+        <span class="macro">assert!</span>(seconds &gt;= TS_MIN_SECONDS &amp;&amp; seconds &lt;= TS_MAX_SECONDS,
+                <span class="string">"TimeSpec out of bounds; seconds={}"</span>, seconds);
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeSpec(timespec {tv_sec: seconds <span class="kw">as </span>time_t, tv_nsec: <span class="number">0 </span>})
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>milliseconds(milliseconds: i64) -&gt; TimeSpec {
-        <span class="kw">let </span>nanoseconds = milliseconds
-            .checked_mul(<span class="number">1_000_000</span>)
+        <span class="kw">let </span>nanoseconds = milliseconds.checked_mul(<span class="number">1_000_000</span>)
             .expect(<span class="string">"TimeSpec::milliseconds out of bounds"</span>);
 
         TimeSpec::nanoseconds(nanoseconds)
@@ -996,8 +742,7 @@
     <span class="doccomment">/// Makes a new `TimeSpec` with given number of microseconds.
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>microseconds(microseconds: i64) -&gt; TimeSpec {
-        <span class="kw">let </span>nanoseconds = microseconds
-            .checked_mul(<span class="number">1_000</span>)
+        <span class="kw">let </span>nanoseconds = microseconds.checked_mul(<span class="number">1_000</span>)
             .expect(<span class="string">"TimeSpec::milliseconds out of bounds"</span>);
 
         TimeSpec::nanoseconds(nanoseconds)
@@ -1005,23 +750,16 @@
 
     <span class="doccomment">/// Makes a new `TimeSpec` with given number of nanoseconds.
     </span><span class="attr">#[inline]
-    #[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-    </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
     </span><span class="kw">fn </span>nanoseconds(nanoseconds: i64) -&gt; TimeSpec {
         <span class="kw">let </span>(secs, nanos) = div_mod_floor_64(nanoseconds, NANOS_PER_SEC);
-        <span class="macro">assert!</span>(
-            (TS_MIN_SECONDS..=TS_MAX_SECONDS).contains(<span class="kw-2">&amp;</span>secs),
-            <span class="string">"TimeSpec out of bounds"
-        </span>);
-        <span class="kw">let </span><span class="kw-2">mut </span>ts = zero_init_timespec();
-        ts.tv_sec = secs <span class="kw">as </span>time_t;
-        ts.tv_nsec = nanos <span class="kw">as </span>timespec_tv_nsec_t;
-        TimeSpec(ts)
+        <span class="macro">assert!</span>(secs &gt;= TS_MIN_SECONDS &amp;&amp; secs &lt;= TS_MAX_SECONDS,
+                <span class="string">"TimeSpec out of bounds"</span>);
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeSpec(timespec {tv_sec: secs <span class="kw">as </span>time_t,
+                           tv_nsec: nanos <span class="kw">as </span>timespec_tv_nsec_t })
     }
 
-    <span class="comment">// The cast is not unnecessary on all platforms.
-    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-    </span><span class="kw">fn </span>num_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+    <span class="kw">fn </span>num_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
         <span class="kw">if </span><span class="self">self</span>.tv_sec() &lt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.tv_nsec() &gt; <span class="number">0 </span>{
             (<span class="self">self</span>.tv_sec() + <span class="number">1</span>) <span class="kw">as </span>i64
         } <span class="kw">else </span>{
@@ -1034,12 +772,10 @@
     </span>}
 
     <span class="kw">fn </span>num_microseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
-        <span class="self">self</span>.num_nanoseconds() / <span class="number">1_000
+        <span class="self">self</span>.num_nanoseconds() / <span class="number">1_000_000_000
     </span>}
 
-    <span class="comment">// The cast is not unnecessary on all platforms.
-    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-    </span><span class="kw">fn </span>num_nanoseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+    <span class="kw">fn </span>num_nanoseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
         <span class="kw">let </span>secs = <span class="self">self</span>.num_seconds() * <span class="number">1_000_000_000</span>;
         <span class="kw">let </span>nsec = <span class="self">self</span>.nanos_mod_sec();
         secs + nsec <span class="kw">as </span>i64
@@ -1047,26 +783,6 @@
 }
 
 <span class="kw">impl </span>TimeSpec {
-    <span class="doccomment">/// Leave the timestamp unchanged.
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
-    </span><span class="comment">// At the time of writing this PR, redox does not support this feature
-    </span><span class="kw">pub const </span>UTIME_OMIT: TimeSpec =
-        TimeSpec::new(<span class="number">0</span>, libc::UTIME_OMIT <span class="kw">as </span>timespec_tv_nsec_t);
-    <span class="doccomment">/// Update the timestamp to `Now`
-    </span><span class="comment">// At the time of writing this PR, redox does not support this feature
-    </span><span class="attr">#[cfg(not(target_os = <span class="string">"redox"</span>))]
-    </span><span class="kw">pub const </span>UTIME_NOW: TimeSpec =
-        TimeSpec::new(<span class="number">0</span>, libc::UTIME_NOW <span class="kw">as </span>timespec_tv_nsec_t);
-
-    <span class="doccomment">/// Construct a new `TimeSpec` from its components
-    </span><span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-    </span><span class="kw">pub const fn </span>new(seconds: time_t, nanoseconds: timespec_tv_nsec_t) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ts = zero_init_timespec();
-        ts.tv_sec = seconds;
-        ts.tv_nsec = nanoseconds;
-        <span class="self">Self</span>(ts)
-    }
-
     <span class="kw">fn </span>nanos_mod_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; timespec_tv_nsec_t {
         <span class="kw">if </span><span class="self">self</span>.tv_sec() &lt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.tv_nsec() &gt; <span class="number">0 </span>{
             <span class="self">self</span>.tv_nsec() - NANOS_PER_SEC <span class="kw">as </span>timespec_tv_nsec_t
@@ -1076,25 +792,12 @@
     }
 
     <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-    </span><span class="kw">pub const fn </span>tv_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; time_t {
+    </span><span class="kw">pub fn </span>tv_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; time_t {
         <span class="self">self</span>.<span class="number">0</span>.tv_sec
     }
 
-    <span class="kw">pub const fn </span>tv_nsec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; timespec_tv_nsec_t {
+    <span class="kw">pub fn </span>tv_nsec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; timespec_tv_nsec_t {
         <span class="self">self</span>.<span class="number">0</span>.tv_nsec
-    }
-
-    <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-    </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-    </span><span class="kw">pub const fn </span>from_duration(duration: Duration) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>ts = zero_init_timespec();
-        ts.tv_sec = duration.as_secs() <span class="kw">as </span>time_t;
-        ts.tv_nsec = duration.subsec_nanos() <span class="kw">as </span>timespec_tv_nsec_t;
-        TimeSpec(ts)
-    }
-
-    <span class="kw">pub const fn </span>from_timespec(timespec: timespec) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(timespec)
     }
 }
 
@@ -1110,7 +813,8 @@
     <span class="kw">type </span>Output = TimeSpec;
 
     <span class="kw">fn </span>add(<span class="self">self</span>, rhs: TimeSpec) -&gt; TimeSpec {
-        TimeSpec::nanoseconds(<span class="self">self</span>.num_nanoseconds() + rhs.num_nanoseconds())
+        TimeSpec::nanoseconds(
+            <span class="self">self</span>.num_nanoseconds() + rhs.num_nanoseconds())
     }
 }
 
@@ -1118,7 +822,8 @@
     <span class="kw">type </span>Output = TimeSpec;
 
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: TimeSpec) -&gt; TimeSpec {
-        TimeSpec::nanoseconds(<span class="self">self</span>.num_nanoseconds() - rhs.num_nanoseconds())
+        TimeSpec::nanoseconds(
+            <span class="self">self</span>.num_nanoseconds() - rhs.num_nanoseconds())
     }
 }
 
@@ -1126,9 +831,7 @@
     <span class="kw">type </span>Output = TimeSpec;
 
     <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: i32) -&gt; TimeSpec {
-        <span class="kw">let </span>usec = <span class="self">self
-            </span>.num_nanoseconds()
-            .checked_mul(i64::from(rhs))
+        <span class="kw">let </span>usec = <span class="self">self</span>.num_nanoseconds().checked_mul(i64::from(rhs))
             .expect(<span class="string">"TimeSpec multiply out of bounds"</span>);
 
         TimeSpec::nanoseconds(usec)
@@ -1154,25 +857,27 @@
 
         <span class="kw">let </span>sec = abs.tv_sec();
 
-        <span class="macro">write!</span>(f, <span class="string">"{sign}"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, sign)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>abs.tv_nsec() == <span class="number">0 </span>{
-            <span class="kw">if </span>sec == <span class="number">1 </span>{
-                <span class="macro">write!</span>(f, <span class="string">"1 second"</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span>abs.tv_sec() == <span class="number">1 </span>{
+                <span class="macro">write!</span>(f, <span class="string">"{} second"</span>, sec)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                <span class="macro">write!</span>(f, <span class="string">"{sec} seconds"</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"{} seconds"</span>, sec)<span class="question-mark">?</span>;
             }
         } <span class="kw">else if </span>abs.tv_nsec() % <span class="number">1_000_000 </span>== <span class="number">0 </span>{
-            <span class="macro">write!</span>(f, <span class="string">"{sec}.{:03} seconds"</span>, abs.tv_nsec() / <span class="number">1_000_000</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}.{:03} seconds"</span>, sec, abs.tv_nsec() / <span class="number">1_000_000</span>)<span class="question-mark">?</span>;
         } <span class="kw">else if </span>abs.tv_nsec() % <span class="number">1_000 </span>== <span class="number">0 </span>{
-            <span class="macro">write!</span>(f, <span class="string">"{sec}.{:06} seconds"</span>, abs.tv_nsec() / <span class="number">1_000</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}.{:06} seconds"</span>, sec, abs.tv_nsec() / <span class="number">1_000</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">"{sec}.{:09} seconds"</span>, abs.tv_nsec())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}.{:09} seconds"</span>, sec, abs.tv_nsec())<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
     }
 }
+
+
 
 <span class="attr">#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -1181,10 +886,10 @@
 <span class="kw">const </span>MICROS_PER_SEC: i64 = <span class="number">1_000_000</span>;
 
 <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
-</span><span class="kw">const </span>TV_MAX_SECONDS: i64 = (i64::MAX / MICROS_PER_SEC) - <span class="number">1</span>;
+</span><span class="kw">const </span>TV_MAX_SECONDS: i64 = (::std::i64::MAX / MICROS_PER_SEC) - <span class="number">1</span>;
 
 <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
-</span><span class="kw">const </span>TV_MAX_SECONDS: i64 = isize::MAX <span class="kw">as </span>i64;
+</span><span class="kw">const </span>TV_MAX_SECONDS: i64 = ::std::isize::MAX <span class="kw">as </span>i64;
 
 <span class="kw">const </span>TV_MIN_SECONDS: i64 = -TV_MAX_SECONDS;
 
@@ -1221,22 +926,15 @@
 <span class="kw">impl </span>TimeValLike <span class="kw">for </span>TimeVal {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>seconds(seconds: i64) -&gt; TimeVal {
-        <span class="macro">assert!</span>(
-            (TV_MIN_SECONDS..=TV_MAX_SECONDS).contains(<span class="kw-2">&amp;</span>seconds),
-            <span class="string">"TimeVal out of bounds; seconds={seconds}"
-        </span>);
-        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-        </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-        </span>TimeVal(timeval {
-            tv_sec: seconds <span class="kw">as </span>time_t,
-            tv_usec: <span class="number">0</span>,
-        })
+        <span class="macro">assert!</span>(seconds &gt;= TV_MIN_SECONDS &amp;&amp; seconds &lt;= TV_MAX_SECONDS,
+                <span class="string">"TimeVal out of bounds; seconds={}"</span>, seconds);
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeVal(timeval {tv_sec: seconds <span class="kw">as </span>time_t, tv_usec: <span class="number">0 </span>})
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>milliseconds(milliseconds: i64) -&gt; TimeVal {
-        <span class="kw">let </span>microseconds = milliseconds
-            .checked_mul(<span class="number">1_000</span>)
+        <span class="kw">let </span>microseconds = milliseconds.checked_mul(<span class="number">1_000</span>)
             .expect(<span class="string">"TimeVal::milliseconds out of bounds"</span>);
 
         TimeVal::microseconds(microseconds)
@@ -1246,16 +944,11 @@
     </span><span class="attr">#[inline]
     </span><span class="kw">fn </span>microseconds(microseconds: i64) -&gt; TimeVal {
         <span class="kw">let </span>(secs, micros) = div_mod_floor_64(microseconds, MICROS_PER_SEC);
-        <span class="macro">assert!</span>(
-            (TV_MIN_SECONDS..=TV_MAX_SECONDS).contains(<span class="kw-2">&amp;</span>secs),
-            <span class="string">"TimeVal out of bounds"
-        </span>);
-        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-        </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-        </span>TimeVal(timeval {
-            tv_sec: secs <span class="kw">as </span>time_t,
-            tv_usec: micros <span class="kw">as </span>suseconds_t,
-        })
+        <span class="macro">assert!</span>(secs &gt;= TV_MIN_SECONDS &amp;&amp; secs &lt;= TV_MAX_SECONDS,
+                <span class="string">"TimeVal out of bounds"</span>);
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeVal(timeval {tv_sec: secs <span class="kw">as </span>time_t,
+                           tv_usec: micros <span class="kw">as </span>suseconds_t })
     }
 
     <span class="doccomment">/// Makes a new `TimeVal` with given number of nanoseconds.  Some precision
@@ -1264,21 +957,14 @@
     </span><span class="kw">fn </span>nanoseconds(nanoseconds: i64) -&gt; TimeVal {
         <span class="kw">let </span>microseconds = nanoseconds / <span class="number">1000</span>;
         <span class="kw">let </span>(secs, micros) = div_mod_floor_64(microseconds, MICROS_PER_SEC);
-        <span class="macro">assert!</span>(
-            (TV_MIN_SECONDS..=TV_MAX_SECONDS).contains(<span class="kw-2">&amp;</span>secs),
-            <span class="string">"TimeVal out of bounds"
-        </span>);
-        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))]
-        </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-        </span>TimeVal(timeval {
-            tv_sec: secs <span class="kw">as </span>time_t,
-            tv_usec: micros <span class="kw">as </span>suseconds_t,
-        })
+        <span class="macro">assert!</span>(secs &gt;= TV_MIN_SECONDS &amp;&amp; secs &lt;= TV_MAX_SECONDS,
+                <span class="string">"TimeVal out of bounds"</span>);
+        <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
+        </span>TimeVal(timeval {tv_sec: secs <span class="kw">as </span>time_t,
+                           tv_usec: micros <span class="kw">as </span>suseconds_t })
     }
 
-    <span class="comment">// The cast is not unnecessary on all platforms.
-    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-    </span><span class="kw">fn </span>num_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+    <span class="kw">fn </span>num_seconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
         <span class="kw">if </span><span class="self">self</span>.tv_sec() &lt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.tv_usec() &gt; <span class="number">0 </span>{
             (<span class="self">self</span>.tv_sec() + <span class="number">1</span>) <span class="kw">as </span>i64
         } <span class="kw">else </span>{
@@ -1290,9 +976,7 @@
         <span class="self">self</span>.num_microseconds() / <span class="number">1_000
     </span>}
 
-    <span class="comment">// The cast is not unnecessary on all platforms.
-    </span><span class="attr">#[allow(clippy::unnecessary_cast)]
-    </span><span class="kw">fn </span>num_microseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+    <span class="kw">fn </span>num_microseconds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
         <span class="kw">let </span>secs = <span class="self">self</span>.num_seconds() * <span class="number">1_000_000</span>;
         <span class="kw">let </span>usec = <span class="self">self</span>.micros_mod_sec();
         secs + usec <span class="kw">as </span>i64
@@ -1304,15 +988,6 @@
 }
 
 <span class="kw">impl </span>TimeVal {
-    <span class="doccomment">/// Construct a new `TimeVal` from its components
-    </span><span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-    </span><span class="kw">pub const fn </span>new(seconds: time_t, microseconds: suseconds_t) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(timeval {
-            tv_sec: seconds,
-            tv_usec: microseconds,
-        })
-    }
-
     <span class="kw">fn </span>micros_mod_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; suseconds_t {
         <span class="kw">if </span><span class="self">self</span>.tv_sec() &lt; <span class="number">0 </span>&amp;&amp; <span class="self">self</span>.tv_usec() &gt; <span class="number">0 </span>{
             <span class="self">self</span>.tv_usec() - MICROS_PER_SEC <span class="kw">as </span>suseconds_t
@@ -1322,11 +997,11 @@
     }
 
     <span class="attr">#[cfg_attr(target_env = <span class="string">"musl"</span>, allow(deprecated))] </span><span class="comment">// https://github.com/rust-lang/libc/issues/1848
-    </span><span class="kw">pub const fn </span>tv_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; time_t {
+    </span><span class="kw">pub fn </span>tv_sec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; time_t {
         <span class="self">self</span>.<span class="number">0</span>.tv_sec
     }
 
-    <span class="kw">pub const fn </span>tv_usec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; suseconds_t {
+    <span class="kw">pub fn </span>tv_usec(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; suseconds_t {
         <span class="self">self</span>.<span class="number">0</span>.tv_usec
     }
 }
@@ -1343,7 +1018,8 @@
     <span class="kw">type </span>Output = TimeVal;
 
     <span class="kw">fn </span>add(<span class="self">self</span>, rhs: TimeVal) -&gt; TimeVal {
-        TimeVal::microseconds(<span class="self">self</span>.num_microseconds() + rhs.num_microseconds())
+        TimeVal::microseconds(
+            <span class="self">self</span>.num_microseconds() + rhs.num_microseconds())
     }
 }
 
@@ -1351,7 +1027,8 @@
     <span class="kw">type </span>Output = TimeVal;
 
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: TimeVal) -&gt; TimeVal {
-        TimeVal::microseconds(<span class="self">self</span>.num_microseconds() - rhs.num_microseconds())
+        TimeVal::microseconds(
+            <span class="self">self</span>.num_microseconds() - rhs.num_microseconds())
     }
 }
 
@@ -1359,9 +1036,7 @@
     <span class="kw">type </span>Output = TimeVal;
 
     <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: i32) -&gt; TimeVal {
-        <span class="kw">let </span>usec = <span class="self">self
-            </span>.num_microseconds()
-            .checked_mul(i64::from(rhs))
+        <span class="kw">let </span>usec = <span class="self">self</span>.num_microseconds().checked_mul(i64::from(rhs))
             .expect(<span class="string">"TimeVal multiply out of bounds"</span>);
 
         TimeVal::microseconds(usec)
@@ -1387,18 +1062,18 @@
 
         <span class="kw">let </span>sec = abs.tv_sec();
 
-        <span class="macro">write!</span>(f, <span class="string">"{sign}"</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, sign)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>abs.tv_usec() == <span class="number">0 </span>{
-            <span class="kw">if </span>sec == <span class="number">1 </span>{
-                <span class="macro">write!</span>(f, <span class="string">"1 second"</span>)<span class="question-mark">?</span>;
+            <span class="kw">if </span>abs.tv_sec() == <span class="number">1 </span>{
+                <span class="macro">write!</span>(f, <span class="string">"{} second"</span>, sec)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                <span class="macro">write!</span>(f, <span class="string">"{sec} seconds"</span>)<span class="question-mark">?</span>;
+                <span class="macro">write!</span>(f, <span class="string">"{} seconds"</span>, sec)<span class="question-mark">?</span>;
             }
         } <span class="kw">else if </span>abs.tv_usec() % <span class="number">1000 </span>== <span class="number">0 </span>{
-            <span class="macro">write!</span>(f, <span class="string">"{sec}.{:03} seconds"</span>, abs.tv_usec() / <span class="number">1000</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}.{:03} seconds"</span>, sec, abs.tv_usec() / <span class="number">1000</span>)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">write!</span>(f, <span class="string">"{sec}.{:06} seconds"</span>, abs.tv_usec())<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(f, <span class="string">"{}.{:06} seconds"</span>, sec, abs.tv_usec())<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1419,21 +1094,110 @@
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>div_floor_64(this: i64, other: i64) -&gt; i64 {
     <span class="kw">match </span>div_rem_64(this, other) {
-        (d, r) <span class="kw">if </span>(r &gt; <span class="number">0 </span>&amp;&amp; other &lt; <span class="number">0</span>) || (r &lt; <span class="number">0 </span>&amp;&amp; other &gt; <span class="number">0</span>) =&gt; d - <span class="number">1</span>,
-        (d, <span class="kw">_</span>) =&gt; d,
+        (d, r) <span class="kw">if </span>(r &gt; <span class="number">0 </span>&amp;&amp; other &lt; <span class="number">0</span>)
+               || (r &lt; <span class="number">0 </span>&amp;&amp; other &gt; <span class="number">0</span>) =&gt; d - <span class="number">1</span>,
+        (d, <span class="kw">_</span>)                         =&gt; d,
     }
 }
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>mod_floor_64(this: i64, other: i64) -&gt; i64 {
     <span class="kw">match </span>this % other {
-        r <span class="kw">if </span>(r &gt; <span class="number">0 </span>&amp;&amp; other &lt; <span class="number">0</span>) || (r &lt; <span class="number">0 </span>&amp;&amp; other &gt; <span class="number">0</span>) =&gt; r + other,
-        r =&gt; r,
+        r <span class="kw">if </span>(r &gt; <span class="number">0 </span>&amp;&amp; other &lt; <span class="number">0</span>)
+          || (r &lt; <span class="number">0 </span>&amp;&amp; other &gt; <span class="number">0</span>) =&gt; r + other,
+        r                         =&gt; r,
     }
 }
 
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>div_rem_64(this: i64, other: i64) -&gt; (i64, i64) {
     (this / other, this % other)
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+    <span class="kw">use super</span>::{TimeSpec, TimeVal, TimeValLike};
+    <span class="kw">use </span>std::time::Duration;
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timespec() {
+        <span class="macro">assert!</span>(TimeSpec::seconds(<span class="number">1</span>) != TimeSpec::zero());
+        <span class="macro">assert_eq!</span>(TimeSpec::seconds(<span class="number">1</span>) + TimeSpec::seconds(<span class="number">2</span>),
+                   TimeSpec::seconds(<span class="number">3</span>));
+        <span class="macro">assert_eq!</span>(TimeSpec::minutes(<span class="number">3</span>) + TimeSpec::seconds(<span class="number">2</span>),
+                   TimeSpec::seconds(<span class="number">182</span>));
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timespec_from() {
+        <span class="kw">let </span>duration = Duration::new(<span class="number">123</span>, <span class="number">123_456_789</span>);
+        <span class="kw">let </span>timespec = TimeSpec::nanoseconds(<span class="number">123_123_456_789</span>);
+
+        <span class="macro">assert_eq!</span>(TimeSpec::from(duration), timespec);
+        <span class="macro">assert_eq!</span>(Duration::from(timespec), duration);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timespec_neg() {
+        <span class="kw">let </span>a = TimeSpec::seconds(<span class="number">1</span>) + TimeSpec::nanoseconds(<span class="number">123</span>);
+        <span class="kw">let </span>b = TimeSpec::seconds(-<span class="number">1</span>) + TimeSpec::nanoseconds(-<span class="number">123</span>);
+
+        <span class="macro">assert_eq!</span>(a, -b);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timespec_ord() {
+        <span class="macro">assert!</span>(TimeSpec::seconds(<span class="number">1</span>) == TimeSpec::nanoseconds(<span class="number">1_000_000_000</span>));
+        <span class="macro">assert!</span>(TimeSpec::seconds(<span class="number">1</span>) &lt; TimeSpec::nanoseconds(<span class="number">1_000_000_001</span>));
+        <span class="macro">assert!</span>(TimeSpec::seconds(<span class="number">1</span>) &gt; TimeSpec::nanoseconds(<span class="number">999_999_999</span>));
+        <span class="macro">assert!</span>(TimeSpec::seconds(-<span class="number">1</span>) &lt; TimeSpec::nanoseconds(-<span class="number">999_999_999</span>));
+        <span class="macro">assert!</span>(TimeSpec::seconds(-<span class="number">1</span>) &gt; TimeSpec::nanoseconds(-<span class="number">1_000_000_001</span>));
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timespec_fmt() {
+        <span class="macro">assert_eq!</span>(TimeSpec::zero().to_string(), <span class="string">"0 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeSpec::seconds(<span class="number">42</span>).to_string(), <span class="string">"42 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeSpec::milliseconds(<span class="number">42</span>).to_string(), <span class="string">"0.042 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeSpec::microseconds(<span class="number">42</span>).to_string(), <span class="string">"0.000042 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeSpec::nanoseconds(<span class="number">42</span>).to_string(), <span class="string">"0.000000042 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeSpec::seconds(-<span class="number">86401</span>).to_string(), <span class="string">"-86401 seconds"</span>);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timeval() {
+        <span class="macro">assert!</span>(TimeVal::seconds(<span class="number">1</span>) != TimeVal::zero());
+        <span class="macro">assert_eq!</span>(TimeVal::seconds(<span class="number">1</span>) + TimeVal::seconds(<span class="number">2</span>),
+                   TimeVal::seconds(<span class="number">3</span>));
+        <span class="macro">assert_eq!</span>(TimeVal::minutes(<span class="number">3</span>) + TimeVal::seconds(<span class="number">2</span>),
+                   TimeVal::seconds(<span class="number">182</span>));
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timeval_ord() {
+        <span class="macro">assert!</span>(TimeVal::seconds(<span class="number">1</span>) == TimeVal::microseconds(<span class="number">1_000_000</span>));
+        <span class="macro">assert!</span>(TimeVal::seconds(<span class="number">1</span>) &lt; TimeVal::microseconds(<span class="number">1_000_001</span>));
+        <span class="macro">assert!</span>(TimeVal::seconds(<span class="number">1</span>) &gt; TimeVal::microseconds(<span class="number">999_999</span>));
+        <span class="macro">assert!</span>(TimeVal::seconds(-<span class="number">1</span>) &lt; TimeVal::microseconds(-<span class="number">999_999</span>));
+        <span class="macro">assert!</span>(TimeVal::seconds(-<span class="number">1</span>) &gt; TimeVal::microseconds(-<span class="number">1_000_001</span>));
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timeval_neg() {
+        <span class="kw">let </span>a = TimeVal::seconds(<span class="number">1</span>) + TimeVal::microseconds(<span class="number">123</span>);
+        <span class="kw">let </span>b = TimeVal::seconds(-<span class="number">1</span>) + TimeVal::microseconds(-<span class="number">123</span>);
+
+        <span class="macro">assert_eq!</span>(a, -b);
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">pub fn </span>test_timeval_fmt() {
+        <span class="macro">assert_eq!</span>(TimeVal::zero().to_string(), <span class="string">"0 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeVal::seconds(<span class="number">42</span>).to_string(), <span class="string">"42 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeVal::milliseconds(<span class="number">42</span>).to_string(), <span class="string">"0.042 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeVal::microseconds(<span class="number">42</span>).to_string(), <span class="string">"0.000042 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeVal::nanoseconds(<span class="number">1402</span>).to_string(), <span class="string">"0.000001 seconds"</span>);
+        <span class="macro">assert_eq!</span>(TimeVal::seconds(-<span class="number">86401</span>).to_string(), <span class="string">"-86401 seconds"</span>);
+    }
 }
 </code></pre></div></section></main></body></html>

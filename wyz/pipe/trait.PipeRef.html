@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Referential piping."><title>PipeRef in wyz::pipe - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="wyz" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../wyz/index.html">wyz</a><span class="version">0.2.0</span></h2></div><h2 class="location"><a href="#">PipeRef</a></h2><div class="sidebar-elems"><section><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.pipe_mut">pipe_mut</a></li><li><a href="#method.pipe_ref">pipe_ref</a></li></ul><h3><a href="#object-safety">Object Safety</a></h3><h3><a href="#implementors">Implementors</a></h3></section><h2><a href="index.html">In wyz::pipe</a></h2></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Trait <a href="../index.html">wyz</a>::<wbr><a href="index.html">pipe</a>::<wbr><a class="trait" href="#">PipeRef</a><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><span class="out-of-band"><a class="src" href="../../src/wyz/pipe.rs.html#106-162">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><pre class="rust item-decl"><code>pub trait PipeRef {
+    // Provided methods
+    fn <a href="#method.pipe_ref" class="fn">pipe_ref</a>&lt;'a, R&gt;(&amp;'a self, func: impl <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="primitive" href="https://doc.rust-lang.org/1.81.0/core/primitive.reference.html">&amp;'a Self</a>) -&gt; R) -&gt; R
+       <span class="where">where R: 'a + <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.pipe_mut" class="fn">pipe_mut</a>&lt;'a, R&gt;(&amp;'a mut self, func: impl <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="primitive" href="https://doc.rust-lang.org/1.81.0/core/primitive.reference.html">&amp;'a mut Self</a>) -&gt; R) -&gt; R
+       <span class="where">where R: 'a + <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Referential piping.</p>
+<p>The <code>Pipe</code> trait passes by value; the functions in this trait pass by reference.
+As such, this trait is implemented on all types, not just <code>Sized</code>. The methods
+in this trait operate by various mechanisms, including:</p>
+<ul>
+<li>normal <code>&amp;</code>/<code>&amp;mut</code> borrows</li>
+<li>the <code>Borrow</code> and <code>BorrowMut</code> traits</li>
+<li>the <code>AsRef</code> and <code>AsMut</code> traits</li>
+<li>the <code>Deref</code> and <code>DerefMut</code> traits</li>
+</ul>
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.pipe_ref" class="method"><a class="src rightside" href="../../src/wyz/pipe.rs.html#130-133">source</a><h4 class="code-header">fn <a href="#method.pipe_ref" class="fn">pipe_ref</a>&lt;'a, R&gt;(&amp;'a self, func: impl <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="primitive" href="https://doc.rust-lang.org/1.81.0/core/primitive.reference.html">&amp;'a Self</a>) -&gt; R) -&gt; R<div class="where">where
+    R: 'a + <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Pipes a reference into a function that cannot ordinarily be called in
+suffix position.</p>
+<h5 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h5>
+<ul>
+<li><code>&amp;self</code>: A reference to any value. <code>.pipe_ref</code> takes it by reference
+so that the <code>.pipe_ref</code> call will not artificially truncate the
+lifetime of <code>self</code>.</li>
+<li><code>func</code>: Any function, which receives <code>&amp;self</code> as its first and only
+parameter. This function may return any value, including a borrow of
+<code>self</code>, as long as it has an equal or greater lifetime than <code>self</code>.</li>
+</ul>
+<h5 id="type-parameters"><a class="doc-anchor" href="#type-parameters">§</a>Type Parameters</h5>
+<ul>
+<li><code>R</code>: The return value of <code>func</code>. This must have a lifetime of at least
+<code>'a</code>, up to and including <code>'static</code> and unconstrained (borrow-less
+value).</li>
+</ul>
+<h5 id="lifetimes"><a class="doc-anchor" href="#lifetimes">§</a>Lifetimes</h5>
+<ul>
+<li><code>'a</code>: The lifetime of the <code>self</code> value. <code>.pipe_ref</code> borrows <code>self</code> for
+the duration <code>'a</code>, and extends it through the return value of <code>func</code>.</li>
+</ul>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.pipe_mut" class="method"><a class="src rightside" href="../../src/wyz/pipe.rs.html#158-161">source</a><h4 class="code-header">fn <a href="#method.pipe_mut" class="fn">pipe_mut</a>&lt;'a, R&gt;(&amp;'a mut self, func: impl <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(<a class="primitive" href="https://doc.rust-lang.org/1.81.0/core/primitive.reference.html">&amp;'a mut Self</a>) -&gt; R) -&gt; R<div class="where">where
+    R: 'a + <a class="trait" href="https://doc.rust-lang.org/1.81.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Pipes a mutable reference into a function that cannot ordinarily be
+called in suffix position.</p>
+<h5 id="parameters-1"><a class="doc-anchor" href="#parameters-1">§</a>Parameters</h5>
+<ul>
+<li><code>&amp;mut self</code>: A mutable reference to any value. <code>.pipe_mut</code> takes it by
+reference so that the <code>.pipe_mut</code> call will not artificially truncate
+the lifetime of <code>self</code>.</li>
+<li><code>func</code>: Any function, which receives <code>&amp;mut self</code> as its first and only
+parameter. This funtion may return any value, including a borrow of
+<code>self</code>, as long as it has an equal or greater lifetime than <code>self</code>.</li>
+</ul>
+<h5 id="type-parameters-1"><a class="doc-anchor" href="#type-parameters-1">§</a>Type Parameters</h5>
+<ul>
+<li><code>R</code>: The return value of <code>func</code>. This must have a lifetime of at least
+<code>'a</code>, up to and including <code>'static</code> and unconstrained (borrow-less
+value).</li>
+</ul>
+<h5 id="lifetimes-1"><a class="doc-anchor" href="#lifetimes-1">§</a>Lifetimes</h5>
+<ul>
+<li><code>'a</code>: The lifetime of the <code>self</code> value. <code>.pipe_mut</code> borrows <code>self</code> for
+the duration <code>'a</code>, and extends it through the return value of <code>func</code>.</li>
+</ul>
+</div></details></div><h2 id="object-safety" class="section-header">Object Safety<a href="#object-safety" class="anchor">§</a></h2><div class="object-safety-info">This trait is <b>not</b> <a href="https://doc.rust-lang.org/1.81.0/reference/items/traits.html#object-safety">object safe</a>.</div><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-PipeRef-for-T" class="impl"><a class="src rightside" href="../../src/wyz/pipe.rs.html#348-349">source</a><a href="#impl-PipeRef-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="trait.PipeRef.html" title="trait wyz::pipe::PipeRef">PipeRef</a> for T</h3></section></div><script src="../../trait.impl/wyz/pipe/trait.PipeRef.js" async></script></section></div></main></body></html>

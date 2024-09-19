@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-framework/src/domain.rs`."><title>domain.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_framework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-framework/src/domain.rs`."><title>domain.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_framework" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -146,29 +146,15 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Contains structs that model data related to exercises.
 
 </span><span class="kw">use </span>schemars::JsonSchema;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-};
+<span class="kw">use </span>std::collections::{HashMap, HashSet};
+<span class="kw">use </span>std::path::PathBuf;
 
 <span class="doccomment">/// A description of an exercise's test case.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, JsonSchema, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>TestDesc {
     <span class="doccomment">/// The full name of the test.
     ///
@@ -189,7 +175,6 @@
 
 <span class="doccomment">/// The result of a single test case.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>TestResult {
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>successful: bool,
@@ -202,7 +187,6 @@
 
 <span class="doccomment">/// A description of an exercise.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>ExerciseDesc {
     <span class="doccomment">/// The name of the exercise to be shown to the user.
     /// Does not necessarily match or even contain the directory name.
@@ -220,7 +204,6 @@
 <span class="doccomment">/// The result of running an exercise's test suite against a submission.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = <span class="string">"camelCase"</span>)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>RunResult {
     <span class="doccomment">/// The overall status of a test run.
     </span><span class="kw">pub </span>status: RunStatus,
@@ -247,7 +230,6 @@
 
 <span class="doccomment">/// The overall status of a test run.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 #[serde(rename_all = <span class="string">"SCREAMING_SNAKE_CASE"</span>)]
 </span><span class="kw">pub enum </span>RunStatus {
     <span class="doccomment">/// The submission and tests compiled and all tests passed.
@@ -267,7 +249,6 @@
 
 <span class="doccomment">/// Represents configuration based on which submission may be packaged.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>ExercisePackagingConfiguration {
     <span class="doccomment">/// Student folders or files which are copied from submission.
     </span><span class="kw">pub </span>student_file_paths: HashSet&lt;PathBuf&gt;,
@@ -289,7 +270,6 @@
 
 <span class="doccomment">/// Determines how style errors are handled.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 #[serde(rename_all = <span class="string">"UPPERCASE"</span>)]
 </span><span class="kw">pub enum </span>StyleValidationStrategy {
     Fail,
@@ -299,11 +279,10 @@
 
 <span class="doccomment">/// A style validation error.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 #[serde(rename_all = <span class="string">"camelCase"</span>)]
 </span><span class="kw">pub struct </span>StyleValidationError {
-    <span class="kw">pub </span>column: u32,
-    <span class="kw">pub </span>line: u32,
+    <span class="kw">pub </span>column: usize,
+    <span class="kw">pub </span>line: usize,
     <span class="kw">pub </span>message: String,
     <span class="kw">pub </span>source_name: String,
 }
@@ -311,7 +290,6 @@
 <span class="doccomment">/// The result of a style check.
 </span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[serde(rename_all = <span class="string">"camelCase"</span>)]
-#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>StyleValidationResult {
     <span class="kw">pub </span>strategy: StyleValidationStrategy,
     <span class="kw">pub </span>validation_errors: <span class="prelude-ty">Option</span>&lt;HashMap&lt;PathBuf, Vec&lt;StyleValidationError&gt;&gt;&gt;,

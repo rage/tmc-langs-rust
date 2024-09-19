@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/jwt-0.16.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jwt" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/jwt-0.13.0/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="jwt" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -226,21 +226,27 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! ### Only Claims
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Note, for legacy support (not recommended), import from
+//! [`jwt::legacy`](legacy/index.html) instead of directly from `jwt`.
+//! Everything should work as before, with some small improvements.
+//! ### Only Claims
 //! If you don't care about that header as long as the header is verified, signing
 //! and verification can be done with just a few traits.
 //! #### Signing
 //! Claims can be any `serde::Serialize` type, usually derived with
 //! `serde_derive`.
 //! ```rust
-//! use hmac::{Hmac, Mac};
+//! use hmac::{Hmac, NewMac};
 //! use jwt::SignWithKey;
 //! use sha2::Sha256;
 //! use std::collections::BTreeMap;
 //!
 //! # use jwt::Error;
 //! # fn try_main() -&gt; Result&lt;(), Error&gt; {
-//! let key: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(b"some-secret")?;
+//! let key: Hmac&lt;Sha256&gt; = Hmac::new_varkey(b"some-secret")?;
 //! let mut claims = BTreeMap::new();
 //! claims.insert("sub", "someone");
 //! let token_str = claims.sign_with_key(&amp;key)?;
@@ -253,14 +259,14 @@
 //! Claims can be any `serde::Deserialize` type, usually derived with
 //! `serde_derive`.
 //! ```rust
-//! use hmac::{Hmac, Mac};
+//! use hmac::{Hmac, NewMac};
 //! use jwt::VerifyWithKey;
 //! use sha2::Sha256;
 //! use std::collections::BTreeMap;
 //!
 //! # use jwt::Error;
 //! # fn try_main() -&gt; Result&lt;(), Error&gt; {
-//! let key: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(b"some-secret")?;
+//! let key: Hmac&lt;Sha256&gt; = Hmac::new_varkey(b"some-secret")?;
 //! let token_str = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzb21lb25lIn0.5wwE1sBrs-vftww_BGIuTVDeHtc1Jsjo-fiHhDwR8m0";
 //! let claims: BTreeMap&lt;String, String&gt; = token_str.verify_with_key(&amp;key)?;
 //! assert_eq!(claims["sub"], "someone");
@@ -275,14 +281,14 @@
 //! #### Signing
 //! Both header and claims have to implement `serde::Serialize`.
 //! ```rust
-//! use hmac::{Hmac, Mac};
+//! use hmac::{Hmac, NewMac};
 //! use jwt::{AlgorithmType, Header, SignWithKey, Token};
 //! use sha2::Sha384;
 //! use std::collections::BTreeMap;
 //!
 //! # use jwt::Error;
 //! # fn try_main() -&gt; Result&lt;(), Error&gt; {
-//! let key: Hmac&lt;Sha384&gt; = Hmac::new_from_slice(b"some-secret")?;
+//! let key: Hmac&lt;Sha384&gt; = Hmac::new_varkey(b"some-secret")?;
 //! let header = Header {
 //!     algorithm: AlgorithmType::Hs384,
 //!     ..Default::default()
@@ -298,14 +304,14 @@
 //! #### Verification
 //! Both header and claims have to implement `serde::Deserialize`.
 //! ```rust
-//! use hmac::{Hmac, Mac};
+//! use hmac::{Hmac, NewMac};
 //! use jwt::{AlgorithmType, Header, Token, VerifyWithKey};
 //! use sha2::Sha384;
 //! use std::collections::BTreeMap;
 //!
 //! # use jwt::Error;
 //! # fn try_main() -&gt; Result&lt;(), Error&gt; {
-//! let key: Hmac&lt;Sha384&gt; = Hmac::new_from_slice(b"some-secret")?;
+//! let key: Hmac&lt;Sha384&gt; = Hmac::new_varkey(b"some-secret")?;
 //! let token_str = "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJzb21lb25lIn0.WM_WnPUkHK6zm6Wz7zk1kmIxz990Te7nlDjQ3vzcye29szZ-Sj47rLNSTJNzpQd_";
 //! let token: Token&lt;Header, BTreeMap&lt;String, String&gt;, _&gt; = token_str.verify_with_key(&amp;key)?;
 //! let header = token.header();
@@ -372,9 +378,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;H, C, S&gt; From&lt;Token&lt;H, C, S&gt;&gt; <span class="kw">for </span>(H, C) {
-    <span class="kw">fn </span>from(token: Token&lt;H, C, S&gt;) -&gt; <span class="self">Self </span>{
-        (token.header, token.claims)
+<span class="kw">impl</span>&lt;H, C, S&gt; Into&lt;(H, C)&gt; <span class="kw">for </span>Token&lt;H, C, S&gt; {
+    <span class="kw">fn </span>into(<span class="self">self</span>) -&gt; (H, C) {
+        (<span class="self">self</span>.header, <span class="self">self</span>.claims)
     }
 }
 
@@ -423,7 +429,7 @@
     <span class="kw">use </span><span class="kw">crate</span>::Claims;
     <span class="kw">use </span><span class="kw">crate</span>::Token;
     <span class="kw">use </span>hmac::Hmac;
-    <span class="kw">use </span>hmac::Mac;
+    <span class="kw">use </span>hmac::NewMac;
     <span class="kw">use </span>sha2::Sha256;
 
     <span class="attr">#[test]
@@ -433,7 +439,7 @@
 
         <span class="macro">assert_eq!</span>(token.header.algorithm, Hs256);
 
-        <span class="kw">let </span>verifier: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>verifier: Hmac&lt;Sha256&gt; = Hmac::new_varkey(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
         <span class="macro">assert!</span>(token.verify_with_key(<span class="kw-2">&amp;</span>verifier).is_ok());
 
         <span class="prelude-val">Ok</span>(())
@@ -442,7 +448,7 @@
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>roundtrip() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>token: Token&lt;Header, Claims, <span class="kw">_</span>&gt; = Default::default();
-        <span class="kw">let </span>key: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>key: Hmac&lt;Sha256&gt; = Hmac::new_varkey(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>signed_token = token.sign_with_key(<span class="kw-2">&amp;</span>key)<span class="question-mark">?</span>;
         <span class="kw">let </span>signed_token_str = signed_token.as_str();
 

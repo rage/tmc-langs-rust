@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["PasteData","ReviewData"],"fn":["download","get_credentials","get_json","get_submission","post_form","prepare_feedback_form"],"mod":["core","course","exercise","organization","point","submission","user"]};

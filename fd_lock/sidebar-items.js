@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["RwLock","RwLockReadGuard","RwLockWriteGuard"]};
+window.SIDEBAR_ITEMS = {"struct":["FdLock","FdLockGuard"]};

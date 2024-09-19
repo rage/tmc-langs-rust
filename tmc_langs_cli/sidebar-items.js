@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ParsingResult"],"fn":["map_parsing_result","run"],"mod":["app","error","output"],"struct":["CliError"]};
+window.SIDEBAR_ITEMS = {"fn":["run"]};

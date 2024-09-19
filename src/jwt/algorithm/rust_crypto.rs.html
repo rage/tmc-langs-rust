@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/jwt-0.16.0/src/algorithm/rust_crypto.rs`."><title>rust_crypto.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jwt" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/jwt-0.13.0/src/algorithm/rust_crypto.rs`."><title>rust_crypto.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jwt" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -115,39 +115,14 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! RustCrypto implementations of signing and verifying algorithms.
 //! According to that organization, only hmac is safely implemented at the
 //! moment.
 
-</span><span class="kw">use </span>digest::{
-    block_buffer::Eager,
-    consts::U256,
-    core_api::{BlockSizeUser, BufferKindUser, CoreProxy, FixedOutputCore},
-    generic_array::typenum::{IsLess, Le, NonZero},
-    HashMarker,
-};
-<span class="kw">use </span>hmac::{Hmac, Mac};
+</span><span class="kw">use </span>crypto_mac::Mac;
+<span class="kw">use </span>digest::generic_array::ArrayLength;
+<span class="kw">use </span>digest::{BlockInput, FixedOutput, Reset, Update};
+<span class="kw">use </span>hmac::Hmac;
 
 <span class="kw">use </span><span class="kw">crate</span>::algorithm::{AlgorithmType, SigningAlgorithm, VerifyingAlgorithm};
 <span class="kw">use </span><span class="kw">crate</span>::error::Error;
@@ -176,22 +151,16 @@
 
 <span class="kw">impl</span>&lt;D&gt; SigningAlgorithm <span class="kw">for </span>Hmac&lt;D&gt;
 <span class="kw">where
-    </span>D: CoreProxy + TypeLevelAlgorithmType,
-    D::Core: HashMarker
-        + BufferKindUser&lt;BufferKind = Eager&gt;
-        + FixedOutputCore
-        + digest::Reset
-        + Default
-        + Clone,
-    &lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize: IsLess&lt;U256&gt;,
-    Le&lt;&lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize, U256&gt;: NonZero,
+    </span>D: Update + BlockInput + FixedOutput + Reset + Default + Clone + TypeLevelAlgorithmType,
+    D::BlockSize: ArrayLength&lt;u8&gt;,
+    D::OutputSize: ArrayLength&lt;u8&gt;,
 {
     <span class="kw">fn </span>algorithm_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AlgorithmType {
         D::algorithm_type()
     }
 
     <span class="kw">fn </span>sign(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>str, claims: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
-        <span class="kw">let </span>hmac = get_hmac_with_data(<span class="self">self</span>, header, claims);
+        <span class="kw">let </span>hmac = get_hmac_with_data(<span class="kw-2">&amp;</span><span class="self">self</span>, header, claims);
         <span class="kw">let </span>mac_result = hmac.finalize();
         <span class="kw">let </span>code = mac_result.into_bytes();
         <span class="prelude-val">Ok</span>(base64::encode_config(<span class="kw-2">&amp;</span>code, base64::URL_SAFE_NO_PAD))
@@ -200,15 +169,9 @@
 
 <span class="kw">impl</span>&lt;D&gt; VerifyingAlgorithm <span class="kw">for </span>Hmac&lt;D&gt;
 <span class="kw">where
-    </span>D: CoreProxy + TypeLevelAlgorithmType,
-    D::Core: HashMarker
-        + BufferKindUser&lt;BufferKind = Eager&gt;
-        + FixedOutputCore
-        + digest::Reset
-        + Default
-        + Clone,
-    &lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize: IsLess&lt;U256&gt;,
-    Le&lt;&lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize, U256&gt;: NonZero,
+    </span>D: Update + BlockInput + FixedOutput + Reset + Default + Clone + TypeLevelAlgorithmType,
+    D::BlockSize: ArrayLength&lt;u8&gt;,
+    D::OutputSize: ArrayLength&lt;u8&gt;,
 {
     <span class="kw">fn </span>algorithm_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; AlgorithmType {
         D::algorithm_type()
@@ -216,22 +179,16 @@
 
     <span class="kw">fn </span>verify_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>str, claims: <span class="kw-2">&amp;</span>str, signature: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">let </span>hmac = get_hmac_with_data(<span class="self">self</span>, header, claims);
-        hmac.verify_slice(signature)<span class="question-mark">?</span>;
+        hmac.verify(<span class="kw-2">&amp;</span>signature)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 }
 
 <span class="kw">fn </span>get_hmac_with_data&lt;D&gt;(hmac: <span class="kw-2">&amp;</span>Hmac&lt;D&gt;, header: <span class="kw-2">&amp;</span>str, claims: <span class="kw-2">&amp;</span>str) -&gt; Hmac&lt;D&gt;
 <span class="kw">where
-    </span>D: CoreProxy,
-    D::Core: HashMarker
-        + BufferKindUser&lt;BufferKind = Eager&gt;
-        + FixedOutputCore
-        + digest::Reset
-        + Default
-        + Clone,
-    &lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize: IsLess&lt;U256&gt;,
-    Le&lt;&lt;D::Core <span class="kw">as </span>BlockSizeUser&gt;::BlockSize, U256&gt;: NonZero,
+    </span>D: Update + BlockInput + FixedOutput + Reset + Default + Clone + TypeLevelAlgorithmType,
+    D::BlockSize: ArrayLength&lt;u8&gt;,
+    D::OutputSize: ArrayLength&lt;u8&gt;,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>hmac = hmac.clone();
     hmac.reset();
@@ -245,7 +202,8 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">crate</span>::algorithm::{SigningAlgorithm, VerifyingAlgorithm};
     <span class="kw">use </span><span class="kw">crate</span>::error::Error;
-    <span class="kw">use </span>hmac::{Hmac, Mac};
+    <span class="kw">use </span>crypto_mac::NewMac;
+    <span class="kw">use </span>hmac::Hmac;
     <span class="kw">use </span>sha2::Sha256;
 
     <span class="attr">#[test]
@@ -254,8 +212,8 @@
         <span class="kw">let </span>claims = <span class="string">"eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9"</span>;
         <span class="kw">let </span>expected_signature = <span class="string">"TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"</span>;
 
-        <span class="kw">let </span>signer: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>computed_signature = SigningAlgorithm::sign(<span class="kw-2">&amp;</span>signer, header, claims)<span class="question-mark">?</span>;
+        <span class="kw">let </span>signer: Hmac&lt;Sha256&gt; = Hmac::new_varkey(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>computed_signature = SigningAlgorithm::sign(<span class="kw-2">&amp;</span>signer, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span>claims)<span class="question-mark">?</span>;
 
         <span class="macro">assert_eq!</span>(computed_signature, expected_signature);
         <span class="prelude-val">Ok</span>(())
@@ -267,9 +225,9 @@
         <span class="kw">let </span>claims = <span class="string">"eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9"</span>;
         <span class="kw">let </span>signature = <span class="string">"TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"</span>;
 
-        <span class="kw">let </span>verifier: Hmac&lt;Sha256&gt; = Hmac::new_from_slice(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>verifier: Hmac&lt;Sha256&gt; = Hmac::new_varkey(<span class="string">b"secret"</span>)<span class="question-mark">?</span>;
         <span class="macro">assert!</span>(VerifyingAlgorithm::verify(
-            <span class="kw-2">&amp;</span>verifier, header, claims, signature
+            <span class="kw-2">&amp;</span>verifier, <span class="kw-2">&amp;</span>header, <span class="kw-2">&amp;</span>claims, <span class="kw-2">&amp;</span>signature
         )<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(())
     }
