@@ -37,6 +37,8 @@ impl StudentFilePolicy for CSharpStudentFilePolicy {
     // false for files in bin or obj directories, true for other files in src.
     fn is_student_source_file(path: &Path) -> bool {
         path.starts_with("src") && !Self::is_child_of_binary_dir(path)
+        // exclude .csproj files
+        && !path.extension().map(|ext| ext == "csproj").unwrap_or_default()
     }
 }
 
@@ -61,6 +63,16 @@ mod test {
         )));
         assert!(CSharpStudentFilePolicy::is_student_source_file(Path::new(
             "src/any/file"
+        )));
+    }
+
+    #[test]
+    fn csproj_file_in_src_is_not_student_file() {
+        assert!(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
+            "src/file.csproj"
+        )));
+        assert!(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
+            "src/any/file.csproj"
         )));
     }
 }
