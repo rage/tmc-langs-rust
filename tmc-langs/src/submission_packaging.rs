@@ -269,6 +269,27 @@ pub fn prepare_submission(
                 }
             }
 
+            log::debug!("copying csproj files in clone/*/src");
+            for entry in WalkDir::new(clone_path.join("src"))
+                .min_depth(2)
+                .max_depth(2)
+            {
+                let entry = entry?;
+                if entry.path().is_file()
+                    && entry
+                        .path()
+                        .extension()
+                        .map(|ext| ext == "csproj")
+                        .unwrap_or_default()
+                {
+                    let relative = entry
+                        .path()
+                        .strip_prefix(&clone_path)
+                        .expect("always inside clone root");
+                    file_util::copy(entry.path(), dest.join(relative))?;
+                }
+            }
+
             // copy files from config
             log::debug!("copying files according to packaging config");
             let config = TmcProjectYml::load_or_default(clone_path)?;
