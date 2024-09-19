@@ -270,23 +270,26 @@ pub fn prepare_submission(
             }
 
             log::debug!("copying csproj files in clone/*/src");
-            for entry in WalkDir::new(clone_path.join("src"))
-                .min_depth(2)
-                .max_depth(2)
-            {
-                let entry = entry?;
-                if entry.path().is_file()
-                    && entry
-                        .path()
-                        .extension()
-                        .map(|ext| ext == "csproj")
-                        .unwrap_or_default()
+            let clone_src = clone_path.join("src");
+            if clone_src.exists() {
+                for entry in WalkDir::new(clone_path.join("src"))
+                    .min_depth(2)
+                    .max_depth(2)
                 {
-                    let relative = entry
-                        .path()
-                        .strip_prefix(&clone_path)
-                        .expect("always inside clone root");
-                    file_util::copy(entry.path(), dest.join(relative))?;
+                    let entry = entry?;
+                    if entry.path().is_file()
+                        && entry
+                            .path()
+                            .extension()
+                            .map(|ext| ext == "csproj")
+                            .unwrap_or_default()
+                    {
+                        let relative = entry
+                            .path()
+                            .strip_prefix(&clone_path)
+                            .expect("always inside clone root");
+                        file_util::copy(entry.path(), dest.join(relative))?;
+                    }
                 }
             }
 
