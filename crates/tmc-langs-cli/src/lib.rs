@@ -550,8 +550,6 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
                             credentials.remove()?;
                         }
                         return Err(InvalidTokenError { source: error }.into());
-                    } else {
-                        log::warn!("401 without credentials");
                     }
                 }
             }

@@ -815,7 +815,7 @@ mod test {
         let mut server = Server::new();
         let client = make_client(&server);
         let m = server
-            .mock("GET", "/api/v8/core/submission/0")
+            .mock("GET", "/api/v8/core/submissions/0")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".to_string(), "some_client".to_string()),
                 Matcher::UrlEncoded("client_version".to_string(), "some_ver".to_string()),

@@ -274,7 +274,7 @@ app.post("/api/v8/core/submissions/:x/feedback", (_req, res) => {
     status: "processing",
   });
 });
-app.get("/api/v8/core/submission/:x", (_req, res) => {
+app.get("/api/v8/core/submissions/:x", (_req, res) => {
   res.send({
     api_version: 0,
     user_id: 1,

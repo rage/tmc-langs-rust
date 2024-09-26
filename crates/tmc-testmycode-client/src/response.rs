@@ -346,7 +346,7 @@ pub struct NewSubmission {
     pub submission_url: String,
 }
 
-/// get /api/v8/core/submission/{submission_id}
+/// get /api/v8/core/submissions/{submission_id}
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)] // TODO: tag
 pub enum SubmissionProcessingStatus {

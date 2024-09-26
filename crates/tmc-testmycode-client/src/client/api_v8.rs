@@ -174,13 +174,13 @@ pub fn get_credentials(
     get_json(client, url, &[])
 }
 
-/// get /api/v8/core/submission/{submission_id}
+/// get /api/v8/core/submissions/{submission_id}
 /// Checks the submission processing status from the given URL.
 pub fn get_submission(
     client: &TestMyCodeClient,
     submission_id: u32,
 ) -> Result<SubmissionProcessingStatus, TestMyCodeClientError> {
-    let url = make_url(client, format!("/api/v8/core/submission/{submission_id}"))?;
+    let url = make_url(client, format!("/api/v8/core/submissions/{submission_id}"))?;
     get_json(client, url, &[])
 }
 
@@ -1080,7 +1080,7 @@ mod test {
         let mut server = Server::new();
 
         let client = make_client(&server);
-        let _m = server.mock("GET", "/api/v8/core/submission/0")
+        let _m = server.mock("GET", "/api/v8/core/submissions/0")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("client".into(), "client".into()),
                 Matcher::UrlEncoded("client_version".into(), "version".into()),

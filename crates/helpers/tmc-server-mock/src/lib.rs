@@ -211,7 +211,7 @@ pub fn get_credentials(server: &mut Server) -> Mock {
 }
 
 pub fn get_submission(server: &mut Server) -> Mock {
-    mocker!(server, "GET", "/api/v8/core/submission/{}", {
+    mocker!(server, "GET", "/api/v8/core/submissions/{}", {
         "api_version": 0,
         "user_id": USER_ID,
         "login": "",
