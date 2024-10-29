@@ -15,7 +15,10 @@ use std::{
     env,
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::{
+    file_util::{self, Lock, LockOptions},
+    FileError,
+};
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
@@ -70,9 +73,8 @@ pub fn migrate_exercise(
         exercise_path.display()
     );
 
-    let mut lock = file_util::FileLock::new(exercise_path.to_path_buf())?;
-    let guard = lock.lock()?;
-
+    let mut lock = Lock::dir(exercise_path, LockOptions::Write)?;
+    let _guard = lock.lock()?;
     let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
     let course_config = projects_config
         .courses
@@ -99,7 +101,7 @@ pub fn migrate_exercise(
         },
     );
 
-    super::move_dir(exercise_path, guard, &target_dir)?;
+    super::move_dir(exercise_path, &target_dir)?;
     course_config.save_to_projects_dir(&tmc_config.projects_dir)?;
     Ok(())
 }
@@ -128,10 +130,9 @@ pub fn move_projects_dir(mut tmc_config: TmcConfig, target: PathBuf) -> Result<(
 
     let old_projects_dir = tmc_config.set_projects_dir(target.clone())?;
 
-    let mut lock = file_util::FileLock::new(old_projects_dir.clone())?;
-    let guard = lock.lock()?;
-
-    super::move_dir(&old_projects_dir, guard, &target)?;
+    let mut lock = Lock::dir(old_projects_dir.clone(), LockOptions::Write)?;
+    let _guard = lock.lock()?;
+    super::move_dir(&old_projects_dir, &target)?;
     tmc_config.save()?;
     Ok(())
 }

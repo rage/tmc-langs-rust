@@ -10,7 +10,7 @@ use serde::de::{
 pub fn from_value<'j, C, T>(cx: &mut C, value: Handle<'j, JsValue>) -> LibResult<T>
 where
     C: Context<'j>,
-    T: DeserializeOwned + ?Sized,
+    T: DeserializeOwned,
 {
     let mut deserializer: Deserializer<C> = Deserializer::new(cx, value);
     let t = T::deserialize(&mut deserializer)?;

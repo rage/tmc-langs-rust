@@ -6,10 +6,16 @@ use std::{
     collections::{BTreeMap, HashMap},
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{deserialize, file_util, FileError};
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+    FileError,
+};
 use walkdir::WalkDir;
 
 /// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
+const COURSE_CONFIG_FILE_NAME: &str = "course_config.toml";
+
 #[derive(Debug)]
 pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
@@ -18,13 +24,14 @@ pub struct ProjectsConfig {
 
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
-        file_util::lock!(projects_dir);
+        let mut lock = Lock::dir(projects_dir, LockOptions::Read)?;
+        let _guard = lock.lock()?;
         let mut course_configs = HashMap::new();
 
         let mut unexpected_entries = Vec::new();
         for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
             let entry = entry?;
-            let course_config_path = entry.path().join("course_config.toml");
+            let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
             if course_config_path.exists() {
                 let file_name = entry.file_name();
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
@@ -138,7 +145,7 @@ impl CourseConfig {
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
         }
-        let target = course_dir.join("course_config.toml");
+        let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
         file_util::write_to_file(s.as_bytes(), target)?;
         Ok(())

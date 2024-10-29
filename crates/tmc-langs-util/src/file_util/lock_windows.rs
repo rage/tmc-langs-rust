@@ -1,10 +1,9 @@
 //! File locking utilities on Windows.
 //!
-//! Windows directories can't be locked with fd-lock, so a different solution is needed.
-//! Currently, regular files are locked with fd-lock, but for directories a .tmc.lock file is created.
+//! file-lock doesn't support Windows, so a different solution is needed.
 
 use crate::{error::FileError, file_util::*};
-use fd_lock::{RwLock, RwLockWriteGuard};
+use fd_lock::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
     borrow::Cow,
     fs::OpenOptions,
@@ -18,118 +17,142 @@ use winapi::um::{
     winnt::{FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_TEMPORARY},
 };
 
-/// Wrapper for fd_lock::RwLock. Used to lock files/directories to prevent concurrent access
-/// from multiple instances of tmc-langs.
-pub struct FileLock {
-    path: PathBuf,
-    // this is re-set in every lock command if the target is a file
-    // ideally it would be set to none when the guard is dropped, but doing so is probably not worth the trouble
-    lock: Option<RwLock<File>>,
+/// Blocks until the lock can be acquired.
+#[derive(Debug)]
+pub struct Lock {
+    pub path: PathBuf,
+    options: LockOptions,
+    lock: RwLock<File>,
 }
 
-impl FileLock {
-    pub fn new(path: PathBuf) -> Result<FileLock, FileError> {
-        Ok(Self { path, lock: None })
+impl Lock {
+    pub fn file(path: impl AsRef<Path>, options: LockOptions) -> Result<Self, FileError> {
+        let open_options = options.into_open_options();
+        let file = open_options
+            .open(&path)
+            .map_err(|e| FileError::FileOpen(path.as_ref().to_path_buf(), e))?;
+        let lock = RwLock::new(file);
+        Ok(Self {
+            path: path.as_ref().to_path_buf(),
+            options,
+            lock,
+        })
     }
 
-    /// Blocks until the lock can be acquired.
-    /// On Windows, directories cannot be locked, so we use a lock file instead.
-    pub fn lock(&mut self) -> Result<FileLockGuard, FileError> {
-        log::trace!("locking {}", self.path.display());
+    pub fn dir(path: impl AsRef<Path>, options: LockOptions) -> Result<Self, FileError> {
+        // for directories, we'll create/open a .tmc.lock file
+        let lock_path = path.as_ref().join(LOCK_FILE_NAME);
+
         let start_time = Instant::now();
         let mut warning_timer = Instant::now();
-
-        if self.path.is_file() {
-            // for files, just use the path
-            let file = open_file(&self.path)?;
-            let lock = RwLock::new(file);
-            self.lock = Some(lock);
-            let lock = self.lock.as_mut().expect("set to Some before this call");
-            let guard = lock.write().expect("cannot fail on Windows");
-            Ok(FileLockGuard {
-                _guard: LockInner::RwLockWriteGuard { _guard: guard },
-                path: Cow::Borrowed(&self.path),
-            })
-        } else if self.path.is_dir() {
-            // for directories, we'll create/open a .tmc.lock file
-            let lock_path = self.path.join(".tmc.lock");
-            loop {
-                // try to create a new lock file
-                match OpenOptions::new()
-                    // needed for create_new
-                    .write(true)
-                    // only creates file if it exists, check and creation are atomic
-                    .create_new(true)
-                    // hidden, so it won't be a problem when going through the directory
-                    .attributes(FILE_ATTRIBUTE_HIDDEN)
-                    // just tells windows there's probably no point in writing this to disk;
-                    // this might further reduce the risk of leftover lock files
-                    .attributes(FILE_ATTRIBUTE_TEMPORARY)
-                    // windows deletes the lock file when the handle is closed = when the lock is dropped
-                    .custom_flags(FILE_FLAG_DELETE_ON_CLOSE)
-                    .open(&lock_path)
-                {
-                    Ok(file) => {
-                        // was able to create a new lock file
-                        return Ok(FileLockGuard {
-                            _guard: LockInner::LockFile { _file: file },
-                            path: Cow::Owned(lock_path),
-                        });
-                    }
-                    Err(err) => {
-                        if err.kind() == ErrorKind::AlreadyExists {
-                            // lock file already exists, let's wait a little and try again
-                            // after 30 seconds, print a warning in the logs every 10 seconds
-                            // after 120 seconds, print an error in the logs every 10 seconds
-                            if start_time.elapsed() > Duration::from_secs(30)
-                                && warning_timer.elapsed() > Duration::from_secs(10)
-                            {
-                                warning_timer = Instant::now();
-                                log::warn!(
+        loop {
+            // try to create a new lock file
+            match OpenOptions::new()
+                // needed for create_new
+                .write(true)
+                // only creates file if it exists, check and creation are atomic
+                .create(true)
+                // hidden, so it won't be a problem when going through the directory
+                .attributes(FILE_ATTRIBUTE_HIDDEN)
+                // just tells windows there's probably no point in writing this to disk;
+                // this might further reduce the risk of leftover lock files
+                .attributes(FILE_ATTRIBUTE_TEMPORARY)
+                // windows deletes the lock file when the handle is closed = when the lock is dropped
+                .custom_flags(FILE_FLAG_DELETE_ON_CLOSE)
+                .open(&lock_path)
+            {
+                Ok(file) => {
+                    // was able to create/open the lock file
+                    let lock = RwLock::new(file);
+                    return Ok(Self {
+                        path: path.as_ref().to_path_buf(),
+                        options,
+                        lock,
+                    });
+                }
+                Err(err) => {
+                    if err.kind() == ErrorKind::AlreadyExists {
+                        // lock file already exists, let's wait a little and try again
+                        // after 30 seconds, print a warning in the logs every 10 seconds
+                        // after 120 seconds, print an error in the logs every 10 seconds
+                        if start_time.elapsed() > Duration::from_secs(30)
+                            && warning_timer.elapsed() > Duration::from_secs(10)
+                        {
+                            warning_timer = Instant::now();
+                            log::warn!(
                                     "The program has been waiting for lock file {} to be deleted for {} seconds,
                                     the lock file might have been left over from a previous run due to an error.",
                                     lock_path.display(),
                                     start_time.elapsed().as_secs()
                                 );
-                            } else if start_time.elapsed() > Duration::from_secs(120)
-                                && warning_timer.elapsed() > Duration::from_secs(10)
-                            {
-                                warning_timer = Instant::now();
-                                log::error!(
+                        } else if start_time.elapsed() > Duration::from_secs(120)
+                            && warning_timer.elapsed() > Duration::from_secs(10)
+                        {
+                            warning_timer = Instant::now();
+                            log::error!(
                                     "The program has been waiting for lock file {} to be deleted for {} seconds,
                                     the lock file might have been left over from a previous run due to an error.",
                                     lock_path.display(),
                                     start_time.elapsed().as_secs()
                                 );
-                            }
-                            std::thread::sleep(Duration::from_millis(500));
-                        } else {
-                            // something else went wrong, propagate error
-                            return Err(FileError::FileCreate(lock_path, err));
                         }
+                        std::thread::sleep(Duration::from_millis(500));
+                    } else {
+                        // something else went wrong, propagate error
+                        return Err(FileError::FileCreate(lock_path, err));
                     }
                 }
             }
-        } else {
-            Err(FileError::InvalidLockPath(self.path.to_path_buf()))
+        }
+    }
+
+    pub fn lock(&mut self) -> Result<Guard<'_>, FileError> {
+        log::trace!("locking {}", self.path.display());
+        let guard = match self.options {
+            LockOptions::Read | LockOptions::ReadCreate | LockOptions::ReadTruncate => {
+                GuardInner::FdLockRead(self.lock.read().expect("cannot fail on Windows"))
+            }
+            LockOptions::Write | LockOptions::WriteCreate | LockOptions::WriteTruncate => {
+                GuardInner::FdLockWrite(self.lock.write().expect("cannot fail on Windows"))
+            }
+        };
+        Ok(Guard {
+            guard,
+            path: Cow::Borrowed(&self.path),
+        })
+    }
+}
+
+pub struct Guard<'a> {
+    guard: GuardInner<'a>,
+    path: Cow<'a, PathBuf>,
+}
+
+impl Guard<'_> {
+    pub fn get_file(&self) -> &File {
+        match &self.guard {
+            GuardInner::FdLockRead(guard) => guard,
+            GuardInner::FdLockWrite(guard) => guard,
+        }
+    }
+
+    pub fn get_file_mut(&mut self) -> &File {
+        match &mut self.guard {
+            GuardInner::FdLockRead(guard) => guard,
+            GuardInner::FdLockWrite(guard) => guard,
         }
     }
 }
 
-pub struct FileLockGuard<'a> {
-    _guard: LockInner<'a>,
-    path: Cow<'a, PathBuf>,
-}
-
-enum LockInner<'a> {
-    LockFile { _file: File },
-    RwLockWriteGuard { _guard: RwLockWriteGuard<'a, File> },
-}
-
-impl Drop for FileLockGuard<'_> {
+impl Drop for Guard<'_> {
     fn drop(&mut self) {
         log::trace!("unlocking {}", self.path.display());
     }
+}
+
+enum GuardInner<'a> {
+    FdLockRead(RwLockReadGuard<'a, File>),
+    FdLockWrite(RwLockWriteGuard<'a, File>),
 }
 
 #[cfg(test)]
@@ -150,7 +173,7 @@ mod test {
 
         let temp = NamedTempFile::new().unwrap();
         let temp_path = temp.path();
-        let mut lock = FileLock::new(temp_path.to_path_buf()).unwrap();
+        let mut lock = Lock::file(temp_path.to_path_buf(), LockOptions::Read).unwrap();
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and then mutex
@@ -163,7 +186,7 @@ mod test {
 
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
-                let mut lock = FileLock::new(temp_path).unwrap();
+                let mut lock = Lock::file(temp_path, LockOptions::Write).unwrap();
                 let _guard = lock.lock().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
@@ -186,7 +209,7 @@ mod test {
 
         let temp = tempfile::tempdir().unwrap();
         let temp_path = temp.path();
-        let mut lock = FileLock::new(temp_path.to_path_buf()).unwrap();
+        let mut lock = Lock::dir(temp_path.to_path_buf(), LockOptions::Read).unwrap();
         let mutex = Arc::new(Mutex::new(vec![]));
 
         // take file lock and mutex
@@ -199,7 +222,7 @@ mod test {
 
             std::thread::spawn(move || {
                 // if the file lock doesn't block, the mutex lock will panic and the test will fail
-                let mut lock = FileLock::new(temp_path).unwrap();
+                let mut lock = Lock::dir(temp_path, LockOptions::Write).unwrap();
                 let _guard = lock.lock().unwrap();
                 mutex.try_lock().unwrap().push(1);
             })
@@ -221,12 +244,13 @@ mod test {
         init();
 
         let temp = tempfile::tempdir().unwrap();
-        let mut lock = FileLock::new(temp.path().to_path_buf()).unwrap();
+        let mut lock = Lock::dir(temp.path().to_path_buf(), LockOptions::Read).unwrap();
         let lock_path = temp.path().join(".tmc.lock");
-        assert!(!lock_path.exists());
+        assert!(lock_path.exists());
         let guard = lock.lock().unwrap();
         assert!(lock_path.exists());
         drop(guard);
+        drop(lock);
         assert!(!lock_path.exists());
     }
 }

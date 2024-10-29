@@ -51,10 +51,7 @@ use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
 // the Java plugin is disabled on musl
-pub use tmc_langs_util::{
-    file_util::{self, FileLockGuard},
-    notification_reporter, progress_reporter,
-};
+pub use tmc_langs_util::{file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
@@ -976,7 +973,7 @@ pub fn extract_student_files(
     Ok(())
 }
 
-fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<(), LangsError> {
+fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
     let mut file_count_copied = 0;
     let mut file_count_total = 0;
     for entry in WalkDir::new(source) {
@@ -1031,7 +1028,8 @@ fn move_dir(source: &Path, source_lock: FileLockGuard, target: &Path) -> Result<
         }
     }
 
-    drop(source_lock);
+    // remove lock file if any
+    file_util::remove_file(source.join(file_util::LOCK_FILE_NAME)).ok();
     file_util::remove_dir_empty(source)?;
 
     finish_stage("Finished moving project directory");

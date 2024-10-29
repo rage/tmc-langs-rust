@@ -7,10 +7,12 @@ use serde::{
 };
 use std::{
     fmt::{self, Display},
-    ops::Deref,
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{deserialize, file_util, FileError};
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+};
 
 /// Extra data from a `.tmcproject.yml` file.
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -125,11 +127,9 @@ impl TmcProjectYml {
     /// Saves the TmcProjectYml to the given directory.
     pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
         let config_path = Self::path_in_dir(dir);
-        let mut file = file_util::create_file_locked(&config_path)?;
-        let guard = file
-            .write()
-            .map_err(|e| FileError::FdLock(config_path.clone(), e))?;
-        serde_yaml::to_writer(guard.deref(), &self)?;
+        let mut lock = Lock::file(&config_path, LockOptions::WriteCreate)?;
+        let mut guard = lock.lock()?;
+        serde_yaml::to_writer(guard.get_file_mut(), &self)?;
         Ok(())
     }
 }

@@ -365,7 +365,7 @@ fn walk_dir_for_compression(
         .sort_by_file_name()
         .into_iter()
         // filter windows lock files
-        .filter_entry(|e| e.file_name() != ".tmc.lock")
+        .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
     {
         let entry = entry?;
         let stripped = entry

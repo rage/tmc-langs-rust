@@ -2,59 +2,54 @@
 
 #[cfg(unix)]
 mod lock_unix;
-#[cfg(unix)]
-pub use lock_unix::*;
-
 #[cfg(windows)]
 mod lock_windows;
+
 use crate::error::FileError;
-use fd_lock::RwLock;
+#[cfg(unix)]
+pub use lock_unix::*;
 #[cfg(windows)]
 pub use lock_windows::*;
 use std::{
-    fs::{self, File, ReadDir},
+    fs::{self, File, OpenOptions, ReadDir},
     io::{Read, Write},
-    ops::{Deref, DerefMut},
     path::{Path, PathBuf},
 };
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
 
-/// Convenience macro for locking a path.
-#[macro_export]
-macro_rules! lock {
-    ( $( $path: expr ),+ ) => {
-        $(
-            let path_buf: PathBuf = (&$path).into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf)?;
-            let _lock = fl.lock()?;
-        )*
-    };
+pub const LOCK_FILE_NAME: &str = ".tmc.lock";
+
+#[derive(Debug, Clone, Copy)]
+pub enum LockOptions {
+    /// Shared read lock
+    Read,
+    /// Shared read lock, create file if it doesn't exist instead of erroring (including intermediate directories)
+    ReadCreate,
+    /// Shared write lock, create file if it doesn't exist, truncate if it does
+    ReadTruncate,
+    /// Exclusive write lock
+    Write,
+    /// Exclusive write lock, create file if it doesn't exist instead of erroring (including intermediate directories)
+    WriteCreate,
+    /// Exclusive write lock, create file if it doesn't exist, truncate if it does
+    WriteTruncate,
 }
 
-// macros always live at the top-level, re-export here
-pub use crate::lock;
-
-pub struct FdLockWrapper(RwLock<File>);
-
-impl Deref for FdLockWrapper {
-    type Target = RwLock<File>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for FdLockWrapper {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl Drop for FdLockWrapper {
-    fn drop(&mut self) {
-        // todo: print the path
-        log::trace!("unlocking file");
+impl LockOptions {
+    fn into_open_options(self) -> OpenOptions {
+        let mut opts = OpenOptions::new();
+        match self {
+            Self::Read => opts.read(true),
+            // create requires write
+            Self::ReadCreate => opts.read(true).write(true).create(true),
+            // truncate requires write
+            Self::ReadTruncate => opts.write(true).create(true).truncate(true),
+            Self::Write => opts.write(true),
+            Self::WriteCreate => opts.write(true).create(true),
+            Self::WriteTruncate => opts.write(true).create(true).truncate(true),
+        };
+        opts
     }
 }
 
@@ -73,15 +68,6 @@ pub fn named_temp_file_in(path: &Path) -> Result<NamedTempFile, FileError> {
 pub fn open_file(path: impl AsRef<Path>) -> Result<File, FileError> {
     let path = path.as_ref();
     File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
-}
-
-/// Opens and locks the given file. Note: Does not work on directories on Windows.
-pub fn open_file_locked(path: impl AsRef<Path>) -> Result<FdLockWrapper, FileError> {
-    log::trace!("locking file {}", path.as_ref().display());
-
-    let file = open_file(path)?;
-    let lock = FdLockWrapper(RwLock::new(file));
-    Ok(lock)
 }
 
 pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, FileError> {
@@ -117,21 +103,6 @@ pub fn create_file<P: AsRef<Path>>(path: P) -> Result<File, FileError> {
     File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
-/// Creates a file and wraps it in a lock. If a file already exists at the path, it acquires a lock on it first and then recreates it.
-/// Note: creates all intermediary directories if needed.
-pub fn create_file_locked<P: AsRef<Path>>(path: P) -> Result<FdLockWrapper, FileError> {
-    log::trace!("locking file {}", path.as_ref().display());
-
-    if let Ok(existing) = open_file(&path) {
-        // wait for an existing process to be done with the file before rewriting
-        let mut lock = RwLock::new(existing);
-        let _ = lock.write().expect("\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems");
-    }
-    let file = create_file(path)?;
-    let lock = FdLockWrapper(RwLock::new(file));
-    Ok(lock)
-}
-
 /// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.
 pub fn remove_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
@@ -146,6 +117,12 @@ pub fn remove_all<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
 
 pub fn remove_file<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
     let path = path.as_ref();
+    fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
+}
+
+pub fn remove_file_locked<P: AsRef<Path>>(path: P) -> Result<(), FileError> {
+    let path = path.as_ref();
+    let _lock = Lock::file(path, LockOptions::Write)?;
     fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
 }
 

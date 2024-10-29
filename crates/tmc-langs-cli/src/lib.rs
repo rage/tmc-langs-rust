@@ -20,19 +20,19 @@ use serde_json::Value;
 use std::{
     collections::HashMap,
     env,
-    fs::File,
     io::{self, BufReader, Cursor, Read},
-    ops::Deref,
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    file_util,
     mooc::MoocClient,
     tmc::{request::FeedbackAnswer, TestMyCodeClient, TestMyCodeClientError},
     CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
     Language, StyleValidationResult, TmcConfig, UpdatedExercise,
 };
-use tmc_langs_util::deserialize;
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+};
 
 pub enum ParsingResult {
     Ok(Cli),
@@ -180,14 +180,18 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             locale: Locale(locale),
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let check_result =
                 run_checkstyle_write_results(&exercise_path, output_path.as_deref(), locale)?;
             CliOutput::finished_with_data("ran checkstyle", check_result.map(DataKind::Validation))
         }
 
         Command::Clean { exercise_path } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Write)?;
+            let _guard = lock.lock()?;
+
             tmc_langs::clean(&exercise_path)?;
             CliOutput::finished(format!("cleaned exercise at {}", exercise_path.display()))
         }
@@ -199,7 +203,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             deterministic,
             naive,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let hash = tmc_langs::compress_project_to(
                 &exercise_path,
                 &output_path,
@@ -227,11 +233,11 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             compression,
             naive,
         } => {
-            let mut archive = file_util::open_file_locked(&archive_path)?;
-            let mut guard = archive.write()?;
+            let mut archive_lock = Lock::file(&archive_path, LockOptions::Read)?;
+            let mut archive_guard = archive_lock.lock()?;
 
             let mut data = vec![];
-            guard.read_to_end(&mut data)?;
+            archive_guard.get_file_mut().read_to_end(&mut data)?;
 
             tmc_langs::extract_project(Cursor::new(data), &output_path, compression, true, naive)?;
 
@@ -243,7 +249,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
         }
 
         Command::FastAvailablePoints { exercise_path } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let points = tmc_langs::get_available_points(&exercise_path)?;
             CliOutput::finished_with_data(
                 format!("found {} available points", points.len()),
@@ -255,7 +263,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             search_path,
             output_path,
         } => {
-            file_util::lock!(search_path);
+            let mut lock = Lock::dir(&search_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let exercises =
                 tmc_langs::find_exercise_directories(&search_path).with_context(|| {
                     format!(
@@ -276,7 +286,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             exercise_path,
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let config = tmc_langs::get_exercise_packaging_configuration(&exercise_path)
                 .with_context(|| {
                     format!(
@@ -313,7 +325,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             exercise_path,
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             tmc_langs::prepare_solution(&exercise_path, &output_path).with_context(|| {
                 format!(
                     "Failed to prepare solutions for exercise at {}",
@@ -331,7 +345,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             exercise_path,
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             tmc_langs::prepare_stub(&exercise_path, &output_path).with_context(|| {
                 format!(
                     "Failed to prepare stubs for exercise at {}",
@@ -357,6 +373,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             tmc_param,
             no_archive_prefix,
         } => {
+            let mut clone_lock = Lock::dir(&clone_path, file_util::LockOptions::Read)?;
+            let _clone_guard = clone_lock.lock()?;
+
             // will contain for each key all the values with that key in a list
             let mut tmc_params_grouped = HashMap::new();
             for value in &tmc_param {
@@ -439,7 +458,8 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             output_path,
             wait_for_secret,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
 
             let secret = if wait_for_secret {
                 let mut s = String::new();
@@ -496,7 +516,8 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             exercise_path,
             output_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
 
             let exercise_name = exercise_path.file_name().with_context(|| {
                 format!(
@@ -584,6 +605,9 @@ fn run_tmc_inner(
             exercise_id,
             target,
         } => {
+            let mut output_lock = Lock::dir(&target, file_util::LockOptions::WriteTruncate)?;
+            let _output_guard = output_lock.lock()?;
+
             client
                 .download_model_solution(exercise_id, &target)
                 .context("Failed to download model solution")?;
@@ -596,6 +620,9 @@ fn run_tmc_inner(
             exercise_id,
             output_path,
         } => {
+            let mut output_lock = Lock::dir(&output_path, file_util::LockOptions::Write)?;
+            let _output_guard = output_lock.lock()?;
+
             tmc_langs::download_old_submission(
                 client,
                 exercise_id,
@@ -837,7 +864,9 @@ fn run_tmc_inner(
             paste_message,
             submission_path,
         } => {
-            file_util::lock!(submission_path);
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let locale = locale.map(|l| l.0);
             let new_submission = client
                 .paste(exercise_id, &submission_path, paste_message, locale)
@@ -851,7 +880,9 @@ fn run_tmc_inner(
             message_for_reviewer,
             submission_path,
         } => {
-            file_util::lock!(submission_path);
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let new_submission = client
                 .request_code_review(
                     exercise_id,
@@ -871,7 +902,9 @@ fn run_tmc_inner(
             save_old_state,
             exercise_path,
         } => {
-            file_util::lock!(exercise_path);
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Write)?;
+            let _guard = lock.lock()?;
+
             if save_old_state {
                 // submit current state
                 client.submit(exercise_id, &exercise_path, None)?;
@@ -923,7 +956,9 @@ fn run_tmc_inner(
             submission_path,
             exercise_id,
         } => {
-            file_util::lock!(submission_path);
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let locale = locale.map(|l| l.0);
             let new_submission = client
                 .submit(exercise_id, &submission_path, locale)
@@ -1040,7 +1075,9 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             task_id,
             submission_path,
         } => {
-            file_util::lock!(submission_path);
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
             let temp = file_util::named_temp_file()?;
             tmc_langs::compress_project_to(
                 &submission_path,
@@ -1128,27 +1165,28 @@ fn write_result_to_file_as_json<T: Serialize>(
     pretty: bool,
     secret: Option<String>,
 ) -> Result<()> {
-    let mut output_file = file_util::create_file_locked(output_path).with_context(|| {
-        format!(
-            "Failed to create results JSON file at {}",
-            output_path.display()
-        )
-    })?;
-    let guard = output_file.write()?;
+    let mut output_lock =
+        Lock::file(output_path, LockOptions::WriteTruncate).with_context(|| {
+            format!(
+                "Failed to create results JSON file at {}",
+                output_path.display()
+            )
+        })?;
+    let mut output_guard = output_lock.lock()?;
 
     if let Some(secret) = secret {
         let token = tmc_langs::sign_with_jwt(result, secret.as_bytes())?;
-        file_util::write_to_writer(token, guard.deref())
+        file_util::write_to_writer(token, output_guard.get_file_mut())
             .with_context(|| format!("Failed to write result to {}", output_path.display()))?;
     } else if pretty {
-        serde_json::to_writer_pretty(guard.deref(), result).with_context(|| {
+        serde_json::to_writer_pretty(output_guard.get_file_mut(), result).with_context(|| {
             format!(
                 "Failed to write result as JSON to {}",
                 output_path.display()
             )
         })?;
     } else {
-        serde_json::to_writer(guard.deref(), result).with_context(|| {
+        serde_json::to_writer(output_guard.get_file_mut(), result).with_context(|| {
             format!(
                 "Failed to write result as JSON to {}",
                 output_path.display()
@@ -1172,13 +1210,16 @@ fn run_checkstyle_write_results(
         )
     })?;
     if let Some(output_path) = output_path {
-        let output_file = File::create(output_path).with_context(|| {
-            format!(
-                "Failed to create code style check results file at {}",
-                output_path.display()
-            )
-        })?;
-        serde_json::to_writer(output_file, &check_result).with_context(|| {
+        let mut output_lock =
+            Lock::file(output_path, LockOptions::WriteTruncate).with_context(|| {
+                format!(
+                    "Failed to create code style check results file at {}",
+                    output_path.display()
+                )
+            })?;
+        let mut output_guard = output_lock.lock()?;
+
+        serde_json::to_writer(output_guard.get_file_mut(), &check_result).with_context(|| {
             format!(
                 "Failed to write code style check results as JSON to {}",
                 output_path.display()
