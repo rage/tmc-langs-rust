@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["base","macros","trait_methods","traits","types"]};

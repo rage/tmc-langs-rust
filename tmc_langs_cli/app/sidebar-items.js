@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Command","MoocCommand","SettingsCommand","TestMyCodeCommand"],"struct":["Cli","Locale","Mooc","Settings","TestMyCode"]};

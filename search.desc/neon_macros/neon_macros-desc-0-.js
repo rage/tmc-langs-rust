@@ -1,0 +1,1 @@
+searchState.loadedDescShard("neon_macros", 0, "Procedural macros supporting Neon\nMarks a function as the main entry point for …")

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("generate_node_bindings", 0, "Exports TypeScript bindings.")

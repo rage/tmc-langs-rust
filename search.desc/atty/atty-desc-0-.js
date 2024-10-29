@@ -1,1 +1,0 @@
-searchState.loadedDescShard("atty", 0, "atty is a simple utility that answers one question\npossible stream sources\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nreturns true if this is a tty\nreturns true if this is <em>not</em> a tty")

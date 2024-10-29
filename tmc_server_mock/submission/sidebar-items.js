@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_course_submissions","get_course_submissions_by_id","get_course_submissions_for_current_user","get_course_submissions_for_current_user_by_id","get_course_submissions_for_last_hour","get_course_submissions_for_user","get_course_submissions_for_user_by_id","get_exercise_submissions_for_current_user","get_exercise_submissions_for_user"]};

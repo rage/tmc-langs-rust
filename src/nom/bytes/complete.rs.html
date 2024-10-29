@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-6.2.2/src/bytes/complete.rs`."><title>complete.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/nom-7.1.3/src/bytes/complete.rs`."><title>complete.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="nom" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -727,6 +727,33 @@
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Parsers recognizing bytes streams, complete input version
 
 </span><span class="kw">use </span><span class="kw">crate</span>::error::ErrorKind;
@@ -747,7 +774,6 @@
 /// It will return `Err(Err::Error((_, ErrorKind::Tag)))` if the input doesn't match the pattern
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::tag;
 ///
@@ -788,7 +814,6 @@
 /// It will return `Err(Err::Error((_, ErrorKind::Tag)))` if the input doesn't match the pattern.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::tag_no_case;
 ///
@@ -833,7 +858,6 @@
 /// It will return a `Err::Error(("", ErrorKind::IsNot))` if the pattern wasn't met.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::is_not;
 ///
@@ -867,7 +891,6 @@
 /// It will return a `Err(Err::Error((_, ErrorKind::IsA)))` if the pattern wasn't met.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::is_a;
 ///
@@ -900,7 +923,6 @@
 /// takes the input and returns a bool)*.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::ErrorKind, Needed, IResult};
 /// use nom::bytes::complete::take_while;
 /// use nom::character::is_alphabetic;
@@ -932,7 +954,6 @@
 /// It will return an `Err(Err::Error((_, ErrorKind::TakeWhile1)))` if the pattern wasn't met.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::take_while1;
 /// use nom::character::is_alphabetic;
@@ -967,7 +988,6 @@
 /// of range (m &lt;= len &lt;= n).
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::take_while_m_n;
 /// use nom::character::is_alphabetic;
@@ -1051,7 +1071,6 @@
 /// takes the input and returns a bool)*.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::ErrorKind, Needed, IResult};
 /// use nom::bytes::complete::take_till;
 ///
@@ -1083,7 +1102,6 @@
 /// predicate matches the first input.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::take_till1;
 ///
@@ -1114,7 +1132,6 @@
 /// It will return `Err(Err::Error((_, ErrorKind::Eof)))` if the input is shorter than the argument.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::take;
 ///
@@ -1126,6 +1143,18 @@
 /// assert_eq!(take6("things"), Ok(("", "things")));
 /// assert_eq!(take6("short"), Err(Err::Error(Error::new("short", ErrorKind::Eof))));
 /// assert_eq!(take6(""), Err(Err::Error(Error::new("", ErrorKind::Eof))));
+/// ```
+///
+/// The units that are taken will depend on the input type. For example, for a
+/// `&amp;str` it will take a number of `char`'s, whereas for a `&amp;[u8]` it will
+/// take that many `u8`'s:
+///
+/// ```rust
+/// use nom::error::Error;
+/// use nom::bytes::complete::take;
+///
+/// assert_eq!(take::&lt;_, _, Error&lt;_&gt;&gt;(1usize)("💙"), Ok(("", "💙")));
+/// assert_eq!(take::&lt;_, _, Error&lt;_&gt;&gt;(1usize)("💙".as_bytes()), Ok((b"\x9F\x92\x99".as_ref(), b"\xF0".as_ref())));
 /// ```
 </span><span class="kw">pub fn </span>take&lt;C, Input, Error: ParseError&lt;Input&gt;&gt;(
   count: C,
@@ -1147,7 +1176,6 @@
 /// if the pattern wasn't met.
 /// # Example
 /// ```rust
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
 /// use nom::bytes::complete::take_until;
 ///
@@ -1177,6 +1205,43 @@
   }
 }
 
+<span class="doccomment">/// Returns the non empty input slice up to the first occurrence of the pattern.
+///
+/// It doesn't consume the pattern. It will return `Err(Err::Error((_, ErrorKind::TakeUntil)))`
+/// if the pattern wasn't met.
+/// # Example
+/// ```rust
+/// # use nom::{Err, error::{Error, ErrorKind}, Needed, IResult};
+/// use nom::bytes::complete::take_until1;
+///
+/// fn until_eof(s: &amp;str) -&gt; IResult&lt;&amp;str, &amp;str&gt; {
+///   take_until1("eof")(s)
+/// }
+///
+/// assert_eq!(until_eof("hello, worldeof"), Ok(("eof", "hello, world")));
+/// assert_eq!(until_eof("hello, world"), Err(Err::Error(Error::new("hello, world", ErrorKind::TakeUntil))));
+/// assert_eq!(until_eof(""), Err(Err::Error(Error::new("", ErrorKind::TakeUntil))));
+/// assert_eq!(until_eof("1eof2eof"), Ok(("eof2eof", "1")));
+/// assert_eq!(until_eof("eof"), Err(Err::Error(Error::new("eof", ErrorKind::TakeUntil))));
+/// ```
+</span><span class="kw">pub fn </span>take_until1&lt;T, Input, Error: ParseError&lt;Input&gt;&gt;(
+  tag: T,
+) -&gt; <span class="kw">impl </span>Fn(Input) -&gt; IResult&lt;Input, Input, Error&gt;
+<span class="kw">where
+  </span>Input: InputTake + FindSubstring&lt;T&gt;,
+  T: InputLength + Clone,
+{
+  <span class="kw">move </span>|i: Input| {
+    <span class="kw">let </span>t = tag.clone();
+    <span class="kw">let </span>res: IResult&lt;<span class="kw">_</span>, <span class="kw">_</span>, Error&gt; = <span class="kw">match </span>i.find_substring(t) {
+      <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(i, ErrorKind::TakeUntil))),
+      <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; <span class="prelude-val">Err</span>(Err::Error(Error::from_error_kind(i, ErrorKind::TakeUntil))),
+      <span class="prelude-val">Some</span>(index) =&gt; <span class="prelude-val">Ok</span>(i.take_split(index)),
+    };
+    res
+  }
+}
+
 <span class="doccomment">/// Matches a byte string with escaped characters.
 ///
 /// * The first argument matches the normal characters (it must not accept the control character)
@@ -1184,7 +1249,6 @@
 /// * The third argument matches the escaped characters
 /// # Example
 /// ```
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::ErrorKind, Needed, IResult};
 /// # use nom::character::complete::digit1;
 /// use nom::bytes::complete::escaped;
@@ -1222,10 +1286,17 @@
     <span class="kw">let </span><span class="kw-2">mut </span>i = input.clone();
 
     <span class="kw">while </span>i.input_len() &gt; <span class="number">0 </span>{
+      <span class="kw">let </span>current_len = i.input_len();
+
       <span class="kw">match </span>normal.parse(i.clone()) {
         <span class="prelude-val">Ok</span>((i2, <span class="kw">_</span>)) =&gt; {
-          <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
+          <span class="comment">// return if we consumed everything or if the normal parser
+          // does not consume anything
+          </span><span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>((input.slice(input.input_len()..), input));
+          } <span class="kw">else if </span>i2.input_len() == current_len {
+            <span class="kw">let </span>index = input.offset(<span class="kw-2">&amp;</span>i2);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(input.take_split(index));
           } <span class="kw">else </span>{
             i = i2;
           }
@@ -1272,29 +1343,6 @@
   }
 }
 
-<span class="attr">#[doc(hidden)]
-</span><span class="kw">pub fn </span>escapedc&lt;Input, Error, F, G, O1, O2&gt;(
-  i: Input,
-  normal: F,
-  control_char: char,
-  escapable: G,
-) -&gt; IResult&lt;Input, Input, Error&gt;
-<span class="kw">where
-  </span>Input: Clone
-    + <span class="kw">crate</span>::traits::Offset
-    + InputLength
-    + InputTake
-    + InputTakeAtPosition
-    + Slice&lt;RangeFrom&lt;usize&gt;&gt;
-    + InputIter,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
-  F: Fn(Input) -&gt; IResult&lt;Input, O1, Error&gt;,
-  G: Fn(Input) -&gt; IResult&lt;Input, O2, Error&gt;,
-  Error: ParseError&lt;Input&gt;,
-{
-  escaped(normal, control_char, escapable)(i)
-}
-
 <span class="doccomment">/// Matches a byte string with escaped characters.
 ///
 /// * The first argument matches the normal characters (it must not match the control character)
@@ -1304,7 +1352,6 @@
 /// As an example, the chain `abc\tdef` could be `abc    def` (it also consumes the control character)
 ///
 /// ```
-/// # #[macro_use] extern crate nom;
 /// # use nom::{Err, error::ErrorKind, Needed, IResult};
 /// # use std::str::from_utf8;
 /// use nom::bytes::complete::{escaped_transform, tag};
@@ -1359,12 +1406,15 @@
     <span class="kw">let </span>i = input.clone();
 
     <span class="kw">while </span>index &lt; i.input_len() {
+      <span class="kw">let </span>current_len = i.input_len();
       <span class="kw">let </span>remainder = i.slice(index..);
       <span class="kw">match </span>normal.parse(remainder.clone()) {
         <span class="prelude-val">Ok</span>((i2, o)) =&gt; {
           o.extend_into(<span class="kw-2">&amp;mut </span>res);
           <span class="kw">if </span>i2.input_len() == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>((i.slice(i.input_len()..), res));
+          } <span class="kw">else if </span>i2.input_len() == current_len {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>((remainder, res));
           } <span class="kw">else </span>{
             index = input.offset(<span class="kw-2">&amp;</span>i2);
           }
@@ -1410,34 +1460,6 @@
   }
 }
 
-<span class="attr">#[doc(hidden)]
-#[cfg(feature = <span class="string">"alloc"</span>)]
-#[cfg_attr(feature = <span class="string">"docsrs"</span>, doc(cfg(feature = <span class="string">"alloc"</span>)))]
-</span><span class="kw">pub fn </span>escaped_transformc&lt;Input, Error, F, G, O1, O2, ExtendItem, Output&gt;(
-  i: Input,
-  normal: F,
-  control_char: char,
-  transform: G,
-) -&gt; IResult&lt;Input, Output, Error&gt;
-<span class="kw">where
-  </span>Input: Clone
-    + <span class="kw">crate</span>::traits::Offset
-    + InputLength
-    + InputTake
-    + InputTakeAtPosition
-    + Slice&lt;RangeFrom&lt;usize&gt;&gt;
-    + InputIter,
-  Input: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
-  O1: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
-  O2: <span class="kw">crate</span>::traits::ExtendInto&lt;Item = ExtendItem, Extender = Output&gt;,
-  &lt;Input <span class="kw">as </span>InputIter&gt;::Item: <span class="kw">crate</span>::traits::AsChar,
-  F: Fn(Input) -&gt; IResult&lt;Input, O1, Error&gt;,
-  G: Fn(Input) -&gt; IResult&lt;Input, O2, Error&gt;,
-  Error: ParseError&lt;Input&gt;,
-{
-  escaped_transform(normal, control_char, transform)(i)
-}
-
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
   <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -1454,6 +1476,38 @@
     <span class="kw">let </span>result: IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; =
       <span class="kw">super</span>::take_while_m_n(<span class="number">1</span>, <span class="number">1</span>, |c: char| c.is_alphabetic())(<span class="string">"øn"</span>);
     <span class="macro">assert_eq!</span>(result, <span class="prelude-val">Ok</span>((<span class="string">"n"</span>, <span class="string">"ø"</span>)));
+  }
+
+  <span class="comment">// issue #1336 "escaped hangs if normal parser accepts empty"
+  </span><span class="kw">fn </span>escaped_string(input: <span class="kw-2">&amp;</span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span>str, <span class="kw-2">&amp;</span>str&gt; {
+    <span class="kw">use </span><span class="kw">crate</span>::character::complete::{alpha0, one_of};
+    escaped(alpha0, <span class="string">'\\'</span>, one_of(<span class="string">"n"</span>))(input)
+  }
+
+  <span class="comment">// issue #1336 "escaped hangs if normal parser accepts empty"
+  </span><span class="attr">#[test]
+  </span><span class="kw">fn </span>escaped_hang() {
+    escaped_string(<span class="string">"7"</span>).unwrap();
+    escaped_string(<span class="string">"a7"</span>).unwrap();
+  }
+
+  <span class="comment">// issue ##1118 escaped does not work with empty string
+  </span><span class="kw">fn </span>unquote&lt;<span class="lifetime">'a</span>&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str) -&gt; IResult&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
+    <span class="kw">use </span><span class="kw">crate</span>::bytes::complete::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::character::complete::<span class="kw-2">*</span>;
+    <span class="kw">use </span><span class="kw">crate</span>::combinator::opt;
+    <span class="kw">use </span><span class="kw">crate</span>::sequence::delimited;
+
+    delimited(
+      char(<span class="string">'"'</span>),
+      escaped(opt(none_of(<span class="string">r#"\""#</span>)), <span class="string">'\\'</span>, one_of(<span class="string">r#"\"rnt"#</span>)),
+      char(<span class="string">'"'</span>),
+    )(input)
+  }
+
+  <span class="attr">#[test]
+  </span><span class="kw">fn </span>escaped_hang_1118() {
+    <span class="macro">assert_eq!</span>(unquote(<span class="string">r#""""#</span>), <span class="prelude-val">Ok</span>((<span class="string">""</span>, <span class="string">""</span>)));
   }
 }
 </code></pre></div></section></main></body></html>

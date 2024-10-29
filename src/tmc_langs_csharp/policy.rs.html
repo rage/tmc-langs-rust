@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `plugins/csharp/src/policy.rs`."><title>policy.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_csharp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/csharp/src/policy.rs`."><title>policy.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_csharp" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -69,13 +69,6 @@
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Student file policy for the C# plugin.
 
 </span><span class="kw">use </span>std::path::Path;
@@ -112,11 +105,14 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.project_config
     }
 
-    <span class="comment">// false for files in bin or obj directories, true for other files in src.
-    </span><span class="kw">fn </span>is_student_source_file(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
-        path.starts_with(<span class="string">"src"</span>) &amp;&amp; !<span class="self">Self</span>::is_child_of_binary_dir(path)
-        <span class="comment">// exclude .csproj files
-        </span>&amp;&amp; !path.extension().map(|ext| ext == <span class="string">"csproj"</span>).unwrap_or_default()
+    <span class="comment">// false for .csproj files and files in bin or obj directories
+    // true for files in src except for .csproj files
+    </span><span class="kw">fn </span>is_non_extra_student_file(<span class="kw-2">&amp;</span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+        path.starts_with(<span class="string">"src"</span>)
+            <span class="comment">// exclude files in bin
+            </span>&amp;&amp; !<span class="self">Self</span>::is_child_of_binary_dir(path)
+            <span class="comment">// exclude .csproj files
+            </span>&amp;&amp; !path.extension().map(|ext| ext == <span class="string">"csproj"</span>).unwrap_or_default()
     }
 }
 
@@ -126,32 +122,22 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>file_in_binary_dir_is_not_student_file() {
-        <span class="macro">assert!</span>(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"src/bin/any/file"
-        </span>)));
-        <span class="macro">assert!</span>(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"obj/any/src/file"
-        </span>)));
+        <span class="kw">let </span>policy = CSharpStudentFilePolicy::new(Path::new(<span class="string">"."</span>)).unwrap();
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">"src/bin/any/file"</span>)));
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">"obj/any/src/file"</span>)));
     }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>file_in_src_is_student_file() {
-        <span class="macro">assert!</span>(CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"src/file"
-        </span>)));
-        <span class="macro">assert!</span>(CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"src/any/file"
-        </span>)));
+        <span class="kw">let </span>policy = CSharpStudentFilePolicy::new(Path::new(<span class="string">"."</span>)).unwrap();
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">"src/file"</span>)));
+        <span class="macro">assert!</span>(policy.is_student_file(Path::new(<span class="string">"src/any/file"</span>)));
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>csproj_file_in_src_is_not_student_file() {
-        <span class="macro">assert!</span>(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"src/file.csproj"
-        </span>)));
-        <span class="macro">assert!</span>(!CSharpStudentFilePolicy::is_student_source_file(Path::new(
-            <span class="string">"src/any/file.csproj"
-        </span>)));
+    </span><span class="kw">fn </span>csproj_is_not_student_file() {
+        <span class="kw">let </span>policy = CSharpStudentFilePolicy::new(Path::new(<span class="string">"."</span>)).unwrap();
+        <span class="macro">assert!</span>(!policy.is_student_file(Path::new(<span class="string">"src/Project.csproj"</span>)));
     }
 }
 </code></pre></div></section></main></body></html>

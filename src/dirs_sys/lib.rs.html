@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dirs-sys-0.3.7/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dirs_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/dirs-sys-0.4.1/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="dirs_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -214,7 +214,15 @@
 <a href="#214" id="214">214</a>
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>std::ffi::OsString;
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+</pre></div><pre class="rust"><code><span class="kw">extern crate </span>option_ext;
+
+<span class="kw">use </span>std::ffi::OsString;
 <span class="kw">use </span>std::path::PathBuf;
 
 <span class="comment">// we don't need to explicitly handle empty strings in the code above,
@@ -243,7 +251,7 @@
 
 <span class="kw">use </span><span class="kw">super</span>::libc;
 
-<span class="comment">// https://github.com/rust-lang/rust/blob/master/src/libstd/sys/unix/os.rs#L498
+<span class="comment">// https://github.com/rust-lang/rust/blob/2682b88c526d493edeb2d3f2df358f44db69b73f/library/std/src/sys/unix/os.rs#L595
 </span><span class="kw">pub fn </span>home_dir() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
     <span class="kw">return </span>env::var_os(<span class="string">"HOME"</span>)
         .and_then(|h| <span class="kw">if </span>h.is_empty() { <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(h) })
@@ -348,78 +356,82 @@
 </span><span class="kw">pub use </span><span class="self">self</span>::target_unix_not_mac::{user_dir, user_dirs};
 
 <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
-</span><span class="kw">extern crate </span>winapi;
+</span><span class="kw">extern crate </span>windows_sys <span class="kw">as </span>windows;
 
 <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
 </span><span class="kw">mod </span>target_windows {
 
+<span class="kw">use </span>std::ffi::c_void;
 <span class="kw">use </span>std::ffi::OsString;
 <span class="kw">use </span>std::os::windows::ffi::OsStringExt;
 <span class="kw">use </span>std::path::PathBuf;
-<span class="kw">use </span>std::ptr;
 <span class="kw">use </span>std::slice;
 
-<span class="kw">use </span><span class="kw">super</span>::winapi;
-<span class="kw">use </span><span class="kw">super</span>::winapi::shared::winerror;
-<span class="kw">use </span><span class="kw">super</span>::winapi::um::{combaseapi, knownfolders, shlobj, shtypes, winbase, winnt};
+<span class="kw">use </span><span class="kw">super</span>::windows::Win32;
+<span class="kw">use </span><span class="kw">super</span>::windows::Win32::UI::Shell;
 
-<span class="kw">pub fn </span>known_folder(folder_id: shtypes::REFKNOWNFOLDERID) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
+<span class="kw">pub fn </span>known_folder(folder_id: windows::core::GUID) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>path_ptr: winnt::PWSTR = ptr::null_mut();
-        <span class="kw">let </span>result = shlobj::SHGetKnownFolderPath(folder_id, <span class="number">0</span>, ptr::null_mut(), <span class="kw-2">&amp;mut </span>path_ptr);
-        <span class="kw">if </span>result == winerror::S_OK {
-            <span class="kw">let </span>len = winbase::lstrlenW(path_ptr) <span class="kw">as </span>usize;
+        <span class="kw">let </span><span class="kw-2">mut </span>path_ptr: windows::core::PWSTR = std::ptr::null_mut();
+        <span class="kw">let </span>result = Shell::SHGetKnownFolderPath(
+            <span class="kw-2">&amp;</span>folder_id,
+            <span class="number">0</span>,
+            Win32::Foundation::HANDLE::default(),
+            <span class="kw-2">&amp;mut </span>path_ptr
+        );
+        <span class="kw">if </span>result == <span class="number">0 </span>{
+            <span class="kw">let </span>len = windows::Win32::Globalization::lstrlenW(path_ptr) <span class="kw">as </span>usize;
             <span class="kw">let </span>path = slice::from_raw_parts(path_ptr, len);
             <span class="kw">let </span>ostr: OsString = OsStringExt::from_wide(path);
-            combaseapi::CoTaskMemFree(path_ptr <span class="kw">as </span><span class="kw-2">*mut </span>winapi::ctypes::c_void);
+            windows::Win32::System::Com::CoTaskMemFree(path_ptr <span class="kw">as </span><span class="kw-2">*const </span>c_void);
             <span class="prelude-val">Some</span>(PathBuf::from(ostr))
         } <span class="kw">else </span>{
-            combaseapi::CoTaskMemFree(path_ptr <span class="kw">as </span><span class="kw-2">*mut </span>winapi::ctypes::c_void);
+            windows::Win32::System::Com::CoTaskMemFree(path_ptr <span class="kw">as </span><span class="kw-2">*const </span>c_void);
             <span class="prelude-val">None
         </span>}
     }
 }
 
 <span class="kw">pub fn </span>known_folder_profile() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Profile)
+    known_folder(Shell::FOLDERID_Profile)
 }
 
 <span class="kw">pub fn </span>known_folder_roaming_app_data() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_RoamingAppData)
+    known_folder(Shell::FOLDERID_RoamingAppData)
 }
 
 <span class="kw">pub fn </span>known_folder_local_app_data() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_LocalAppData)
+    known_folder(Shell::FOLDERID_LocalAppData)
 }
 
 <span class="kw">pub fn </span>known_folder_music() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Music)
+    known_folder(Shell::FOLDERID_Music)
 }
 
 <span class="kw">pub fn </span>known_folder_desktop() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Desktop)
+    known_folder(Shell::FOLDERID_Desktop)
 }
 
 <span class="kw">pub fn </span>known_folder_documents() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Documents)
+    known_folder(Shell::FOLDERID_Documents)
 }
 
 <span class="kw">pub fn </span>known_folder_downloads() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Downloads)
+    known_folder(Shell::FOLDERID_Downloads)
 }
 
 <span class="kw">pub fn </span>known_folder_pictures() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Pictures)
+    known_folder(Shell::FOLDERID_Pictures)
 }
 
 <span class="kw">pub fn </span>known_folder_public() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Public)
+    known_folder(Shell::FOLDERID_Public)
 }
 <span class="kw">pub fn </span>known_folder_templates() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Templates)
+    known_folder(Shell::FOLDERID_Templates)
 }
 <span class="kw">pub fn </span>known_folder_videos() -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
-    known_folder(<span class="kw-2">&amp;</span>knownfolders::FOLDERID_Videos)
+    known_folder(Shell::FOLDERID_Videos)
 }
 
 }

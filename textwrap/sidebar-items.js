@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["dedent","fill","indent","wrap","wrap_iter"],"struct":["HyphenSplitter","IntoWrapIter","NoHyphenation","WrapIter","Wrapper"],"trait":["WordSplitter"]};

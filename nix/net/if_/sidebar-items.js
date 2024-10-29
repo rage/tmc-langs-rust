@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["if_nametoindex"],"struct":["InterfaceFlags"]};

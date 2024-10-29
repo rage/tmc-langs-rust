@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zstd-0.6.1+zstd.1.4.9/src/stream/read/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="zstd" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/zstd-0.13.2/src/stream/read/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="zstd" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -230,19 +230,20 @@
 <a href="#230" id="230">230</a>
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implement pull-based [`Read`] trait for both compressing and decompressing.
 </span><span class="kw">use </span>std::io::{<span class="self">self</span>, BufRead, BufReader, Read};
-
-<span class="attr">#[cfg(feature = <span class="string">"tokio"</span>)]
-</span><span class="kw">use </span>tokio_io::AsyncRead;
 
 <span class="kw">use </span><span class="kw">crate</span>::dict::{DecoderDictionary, EncoderDictionary};
 <span class="kw">use </span><span class="kw">crate</span>::stream::{raw, zio};
 <span class="kw">use </span>zstd_safe;
-
-<span class="attr">#[cfg(test)]
-#[cfg(feature = <span class="string">"tokio"</span>)]
-</span><span class="kw">mod </span>async_tests;
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
@@ -251,12 +252,12 @@
 ///
 /// This allows to read a stream of compressed data
 /// (good for files or heavy network stream).
-</span><span class="kw">pub struct </span>Decoder&lt;<span class="lifetime">'a</span>, R: BufRead&gt; {
+</span><span class="kw">pub struct </span>Decoder&lt;<span class="lifetime">'a</span>, R&gt; {
     reader: zio::Reader&lt;R, raw::Decoder&lt;<span class="lifetime">'a</span>&gt;&gt;,
 }
 
 <span class="doccomment">/// An encoder that compress input data from another `Read`.
-</span><span class="kw">pub struct </span>Encoder&lt;<span class="lifetime">'a</span>, R: BufRead&gt; {
+</span><span class="kw">pub struct </span>Encoder&lt;<span class="lifetime">'a</span>, R&gt; {
     reader: zio::Reader&lt;R, raw::Encoder&lt;<span class="lifetime">'a</span>&gt;&gt;,
 }
 
@@ -285,9 +286,23 @@
     }
 }
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, R: BufRead&gt; Decoder&lt;<span class="lifetime">'a</span>, R&gt; {
+    <span class="doccomment">/// Creates a new decoder which employs the provided context for deserialization.
+    </span><span class="kw">pub fn </span>with_context(
+        reader: R,
+        context: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>zstd_safe::DCtx&lt;<span class="lifetime">'static</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            reader: zio::Reader::new(
+                reader,
+                raw::Decoder::with_context(context),
+            ),
+        }
+    }
+
     <span class="doccomment">/// Sets this `Decoder` to stop after the first frame.
     ///
     /// By default, it keeps concatenating frames until EOF is reached.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>single_frame(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.reader.set_single_frame();
         <span class="self">self
@@ -309,25 +324,25 @@
         <span class="prelude-val">Ok</span>(Decoder { reader })
     }
 
+    <span class="doccomment">/// Creates a new decoder, using a ref prefix.
+    ///
+    /// The prefix must be the same as the one used during compression.
+    </span><span class="kw">pub fn </span>with_ref_prefix&lt;<span class="lifetime">'b</span>&gt;(
+        reader: R,
+        ref_prefix: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>[u8]
+    ) -&gt; io::Result&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
+        </span><span class="lifetime">'b</span>: <span class="lifetime">'a</span>,
+    {
+        <span class="kw">let </span>decoder = raw::Decoder::with_ref_prefix(ref_prefix)<span class="question-mark">?</span>;
+        <span class="kw">let </span>reader = zio::Reader::new(reader, decoder);
+
+        <span class="prelude-val">Ok</span>(Decoder { reader })
+    }
+
     <span class="doccomment">/// Recommendation for the size of the output buffer.
     </span><span class="kw">pub fn </span>recommended_output_size() -&gt; usize {
         zstd_safe::DCtx::out_size()
-    }
-
-    <span class="doccomment">/// Enables or disabled expecting the 4-byte magic header
-    </span><span class="kw">pub fn </span>include_magicbytes(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        include_magicbytes: bool,
-    ) -&gt; io::Result&lt;()&gt; {
-        <span class="self">self</span>.reader
-            .operation_mut()
-            .set_parameter(<span class="kw">if </span>include_magicbytes {
-                zstd_safe::DParameter::Format(zstd_safe::FrameFormat::One)
-            } <span class="kw">else </span>{
-                zstd_safe::DParameter::Format(
-                    zstd_safe::FrameFormat::Magicless,
-                )
-            })
     }
 
     <span class="doccomment">/// Acquire a reference to the underlying reader.
@@ -350,19 +365,14 @@
     </span><span class="kw">pub fn </span>finish(<span class="self">self</span>) -&gt; R {
         <span class="self">self</span>.reader.into_inner()
     }
+
+    <span class="macro">crate::decoder_common!</span>(reader);
 }
 
 <span class="kw">impl</span>&lt;R: BufRead&gt; Read <span class="kw">for </span>Decoder&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.reader.read(buf)
     }
-}
-
-<span class="attr">#[cfg(feature = <span class="string">"tokio"</span>)]
-</span><span class="kw">impl</span>&lt;R: AsyncRead + BufRead&gt; AsyncRead <span class="kw">for </span>Decoder&lt;<span class="lifetime">'_</span>, R&gt; {
-    <span class="kw">unsafe fn </span>prepare_uninitialized_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, _buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; bool {
-        <span class="bool-val">false
-    </span>}
 }
 
 <span class="kw">impl</span>&lt;R: Read&gt; Encoder&lt;<span class="lifetime">'static</span>, BufReader&lt;R&gt;&gt; {
@@ -430,6 +440,19 @@
         <span class="self">self</span>.reader.reader_mut()
     }
 
+    <span class="doccomment">/// Flush any internal buffer.
+    ///
+    /// This ensures all input consumed so far is compressed.
+    ///
+    /// Since it prevents bundling currently buffered data with future input,
+    /// it may affect compression ratio.
+    ///
+    /// * Returns the number of bytes written to `out`.
+    /// * Returns `Ok(0)` when everything has been flushed.
+    </span><span class="kw">pub fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>, out: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
+        <span class="self">self</span>.reader.flush(out)
+    }
+
     <span class="doccomment">/// Return the inner `Read`.
     ///
     /// Calling `finish()` is not *required* after reading a stream -
@@ -438,20 +461,13 @@
         <span class="self">self</span>.reader.into_inner()
     }
 
-    <span class="macro">crate::readwritecommon!</span>(reader);
+    <span class="macro">crate::encoder_common!</span>(reader);
 }
 
 <span class="kw">impl</span>&lt;R: BufRead&gt; Read <span class="kw">for </span>Encoder&lt;<span class="lifetime">'_</span>, R&gt; {
     <span class="kw">fn </span>read(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; io::Result&lt;usize&gt; {
         <span class="self">self</span>.reader.read(buf)
     }
-}
-
-<span class="attr">#[cfg(feature = <span class="string">"tokio"</span>)]
-</span><span class="kw">impl</span>&lt;R: AsyncRead + BufRead&gt; AsyncRead <span class="kw">for </span>Encoder&lt;<span class="lifetime">'_</span>, R&gt; {
-    <span class="kw">unsafe fn </span>prepare_uninitialized_buffer(<span class="kw-2">&amp;</span><span class="self">self</span>, _buf: <span class="kw-2">&amp;mut </span>[u8]) -&gt; bool {
-        <span class="bool-val">false
-    </span>}
 }
 
 <span class="kw">fn </span>_assert_traits() {

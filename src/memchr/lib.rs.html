@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memchr-2.3.4/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memchr-2.7.4/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="memchr" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -219,685 +219,225 @@
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a>
-<a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a>
-<a href="#394" id="394">394</a>
-<a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
-<a href="#416" id="416">416</a>
-<a href="#417" id="417">417</a>
-<a href="#418" id="418">418</a>
-<a href="#419" id="419">419</a>
-<a href="#420" id="420">420</a>
-<a href="#421" id="421">421</a>
-<a href="#422" id="422">422</a>
-<a href="#423" id="423">423</a>
-<a href="#424" id="424">424</a>
-<a href="#425" id="425">425</a>
-<a href="#426" id="426">426</a>
-<a href="#427" id="427">427</a>
-<a href="#428" id="428">428</a>
-<a href="#429" id="429">429</a>
-<a href="#430" id="430">430</a>
-<a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
 </pre></div><pre class="rust"><code><span class="doccomment">/*!
-The `memchr` crate provides heavily optimized routines for searching bytes.
+This library provides heavily optimized routines for string search primitives.
 
-The `memchr` function is traditionally provided by libc, however, the
-performance of `memchr` can vary significantly depending on the specific
-implementation of libc that is used. They can range from manually tuned
-Assembly implementations (like that found in GNU's libc) all the way to
-non-vectorized C implementations (like that found in MUSL).
+# Overview
 
-To smooth out the differences between implementations of libc, at least
-on `x86_64` for Rust 1.27+, this crate provides its own implementation of
-`memchr` that should perform competitively with the one found in GNU's libc.
-The implementation is in pure Rust and has no dependency on a C compiler or an
-Assembler.
+This section gives a brief high level overview of what this crate offers.
 
-Additionally, GNU libc also provides an extension, `memrchr`. This crate
-provides its own implementation of `memrchr` as well, on top of `memchr2`,
-`memchr3`, `memrchr2` and `memrchr3`. The difference between `memchr` and
-`memchr2` is that that `memchr2` permits finding all occurrences of two bytes
-instead of one. Similarly for `memchr3`.
+* The top-level module provides routines for searching for 1, 2 or 3 bytes
+  in the forward or reverse direction. When searching for more than one byte,
+  positions are considered a match if the byte at that position matches any
+  of the bytes.
+* The [`memmem`] sub-module provides forward and reverse substring search
+  routines.
+
+In all such cases, routines operate on `&amp;[u8]` without regard to encoding. This
+is exactly what you want when searching either UTF-8 or arbitrary bytes.
+
+# Example: using `memchr`
+
+This example shows how to use `memchr` to find the first occurrence of `z` in
+a haystack:
+
+```
+use memchr::memchr;
+
+let haystack = b"foo bar baz quuz";
+assert_eq!(Some(10), memchr(b'z', haystack));
+```
+
+# Example: matching one of three possible bytes
+
+This examples shows how to use `memrchr3` to find occurrences of `a`, `b` or
+`c`, starting at the end of the haystack.
+
+```
+use memchr::memchr3_iter;
+
+let haystack = b"xyzaxyzbxyzc";
+
+let mut it = memchr3_iter(b'a', b'b', b'c', haystack).rev();
+assert_eq!(Some(11), it.next());
+assert_eq!(Some(7), it.next());
+assert_eq!(Some(3), it.next());
+assert_eq!(None, it.next());
+```
+
+# Example: iterating over substring matches
+
+This example shows how to use the [`memmem`] sub-module to find occurrences of
+a substring in a haystack.
+
+```
+use memchr::memmem;
+
+let haystack = b"foo bar foo baz foo";
+
+let mut it = memmem::find_iter(haystack, "foo");
+assert_eq!(Some(0), it.next());
+assert_eq!(Some(8), it.next());
+assert_eq!(Some(16), it.next());
+assert_eq!(None, it.next());
+```
+
+# Example: repeating a search for the same needle
+
+It may be possible for the overhead of constructing a substring searcher to be
+measurable in some workloads. In cases where the same needle is used to search
+many haystacks, it is possible to do construction once and thus to avoid it for
+subsequent searches. This can be done with a [`memmem::Finder`]:
+
+```
+use memchr::memmem;
+
+let finder = memmem::Finder::new("foo");
+
+assert_eq!(Some(4), finder.find(b"baz foo quux"));
+assert_eq!(None, finder.find(b"quux baz bar"));
+```
+
+# Why use this crate?
+
+At first glance, the APIs provided by this crate might seem weird. Why provide
+a dedicated routine like `memchr` for something that could be implemented
+clearly and trivially in one line:
+
+```
+fn memchr(needle: u8, haystack: &amp;[u8]) -&gt; Option&lt;usize&gt; {
+    haystack.iter().position(|&amp;b| b == needle)
+}
+```
+
+Or similarly, why does this crate provide substring search routines when Rust's
+core library already provides them?
+
+```
+fn search(haystack: &amp;str, needle: &amp;str) -&gt; Option&lt;usize&gt; {
+    haystack.find(needle)
+}
+```
+
+The primary reason for both of them to exist is performance. When it comes to
+performance, at a high level at least, there are two primary ways to look at
+it:
+
+* **Throughput**: For this, think about it as, "given some very large haystack
+  and a byte that never occurs in that haystack, how long does it take to
+  search through it and determine that it, in fact, does not occur?"
+* **Latency**: For this, think about it as, "given a tiny haystack---just a
+  few bytes---how long does it take to determine if a byte is in it?"
+
+The `memchr` routine in this crate has _slightly_ worse latency than the
+solution presented above, however, its throughput can easily be over an
+order of magnitude faster. This is a good general purpose trade off to make.
+You rarely lose, but often gain big.
+
+**NOTE:** The name `memchr` comes from the corresponding routine in `libc`. A
+key advantage of using this library is that its performance is not tied to its
+quality of implementation in the `libc` you happen to be using, which can vary
+greatly from platform to platform.
+
+But what about substring search? This one is a bit more complicated. The
+primary reason for its existence is still indeed performance, but it's also
+useful because Rust's core library doesn't actually expose any substring
+search routine on arbitrary bytes. The only substring search routine that
+exists works exclusively on valid UTF-8.
+
+So if you have valid UTF-8, is there a reason to use this over the standard
+library substring search routine? Yes. This routine is faster on almost every
+metric, including latency. The natural question then, is why isn't this
+implementation in the standard library, even if only for searching on UTF-8?
+The reason is that the implementation details for using SIMD in the standard
+library haven't quite been worked out yet.
+
+**NOTE:** Currently, only `x86_64`, `wasm32` and `aarch64` targets have vector
+accelerated implementations of `memchr` (and friends) and `memmem`.
+
+# Crate features
+
+* **std** - When enabled (the default), this will permit features specific to
+the standard library. Currently, the only thing used from the standard library
+is runtime SIMD CPU feature detection. This means that this feature must be
+enabled to get AVX2 accelerated routines on `x86_64` targets without enabling
+the `avx2` feature at compile time, for example. When `std` is not enabled,
+this crate will still attempt to use SSE2 accelerated routines on `x86_64`. It
+will also use AVX2 accelerated routines when the `avx2` feature is enabled at
+compile time. In general, enable this feature if you can.
+* **alloc** - When enabled (the default), APIs in this crate requiring some
+kind of allocation will become available. For example, the
+[`memmem::Finder::into_owned`](crate::memmem::Finder::into_owned) API and the
+[`arch::all::shiftor`](crate::arch::all::shiftor) substring search
+implementation. Otherwise, this crate is designed from the ground up to be
+usable in core-only contexts, so the `alloc` feature doesn't add much
+currently. Notably, disabling `std` but enabling `alloc` will **not** result
+in the use of AVX2 on `x86_64` targets unless the `avx2` feature is enabled
+at compile time. (With `std` enabled, AVX2 can be used even without the `avx2`
+feature enabled at compile time by way of runtime CPU feature detection.)
+* **logging** - When enabled (disabled by default), the `log` crate is used
+to emit log messages about what kinds of `memchr` and `memmem` algorithms
+are used. Namely, both `memchr` and `memmem` have a number of different
+implementation choices depending on the target and CPU, and the log messages
+can help show what specific implementations are being used. Generally, this is
+useful for debugging performance issues.
+* **libc** - **DEPRECATED**. Previously, this enabled the use of the target's
+`memchr` function from whatever `libc` was linked into the program. This
+feature is now a no-op because this crate's implementation of `memchr` should
+now be sufficiently fast on a number of platforms that `libc` should no longer
+be needed. (This feature is somewhat of a holdover from this crate's origins.
+Originally, this crate was literally just a safe wrapper function around the
+`memchr` function from `libc`.)
 */
 
-</span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
-#![deny(missing_docs)]
-#![doc(html_root_url = <span class="string">"https://docs.rs/memchr/2.0.0"</span>)]
+</span><span class="attr">#![deny(missing_docs)]
+#![no_std]
+</span><span class="comment">// It's just not worth trying to squash all dead code warnings. Pretty
+// unfortunate IMO. Not really sure how to fix this other than to either
+// live with it or sprinkle a whole mess of `cfg` annotations everywhere.
+</span><span class="attr">#![cfg_attr(
+    not(any(
+        all(target_arch = <span class="string">"x86_64"</span>, target_feature = <span class="string">"sse2"</span>),
+        all(target_arch = <span class="string">"wasm32"</span>, target_feature = <span class="string">"simd128"</span>),
+        target_arch = <span class="string">"aarch64"</span>,
+    )),
+    allow(dead_code)
+)]
+</span><span class="comment">// Same deal for miri.
+</span><span class="attr">#![cfg_attr(miri, allow(dead_code, unused_macros))]
 
 </span><span class="comment">// Supporting 8-bit (or others) would be fine. If you need it, please submit a
-// bug report at https://github.com/BurntSushi/rust-memchr
+// bug report at https://github.com/BurntSushi/memchr
 </span><span class="attr">#[cfg(not(any(
     target_pointer_width = <span class="string">"16"</span>,
     target_pointer_width = <span class="string">"32"</span>,
     target_pointer_width = <span class="string">"64"
 </span>)))]
-</span><span class="macro">compile_error!</span>(<span class="string">"memchr currently not supported on non-32 or non-64 bit"</span>);
+</span><span class="macro">compile_error!</span>(<span class="string">"memchr currently not supported on non-{16,32,64}"</span>);
 
-<span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-</span><span class="kw">extern crate </span>core;
+<span class="attr">#[cfg(any(test, feature = <span class="string">"std"</span>))]
+</span><span class="kw">extern crate </span>std;
 
-<span class="attr">#[cfg(all(test, all(not(miri), feature = <span class="string">"std"</span>)))]
+<span class="attr">#[cfg(any(test, feature = <span class="string">"alloc"</span>))]
+</span><span class="kw">extern crate </span>alloc;
+
+<span class="kw">pub use </span><span class="kw">crate</span>::memchr::{
+    memchr, memchr2, memchr2_iter, memchr3, memchr3_iter, memchr_iter,
+    memrchr, memrchr2, memrchr2_iter, memrchr3, memrchr3_iter, memrchr_iter,
+    Memchr, Memchr2, Memchr3,
+};
+
+<span class="attr">#[macro_use]
+</span><span class="kw">mod </span>macros;
+
+<span class="attr">#[cfg(test)]
 #[macro_use]
-</span><span class="kw">extern crate </span>quickcheck;
-
-<span class="kw">use </span>core::iter::Rev;
-
-<span class="kw">pub use </span>iter::{Memchr, Memchr2, Memchr3};
-
-<span class="comment">// N.B. If you're looking for the cfg knobs for libc, see build.rs.
-</span><span class="attr">#[cfg(memchr_libc)]
-</span><span class="kw">mod </span>c;
-<span class="attr">#[allow(dead_code)]
-</span><span class="kw">mod </span>fallback;
-<span class="kw">mod </span>iter;
-<span class="kw">mod </span>naive;
-<span class="attr">#[cfg(all(test, all(not(miri), feature = <span class="string">"std"</span>)))]
 </span><span class="kw">mod </span>tests;
-<span class="attr">#[cfg(all(test, any(miri, not(feature = <span class="string">"std"</span>))))]
-#[path = <span class="string">"tests/miri.rs"</span>]
-</span><span class="kw">mod </span>tests;
-<span class="attr">#[cfg(all(not(miri), target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd))]
-</span><span class="kw">mod </span>x86;
 
-<span class="doccomment">/// An iterator over all occurrences of the needle in a haystack.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr_iter(needle: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; Memchr {
-    Memchr::new(needle, haystack)
-}
-
-<span class="doccomment">/// An iterator over all occurrences of the needles in a haystack.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr2_iter(needle1: u8, needle2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; Memchr2 {
-    Memchr2::new(needle1, needle2, haystack)
-}
-
-<span class="doccomment">/// An iterator over all occurrences of the needles in a haystack.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr3_iter(
-    needle1: u8,
-    needle2: u8,
-    needle3: u8,
-    haystack: <span class="kw-2">&amp;</span>[u8],
-) -&gt; Memchr3 {
-    Memchr3::new(needle1, needle2, needle3, haystack)
-}
-
-<span class="doccomment">/// An iterator over all occurrences of the needle in a haystack, in reverse.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr_iter(needle: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; Rev&lt;Memchr&gt; {
-    Memchr::new(needle, haystack).rev()
-}
-
-<span class="doccomment">/// An iterator over all occurrences of the needles in a haystack, in reverse.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr2_iter(
-    needle1: u8,
-    needle2: u8,
-    haystack: <span class="kw-2">&amp;</span>[u8],
-) -&gt; Rev&lt;Memchr2&gt; {
-    Memchr2::new(needle1, needle2, haystack).rev()
-}
-
-<span class="doccomment">/// An iterator over all occurrences of the needles in a haystack, in reverse.
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr3_iter(
-    needle1: u8,
-    needle2: u8,
-    needle3: u8,
-    haystack: <span class="kw-2">&amp;</span>[u8],
-) -&gt; Rev&lt;Memchr3&gt; {
-    Memchr3::new(needle1, needle2, needle3, haystack).rev()
-}
-
-<span class="doccomment">/// Search for the first occurrence of a byte in a slice.
-///
-/// This returns the index corresponding to the first occurrence of `needle` in
-/// `haystack`, or `None` if one is not found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().position(|&amp;b| b == needle)`, `memchr` will use a highly
-/// optimized routine that can be up to an order of magnitude faster in some
-/// cases.
-///
-/// # Example
-///
-/// This shows how to find the first position of a byte in a byte string.
-///
-/// ```
-/// use memchr::memchr;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memchr(b'k', haystack), Some(8));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr(needle: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        memchr_libc,
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        c::memchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(memchr_libc),
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memchr(n1, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle, haystack)
-    }
-}
-
-<span class="doccomment">/// Like `memchr`, but searches for either of two bytes instead of just one.
-///
-/// This returns the index corresponding to the first occurrence of `needle1`
-/// or the first occurrence of `needle2` in `haystack` (whichever occurs
-/// earlier), or `None` if neither one is found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().position(|&amp;b| b == needle1 || b == needle2)`, `memchr2`
-/// will use a highly optimized routine that can be up to an order of magnitude
-/// faster in some cases.
-///
-/// # Example
-///
-/// This shows how to find the first position of either of two bytes in a byte
-/// string.
-///
-/// ```
-/// use memchr::memchr2;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memchr2(b'k', b'q', haystack), Some(4));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr2(needle1: u8, needle2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memchr2(n1, n2, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memchr2(n1, n2, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memchr2(n1, n2, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle1, needle2, haystack)
-    }
-}
-
-<span class="doccomment">/// Like `memchr`, but searches for any of three bytes instead of just one.
-///
-/// This returns the index corresponding to the first occurrence of `needle1`,
-/// the first occurrence of `needle2`, or the first occurrence of `needle3` in
-/// `haystack` (whichever occurs earliest), or `None` if none are found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().position(|&amp;b| b == needle1 || b == needle2 ||
-/// b == needle3)`, `memchr3` will use a highly optimized routine that can be
-/// up to an order of magnitude faster in some cases.
-///
-/// # Example
-///
-/// This shows how to find the first position of any of three bytes in a byte
-/// string.
-///
-/// ```
-/// use memchr::memchr3;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memchr3(b'k', b'q', b'e', haystack), Some(2));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memchr3(
-    needle1: u8,
-    needle2: u8,
-    needle3: u8,
-    haystack: <span class="kw-2">&amp;</span>[u8],
-) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle1, needle2, needle3, haystack)
-    }
-}
-
-<span class="doccomment">/// Search for the last occurrence of a byte in a slice.
-///
-/// This returns the index corresponding to the last occurrence of `needle` in
-/// `haystack`, or `None` if one is not found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().rposition(|&amp;b| b == needle)`, `memrchr` will use a highly
-/// optimized routine that can be up to an order of magnitude faster in some
-/// cases.
-///
-/// # Example
-///
-/// This shows how to find the last position of a byte in a byte string.
-///
-/// ```
-/// use memchr::memrchr;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memrchr(b'o', haystack), Some(17));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr(needle: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memrchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memrchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        memchr_libc,
-        target_os = <span class="string">"linux"</span>,
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri)
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        c::memrchr(n1, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(all(memchr_libc, target_os = <span class="string">"linux"</span>)),
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memrchr(n1, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle, haystack)
-    }
-}
-
-<span class="doccomment">/// Like `memrchr`, but searches for either of two bytes instead of just one.
-///
-/// This returns the index corresponding to the last occurrence of `needle1`
-/// or the last occurrence of `needle2` in `haystack` (whichever occurs later),
-/// or `None` if neither one is found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().rposition(|&amp;b| b == needle1 || b == needle2)`, `memrchr2`
-/// will use a highly optimized routine that can be up to an order of magnitude
-/// faster in some cases.
-///
-/// # Example
-///
-/// This shows how to find the last position of either of two bytes in a byte
-/// string.
-///
-/// ```
-/// use memchr::memrchr2;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memrchr2(b'k', b'q', haystack), Some(8));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr2(needle1: u8, needle2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memrchr2(n1, n2, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memrchr2(n1, n2, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memrchr2(n1, n2, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle1, needle2, haystack)
-    }
-}
-
-<span class="doccomment">/// Like `memrchr`, but searches for any of three bytes instead of just one.
-///
-/// This returns the index corresponding to the last occurrence of `needle1`,
-/// the last occurrence of `needle2`, or the last occurrence of `needle3` in
-/// `haystack` (whichever occurs later), or `None` if none are found.
-///
-/// While this is operationally the same as something like
-/// `haystack.iter().rposition(|&amp;b| b == needle1 || b == needle2 ||
-/// b == needle3)`, `memrchr3` will use a highly optimized routine that can be
-/// up to an order of magnitude faster in some cases.
-///
-/// # Example
-///
-/// This shows how to find the last position of any of three bytes in a byte
-/// string.
-///
-/// ```
-/// use memchr::memrchr3;
-///
-/// let haystack = b"the quick brown fox";
-/// assert_eq!(memrchr3(b'k', b'q', b'e', haystack), Some(8));
-/// ```
-</span><span class="attr">#[inline]
-</span><span class="kw">pub fn </span>memrchr3(
-    needle1: u8,
-    needle2: u8,
-    needle3: u8,
-    haystack: <span class="kw-2">&amp;</span>[u8],
-) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-    <span class="attr">#[cfg(miri)]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        naive::memrchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="attr">#[cfg(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd, not(miri)))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        x86::memrchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="attr">#[cfg(all(
-        not(all(target_arch = <span class="string">"x86_64"</span>, memchr_runtime_simd)),
-        not(miri),
-    ))]
-    #[inline(always)]
-    </span><span class="kw">fn </span>imp(n1: u8, n2: u8, n3: u8, haystack: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
-        fallback::memrchr3(n1, n2, n3, haystack)
-    }
-
-    <span class="kw">if </span>haystack.is_empty() {
-        <span class="prelude-val">None
-    </span>} <span class="kw">else </span>{
-        imp(needle1, needle2, needle3, haystack)
-    }
-}
+<span class="kw">pub mod </span>arch;
+<span class="kw">mod </span>cow;
+<span class="kw">mod </span>ext;
+<span class="kw">mod </span>memchr;
+<span class="kw">pub mod </span>memmem;
+<span class="kw">mod </span>vector;
 </code></pre></div></section></main></body></html>

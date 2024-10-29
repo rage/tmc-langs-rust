@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.8.26/src/number.rs`."><title>number.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_yaml-0.9.34+deprecated/src/number.rs`."><title>number.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="serde_yaml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -548,13 +548,25 @@
 <a href="#548" id="548">548</a>
 <a href="#549" id="549">549</a>
 <a href="#550" id="550">550</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Error;
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::de;
+<span class="kw">use </span><span class="kw">crate</span>::error::{<span class="self">self</span>, Error, ErrorImpl};
 <span class="kw">use </span>serde::de::{Unexpected, Visitor};
 <span class="kw">use </span>serde::{forward_to_deserialize_any, Deserialize, Deserializer, Serialize, Serializer};
 <span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Debug, Display};
+<span class="kw">use </span>std::fmt::{<span class="self">self</span>, Display};
 <span class="kw">use </span>std::hash::{Hash, Hasher};
-<span class="kw">use </span>std::i64;
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="doccomment">/// Represents a YAML number, whether integer or floating point.
 </span><span class="attr">#[derive(Clone, PartialEq, PartialOrd)]
@@ -565,7 +577,7 @@
 <span class="comment">// "N" is a prefix of "NegInt"... this is a false positive.
 // https://github.com/Manishearth/rust-clippy/issues/1241
 </span><span class="attr">#[allow(clippy::enum_variant_names)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 </span><span class="kw">enum </span>N {
     PosInt(u64),
     <span class="doccomment">/// Always less than zero.
@@ -582,16 +594,13 @@
     /// return the integer value.
     ///
     /// ```
-    /// # use std::i64;
-    /// #
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// #
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
     /// let big = i64::MAX as u64 + 10;
-    /// let v = yaml(r#"
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: 9223372036854775817
     /// c: 256.0
-    /// "#);
+    /// "#)?;
     ///
     /// assert!(v["a"].is_i64());
     ///
@@ -600,6 +609,8 @@
     ///
     /// // Numbers with a decimal point are not considered integers.
     /// assert!(!v["c"].is_i64());
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     #[allow(clippy::cast_sign_loss)]
@@ -617,13 +628,12 @@
     /// return the integer value.
     ///
     /// ```
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// #
-    /// let v = yaml(r#"
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: -64
     /// c: 256.0
-    /// "#);
+    /// "#)?;
     ///
     /// assert!(v["a"].is_u64());
     ///
@@ -632,6 +642,8 @@
     ///
     /// // Numbers with a decimal point are not considered integers.
     /// assert!(!v["c"].is_u64());
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -650,20 +662,20 @@
     /// `is_u64` return false but this is not a guarantee in the future.
     ///
     /// ```
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// #
-    /// let v = yaml(r#"
-    /// ---
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 256.0
     /// b: 64
     /// c: -64
-    /// "#);
+    /// "#)?;
     ///
     /// assert!(v["a"].is_f64());
     ///
     /// // Integers.
     /// assert!(!v["b"].is_f64());
     /// assert!(!v["c"].is_f64());
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>is_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -677,21 +689,19 @@
     /// None otherwise.
     ///
     /// ```
-    /// # use std::i64;
-    /// #
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// #
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
     /// let big = i64::MAX as u64 + 10;
-    /// let v = yaml(r#"
-    /// ---
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: 9223372036854775817
     /// c: 256.0
-    /// "#);
+    /// "#)?;
     ///
     /// assert_eq!(v["a"].as_i64(), Some(64));
     /// assert_eq!(v["b"].as_i64(), None);
     /// assert_eq!(v["c"].as_i64(), None);
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_i64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;i64&gt; {
@@ -712,18 +722,18 @@
     /// None otherwise.
     ///
     /// ```
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// #
-    /// let v = yaml(r#"
-    /// ---
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 64
     /// b: -64
     /// c: 256.0
-    /// "#);
+    /// "#)?;
     ///
     /// assert_eq!(v["a"].as_u64(), Some(64));
     /// assert_eq!(v["b"].as_u64(), None);
     /// assert_eq!(v["c"].as_u64(), None);
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_u64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
@@ -736,26 +746,32 @@
     <span class="doccomment">/// Represents the number as f64 if possible. Returns None otherwise.
     ///
     /// ```
-    /// #
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// let v = yaml(r#"
-    /// ---
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
+    /// let v: serde_yaml::Value = serde_yaml::from_str(r#"
     /// a: 256.0
     /// b: 64
     /// c: -64
-    /// "#);
+    /// "#)?;
     ///
     /// assert_eq!(v["a"].as_f64(), Some(256.0));
     /// assert_eq!(v["b"].as_f64(), Some(64.0));
     /// assert_eq!(v["c"].as_f64(), Some(-64.0));
+    /// # Ok(())
+    /// # }
     /// ```
     ///
     /// ```
-    /// # use std::f64;
-    /// # fn yaml(i: &amp;str) -&gt; serde_yaml::Value { serde_yaml::from_str(i).unwrap() }
-    /// assert_eq!(yaml(".inf").as_f64(), Some(f64::INFINITY));
-    /// assert_eq!(yaml("-.inf").as_f64(), Some(f64::NEG_INFINITY));
-    /// assert!(yaml(".nan").as_f64().unwrap().is_nan());
+    /// # fn main() -&gt; serde_yaml::Result&lt;()&gt; {
+    /// let v: serde_yaml::Value = serde_yaml::from_str(".inf")?;
+    /// assert_eq!(v.as_f64(), Some(f64::INFINITY));
+    ///
+    /// let v: serde_yaml::Value = serde_yaml::from_str("-.inf")?;
+    /// assert_eq!(v.as_f64(), Some(f64::NEG_INFINITY));
+    ///
+    /// let v: serde_yaml::Value = serde_yaml::from_str(".nan")?;
+    /// assert!(v.as_f64().unwrap().is_nan());
+    /// # Ok(())
+    /// # }
     /// ```
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>as_f64(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;f64&gt; {
@@ -769,8 +785,6 @@
     <span class="doccomment">/// Returns true if this value is NaN and false otherwise.
     ///
     /// ```
-    /// # use std::f64;
-    /// #
     /// # use serde_yaml::Number;
     /// #
     /// assert!(!Number::from(256.0).is_nan());
@@ -795,8 +809,6 @@
     /// false otherwise.
     ///
     /// ```
-    /// # use std::f64;
-    /// #
     /// # use serde_yaml::Number;
     /// #
     /// assert!(!Number::from(256.0).is_infinite());
@@ -820,8 +832,6 @@
     <span class="doccomment">/// Returns true if this number is neither infinite nor NaN.
     ///
     /// ```
-    /// # use std::f64;
-    /// #
     /// # use serde_yaml::Number;
     /// #
     /// assert!(Number::from(256.0).is_finite());
@@ -843,11 +853,11 @@
     }
 }
 
-<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Number {
+<span class="kw">impl </span>Display <span class="kw">for </span>Number {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
         <span class="kw">match </span><span class="self">self</span>.n {
-            N::PosInt(i) =&gt; Display::fmt(<span class="kw-2">&amp;</span>i, formatter),
-            N::NegInt(i) =&gt; Display::fmt(<span class="kw-2">&amp;</span>i, formatter),
+            N::PosInt(i) =&gt; formatter.write_str(itoa::Buffer::new().format(i)),
+            N::NegInt(i) =&gt; formatter.write_str(itoa::Buffer::new().format(i)),
             N::Float(f) <span class="kw">if </span>f.is_nan() =&gt; formatter.write_str(<span class="string">".nan"</span>),
             N::Float(f) <span class="kw">if </span>f.is_infinite() =&gt; {
                 <span class="kw">if </span>f.is_sign_negative() {
@@ -856,14 +866,24 @@
                     formatter.write_str(<span class="string">".inf"</span>)
                 }
             }
-            N::Float(f) =&gt; Display::fmt(<span class="kw-2">&amp;</span>f, formatter),
+            N::Float(f) =&gt; formatter.write_str(ryu::Buffer::new().format_finite(f)),
         }
     }
 }
 
-<span class="kw">impl </span>Debug <span class="kw">for </span>Number {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-        Debug::fmt(<span class="kw-2">&amp;</span><span class="self">self</span>.n, formatter)
+<span class="kw">impl </span>FromStr <span class="kw">for </span>Number {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= Error;
+
+    <span class="kw">fn </span>from_str(repr: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(result) = de::visit_int(NumberVisitor, repr) {
+            <span class="kw">return </span>result;
+        }
+        <span class="kw">if </span>!de::digits_but_not_number(repr) {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(float) = de::parse_f64(repr) {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(float.into());
+            }
+        }
+        <span class="prelude-val">Err</span>(error::new(ErrorImpl::FailedToParseNumber))
     }
 }
 
@@ -948,37 +968,37 @@
     }
 }
 
+<span class="kw">struct </span>NumberVisitor;
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>NumberVisitor {
+    <span class="kw">type </span>Value = Number;
+
+    <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        formatter.write_str(<span class="string">"a number"</span>)
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>visit_i64&lt;E&gt;(<span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
+        <span class="prelude-val">Ok</span>(value.into())
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>visit_u64&lt;E&gt;(<span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
+        <span class="prelude-val">Ok</span>(value.into())
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>visit_f64&lt;E&gt;(<span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
+        <span class="prelude-val">Ok</span>(value.into())
+    }
+}
+
 <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Deserialize&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>Number {
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>deserialize&lt;D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Number, D::Error&gt;
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">'de</span>&gt;,
     {
-        <span class="kw">struct </span>NumberVisitor;
-
-        <span class="kw">impl</span>&lt;<span class="lifetime">'de</span>&gt; Visitor&lt;<span class="lifetime">'de</span>&gt; <span class="kw">for </span>NumberVisitor {
-            <span class="kw">type </span>Value = Number;
-
-            <span class="kw">fn </span>expecting(<span class="kw-2">&amp;</span><span class="self">self</span>, formatter: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-                formatter.write_str(<span class="string">"a number"</span>)
-            }
-
-            <span class="attr">#[inline]
-            </span><span class="kw">fn </span>visit_i64&lt;E&gt;(<span class="self">self</span>, value: i64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
-                <span class="prelude-val">Ok</span>(value.into())
-            }
-
-            <span class="attr">#[inline]
-            </span><span class="kw">fn </span>visit_u64&lt;E&gt;(<span class="self">self</span>, value: u64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
-                <span class="prelude-val">Ok</span>(value.into())
-            }
-
-            <span class="attr">#[inline]
-            </span><span class="kw">fn </span>visit_f64&lt;E&gt;(<span class="self">self</span>, value: f64) -&gt; <span class="prelude-ty">Result</span>&lt;Number, E&gt; {
-                <span class="prelude-val">Ok</span>(value.into())
-            }
-        }
-
         deserializer.deserialize_any(NumberVisitor)
     }
 }
@@ -1058,26 +1078,28 @@
     };
 }
 
-<span class="macro">macro_rules!</span> from_float {
-    ($(<span class="macro-nonterminal">$float_ty</span>:ident)<span class="kw-2">*</span>) =&gt; {
-        $(
-            <span class="kw">impl </span>From&lt;<span class="macro-nonterminal">$float_ty</span>&gt; <span class="kw">for </span>Number {
-                <span class="attr">#[inline]
-                </span><span class="kw">fn </span>from(f: <span class="macro-nonterminal">$float_ty</span>) -&gt; <span class="self">Self </span>{
-                    Number { n: N::Float(f <span class="kw">as </span>f64) }
-                }
-            }
-        )*
+<span class="macro">from_signed!</span>(i8 i16 i32 i64 isize);
+<span class="macro">from_unsigned!</span>(u8 u16 u32 u64 usize);
+
+<span class="kw">impl </span>From&lt;f32&gt; <span class="kw">for </span>Number {
+    <span class="kw">fn </span>from(f: f32) -&gt; <span class="self">Self </span>{
+        Number::from(f <span class="kw">as </span>f64)
     }
 }
 
-<span class="macro">from_signed!</span>(i8 i16 i32 i64 isize);
-<span class="macro">from_unsigned!</span>(u8 u16 u32 u64 usize);
-<span class="macro">from_float!</span>(f32 f64);
+<span class="kw">impl </span>From&lt;f64&gt; <span class="kw">for </span>Number {
+    <span class="kw">fn </span>from(<span class="kw-2">mut </span>f: f64) -&gt; <span class="self">Self </span>{
+        <span class="kw">if </span>f.is_nan() {
+            <span class="comment">// Destroy NaN sign, signaling, and payload. YAML only has one NaN.
+            </span>f = f64::NAN.copysign(<span class="number">1.0</span>);
+        }
+        Number { n: N::Float(f) }
+    }
+}
 
 <span class="comment">// This is fine, because we don't _really_ implement hash for floats
 // all other hash functions should work as expected
-</span><span class="attr">#[allow(clippy::derive_hash_xor_eq)]
+</span><span class="attr">#[allow(clippy::derived_hash_with_manual_eq)]
 </span><span class="kw">impl </span>Hash <span class="kw">for </span>Number {
     <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
         <span class="kw">match </span><span class="self">self</span>.n {

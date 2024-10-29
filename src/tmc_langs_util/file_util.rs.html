@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs-util/src/file_util.rs`."><title>file_util.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs-util/src/file_util.rs`."><title>file_util.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -352,64 +352,62 @@
 <a href="#352" id="352">352</a>
 <a href="#353" id="353">353</a>
 <a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
-</span><span class="kw">use </span><span class="kw">crate</span>::error::FileError;
-<span class="kw">use </span>fd_lock::FdLock;
-<span class="kw">use </span>std::fs::{<span class="self">self</span>, File, ReadDir};
-<span class="kw">use </span>std::io::{Read, Write};
-<span class="kw">use </span>std::ops::{Deref, DerefMut};
-<span class="kw">use </span>std::path::Path;
+</span><span class="attr">#[cfg(unix)]
+</span><span class="kw">mod </span>lock_unix;
+<span class="attr">#[cfg(windows)]
+</span><span class="kw">mod </span>lock_windows;
+
+<span class="kw">use </span><span class="kw">crate</span>::error::FileError;
+<span class="attr">#[cfg(unix)]
+</span><span class="kw">pub use </span>lock_unix::<span class="kw-2">*</span>;
+<span class="attr">#[cfg(windows)]
+</span><span class="kw">pub use </span>lock_windows::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{
+    fs::{<span class="self">self</span>, File, OpenOptions, ReadDir},
+    io::{Read, Write},
+    path::{Path, PathBuf},
+};
 <span class="kw">use </span>tempfile::NamedTempFile;
 <span class="kw">use </span>walkdir::WalkDir;
 
-<span class="doccomment">/// Convenience macro for locking a path.
-</span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules!</span> lock {
-    ( $( <span class="macro-nonterminal">$path</span>: expr ),+ ) =&gt; {
-        $(
-            <span class="kw">let </span>path_buf: PathBuf = <span class="macro-nonterminal">$path</span>.into();
-            <span class="kw">let </span><span class="kw-2">mut </span>fl = <span class="macro-nonterminal">$crate::file_util::FileLock::new</span>(path_buf)<span class="question-mark">?</span>;
-            <span class="kw">let </span>_lock = fl.lock()<span class="question-mark">?</span>;
-        )*
-    };
+<span class="kw">pub const </span>LOCK_FILE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">".tmc.lock"</span>;
+
+<span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>LockOptions {
+    <span class="doccomment">/// Shared read lock
+    </span>Read,
+    <span class="doccomment">/// Shared read lock, create file if it doesn't exist instead of erroring (including intermediate directories)
+    </span>ReadCreate,
+    <span class="doccomment">/// Shared write lock, create file if it doesn't exist, truncate if it does
+    </span>ReadTruncate,
+    <span class="doccomment">/// Exclusive write lock
+    </span>Write,
+    <span class="doccomment">/// Exclusive write lock, create file if it doesn't exist instead of erroring (including intermediate directories)
+    </span>WriteCreate,
+    <span class="doccomment">/// Exclusive write lock, create file if it doesn't exist, truncate if it does
+    </span>WriteTruncate,
 }
 
-<span class="comment">// macros always live at the top-level, re-export here
-</span><span class="kw">pub use </span><span class="kw">crate</span>::lock;
-
-<span class="kw">pub struct </span>FdLockWrapper(FdLock&lt;File&gt;);
-
-<span class="kw">impl </span>Deref <span class="kw">for </span>FdLockWrapper {
-    <span class="kw">type </span>Target = FdLock&lt;File&gt;;
-
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
-    </span>}
-}
-
-<span class="kw">impl </span>DerefMut <span class="kw">for </span>FdLockWrapper {
-    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
-    </span>}
-}
-
-<span class="kw">impl </span>Drop <span class="kw">for </span>FdLockWrapper {
-    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="comment">// todo: print the path
-        </span><span class="macro">log::debug!</span>(<span class="string">"unlocking file"</span>);
+<span class="kw">impl </span>LockOptions {
+    <span class="kw">fn </span>into_open_options(<span class="self">self</span>) -&gt; OpenOptions {
+        <span class="kw">let </span><span class="kw-2">mut </span>opts = OpenOptions::new();
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Read =&gt; opts.read(<span class="bool-val">true</span>),
+            <span class="comment">// create requires write
+            </span><span class="self">Self</span>::ReadCreate =&gt; opts.read(<span class="bool-val">true</span>).write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>),
+            <span class="comment">// truncate requires write
+            </span><span class="self">Self</span>::ReadTruncate =&gt; opts.write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).truncate(<span class="bool-val">true</span>),
+            <span class="self">Self</span>::Write =&gt; opts.write(<span class="bool-val">true</span>),
+            <span class="self">Self</span>::WriteCreate =&gt; opts.write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>),
+            <span class="self">Self</span>::WriteTruncate =&gt; opts.write(<span class="bool-val">true</span>).create(<span class="bool-val">true</span>).truncate(<span class="bool-val">true</span>),
+        };
+        opts
     }
 }
-
-<span class="attr">#[cfg(unix)]
-</span><span class="kw">mod </span>lock_unix;
-<span class="attr">#[cfg(unix)]
-</span><span class="kw">pub use </span>lock_unix::<span class="kw-2">*</span>;
-
-<span class="attr">#[cfg(windows)]
-</span><span class="kw">mod </span>lock_windows;
-<span class="attr">#[cfg(windows)]
-</span><span class="kw">pub use </span>lock_windows::<span class="kw-2">*</span>;
 
 <span class="kw">pub fn </span>temp_file() -&gt; <span class="prelude-ty">Result</span>&lt;File, FileError&gt; {
     tempfile::tempfile().map_err(FileError::TempFile)
@@ -419,18 +417,13 @@
     tempfile::NamedTempFile::new().map_err(FileError::TempFile)
 }
 
-<span class="kw">pub fn </span>open_file&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;File, FileError&gt; {
-    <span class="kw">let </span>path = path.as_ref();
-    File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
+<span class="kw">pub fn </span>named_temp_file_in(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;NamedTempFile, FileError&gt; {
+    tempfile::NamedTempFile::new_in(path).map_err(FileError::TempFile)
 }
 
-<span class="doccomment">/// Opens and locks the given file. Note: Does not work on directories on Windows.
-</span><span class="kw">pub fn </span>open_file_lock&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;FdLockWrapper, FileError&gt; {
-    <span class="macro">log::debug!</span>(<span class="string">"locking file {}"</span>, path.as_ref().display());
-
-    <span class="kw">let </span>file = open_file(path)<span class="question-mark">?</span>;
-    <span class="kw">let </span>lock = FdLockWrapper(FdLock::new(file));
-    <span class="prelude-val">Ok</span>(lock)
+<span class="kw">pub fn </span>open_file(path: <span class="kw">impl </span>AsRef&lt;Path&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;File, FileError&gt; {
+    <span class="kw">let </span>path = path.as_ref();
+    File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
 }
 
 <span class="kw">pub fn </span>read_file&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, FileError&gt; {
@@ -466,23 +459,26 @@
     File::create(path).map_err(|e| FileError::FileCreate(path.to_path_buf(), e))
 }
 
-<span class="doccomment">/// Creates a file and wraps it in a lock. If a file already exists at the path, it acquires a lock on it first and then recreates it.
-/// Note: creates all intermediary directories if needed.
-</span><span class="kw">pub fn </span>create_file_lock&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;FdLockWrapper, FileError&gt; {
-    <span class="macro">log::debug!</span>(<span class="string">"locking file {}"</span>, path.as_ref().display());
-
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(existing) = open_file(<span class="kw-2">&amp;</span>path) {
-        <span class="comment">// wait for an existing process to be done with the file before rewriting
-        </span><span class="kw">let </span><span class="kw-2">mut </span>lock = FdLock::new(existing);
-        lock.lock().expect(<span class="string">"\"On Unix this may return an error if the operation was interrupted by a signal handler.\"; sounds unlikely to ever actually cause problems"</span>);
+<span class="doccomment">/// Removes whatever is at the path, whether it is a directory or file. The _all suffix hopefully makes the function sound at least slightly dangerous.
+</span><span class="kw">pub fn </span>remove_all&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), FileError&gt; {
+    <span class="kw">let </span>path = path.as_ref();
+    <span class="kw">if </span>path.is_file() {
+        remove_file(path)
+    } <span class="kw">else if </span>path.is_dir() {
+        remove_dir_all(path)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(())
     }
-    <span class="kw">let </span>file = create_file(path)<span class="question-mark">?</span>;
-    <span class="kw">let </span>lock = FdLockWrapper(FdLock::new(file));
-    <span class="prelude-val">Ok</span>(lock)
 }
 
 <span class="kw">pub fn </span>remove_file&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), FileError&gt; {
     <span class="kw">let </span>path = path.as_ref();
+    fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
+}
+
+<span class="kw">pub fn </span>remove_file_locked&lt;P: AsRef&lt;Path&gt;&gt;(path: P) -&gt; <span class="prelude-ty">Result</span>&lt;(), FileError&gt; {
+    <span class="kw">let </span>path = path.as_ref();
+    <span class="kw">let </span>_lock = Lock::file(path, LockOptions::Write)<span class="question-mark">?</span>;
     fs::remove_file(path).map_err(|e| FileError::FileRemove(path.to_path_buf(), e))
 }
 
@@ -504,7 +500,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FileError&gt; {
     target
         .write_all(source.as_ref())
-        .map_err(|e| FileError::WriteError(e))<span class="question-mark">?</span>;
+        .map_err(FileError::WriteError)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -558,7 +554,7 @@
 
     <span class="kw">if </span>source.is_file() {
         <span class="kw">if </span>target.is_dir() {
-            <span class="macro">log::debug!</span>(
+            <span class="macro">log::trace!</span>(
                 <span class="string">"copying into dir {} -&gt; {}"</span>,
                 source.display(),
                 target.display()
@@ -575,7 +571,7 @@
                 source: e,
             })<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
-            <span class="macro">log::debug!</span>(<span class="string">"copying file {} -&gt; {}"</span>, source.display(), target.display());
+            <span class="macro">log::trace!</span>(<span class="string">"copying file {} -&gt; {}"</span>, source.display(), target.display());
             <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = target.parent() {
                 <span class="kw">if </span>!parent.exists() {
                     create_dir_all(parent)<span class="question-mark">?</span>;
@@ -588,7 +584,7 @@
             })<span class="question-mark">?</span>;
         }
     } <span class="kw">else </span>{
-        <span class="macro">log::debug!</span>(
+        <span class="macro">log::trace!</span>(
             <span class="string">"recursively copying {} -&gt; {}"</span>,
             source.display(),
             target.display()
@@ -600,7 +596,9 @@
             <span class="kw">for </span>entry <span class="kw">in </span>WalkDir::new(source) {
                 <span class="kw">let </span>entry = entry<span class="question-mark">?</span>;
                 <span class="kw">let </span>entry_path = entry.path();
-                <span class="kw">let </span>stripped = entry_path.strip_prefix(prefix).unwrap();
+                <span class="kw">let </span>stripped = entry_path
+                    .strip_prefix(prefix)
+                    .expect(<span class="string">"prefix is derived from the source which entry_path is in"</span>);
 
                 <span class="kw">let </span>target = target.join(stripped);
                 <span class="kw">if </span>entry_path.is_dir() {
@@ -621,7 +619,14 @@
     <span class="prelude-val">Ok</span>(())
 }
 
+<span class="kw">pub fn </span>canonicalize(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, FileError&gt; {
+    <span class="kw">let </span>canon =
+        dunce::canonicalize(path).map_err(|e| FileError::Canonicalize(path.to_path_buf(), e))<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(canon)
+}
+
 <span class="attr">#[cfg(test)]
+#[allow(clippy::unwrap_used)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>std::path::PathBuf;
@@ -690,7 +695,6 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>copies_dir() {
         init();
-
         <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"dir/another/file"</span>, <span class="string">"file contents"</span>);
         file_to(<span class="kw-2">&amp;</span>temp, <span class="string">"dir/elsewhere/f"</span>, <span class="string">"another file"</span>);

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["ptr"],"type":["JNIEnv","c_void","jlong","jobject"]};
+window.SIDEBAR_ITEMS = {"mod":["ptr"],"struct":["Instance"],"type":["JNIEnv","c_void","jlong","jobject"]};

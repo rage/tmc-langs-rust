@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/phf-0.7.24/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="phf" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/phf-0.11.2/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="phf" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -90,96 +90,216 @@
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Compile-time generated maps and sets.
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Rust-PHF is a library to generate efficient lookup tables at compile time using
+//! [perfect hash functions](http://en.wikipedia.org/wiki/Perfect_hash_function).
 //!
-//! The `phf::Map` and `phf::Set` types have roughly comparable performance to
-//! a standard hash table, but can be generated as compile-time static values.
+//! It currently uses the
+//! [CHD algorithm](http://cmph.sourceforge.net/papers/esa09.pdf) and can generate
+//! a 100,000 entry map in roughly .4 seconds.
 //!
-//! # Usage
+//! MSRV (minimum supported rust version) is Rust 1.60.
 //!
-//! If the `macros` Cargo feature is enabled, the `phf_map`, `phf_set`,
-//! `phf_ordered_map`, and `phf_ordered_set` macros can be used to construct
-//! the PHF type. This currently requires a nightly compiler.
+//! ## Usage
+//!
+//! PHF data structures can be constructed via either the procedural
+//! macros in the `phf_macros` crate or code generation supported by the
+//! `phf_codegen` crate. If you prefer macros, you can easily use them by
+//! enabling the `macros` feature of the `phf` crate, like:
+//!
+//!```toml
+//! [dependencies]
+//! phf = { version = "0.11", features = ["macros"] }
+//! ```
+//!
+//! To compile the `phf` crate with a dependency on
+//! libcore instead of libstd, enabling use in environments where libstd
+//! will not work, set `default-features = false` for the dependency:
 //!
 //! ```toml
 //! [dependencies]
-//! phf = { version = "0.7.24", features = ["macros"] }
+//! # to use `phf` in `no_std` environments
+//! phf = { version = "0.11", default-features = false }
 //! ```
 //!
-//! ```
-//! #![feature(proc_macro_hygiene)]
+//! ## Example (with the `macros` feature enabled)
 //!
-//! use phf::{phf_map, phf_set};
+//! ```rust
+//! use phf::phf_map;
 //!
-//! static MY_MAP: phf::Map&lt;&amp;'static str, u32&gt; = phf_map! {
-//!     "hello" =&gt; 1,
-//!     "world" =&gt; 2,
+//! #[derive(Clone)]
+//! pub enum Keyword {
+//!     Loop,
+//!     Continue,
+//!     Break,
+//!     Fn,
+//!     Extern,
+//! }
+//!
+//! static KEYWORDS: phf::Map&lt;&amp;'static str, Keyword&gt; = phf_map! {
+//!     "loop" =&gt; Keyword::Loop,
+//!     "continue" =&gt; Keyword::Continue,
+//!     "break" =&gt; Keyword::Break,
+//!     "fn" =&gt; Keyword::Fn,
+//!     "extern" =&gt; Keyword::Extern,
 //! };
 //!
-//! static MY_SET: phf::Set&lt;&amp;'static str&gt; = phf_set! {
-//!     "hello world",
-//!     "hola mundo",
-//! };
-//!
-//! fn main() {
-//!     assert_eq!(MY_MAP["hello"], 1);
-//!     assert!(MY_SET.contains("hello world"));
+//! pub fn parse_keyword(keyword: &amp;str) -&gt; Option&lt;Keyword&gt; {
+//!     KEYWORDS.get(keyword).cloned()
 //! }
 //! ```
 //!
-//! Alternatively, you can use the phf_codegen crate to generate PHF datatypes
-//! in a build script. This method can be used with a stable compiler.
-</span><span class="attr">#![doc(html_root_url=<span class="string">"https://docs.rs/phf/0.7"</span>)]
-#![warn(missing_docs)]
-#![cfg_attr(feature = <span class="string">"core"</span>, no_std)]
+//! Alternatively, you can use the [`phf_codegen`] crate to generate PHF datatypes
+//! in a build script.
+//!
+//! [`phf_codegen`]: https://docs.rs/phf_codegen
+//!
+//! ## Note
+//!
+//! Currently, the macro syntax has some limitations and may not
+//! work as you want. See [#183] or [#196] for example.
+//!
+//! [#183]: https://github.com/rust-phf/rust-phf/issues/183
+//! [#196]: https://github.com/rust-phf/rust-phf/issues/196
 
-#[cfg(not(feature = <span class="string">"core"</span>))]
+</span><span class="attr">#![doc(html_root_url = <span class="string">"https://docs.rs/phf/0.11"</span>)]
+#![warn(missing_docs)]
+#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
+
+#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">extern crate </span>std <span class="kw">as </span>core;
 
-<span class="kw">extern crate </span>phf_shared;
 <span class="attr">#[cfg(feature = <span class="string">"macros"</span>)]
-</span><span class="kw">extern crate </span>phf_macros;
+</span><span class="doccomment">/// Macro to create a `static` (compile-time) [`Map`].
+///
+/// Requires the `macros` feature.
+///
+/// Supported key expressions are:
+/// - literals: bools, (byte) strings, bytes, chars, and integers (these must have a type suffix)
+/// - arrays of `u8` integers
+/// - dereferenced byte string literals
+/// - `UniCase::unicode(string)` or `UniCase::ascii(string)` if the `unicase` feature is enabled
+///
+/// # Example
+///
+/// ```
+/// use phf::{phf_map, Map};
+///
+/// static MY_MAP: Map&lt;&amp;'static str, u32&gt; = phf_map! {
+///     "hello" =&gt; 1,
+///     "world" =&gt; 2,
+/// };
+///
+/// fn main () {
+///     assert_eq!(MY_MAP["hello"], 1);
+/// }
+/// ```
+</span><span class="kw">pub use </span>phf_macros::phf_map;
 
 <span class="attr">#[cfg(feature = <span class="string">"macros"</span>)]
-</span><span class="kw">pub use </span>phf_macros::<span class="kw-2">*</span>;
+</span><span class="doccomment">/// Macro to create a `static` (compile-time) [`OrderedMap`].
+///
+/// Requires the `macros` feature. Same usage as [`phf_map`].
+</span><span class="kw">pub use </span>phf_macros::phf_ordered_map;
 
-<span class="kw">use </span>core::ops::Deref;
+<span class="attr">#[cfg(feature = <span class="string">"macros"</span>)]
+</span><span class="doccomment">/// Macro to create a `static` (compile-time) [`Set`].
+///
+/// Requires the `macros` feature.
+///
+/// # Example
+///
+/// ```
+/// use phf::{phf_set, Set};
+///
+/// static MY_SET: Set&lt;&amp;'static str&gt; = phf_set! {
+///     "hello world",
+///     "hola mundo",
+/// };
+///
+/// fn main () {
+///     assert!(MY_SET.contains("hello world"));
+/// }
+/// ```
+</span><span class="kw">pub use </span>phf_macros::phf_set;
 
+<span class="attr">#[cfg(feature = <span class="string">"macros"</span>)]
+</span><span class="doccomment">/// Macro to create a `static` (compile-time) [`OrderedSet`].
+///
+/// Requires the `macros` feature. Same usage as [`phf_set`].
+</span><span class="kw">pub use </span>phf_macros::phf_ordered_set;
+
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::map::Map;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::ordered_map::OrderedMap;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::ordered_set::OrderedSet;
+<span class="attr">#[doc(inline)]
+</span><span class="kw">pub use </span><span class="self">self</span>::set::Set;
 <span class="kw">pub use </span>phf_shared::PhfHash;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span>map::Map;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span>set::Set;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span>ordered_map::OrderedMap;
-<span class="attr">#[doc(inline)]
-</span><span class="kw">pub use </span>ordered_set::OrderedSet;
 
 <span class="kw">pub mod </span>map;
-<span class="kw">pub mod </span>set;
 <span class="kw">pub mod </span>ordered_map;
 <span class="kw">pub mod </span>ordered_set;
-
-<span class="comment">// WARNING: this is not considered part of phf's public API and is subject to
-// change at any time.
-//
-// Basically Cow, but with the Owned version conditionally compiled
-</span><span class="attr">#[doc(hidden)]
-</span><span class="kw">pub enum </span>Slice&lt;T: <span class="lifetime">'static</span>&gt; {
-    Static(<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[T]),
-    <span class="attr">#[cfg(not(feature = <span class="string">"core"</span>))]
-    </span>Dynamic(Vec&lt;T&gt;),
-}
-
-<span class="kw">impl</span>&lt;T&gt; Deref <span class="kw">for </span>Slice&lt;T&gt; {
-    <span class="kw">type </span>Target = [T];
-
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
-        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
-            Slice::Static(t) =&gt; t,
-            <span class="attr">#[cfg(not(feature = <span class="string">"core"</span>))]
-            </span>Slice::Dynamic(<span class="kw-2">ref </span>t) =&gt; t,
-        }
-    }
-}
+<span class="kw">pub mod </span>set;
 </code></pre></div></section></main></body></html>

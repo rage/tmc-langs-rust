@@ -1,1 +1,0 @@
-searchState.loadedDescShard("impl_enum", 0, "Macro for generating methods on an enum that match on the …\nGenerates an impl block for an enum containing the given …")

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["BitIdx","BitMask","BitPos","BitSel","BitTail"],"trait":["BitRegister"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Channel","JoinError","JoinHandle","SendError","TaskBuilder"]};

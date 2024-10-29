@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Hmac"],"trait":["Mac","NewMac"]};
+window.SIDEBAR_ITEMS = {"struct":["HmacCore","SimpleHmac"],"trait":["Mac"],"type":["Hmac"]};

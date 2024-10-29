@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["FmtBinary","FmtDisplay","FmtLowerExp","FmtLowerHex","FmtOctal","FmtPointer","FmtUpperExp","FmtUpperHex"],"trait":["FmtForward"]};

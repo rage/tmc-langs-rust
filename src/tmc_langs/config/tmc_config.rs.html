@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tmc-langs/src/config/tmc_config.rs`."><title>tmc_config.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tmc_langs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/tmc-langs/src/config/tmc_config.rs`."><title>tmc_config.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tmc_langs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -177,134 +177,72 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Handles the CLI's configuration file.
 
-</span><span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::io::{Read, Write};
-<span class="kw">use </span>std::path::{Path, PathBuf};
-<span class="kw">use </span>tmc_langs_util::{file_util, FileError};
+</span><span class="kw">use </span><span class="kw">crate</span>::error::LangsError;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>std::{
+    env,
+    io::{Read, Write},
+    path::{Path, PathBuf},
+};
+<span class="kw">use </span>tmc_langs_util::{
+    deserialize,
+    file_util::{<span class="self">self</span>, Lock, LockOptions},
+    FileError,
+};
 <span class="kw">use </span>toml::{value::Table, Value};
-
-<span class="kw">use </span><span class="kw">crate</span>::error::LangsError;
 
 <span class="doccomment">/// The main configuration file. A separate one is used for each client.
 </span><span class="attr">#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = <span class="string">"kebab-case"</span>)]
+#[cfg_attr(feature = <span class="string">"ts-rs"</span>, derive(ts_rs::TS))]
 </span><span class="kw">pub struct </span>TmcConfig {
-    <span class="kw">pub </span>projects_dir: PathBuf,
+    <span class="comment">// this is not serialized or deserialized, but set while loading
+    </span><span class="attr">#[serde(skip)]
+    </span><span class="kw">pub </span>location: PathBuf,
+    <span class="attr">#[serde(alias = <span class="string">"projects-dir"</span>)]
+    </span><span class="kw">pub </span>projects_dir: PathBuf,
     <span class="attr">#[serde(flatten)]
+    #[cfg_attr(feature = <span class="string">"ts-rs"</span>, ts(skip))]
     </span><span class="kw">pub </span>table: Table,
 }
 
 <span class="kw">impl </span>TmcConfig {
-    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; ConfigValue {
-        <span class="kw">match </span>key {
-            <span class="string">"projects-dir" </span>=&gt; ConfigValue::Path(Cow::Borrowed(<span class="kw-2">&amp;</span><span class="self">self</span>.projects_dir)),
-            <span class="kw">_ </span>=&gt; ConfigValue::Value(<span class="self">self</span>.table.get(key).map(Cow::Borrowed)),
-        }
-    }
-
-    <span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: String, value: Value) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
-        <span class="kw">match </span>key.as_str() {
-            <span class="string">"projects-dir" </span>=&gt; {
-                <span class="kw">if let </span>Value::String(value) = value {
-                    <span class="kw">let </span>path = PathBuf::from(value);
-                    <span class="self">self</span>.set_projects_dir(path)<span class="question-mark">?</span>;
-                } <span class="kw">else </span>{
-                    <span class="kw">return </span><span class="prelude-val">Err</span>(LangsError::ProjectsDirNotString);
-                }
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="self">self</span>.table.insert(key, value);
-            }
-        }
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Value&gt;, LangsError&gt; {
-        <span class="kw">match </span>key {
-            <span class="string">"projects-dir" </span>=&gt; <span class="prelude-val">Err</span>(LangsError::NoProjectsDir),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.table.remove(key)),
-        }
-    }
-
-    <span class="kw">pub fn </span>set_projects_dir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>target: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LangsError&gt; {
-        <span class="comment">// check if the directory is empty or not
-        </span><span class="kw">if </span>file_util::read_dir(<span class="kw-2">&amp;</span>target)<span class="question-mark">?</span>.next().is_some() {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(LangsError::NonEmptyDir(target));
-        }
-        std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.projects_dir, <span class="kw-2">&amp;mut </span>target);
-        <span class="prelude-val">Ok</span>(target)
-    }
-
-    <span class="kw">pub fn </span>save(<span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path.parent() {
-            file_util::create_dir_all(parent)<span class="question-mark">?</span>;
-        }
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = file_util::create_file_lock(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>guard = lock
-            .lock()
-            .map_err(|e| FileError::FdLock(path.to_path_buf(), e))<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>toml = toml::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
-        guard
-            .write_all(toml.as_bytes())
-            .map_err(|e| FileError::FileWrite(path.to_path_buf(), e))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub fn </span>reset(client_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
+    <span class="doccomment">/// Reads or initialises the config for the given client.
+    </span><span class="kw">pub fn </span>load(client_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;TmcConfig, LangsError&gt; {
         <span class="kw">let </span>path = <span class="self">Self</span>::get_location(client_name)<span class="question-mark">?</span>;
-        <span class="self">Self</span>::init_at(client_name, <span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>; <span class="comment">// init locks the file
-        </span><span class="prelude-val">Ok</span>(())
+        <span class="macro">log::debug!</span>(<span class="string">"Loading config at {}"</span>, path.display());
+        <span class="self">Self</span>::load_from(client_name, path)
     }
 
-    <span class="kw">pub fn </span>load(client_name: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;TmcConfig, LangsError&gt; {
+    <span class="doccomment">/// Reads or initialises for the client from the given path.
+    </span><span class="kw">pub fn </span>load_from(client_name: <span class="kw-2">&amp;</span>str, path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;TmcConfig, LangsError&gt; {
         <span class="comment">// try to open config file
-        </span><span class="kw">let </span>config = <span class="kw">match </span>file_util::open_file_lock(path) {
-            <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>lock) =&gt; {
-                <span class="comment">// found config file, lock and read
-                </span><span class="kw">let </span><span class="kw-2">mut </span>guard = lock
-                    .lock()
-                    .map_err(|e| FileError::FdLock(path.to_path_buf(), e))<span class="question-mark">?</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[];
-                <span class="kw">let </span>_bytes = guard
-                    .read_to_end(<span class="kw-2">&amp;mut </span>buf)
-                    .map_err(|e| FileError::FileRead(path.to_path_buf(), e))<span class="question-mark">?</span>;
-                <span class="kw">match </span>toml::from_slice(<span class="kw-2">&amp;</span>buf) {
-                    <span class="comment">// successfully read file, try to deserialize
-                    </span><span class="prelude-val">Ok</span>(config) =&gt; config, <span class="comment">// successfully read and deserialized the config
-                    </span><span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="macro">log::error!</span>(
-                            <span class="string">"Failed to deserialize config at {} due to {e}, resetting"</span>,
-                            path.display()
-                        );
-                        drop(guard);
-                        drop(lock);
-                        <span class="self">Self</span>::init_at(client_name, <span class="kw-2">&amp;</span>path)<span class="question-mark">?
-                    </span>}
-                }
+        </span><span class="kw">let </span>config = <span class="kw">if </span>path.exists() {
+            <span class="comment">// found config file
+            </span><span class="kw">let </span>data = file_util::read_file_to_string(<span class="kw-2">&amp;</span>path)<span class="question-mark">?</span>;
+            <span class="kw">match </span>deserialize::toml_from_str::&lt;<span class="self">Self</span>&gt;(<span class="kw-2">&amp;</span>data) {
+                <span class="comment">// successfully read file, try to deserialize
+                </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>config) =&gt; {
+                    <span class="comment">// set the path which was set to default during deserialization
+                    </span>config.location = path;
+                    config <span class="comment">// successfully read and deserialized the config
+                </span>}
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">log::error!</span>(
+                        <span class="string">"Failed to deserialize config at {} due to {}, resetting"</span>,
+                        path.display(),
+                        e
+                    );
+                    <span class="self">Self</span>::init_at(client_name, path)<span class="question-mark">?
+                </span>}
             }
-            <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="comment">// failed to open config file, create new one
-                </span><span class="macro">log::info!</span>(
-                    <span class="string">"could not open config file at {} due to {}, initializing a new config file"</span>,
-                    path.display(),
-                    e
-                );
-                <span class="comment">// todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
-                </span><span class="self">Self</span>::init_at(client_name, <span class="kw-2">&amp;</span>path)<span class="question-mark">?
-            </span>}
-        };
+        } <span class="kw">else </span>{
+            <span class="comment">// failed to open config file, create new one
+            </span><span class="macro">log::info!</span>(<span class="string">"initializing a new config file at {}"</span>, path.display());
+            <span class="comment">// todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
+            </span><span class="self">Self</span>::init_at(client_name, path)<span class="question-mark">?
+        </span>};
 
         <span class="kw">if </span>!config.projects_dir.exists() {
             file_util::create_dir_all(<span class="kw-2">&amp;</span>config.projects_dir)<span class="question-mark">?</span>;
@@ -313,63 +251,109 @@
     }
 
     <span class="comment">// initializes the default configuration file at the given path
-    </span><span class="kw">fn </span>init_at(client_name: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;TmcConfig, LangsError&gt; {
+    </span><span class="kw">fn </span>init_at(client_name: <span class="kw-2">&amp;</span>str, path: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;TmcConfig, LangsError&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = path.parent() {
             file_util::create_dir_all(parent)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = file_util::create_file_lock(path)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>guard = lock
-            .lock()
-            .map_err(|e| FileError::FdLock(path.to_path_buf(), e))<span class="question-mark">?</span>;
-
-        <span class="kw">let </span>default_project_dir = dirs::data_local_dir()
-            .ok_or(LangsError::NoLocalDataDir)<span class="question-mark">?
-            </span>.join(<span class="string">"tmc"</span>)
-            .join(<span class="self">Self</span>::get_client_stub(client_name));
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = Lock::file(<span class="kw-2">&amp;</span>path, LockOptions::WriteTruncate)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>guard = lock.lock()<span class="question-mark">?</span>;
+        <span class="kw">let </span>default_project_dir = get_projects_dir_root()<span class="question-mark">?</span>.join(get_client_stub(client_name));
         file_util::create_dir_all(<span class="kw-2">&amp;</span>default_project_dir)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>config = TmcConfig {
+            location: path,
             projects_dir: default_project_dir,
             table: Table::new(),
         };
 
         <span class="kw">let </span>toml = toml::to_string_pretty(<span class="kw-2">&amp;</span>config).expect(<span class="string">"this should never fail"</span>);
         guard
+            .get_file_mut()
             .write_all(toml.as_bytes())
-            .map_err(|e| FileError::FileWrite(path.to_path_buf(), e))<span class="question-mark">?</span>;
+            .map_err(|e| FileError::FileWrite(config.location.to_path_buf(), e))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(config)
+    }
+
+    <span class="doccomment">/// Returns the projects dir.
+    </span><span class="kw">pub fn </span>get_projects_dir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Path {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.projects_dir
+    }
+
+    <span class="doccomment">/// Sets the projects dir.
+    /// Returns the old projects dir.
+    </span><span class="kw">pub fn </span>set_projects_dir(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>target: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LangsError&gt; {
+        <span class="comment">// check if the directory is empty or not
+        </span><span class="kw">if </span>file_util::read_dir(<span class="kw-2">&amp;</span>target)<span class="question-mark">?</span>.next().is_some() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(LangsError::NonEmptyDir(target));
+        }
+        std::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.projects_dir, <span class="kw-2">&amp;mut </span>target);
+        <span class="prelude-val">Ok</span>(target)
+    }
+
+    <span class="doccomment">/// Fetches a value with the given key.
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt; {
+        <span class="self">self</span>.table.get(key)
+    }
+
+    <span class="doccomment">/// Inserts a value with the given key and value.
+    /// Returns the old value, if any.
+    </span><span class="kw">pub fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: String, value: Value) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt; {
+        <span class="self">self</span>.table.insert(key, value)
+    }
+
+    <span class="doccomment">/// Removes the value with the given key.
+    /// Returns the removed value, if any.
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;Value&gt; {
+        <span class="self">self</span>.table.remove(key)
+    }
+
+    <span class="doccomment">/// Saves the config struct to the given path.
+    </span><span class="kw">pub fn </span>save(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
+        <span class="kw">let </span>path = <span class="kw-2">&amp;</span><span class="self">self</span>.location;
+        <span class="macro">log::info!</span>(<span class="string">"Saving config at {}"</span>, path.display());
+
+        <span class="macro">log::debug!</span>(<span class="string">"Saving config to temporary path"</span>);
+        <span class="kw">let </span>parent = path
+            .parent()
+            .ok_or_else(|| LangsError::NoParentDir(path.to_path_buf()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>temp_file = file_util::named_temp_file_in(parent)<span class="question-mark">?</span>;
+        <span class="kw">let </span>toml = toml::to_string_pretty(<span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>;
+        file_util::write_to_file(toml, temp_file.path())<span class="question-mark">?</span>;
+
+        <span class="macro">log::debug!</span>(<span class="string">"Moving new config over old one"</span>);
+        temp_file.persist(path)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Reinitialises the config file.
+    </span><span class="kw">pub fn </span>reset(client_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), LangsError&gt; {
+        <span class="kw">let </span>path = <span class="self">Self</span>::get_location(client_name)<span class="question-mark">?</span>;
+        <span class="self">Self</span>::init_at(client_name, path)<span class="question-mark">?</span>; <span class="comment">// init locks the file
+        </span><span class="prelude-val">Ok</span>(())
     }
 
     <span class="comment">// path to the configuration file
     </span><span class="kw">pub fn </span>get_location(client_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LangsError&gt; {
         <span class="kw">super</span>::get_tmc_dir(client_name).map(|dir| dir.join(<span class="string">"config.toml"</span>))
     }
-
-    <span class="comment">// some clients use a different name for the directory
-    </span><span class="kw">fn </span>get_client_stub(client: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw">match </span>client {
-            <span class="string">"vscode_plugin" </span>=&gt; <span class="string">"vscode"</span>,
-            s =&gt; s,
-        }
-    }
 }
 
-<span class="doccomment">/// A setting in a TmcConfig file.
-</span><span class="attr">#[derive(Debug, Serialize, Clone)]
-#[serde(untagged)]
-</span><span class="kw">pub enum </span>ConfigValue&lt;<span class="lifetime">'a</span>&gt; {
-    Value(<span class="prelude-ty">Option</span>&lt;Cow&lt;<span class="lifetime">'a</span>, Value&gt;&gt;),
-    Path(Cow&lt;<span class="lifetime">'a</span>, Path&gt;),
+<span class="kw">fn </span>get_projects_dir_root() -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, LangsError&gt; {
+    <span class="kw">let </span>data_dir = <span class="kw">match </span>env::var(<span class="string">"TMC_LANGS_DEFAULT_PROJECTS_DIR"</span>) {
+        <span class="prelude-val">Ok</span>(v) =&gt; PathBuf::from(v),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; dirs::data_local_dir()
+            .ok_or(LangsError::NoLocalDataDir)<span class="question-mark">?
+            </span>.join(<span class="string">"tmc"</span>),
+    };
+    <span class="prelude-val">Ok</span>(data_dir)
 }
 
-<span class="kw">impl </span>ConfigValue&lt;<span class="lifetime">'_</span>&gt; {
-    <span class="kw">pub fn </span>into_owned(<span class="self">self</span>) -&gt; ConfigValue&lt;<span class="lifetime">'static</span>&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Value(<span class="prelude-val">Some</span>(v)) =&gt; ConfigValue::Value(<span class="prelude-val">Some</span>(Cow::Owned(v.into_owned()))),
-            <span class="self">Self</span>::Value(<span class="prelude-val">None</span>) =&gt; ConfigValue::Value(<span class="prelude-val">None</span>),
-            <span class="self">Self</span>::Path(p) =&gt; ConfigValue::Path(Cow::Owned(p.into_owned())),
-        }
+<span class="comment">// some clients use a different name for the directory
+</span><span class="kw">fn </span>get_client_stub(client: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
+    <span class="kw">match </span>client {
+        <span class="string">"vscode_plugin" </span>=&gt; <span class="string">"vscode"</span>,
+        s =&gt; s,
     }
 }
 </code></pre></div></section></main></body></html>

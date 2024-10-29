@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Throw"],"trait":["ResultExt"],"type":["JsResult","NeonResult"]};

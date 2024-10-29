@@ -1,1 +1,0 @@
-searchState.loadedDescShard("quit", 0, "This crate allows cleanly exiting a program using a custom …\nModifies the main function to exit with the code passed to …\nCleanly exits the program with an exit code.")

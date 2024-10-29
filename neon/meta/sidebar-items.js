@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MAJOR","MINOR","PATCH","VERSION"],"fn":["version"]};
