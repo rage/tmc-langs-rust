@@ -39,44 +39,30 @@ impl TmcConfig {
     /// Reads or initialises for the client from the given path.
     pub fn load_from(client_name: &str, path: PathBuf) -> Result<TmcConfig, LangsError> {
         // try to open config file
-        let lock = Lock::file(&path, LockOptions::Read);
-        let config = match lock {
-            Ok(mut lock) => {
-                // found config file, lock and read
-                let mut buf = String::new();
-                let _bytes = lock
-                    .lock()?
-                    .get_file()
-                    .read_to_string(&mut buf)
-                    .map_err(|e| FileError::FileRead(path.clone(), e))?;
-                match deserialize::toml_from_str::<Self>(&buf) {
-                    // successfully read file, try to deserialize
-                    Ok(mut config) => {
-                        // set the path which was set to default during deserialization
-                        config.location = path;
-                        config // successfully read and deserialized the config
-                    }
-                    Err(e) => {
-                        log::error!(
-                            "Failed to deserialize config at {} due to {}, resetting",
-                            path.display(),
-                            e
-                        );
-                        drop(lock); // unlock file before recreating it
-                        Self::init_at(client_name, path)?
-                    }
+        let config = if path.exists() {
+            // found config file
+            let data = file_util::read_file_to_string(&path)?;
+            match deserialize::toml_from_str::<Self>(&data) {
+                // successfully read file, try to deserialize
+                Ok(mut config) => {
+                    // set the path which was set to default during deserialization
+                    config.location = path;
+                    config // successfully read and deserialized the config
+                }
+                Err(e) => {
+                    log::error!(
+                        "Failed to deserialize config at {} due to {}, resetting",
+                        path.display(),
+                        e
+                    );
+                    Self::init_at(client_name, path)?
                 }
             }
-            Err(e) => {
-                // failed to open config file, create new one
-                log::info!(
-                    "could not open config file at {} due to {}, initializing a new config file",
-                    path.display(),
-                    e
-                );
-                // todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
-                Self::init_at(client_name, path)?
-            }
+        } else {
+            // failed to open config file, create new one
+            log::info!("initializing a new config file at {}", path.display());
+            // todo: check the cause to make sure this makes sense, might be necessary to propagate some error kinds
+            Self::init_at(client_name, path)?
         };
 
         if !config.projects_dir.exists() {
