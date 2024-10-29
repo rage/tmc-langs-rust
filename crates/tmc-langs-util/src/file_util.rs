@@ -44,10 +44,10 @@ impl LockOptions {
             // create requires write
             Self::ReadCreate => opts.read(true).write(true).create(true),
             // truncate requires write
-            Self::ReadTruncate => opts.write(true).truncate(true),
+            Self::ReadTruncate => opts.write(true).create(true).truncate(true),
             Self::Write => opts.write(true),
             Self::WriteCreate => opts.write(true).create(true),
-            Self::WriteTruncate => opts.write(true).truncate(true),
+            Self::WriteTruncate => opts.write(true).create(true).truncate(true),
         };
         opts
     }
