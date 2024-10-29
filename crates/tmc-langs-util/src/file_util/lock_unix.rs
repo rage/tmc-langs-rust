@@ -95,7 +95,7 @@ impl Lock {
                 FileOrLock::File(file)
             }
         };
-        Ok(Guard { lock, path: &path })
+        Ok(Guard { lock, path })
     }
 }
 

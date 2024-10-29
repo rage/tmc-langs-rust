@@ -73,8 +73,8 @@ pub fn migrate_exercise(
         exercise_path.display()
     );
 
-    let mut lock = Lock::dir(exercise_path.to_path_buf(), LockOptions::Write)?;
-    let guard = lock.lock()?;
+    let mut lock = Lock::dir(exercise_path, LockOptions::Write)?;
+    let _guard = lock.lock()?;
     let mut projects_config = ProjectsConfig::load(&tmc_config.projects_dir)?;
     let course_config = projects_config
         .courses

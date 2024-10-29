@@ -50,12 +50,9 @@ pub use tmc_langs_framework::{
 use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
-use tmc_langs_util::file_util::{Guard, Lock};
+use tmc_langs_util::file_util;
 // the Java plugin is disabled on musl
-pub use tmc_langs_util::{
-    file_util::{self, FileLockGuard},
-    notification_reporter, progress_reporter,
-};
+pub use tmc_langs_util::{notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;

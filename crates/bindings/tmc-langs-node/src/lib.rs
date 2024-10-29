@@ -16,7 +16,6 @@ use std::{
 };
 use thiserror::Error;
 use tmc_langs::{
-    file_util,
     tmc::{
         request::FeedbackAnswer,
         response::{NewSubmission, SubmissionFinished},
@@ -25,6 +24,7 @@ use tmc_langs::{
     Compression, Credentials, DownloadOrUpdateCourseExercisesResult, LangsError, Language,
     PrepareSubmission, TmcConfig,
 };
+use tmc_langs_util::file_util;
 
 #[derive(Debug, Error)]
 enum NodeError {
@@ -135,7 +135,7 @@ fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let mut archive_lock = file_util::Lock::file(archive_path, file_util::LockOptions::Read)
-        .map_err(|e| convert_err(&mut cx, e))?;
+        .map_err(|e: tmc_langs_util::FileError| convert_err(&mut cx, e))?;
     let mut archive_guard = archive_lock.lock().map_err(|e| convert_err(&mut cx, e))?;
     let mut data = vec![];
     archive_guard

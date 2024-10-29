@@ -20,20 +20,19 @@ use serde_json::Value;
 use std::{
     collections::HashMap,
     env,
-    fs::File,
     io::{self, BufReader, Cursor, Read},
-    ops::Deref,
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    file_util::{self, Lock, LockOptions},
-    file_util,
     mooc::MoocClient,
     tmc::{request::FeedbackAnswer, TestMyCodeClient, TestMyCodeClientError},
     CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
     Language, StyleValidationResult, TmcConfig, UpdatedExercise,
 };
-use tmc_langs_util::deserialize;
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+};
 
 pub enum ParsingResult {
     Ok(Cli),

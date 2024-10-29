@@ -11,7 +11,6 @@ use tmc_langs_util::{
     file_util::{self, Lock, LockOptions},
     FileError,
 };
-use uuid::Uuid;
 use walkdir::WalkDir;
 
 /// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
@@ -32,7 +31,7 @@ impl ProjectsConfig {
         let mut unexpected_entries = Vec::new();
         for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
             let entry = entry?;
-            let course_config_path = entry.path().join("course_config.toml");
+            let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
             if course_config_path.exists() {
                 let file_name = entry.file_name();
                 let course_dir_name = file_name.to_str().ok_or_else(|| {
@@ -146,7 +145,7 @@ impl CourseConfig {
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
         }
-        let target = course_dir.join("course_config.toml");
+        let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
         let s = toml::to_string_pretty(&self)?;
         file_util::write_to_file(s.as_bytes(), target)?;
         Ok(())
