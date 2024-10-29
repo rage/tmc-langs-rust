@@ -50,6 +50,7 @@ pub fn prepare_submission(
         "Thumbs.db",
         ".directory",
         "__MACOSX",
+        file_util::LOCK_FILE_NAME,
     ];
     if let Some((stub_zip, compression)) = stub_archive {
         // if defined, extract and use as the base
@@ -172,18 +173,44 @@ pub fn prepare_submission(
     match output_format {
         Compression::Tar => {
             let mut archive = tar::Builder::new(archive_file);
-            log::debug!(
-                "appending \"{}\" at \"{}\"",
-                extract_dest_path.display(),
-                prefix.display()
-            );
+            for entry in WalkDir::new(&extract_dest_path)
+                .into_iter()
+                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
+                .skip(1)
+            {
+                let entry = entry?;
+                let entry_path = entry.path();
+                let stripped = prefix.join(
+                    entry_path
+                        .strip_prefix(&extract_dest_path)
+                        .expect("the entry is inside dest"),
+                );
+                log::debug!(
+                    "adding {} to tar at {}",
+                    entry_path.display(),
+                    stripped.display()
+                );
+                if entry_path.is_dir() {
+                    archive
+                        .append_dir(&stripped, entry_path)
+                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
+                } else {
+                    archive
+                        .append_path_with_name(entry_path, stripped.to_string_lossy().as_ref())
+                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
+                }
+            }
             archive
-                .append_dir_all(prefix, &extract_dest_path)
-                .map_err(|e| LangsError::TarAppend(extract_dest_path, e))?;
+                .finish()
+                .map_err(|e| LangsError::TarAppend(extract_dest_path.clone(), e))?;
         }
         Compression::Zip => {
             let mut archive = ZipWriter::new(archive_file);
-            for entry in WalkDir::new(&extract_dest_path).into_iter().skip(1) {
+            for entry in WalkDir::new(&extract_dest_path)
+                .into_iter()
+                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
+                .skip(1)
+            {
                 let entry = entry?;
                 let entry_path = entry.path();
                 let stripped = prefix.join(
@@ -216,14 +243,34 @@ pub fn prepare_submission(
         Compression::TarZstd => {
             let buf = Cursor::new(vec![]);
             let mut archive = tar::Builder::new(buf);
-            log::debug!(
-                "appending \"{}\" at \"{}\"",
-                extract_dest_path.display(),
-                prefix.display()
-            );
-            archive
-                .append_dir_all(prefix, &extract_dest_path)
-                .map_err(|e| LangsError::TarAppend(extract_dest_path, e))?;
+            for entry in WalkDir::new(&extract_dest_path)
+                .into_iter()
+                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
+                .skip(1)
+            {
+                let entry = entry?;
+                let entry_path = entry.path();
+                let stripped = prefix.join(
+                    entry_path
+                        .strip_prefix(&extract_dest_path)
+                        .expect("the entry is inside dest"),
+                );
+                log::debug!(
+                    "adding {} to zip at {}",
+                    entry_path.display(),
+                    stripped.display()
+                );
+                if entry_path.is_dir() {
+                    archive
+                        .append_dir(stripped.to_string_lossy().as_ref(), entry_path)
+                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
+                } else {
+                    archive
+                        .append_path_with_name(entry_path, stripped.to_string_lossy().as_ref())
+                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
+                }
+            }
+
             archive.finish().map_err(LangsError::TarFinish)?;
             let mut tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
             tar.set_position(0); // reset the cursor

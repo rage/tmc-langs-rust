@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use tmc_langs_framework::{RunResult, RunStatus, TestResult};
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct CheckLog {
     #[allow(dead_code)]
     pub datetime: String,
@@ -52,6 +53,7 @@ impl CheckLog {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct TestSuite {
     #[allow(dead_code)]
     pub title: String,
@@ -60,6 +62,7 @@ pub struct TestSuite {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Test {
     pub result: String,
     #[allow(dead_code)]

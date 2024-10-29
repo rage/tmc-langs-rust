@@ -7,7 +7,11 @@ use std::{
     io::{Read, Write},
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{deserialize, file_util, FileError};
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+    FileError,
+};
 use toml::{value::Table, Value};
 
 /// The main configuration file. A separate one is used for each client.
@@ -35,14 +39,14 @@ impl TmcConfig {
     /// Reads or initialises for the client from the given path.
     pub fn load_from(client_name: &str, path: PathBuf) -> Result<TmcConfig, LangsError> {
         // try to open config file
-        let config = match file_util::open_file_locked(&path) {
+        let lock = Lock::file(&path, LockOptions::Read);
+        let config = match lock {
             Ok(mut lock) => {
                 // found config file, lock and read
-                let mut guard = lock
-                    .write()
-                    .map_err(|e| FileError::FdLock(path.clone(), e))?;
                 let mut buf = String::new();
-                let _bytes = guard
+                let _bytes = lock
+                    .lock()?
+                    .get_file()
                     .read_to_string(&mut buf)
                     .map_err(|e| FileError::FileRead(path.clone(), e))?;
                 match deserialize::toml_from_str::<Self>(&buf) {
@@ -58,7 +62,7 @@ impl TmcConfig {
                             path.display(),
                             e
                         );
-                        drop(guard); // unlock file before recreating it
+                        drop(lock); // unlock file before recreating it
                         Self::init_at(client_name, path)?
                     }
                 }
@@ -87,11 +91,8 @@ impl TmcConfig {
             file_util::create_dir_all(parent)?;
         }
 
-        let mut lock = file_util::create_file_locked(&path)?;
-        let mut guard = lock
-            .write()
-            .map_err(|e| FileError::FdLock(path.to_path_buf(), e))?;
-
+        let mut lock = Lock::file(&path, LockOptions::WriteTruncate)?;
+        let mut guard = lock.lock()?;
         let default_project_dir = get_projects_dir_root()?.join(get_client_stub(client_name));
         file_util::create_dir_all(&default_project_dir)?;
 
@@ -103,6 +104,7 @@ impl TmcConfig {
 
         let toml = toml::to_string_pretty(&config).expect("this should never fail");
         guard
+            .get_file_mut()
             .write_all(toml.as_bytes())
             .map_err(|e| FileError::FileWrite(config.location.to_path_buf(), e))?;
         Ok(config)

@@ -9,8 +9,8 @@ macro_rules! lock {
     ( $cx: ident, $( $path: expr ),+ ) => {
         $(
             let path_buf: PathBuf = (&$path).into();
-            let mut fl = $crate::file_util::FileLock::new(path_buf).map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
-            let _lock = fl.lock().map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
+            let mut lock = $crate::file_util::Lock::file(path_buf, $crate::file_util::LockOptions::Write).map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
+            let _guard = lock.lock().map_err(|e| $crate::helpers::convert_err(&mut $cx, e))?;
         )*
     };
 }

@@ -6,10 +6,17 @@ use std::{
     collections::{BTreeMap, HashMap},
     path::{Path, PathBuf},
 };
-use tmc_langs_util::{deserialize, file_util, FileError};
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+    FileError,
+};
+use uuid::Uuid;
 use walkdir::WalkDir;
 
 /// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
+const COURSE_CONFIG_FILE_NAME: &str = "course_config.toml";
+
 #[derive(Debug)]
 pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
@@ -18,7 +25,8 @@ pub struct ProjectsConfig {
 
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
-        file_util::lock!(projects_dir);
+        let mut lock = Lock::dir(projects_dir, LockOptions::Read)?;
+        let _guard = lock.lock()?;
         let mut course_configs = HashMap::new();
 
         let mut unexpected_entries = Vec::new();

@@ -2,8 +2,11 @@
 
 use crate::{tmc::Token, LangsError};
 use serde::{Deserialize, Serialize};
-use std::{ops::Deref, path::PathBuf};
-use tmc_langs_util::{deserialize, file_util, FileError};
+use std::path::PathBuf;
+use tmc_langs_util::{
+    deserialize,
+    file_util::{self, Lock, LockOptions},
+};
 
 /// Credentials for authenticating with tmc-server.
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,12 +34,9 @@ impl Credentials {
         }
         log::debug!("Loading credentials from {}", credentials_path.display());
 
-        let mut credentials_file = file_util::open_file_locked(&credentials_path)?;
-        let guard = credentials_file
-            .write()
-            .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
-
-        match deserialize::json_from_reader(guard.deref()) {
+        let mut credentials_lock = Lock::file(&credentials_path, LockOptions::Read)?;
+        let credentials_guard = credentials_lock.lock()?;
+        match deserialize::json_from_reader(credentials_guard.get_file()) {
             Ok(token) => Ok(Some(Credentials {
                 path: credentials_path,
                 token,
@@ -58,13 +58,10 @@ impl Credentials {
         if let Some(p) = credentials_path.parent() {
             file_util::create_dir_all(p)?;
         }
-        let mut credentials_file = file_util::create_file_locked(&credentials_path)?;
-        let guard = credentials_file
-            .write()
-            .map_err(|e| FileError::FdLock(credentials_path.clone(), e))?;
-
+        let mut credentials_lock = Lock::file(&credentials_path, LockOptions::WriteTruncate)?;
+        let mut credentials_guard = credentials_lock.lock()?;
         // write token
-        if let Err(e) = serde_json::to_writer(guard.deref(), &token) {
+        if let Err(e) = serde_json::to_writer(credentials_guard.get_file_mut(), &token) {
             // failed to write token, removing credentials file
             file_util::remove_file(&credentials_path)?;
             return Err(LangsError::Json(e));
@@ -73,9 +70,7 @@ impl Credentials {
     }
 
     pub fn remove(self) -> Result<(), LangsError> {
-        file_util::lock!(self.path);
-
-        file_util::remove_file(&self.path)?;
+        file_util::remove_file_locked(self.path)?;
         Ok(())
     }
 

@@ -47,8 +47,6 @@ pub enum FileError {
     Canonicalize(PathBuf, #[source] std::io::Error),
 
     // lock errors
-    #[error("Failed to lock file at path {0}")]
-    FdLock(PathBuf, #[source] std::io::Error),
     #[error("Failed to lock {0}: not a file or directory")]
     InvalidLockPath(PathBuf),
 

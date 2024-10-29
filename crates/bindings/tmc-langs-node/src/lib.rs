@@ -134,11 +134,14 @@ fn extract_project(mut cx: FunctionContext) -> JsResult<JsValue> {
         compression: Compression
     );
 
-    let mut archive =
-        file_util::open_file_locked(archive_path).map_err(|e| convert_err(&mut cx, e))?;
-    let mut guard = archive.write().expect("failed to lock file");
+    let mut archive_lock = file_util::Lock::file(archive_path, file_util::LockOptions::Read)
+        .map_err(|e| convert_err(&mut cx, e))?;
+    let mut archive_guard = archive_lock.lock().map_err(|e| convert_err(&mut cx, e))?;
     let mut data = vec![];
-    guard.read_to_end(&mut data).expect("failed to read data");
+    archive_guard
+        .get_file_mut()
+        .read_to_end(&mut data)
+        .expect("failed to read data");
 
     let res =
         tmc_langs::extract_project(Cursor::new(data), &output_path, compression, false, false);
