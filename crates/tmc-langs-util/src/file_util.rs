@@ -41,7 +41,8 @@ impl LockOptions {
         let mut opts = OpenOptions::new();
         match self {
             Self::Read => opts.read(true),
-            Self::ReadCreate => opts.read(true).create(true),
+            // create requires write
+            Self::ReadCreate => opts.read(true).write(true).create(true),
             // truncate requires write
             Self::ReadTruncate => opts.write(true).truncate(true),
             Self::Write => opts.write(true),

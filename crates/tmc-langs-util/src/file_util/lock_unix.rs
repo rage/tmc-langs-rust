@@ -13,19 +13,6 @@ use std::{
 
 /// Blocks until the lock can be acquired.
 #[derive(Debug)]
-pub struct LockA {
-    pub path: PathBuf,
-}
-
-impl LockA {
-    pub fn new(path: impl AsRef<Path>) -> Self {
-        let path = path.as_ref().to_path_buf();
-        Self { path }
-    }
-}
-
-/// Blocks until the lock can be acquired.
-#[derive(Debug)]
 pub struct Lock {
     pub path: PathBuf,
     options: LockOptions,

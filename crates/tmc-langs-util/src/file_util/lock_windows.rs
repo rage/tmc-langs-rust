@@ -246,10 +246,11 @@ mod test {
         let temp = tempfile::tempdir().unwrap();
         let mut lock = Lock::dir(temp.path().to_path_buf(), LockOptions::Read).unwrap();
         let lock_path = temp.path().join(".tmc.lock");
-        assert!(!lock_path.exists());
+        assert!(lock_path.exists());
         let guard = lock.lock().unwrap();
         assert!(lock_path.exists());
         drop(guard);
+        drop(lock);
         assert!(!lock_path.exists());
     }
 }
