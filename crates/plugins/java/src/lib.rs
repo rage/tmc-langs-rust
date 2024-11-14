@@ -32,7 +32,7 @@ const SEPARATOR: &str = ":";
 const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../deps/tmc-junit-runner-0.2.8.jar");
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../deps/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
-const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.20.0-jar-with-dependencies.jar");
+const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.21.0-jar-with-dependencies.jar");
 
 struct JvmWrapper {
     jvm: Jvm,
