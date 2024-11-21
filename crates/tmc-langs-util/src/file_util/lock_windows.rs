@@ -68,7 +68,6 @@ impl Lock {
                         path: path.as_ref().to_path_buf(),
                         options,
                         lock,
-                        forget: false,
                     });
                 }
                 Err(err) => {
@@ -123,7 +122,7 @@ impl Lock {
         })
     }
 
-    pub fn forget(mut self: Self) {
+    pub fn forget(self) {
         let _self = self;
         // no-op on windows
     }
