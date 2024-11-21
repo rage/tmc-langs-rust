@@ -17,6 +17,7 @@ pub struct Lock {
     pub path: PathBuf,
     options: LockOptions,
     lock_file_path: Option<PathBuf>,
+    forget: bool,
 }
 
 impl Lock {
@@ -32,6 +33,7 @@ impl Lock {
             path,
             options,
             lock_file_path: None,
+            forget: false,
         })
     }
 
@@ -56,6 +58,7 @@ impl Lock {
             path,
             options,
             lock_file_path: Some(lock_path),
+            forget: false,
         })
     }
 
@@ -84,10 +87,18 @@ impl Lock {
         };
         Ok(Guard { lock, path })
     }
+
+    pub fn forget(mut self) {
+        self.forget = true;
+    }
 }
 
 impl Drop for Lock {
     fn drop(&mut self) {
+        if self.forget {
+            return;
+        }
+
         // check if we created a lock file
         if let Some(lock_file_path) = self.lock_file_path.take() {
             // try to get a write lock and delete file

@@ -68,6 +68,7 @@ impl Lock {
                         path: path.as_ref().to_path_buf(),
                         options,
                         lock,
+                        forget: false,
                     });
                 }
                 Err(err) => {
@@ -120,6 +121,11 @@ impl Lock {
             guard,
             path: Cow::Borrowed(&self.path),
         })
+    }
+
+    pub fn forget(mut self: Self) {
+        let _self = self;
+        // no-op on windows
     }
 }
 

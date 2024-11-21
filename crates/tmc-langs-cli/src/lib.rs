@@ -621,7 +621,7 @@ fn run_tmc_inner(
             output_path,
         } => {
             let mut output_lock = Lock::dir(&output_path, file_util::LockOptions::Write)?;
-            let _output_guard = output_lock.lock()?;
+            let output_guard = output_lock.lock()?;
 
             tmc_langs::download_old_submission(
                 client,
@@ -630,6 +630,8 @@ fn run_tmc_inner(
                 submission_id,
                 save_old_state,
             )?;
+            drop(output_guard);
+            output_lock.forget();
             CliOutput::finished("extracted project")
         }
 
