@@ -546,6 +546,18 @@ mod test {
     }
 
     #[test]
+    fn finds_project_dir_in_zip_cs() {
+        init();
+
+        let temp = TempDir::new().unwrap();
+        file_to(&temp, "dir1/dir2/dir3/src/dir4/sample.cs", "");
+        let bytes = dir_to_zip(&temp);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = CSharpPlugin::find_project_dir_in_archive(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("dir1/dir2/dir3"))
+    }
+
+    #[test]
     fn no_project_dir_in_zip() {
         init();
 
