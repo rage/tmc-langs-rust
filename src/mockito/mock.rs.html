@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.5.0/src/mock.rs`."><title>mock.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/mockito-1.6.1/src/mock.rs`."><title>mock.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="mockito" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mockito/</div>mock.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -694,9 +695,76 @@
 <a href="#694" id="694">694</a>
 <a href="#695" id="695">695</a>
 <a href="#696" id="696">696</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::diff;
-<span class="kw">use </span><span class="kw">crate</span>::matcher::{Matcher, PathAndQueryMatcher};
-<span class="kw">use </span><span class="kw">crate</span>::response::{Body, Response};
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::diff;
+<span class="kw">use </span><span class="kw">crate</span>::matcher::{Matcher, PathAndQueryMatcher, RequestMatcher};
+<span class="kw">use </span><span class="kw">crate</span>::response::{Body, Header, Response};
 <span class="kw">use </span><span class="kw">crate</span>::server::RemoteMock;
 <span class="kw">use </span><span class="kw">crate</span>::server::State;
 <span class="kw">use </span><span class="kw">crate</span>::Request;
@@ -763,6 +831,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) path: PathAndQueryMatcher,
     <span class="kw">pub</span>(<span class="kw">crate</span>) headers: HeaderMap&lt;Matcher&gt;,
     <span class="kw">pub</span>(<span class="kw">crate</span>) body: Matcher,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) request_matcher: RequestMatcher,
     <span class="kw">pub</span>(<span class="kw">crate</span>) response: Response,
     <span class="kw">pub</span>(<span class="kw">crate</span>) hits: usize,
     <span class="kw">pub</span>(<span class="kw">crate</span>) expected_hits_at_least: <span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -857,6 +926,7 @@
             path: PathAndQueryMatcher::Unified(path.into()),
             headers: HeaderMap::&lt;Matcher&gt;::default(),
             body: Matcher::Any,
+            request_matcher: RequestMatcher::default(),
             response: Response::default(),
             hits: <span class="number">0</span>,
             expected_hits_at_least: <span class="prelude-val">None</span>,
@@ -1000,6 +1070,36 @@
     </span>}
 
     <span class="doccomment">///
+    /// Allows matching the entire request based on a closure that takes
+    /// the [`Request`] object as an argument and returns a boolean value.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// use mockito::Matcher;
+    ///
+    /// let mut s = mockito::Server::new();
+    ///
+    /// // This will match requests that have the x-test header set
+    /// // and contain the word "hello" inside the body
+    /// s.mock("GET", "/")
+    ///     .match_request(|request| {
+    ///         request.has_header("x-test") &amp;&amp;
+    ///             request.utf8_lossy_body().unwrap().contains("hello")
+    ///     })
+    ///     .create();
+    /// ```
+    ///
+    </span><span class="kw">pub fn </span>match_request&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, request_matcher: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: Fn(<span class="kw-2">&amp;</span>Request) -&gt; bool + Send + Sync + <span class="lifetime">'static</span>,
+    {
+        <span class="self">self</span>.inner.request_matcher = request_matcher.into();
+
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">///
     /// Sets the status code of the mock response. The default status code is 200.
     ///
     /// ## Example
@@ -1034,8 +1134,44 @@
         <span class="self">self</span>.inner
             .response
             .headers
-            .append(field.into_header_name(), value.to_owned());
+            .append(field.into_header_name(), Header::String(value.to_string()));
 
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">///
+    /// Sets the headers of the mock response dynamically while exposing the request object.
+    ///
+    /// You can use this method to provide custom headers for every incoming request.
+    ///
+    /// The function must be thread-safe. If it's a closure, it can't be borrowing its context.
+    /// Use `move` closures and `Arc` to share any data.
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// let mut s = mockito::Server::new();
+    ///
+    /// let _m = s.mock("GET", mockito::Matcher::Any).with_header_from_request("x-user", |request| {
+    ///     if request.path() == "/bob" {
+    ///         "bob".into()
+    ///     } else if request.path() == "/alice" {
+    ///         "alice".into()
+    ///     } else {
+    ///         "everyone".into()
+    ///     }
+    /// });
+    /// ```
+    ///
+    </span><span class="kw">pub fn </span>with_header_from_request&lt;T: IntoHeaderName&gt;(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        field: T,
+        callback: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Request) -&gt; String + Send + Sync + <span class="lifetime">'static</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.inner.response.headers.append(
+            field.into_header_name(),
+            Header::FnWithRequest(Arc::new(<span class="kw">move </span>|req| callback(req))),
+        );
         <span class="self">self
     </span>}
 

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.20.0/src/cache.rs`."><title>cache.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0 (f6e511eec 2024-10-15)" data-channel="1.82.0" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/j4rs-0.21.0/src/cache.rs`."><title>cache.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="j4rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">j4rs/</div>cache.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2240,15 +2241,7 @@
 <a href="#2240" id="2240">2240</a>
 <a href="#2241" id="2241">2241</a>
 <a href="#2242" id="2242">2242</a>
-<a href="#2243" id="2243">2243</a>
-<a href="#2244" id="2244">2244</a>
-<a href="#2245" id="2245">2245</a>
-<a href="#2246" id="2246">2246</a>
-<a href="#2247" id="2247">2247</a>
-<a href="#2248" id="2248">2248</a>
-<a href="#2249" id="2249">2249</a>
-<a href="#2250" id="2250">2250</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright 2018 astonbitecode
+<a href="#2243" id="2243">2243</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2018 astonbitecode
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -2275,13 +2268,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::logger::debug;
 <span class="kw">use crate</span>::{api_tweaks <span class="kw">as </span>tweaks, errors, jni_utils, utils};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INST_CLASS_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str =
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INST_CLASS_NAME: <span class="kw-2">&amp;</span>str =
     <span class="string">"org/astonbitecode/j4rs/api/instantiation/NativeInstantiationImpl"</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UTILS_CLASS_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org/astonbitecode/j4rs/utils/Utils"</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_BASE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org/astonbitecode/j4rs/api/InstanceBase"</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_IFACE_NAME: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org/astonbitecode/j4rs/api/Instance"</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UNKNOWN_FOR_RUST: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"known_in_java_world"</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>J4RS_ARRAY: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"org.astonbitecode.j4rs.api.dtos.Array"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UTILS_CLASS_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"org/astonbitecode/j4rs/utils/Utils"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_BASE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"org/astonbitecode/j4rs/api/InstanceBase"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>INVO_IFACE_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"org/astonbitecode/j4rs/api/Instance"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>UNKNOWN_FOR_RUST: <span class="kw-2">&amp;</span>str = <span class="string">"known_in_java_world"</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>J4RS_ARRAY: <span class="kw-2">&amp;</span>str = <span class="string">"org.astonbitecode.j4rs.api.dtos.Array"</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>JniGetMethodId = <span class="kw">unsafe extern </span><span class="string">"system" </span><span class="kw">fn</span>(
     <span class="kw-2">*mut </span>jni_sys::JNIEnv,
@@ -2475,8 +2468,8 @@
 }
 
 <span class="macro">thread_local!</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_ENV: RefCell&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>JNIEnv&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>ACTIVE_JVMS: RefCell&lt;i32&gt; = RefCell::new(<span class="number">0</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_ENV: RefCell&lt;<span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>JNIEnv&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>ACTIVE_JVMS: RefCell&lt;i32&gt; = <span class="kw">const </span>{ RefCell::new(<span class="number">0</span>) };
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_GET_METHOD_ID: RefCell&lt;<span class="prelude-ty">Option</span>&lt;JniGetMethodId&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_GET_STATIC_METHOD_ID: RefCell&lt;<span class="prelude-ty">Option</span>&lt;JniGetStaticMethodId&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_NEW_OBJECT: RefCell&lt;<span class="prelude-ty">Option</span>&lt;JniNewObject&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
@@ -2507,86 +2500,86 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_THROW_NEW: RefCell&lt;<span class="prelude-ty">Option</span>&lt;JniThrowNew&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JNI_IS_SAME_OBJECT: RefCell&lt;<span class="prelude-ty">Option</span>&lt;JniIsSameObject&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
     <span class="comment">// This is the Utils class.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>UTILS_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>UTILS_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// Utils throwableToString method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>UTILS_THROWABLE_TO_STRING_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>UTILS_THROWABLE_TO_STRING_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// This is the factory class. It creates instances using reflection. Currently the `NativeInstantiationImpl`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The constructor method of the `NativeInstantiationImpl`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method id of the `instantiate` method of the `NativeInstantiation`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_INSTANTIATE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_INSTANTIATE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method id of the `createForStatic` method of the `NativeInstantiation`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_FOR_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_FOR_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method id of the `createJavaArray` method of the `NativeInstantiation`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_ARRAY_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_ARRAY_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method id of the `createJavaList` method of the `NativeInstantiation`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_LIST_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_LIST_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method id of the `createJavaMap` method of the `NativeInstantiation`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_MAP_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FACTORY_CREATE_JAVA_MAP_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The `Instance` class.
     // This is optional because it exists only in Android for Java7 compatibility
     // because Java7 does not support static method implementations in interfaces.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JAVA_INSTANCE_BASE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JAVA_INSTANCE_BASE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The `Instance` class.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JAVA_INSTANCE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>JAVA_INSTANCE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The Java class for the `InvocationArg`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOCATION_ARG_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOCATION_ARG_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invoke method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invoke static method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invoke to channel method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_TO_CHANNEL_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_TO_CHANNEL_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The method that invokes a Java method that returns Future
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_ASYNC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOKE_ASYNC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The init callback channel method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INIT_CALLBACK_CHANNEL_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INIT_CALLBACK_CHANNEL_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The field method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FIELD_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CLASS_TO_INVOKE_CLONE_AND_CAST: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FIELD_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CLASS_TO_INVOKE_CLONE_AND_CAST: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The clone method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CLONE_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CLONE_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The cast method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CAST_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CAST_STATIC_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The get json method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_JSON_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_JSON_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The get checkEquals method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHECK_EQUALS_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHECK_EQUALS_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The get object class name method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_CLASS_NAME_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_CLASS_NAME_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The get object method
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>GET_OBJECT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invstatic ocation argument constructor method for objects created by Java
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_JAVA_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_JAVA_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invstatic ocation argument constructor method for objects created by Rust
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_RUST_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_RUST_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// The invstatic ocation argument constructor method for objects of Basic type created by Rust
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INV_ARG_BASIC_RUST_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
     <span class="comment">// Basic types definitions
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_TO_INT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_TO_LONG_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_TO_SHORT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_TO_CHAR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_TO_BYTE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_TO_FLOAT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_TO_DOUBLE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOCATION_EXCEPTION_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>STRING_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = RefCell::new(<span class="prelude-val">None</span>);
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_TO_INT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INTEGER_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_TO_LONG_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>LONG_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_TO_SHORT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>SHORT_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_TO_CHAR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>CHARACTER_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_TO_BYTE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>BYTE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_TO_FLOAT_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>FLOAT_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_CONSTRUCTOR_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_TO_DOUBLE_METHOD: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jmethodID&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>DOUBLE_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>INVOCATION_EXCEPTION_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static </span>STRING_CLASS: RefCell&lt;<span class="prelude-ty">Option</span>&lt;jclass&gt;&gt; = <span class="kw">const </span>{ RefCell::new(<span class="prelude-val">None</span>) };
 }
 
 <span class="macro">macro_rules!</span> get_cached {
@@ -2625,10 +2618,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_thread_local_env_opt() -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>JNIEnv&gt; {
     JNI_ENV.with(
-        |existing_jni_env_opt| <span class="kw">match </span><span class="kw-2">*</span>existing_jni_env_opt.borrow() {
-            <span class="prelude-val">Some</span>(env) =&gt; <span class="prelude-val">Some</span>(env),
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        },
+        |existing_jni_env_opt| (<span class="kw-2">*</span>existing_jni_env_opt.borrow()),
     )
 }
 
@@ -2642,9 +2632,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_thread_local_env() -&gt; errors::Result&lt;<span class="kw-2">*mut </span>JNIEnv&gt; {
     <span class="kw">match </span>get_thread_local_env_opt() {
         <span class="prelude-val">Some</span>(env) =&gt; <span class="prelude-val">Ok</span>(env),
-        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(errors::J4RsError::JavaError(<span class="macro">format!</span>(
-            <span class="string">"Could not find the JNIEnv in the thread local"
-        </span>))),
+        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(errors::J4RsError::JavaError(<span class="string">"Could not find the JNIEnv in the thread local"</span>.to_string())),
     }
 }
 
@@ -3075,9 +3063,7 @@
         UTILS_THROWABLE_TO_STRING_METHOD,
         {
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
-            <span class="kw">let </span>throwable_to_string_method_signature = <span class="macro">format!</span>(
-                <span class="string">"(Ljava/lang/Throwable;)Ljava/lang/String;"
-            </span>);
+            <span class="kw">let </span>throwable_to_string_method_signature = <span class="string">"(Ljava/lang/Throwable;)Ljava/lang/String;"</span>.to_string();
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"throwableToString"</span>);
             <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>throwable_to_string_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3335,10 +3321,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>c = tweaks::find_class(env, INVO_BASE_NAME)<span class="question-mark">?</span>;
-            <span class="kw">let </span>j = jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?</span>;
+            
 
-            j
-        },
+            jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
+        </span>},
         set_java_instance_base_class
     )
 }
@@ -3357,10 +3343,10 @@
             <span class="kw">let </span>env = get_thread_local_env()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>c = tweaks::find_class(env, INVO_IFACE_NAME)<span class="question-mark">?</span>;
-            <span class="kw">let </span>j = jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?</span>;
+            
 
-            j
-        },
+            jni_utils::create_global_ref_from_local_ref(c, env)<span class="question-mark">?
+        </span>},
         set_java_instance_class
     )
 }
@@ -3455,7 +3441,7 @@
             <span class="kw">let </span>invoke_to_channel_method_signature =
                 <span class="string">"(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invokeToChannel"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>invoke_to_channel_method_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(invoke_to_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.invokeToChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
@@ -3490,7 +3476,7 @@
             <span class="kw">let </span>invoke_to_channel_method_signature =
                 <span class="string">"(JLjava/lang/String;[Lorg/astonbitecode/j4rs/api/dtos/InvocationArg;)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"invokeAsyncToChannel"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>invoke_to_channel_method_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(invoke_to_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.invokeToChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
@@ -3524,7 +3510,7 @@
 
             <span class="kw">let </span>init_callback_channel_method_signature = <span class="string">"(J)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"initializeCallbackChannel"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>init_callback_channel_method_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(init_callback_channel_method_signature);
             <span class="comment">// Get the method ID for the `Instance.initializeCallbackChannel`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
@@ -3664,7 +3650,7 @@
 
             <span class="kw">let </span>get_json_method_signature = <span class="string">"()Ljava/lang/String;"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getJson"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(get_json_method_signature.as_ref());
+            <span class="kw">let </span>cstr2 = utils::to_c_string(get_json_method_signature);
 
             <span class="comment">// Get the method ID for the `Instance.getJson`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3734,7 +3720,7 @@
 
             <span class="kw">let </span>get_object_class_name_method_signature = <span class="string">"()Ljava/lang/String;"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getObjectClassName"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_class_name_method_signature.as_ref());
+            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_class_name_method_signature);
 
             <span class="comment">// Get the method ID for the `Instance.getObjectClass`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3769,7 +3755,7 @@
 
             <span class="kw">let </span>get_object_method_signature = <span class="string">"()Ljava/lang/Object;"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"getObject"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_method_signature.as_ref());
+            <span class="kw">let </span>cstr2 = utils::to_c_string(get_object_method_signature);
 
             <span class="comment">// Get the method ID for the `Instance.getObject`
             </span><span class="kw">let </span>j = <span class="kw">unsafe </span>{
@@ -3868,7 +3854,7 @@
             <span class="kw">let </span>inv_arg_basic_rust_constructor_method_signature =
                 <span class="string">"(Ljava/lang/String;Ljava/lang/Object;)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>inv_arg_basic_rust_constructor_method_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(inv_arg_basic_rust_constructor_method_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(
                     env,
@@ -3901,13 +3887,13 @@
             // The java_instance_base_class is used because of Java7 compatibility issues in Android.
             // In Java8 and later, the static implementation in the interfaces is used. This is not supported in Java7
             // and there is a base class created for this reason.
-            </span><span class="kw">let </span>j = <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"android"</span>) {
+            
+
+            </span><span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"android"</span>) {
                 get_java_instance_base_class()<span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 get_java_instance_class()<span class="question-mark">?
-            </span>};
-
-            j
+            </span>}
         },
         set_class_to_invoke_clone_and_cast
     )
@@ -3948,7 +3934,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(I)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_integer_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -3976,7 +3962,7 @@
 
             <span class="kw">let </span>to_int_signature = <span class="string">"()I"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"intValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>to_int_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(to_int_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_integer_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4044,7 +4030,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(J)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_long_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4072,7 +4058,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()J"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"longValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_long_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4120,7 +4106,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(S)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_short_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4148,7 +4134,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()S"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"shortValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_short_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4196,7 +4182,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(C)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_character_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4224,7 +4210,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()C"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"charValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_character_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4272,7 +4258,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(B)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_byte_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4300,7 +4286,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()B"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"byteValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_byte_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4352,7 +4338,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(F)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_float_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4382,7 +4368,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()F"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"floatValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_float_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4434,7 +4420,7 @@
 
             <span class="kw">let </span>constructor_signature = <span class="string">"(D)V"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"&lt;init&gt;"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>constructor_signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(constructor_signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_double_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
@@ -4464,7 +4450,7 @@
 
             <span class="kw">let </span>signature = <span class="string">"()D"</span>;
             <span class="kw">let </span>cstr1 = utils::to_c_string(<span class="string">"doubleValue"</span>);
-            <span class="kw">let </span>cstr2 = utils::to_c_string(<span class="kw-2">&amp;</span>signature);
+            <span class="kw">let </span>cstr2 = utils::to_c_string(signature);
             <span class="kw">let </span>j = <span class="kw">unsafe </span>{
                 (opt_to_res(get_jni_get_method_id())<span class="question-mark">?</span>)(env, get_double_class()<span class="question-mark">?</span>, cstr1, cstr2)
             };
