@@ -121,6 +121,11 @@ impl Lock {
             path: Cow::Borrowed(&self.path),
         })
     }
+
+    pub fn forget(self) {
+        let _self = self;
+        // no-op on windows
+    }
 }
 
 pub struct Guard<'a> {

@@ -132,7 +132,7 @@ impl CSharpPlugin {
 }
 
 /// Project directory:
-/// Contains a src directory which contains a .csproj file (which may be inside a subdirectory).
+/// Contains a src directory which contains a .cs or .csproj file (which may be inside a subdirectory).
 impl LanguagePlugin for CSharpPlugin {
     const PLUGIN_NAME: &'static str = "csharp";
     const DEFAULT_SANDBOX_IMAGE: &'static str = "eu.gcr.io/moocfi-public/tmc-sandbox-csharp:latest";
@@ -145,7 +145,10 @@ impl LanguagePlugin for CSharpPlugin {
             .max_depth(2)
             .into_iter()
             .filter_map(|e| e.ok())
-            .any(|e| e.path().extension() == Some(&OsString::from("csproj")))
+            .any(|e| {
+                let ext = e.path().extension();
+                ext == Some(&OsString::from("cs")) || ext == Some(&OsString::from("csproj"))
+            })
     }
 
     fn find_project_dir_in_archive<R: Read + Seek>(
@@ -155,9 +158,10 @@ impl LanguagePlugin for CSharpPlugin {
         let project_dir = loop {
             let next = iter.with_next(|entry| {
                 let file_path = entry.path()?;
+                let ext = file_path.extension();
 
                 if entry.is_file()
-                    && file_path.extension() == Some(OsStr::new("csproj"))
+                    && (ext == Some(OsStr::new("cs")) || ext == Some(OsStr::new("csproj")))
                     && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
                 {
                     if let Some(parent) = file_path.parent() {
