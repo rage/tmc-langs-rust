@@ -163,6 +163,7 @@ enum GuardInner<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::file_util::LOCK_FILE_NAME;
     use std::sync::{Arc, Mutex};
     use tempfile::NamedTempFile;
 
@@ -250,7 +251,7 @@ mod test {
 
         let temp = tempfile::tempdir().unwrap();
         let mut lock = Lock::dir(temp.path().to_path_buf(), LockOptions::Read).unwrap();
-        let lock_path = temp.path().join(".tmc.lock");
+        let lock_path = temp.path().join(LOCK_FILE_NAME);
         assert!(lock_path.exists());
         let guard = lock.lock().unwrap();
         assert!(lock_path.exists());

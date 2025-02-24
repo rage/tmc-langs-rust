@@ -50,6 +50,7 @@ pub use tmc_langs_framework::{
 use tmc_langs_plugins::{
     CSharpPlugin, MakePlugin, NoTestsPlugin, Plugin, PluginType, Python3Plugin, RPlugin,
 };
+use tmc_langs_util::file_util::LOCK_FILE_NAME;
 // the Java plugin is disabled on musl
 pub use tmc_langs_util::{file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
@@ -991,7 +992,7 @@ fn move_dir(source: &Path, target: &Path) -> Result<(), LangsError> {
         let entry = entry?;
         let entry_path = entry.path();
 
-        if entry_path.file_name() == Some(OsStr::new(".tmc.lock")) {
+        if entry_path.file_name() == Some(OsStr::new(LOCK_FILE_NAME)) {
             log::info!("skipping lock file");
             file_count_copied += 1;
             progress_stage(format!(
