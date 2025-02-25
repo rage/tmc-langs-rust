@@ -518,7 +518,7 @@ impl<'de> Deserialize<'de> for SubmissionFeedbackKindString {
 struct SubmissionFeedbackKindStringVisitor {}
 
 // parses "text" into Text, and "intrange[x..y]" into IntRange {lower: x, upper: y}
-impl<'de> Visitor<'de> for SubmissionFeedbackKindStringVisitor {
+impl Visitor<'_> for SubmissionFeedbackKindStringVisitor {
     type Value = SubmissionFeedbackKindString;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

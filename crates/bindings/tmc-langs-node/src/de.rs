@@ -28,8 +28,8 @@ impl<'a, 'j, C: Context<'j>> Deserializer<'a, 'j, C> {
     }
 }
 
-impl<'x, 'd, 'a, 'j, C: Context<'j>> serde::de::Deserializer<'x>
-    for &'d mut Deserializer<'a, 'j, C>
+impl<'x, 'j, C: Context<'j>> serde::de::Deserializer<'x>
+    for &mut Deserializer<'_, 'j, C>
 {
     type Error = LibError;
 
@@ -171,7 +171,7 @@ impl<'a, 'j, C: Context<'j>> JsArrayAccess<'a, 'j, C> {
 }
 
 #[doc(hidden)]
-impl<'x, 'a, 'j, C: Context<'j>> SeqAccess<'x> for JsArrayAccess<'a, 'j, C> {
+impl<'x, 'j, C: Context<'j>> SeqAccess<'x> for JsArrayAccess<'_, 'j, C> {
     type Error = LibError;
 
     fn next_element_seed<T>(&mut self, seed: T) -> LibResult<Option<T::Value>>
@@ -215,7 +215,7 @@ impl<'a, 'j, C: Context<'j>> JsObjectAccess<'a, 'j, C> {
 }
 
 #[doc(hidden)]
-impl<'x, 'a, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'a, 'j, C> {
+impl<'x, 'j, C: Context<'j>> MapAccess<'x> for JsObjectAccess<'_, 'j, C> {
     type Error = LibError;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
@@ -297,7 +297,7 @@ impl<'a, 'j, C: Context<'j>> JsVariantAccess<'a, 'j, C> {
 }
 
 #[doc(hidden)]
-impl<'x, 'a, 'j, C: Context<'j>> VariantAccess<'x> for JsVariantAccess<'a, 'j, C> {
+impl<'x, 'j, C: Context<'j>> VariantAccess<'x> for JsVariantAccess<'_, 'j, C> {
     type Error = LibError;
 
     fn unit_variant(self) -> Result<(), Self::Error> {

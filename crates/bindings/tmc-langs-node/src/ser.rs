@@ -269,7 +269,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeSeq for ArraySerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeSeq for ArraySerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -293,7 +293,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeTuple for ArraySerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeTuple for ArraySerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -312,7 +312,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeTupleStruct for ArraySerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeTupleStruct for ArraySerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -349,7 +349,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeTupleVariant for TupleVariantSerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeTupleVariant for TupleVariantSerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -384,7 +384,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeMap for MapSerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeMap for MapSerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -425,7 +425,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeStruct for StructSerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeStruct for StructSerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {
@@ -464,7 +464,7 @@ where
     }
 }
 
-impl<'a, 'j, C> ser::SerializeStructVariant for StructVariantSerializer<'a, 'j, C>
+impl<'j, C> ser::SerializeStructVariant for StructVariantSerializer<'_, 'j, C>
 where
     C: Context<'j>,
 {

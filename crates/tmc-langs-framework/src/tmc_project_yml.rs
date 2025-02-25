@@ -178,7 +178,7 @@ impl<'de> Deserialize<'de> for PythonVer {
     {
         struct PythonVerVisitor;
 
-        impl<'de> Visitor<'de> for PythonVerVisitor {
+        impl Visitor<'_> for PythonVerVisitor {
             type Value = PythonVer;
 
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {

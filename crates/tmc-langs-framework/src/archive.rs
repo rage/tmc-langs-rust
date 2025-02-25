@@ -173,7 +173,7 @@ pub enum ArchiveIterator<'a, T: Read + Seek> {
     Zip(usize, &'a mut zip::ZipArchive<T>),
 }
 
-impl<'a, T: Read + Seek> ArchiveIterator<'a, T> {
+impl<T: Read + Seek> ArchiveIterator<'_, T> {
     /// Returns Break(None) when there's nothing left to iterate.
     pub fn with_next<U, F: FnMut(Entry<'_, T>) -> Result<ControlFlow<Option<U>>, TmcError>>(
         &mut self,
@@ -226,7 +226,7 @@ pub enum Entry<'a, T: Read> {
     Zip(zip::read::ZipFile<'a>),
 }
 
-impl<'a, T: Read> Entry<'a, T> {
+impl<T: Read> Entry<'_, T> {
     pub fn path(&self) -> Result<PathBuf, TmcError> {
         match self {
             Self::Tar(entry) => {
@@ -268,7 +268,7 @@ impl<'a, T: Read> Entry<'a, T> {
     }
 }
 
-impl<'a, T: Read> Read for Entry<'a, T> {
+impl<T: Read> Read for Entry<'_, T> {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         match self {
             Self::Tar(archive) => archive.read(buf),

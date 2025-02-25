@@ -22,9 +22,9 @@ export type StatusUpdate<T> = { finished: boolean, message: string, "percent-don
 
 export type ClientUpdateData = { "client-update-data-kind": "exercise-download", id: number, path: string, } | { "client-update-data-kind": "posted-submission" } & NewSubmission;
 
-export type StyleValidationResult = { strategy: StyleValidationStrategy, validationErrors: Record<string, Array<StyleValidationError>> | null, }
+export type StyleValidationResult = { strategy: StyleValidationStrategy, validation_errors: Record<string, Array<StyleValidationError>> | null, }
 
-export type StyleValidationError = { column: number, line: number, message: string, sourceName: string, }
+export type StyleValidationError = { column: number, line: number, message: string, source_name: string, }
 
 export type StyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
 

@@ -4,7 +4,7 @@ use crate::error::LangsError;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
-    io::{Read, Write},
+    io::Write,
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
