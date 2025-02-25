@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/java/src/java_plugin.rs`."><title>java_plugin.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_java" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tmc_langs_java/</div>java_plugin.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `crates/plugins/java/src/java_plugin.rs`."><title>java_plugin.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tmc_langs_java" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0 (4d91de4e4 2025-02-17)" data-channel="1.85.0" data-search-js="search-75f5ac3e.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tmc_langs_java/</div>java_plugin.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -604,12 +604,75 @@
 <a href="#603" id="603">603</a>
 <a href="#604" id="604">604</a>
 <a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a></pre></div><pre class="rust"><code><span class="doccomment">//! Common functionality for all Java plugins
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a></pre></div><pre class="rust"><code><span class="doccomment">//! Common functionality for all Java plugins
 
 </span><span class="kw">use crate</span>::{
     error::JavaError, CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun,
 };
 <span class="kw">use </span>j4rs::InvocationArg;
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::{
     collections::HashMap,
     convert::TryFrom,
@@ -619,8 +682,8 @@
 };
 <span class="kw">use </span>tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
-    TestResult, TmcCommand,
+    ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationError,
+    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand,
 };
 <span class="kw">use </span>tmc_langs_util::{deserialize, file_util, parse_util};
 <span class="kw">use </span>walkdir::WalkDir;
@@ -860,12 +923,12 @@
                 <span class="kw-2">&amp;</span>[InvocationArg::from(file), InvocationArg::from(locale)],
             )<span class="question-mark">?</span>;
             <span class="kw">let </span>result = jvm.invoke(<span class="kw-2">&amp;</span>checkstyle_runner, <span class="string">"run"</span>, InvocationArg::empty())<span class="question-mark">?</span>;
-            <span class="kw">let </span>result: StyleValidationResult = jvm.to_rust(result)<span class="question-mark">?</span>;
+            <span class="kw">let </span>result: JavaStyleValidationResult = jvm.to_rust(result)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(result)
         })<span class="question-mark">?</span>;
 
         <span class="macro">log::debug!</span>(<span class="string">"Validation result: {:?}"</span>, result);
-        <span class="prelude-val">Ok</span>(result)
+        <span class="prelude-val">Ok</span>(result.into())
     }
 
     <span class="doccomment">/// Parses @Points("1.1") point annotations.
@@ -894,6 +957,67 @@
                     .collect()
             },
         )(i)
+    }
+}
+
+<span class="doccomment">/// Determines how style errors are handled.
+</span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = <span class="string">"UPPERCASE"</span>)]
+</span><span class="kw">pub enum </span>JavaStyleValidationStrategy {
+    Fail,
+    Warn,
+    Disabled,
+}
+
+<span class="kw">impl </span>From&lt;JavaStyleValidationStrategy&gt; <span class="kw">for </span>StyleValidationStrategy {
+    <span class="kw">fn </span>from(value: JavaStyleValidationStrategy) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span>value {
+            JavaStyleValidationStrategy::Fail =&gt; <span class="self">Self</span>::Fail,
+            JavaStyleValidationStrategy::Warn =&gt; <span class="self">Self</span>::Warn,
+            JavaStyleValidationStrategy::Disabled =&gt; <span class="self">Self</span>::Disabled,
+        }
+    }
+}
+
+<span class="doccomment">/// A style validation error.
+</span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = <span class="string">"camelCase"</span>)]
+</span><span class="kw">pub struct </span>JavaStyleValidationError {
+    <span class="kw">pub </span>column: u32,
+    <span class="kw">pub </span>line: u32,
+    <span class="kw">pub </span>message: String,
+    <span class="kw">pub </span>source_name: String,
+}
+
+<span class="kw">impl </span>From&lt;JavaStyleValidationError&gt; <span class="kw">for </span>StyleValidationError {
+    <span class="kw">fn </span>from(value: JavaStyleValidationError) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            column: value.column,
+            line: value.line,
+            message: value.message,
+            source_name: value.source_name,
+        }
+    }
+}
+
+<span class="doccomment">/// The result of a style check.
+</span><span class="attr">#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = <span class="string">"camelCase"</span>)]
+</span><span class="kw">pub struct </span>JavaStyleValidationResult {
+    <span class="kw">pub </span>strategy: JavaStyleValidationStrategy,
+    <span class="kw">pub </span>validation_errors: <span class="prelude-ty">Option</span>&lt;HashMap&lt;PathBuf, Vec&lt;JavaStyleValidationError&gt;&gt;&gt;,
+}
+
+<span class="kw">impl </span>From&lt;JavaStyleValidationResult&gt; <span class="kw">for </span>StyleValidationResult {
+    <span class="kw">fn </span>from(value: JavaStyleValidationResult) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            strategy: value.strategy.into(),
+            validation_errors: value.validation_errors.map(|hm| {
+                hm.into_iter()
+                    .map(|(k, v)| (k, v.into_iter().map(Into::into).collect()))
+                    .collect()
+            }),
+        }
     }
 }
 
