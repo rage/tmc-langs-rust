@@ -250,9 +250,9 @@ export type SubmissionFeedbackResponse = { api_version: number, status: Submissi
 
 export type SubmissionStatus = "processing" | "fail" | "ok" | "error" | "hidden";
 
-export type TmcStyleValidationResult = { strategy: TmcStyleValidationStrategy, validation_errors: Record<string, Array<TmcStyleValidationError>> | null, }
+export type TmcStyleValidationResult = { strategy: TmcStyleValidationStrategy, validationErrors: Record<string, Array<TmcStyleValidationError>> | null, }
 
-export type TmcStyleValidationError = { column: number, line: number, message: string, source_name: string, }
+export type TmcStyleValidationError = { column: number, line: number, message: string, sourceName: string, }
 
 export type TmcStyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
 
