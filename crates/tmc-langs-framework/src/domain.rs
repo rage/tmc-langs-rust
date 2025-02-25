@@ -141,7 +141,6 @@ pub enum StyleValidationStrategy {
 /// A style validation error.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-#[serde(rename_all = "camelCase")]
 pub struct StyleValidationError {
     pub column: u32,
     pub line: u32,
@@ -152,7 +151,6 @@ pub struct StyleValidationError {
 /// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-#[serde(rename_all = "camelCase")]
 pub struct StyleValidationResult {
     pub strategy: StyleValidationStrategy,
     pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,

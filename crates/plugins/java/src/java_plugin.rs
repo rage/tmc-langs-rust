@@ -4,6 +4,7 @@ use crate::{
     error::JavaError, CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun,
 };
 use j4rs::InvocationArg;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     convert::TryFrom,
@@ -13,8 +14,8 @@ use std::{
 };
 use tmc_langs_framework::{
     nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
-    ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationResult, TestDesc,
-    TestResult, TmcCommand,
+    ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationError,
+    StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand,
 };
 use tmc_langs_util::{deserialize, file_util, parse_util};
 use walkdir::WalkDir;
@@ -254,12 +255,12 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                 &[InvocationArg::from(file), InvocationArg::from(locale)],
             )?;
             let result = jvm.invoke(&checkstyle_runner, "run", InvocationArg::empty())?;
-            let result: StyleValidationResult = jvm.to_rust(result)?;
+            let result: JavaStyleValidationResult = jvm.to_rust(result)?;
             Ok(result)
         })?;
 
         log::debug!("Validation result: {:?}", result);
-        Ok(result)
+        Ok(result.into())
     }
 
     /// Parses @Points("1.1") point annotations.
@@ -288,6 +289,67 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                     .collect()
             },
         )(i)
+    }
+}
+
+/// Determines how style errors are handled.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum JavaStyleValidationStrategy {
+    Fail,
+    Warn,
+    Disabled,
+}
+
+impl From<JavaStyleValidationStrategy> for StyleValidationStrategy {
+    fn from(value: JavaStyleValidationStrategy) -> Self {
+        match value {
+            JavaStyleValidationStrategy::Fail => Self::Fail,
+            JavaStyleValidationStrategy::Warn => Self::Warn,
+            JavaStyleValidationStrategy::Disabled => Self::Disabled,
+        }
+    }
+}
+
+/// A style validation error.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct JavaStyleValidationError {
+    pub column: u32,
+    pub line: u32,
+    pub message: String,
+    pub source_name: String,
+}
+
+impl From<JavaStyleValidationError> for StyleValidationError {
+    fn from(value: JavaStyleValidationError) -> Self {
+        Self {
+            column: value.column,
+            line: value.line,
+            message: value.message,
+            source_name: value.source_name,
+        }
+    }
+}
+
+/// The result of a style check.
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct JavaStyleValidationResult {
+    pub strategy: JavaStyleValidationStrategy,
+    pub validation_errors: Option<HashMap<PathBuf, Vec<JavaStyleValidationError>>>,
+}
+
+impl From<JavaStyleValidationResult> for StyleValidationResult {
+    fn from(value: JavaStyleValidationResult) -> Self {
+        Self {
+            strategy: value.strategy.into(),
+            validation_errors: value.validation_errors.map(|hm| {
+                hm.into_iter()
+                    .map(|(k, v)| (k, v.into_iter().map(Into::into).collect()))
+                    .collect()
+            }),
+        }
     }
 }
 
