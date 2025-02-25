@@ -151,8 +151,8 @@ pub struct StyleValidationError {
 
 /// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
 pub struct StyleValidationResult {
     pub strategy: StyleValidationStrategy,
     pub validation_errors: Option<HashMap<PathBuf, Vec<StyleValidationError>>>,

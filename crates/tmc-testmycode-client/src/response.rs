@@ -576,6 +576,7 @@ pub struct Review {
 /// The result of a style check.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
 pub struct TmcStyleValidationResult {
     pub strategy: TmcStyleValidationStrategy,
     pub validation_errors: Option<HashMap<PathBuf, Vec<TmcStyleValidationError>>>,
@@ -594,6 +595,7 @@ pub enum TmcStyleValidationStrategy {
 /// A style validation error.
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+#[serde(rename_all = "camelCase")]
 pub struct TmcStyleValidationError {
     pub column: u32,
     pub line: u32,
@@ -694,5 +696,82 @@ mod test {
         let original = SubmissionFeedbackKind::IntRange { lower: 1, upper: 5 };
         let json = serde_json::to_string(&original).unwrap();
         assert_eq!(json, r#"{"IntRange":{"lower":1,"upper":5}}"#);
+    }
+
+    #[test]
+    fn submission_response_with_validation_errors() {
+        init();
+
+        let submission = serde_json::json!(
+            {
+                "api_version": 7,
+                "all_tests_passed": false,
+                "user_id": 12345,
+                "login": "12345",
+                "course": "course",
+                "exercise_name": "exercise",
+                "status": "fail",
+                "points": [],
+                "validations": {
+                  "strategy": "FAIL",
+                  "validationErrors": {
+                    "Main.java": [
+                      {
+                        "column": 1,
+                        "line": 1,
+                        "message": "Indentation incorrect. Expected 8, but was 12.",
+                        "sourceName": "com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
+                      },
+                      {
+                        "column": 2,
+                        "line": 2,
+                        "message": "Indentation incorrect. Expected 8, but was 12.",
+                        "sourceName": "com.puppycrawl.tools.checkstyle.checks.indentation.IndentationCheck"
+                      }
+                    ]
+                  }
+                },
+                "valgrind": "",
+                "submission_url": "https://tmc.mooc.fi/submissions/12345",
+                "solution_url": "https://tmc.mooc.fi/exercises/12345/solution",
+                "submitted_at": "2025-01-01T01:01:01.001+01:01",
+                "processing_time": 12345,
+                "reviewed": false,
+                "requests_review": false,
+                "paste_url": null,
+                "message_for_paste": null,
+                "missing_review_points": [],
+                "test_cases": [
+                  {
+                    "name": "FakeTest test",
+                    "successful": true,
+                    "message": "",
+                    "exception": [],
+                    "detailed_message": null
+                  },
+                  {
+                    "name": "FakeTest testTwo",
+                    "successful": true,
+                    "message": "",
+                    "exception": [],
+                    "detailed_message": null
+                  },
+                  {
+                    "name": "FakeTest testThree",
+                    "successful": true,
+                    "message": "",
+                    "exception": [],
+                    "detailed_message": null
+                  }
+                ]
+              }
+        );
+        let submission = deserialize::json_from_value::<SubmissionFinished>(submission).unwrap();
+        assert!(!submission
+            .validations
+            .unwrap()
+            .validation_errors
+            .unwrap()
+            .is_empty());
     }
 }

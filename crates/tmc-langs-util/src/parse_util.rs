@@ -45,7 +45,7 @@ pub fn comma_separated_strings_either(i: &str) -> IResult<&str, Vec<&str>, Verbo
 fn comma_separated_things<'a>(
     thing_parser: impl FnMut(&'a str) -> IResult<&'a str, &'a str, VerboseError<&'a str>>,
     i: &'a str,
-) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
+) -> IResult<&'a str, Vec<&'a str>, VerboseError<&'a str>> {
     multi::separated_list1(
         sequence::delimited(
             character::complete::multispace0,
