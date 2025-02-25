@@ -185,7 +185,7 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
 
             let check_result =
                 run_checkstyle_write_results(&exercise_path, output_path.as_deref(), locale)?;
-            CliOutput::finished_with_data("ran checkstyle", check_result.map(DataKind::Validation))
+            CliOutput::finished_with_data("ran checkstyle", DataKind::Validation(check_result))
         }
 
         Command::Clean { exercise_path } => {

@@ -33,10 +33,7 @@ pub enum CliOutput {
 }
 
 impl CliOutput {
-    pub fn finished_with_data(
-        message: impl Into<String>,
-        data: impl Into<Option<DataKind>>,
-    ) -> Self {
+    pub fn finished_with_data(message: impl Into<String>, data: DataKind) -> Self {
         Self::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: message.into(),
@@ -74,7 +71,7 @@ pub enum DataKind {
         kind: Kind,
         trace: Vec<String>,
     },
-    Validation(StyleValidationResult),
+    Validation(Option<StyleValidationResult>),
     /// megabytes
     // FreeDiskSpace(u64),
     AvailablePoints(Vec<String>),
