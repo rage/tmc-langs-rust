@@ -28,9 +28,7 @@ impl<'a, 'j, C: Context<'j>> Deserializer<'a, 'j, C> {
     }
 }
 
-impl<'x, 'j, C: Context<'j>> serde::de::Deserializer<'x>
-    for &mut Deserializer<'_, 'j, C>
-{
+impl<'x, 'j, C: Context<'j>> serde::de::Deserializer<'x> for &mut Deserializer<'_, 'j, C> {
     type Error = LibError;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
