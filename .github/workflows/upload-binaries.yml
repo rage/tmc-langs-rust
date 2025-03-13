@@ -26,6 +26,11 @@ jobs:
             x86_64-unknown-linux-musl,
           ]
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-multilib  # required to build for 32-bit arch
+          sudo apt install -y curl          # required for Rust installation
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Rust
@@ -43,10 +48,6 @@ jobs:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: "Set up Cloud SDK"
         uses: google-github-actions/setup-gcloud@v2
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y gcc-multilib  # required to build for 32-bit arch
 
       - name: Install aarch64-unknown-linux-gnu linker
         if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
