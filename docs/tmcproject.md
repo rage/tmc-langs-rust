@@ -1,5 +1,8 @@
 Exercises can be configured by adding an optional `.tmcproject.yml` file to the exercise root directory. Additionally, a course-wide file can be added to the course's root. When the course is then refreshed, the course-wide file is merged with the exercise-specific ones for the exercise stub and solution. For each key-value pair in the course-wide file, if the key is not present in the exercise-specific file, it is added to it with the course-wide file's value.
 
+
+A course can also be configured as a whole using a `course_options.yml`-configuration file, documentation for that can be found [here](./course_options.md).
+
 ## Keys
 
 All of the keys listed below are optional.
