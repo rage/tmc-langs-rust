@@ -167,7 +167,7 @@ impl MoocClient {
 
         // send submission
         let user_answer = UserAnswer::Editor {
-            download_url: res.download_url,
+            archive_download_url: res.download_url,
         };
         let data_json = serialize::to_json_value(&user_answer)?;
         let exercise_slide_submission = api::ExerciseSlideSubmission {
