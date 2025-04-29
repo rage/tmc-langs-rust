@@ -9,7 +9,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{self, error::VerboseError, IResult},
+    nom::{self, IResult},
+    nom_language::error::VerboseError,
     Archive, ExerciseDesc, LanguagePlugin, RunResult, RunStatus, StudentFilePolicy, TestDesc,
     TestResult, TmcError, TmcProjectYml,
 };

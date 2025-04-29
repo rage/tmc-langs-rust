@@ -1,6 +1,7 @@
 //! Contains parse functions that may be convenient for implementing language plugins.
 
-use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
+use nom::{branch, bytes, character, combinator, multi, sequence, IResult, Parser};
+use nom_language::error::VerboseError;
 
 /// Parses a string delimited by double quotes. Trims.
 pub fn string(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
@@ -11,7 +12,8 @@ pub fn string(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
             character::complete::char('"'),
         ),
         str::trim,
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parses a string delimited by single quotes. Trims.
@@ -23,7 +25,8 @@ pub fn string_single(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
             character::complete::char('\''),
         ),
         str::trim,
-    )(i)
+    )
+    .parse(i)
 }
 
 /// Parses a comma-separated list of double quote strings like "a", "b", "c".
@@ -43,7 +46,7 @@ pub fn comma_separated_strings_either(i: &str) -> IResult<&str, Vec<&str>, Verbo
 
 /// Parses a comma-separated list of things, thing being defined by the parser given to the function.
 fn comma_separated_things<'a>(
-    thing_parser: impl FnMut(&'a str) -> IResult<&'a str, &'a str, VerboseError<&'a str>>,
+    thing_parser: impl Parser<&'a str, Output = &'a str, Error = VerboseError<&'a str>>,
     i: &'a str,
 ) -> IResult<&'a str, Vec<&'a str>, VerboseError<&'a str>> {
     multi::separated_list1(
@@ -53,7 +56,8 @@ fn comma_separated_things<'a>(
             character::complete::multispace0,
         ),
         thing_parser,
-    )(i)
+    )
+    .parse(i)
 }
 
 #[cfg(test)]

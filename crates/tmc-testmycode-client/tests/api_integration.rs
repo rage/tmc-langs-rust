@@ -23,7 +23,8 @@ fn init_client() -> TestMyCodeClient {
         "https://tmc.mooc.fi".parse().unwrap(),
         "vscode_plugin".to_string(),
         "1.0.0".to_string(),
-    );
+    )
+    .unwrap();
     client
         .authenticate("vscode_plugin", email, password)
         .unwrap();

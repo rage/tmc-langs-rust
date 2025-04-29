@@ -14,9 +14,8 @@ use std::{
 };
 use tar::Archive as Tar;
 use tmc_langs_framework::{
-    nom::{error::VerboseError, IResult},
-    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
-    TmcError,
+    nom::IResult, nom_language::error::VerboseError, Archive, ExerciseDesc, Language,
+    LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
 };
 use tmc_langs_util::{file_util, path_util};
 

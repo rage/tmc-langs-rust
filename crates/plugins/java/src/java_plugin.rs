@@ -13,7 +13,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{bytes, character, combinator, sequence, IResult, Parser},
+    nom_language::error::VerboseError,
     ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationError,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand,
 };
@@ -267,19 +268,19 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
     fn java_points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
-                sequence::tuple((
+                (
                     character::complete::char('@'),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
-                )),
+                ),
                 parse_util::comma_separated_strings,
-                sequence::tuple((
+                (
                     character::complete::multispace0,
                     character::complete::char(')'),
-                )),
+                ),
             ),
             // splits each point by whitespace
             |points| {
@@ -288,7 +289,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
                     .flat_map(|p| p.split_whitespace())
                     .collect()
             },
-        )(i)
+        )
+        .parse(i)
     }
 }
 
@@ -359,7 +361,7 @@ mod test {
     use super::*;
     use crate::SEPARATOR;
     use std::io::{Read, Seek};
-    use tmc_langs_framework::{nom, Archive, TmcError};
+    use tmc_langs_framework::{Archive, TmcError};
 
     fn init() {
         use log::*;
@@ -442,7 +444,7 @@ mod test {
             unimplemented!()
         }
 
-        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>> {
+        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             Self::java_points_parser(i)
         }
     }

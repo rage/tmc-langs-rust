@@ -575,7 +575,7 @@ pub fn init_testmycode_client_with_credentials(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
-    );
+    )?;
 
     // set token from the credentials file if one exists
     let credentials = Credentials::load(client_name)?;
@@ -1133,7 +1133,8 @@ mod test {
             server.url().parse().unwrap(),
             "client".to_string(),
             "version".to_string(),
-        );
+        )
+        .unwrap();
         let token = tmc::Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,

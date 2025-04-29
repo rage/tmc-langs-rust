@@ -13,7 +13,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{bytes, character, combinator, sequence, IResult, Parser},
+    nom_language::error::VerboseError,
     Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus,
     TestDesc, TmcCommand, TmcError, TmcProjectYml,
 };
@@ -361,20 +362,21 @@ impl LanguagePlugin for MakePlugin {
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         fn tmc_register_test_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             sequence::delimited(
-                sequence::tuple((
+                (
                     bytes::complete::tag("tmc_register_test"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
                     arg_parser,
                     arg_parser,
-                )),
+                ),
                 string_parser,
-                sequence::tuple((
+                (
                     character::complete::multispace0,
                     character::complete::char(')'),
-                )),
-            )(i)
+                ),
+            )
+            .parse(i)
             .map(|(a, b)| (a, vec![b]))
         }
 
@@ -382,12 +384,13 @@ impl LanguagePlugin for MakePlugin {
         fn arg_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
             combinator::value(
                 "",
-                sequence::tuple((
+                (
                     bytes::complete::take_till(|c: char| c.is_whitespace() || c == ','),
                     character::complete::char(','),
                     character::complete::multispace0,
-                )),
-            )(i)
+                ),
+            )
+            .parse(i)
         }
 
         fn string_parser(i: &str) -> IResult<&str, &str, VerboseError<&str>> {
@@ -395,7 +398,8 @@ impl LanguagePlugin for MakePlugin {
                 character::complete::char('"'),
                 bytes::complete::is_not("\""),
                 character::complete::char('"'),
-            )(i)
+            )
+            .parse(i)
         }
 
         tmc_register_test_parser(i)

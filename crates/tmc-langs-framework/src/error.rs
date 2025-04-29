@@ -1,6 +1,6 @@
 //! Contains the TmcError type.
 
-pub use nom::error::VerboseError;
+pub use nom_language::error::VerboseError;
 use std::{path::PathBuf, time::Duration};
 pub use subprocess::{ExitStatus, PopenError};
 use thiserror::Error;

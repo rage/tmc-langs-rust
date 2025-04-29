@@ -1037,6 +1037,7 @@ mod test {
             "client".to_string(),
             "version".to_string(),
         )
+        .unwrap()
     }
 
     fn client_matcher() -> Matcher {

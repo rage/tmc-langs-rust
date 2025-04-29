@@ -10,7 +10,8 @@ use crate::{
     Archive, Compression,
 };
 pub use isolang::Language;
-use nom::{branch, bytes, character, combinator, error::VerboseError, multi, sequence, IResult};
+use nom::{branch, bytes, character, combinator, multi, sequence, IResult, Parser};
+use nom_language::error::VerboseError;
 use std::{
     collections::HashSet,
     io::{Read, Seek},
@@ -367,22 +368,22 @@ pub trait LanguagePlugin {
                     );
 
                     // reads a single block comment
-                    let block_comment_parser: Box<dyn FnMut(_) -> _> =
+                    let block_comment_parser = |i| {
                         if let Some((block_start, block_end)) = Self::BLOCK_COMMENT {
-                            Box::new(combinator::value(
+                            combinator::value(
                                 Parse::BlockComment,
                                 sequence::delimited(
                                     bytes::complete::tag(block_start),
                                     bytes::complete::take_until(block_end),
                                     bytes::complete::tag(block_end),
                                 ),
-                            ))
+                            )
+                            .parse(i)
                         } else {
-                            Box::new(combinator::value(
-                                Parse::BlockComment,
-                                character::complete::one_of(""),
-                            ))
-                        };
+                            combinator::value(Parse::BlockComment, character::complete::one_of(""))
+                                .parse(i)
+                        }
+                    };
 
                     // reads a points annotation
                     let points_parser = combinator::map(Self::points_parser, |p| {
@@ -397,7 +398,7 @@ pub trait LanguagePlugin {
                         etc_parser,
                     )));
 
-                    let res: IResult<_, _, _> = parser(&file_contents);
+                    let res: IResult<_, _, _> = parser.parse(&file_contents);
                     match res {
                         Ok((_, parsed)) => {
                             for parse in parsed {
@@ -434,7 +435,7 @@ pub trait LanguagePlugin {
     /// A nom parser that recognizes a points annotation and returns the inner points value(s).
     ///
     /// For example implementations, see the existing language plugins.
-    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>>;
+    fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>>;
 }
 
 #[derive(Debug, Clone)]
@@ -595,17 +596,17 @@ mod test {
             Ok(())
         }
 
-        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, nom::error::VerboseError<&str>> {
+        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             combinator::map(
                 sequence::delimited(
-                    sequence::tuple((
+                    (
                         bytes::complete::tag("@"),
                         character::complete::multispace0,
                         bytes::complete::tag_no_case("points"),
                         character::complete::multispace0,
                         character::complete::char('('),
                         character::complete::multispace0,
-                    )),
+                    ),
                     branch::alt((
                         sequence::delimited(
                             character::complete::char('"'),
@@ -618,13 +619,14 @@ mod test {
                             character::complete::char('\''),
                         ),
                     )),
-                    sequence::tuple((
+                    (
                         character::complete::multispace0,
                         character::complete::char(')'),
-                    )),
+                    ),
                 ),
                 |s: &str| vec![s.trim()],
-            )(i)
+            )
+            .parse(i)
         }
 
         fn get_default_student_file_paths() -> Vec<PathBuf> {

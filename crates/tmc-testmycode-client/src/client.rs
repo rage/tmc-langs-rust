@@ -10,7 +10,11 @@ use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
     ResourceOwnerUsername, TokenUrl,
 };
-use reqwest::{blocking::Client, Url};
+use reqwest::{
+    blocking::{Client, ClientBuilder},
+    redirect::Policy,
+    Url,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -42,6 +46,7 @@ pub struct TestMyCodeClient(Arc<TmcCore>);
 
 struct TmcCore {
     client: Client,
+    oauth_client: Client,
     root_url: Url,
     token: Option<Token>,
     client_name: String,
@@ -68,9 +73,13 @@ impl TestMyCodeClient {
     /// ```rust,no_run
     /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// ```
-    pub fn new(root_url: Url, client_name: String, client_version: String) -> Self {
+    pub fn new(
+        root_url: Url,
+        client_name: String,
+        client_version: String,
+    ) -> TestMyCodeClientResult<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.as_str().ends_with('/') {
             root_url
@@ -78,13 +87,20 @@ impl TestMyCodeClient {
             format!("{root_url}/").parse().expect("invalid root url")
         };
 
-        TestMyCodeClient(Arc::new(TmcCore {
+        let oauth_client = ClientBuilder::new()
+            .redirect(Policy::none())
+            .build()
+            .map_err(TestMyCodeClientError::HttpClientBuilder)?;
+
+        let client = TestMyCodeClient(Arc::new(TmcCore {
             client: Client::new(),
+            oauth_client,
             root_url,
             token: None,
             client_name,
             client_version,
-        }))
+        }));
+        Ok(client)
     }
 
     /// Sets the authentication token, which may for example have been read from a file.
@@ -112,7 +128,7 @@ impl TestMyCodeClient {
     /// ```rust,no_run
     /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
@@ -132,20 +148,18 @@ impl TestMyCodeClient {
         let credentials = api_v8::get_credentials(self, client_name)?;
 
         log::debug!("authenticating at {}", auth_url);
-        let client = BasicClient::new(
-            ClientId::new(credentials.application_id),
-            Some(ClientSecret::new(credentials.secret)),
-            AuthUrl::from_url(auth_url.clone()),
-            Some(TokenUrl::from_url(auth_url)),
-        );
+        let client = BasicClient::new(ClientId::new(credentials.application_id))
+            .set_client_secret(ClientSecret::new(credentials.secret))
+            .set_auth_uri(AuthUrl::from_url(auth_url.clone()))
+            .set_token_uri(TokenUrl::from_url(auth_url));
 
         let token = client
             .exchange_password(
                 &ResourceOwnerUsername::new(email),
                 &ResourceOwnerPassword::new(password),
             )
-            .request(oauth2::reqwest::http_client)
-            .map_err(TestMyCodeClientError::from)?;
+            .request(&self.0.oauth_client)
+            .map_err(TestMyCodeClientError::Token)?;
         Arc::get_mut(&mut self.0)
             .expect("called when multiple clones exist")
             .token = Some(token.clone());
@@ -226,7 +240,7 @@ impl TestMyCodeClient {
     /// use url::Url;
     /// use std::path::Path;
     ///
-    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let new_submission = client.paste(
     ///     123,
@@ -390,7 +404,7 @@ impl TestMyCodeClient {
     /// ```rust,no_run
     /// use tmc_testmycode_client::TestMyCodeClient;
     ///
-    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string());
+    /// let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
     /// // authenticate
     /// let mut checksums = std::collections::HashMap::new();
     /// checksums.insert(1234, "exercisechecksum".to_string());
@@ -689,7 +703,8 @@ mod test {
             server.url().parse().unwrap(),
             "some_client".to_string(),
             "some_ver".to_string(),
-        );
+        )
+        .unwrap();
         let token = Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,

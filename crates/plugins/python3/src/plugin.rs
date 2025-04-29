@@ -17,7 +17,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, error::VerboseError, sequence, IResult},
+    nom::{bytes, character, combinator, sequence, IResult, Parser},
+    nom_language::error::VerboseError,
     Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PythonVer, RunResult, RunStatus,
     TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml,
 };
@@ -267,8 +268,8 @@ impl LanguagePlugin for Python3Plugin {
 
         let (output, random_string) = if exercise_directory.join("tmc/hmac_writer.py").exists() {
             // has hmac writer
-            let random_string: String = rand::thread_rng()
-                .sample_iter(rand::distributions::Alphanumeric)
+            let random_string: String = rand::rng()
+                .sample_iter(rand::distr::Alphanumeric)
                 .take(32)
                 .map(char::from)
                 .collect();
@@ -497,19 +498,19 @@ impl LanguagePlugin for Python3Plugin {
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         combinator::map(
             sequence::delimited(
-                sequence::tuple((
+                (
                     character::complete::char('@'),
                     character::complete::multispace0,
                     bytes::complete::tag_no_case("points"),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
-                )),
+                ),
                 parse_util::comma_separated_strings_either,
-                sequence::tuple((
+                (
                     character::complete::multispace0,
                     character::complete::char(')'),
-                )),
+                ),
             ),
             // splits each point by whitespace
             |points| {
@@ -518,7 +519,8 @@ impl LanguagePlugin for Python3Plugin {
                     .flat_map(|p| p.split_whitespace())
                     .collect()
             },
-        )(i)
+        )
+        .parse(i)
     }
 }
 

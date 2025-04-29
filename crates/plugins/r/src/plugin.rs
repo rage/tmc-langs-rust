@@ -10,7 +10,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, error::VerboseError, sequence, IResult},
+    nom::{branch, bytes, character, sequence, IResult, Parser},
+    nom_language::error::VerboseError,
     Archive, ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
 };
 use tmc_langs_util::{deserialize, file_util, parse_util, path_util};
@@ -167,7 +168,7 @@ impl LanguagePlugin for RPlugin {
 
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
         let test_parser = sequence::preceded(
-            sequence::tuple((
+            (
                 bytes::complete::tag("test"),
                 character::complete::multispace0,
                 character::complete::char('('),
@@ -176,36 +177,37 @@ impl LanguagePlugin for RPlugin {
                 character::complete::multispace0,
                 character::complete::char(','),
                 character::complete::multispace0,
-            )),
+            ),
             list_parser,
         );
         let points_for_all_tests_parser = sequence::preceded(
-            sequence::tuple((
+            (
                 bytes::complete::tag("points_for_all_tests"),
                 character::complete::multispace0,
                 character::complete::char('('),
                 character::complete::multispace0,
-            )),
+            ),
             list_parser,
         );
 
         fn list_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
             sequence::delimited(
-                sequence::tuple((
+                (
                     character::complete::char('c'),
                     character::complete::multispace0,
                     character::complete::char('('),
                     character::complete::multispace0,
-                )),
+                ),
                 parse_util::comma_separated_strings,
-                sequence::tuple((
+                (
                     character::complete::multispace0,
                     character::complete::char(')'),
-                )),
-            )(i)
+                ),
+            )
+            .parse(i)
         }
 
-        branch::alt((test_parser, points_for_all_tests_parser))(i)
+        branch::alt((test_parser, points_for_all_tests_parser)).parse(i)
     }
 }
 
