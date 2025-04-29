@@ -14,7 +14,7 @@ use crate::app::{Cli, Locale};
 use anyhow::{Context, Result};
 use app::{Command, Mooc, MoocCommand, Settings, SettingsCommand, TestMyCode, TestMyCodeCommand};
 use base64::Engine;
-use clap::{error::ErrorKind, CommandFactory};
+use clap::{CommandFactory, error::ErrorKind};
 use serde::Serialize;
 use serde_json::Value;
 use std::{
@@ -24,10 +24,10 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    mooc::MoocClient,
-    tmc::{request::FeedbackAnswer, TestMyCodeClient, TestMyCodeClientError},
     CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
     Language, StyleValidationResult, TmcConfig, UpdatedExercise,
+    mooc::MoocClient,
+    tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
 };
 use tmc_langs_util::{
     deserialize,
@@ -66,7 +66,7 @@ pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
 
 #[derive(Debug)]
 pub struct CliError {
-    pub output: CliOutput,
+    pub output: Box<CliOutput>,
     pub sandbox_path: Option<PathBuf>,
 }
 
@@ -89,7 +89,7 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
                 }),
             }));
             Err(CliError {
-                output,
+                output: Box::new(output),
                 sandbox_path,
             })
         }

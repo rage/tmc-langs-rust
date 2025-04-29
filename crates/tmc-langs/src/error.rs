@@ -38,7 +38,9 @@ pub enum LangsError {
     ZipExtract(PathBuf, #[source] ZipError),
     #[error("Failed to parse file {0}")]
     SubmissionParse(PathBuf, #[source] Box<Self>),
-    #[error("Failed to deserialize credentials file at {0}. The file has been removed, please try again")]
+    #[error(
+        "Failed to deserialize credentials file at {0}. The file has been removed, please try again"
+    )]
     DeserializeCredentials(PathBuf, #[source] JsonError),
     #[error("Failed to deserialize JSON from file at {0}")]
     DeserializeJson(PathBuf, #[source] JsonError),
@@ -80,7 +82,9 @@ pub enum LangsError {
     #[error("Failed to find parent directory of {0}")]
     NoParentDir(PathBuf),
 
-    #[error("Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash")]
+    #[error(
+        "Cache path {0} was invalid. Not a valid UTF-8 string or did not contain a cache version after a dash"
+    )]
     InvalidCachePath(PathBuf),
     #[error("Path {0} contained a dash '-' which is currently not allowed")]
     InvalidDirectory(PathBuf),
@@ -123,7 +127,7 @@ pub enum LangsError {
     #[error(transparent)]
     Hmac(#[from] hmac::digest::InvalidLength),
     #[error(transparent)]
-    TestMyCodeClient(#[from] tmc_testmycode_client::TestMyCodeClientError),
+    TestMyCodeClient(#[from] Box<tmc_testmycode_client::TestMyCodeClientError>),
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
 }

@@ -51,13 +51,13 @@ pub fn refresh_course(
     git_branch: String,
     cache_root: PathBuf,
 ) -> Result<RefreshData, LangsError> {
-    log::info!("refreshing course {}", course_name);
+    log::info!("refreshing course {course_name}");
     start_stage(10, "Refreshing course");
 
     // create new cache path
     let old_version = course_cache_path
         .to_str()
-        .and_then(|s| s.split('-').last())
+        .and_then(|s| s.split('-').next_back())
         .and_then(|s| s.parse::<u32>().ok())
         .ok_or_else(|| LangsError::InvalidCachePath(course_cache_path.clone()))?;
     let new_cache_path = cache_root.join(format!("{}-{}", course_name, old_version + 1));
@@ -203,7 +203,7 @@ fn initialize_new_cache_clone(
                 return Ok(());
             }
             Err(error) => {
-                log::warn!("failed to update repository: {}", error);
+                log::warn!("failed to update repository: {error}");
 
                 file_util::remove_dir_all(new_clone_path)?;
             }
@@ -492,11 +492,13 @@ mod test {
         file_to(&temp, "course_options.yml", "option: true");
         let options = get_course_options(temp.path(), "some course").unwrap();
         assert_eq!(options.len(), 1);
-        assert!(options
-            .get(Value::String("option".to_string()))
-            .unwrap()
-            .as_bool()
-            .unwrap())
+        assert!(
+            options
+                .get(Value::String("option".to_string()))
+                .unwrap()
+                .as_bool()
+                .unwrap()
+        )
     }
 
     #[test]
@@ -586,10 +588,10 @@ mod test {
 
         let mut fz = zip::ZipArchive::new(file_util::open_file(&zip).unwrap()).unwrap();
         for i in fz.file_names() {
-            log::debug!("{}", i);
+            log::debug!("{i}");
         }
-        assert!(fz
-            .by_name(
+        assert!(
+            fz.by_name(
                 &Path::new("part2")
                     .join("ex2")
                     .join("dir")
@@ -597,7 +599,8 @@ mod test {
                     .join("")
                     .to_string_lossy(),
             )
-            .is_ok()); // directories have their own entries with trailing slashes
+            .is_ok()
+        ); // directories have their own entries with trailing slashes
         let mut file = fz
             .by_name(
                 &Path::new("part2")

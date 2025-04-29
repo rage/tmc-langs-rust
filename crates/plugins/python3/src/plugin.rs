@@ -17,10 +17,10 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, sequence, IResult, Parser},
-    nom_language::error::VerboseError,
     Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PythonVer, RunResult, RunStatus,
     TestDesc, TestResult, TmcCommand, TmcError, TmcProjectYml,
+    nom::{IResult, Parser, bytes, character, combinator, sequence},
+    nom_language::error::VerboseError,
 };
 use tmc_langs_util::{
     deserialize, file_util,
@@ -41,8 +41,7 @@ impl Python3Plugin {
         static LOCAL_PY: Lazy<LocalPy> = Lazy::new(|| {
             if let Ok(python_exec) = env::var("TMC_LANGS_PYTHON_EXEC") {
                 log::debug!(
-                    "using Python from environment variable TMC_LANGS_PYTHON_EXEC={}",
-                    python_exec
+                    "using Python from environment variable TMC_LANGS_PYTHON_EXEC={python_exec}"
                 );
                 return LocalPy::Custom { python_exec };
             }
@@ -243,7 +242,7 @@ impl LanguagePlugin for Python3Plugin {
         if let Err(error) =
             Self::run_tmc_command(exercise_directory, &["available_points"], None, None)
         {
-            log::error!("Failed to scan exercise. {}", error);
+            log::error!("Failed to scan exercise. {error}");
         }
 
         let test_descs_res = Self::parse_exercise_description(&available_points_json);
@@ -289,8 +288,8 @@ impl LanguagePlugin for Python3Plugin {
             Ok(output) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                log::trace!("stdout: {}", stdout);
-                log::debug!("stderr: {}", stderr);
+                log::trace!("stdout: {stdout}");
+                log::debug!("stderr: {stderr}");
 
                 // TODO: is it OK to not check output.status.success()?
 
@@ -702,7 +701,7 @@ class TestFailing(unittest.TestCase):
 
         let plugin = Python3Plugin::new();
         let run_result = plugin.run_tests(temp_dir.path()).unwrap();
-        log::debug!("{:#?}", run_result);
+        log::debug!("{run_result:#?}");
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestFailing: test_func");
         assert!(!run_result.test_results[0].successful);
@@ -733,7 +732,7 @@ class TestErroring(unittest.TestCase):
 
         let plugin = Python3Plugin::new();
         let run_result = plugin.run_tests(temp_dir.path()).unwrap();
-        log::debug!("{:#?}", run_result);
+        log::debug!("{run_result:#?}");
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "TestErroring: test_func");
         assert!(!run_result.test_results[0].successful);
@@ -768,9 +767,11 @@ class TestErroring(unittest.TestCase):
             .unwrap();
         assert_eq!(run_result.status, RunStatus::TestsFailed);
         assert_eq!(run_result.test_results[0].name, "Timeout test");
-        assert!(run_result.test_results[0]
-            .message
-            .starts_with("Tests timed out."));
+        assert!(
+            run_result.test_results[0]
+                .message
+                .starts_with("Tests timed out.")
+        );
     }
 
     #[test]

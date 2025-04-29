@@ -1,5 +1,5 @@
 use std::{env, io::Read};
-use tmc_testmycode_client::{api_v8, request::FeedbackAnswer, TestMyCodeClient};
+use tmc_testmycode_client::{TestMyCodeClient, api_v8, request::FeedbackAnswer};
 
 const ORGANIZATION_SLUG: &str = "hy";
 const COURSE_NAME: &str = "java-1-f2020";

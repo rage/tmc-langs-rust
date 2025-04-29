@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use mooc_langs_api as api;
 use serde::{Deserialize, Serialize};
-use tmc_langs_util::{deserialize, JsonError};
+use tmc_langs_util::{JsonError, deserialize};
 #[cfg(feature = "ts-rs")]
 use ts_rs::TS;
 use uuid::Uuid;

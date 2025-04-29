@@ -13,12 +13,12 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, sequence, IResult, Parser},
-    nom_language::error::VerboseError,
     Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus,
     TestDesc, TmcCommand, TmcError, TmcProjectYml,
+    nom::{IResult, Parser, bytes, character, combinator, sequence},
+    nom_language::error::VerboseError,
 };
-use tmc_langs_util::{file_util, path_util, FileError};
+use tmc_langs_util::{FileError, file_util, path_util};
 
 #[derive(Default)]
 pub struct MakePlugin {}
@@ -73,7 +73,7 @@ impl MakePlugin {
         } else {
             "run-test"
         };
-        log::info!("Running make {}", arg);
+        log::info!("Running make {arg}");
 
         let output = TmcCommand::piped("make")
             .with(|e| e.cwd(path).arg(arg))
@@ -81,7 +81,7 @@ impl MakePlugin {
 
         log::trace!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         let stderr = String::from_utf8_lossy(&output.stderr);
-        log::debug!("stderr: {}", stderr);
+        log::debug!("stderr: {stderr}");
 
         if !output.status.success() {
             if run_valgrind {
@@ -191,9 +191,8 @@ impl LanguagePlugin for MakePlugin {
                                     Ok(output) => output,
                                     Err(err) => {
                                         log::error!(
-                                        "Running with valgrind failed after trying to clean! {}",
-                                        err
-                                    );
+                                            "Running with valgrind failed after trying to clean! {err}"
+                                        );
                                         ran_valgrind = false;
                                         log::info!("Running without valgrind");
                                         self.run_tests_with_valgrind(path, false)?
@@ -213,7 +212,7 @@ impl LanguagePlugin for MakePlugin {
                         self.run_tests_with_valgrind(path, false)?
                     }
                     err => {
-                        log::warn!("unexpected error {:?}", err);
+                        log::warn!("unexpected error {err:?}");
                         return Err(err.into());
                     }
                 }
@@ -626,10 +625,12 @@ test [invalid] point6
 
     #[test]
     fn parses_points() {
-        assert!(MakePlugin::points_parser(
-            "tmc_register_test(s, test_insertion_empty_list, \"dlink_insert);",
-        )
-        .is_err());
+        assert!(
+            MakePlugin::points_parser(
+                "tmc_register_test(s, test_insertion_empty_list, \"dlink_insert);",
+            )
+            .is_err()
+        );
 
         assert_eq!(
             MakePlugin::points_parser(
@@ -643,8 +644,9 @@ test [invalid] point6
 
     #[test]
     fn does_not_parse_check_function() {
-        assert!(MakePlugin::points_parser(
-            r#"tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
+        assert!(
+            MakePlugin::points_parser(
+                r#"tmc_register_test(Suite *s, TFun tf, const char *fname, const char *points)
 {
     // stuff
 }
@@ -654,7 +656,8 @@ int tmc_run_tests(int argc, const char **argv, Suite *s)
     func("--print-available-points")
 }
 "#
+            )
+            .is_err()
         )
-        .is_err())
     }
 }

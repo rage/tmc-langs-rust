@@ -15,16 +15,16 @@ use exercise::UserAnswer;
 pub use mooc_langs_api as api;
 use oauth2::TokenResponse;
 use reqwest::{
-    blocking::{
-        multipart::{Form, Part},
-        Client, RequestBuilder, Response,
-    },
     Method, StatusCode,
+    blocking::{
+        Client, RequestBuilder, Response,
+        multipart::{Form, Part},
+    },
 };
 use schemars::JsonSchema;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::{borrow::Cow, path::Path, sync::Arc};
-use tmc_langs_util::{serialize, JsonError};
+use tmc_langs_util::{JsonError, serialize};
 #[cfg(feature = "ts-rs")]
 use ts_rs::TS;
 use uuid::Uuid;

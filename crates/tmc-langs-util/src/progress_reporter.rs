@@ -207,7 +207,7 @@ mod test {
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
         subscribe::<u32, _>(move |s| {
-            log::debug!("got {:#?}", s);
+            log::debug!("got {s:#?}");
             *suc.lock().unwrap() = Some(s);
         });
 
@@ -226,7 +226,7 @@ mod test {
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
         subscribe::<u32, _>(move |s| {
-            log::debug!("got {:#?}", s);
+            log::debug!("got {s:#?}");
             *suc.lock().unwrap() = Some(s);
         });
 
@@ -260,7 +260,7 @@ mod test {
         let su = Arc::new(Mutex::new(None));
         let suc = Arc::clone(&su);
         subscribe::<u32, _>(move |s| {
-            log::debug!("got {:#?}", s);
+            log::debug!("got {s:#?}");
             *suc.lock().unwrap() = Some(s);
         });
 

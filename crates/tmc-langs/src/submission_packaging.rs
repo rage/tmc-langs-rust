@@ -1,6 +1,6 @@
 //! Submission packaging.
 
-use crate::{data::TmcParams, error::LangsError, extract_project_overwrite, Compression};
+use crate::{Compression, data::TmcParams, error::LangsError, extract_project_overwrite};
 use once_cell::sync::Lazy;
 use std::{
     io::{Cursor, Write},
@@ -10,9 +10,9 @@ use std::{
 };
 use tmc_langs_framework::{Archive, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::{FileError, file_util};
 use walkdir::WalkDir;
-use zip::{write::SimpleFileOptions, ZipWriter};
+use zip::{ZipWriter, write::SimpleFileOptions};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -144,7 +144,7 @@ pub fn prepare_submission(
         for (key, value) in tmc_params.0 {
             // todo handle arrays, shell escapes
             let export = format!("export {key}={value}\n");
-            log::debug!("{}", export);
+            log::debug!("{export}");
             tmc_params_file
                 .write_all(export.as_bytes())
                 .map_err(|e| FileError::FileWrite(tmc_params_path.clone(), e))?;
@@ -392,15 +392,21 @@ mod test {
         init();
         let (_temp, output) = generic_submission(MAVEN_CLONE, MAVEN_ZIP);
         // expected files
-        assert!(output
-            .join("some_course/MavenExercise/src/main/java/SimpleStuff.java")
-            .exists());
-        assert!(output
-            .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
-            .exists());
-        assert!(output
-            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
-            .exists());
+        assert!(
+            output
+                .join("some_course/MavenExercise/src/main/java/SimpleStuff.java")
+                .exists()
+        );
+        assert!(
+            output
+                .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
+                .exists()
+        );
+        assert!(
+            output
+                .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+                .exists()
+        );
         assert!(output.join("some_course/MavenExercise/pom.xml").exists());
     }
 
@@ -411,9 +417,11 @@ mod test {
 
         // files that should not be included
         assert!(!output.join("some_course/MavenExercise/__MACOSX").exists());
-        assert!(!output
-            .join("some_course/MavenExercise/src/test/java/MadeUpTest.java")
-            .exists());
+        assert!(
+            !output
+                .join("some_course/MavenExercise/src/test/java/MadeUpTest.java")
+                .exists()
+        );
     }
 
     #[test]
@@ -447,7 +455,7 @@ mod test {
         let param_file = output.join("some_course/MavenExercise/.tmcparams");
         assert!(param_file.exists());
         let conts = fs::read_to_string(param_file).unwrap();
-        log::debug!("tmcparams {}", conts);
+        log::debug!("tmcparams {conts}");
         let lines: Vec<_> = conts.lines().collect();
         assert_eq!(lines.len(), 2);
         assert!(lines.contains(&"export param_one=value_one"));
@@ -521,9 +529,11 @@ mod test {
         for entry in WalkDir::new(temp.path()) {
             log::debug!("{}", entry.unwrap().path().display());
         }
-        assert!(output
-            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
-            .exists());
+        assert!(
+            output
+                .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+                .exists()
+        );
         assert!(output.join("some_course/MavenExercise/pom.xml").exists());
     }
 
@@ -623,12 +633,16 @@ mod test {
         }
 
         // visible tests included, hidden test isn't
-        assert!(output_extracted
-            .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
-            .exists());
-        assert!(!output_extracted
-            .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
-            .exists());
+        assert!(
+            output_extracted
+                .join("some_course/MavenExercise/src/test/java/SimpleTest.java")
+                .exists()
+        );
+        assert!(
+            !output_extracted
+                .join("some_course/MavenExercise/src/test/java/SimpleHiddenTest.java")
+                .exists()
+        );
     }
 
     #[test]
@@ -638,9 +652,11 @@ mod test {
 
         // expected files
         assert!(output.join("some_course/MakeExercise/src/main.c").exists());
-        assert!(output
-            .join("some_course/MakeExercise/test/test_source.c")
-            .exists());
+        assert!(
+            output
+                .join("some_course/MakeExercise/test/test_source.c")
+                .exists()
+        );
         assert!(output.join("some_course/MakeExercise/Makefile").exists());
     }
 
@@ -650,15 +666,21 @@ mod test {
         let (_temp, output) = generic_submission(PYTHON_CLONE, PYTHON_ZIP);
 
         // expected files
-        assert!(output
-            .join("some_course/PythonExercise/src/__main__.py")
-            .exists());
-        assert!(output
-            .join("some_course/PythonExercise/test/test_greeter.py")
-            .exists());
+        assert!(
+            output
+                .join("some_course/PythonExercise/src/__main__.py")
+                .exists()
+        );
+        assert!(
+            output
+                .join("some_course/PythonExercise/test/test_greeter.py")
+                .exists()
+        );
         // assert!(output.join("tmc/points.py").exists()); // not included?
-        assert!(output
-            .join("some_course/PythonExercise/__init__.py")
-            .exists());
+        assert!(
+            output
+                .join("some_course/PythonExercise/__init__.py")
+                .exists()
+        );
     }
 }

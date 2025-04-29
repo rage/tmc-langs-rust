@@ -1,6 +1,6 @@
 //! Contains parse functions that may be convenient for implementing language plugins.
 
-use nom::{branch, bytes, character, combinator, multi, sequence, IResult, Parser};
+use nom::{IResult, Parser, branch, bytes, character, combinator, multi, sequence};
 use nom_language::error::VerboseError;
 
 /// Parses a string delimited by double quotes. Trims.

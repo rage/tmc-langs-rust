@@ -1,6 +1,6 @@
 //! Contains the LanguagePlugin implementation for R.
 
-use crate::{error::RError, r_run_result::RRunResult, RStudentFilePolicy};
+use crate::{RStudentFilePolicy, error::RError, r_run_result::RRunResult};
 use std::{
     collections::HashMap,
     fs,
@@ -10,9 +10,9 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{branch, bytes, character, sequence, IResult, Parser},
-    nom_language::error::VerboseError,
     Archive, ExerciseDesc, LanguagePlugin, RunResult, TestDesc, TmcCommand, TmcError,
+    nom::{IResult, Parser, branch, bytes, character, sequence},
+    nom_language::error::VerboseError,
 };
 use tmc_langs_util::{deserialize, file_util, parse_util, path_util};
 
@@ -90,8 +90,8 @@ impl LanguagePlugin for RPlugin {
         };
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        log::trace!("stdout: {}", stdout);
-        log::debug!("stderr: {}", stderr);
+        log::trace!("stdout: {stdout}");
+        log::debug!("stderr: {stderr}");
 
         // parse test result
         if !results_path.exists() {
@@ -105,7 +105,7 @@ impl LanguagePlugin for RPlugin {
         let json_file = file_util::open_file(&results_path)?;
         let run_result: RRunResult = deserialize::json_from_reader(json_file).map_err(|e| {
             if let Ok(s) = fs::read_to_string(&results_path) {
-                log::error!("Failed to deserialize json {}", s);
+                log::error!("Failed to deserialize json {s}");
             }
             RError::JsonDeserialize(results_path.clone(), e)
         })?;
@@ -371,7 +371,7 @@ test("sample", c("r1.1"), {
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 1);
         let res = &run.test_results[0];
-        log::debug!("{:#?}", res);
+        log::debug!("{res:#?}");
         assert!(!res.successful);
         assert_eq!(res.points, &["r1", "r1.1"]);
         // assert_eq!(res.message, "FALSE is not TRUE"); // output changed on CI for some reason... TODO: fix
@@ -402,7 +402,7 @@ test("sample", c("r1.1"), {
         assert!(run.logs.is_empty());
         assert_eq!(run.test_results.len(), 1);
         let res = &run.test_results[0];
-        log::debug!("{:#?}", res);
+        log::debug!("{res:#?}");
         assert!(!res.successful);
         assert_eq!(res.points, &["r1", "r1.1"]);
         assert!(res.message.contains("object 'unexpected' not found"));

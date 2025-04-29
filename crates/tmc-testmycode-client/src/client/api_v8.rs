@@ -2,12 +2,12 @@
 
 //! Models the API of https://tmc.mooc.fi (https://testmycode.github.io/tmc-server/).
 
-use crate::{request::*, response::*, TestMyCodeClient, TestMyCodeClientError};
+use crate::{TestMyCodeClient, TestMyCodeClientError, request::*, response::*};
 use http::Method;
 use oauth2::TokenResponse;
 use reqwest::blocking::{
-    multipart::{Form, Part},
     RequestBuilder, Response,
+    multipart::{Form, Part},
 };
 use serde::de::DeserializeOwned;
 use std::{
@@ -47,7 +47,7 @@ fn percent_encode(target: &str) -> String {
 
 // creates a request with the required TMC and authentication headers
 fn prepare_tmc_request(client: &TestMyCodeClient, method: Method, url: Url) -> RequestBuilder {
-    log::info!("{} {}", method, url);
+    log::info!("{method} {url}");
     let req = client.0.client.request(method, url).query(&[
         ("client", &client.0.client_name),
         ("client_version", &client.0.client_version),

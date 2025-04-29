@@ -1,6 +1,6 @@
 //! Contains the Credentials struct for authenticating with tmc-server.
 
-use crate::{tmc::Token, LangsError};
+use crate::{LangsError, tmc::Token};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs_util::{
@@ -43,8 +43,7 @@ impl Credentials {
             })),
             Err(e) => {
                 log::error!(
-                    "Failed to deserialize credentials.json due to \"{}\", deleting",
-                    e
+                    "Failed to deserialize credentials.json due to \"{e}\", deleting"
                 );
                 file_util::remove_file(&credentials_path)?;
                 Err(LangsError::DeserializeCredentials(credentials_path, e))

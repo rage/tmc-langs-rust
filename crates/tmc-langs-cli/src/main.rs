@@ -2,30 +2,35 @@
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use log::LevelFilter;
 use std::{any::Any, fs::File, io::Write, path::PathBuf, process::ExitCode};
 use tmc_langs::{notification_reporter, progress_reporter, tmc::ClientUpdateData};
 use tmc_langs_cli::{
+    ParsingResult,
     app::Cli,
     map_parsing_result,
     output::{CliOutput, OutputData, OutputResult, Status, StatusUpdateData},
-    ParsingResult,
 };
 
 fn main() -> ExitCode {
     // convert `TMC_LANGS_LOG` into the appropriate `RUST_LOG`
     if let Ok(level) = std::env::var("TMC_LANGS_LOG") {
         let level = level.to_uppercase();
-        let level = match level.as_str() {
-            "WARN" => "WARN,reqwest=ERROR,rustls=ERROR",
-            "INFO" => "INFO,reqwest=WARN,rustls=WARN",
-            "DEBUG" => "DEBUG,reqwest=INFO,rustls=INFO",
-            "TRACE" => "TRACE,reqwest=DEBUG,rustls=DEBUG",
-            other => other,
+        let (level, dep_level) = match level.as_str() {
+            "WARN" => (LevelFilter::Warn, LevelFilter::Error),
+            "INFO" => (LevelFilter::Info, LevelFilter::Warn),
+            "DEBUG" => (LevelFilter::Debug, LevelFilter::Warn),
+            "TRACE" => (LevelFilter::Trace, LevelFilter::Debug),
+            _ => (LevelFilter::Debug, LevelFilter::Off),
         };
-        std::env::set_var("RUST_LOG", level);
-    }
-
-    env_logger::init();
+        env_logger::builder()
+            .filter(None, level)
+            .filter(Some("reqwest"), dep_level)
+            .filter(Some("rustls"), dep_level)
+            .init();
+    } else {
+        env_logger::init();
+    };
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(()) => ExitCode::FAILURE,
@@ -80,7 +85,7 @@ fn register_reporters(pretty: bool) {
     notification_reporter::init(Box::new(move |warning| {
         let warning_output = CliOutput::Notification(warning);
         if let Err(err) = print_output(&warning_output, pretty, None) {
-            log::error!("printing warning failed: {}", err);
+            log::error!("printing warning failed: {err}");
         }
     }));
     progress_reporter::subscribe::<(), _>(move |update| {

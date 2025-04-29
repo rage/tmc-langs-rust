@@ -1,6 +1,6 @@
 use clap::Parser;
 use std::path::Path;
-use tempfile::{tempdir, NamedTempFile, TempDir};
+use tempfile::{NamedTempFile, TempDir, tempdir};
 use tmc_langs::Compression;
 use tmc_langs_cli::app::Cli;
 use walkdir::WalkDir;

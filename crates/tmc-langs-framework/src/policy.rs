@@ -250,15 +250,21 @@ mod test {
             ..Default::default()
         };
         let policy = MockPolicy { project_config };
-        assert!(policy
-            .is_updating_forced(Path::new("sdir/some file"))
-            .unwrap());
-        assert!(policy
-            .is_updating_forced(Path::new("other dir/sfile"))
-            .unwrap());
-        assert!(!policy
-            .is_updating_forced(Path::new("other dir/other file"))
-            .unwrap());
+        assert!(
+            policy
+                .is_updating_forced(Path::new("sdir/some file"))
+                .unwrap()
+        );
+        assert!(
+            policy
+                .is_updating_forced(Path::new("other dir/sfile"))
+                .unwrap()
+        );
+        assert!(
+            !policy
+                .is_updating_forced(Path::new("other dir/other file"))
+                .unwrap()
+        );
         assert!(!policy.is_updating_forced(Path::new("other file")).unwrap());
     }
 

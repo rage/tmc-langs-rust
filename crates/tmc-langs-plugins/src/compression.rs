@@ -8,8 +8,8 @@ use std::{
 use tmc_langs_framework::{Compression, StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
-pub use zip::result::ZipError;
 use zip::ZipArchive;
+pub use zip::result::ZipError;
 
 /// Compresses the given directory, only including student files according to the given policy.
 pub fn compress_student_files(
@@ -84,10 +84,10 @@ pub fn unzip(zip: impl std::io::Read + std::io::Seek, target: &Path) -> Result<(
             }
         };
         let path_in_target = target.join(relative);
-        log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+        log::trace!("processing {file_path:?} -> {path_in_target:?}");
 
         if file.is_dir() {
-            log::trace!("creating {:?}", path_in_target);
+            log::trace!("creating {path_in_target:?}");
             file_util::create_dir_all(&path_in_target)?;
         } else {
             log::trace!("writing to {}", path_in_target.display());
@@ -230,9 +230,11 @@ mod test {
         for i in 0..archive.len() {
             log::debug!("{:?}", archive.by_index(i).unwrap().name());
         }
-        assert!(archive
-            .by_name("exercise-name/src/main/java/AdaLovelace.java")
-            .is_ok());
+        assert!(
+            archive
+                .by_name("exercise-name/src/main/java/AdaLovelace.java")
+                .is_ok()
+        );
         assert!(archive.by_name("exercise-name/pom.xml").is_ok());
     }
 

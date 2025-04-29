@@ -1,8 +1,8 @@
 //! Java Maven plugin.
 
 use crate::{
-    error::JavaError, java_plugin::JavaPlugin, CompileResult, JvmWrapper, MavenStudentFilePolicy,
-    TestRun, SEPARATOR,
+    CompileResult, JvmWrapper, MavenStudentFilePolicy, SEPARATOR, TestRun, error::JavaError,
+    java_plugin::JavaPlugin,
 };
 use flate2::read::GzDecoder;
 use std::{
@@ -14,8 +14,8 @@ use std::{
 };
 use tar::Archive as Tar;
 use tmc_langs_framework::{
-    nom::IResult, nom_language::error::VerboseError, Archive, ExerciseDesc, Language,
-    LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
+    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
+    TmcError, nom::IResult, nom_language::error::VerboseError,
 };
 use tmc_langs_util::{file_util, path_util};
 
@@ -384,7 +384,6 @@ mod test {
     #[test]
     #[ignore = "changing PATH breaks other tests, figure out a better way to test this. or don't"]
     fn unpacks_bundled_mvn() {
-        std::env::set_var("PATH", "");
         let cmd = MavenPlugin::get_mvn_command().unwrap();
         let expected = format!(
             "tmc{0}apache-maven-3.8.1{0}bin{0}mvn",
@@ -445,7 +444,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let res = plugin.run_tests(temp_dir.path()).unwrap();
-        log::debug!("{:#?}", res);
+        log::debug!("{res:#?}");
         assert_eq!(res.status, tmc_langs_framework::RunStatus::TestsFailed);
     }
 
@@ -458,7 +457,7 @@ mod test {
         let test_result_err = plugin
             .run_tests_with_timeout(temp_dir.path(), Some(std::time::Duration::from_nanos(1)))
             .unwrap_err();
-        log::debug!("{:#?}", test_result_err);
+        log::debug!("{test_result_err:#?}");
 
         // verify that there's a timeout error in the source chain
         use std::error::Error;
@@ -542,7 +541,7 @@ mod test {
         let temp_dir = dir_to_temp("tests/data/maven-exercise");
         let (plugin, _lock) = get_maven();
         let class_path = plugin.get_project_class_path(temp_dir.path()).unwrap();
-        log::debug!("{}", class_path);
+        log::debug!("{class_path}");
         let expected = format!("{0}junit{0}", std::path::MAIN_SEPARATOR);
         assert!(class_path.contains(&expected));
     }

@@ -7,7 +7,7 @@ use std::{
 use tar::Builder;
 use tmc_langs_framework::{Compression, TmcError};
 use tmc_langs_util::file_util;
-use zip::{write::SimpleFileOptions, DateTime, ZipWriter};
+use zip::{DateTime, ZipWriter, write::SimpleFileOptions};
 
 pub enum ArchiveBuilder<W: Write + Seek> {
     Tar {
@@ -49,7 +49,7 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
 
     /// Does not include any files within the directory.
     pub fn add_directory(&mut self, source: &Path, path_in_archive: &str) -> Result<(), TmcError> {
-        log::trace!("adding directory {}", path_in_archive);
+        log::trace!("adding directory {path_in_archive}");
         match self {
             Self::Tar { builder } => {
                 builder

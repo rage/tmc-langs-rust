@@ -70,7 +70,9 @@ pub enum TmcError {
 pub enum CommandError {
     #[error("Failed to execute command: {0}")]
     Popen(String, #[source] PopenError),
-    #[error("The executable for command {cmd} could not be found. Please make sure you have installed it correctly.")]
+    #[error(
+        "The executable for command {cmd} could not be found. Please make sure you have installed it correctly."
+    )]
     NotFound { cmd: String, source: PopenError },
     #[error("Failed to run command {0}")]
     FailedToRun(String, #[source] PopenError),

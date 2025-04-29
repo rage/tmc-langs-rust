@@ -137,7 +137,7 @@ impl<E, I: Iterator<Item = Result<String, E>>> Iterator for MetaSyntaxParser<I> 
                 for meta_syntax in self.meta_syntaxes {
                     // check for stub
                     if self.in_stub.is_none() && meta_syntax.stub_begin.is_match(&s) {
-                        log::trace!("stub start: '{}'", s);
+                        log::trace!("stub start: '{s}'");
                         // remove stub start
                         s = meta_syntax
                             .stub_begin
@@ -163,7 +163,7 @@ impl<E, I: Iterator<Item = Result<String, E>>> Iterator for MetaSyntaxParser<I> 
                         && self.in_stub.map(|r| r.stub_begin.as_str())
                             == Some(meta_syntax.stub_begin.as_str())
                     {
-                        log::trace!("stub end: '{}'", s);
+                        log::trace!("stub end: '{s}'");
                         self.in_stub = None;
                         // remove stub end
                         s = meta_syntax
@@ -202,16 +202,16 @@ impl<E, I: Iterator<Item = Result<String, E>>> Iterator for MetaSyntaxParser<I> 
                 // after processing the line with each meta syntax,
                 // parse the current line accordingly
                 if self.in_solution {
-                    log::trace!("solution: '{}'", s);
+                    log::trace!("solution: '{s}'");
                     Some(Ok(MetaString::Solution(s)))
                 } else if self.in_stub.is_some() {
-                    log::trace!("stub: '{}'", s);
+                    log::trace!("stub: '{s}'");
                     Some(Ok(MetaString::Stub(s)))
                 } else if self.in_hidden {
-                    log::trace!("hidden: '{}'", s);
+                    log::trace!("hidden: '{s}'");
                     Some(Ok(MetaString::Hidden(s)))
                 } else {
-                    log::trace!("string: '{}'", s);
+                    log::trace!("string: '{s}'");
                     Some(Ok(MetaString::String(s)))
                 }
             }

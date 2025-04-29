@@ -16,7 +16,7 @@ pub use self::{
     ant_plugin::AntPlugin, ant_policy::AntStudentFilePolicy, error::JavaError,
     maven_plugin::MavenPlugin, maven_policy::MavenStudentFilePolicy,
 };
-use j4rs::{errors::J4RsError, ClasspathEntry, Instance, InvocationArg, Jvm, JvmBuilder};
+use j4rs::{ClasspathEntry, Instance, InvocationArg, Jvm, JvmBuilder, errors::J4RsError};
 use serde::Deserialize;
 use std::{fmt::Display, path::PathBuf};
 use tempfile::TempPath;

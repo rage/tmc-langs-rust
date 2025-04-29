@@ -1,8 +1,8 @@
 //! Java Ant plugin.
 
 use crate::{
-    error::JavaError, java_plugin::JavaPlugin, AntStudentFilePolicy, CompileResult, JvmWrapper,
-    TestRun, SEPARATOR,
+    AntStudentFilePolicy, CompileResult, JvmWrapper, SEPARATOR, TestRun, error::JavaError,
+    java_plugin::JavaPlugin,
 };
 use std::{
     env,
@@ -13,8 +13,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::IResult, nom_language::error::VerboseError, Archive, ExerciseDesc, Language,
-    LanguagePlugin, RunResult, StyleValidationResult, TmcCommand, TmcError,
+    Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
+    TmcError, nom::IResult, nom_language::error::VerboseError,
 };
 use tmc_langs_util::{file_util, path_util};
 use walkdir::WalkDir;
@@ -589,7 +589,7 @@ mod test {
         let test_result = plugin
             .run_tests_with_timeout(Path::new(temp_dir.path()), None)
             .unwrap();
-        log::debug!("{:?}", test_result);
+        log::debug!("{test_result:?}");
         assert_eq!(
             test_result.status,
             tmc_langs_framework::RunStatus::TestsFailed
@@ -605,7 +605,7 @@ mod test {
         let test_result_err = plugin
             .run_tests_with_timeout(Path::new(temp_dir.path()), Some(Duration::from_nanos(1)))
             .unwrap_err();
-        log::debug!("{:?}", test_result_err);
+        log::debug!("{test_result_err:?}");
 
         // verify that there's a timeout error in the source chain
         use std::error::Error;

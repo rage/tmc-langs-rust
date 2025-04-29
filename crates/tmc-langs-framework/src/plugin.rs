@@ -1,16 +1,16 @@
 //! Contains LanguagePlugin.
 
 use crate::{
+    Archive, Compression,
     domain::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
         TestResult,
     },
     error::TmcError,
     policy::StudentFilePolicy,
-    Archive, Compression,
 };
 pub use isolang::Language;
-use nom::{branch, bytes, character, combinator, multi, sequence, IResult, Parser};
+use nom::{IResult, Parser, branch, bytes, character, combinator, multi, sequence};
 use nom_language::error::VerboseError;
 use std::{
     collections::HashSet,
@@ -146,7 +146,7 @@ pub trait LanguagePlugin {
                     }
                 };
                 let path_in_target = target_location.join(relative);
-                log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+                log::trace!("processing {file_path:?} -> {path_in_target:?}");
 
                 files_from_archive.insert(path_in_target.clone());
 
@@ -254,7 +254,7 @@ pub trait LanguagePlugin {
                     }
                 };
                 let path_in_target = target_location.join(relative);
-                log::trace!("processing {:?} -> {:?}", file_path, path_in_target);
+                log::trace!("processing {file_path:?} -> {path_in_target:?}");
 
                 if policy.is_student_file(relative) {
                     if file.is_file() {
@@ -454,7 +454,7 @@ mod test {
     use nom::character;
     use std::io::Write;
     use tmc_langs_util::path_util;
-    use zip::{write::SimpleFileOptions, ZipWriter};
+    use zip::{ZipWriter, write::SimpleFileOptions};
 
     fn init() {
         use log::*;
@@ -663,25 +663,33 @@ extra_exercise_files:
         file_to(&temp, "src/OtherTest.java", "");
         file_to(&temp, "InBothLists.java", "");
         let conf = MockPlugin::get_exercise_packaging_configuration(temp.path()).unwrap();
-        assert!(conf
-            .student_file_paths
-            .contains(Path::new("test/StudentTest.java")));
-        assert!(conf
-            .student_file_paths
-            .contains(Path::new("test/OtherTest.java")));
-        assert!(conf
-            .exercise_file_paths
-            .contains(Path::new("src/SomeFile.java")));
-        assert!(!conf
-            .exercise_file_paths
-            .contains(Path::new("test/OtherTest.java")));
+        assert!(
+            conf.student_file_paths
+                .contains(Path::new("test/StudentTest.java"))
+        );
+        assert!(
+            conf.student_file_paths
+                .contains(Path::new("test/OtherTest.java"))
+        );
+        assert!(
+            conf.exercise_file_paths
+                .contains(Path::new("src/SomeFile.java"))
+        );
+        assert!(
+            !conf
+                .exercise_file_paths
+                .contains(Path::new("test/OtherTest.java"))
+        );
 
-        assert!(conf
-            .student_file_paths
-            .contains(Path::new("InBothLists.java")));
-        assert!(!conf
-            .exercise_file_paths
-            .contains(Path::new("InBothLists.java")));
+        assert!(
+            conf.student_file_paths
+                .contains(Path::new("InBothLists.java"))
+        );
+        assert!(
+            !conf
+                .exercise_file_paths
+                .contains(Path::new("InBothLists.java"))
+        );
     }
 
     #[test]
@@ -812,10 +820,11 @@ def f():
         )
         .unwrap();
 
-        assert!(temp
-            .path()
-            .join("extracted/src/more/dirs/student file")
-            .exists());
+        assert!(
+            temp.path()
+                .join("extracted/src/more/dirs/student file")
+                .exists()
+        );
         assert!(!temp.path().join("extracted/test/exercise file").exists());
     }
 
@@ -913,10 +922,11 @@ def f():
             log::debug!("{}", entry.path().display());
         }
 
-        assert!(temp
-            .path()
-            .join("extracted/src/more/dirs/student file")
-            .exists());
+        assert!(
+            temp.path()
+                .join("extracted/src/more/dirs/student file")
+                .exists()
+        );
         assert!(temp.path().join("extracted/test/exercise file").exists());
         assert!(!temp.path().join("extracted/not in project dir").exists());
     }
@@ -1011,10 +1021,11 @@ force_update:
             log::debug!("{}", entry.path().display());
         }
 
-        assert!(temp
-            .path()
-            .join("extracted/test/some existing non-student file")
-            .exists())
+        assert!(
+            temp.path()
+                .join("extracted/test/some existing non-student file")
+                .exists()
+        )
     }
 
     #[test]
@@ -1036,10 +1047,12 @@ force_update:
             log::debug!("{}", entry.path().display());
         }
 
-        assert!(!temp
-            .path()
-            .join("extracted/test/some existing non-student file")
-            .exists())
+        assert!(
+            !temp
+                .path()
+                .join("extracted/test/some existing non-student file")
+                .exists()
+        )
     }
 
     #[test]

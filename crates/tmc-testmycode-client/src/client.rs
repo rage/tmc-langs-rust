@@ -4,16 +4,16 @@ pub mod api_v8;
 
 use self::api_v8::{PasteData, ReviewData};
 use crate::{
-    error::TestMyCodeClientError, request::FeedbackAnswer, response::*, TestMyCodeClientResult,
+    TestMyCodeClientResult, error::TestMyCodeClientError, request::FeedbackAnswer, response::*,
 };
 use oauth2::{
-    basic::BasicClient, AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword,
-    ResourceOwnerUsername, TokenUrl,
+    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
+    basic::BasicClient,
 };
 use reqwest::{
+    Url,
     blocking::{Client, ClientBuilder},
     redirect::Policy,
-    Url,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -147,7 +147,7 @@ impl TestMyCodeClient {
 
         let credentials = api_v8::get_credentials(self, client_name)?;
 
-        log::debug!("authenticating at {}", auth_url);
+        log::debug!("authenticating at {auth_url}");
         let client = BasicClient::new(ClientId::new(credentials.application_id))
             .set_client_secret(ClientSecret::new(credentials.secret))
             .set_auth_uri(AuthUrl::from_url(auth_url.clone()))
@@ -225,7 +225,7 @@ impl TestMyCodeClient {
         target: &mut dyn Write,
     ) -> TestMyCodeClientResult<()> {
         self.require_authentication()?;
-        log::info!("downloading old submission {}", submission_id);
+        log::info!("downloading old submission {submission_id}");
         api_v8::core::download_submission(self, submission_id, target)?;
         Ok(())
     }
@@ -299,7 +299,7 @@ impl TestMyCodeClient {
     ) -> TestMyCodeClientResult<Vec<Submission>> {
         self.require_authentication()?;
         let res = api_v8::submission::get_exercise_submissions_for_current_user(self, exercise_id)?;
-        Ok(res.into_iter().map(Into::into).collect())
+        Ok(res.into_iter().collect())
     }
 
     /// Request code review. Requires authentication.
@@ -355,7 +355,7 @@ impl TestMyCodeClient {
     ) -> TestMyCodeClientResult<Vec<CourseExercise>> {
         self.require_authentication()?;
         let res = api_v8::exercise::get_course_exercises_by_id(self, course_id)?;
-        Ok(res.into_iter().map(Into::into).collect())
+        Ok(res.into_iter().collect())
     }
 
     /// Fetches the given course's data. Requires authentication.
@@ -375,7 +375,7 @@ impl TestMyCodeClient {
     pub fn list_courses(&self, organization_slug: &str) -> TestMyCodeClientResult<Vec<Course>> {
         self.require_authentication()?;
         let res = api_v8::core::get_organization_courses(self, organization_slug)?;
-        Ok(res.into_iter().map(Into::into).collect())
+        Ok(res.into_iter().collect())
     }
 
     /// Fetches the exercise's details. Requires authentication.
@@ -456,7 +456,7 @@ impl TestMyCodeClient {
     /// Returns an error if there's some problem reaching the API, or if the API returns an error.
     pub fn get_organizations(&self) -> TestMyCodeClientResult<Vec<Organization>> {
         let res = api_v8::organization::get_organizations(self)?;
-        Ok(res.into_iter().map(Into::into).collect())
+        Ok(res.into_iter().collect())
     }
 
     /// Fetches unread reviews. Requires authentication.
@@ -466,7 +466,7 @@ impl TestMyCodeClient {
     pub fn get_unread_reviews(&self, course_id: u32) -> TestMyCodeClientResult<Vec<Review>> {
         self.require_authentication()?;
         let res = api_v8::core::get_course_reviews(self, course_id)?;
-        Ok(res.into_iter().map(Into::into).collect())
+        Ok(res.into_iter().collect())
     }
 
     /// Mark the review as read on the server. Requires authentication.
@@ -528,7 +528,7 @@ impl TestMyCodeClient {
         let res = api_v8::core::post_submission_feedback(
             self,
             submission_id,
-            feedback.into_iter().map(Into::into).collect(),
+            feedback.into_iter().collect(),
         )?;
         Ok(res)
     }
@@ -543,7 +543,7 @@ impl TestMyCodeClient {
         feedback: Vec<FeedbackAnswer>,
     ) -> TestMyCodeClientResult<SubmissionFeedbackResponse> {
         self.require_authentication()?;
-        let form = api_v8::prepare_feedback_form(feedback.into_iter().map(Into::into).collect());
+        let form = api_v8::prepare_feedback_form(feedback.into_iter().collect());
         let res = api_v8::post_form::<SubmissionFeedbackResponse>(self, feedback_url, &form)?;
         Ok(res)
     }
@@ -679,7 +679,7 @@ mod test {
     // many of TmcClient's functions simply call already tested functions from api_v8 and don't need testing
     use super::*;
     use mockito::{Matcher, Server};
-    use oauth2::{basic::BasicTokenType, AccessToken, EmptyExtraTokenFields};
+    use oauth2::{AccessToken, EmptyExtraTokenFields, basic::BasicTokenType};
     use std::sync::atomic::AtomicBool;
 
     // sets up mock-authenticated TmcClient and logging

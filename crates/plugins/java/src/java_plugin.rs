@@ -1,7 +1,7 @@
 //! Common functionality for all Java plugins
 
 use crate::{
-    error::JavaError, CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun,
+    CompileResult, JvmWrapper, TestCase, TestCaseStatus, TestMethod, TestRun, error::JavaError,
 };
 use j4rs::InvocationArg;
 use serde::{Deserialize, Serialize};
@@ -13,10 +13,10 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, sequence, IResult, Parser},
-    nom_language::error::VerboseError,
     ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus, StyleValidationError,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand,
+    nom::{IResult, Parser, bytes, character, combinator, sequence},
+    nom_language::error::VerboseError,
 };
 use tmc_langs_util::{deserialize, file_util, parse_util};
 use walkdir::WalkDir;
@@ -125,7 +125,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             }
         }
 
-        log::warn!("No java.home found in {}", properties);
+        log::warn!("No java.home found in {properties}");
         None
     }
 
@@ -177,8 +177,8 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
         }
         let class_path = self.get_project_class_path(path)?;
 
-        log::info!("class path: {}", class_path);
-        log::info!("source files: {:?}", source_files);
+        log::info!("class path: {class_path}");
+        log::info!("source files: {source_files:?}");
 
         let scan_results = self.jvm().with(|jvm| {
             let test_scanner = jvm.create_instance(
@@ -260,7 +260,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             Ok(result)
         })?;
 
-        log::debug!("Validation result: {:?}", result);
+        log::debug!("Validation result: {result:?}");
         Ok(result.into())
     }
 
@@ -639,7 +639,7 @@ openjdk version "1.8.0_252"S
         let validation_result = plugin
             .run_checkstyle(&Language::from_639_3("fin").unwrap(), temp_dir.path())
             .unwrap();
-        log::debug!("{:#?}", validation_result);
+        log::debug!("{validation_result:#?}");
         let validation_errors = validation_result.validation_errors.unwrap();
         let validation_error = validation_errors.values().next().unwrap().first().unwrap();
         assert!(validation_error.message.contains("Sisennys väärin"));

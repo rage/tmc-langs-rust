@@ -41,6 +41,8 @@ pub enum FileError {
     NoFileName(PathBuf),
     #[error("Expected {0} to be a directory, but it was a file")]
     UnexpectedFile(PathBuf),
+    #[error("Failed to read data")]
+    ReadError(#[source] std::io::Error),
     #[error("Failed to write data")]
     WriteError(#[source] std::io::Error),
     #[error("Failed to canonicalize path {0}")]

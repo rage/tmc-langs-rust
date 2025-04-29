@@ -17,7 +17,7 @@ pub mod request;
 pub mod response;
 
 pub use self::{
-    client::{api_v8, ClientUpdateData, TestMyCodeClient, Token, UpdateResult},
+    client::{ClientUpdateData, TestMyCodeClient, Token, UpdateResult, api_v8},
     error::{TestMyCodeClientError, TestMyCodeClientResult},
 };
 // these types are part of tmc-testmycode-client's API and thus re-exported

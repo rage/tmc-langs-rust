@@ -2,8 +2,8 @@
 
 use crate::TmcError;
 use serde::{
-    de::{Error, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{Error, Visitor},
 };
 use std::{
     fmt::{self, Display},
@@ -90,7 +90,7 @@ impl TmcProjectYml {
         let file = file_util::open_file(&config_path)?;
         let config = deserialize::yaml_from_reader(file)
             .map_err(|e| TmcError::YamlDeserialize(config_path, e))?;
-        log::trace!("read {:#?}", config);
+        log::trace!("read {config:#?}");
         Ok(Some(config))
     }
 

@@ -259,7 +259,7 @@ impl PluginType {
             #[cfg(target_env = "musl")]
             return Err(PluginError::PluginNotFoundInArchive);
         };
-        log::info!("Detected project in archive as {}", plugin_name);
+        log::info!("Detected project in archive as {plugin_name}");
         Ok(plugin_type)
     }
 

@@ -8,11 +8,10 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
-    deserialize,
+    FileError, deserialize,
     file_util::{self, Lock, LockOptions},
-    FileError,
 };
-use toml::{value::Table, Value};
+use toml::{Value, value::Table};
 
 /// The main configuration file. A separate one is used for each client.
 #[derive(Debug, Serialize, Deserialize)]

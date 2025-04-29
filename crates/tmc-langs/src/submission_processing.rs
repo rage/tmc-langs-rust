@@ -10,7 +10,7 @@ use std::{
     path::Path,
 };
 use tmc_langs_framework::{MetaString, MetaSyntaxParser};
-use tmc_langs_util::{deserialize, file_util, FileError};
+use tmc_langs_util::{FileError, deserialize, file_util};
 use walkdir::{DirEntry, WalkDir};
 
 #[allow(clippy::unwrap_used)]
@@ -80,7 +80,7 @@ fn process_files(
     mut line_filter: impl Fn(&MetaString) -> bool,
     mut file_filter: impl Fn(&[MetaString]) -> bool,
 ) -> Result<(), LangsError> {
-    log::info!("Project: {:?}", source);
+    log::info!("Project: {source:?}");
 
     let walker = WalkDir::new(source).min_depth(1).into_iter();
     // silently skips over errors, for example when there's a directory we don't have permissions for

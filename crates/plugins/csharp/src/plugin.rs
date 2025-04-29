@@ -1,6 +1,6 @@
 //! An implementation of LanguagePlugin for C#.
 
-use crate::{cs_test_result::CSTestResult, policy::CSharpStudentFilePolicy, CSharpError};
+use crate::{CSharpError, cs_test_result::CSTestResult, policy::CSharpStudentFilePolicy};
 use std::{
     collections::{HashMap, HashSet},
     env,
@@ -11,12 +11,12 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    nom::{bytes, character, combinator, sequence, IResult, Parser},
-    nom_language::error::VerboseError,
     Archive, CommandError, ExerciseDesc, Language, LanguagePlugin, RunResult, RunStatus,
     StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult, TmcCommand, TmcError,
+    nom::{IResult, Parser, bytes, character, combinator, sequence},
+    nom_language::error::VerboseError,
 };
-use tmc_langs_util::{deserialize, file_util, parse_util, path_util, FileError};
+use tmc_langs_util::{deserialize, file_util, parse_util, path_util};
 use walkdir::WalkDir;
 use zip::ZipArchive;
 
@@ -43,12 +43,7 @@ impl CSharpPlugin {
                 if let Some(parent) = target_file_path.parent() {
                     file_util::create_dir_all(parent)?;
                 }
-
-                let file_path = PathBuf::from(file.name());
-                let bytes: Vec<u8> = file
-                    .bytes()
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| FileError::FileRead(file_path, e))?;
+                let bytes = file_util::read_reader(file)?;
                 file_util::write_to_file(bytes, target_file_path)?;
             }
         }
@@ -91,7 +86,7 @@ impl CSharpPlugin {
     /// Returns the path to the TMC C# runner in the cache. If TMC_CSHARP_BOOTSTRAP_PATH is set, it is returned instead.
     fn get_bootstrap_path() -> Result<PathBuf, CSharpError> {
         if let Ok(var) = env::var("TMC_CSHARP_BOOTSTRAP_PATH") {
-            log::debug!("using bootstrap path TMC_CSHARP_BOOTSTRAP_PATH={}", var);
+            log::debug!("using bootstrap path TMC_CSHARP_BOOTSTRAP_PATH={var}");
             Ok(PathBuf::from(var))
         } else {
             let runner_path = Self::get_or_init_runner_dir()?;
@@ -253,8 +248,8 @@ impl LanguagePlugin for CSharpPlugin {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 if !output.status.success() {
-                    log::warn!("stdout: {}", stdout);
-                    log::error!("stderr: {}", stderr);
+                    log::warn!("stdout: {stdout}");
+                    log::error!("stderr: {stderr}");
                     let mut logs = HashMap::new();
                     logs.insert("stdout".to_string(), stdout.into_owned());
                     logs.insert("stderr".to_string(), stderr.into_owned());
@@ -265,8 +260,8 @@ impl LanguagePlugin for CSharpPlugin {
                     });
                 }
 
-                log::trace!("stdout: {}", stdout);
-                log::debug!("stderr: {}", stderr);
+                log::trace!("stdout: {stdout}");
+                log::debug!("stderr: {stderr}");
 
                 if !test_results_path.exists() {
                     return Err(CSharpError::MissingTestResults {
@@ -479,9 +474,10 @@ mod test {
         init();
 
         let path = CSharpPlugin::get_bootstrap_path().unwrap();
-        assert!(path
-            .to_string_lossy()
-            .contains("TestMyCode.CSharp.Bootstrap.dll"));
+        assert!(
+            path.to_string_lossy()
+                .contains("TestMyCode.CSharp.Bootstrap.dll")
+        );
     }
 
     #[test]
@@ -634,11 +630,12 @@ mod test {
         assert_eq!(res.status, RunStatus::CompileFailed);
         assert!(!res.logs.is_empty());
         log::debug!("{:?}", res.logs.get("stdout"));
-        assert!(res
-            .logs
-            .get("stdout")
-            .unwrap()
-            .contains("This is a compile error"));
+        assert!(
+            res.logs
+                .get("stdout")
+                .unwrap()
+                .contains("This is a compile error")
+        );
     }
 
     #[test]

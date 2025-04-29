@@ -92,8 +92,7 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::Tar(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                Err(TmcError::TarRead(std::io::Error::other(
                     format!("Could not find {path} in tar"),
                 )))
             }
@@ -104,8 +103,7 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::TarZstd(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                Err(TmcError::TarRead(std::io::Error::other(
                     format!("Could not find {path} in tar"),
                 )))
             }

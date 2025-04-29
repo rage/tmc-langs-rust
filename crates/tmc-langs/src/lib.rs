@@ -12,23 +12,23 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        list_local_course_exercises, migrate_exercise, move_projects_dir, CourseConfig,
-        Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+        CourseConfig, Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
+        list_local_course_exercises, migrate_exercise, move_projects_dir,
     },
-    course_refresher::{refresh_course, RefreshData, RefreshExercise},
+    course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
         CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, DownloadResult,
         ExerciseDownload, LocalExercise, TmcParams,
     },
     error::{LangsError, ParamError},
-    submission_packaging::{prepare_submission, PrepareSubmission},
+    submission_packaging::{PrepareSubmission, prepare_submission},
     submission_processing::prepare_solution,
 };
 use hmac::{Hmac, Mac};
 // use heim::disk;
 use jwt::SignWithKey;
 use oauth2::{
-    basic::BasicTokenType, AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse,
+    AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse, basic::BasicTokenType,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -117,7 +117,8 @@ pub fn check_exercise_updates(
     if !local_exercises.is_empty() {
         let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
         let server_exercises = client
-            .get_exercises_details(&exercise_ids)?
+            .get_exercises_details(&exercise_ids)
+            .map_err(Box::new)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
@@ -145,14 +146,14 @@ pub fn download_old_submission(
     save_old_state: bool,
 ) -> Result<(), LangsError> {
     log::debug!(
-        "downloading old submission {} for {}",
-        submission_id,
-        exercise_id
+        "downloading old submission {submission_id} for {exercise_id}"
     );
 
     if save_old_state {
         // submit old exercise
-        client.submit(exercise_id, output_path, None)?;
+        client
+            .submit(exercise_id, output_path, None)
+            .map_err(Box::new)?;
         log::debug!("finished submission");
     }
 
@@ -162,7 +163,9 @@ pub fn download_old_submission(
 
     // dl submission
     let mut buf = vec![];
-    client.download_old_submission(submission_id, &mut buf)?;
+    client
+        .download_old_submission(submission_id, &mut buf)
+        .map_err(Box::new)?;
     log::debug!("downloaded old submission");
 
     // extract submission
@@ -189,7 +192,7 @@ pub fn submit_exercise(
 
     client
         .submit(exercise.id, exercise_path.as_path(), locale)
-        .map(Into::into)
+        .map_err(Box::new)
         .map_err(Into::into)
 }
 
@@ -212,7 +215,8 @@ pub fn paste_exercise(
 
     client
         .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
-        .map_err(|e| e.into())
+        .map_err(Box::new)
+        .map_err(Into::into)
 }
 
 /// Downloads the given exercises, by either downloading the exercise template, updating the exercise or downloading an old submission.
@@ -232,9 +236,9 @@ pub fn download_or_update_course_exercises(
         projects_dir.display()
     );
 
-    client.require_authentication()?;
+    client.require_authentication().map_err(Box::new)?;
 
-    let exercises_details = client.get_exercises_details(exercises)?;
+    let exercises_details = client.get_exercises_details(exercises).map_err(Box::new)?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -274,7 +278,8 @@ pub fn download_or_update_course_exercises(
             // not on disk, if flag isn't set check if there are any previous submissions and take the latest one if so
             if !download_template {
                 if let Some(latest_submission) = client
-                    .get_exercise_submissions_for_current_user(exercise_detail.id)?
+                    .get_exercise_submissions_for_current_user(exercise_detail.id)
+                    .map_err(Box::new)?
                     .into_iter()
                     .max_by_key(|s| s.created_at)
                 {
@@ -365,7 +370,9 @@ pub fn download_or_update_course_exercises(
                     match &download_target.kind {
                         DownloadTargetKind::Template => {
                             let mut buf = vec![];
-                            client.download_exercise(download_target.target.id, &mut buf)?;
+                            client
+                                .download_exercise(download_target.target.id, &mut buf)
+                                .map_err(Box::new)?;
                             extract_project(
                                 Cursor::new(buf),
                                 &download_target.target.path,
@@ -376,7 +383,9 @@ pub fn download_or_update_course_exercises(
                         }
                         DownloadTargetKind::Submission { submission_id } => {
                             let mut buf = vec![];
-                            client.download_exercise(download_target.target.id, &mut buf)?;
+                            client
+                                .download_exercise(download_target.target.id, &mut buf)
+                                .map_err(Box::new)?;
                             extract_project(
                                 Cursor::new(buf),
                                 &download_target.target.path,
@@ -399,15 +408,16 @@ pub fn download_or_update_course_exercises(
                             }
 
                             let mut buf = vec![];
-                            client.download_old_submission(*submission_id, &mut buf)?;
+                            client
+                                .download_old_submission(*submission_id, &mut buf)
+                                .map_err(Box::new)?;
                             if let Err(err) = plugin.extract_student_files(
                                 Cursor::new(buf),
                                 Compression::Zip,
                                 &download_target.target.path,
                             ) {
                                 log::error!(
-                                    "Something went wrong when downloading old submission: {}",
-                                    err
+                                    "Something went wrong when downloading old submission: {err}"
                                 );
                             }
                         }
@@ -526,11 +536,11 @@ pub fn get_course_data(
     client: &tmc::TestMyCodeClient,
     course_id: u32,
 ) -> Result<CombinedCourseData, LangsError> {
-    log::debug!("getting course data for {}", course_id);
+    log::debug!("getting course data for {course_id}");
 
-    let details = client.get_course_details(course_id)?;
-    let exercises = client.get_course_exercises(course_id)?;
-    let settings = client.get_course(course_id)?;
+    let details = client.get_course_details(course_id).map_err(Box::new)?;
+    let exercises = client.get_course_exercises(course_id).map_err(Box::new)?;
+    let settings = client.get_course(course_id).map_err(Box::new)?;
     Ok(CombinedCourseData {
         details,
         exercises,
@@ -560,7 +570,9 @@ pub fn login_with_password(
     password: String,
 ) -> Result<tmc::Token, LangsError> {
     log::debug!("logging in with password");
-    let token = client.authenticate(client_name, email, password)?;
+    let token = client
+        .authenticate(client_name, email, password)
+        .map_err(Box::new)?;
     Ok(token)
 }
 
@@ -575,7 +587,8 @@ pub fn init_testmycode_client_with_credentials(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
-    )?;
+    )
+    .map_err(Box::new)?;
 
     // set token from the credentials file if one exists
     let credentials = Credentials::load(client_name)?;
@@ -626,7 +639,8 @@ pub fn update_exercises(
     // request would error with 0 exercise ids
     if !exercise_ids.is_empty() {
         let mut server_exercises = client
-            .get_exercises_details(&exercise_ids)?
+            .get_exercises_details(&exercise_ids)
+            .map_err(Box::new)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
@@ -665,7 +679,9 @@ pub fn update_exercises(
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
-                client.download_exercise(exercise.id, &mut buf)?;
+                client
+                    .download_exercise(exercise.id, &mut buf)
+                    .map_err(Box::new)?;
                 extract_project(
                     Cursor::new(buf),
                     &exercise.path,
@@ -702,7 +718,7 @@ pub fn update_exercises(
 
 /// Fetches a setting from the config.
 pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue, LangsError> {
-    log::debug!("fetching setting {} in {}", key, client_name);
+    log::debug!("fetching setting {key} in {client_name}");
 
     let tmc_config = get_settings(client_name)?;
     let value = match key {
@@ -714,14 +730,14 @@ pub fn get_setting(client_name: &str, key: &str) -> Result<ConfigValue, LangsErr
 
 /// Fetches all the settings from the config.
 pub fn get_settings(client_name: &str) -> Result<TmcConfig, LangsError> {
-    log::debug!("fetching settings for {}", client_name);
+    log::debug!("fetching settings for {client_name}");
 
     TmcConfig::load(client_name)
 }
 
 /// Saves a setting in the config.
 pub fn set_setting<T: Serialize>(client_name: &str, key: &str, value: T) -> Result<(), LangsError> {
-    log::debug!("setting {} in {}", key, client_name);
+    log::debug!("setting {key} in {client_name}");
 
     let mut tmc_config = TmcConfig::load(client_name)?;
 
@@ -744,7 +760,7 @@ pub fn set_setting<T: Serialize>(client_name: &str, key: &str, value: T) -> Resu
 
 /// Resets all settings in the config, removing those without a default value.
 pub fn reset_settings(client_name: &str) -> Result<(), LangsError> {
-    log::debug!("resetting settings in {}", client_name);
+    log::debug!("resetting settings in {client_name}");
 
     TmcConfig::reset(client_name)?;
     Ok(())
@@ -752,7 +768,7 @@ pub fn reset_settings(client_name: &str) -> Result<(), LangsError> {
 
 /// Unsets the given setting.
 pub fn unset_setting(client_name: &str, key: &str) -> Result<Option<TomlValue>, LangsError> {
-    log::debug!("unsetting setting {} in {}", key, client_name);
+    log::debug!("unsetting setting {key} in {client_name}");
 
     let mut tmc_config = TmcConfig::load(client_name)?;
     let old_value = tmc_config.remove(key);
@@ -826,7 +842,9 @@ pub fn reset(
         file_util::remove_dir_all(exercise_path)?;
     }
     let mut buf = vec![];
-    client.download_exercise(exercise_id, &mut buf)?;
+    client
+        .download_exercise(exercise_id, &mut buf)
+        .map_err(Box::new)?;
     extract_project(
         Cursor::new(buf),
         exercise_path,
@@ -1551,10 +1569,11 @@ checksum = 'new checksum'
         let f = file_util::read_file_to_string(e3.path.join("src/student_file.py")).unwrap();
         assert_eq!(f, "submission");
         assert!(!e3.path.join("src/template_only_student_file.py").exists());
-        assert!(!e3
-            .path
-            .join("test/submission_only_exercise_file.py")
-            .exists());
+        assert!(
+            !e3.path
+                .join("test/submission_only_exercise_file.py")
+                .exists()
+        );
         let f = file_util::read_file_to_string(e3.path.join("test/exercise_file.py")).unwrap();
         assert_eq!(f, "template");
 

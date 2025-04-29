@@ -70,6 +70,14 @@ pub fn open_file(path: impl AsRef<Path>) -> Result<File, FileError> {
     File::open(path).map_err(|e| FileError::FileOpen(path.to_path_buf(), e))
 }
 
+pub fn read_reader<R: Read>(mut reader: R) -> Result<Vec<u8>, FileError> {
+    let mut bytes = vec![];
+    reader
+        .read_to_end(&mut bytes)
+        .map_err(FileError::ReadError)?;
+    Ok(bytes)
+}
+
 pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, FileError> {
     let path = path.as_ref();
     let mut file = open_file(path)?;

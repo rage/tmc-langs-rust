@@ -9,15 +9,15 @@ pub use self::{
     projects_config::{CourseConfig, ProjectsConfig, ProjectsDirExercise},
     tmc_config::TmcConfig,
 };
-use crate::{data::LocalExercise, error::LangsError, TMC_LANGS_CONFIG_DIR_VAR};
+use crate::{TMC_LANGS_CONFIG_DIR_VAR, data::LocalExercise, error::LangsError};
 use std::{
     collections::BTreeMap,
     env,
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
-    file_util::{self, Lock, LockOptions},
     FileError,
+    file_util::{self, Lock, LockOptions},
 };
 
 // base directory for a given plugin's settings files
@@ -35,9 +35,7 @@ pub fn list_local_course_exercises(
     course_slug: &str,
 ) -> Result<Vec<LocalExercise>, LangsError> {
     log::debug!(
-        "listing local course exercises of {} for {}",
-        course_slug,
-        client_name
+        "listing local course exercises of {course_slug} for {client_name}"
     );
 
     let projects_dir = TmcConfig::load(client_name)?.projects_dir;
@@ -177,10 +175,12 @@ mod test {
 
         file_to(&exercise_path, "some_file", "");
 
-        assert!(!projects_dir
-            .path()
-            .join("course/exercise/some_file")
-            .exists());
+        assert!(
+            !projects_dir
+                .path()
+                .join("course/exercise/some_file")
+                .exists()
+        );
 
         migrate_exercise(
             tmc_config,
@@ -192,10 +192,12 @@ mod test {
         )
         .unwrap();
 
-        assert!(projects_dir
-            .path()
-            .join("course/exercise/some_file")
-            .exists());
+        assert!(
+            projects_dir
+                .path()
+                .join("course/exercise/some_file")
+                .exists()
+        );
 
         assert!(!exercise_path.path().exists());
     }
@@ -223,17 +225,21 @@ mod test {
             "",
         );
 
-        assert!(!target_dir
-            .path()
-            .join("some course/some exercise/some file")
-            .exists());
+        assert!(
+            !target_dir
+                .path()
+                .join("some course/some exercise/some file")
+                .exists()
+        );
 
         move_projects_dir(tmc_config, target_dir.path().to_path_buf()).unwrap();
 
-        assert!(target_dir
-            .path()
-            .join("some course/some exercise/some file")
-            .exists());
+        assert!(
+            target_dir
+                .path()
+                .join("some course/some exercise/some file")
+                .exists()
+        );
         assert!(!projects_dir.path().exists());
     }
 }

@@ -8,7 +8,7 @@ use std::{
     io::{BufRead, BufReader},
     path::Path,
 };
-use tmc_langs_util::{file_util, FileError};
+use tmc_langs_util::{FileError, file_util};
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -75,7 +75,7 @@ impl ValgrindLog {
             results,
         };
 
-        log::trace!("parsed {:#?}", log);
+        log::trace!("parsed {log:#?}");
         Ok(log)
     }
 }
@@ -135,7 +135,7 @@ mod test {
         );
 
         let valgrind_log = ValgrindLog::from(&file).unwrap();
-        log::debug!("{:#?}", valgrind_log);
+        log::debug!("{valgrind_log:#?}");
         assert!(valgrind_log.errors);
     }
 
@@ -160,7 +160,7 @@ mod test {
         );
 
         let valgrind_log = ValgrindLog::from(&file).unwrap();
-        log::debug!("{:#?}", valgrind_log);
+        log::debug!("{valgrind_log:#?}");
         assert!(!valgrind_log.errors);
     }
 }

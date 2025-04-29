@@ -7,9 +7,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs_util::{
-    deserialize,
+    FileError, deserialize,
     file_util::{self, Lock, LockOptions},
-    FileError,
 };
 use walkdir::WalkDir;
 

@@ -5,17 +5,17 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
+    CombinedCourseData, Compression, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
+    UpdatedExercise,
     mooc::CourseInstance,
     tmc::{
+        UpdateResult,
         response::{
             Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
             Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
         },
-        UpdateResult,
     },
-    CombinedCourseData, Compression, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
-    UpdatedExercise,
 };
 use uuid::Uuid;
 

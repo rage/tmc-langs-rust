@@ -5,8 +5,8 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{
-    de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
+    de::{self, Visitor},
 };
 use std::{collections::HashMap, fmt, path::PathBuf, str::FromStr};
 use thiserror::Error;
@@ -767,11 +767,13 @@ mod test {
               }
         );
         let submission = deserialize::json_from_value::<SubmissionFinished>(submission).unwrap();
-        assert!(!submission
-            .validations
-            .unwrap()
-            .validation_errors
-            .unwrap()
-            .is_empty());
+        assert!(
+            !submission
+                .validations
+                .unwrap()
+                .validation_errors
+                .unwrap()
+                .is_empty()
+        );
     }
 }

@@ -15,7 +15,9 @@ pub enum PythonError {
     VersionPrintError(String),
     #[error("Failed to parse Python version from {0}")]
     VersionParseError(String, #[source] std::num::ParseIntError),
-    #[error("Python version found is too old: minimum major version required is {minimum_required}, but found {found}")]
+    #[error(
+        "Python version found is too old: minimum major version required is {minimum_required}, but found {found}"
+    )]
     OldPythonVersion {
         found: String,
         minimum_required: String,
