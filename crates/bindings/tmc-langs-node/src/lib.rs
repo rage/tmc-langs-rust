@@ -168,7 +168,7 @@ fn get_exercise_packaging_configuration(mut cx: FunctionContext) -> JsResult<JsV
 fn list_local_course_exercises(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, course_slug: String);
 
-    let res = tmc_langs::list_local_course_exercises(&client_name, &course_slug);
+    let res = tmc_langs::list_local_tmc_course_exercises(&client_name, &course_slug);
     convert_res(&mut cx, res)
 }
 

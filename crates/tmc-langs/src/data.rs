@@ -9,13 +9,30 @@ use std::{
     path::PathBuf,
 };
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
+use uuid::Uuid;
 
-/// Exercise inside the projects directory.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum LocalExercise {
+    Tmc(LocalTmcExercise),
+    Mooc(LocalMoocExercise),
+}
+
+/// TMC eercise inside the projects directory.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct LocalExercise {
+pub struct LocalTmcExercise {
     pub exercise_slug: String,
+    pub exercise_path: PathBuf,
+}
+
+/// MOOC exercise inside the projects directory.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct LocalMoocExercise {
+    pub exercise_id: Uuid,
     pub exercise_path: PathBuf,
 }
 

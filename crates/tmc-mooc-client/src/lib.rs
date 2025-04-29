@@ -5,13 +5,12 @@
 mod error;
 mod exercise;
 
-pub use self::exercise::{
-    ExerciseFile, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask,
+pub use self::{
+    error::{MoocClientError, MoocClientResult},
+    exercise::{ExerciseFile, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask},
 };
-use crate::error::{MoocClientError, MoocClientResult};
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
-use exercise::UserAnswer;
 pub use mooc_langs_api as api;
 use oauth2::TokenResponse;
 use reqwest::{
@@ -23,10 +22,11 @@ use reqwest::{
 };
 use schemars::JsonSchema;
 use serde::{Serialize, de::DeserializeOwned};
-use std::{borrow::Cow, path::Path, sync::Arc};
+use std::{path::Path, sync::Arc};
 use tmc_langs_util::{JsonError, serialize};
 #[cfg(feature = "ts-rs")]
 use ts_rs::TS;
+use url::Url;
 use uuid::Uuid;
 
 /// Client for accessing the Courses MOOC API.
@@ -36,41 +36,43 @@ pub struct MoocClient(Arc<MoocClientInner>);
 
 struct MoocClientInner {
     client: Client,
-    root_addr: Cow<'static, str>,
+    root_url: Url,
     token: Option<api::Token>,
 }
 
 /// Non-API methods.
 impl MoocClient {
     /// Creates a new client.
-    pub fn new(addr: impl Into<Cow<'static, str>>) -> Self {
+    pub fn new(root_url: Url) -> Self {
+        // guarantee a trailing slash, otherwise join will drop the last component
+        let root_url = if root_url.as_str().ends_with('/') {
+            root_url
+        } else {
+            format!("{root_url}/").parse().expect("invalid root url")
+        };
+
         Self(Arc::new(MoocClientInner {
             client: Client::new(),
-            root_addr: addr.into(),
+            root_url,
             token: None,
         }))
     }
 
-    /// Helper for creating a request to an endpoint.
-    /// # Panics
-    /// If the root URL or endpoint are malformed.
-    fn request(&self, method: Method, endpoint: &str) -> MoocRequest {
-        let url = format!("{}/api/v0/langs/{endpoint}", self.0.root_addr);
-        self.request_to_url(method, url)
-    }
-
-    fn request_to_url(&self, method: Method, url: String) -> MoocRequest {
+    fn request(&self, method: Method, url: Url) -> MoocRequest {
         log::debug!("building a request to {url}");
 
-        let trusted_urls = &["https://courses.mooc.fi/", "http://project-331.local/"];
-        let include_bearer_token = trusted_urls.iter().any(|tu| url.starts_with(tu));
+        let trusted_domains = &["courses.mooc.fi", "project-331.local"];
+        let is_trusted_domain = url
+            .domain()
+            .map(|d| trusted_domains.contains(&d))
+            .unwrap_or_default();
         let mut builder = self.0.client.request(method.clone(), url.clone());
         if let Some(token) = self.0.token.as_ref() {
-            if include_bearer_token {
+            if is_trusted_domain {
                 log::debug!("setting bearer token");
                 builder = builder.bearer_auth(token.access_token().secret());
             } else {
-                log::debug!("leaving out bearer token due to untrusted url");
+                log::debug!("leaving out bearer token due to untrusted domain");
             }
         } else {
             log::debug!("no bearer token");
@@ -92,19 +94,23 @@ impl MoocClient {
 /// API methods.
 impl MoocClient {
     pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
+        let url = make_langs_api_url(&self, "course-instances")?;
         let res = self
-            .request(Method::GET, "course-instances")
+            .request(Method::GET, url)
             .send_expect_json::<Vec<api::CourseInstance>>()?;
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    pub fn course_instance_exercise_slides(
+    pub fn course_instance_exercises(
         &self,
         course_instance: Uuid,
     ) -> MoocClientResult<Vec<TmcExerciseSlide>> {
-        let url = format!("course-instances/{course_instance}/exercises");
+        let url = make_langs_api_url(
+            &self,
+            format!("course-instances/{course_instance}/exercises"),
+        )?;
         let res = self
-            .request(Method::GET, &url)
+            .request(Method::GET, url.clone())
             .send_expect_json::<Vec<api::ExerciseSlide>>()?
             .into_iter()
             .map(TryFrom::try_from)
@@ -117,9 +123,9 @@ impl MoocClient {
     }
 
     pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
-        let url = format!("exercises/{exercise}");
+        let url = make_langs_api_url(&self, format!("exercises/{exercise}"))?;
         let res = self
-            .request(Method::GET, &url)
+            .request(Method::GET, url.clone())
             .send_expect_json::<api::ExerciseSlide>()?
             .try_into()
             .map_err(|err: JsonError| MoocClientError::DeserializingResponse {
@@ -129,15 +135,14 @@ impl MoocClient {
         Ok(res)
     }
 
-    pub fn download(&self, url: String) -> MoocClientResult<Bytes> {
-        let res = self.request_to_url(Method::GET, url).send_expect_bytes()?;
+    pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
+        let res = self.request(Method::GET, url).send_expect_bytes()?;
         Ok(res)
     }
 
     pub fn download_exercise(&self, exercise: Uuid) -> MoocClientResult<Bytes> {
-        let res = self
-            .request(Method::GET, &format!("exercises/{exercise}/download"))
-            .send_expect_bytes()?;
+        let url = make_langs_api_url(&self, format!("exercises/{exercise}/download"))?;
+        let res = self.request(Method::GET, url).send_expect_bytes()?;
         Ok(res)
     }
 
@@ -148,36 +153,36 @@ impl MoocClient {
         task_id: Uuid,
         archive: &Path,
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
-        // upload archive
-        let metadata = api::UploadMetadata { slide_id, task_id };
-        let metadata = serialize::to_json_vec(&metadata)?;
-        let form = Form::new()
+        let exercise_slide_submission = api::ExerciseSlideSubmission {
+            exercise_slide_id: slide_id,
+            exercise_task_id: task_id,
+            data_json: serde_json::Value::Null,
+        };
+        let exercise_slide_submission = serialize::to_json_vec(&exercise_slide_submission)?;
+        let submission = Form::new()
             .part(
                 "metadata",
-                Part::bytes(metadata)
+                Part::bytes(exercise_slide_submission)
                     .mime_str("application/json")
                     .expect("known to work"),
             )
             .file("file", archive)
             .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
-        let res = self
-            .request(Method::POST, &format!("exercises/{exercise_id}/upload"))
-            .multipart(form)
-            .send_expect_json::<api::UploadResult>()?;
 
         // send submission
-        let user_answer = UserAnswer::Editor {
-            archive_download_url: res.download_url,
-        };
-        let data_json = serialize::to_json_value(&user_answer)?;
-        let exercise_slide_submission = api::ExerciseSlideSubmission {
-            exercise_slide_id: slide_id,
-            exercise_task_id: task_id,
-            data_json,
-        };
+        //let user_answer = UserAnswer::Editor {
+        //archive_download_url: res.download_url,
+        //};
+        //let data_json = serialize::to_json_value(&user_answer)?;
+        //let exercise_slide_submission = api::ExerciseSlideSubmission {
+        //exercise_slide_id: slide_id,
+        //exercise_task_id: task_id,
+        //data_json,
+        //};
+        let url = make_langs_api_url(&self, format!("exercises/{exercise_id}/submit"))?;
         let res = self
-            .request(Method::POST, &format!("exercises/{exercise_id}/submit"))
-            .json(&exercise_slide_submission)
+            .request(Method::POST, url)
+            .multipart(submission)
             .send_expect_json::<api::ExerciseTaskSubmissionResult>()?;
         Ok(res.into())
     }
@@ -186,8 +191,9 @@ impl MoocClient {
         &self,
         submission_id: Uuid,
     ) -> MoocClientResult<ExerciseTaskSubmissionStatus> {
+        let url = make_langs_api_url(&self, format!("submissions/{submission_id}/grading"))?;
         let res = self
-            .request(Method::GET, &format!("submissions/{submission_id}/grading"))
+            .request(Method::GET, url)
             .send_expect_json::<api::ExerciseTaskSubmissionStatus>()?;
         Ok(res.into())
     }
@@ -195,20 +201,12 @@ impl MoocClient {
 
 /// Helper for creating and sending requests.
 struct MoocRequest {
-    url: String,
+    url: Url,
     method: Method,
     builder: RequestBuilder,
 }
 
 impl MoocRequest {
-    fn json<T>(mut self, value: &T) -> Self
-    where
-        T: Serialize,
-    {
-        self.builder = self.builder.json(value);
-        self
-    }
-
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
@@ -230,7 +228,7 @@ impl MoocRequest {
                                     url: self.url.clone(),
                                     error: Box::new(err),
                                 })?;
-                        Err(MoocClientError::ErrorResponseFromServer {
+                        Err(MoocClientError::HttpError {
                             url: self.url,
                             status,
                             error: body,
@@ -239,11 +237,11 @@ impl MoocRequest {
                     }
                 }
             }
-            Err(err) => Err(MoocClientError::SendingRequest {
-                method: self.method,
-                url: self.url,
-                error: Box::new(err),
-            }),
+            Err(error) => Err(MoocClientError::ConnectionError(
+                self.method,
+                self.url,
+                error,
+            )),
         }
     }
 
@@ -277,6 +275,16 @@ impl MoocRequest {
     }
 }
 
+// joins the URL "tail" with the API url root from the client
+fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> Result<Url, MoocClientError> {
+    client
+        .0
+        .root_url
+        .join("/api/v0/langs/")
+        .and_then(|u| u.join(tail.as_ref()))
+        .map_err(|e| MoocClientError::UrlParse(tail.as_ref().to_string(), e))
+}
+
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct CourseInstance {
@@ -301,6 +309,18 @@ impl From<api::CourseInstance> for CourseInstance {
             instance_description: value.instance_description,
         }
     }
+}
+
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct CourseInstanceInfo {
+    pub id: Uuid,
+    pub course_id: Uuid,
+    pub course_slug: String,
+    pub course_name: String,
+    pub course_description: Option<String>,
+    pub instance_name: Option<String>,
+    pub instance_description: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -378,5 +398,208 @@ impl From<api::GradingProgress> for GradingProgress {
             api::GradingProgress::Pending => Self::Pending,
             api::GradingProgress::FullyGraded => Self::FullyGraded,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use mockito::Server;
+    use mooc_langs_api::Token;
+    use oauth2::{AccessToken, EmptyExtraTokenFields, basic::BasicTokenType};
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+
+        let _ = SimpleLogger::new()
+            .with_level(LevelFilter::Debug)
+            // mockito does some logging
+            .with_module_level("mockito", LevelFilter::Warn)
+            // reqwest does a lot of logging
+            .with_module_level("reqwest", LevelFilter::Warn)
+            // hyper does a lot of logging
+            .with_module_level("hyper", LevelFilter::Warn)
+            .init();
+    }
+
+    fn make_client(server: &Server) -> MoocClient {
+        let mut client = MoocClient::new(server.url().parse().unwrap());
+        let token = Token::new(
+            AccessToken::new("".to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        client.set_token(token);
+        client
+    }
+
+    #[test]
+    fn gets_course_instances() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/api/v0/langs/course-instances")
+            .with_body(
+                serde_json::json!([{
+                    "id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
+                    "course_slug": "mockslug",
+                    "course_name": "mockname",
+                    "course_description": "mockdesc",
+                }])
+                .to_string(),
+            )
+            .create();
+        let course_instances = client.course_instances().unwrap();
+        assert_eq!(course_instances[0].course_name, "mockname");
+    }
+
+    #[test]
+    fn gets_course_instance_exercise_slides() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock(
+                "GET",
+                "/api/v0/langs/course-instances/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
+            )
+            .with_body(
+                serde_json::json!([{
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [],
+                }])
+                .to_string(),
+            )
+            .create();
+        let exercise_sludes = client
+            .course_instance_exercises(
+                Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap(),
+            )
+            .unwrap();
+        assert_eq!(exercise_sludes[0].exercise_name, "mockname");
+    }
+
+    #[test]
+    fn gets_exercise() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock(
+                "GET",
+                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [],
+                })
+                .to_string(),
+            )
+            .create();
+        let exercise = client
+            .exercise(Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap())
+            .unwrap();
+        assert_eq!(exercise.exercise_name, "mockname");
+    }
+
+    #[test]
+    fn downloads_exercise() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock(
+                "GET",
+                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/download",
+            )
+            .with_body_from_file("./tests/data/file")
+            .create();
+        let exercise = client
+            .download_exercise(Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap())
+            .unwrap();
+        assert_eq!(String::from_utf8(exercise.into()).unwrap(), "hello!");
+    }
+
+    #[test]
+    fn submits() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock(
+                "POST",
+                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/submit",
+            )
+            .with_body(
+                serde_json::json!({
+                    "submission_id": Uuid::new_v4(),
+                })
+                .to_string(),
+            )
+            .create();
+        let _submission_result = client
+            .submit(
+                Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap(),
+                Uuid::parse_str("e7bd5a07-1b83-4c97-91f2-e48cccf66b2a").unwrap(),
+                Uuid::parse_str("816ac03a-a713-4804-9ea6-3eb5e278ec2b").unwrap(),
+                Path::new("./tests/data/file"),
+            )
+            .unwrap();
+    }
+
+    #[test]
+    fn gets_submission_grading() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock(
+                "GET",
+                "/api/v0/langs/submissions/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/grading",
+            )
+            .with_body(serde_json::json!("NoGradingYet").to_string())
+            .create();
+        server
+            .mock(
+                "GET",
+                "/api/v0/langs/submissions/e7bd5a07-1b83-4c97-91f2-e48cccf66b2a/grading",
+            )
+            .with_body(
+                serde_json::json!({
+                    "Grading": {
+                        "grading_progress": "Failed",
+                    }
+                })
+                .to_string(),
+            )
+            .create();
+        let submission_result = client
+            .get_submission_grading(
+                Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap(),
+            )
+            .unwrap();
+        assert!(matches!(
+            submission_result,
+            ExerciseTaskSubmissionStatus::NoGradingYet
+        ));
+        let submission_result = client
+            .get_submission_grading(
+                Uuid::parse_str("e7bd5a07-1b83-4c97-91f2-e48cccf66b2a").unwrap(),
+            )
+            .unwrap();
+        assert!(matches!(
+            submission_result,
+            ExerciseTaskSubmissionStatus::Grading { .. }
+        ));
     }
 }

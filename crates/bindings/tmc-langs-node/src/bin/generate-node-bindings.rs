@@ -15,7 +15,7 @@ fn main() {
         // getExercisePackagingConfiguration
         tmc_langs::ExercisePackagingConfiguration,
         // listLocalCourseExercises
-        tmc_langs::LocalExercise,
+        tmc_langs::LocalTmcExercise,
         // prepareSubmission
         tmc_langs::Compression,
         // refreshCourse

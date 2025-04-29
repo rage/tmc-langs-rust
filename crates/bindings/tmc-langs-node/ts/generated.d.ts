@@ -14,7 +14,7 @@ student_file_paths: Array<string>,
  */
 exercise_file_paths: Array<string>, }
 
-export type LocalExercise = { "exercise-slug": string, "exercise-path": string, }
+export type LocalTmcExercise = { "exercise-slug": string, "exercise-path": string, }
 
 export type Compression = "tar" | "zip" | "zstd";
 

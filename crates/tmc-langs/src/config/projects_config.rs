@@ -10,6 +10,7 @@ use tmc_langs_util::{
     FileError, deserialize,
     file_util::{self, Lock, LockOptions},
 };
+use uuid::Uuid;
 use walkdir::WalkDir;
 
 /// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
@@ -18,50 +19,84 @@ const COURSE_CONFIG_FILE_NAME: &str = "course_config.toml";
 #[derive(Debug)]
 pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
-    pub courses: HashMap<String, CourseConfig>,
+    // slug => course
+    pub tmc_courses: HashMap<String, TmcCourseConfig>,
+    pub mooc_courses: HashMap<String, MoocCourseConfig>,
 }
 
 impl ProjectsConfig {
     pub fn load(projects_dir: &Path) -> Result<ProjectsConfig, LangsError> {
         let mut lock = Lock::dir(projects_dir, LockOptions::Read)?;
         let _guard = lock.lock()?;
-        let mut course_configs = HashMap::new();
 
+        let mut tmc_course_configs = HashMap::<String, TmcCourseConfig>::new();
+        let mut mooc_course_configs = HashMap::<String, MoocCourseConfig>::new();
+
+        // the projects dir has a separate directory for each TMC course, which are all expected to contain a `course_config.toml` file for TMC courses
+        // MOOC courses are in a `mooc` subdirectory to prevent the course slugs (which are used as the directory names) from conflicting
+        // process tmc courses first
         let mut unexpected_entries = Vec::new();
-        for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
-            let entry = entry?;
-            let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
-            if course_config_path.exists() {
+        if projects_dir.exists() {
+            for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
+                let entry = entry?;
                 let file_name = entry.file_name();
-                let course_dir_name = file_name.to_str().ok_or_else(|| {
-                    LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
-                })?;
-                let file = file_util::read_file_to_string(&course_config_path)?;
-                let course_config: CourseConfig = deserialize::toml_from_str(&file)?;
+                if file_name == "mooc" {
+                    // skip the special `mooc` dir
+                    continue;
+                }
 
-                course_configs.insert(course_dir_name.to_string(), course_config);
-            } else {
-                unexpected_entries.push(entry);
+                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
+                if course_config_path.exists() {
+                    let course_dir_name = file_name.to_str().ok_or_else(|| {
+                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
+                    })?;
+                    let file = file_util::read_file_to_string(&course_config_path)?;
+                    let course_config = deserialize::toml_from_str(&file)?;
+                    tmc_course_configs.insert(course_dir_name.to_string(), course_config);
+                } else {
+                    unexpected_entries.push(entry);
+                }
             }
         }
 
-        // no need to warn if the directory has no valid course directories at all
-        if !course_configs.is_empty() {
-            log::warn!(
-                "Files or directories with no config files found \
+        // then mooc
+        let mooc_projects_dir = projects_dir.join("mooc");
+        if mooc_projects_dir.exists() {
+            for entry in WalkDir::new(mooc_projects_dir).min_depth(1).max_depth(1) {
+                let entry = entry?;
+
+                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
+                if course_config_path.exists() {
+                    let file_name = entry.file_name();
+                    let course_dir_name = file_name.to_str().ok_or_else(|| {
+                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
+                    })?;
+                    let file = file_util::read_file_to_string(&course_config_path)?;
+                    let course_config = deserialize::toml_from_str(&file)?;
+                    mooc_course_configs.insert(course_dir_name.to_string(), course_config);
+                } else {
+                    unexpected_entries.push(entry);
+                }
+            }
+
+            // no need to warn if the directory has no valid course directories at all
+            if !(tmc_course_configs.is_empty() && mooc_course_configs.is_empty()) {
+                log::warn!(
+                    "Files or directories with no config files found \
                 while loading projects from {}: [{}]",
-                projects_dir.display(),
-                unexpected_entries
-                    .iter()
-                    .filter_map(|ue| ue.path().as_os_str().to_str())
-                    .collect::<Vec<_>>()
-                    .join(", "),
-            );
+                    projects_dir.display(),
+                    unexpected_entries
+                        .iter()
+                        .filter_map(|ue| ue.path().as_os_str().to_str())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                );
+            }
         }
 
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
-        for (_, course_config) in course_configs.iter_mut() {
+        for (_, course_config) in tmc_course_configs.iter_mut() {
             let mut deleted_exercises = vec![];
             for exercise_name in course_config.exercises.keys() {
                 let expected_dir = Self::get_exercise_download_target(
@@ -84,12 +119,13 @@ impl ProjectsConfig {
                     .expect("this should never fail");
             }
             if !deleted_exercises.is_empty() {
-                // if any exercises were deleted, save the course config
                 course_config.save_to_projects_dir(projects_dir)?;
             }
         }
+
         Ok(Self {
-            courses: course_configs,
+            tmc_courses: tmc_course_configs,
+            mooc_courses: mooc_course_configs,
         })
     }
 
@@ -101,44 +137,84 @@ impl ProjectsConfig {
         projects_dir.join(course_name).join(exercise_name)
     }
 
-    pub fn get_exercise(
+    pub fn get_tmc_exercise(
         &self,
         course_name: &str,
         exercise_name: &str,
-    ) -> Option<&ProjectsDirExercise> {
-        self.courses
+    ) -> Option<&ProjectsDirTmcExercise> {
+        self.tmc_courses
             .get(course_name)
             .and_then(|c| c.exercises.get(exercise_name))
     }
 
-    pub fn get_all_exercises(&self) -> impl Iterator<Item = &ProjectsDirExercise> {
-        self.courses
+    pub fn get_mooc_exercise(
+        &self,
+        course_name: &str,
+        exercise_id: Uuid,
+    ) -> Option<&ProjectsDirMoocExercise> {
+        self.mooc_courses
+            .get(course_name)
+            .and_then(|c| c.exercises.get(&exercise_id))
+    }
+
+    pub fn get_all_tmc_exercises(&self) -> impl Iterator<Item = &ProjectsDirTmcExercise> {
+        self.tmc_courses
+            .iter()
+            .flat_map(|c| &c.1.exercises)
+            .map(|e| e.1)
+    }
+
+    pub fn get_all_mooc_exercises(&self) -> impl Iterator<Item = &ProjectsDirMoocExercise> {
+        self.mooc_courses
             .iter()
             .flat_map(|c| &c.1.exercises)
             .map(|e| e.1)
     }
 
     /// Note: does not save the config on initialization.
-    pub fn get_or_init_course_config(&mut self, course_name: String) -> &mut CourseConfig {
-        self.courses
+    pub fn get_or_init_tmc_course_config(&mut self, course_name: String) -> &mut TmcCourseConfig {
+        self.tmc_courses
             .entry(course_name.clone())
-            .or_insert(CourseConfig {
+            .or_insert(TmcCourseConfig {
                 course: course_name,
                 exercises: BTreeMap::new(),
+            })
+    }
+
+    /// Note: does not save the config on initialization.
+    pub fn get_or_init_mooc_course_config(
+        &mut self,
+        course_name: String,
+        course_id: Uuid,
+        instance_id: Uuid,
+    ) -> &mut MoocCourseConfig {
+        self.mooc_courses
+            .entry(course_name.clone())
+            .or_insert(MoocCourseConfig {
+                course: course_name,
+                exercises: BTreeMap::new(),
+                course_id,
+                instance_id,
             })
     }
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct CourseConfig {
+pub struct TmcCourseConfig {
     /// The course's name.
     pub course: String,
     /// The course's exercises in a map with the exercise's name as the key.
-    pub exercises: BTreeMap<String, ProjectsDirExercise>,
+    #[serde(default)]
+    pub exercises: BTreeMap<String, ProjectsDirTmcExercise>,
 }
 
-impl CourseConfig {
+impl TmcCourseConfig {
+    pub fn add_exercise(&mut self, exercise_name: String, id: u32, checksum: String) {
+        let exercise = ProjectsDirTmcExercise { id, checksum };
+        self.exercises.insert(exercise_name, exercise);
+    }
+
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
         let course_dir = projects_dir.join(&self.course);
         if !course_dir.exists() {
@@ -149,17 +225,32 @@ impl CourseConfig {
         file_util::write_to_file(s.as_bytes(), target)?;
         Ok(())
     }
-
-    pub fn add_exercise(&mut self, exercise_name: String, id: u32, checksum: String) {
-        let exercise = ProjectsDirExercise { id, checksum };
-        self.exercises.insert(exercise_name, exercise);
-    }
 }
 
-/// An exercise in the projects directory.
+/// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProjectsDirExercise {
+pub struct MoocCourseConfig {
+    pub course_id: Uuid,
+    pub instance_id: Uuid,
+    /// The course's name.
+    pub course: String,
+    /// The course's exercises in a map with the exercise's id as the key.
+    #[serde(default)]
+    pub exercises: BTreeMap<Uuid, ProjectsDirMoocExercise>,
+}
+
+/// A TMC exercise in the projects directory.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProjectsDirTmcExercise {
     pub id: u32,
+    pub checksum: String,
+}
+
+/// A MOOC exercise in the projects directory.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProjectsDirMoocExercise {
+    pub name: String,
+    pub id: Uuid,
     pub checksum: String,
 }
 
@@ -201,12 +292,12 @@ mod test {
         let mut exercises = BTreeMap::new();
         exercises.insert(
             "ex 1".to_string(),
-            ProjectsDirExercise {
+            ProjectsDirTmcExercise {
                 id: 4321,
                 checksum: "abcd1234".to_string(),
             },
         );
-        let course_config = CourseConfig {
+        let course_config = TmcCourseConfig {
             course: "course 1".to_string(),
             exercises,
         };
@@ -238,7 +329,7 @@ id = 5432
 checksum = "bcde2345"
 "#;
 
-        let _course_config: CourseConfig = deserialize::toml_from_str(s).unwrap();
+        let _course_config: TmcCourseConfig = deserialize::toml_from_str(s).unwrap();
     }
 
     #[test]
@@ -282,9 +373,9 @@ checksum = "defg4567"
         dir_to(&temp, "java/ex 4");
 
         let mut pc = ProjectsConfig::load(temp.path()).unwrap();
-        assert_eq!(pc.courses.len(), 2);
+        assert_eq!(pc.tmc_courses.len(), 2);
 
-        let mut cc = pc.courses.remove("python").unwrap();
+        let mut cc = pc.tmc_courses.remove("python").unwrap();
         assert_eq!(cc.course, "python");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex1").unwrap();
@@ -294,7 +385,7 @@ checksum = "defg4567"
         assert_eq!(ex.id, 5432);
         assert_eq!(ex.checksum, "bcde2345");
 
-        let mut cc = pc.courses.remove("java").unwrap();
+        let mut cc = pc.tmc_courses.remove("java").unwrap();
         assert_eq!(cc.course, "java");
         assert_eq!(cc.exercises.len(), 2);
         let ex = cc.exercises.remove("ex3").unwrap();

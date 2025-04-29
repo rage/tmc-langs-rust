@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, RunResult,
-    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, LocalMoocExercise,
+    LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -76,7 +76,8 @@ pub enum DataKind {
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
-    LocalExercises(Vec<LocalExercise>),
+    LocalTmcExercises(Vec<LocalTmcExercise>),
+    LocalMoocExercises(Vec<LocalMoocExercise>),
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
@@ -161,7 +162,7 @@ pub enum Kind {
     },
 }
 
-pub use tmc_langs::ProjectsDirExercise;
+pub use tmc_langs::ProjectsDirTmcExercise;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DownloadTarget {
