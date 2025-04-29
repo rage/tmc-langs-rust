@@ -12,6 +12,7 @@ use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise}
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum LocalExercise {
     Tmc(LocalTmcExercise),
