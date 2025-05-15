@@ -408,7 +408,7 @@ fn set_permissions(_path: &Path) -> Result<(), LangsError> {
 #[cfg(unix)]
 fn set_permissions(path: &Path) -> Result<(), LangsError> {
     use nix::sys::stat;
-    use std::os::unix::io::AsRawFd;
+    use std::os::fd::AsFd;
 
     log::info!("setting permissions in {}", path.display());
 
@@ -417,7 +417,7 @@ fn set_permissions(path: &Path) -> Result<(), LangsError> {
         let entry = entry?;
         let file = file_util::open_file(entry.path())?;
         stat::fchmod(
-            file.as_raw_fd(),
+            file.as_fd(),
             stat::Mode::from_bits(chmod).ok_or(LangsError::NixFlag(chmod))?,
         )
         .map_err(|e| LangsError::NixPermissionChange(path.to_path_buf(), e))?;

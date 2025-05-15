@@ -64,6 +64,7 @@ pub struct TestSuite {
 #[derive(Debug, Deserialize)]
 #[allow(dead_code)]
 pub struct Test {
+    #[serde(rename = "@result")]
     pub result: String,
     #[allow(dead_code)]
     pub path: String,
