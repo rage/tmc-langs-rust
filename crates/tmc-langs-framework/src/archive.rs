@@ -92,9 +92,9 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::Tar(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(
-                    format!("Could not find {path} in tar"),
-                )))
+                Err(TmcError::TarRead(std::io::Error::other(format!(
+                    "Could not find {path} in tar"
+                ))))
             }
             Self(ArchiveInner::TarZstd(archive)) => {
                 for entry in archive.entries().map_err(TmcError::TarRead)? {
@@ -103,9 +103,9 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::TarZstd(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(
-                    format!("Could not find {path} in tar"),
-                )))
+                Err(TmcError::TarRead(std::io::Error::other(format!(
+                    "Could not find {path} in tar"
+                ))))
             }
             Self(ArchiveInner::Zip(archive)) => {
                 archive.by_name(path).map(Entry::Zip).map_err(Into::into)

@@ -42,9 +42,7 @@ impl Credentials {
                 token,
             })),
             Err(e) => {
-                log::error!(
-                    "Failed to deserialize credentials.json due to \"{e}\", deleting"
-                );
+                log::error!("Failed to deserialize credentials.json due to \"{e}\", deleting");
                 file_util::remove_file(&credentials_path)?;
                 Err(LangsError::DeserializeCredentials(credentials_path, e))
             }

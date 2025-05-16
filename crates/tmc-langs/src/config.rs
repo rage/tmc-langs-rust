@@ -34,9 +34,7 @@ pub fn list_local_course_exercises(
     client_name: &str,
     course_slug: &str,
 ) -> Result<Vec<LocalExercise>, LangsError> {
-    log::debug!(
-        "listing local course exercises of {course_slug} for {client_name}"
-    );
+    log::debug!("listing local course exercises of {course_slug} for {client_name}");
 
     let projects_dir = TmcConfig::load(client_name)?.projects_dir;
     let mut projects_config = ProjectsConfig::load(&projects_dir)?;

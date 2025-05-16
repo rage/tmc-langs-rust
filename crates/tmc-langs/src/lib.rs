@@ -145,9 +145,7 @@ pub fn download_old_submission(
     submission_id: u32,
     save_old_state: bool,
 ) -> Result<(), LangsError> {
-    log::debug!(
-        "downloading old submission {submission_id} for {exercise_id}"
-    );
+    log::debug!("downloading old submission {submission_id} for {exercise_id}");
 
     if save_old_state {
         // submit old exercise
