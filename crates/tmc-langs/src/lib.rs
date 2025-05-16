@@ -820,8 +820,8 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project(source, compression, deterministic, naive)?;
-    let hash = blake3::hash(&data);
+    let (data, hash) =
+        tmc_langs_plugins::compress_project(source, compression, deterministic, naive)?;
     file_util::write_to_file(data, target)?;
     Ok(hash.to_string())
 }

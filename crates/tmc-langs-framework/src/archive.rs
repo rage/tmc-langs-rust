@@ -1,11 +1,13 @@
 //! Contains types that abstract over the various archive formats.
 
 use crate::TmcError;
+use blake3::{Hash, Hasher};
 use serde::Deserialize;
 use std::{
     fmt::Display,
     io::{BufReader, Cursor, Read, Seek, Write},
     ops::ControlFlow::{self, Break},
+    os::unix::ffi::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -92,9 +94,9 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::Tar(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(
-                    format!("Could not find {path} in tar"),
-                )))
+                Err(TmcError::TarRead(std::io::Error::other(format!(
+                    "Could not find {path} in tar"
+                ))))
             }
             Self(ArchiveInner::TarZstd(archive)) => {
                 for entry in archive.entries().map_err(TmcError::TarRead)? {
@@ -103,9 +105,9 @@ impl<T: Read + Seek> Archive<T> {
                         return Ok(Entry::TarZstd(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(
-                    format!("Could not find {path} in tar"),
-                )))
+                Err(TmcError::TarRead(std::io::Error::other(format!(
+                    "Could not find {path} in tar"
+                ))))
             }
             Self(ArchiveInner::Zip(archive)) => {
                 archive.by_name(path).map(Entry::Zip).map_err(Into::into)
@@ -292,17 +294,23 @@ pub enum Compression {
 }
 
 impl Compression {
-    pub fn compress(self, path: &Path) -> Result<Vec<u8>, TmcError> {
+    pub fn compress(self, path: &Path, hash: bool) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
+        let mut hasher = if hash { Some(Hasher::new()) } else { None };
         let buf = match self {
             Self::Tar => {
                 let buf = Cursor::new(Vec::new());
                 let mut builder = tar::Builder::new(buf);
                 walk_dir_for_compression(path, |entry, relative_path| {
                     if entry.path().is_dir() {
+                        hasher.as_mut().map(|h| h.update(relative_path.as_bytes()));
                         builder
                             .append_dir(relative_path, entry.path())
                             .map_err(TmcError::TarWrite)?;
                     } else if entry.path().is_file() {
+                        if let Some(h) = &mut hasher {
+                            let file = file_util::read_file(entry.path())?;
+                            h.update(&file);
+                        }
                         builder
                             .append_path_with_name(entry.path(), relative_path)
                             .map_err(TmcError::TarWrite)?;
@@ -319,10 +327,12 @@ impl Compression {
                 let mut writer = zip::ZipWriter::new(buf);
                 walk_dir_for_compression(path, |entry, relative_path| {
                     if entry.path().is_dir() {
+                        hasher.as_mut().map(|h| h.update(relative_path.as_bytes()));
                         writer.add_directory(relative_path, SimpleFileOptions::default())?;
                     } else if entry.path().is_file() {
-                        writer.start_file(relative_path, SimpleFileOptions::default())?;
                         let contents = file_util::read_file(entry.path())?;
+                        hasher.as_mut().map(|h| h.update(&contents));
+                        writer.start_file(relative_path, SimpleFileOptions::default())?;
                         writer
                             .write_all(&contents)
                             .map_err(|err| TmcError::ZipWrite(path.to_path_buf(), err))?;
@@ -336,10 +346,15 @@ impl Compression {
                 let mut builder = tar::Builder::new(tar_buf);
                 walk_dir_for_compression(path, |entry, relative_path| {
                     if entry.path().is_dir() {
+                        hasher.as_mut().map(|h| h.update(relative_path.as_bytes()));
                         builder
                             .append_dir(relative_path, entry.path())
                             .map_err(TmcError::TarWrite)?;
                     } else if entry.path().is_file() {
+                        if let Some(h) = &mut hasher {
+                            let file = file_util::read_file(entry.path())?;
+                            h.update(&file);
+                        }
                         builder
                             .append_path_with_name(entry.path(), relative_path)
                             .map_err(TmcError::TarWrite)?;
@@ -350,7 +365,8 @@ impl Compression {
                 zstd::stream::encode_all(tar_buf.as_slice(), 0).map_err(TmcError::ZstdWrite)?
             }
         };
-        Ok(buf)
+        let hash = hasher.map(|h| h.finalize());
+        Ok((buf, hash))
     }
 }
 

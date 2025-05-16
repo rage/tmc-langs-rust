@@ -6,6 +6,7 @@ pub mod archive;
 pub mod compression;
 mod error;
 
+use blake3::Hash;
 pub use error::PluginError;
 use std::{
     io::{Read, Seek},
@@ -52,15 +53,22 @@ pub fn compress_project(
     compression: Compression,
     deterministic: bool,
     naive: bool,
-) -> Result<Vec<u8>, PluginError> {
-    let compressed = if naive {
-        compression.compress(path)?
+    hash: bool,
+) -> Result<(Vec<u8>, Option<Hash>), PluginError> {
+    let (compressed, hash) = if naive {
+        compression.compress(path, hash)?
     } else {
         let policy = get_student_file_policy(path)?;
-        compression::compress_student_files(policy.as_ref(), path, compression, deterministic)?
+        compression::compress_student_files(
+            policy.as_ref(),
+            path,
+            compression,
+            deterministic,
+            hash,
+        )?
     };
 
-    Ok(compressed)
+    Ok((compressed, hash))
 }
 
 /// Enum containing variants for each language plugin.

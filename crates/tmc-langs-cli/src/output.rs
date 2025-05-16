@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, LocalMoocExercise,
-    LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    ExerciseDownload, ExercisePackagingConfiguration, LocalMoocExercise, LocalTmcExercise,
+    RunResult, StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
