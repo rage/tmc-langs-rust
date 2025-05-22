@@ -9,13 +9,31 @@ use std::{
     path::PathBuf,
 };
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
+use uuid::Uuid;
 
-/// Exercise inside the projects directory.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum LocalExercise {
+    Tmc(LocalTmcExercise),
+    Mooc(LocalMoocExercise),
+}
+
+/// TMC eercise inside the projects directory.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct LocalExercise {
+pub struct LocalTmcExercise {
     pub exercise_slug: String,
+    pub exercise_path: PathBuf,
+}
+
+/// MOOC exercise inside the projects directory.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct LocalMoocExercise {
+    pub exercise_id: Uuid,
     pub exercise_path: PathBuf,
 }
 
@@ -151,18 +169,18 @@ impl Display for ShellString {
 #[derive(Debug)]
 pub enum DownloadResult {
     Success {
-        downloaded: Vec<ExerciseDownload>,
-        skipped: Vec<ExerciseDownload>,
+        downloaded: Vec<TmcExerciseDownload>,
+        skipped: Vec<TmcExerciseDownload>,
     },
     Failure {
-        downloaded: Vec<ExerciseDownload>,
-        skipped: Vec<ExerciseDownload>,
-        failed: Vec<(ExerciseDownload, Vec<String>)>,
+        downloaded: Vec<TmcExerciseDownload>,
+        skipped: Vec<TmcExerciseDownload>,
+        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
     },
 }
 
 pub struct DownloadTarget {
-    pub target: ExerciseDownload,
+    pub target: TmcExerciseDownload,
     pub checksum: String,
     pub kind: DownloadTargetKind,
 }
@@ -175,10 +193,18 @@ pub enum DownloadTargetKind {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct ExerciseDownload {
+pub struct TmcExerciseDownload {
     pub id: u32,
     pub course_slug: String,
     pub exercise_slug: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocExerciseDownload {
+    pub id: Uuid,
     pub path: PathBuf,
 }
 
@@ -192,11 +218,11 @@ pub struct CombinedCourseData {
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
-pub struct DownloadOrUpdateCourseExercisesResult {
-    pub downloaded: Vec<ExerciseDownload>,
-    pub skipped: Vec<ExerciseDownload>,
+pub struct DownloadOrUpdateTmcCourseExercisesResult {
+    pub downloaded: Vec<TmcExerciseDownload>,
+    pub skipped: Vec<TmcExerciseDownload>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub failed: Option<Vec<(ExerciseDownload, Vec<String>)>>,
+    pub failed: Option<Vec<(TmcExerciseDownload, Vec<String>)>>,
 }
 
 /// A setting in a TmcConfig file.
@@ -206,4 +232,13 @@ pub struct DownloadOrUpdateCourseExercisesResult {
 pub enum ConfigValue {
     Value(Option<toml::Value>),
     Path(PathBuf),
+}
+
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct DownloadOrUpdateMoocCourseExercisesResult {
+    pub downloaded: Vec<MoocExerciseDownload>,
+    pub skipped: Vec<MoocExerciseDownload>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>)>>,
 }

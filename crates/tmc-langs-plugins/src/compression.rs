@@ -1,6 +1,7 @@
 //! Contains functions for compressing and uncompressing projects.
 
 use crate::archive::ArchiveBuilder;
+use blake3::{Hash, Hasher};
 use std::{
     io::{Cursor, Read, Seek},
     path::{Path, PathBuf},
@@ -17,7 +18,9 @@ pub fn compress_student_files(
     root_directory: &Path,
     compression: Compression,
     deterministic: bool,
-) -> Result<Vec<u8>, TmcError> {
+    hash: bool,
+) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
+    let mut hasher = if hash { Some(Hasher::new()) } else { None };
     let mut writer = ArchiveBuilder::new(Cursor::new(vec![]), compression, deterministic);
 
     for entry in WalkDir::new(root_directory)
@@ -42,14 +45,21 @@ pub fn compress_student_files(
                 })
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
-                writer.add_directory(entry.path(), &path_to_zip_compatible_string(path))?;
+                let path_in_archive = path_to_zip_compatible_string(path);
+                hasher
+                    .as_mut()
+                    .map(|h| h.update(path_in_archive.as_bytes()));
+                writer.add_directory(entry.path(), &path_in_archive)?;
             } else {
+                let contents = file_util::read_file(entry.path())?;
+                hasher.as_mut().map(|h| h.update(&contents));
                 writer.add_file(entry.path(), &path_to_zip_compatible_string(path))?;
             }
         }
     }
+    let hash = hasher.map(|h| h.finalize());
     let cursor = writer.finish()?;
-    Ok(cursor.into_inner())
+    Ok((cursor.into_inner(), hash))
 }
 
 // ensures the / separator is used
@@ -218,11 +228,12 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
-        let zipped = compress_student_files(
+        let (zipped, _hash) = compress_student_files(
             &EverythingIsStudentFilePolicy::new(&path).unwrap(),
             &path,
             Compression::Zip,
             true,
+            false,
         )
         .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();

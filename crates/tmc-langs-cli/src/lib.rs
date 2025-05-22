@@ -24,15 +24,13 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
-    Language, StyleValidationResult, TmcConfig, UpdatedExercise,
-    mooc::MoocClient,
+    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult,
+    DownloadResult, Language, StyleValidationResult, TmcConfig, UpdatedExercise,
+    file_util::{self, Lock, LockOptions},
+    mooc::{MoocClient, MoocClientError},
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
 };
-use tmc_langs_util::{
-    deserialize,
-    file_util::{self, Lock, LockOptions},
-};
+use tmc_langs_util::deserialize;
 
 pub enum ParsingResult {
     Ok(Cli),
@@ -104,7 +102,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             return Kind::InvalidToken;
         }
 
-        // check for client errors
+        // check for tmc client errors
         match cause.downcast_ref::<TestMyCodeClientError>() {
             Some(TestMyCodeClientError::HttpError {
                 url: _,
@@ -126,6 +124,33 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 return Kind::NotLoggedIn;
             }
             Some(TestMyCodeClientError::ConnectionError { .. }) => {
+                return Kind::ConnectionError;
+            }
+            _ => {}
+        }
+
+        // check for tmc client errors
+        match cause.downcast_ref::<MoocClientError>() {
+            Some(MoocClientError::HttpError {
+                url: _,
+                status,
+                error: _,
+                obsolete_client,
+            }) => {
+                if *obsolete_client {
+                    return Kind::ObsoleteClient;
+                }
+                if status.as_u16() == 403 {
+                    return Kind::Forbidden;
+                }
+                if status.as_u16() == 401 {
+                    return Kind::NotLoggedIn;
+                }
+            }
+            Some(MoocClientError::NotAuthenticated) => {
+                return Kind::NotLoggedIn;
+            }
+            Some(MoocClientError::ConnectionError { .. }) => {
                 return Kind::ConnectionError;
             }
             _ => {}
@@ -206,7 +231,7 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
             let _guard = lock.lock()?;
 
-            let hash = tmc_langs::compress_project_to(
+            let hash = tmc_langs::compress_project_to_with_hash(
                 &exercise_path,
                 &output_path,
                 compression,
@@ -308,16 +333,16 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
-        Command::ListLocalCourseExercises {
+        Command::ListLocalTmcCourseExercises {
             client_name,
             course_slug,
         } => {
             let local_exercises =
-                tmc_langs::list_local_course_exercises(&client_name, &course_slug)?;
+                tmc_langs::list_local_tmc_course_exercises(&client_name, &course_slug)?;
 
             CliOutput::finished_with_data(
                 format!("listed local exercises for {course_slug}"),
-                DataKind::LocalExercises(local_exercises),
+                DataKind::LocalTmcExercises(local_exercises),
             )
         }
 
@@ -649,7 +674,7 @@ fn run_tmc_inner(
                 DownloadResult::Success {
                     downloaded,
                     skipped,
-                } => DownloadOrUpdateCourseExercisesResult {
+                } => DownloadOrUpdateTmcCourseExercisesResult {
                     downloaded,
                     skipped,
                     failed: None,
@@ -658,7 +683,7 @@ fn run_tmc_inner(
                     downloaded,
                     skipped,
                     failed,
-                } => DownloadOrUpdateCourseExercisesResult {
+                } => DownloadOrUpdateTmcCourseExercisesResult {
                     downloaded,
                     skipped,
                     failed: Some(failed),
@@ -666,7 +691,7 @@ fn run_tmc_inner(
             };
             CliOutput::finished_with_data(
                 "downloaded or updated exercises",
-                DataKind::ExerciseDownload(data),
+                DataKind::TmcExerciseDownload(data),
             )
         }
 
@@ -986,10 +1011,10 @@ fn run_tmc_inner(
 
         TestMyCodeCommand::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let data = tmc_langs::update_exercises(client, &projects_dir)?;
+            let data = tmc_langs::update_tmc_exercises(client, &projects_dir)?;
             CliOutput::finished_with_data(
                 "downloaded or updated exercises",
-                DataKind::ExerciseDownload(data),
+                DataKind::TmcExerciseDownload(data),
             )
         }
 
@@ -1008,7 +1033,9 @@ fn run_tmc_inner(
 
 fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     let root_url = env::var("TMC_LANGS_MOOC_ROOT_URL")
-        .unwrap_or_else(|_| "https://courses.mooc.fi".to_string());
+        .unwrap_or_else(|_| "https://courses.mooc.fi/".to_string())
+        .parse()
+        .context("Invalid TMC root url")?;
 
     let (mut client, credentials) =
         tmc_langs::init_mooc_client_with_credentials(root_url, &mooc.client_name)?;
@@ -1037,7 +1064,14 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
 }
 
 fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
+    let client_name = &mooc.client_name;
+
     let output = match mooc.command {
+        MoocCommand::CourseInstance {
+            course_instance_id: _,
+        } => {
+            todo!()
+        }
         MoocCommand::CourseInstances => {
             let course_instances = client.course_instances()?;
             CliOutput::finished_with_data(
@@ -1046,8 +1080,7 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             )
         }
         MoocCommand::CourseInstanceExercises { course_instance_id } => {
-            let course_instance_exercises =
-                client.course_instance_exercise_slides(course_instance_id)?;
+            let course_instance_exercises = client.course_instance_exercises(course_instance_id)?;
             CliOutput::finished_with_data(
                 "fetched course instance exercises",
                 DataKind::MoocExerciseSlides(course_instance_exercises),
@@ -1070,6 +1103,11 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 false,
             )?;
             CliOutput::finished("downloaded exercise")
+        }
+        MoocCommand::UpdateExercises => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
+            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
         }
         MoocCommand::Submit {
             exercise_id,

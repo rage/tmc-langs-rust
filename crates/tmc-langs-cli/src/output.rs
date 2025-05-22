@@ -3,9 +3,10 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
-    CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
-    ExerciseDownload, ExercisePackagingConfiguration, LocalExercise, RunResult,
-    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
+    DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
+    LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig,
+    TmcExerciseDownload, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -76,12 +77,14 @@ pub enum DataKind {
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
-    LocalExercises(Vec<LocalExercise>),
+    LocalTmcExercises(Vec<LocalTmcExercise>),
+    LocalMoocExercises(Vec<LocalMoocExercise>),
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
-    ExerciseDownload(DownloadOrUpdateCourseExercisesResult),
+    TmcExerciseDownload(DownloadOrUpdateTmcCourseExercisesResult),
+    MoocExerciseDownload(DownloadOrUpdateMoocCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
     CourseExercises(Vec<CourseExercise>),
@@ -155,13 +158,13 @@ pub enum Kind {
     InvalidToken,
     /// Failed to download some or all exercises
     FailedExerciseDownload {
-        completed: Vec<ExerciseDownload>,
-        skipped: Vec<ExerciseDownload>,
-        failed: Vec<(ExerciseDownload, Vec<String>)>,
+        completed: Vec<TmcExerciseDownload>,
+        skipped: Vec<TmcExerciseDownload>,
+        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
     },
 }
 
-pub use tmc_langs::ProjectsDirExercise;
+pub use tmc_langs::ProjectsDirTmcExercise;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DownloadTarget {
@@ -213,23 +216,23 @@ mod test {
             status: Status::Finished,
             message: "downloaded things".to_string(),
             result: OutputResult::ExecutedCommand,
-            data: Some(DataKind::ExerciseDownload(
-                DownloadOrUpdateCourseExercisesResult {
+            data: Some(DataKind::TmcExerciseDownload(
+                DownloadOrUpdateTmcCourseExercisesResult {
                     downloaded: vec![
-                        ExerciseDownload {
+                        TmcExerciseDownload {
                             id: 1,
                             course_slug: "some course".to_string(),
                             exercise_slug: "some exercise".to_string(),
                             path: PathBuf::from("some path"),
                         },
-                        ExerciseDownload {
+                        TmcExerciseDownload {
                             id: 2,
                             course_slug: "some course".to_string(),
                             exercise_slug: "another exercise".to_string(),
                             path: PathBuf::from("another path"),
                         },
                     ],
-                    skipped: vec![ExerciseDownload {
+                    skipped: vec![TmcExerciseDownload {
                         id: 3,
                         course_slug: "another course".to_string(),
                         exercise_slug: "some skipped exercise".to_string(),

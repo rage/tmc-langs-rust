@@ -5,7 +5,7 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    CombinedCourseData, Compression, DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc,
     ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
     UpdatedExercise,
     mooc::CourseInstance,
@@ -80,8 +80,10 @@ pub enum Command {
         naive: bool,
     },
 
+    /// Commands that communicate with the TMC server.
     Tmc(TestMyCode),
 
+    /// Commands that communicate with the Mooc server.
     Mooc(Mooc),
 
     /// Extracts an exercise from an archive. If the output-path is a project root, the plugin's student file policy will be used to avoid overwriting student files
@@ -133,7 +135,7 @@ pub enum Command {
 
     /// Returns a list of local exercises for the given course
     #[clap(long_about = schema_leaked::<Vec<LocalExercise>>())]
-    ListLocalCourseExercises {
+    ListLocalTmcCourseExercises {
         /// The client name of which the exercises should be listed.
         #[clap(long)]
         client_name: String,
@@ -305,7 +307,7 @@ pub enum TestMyCodeCommand {
     },
 
     /// Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files
-    #[clap(long_about = schema_leaked::<DownloadOrUpdateCourseExercisesResult>())]
+    #[clap(long_about = schema_leaked::<DownloadOrUpdateTmcCourseExercisesResult>())]
     DownloadOrUpdateCourseExercises {
         /// If set, will always download the course template instead of the latest submission, even if one exists.
         #[clap(long)]
@@ -542,23 +544,35 @@ pub struct Mooc {
 
 #[derive(Parser)]
 pub enum MoocCommand {
+    /// Fetches information about a course instance.
+    CourseInstance {
+        #[clap(long)]
+        course_instance_id: Uuid,
+    },
     /// Fetches the user's enrolled courses.
     #[clap(long_about = schema_leaked::<Vec<CourseInstance>>())]
     CourseInstances,
+    /// Fetches the available exercises for a course instance.
     CourseInstanceExercises {
         #[clap(long)]
         course_instance_id: Uuid,
     },
+    /// Fetches information about an exercise.
     Exercise {
         #[clap(long)]
         exercise_id: Uuid,
     },
+    /// Downloads an exercise.
     DownloadExercise {
         #[clap(long)]
         exercise_id: Uuid,
         #[clap(long)]
         target: PathBuf,
     },
+    /// Updates all local exercises that have been updated on the server
+    #[clap(long_about = SCHEMA_NULL)]
+    UpdateExercises,
+    /// Submits an exercise.
     Submit {
         #[clap(long)]
         exercise_id: Uuid,
@@ -644,7 +658,27 @@ impl FromStr for Locale {
             .or_else(|| Language::from_639_1(s))
             .or_else(|| Language::from_639_3(s))
             .with_context(|| format!("Invalid locale: {s}"))?;
-        Ok(Locale(locale))
+        Ok(Self(locale))
+    }
+}
+
+#[derive(Clone, Copy)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum CourseType {
+    Tmc,
+    Mooc,
+}
+
+impl FromStr for CourseType {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let ct = match s.to_lowercase().as_str() {
+            "tmc" => Self::Tmc,
+            "mooc" => Self::Mooc,
+            other => return Err(anyhow::anyhow!("Invalid course type {other}")),
+        };
+        Ok(ct)
     }
 }
 
@@ -762,7 +796,7 @@ mod base_test {
     #[test]
     fn list_local_course_exercises() {
         get_matches(&[
-            "list-local-course-exercises",
+            "list-local-tmc-course-exercises",
             "--client-name",
             "client",
             "--course-slug",
@@ -1196,6 +1230,8 @@ mod test {
             tmc_langs::ExercisePackagingConfiguration,
             // listLocalCourseExercises
             tmc_langs::LocalExercise,
+            tmc_langs::LocalTmcExercise,
+            tmc_langs::LocalMoocExercise,
             // prepareSubmission
             tmc_langs::Compression,
             // refreshCourse

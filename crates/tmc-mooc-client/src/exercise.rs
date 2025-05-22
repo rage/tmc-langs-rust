@@ -68,16 +68,13 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum PublicSpec {
     Browser {
         files: Vec<ExerciseFile>,
     },
     Editor {
-        #[serde(rename = "archiveName")]
         archive_name: String,
-        #[serde(rename = "archiveDownloadUrl")]
         archive_download_url: String,
         checksum: String,
     },
@@ -85,30 +82,17 @@ pub enum PublicSpec {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
 pub enum UserAnswer {
-    Browser {
-        files: Vec<ExerciseFile>,
-    },
-    Editor {
-        #[serde(rename = "archiveDownloadUrl")]
-        download_url: String,
-    },
+    Browser { files: Vec<ExerciseFile> },
+    Editor { archive_download_url: String },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-#[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum ModelSolutionSpec {
-    Browser {
-        #[serde(rename = "solutionFiles")]
-        solution_files: Vec<ExerciseFile>,
-    },
-    Editor {
-        #[serde(rename = "archiveDownloadUrl")]
-        download_url: String,
-    },
+    Browser { solution_files: Vec<ExerciseFile> },
+    Editor { download_url: String },
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -126,7 +110,7 @@ mod test {
     fn deserializes_browser_public_spec() {
         let browser_task = r#"
 {
-    "type": "browser",
+    "type": "Browser",
     "files": [
         {
             "filepath": "1",
@@ -146,9 +130,9 @@ mod test {
     fn deserializes_editor_public_spec() {
         let editor_task = r#"
 {
-    "type": "editor",
-    "archiveName": "1",
-    "archiveDownloadUrl": "2",
+    "type": "Editor",
+    "archive_name": "1",
+    "archive_download_url": "2",
     "checksum": "abcd"
 }
 "#;

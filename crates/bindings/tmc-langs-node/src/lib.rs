@@ -16,7 +16,7 @@ use std::{
 };
 use thiserror::Error;
 use tmc_langs::{
-    Compression, Credentials, DownloadOrUpdateCourseExercisesResult, LangsError, Language,
+    Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult, LangsError, Language,
     PrepareSubmission, TmcConfig, file_util,
     tmc::{
         TestMyCodeClient, TestMyCodeClientError,
@@ -168,7 +168,7 @@ fn get_exercise_packaging_configuration(mut cx: FunctionContext) -> JsResult<JsV
 fn list_local_course_exercises(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, course_slug: String);
 
-    let res = tmc_langs::list_local_course_exercises(&client_name, &course_slug);
+    let res = tmc_langs::list_local_tmc_course_exercises(&client_name, &course_slug);
     convert_res(&mut cx, res)
 }
 
@@ -352,7 +352,7 @@ fn download_or_update_course_exercises(mut cx: FunctionContext) -> JsResult<JsVa
         tmc_langs::DownloadResult::Success {
             downloaded,
             skipped,
-        } => DownloadOrUpdateCourseExercisesResult {
+        } => DownloadOrUpdateTmcCourseExercisesResult {
             downloaded,
             skipped,
             failed: None,
@@ -361,7 +361,7 @@ fn download_or_update_course_exercises(mut cx: FunctionContext) -> JsResult<JsVa
             downloaded,
             skipped,
             failed,
-        } => DownloadOrUpdateCourseExercisesResult {
+        } => DownloadOrUpdateTmcCourseExercisesResult {
             downloaded,
             skipped,
             failed: Some(failed),
@@ -746,7 +746,7 @@ fn update_exercises(mut cx: FunctionContext) -> JsResult<JsValue> {
     let projects_dir =
         tmc_langs::get_projects_dir(&client_name).map_err(|e| convert_err(&mut cx, e))?;
     let res = with_client(client_name, client_version, |client| {
-        tmc_langs::update_exercises(client, &projects_dir)
+        tmc_langs::update_tmc_exercises(client, &projects_dir)
     });
     convert_res(&mut cx, res)
 }

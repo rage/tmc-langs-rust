@@ -15,7 +15,7 @@ fn main() {
         // getExercisePackagingConfiguration
         tmc_langs::ExercisePackagingConfiguration,
         // listLocalCourseExercises
-        tmc_langs::LocalExercise,
+        tmc_langs::LocalTmcExercise,
         // prepareSubmission
         tmc_langs::Compression,
         // refreshCourse
@@ -33,8 +33,8 @@ fn main() {
         // checkExerciseUpdates
         tmc_langs::UpdatedExercise,
         // downloadOrUpdateCourseExercises
-        tmc_langs::DownloadOrUpdateCourseExercisesResult,
-        tmc_langs::ExerciseDownload,
+        tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
+        tmc_langs::TmcExerciseDownload,
         // getCourseData
         tmc_langs::CombinedCourseData,
 

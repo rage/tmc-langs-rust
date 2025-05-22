@@ -12,18 +12,20 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        CourseConfig, Credentials, ProjectsConfig, ProjectsDirExercise, TmcConfig,
-        list_local_course_exercises, migrate_exercise, move_projects_dir,
+        Credentials, ProjectsConfig, ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig,
+        list_local_tmc_course_exercises, migrate_exercise, move_projects_dir,
     },
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
-        CombinedCourseData, ConfigValue, DownloadOrUpdateCourseExercisesResult, DownloadResult,
-        ExerciseDownload, LocalExercise, TmcParams,
+        CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
+        DownloadOrUpdateTmcCourseExercisesResult, DownloadResult, LocalExercise, LocalMoocExercise,
+        LocalTmcExercise, TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
     submission_processing::prepare_solution,
 };
+use data::MoocExerciseDownload;
 use hmac::{Hmac, Mac};
 // use heim::disk;
 use jwt::SignWithKey;
@@ -54,6 +56,7 @@ use tmc_langs_util::file_util::LOCK_FILE_NAME;
 // the Java plugin is disabled on musl
 pub use tmc_langs_util::{file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
+use tmc_mooc_client::{MoocClient, api::ExerciseUpdateData};
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
@@ -111,7 +114,7 @@ pub fn check_exercise_updates(
     let mut updated_exercises = vec![];
 
     let config = ProjectsConfig::load(projects_dir)?;
-    let local_exercises = config.get_all_exercises().collect::<Vec<_>>();
+    let local_exercises = config.get_all_tmc_exercises().collect::<Vec<_>>();
 
     // request would fail with empty id list
     if !local_exercises.is_empty() {
@@ -182,11 +185,11 @@ pub fn submit_exercise(
 ) -> Result<tmc::response::NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
-        .get_exercise(course_slug, exercise_slug)
+        .get_tmc_exercise(course_slug, exercise_slug)
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
-        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+        ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
         .submit(exercise.id, exercise_path.as_path(), locale)
@@ -205,11 +208,11 @@ pub fn paste_exercise(
 ) -> Result<tmc::response::NewSubmission, LangsError> {
     let projects_config = ProjectsConfig::load(projects_dir)?;
     let exercise = projects_config
-        .get_exercise(course_slug, exercise_slug)
+        .get_tmc_exercise(course_slug, exercise_slug)
         .ok_or(LangsError::NoProjectExercise)?;
 
     let exercise_path =
-        ProjectsConfig::get_exercise_download_target(projects_dir, course_slug, exercise_slug);
+        ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
     client
         .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
@@ -245,7 +248,7 @@ pub fn download_or_update_course_exercises(
 
     log::debug!("checking the checksum of each exercise on the server");
     for exercise_detail in exercises_details {
-        let target = ProjectsConfig::get_exercise_download_target(
+        let target = ProjectsConfig::get_tmc_exercise_download_target(
             projects_dir,
             &exercise_detail.course_name,
             &exercise_detail.exercise_name,
@@ -253,7 +256,7 @@ pub fn download_or_update_course_exercises(
 
         // check if the exercise is already on disk
         if let Some(exercise) = projects_config
-            .get_exercise(&exercise_detail.course_name, &exercise_detail.exercise_name)
+            .get_tmc_exercise(&exercise_detail.course_name, &exercise_detail.exercise_name)
         {
             // exercise is on disk, check if the checksum is identical
             if exercise_detail.checksum == exercise.checksum {
@@ -264,7 +267,7 @@ pub fn download_or_update_course_exercises(
                     exercise_detail.course_name,
                     exercise_detail.exercise_name
                 );
-                to_be_skipped.push(ExerciseDownload {
+                to_be_skipped.push(TmcExerciseDownload {
                     id: exercise_detail.id,
                     course_slug: exercise_detail.course_name,
                     exercise_slug: exercise_detail.exercise_name,
@@ -284,7 +287,7 @@ pub fn download_or_update_course_exercises(
                     // previous submission found, check if exercise submission results hidden (part of exam)
                     if !exercise_detail.hide_submission_results {
                         to_be_downloaded.push(DownloadTarget {
-                            target: ExerciseDownload {
+                            target: TmcExerciseDownload {
                                 id: exercise_detail.id,
                                 course_slug: exercise_detail.course_name,
                                 exercise_slug: exercise_detail.exercise_name,
@@ -303,7 +306,7 @@ pub fn download_or_update_course_exercises(
 
         // not skipped, either not on disk or no previous submissions or submission result hidden, downloading template
         to_be_downloaded.push(DownloadTarget {
-            target: ExerciseDownload {
+            target: TmcExerciseDownload {
                 id: exercise_detail.id,
                 course_slug: exercise_detail.course_name.clone(),
                 exercise_slug: exercise_detail.exercise_name.clone(),
@@ -424,7 +427,7 @@ pub fn download_or_update_course_exercises(
                     let mut projects_config =
                         projects_config.lock().map_err(|_| LangsError::MutexError)?; // lock mutex
                     let course_config = projects_config
-                        .get_or_init_course_config(download_target.target.course_slug.clone());
+                        .get_or_init_tmc_course_config(download_target.target.course_slug.clone());
                     course_config.add_exercise(
                         download_target.target.exercise_slug.clone(),
                         download_target.target.id,
@@ -599,7 +602,7 @@ pub fn init_testmycode_client_with_credentials(
 
 /// Initializes a MoocClient, using and returning the stored credentials, if any.
 pub fn init_mooc_client_with_credentials(
-    root_url: String,
+    root_url: Url,
     client_name: &str,
 ) -> Result<(mooc::MoocClient, Option<Credentials>), LangsError> {
     // create client
@@ -614,54 +617,55 @@ pub fn init_mooc_client_with_credentials(
     Ok((client, credentials))
 }
 
-/// Updates the exercises in the local projects directory.
+/// Updates the tmc exercises in the local projects directory.
 // TODO: parallel downloads
-pub fn update_exercises(
+pub fn update_tmc_exercises(
     client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
-) -> Result<DownloadOrUpdateCourseExercisesResult, LangsError> {
+) -> Result<DownloadOrUpdateTmcCourseExercisesResult, LangsError> {
     log::debug!("updating exercises in {}", projects_dir.display());
 
-    let mut exercises_to_update = vec![];
     let mut course_data = HashMap::<String, Vec<(String, String, u32)>>::new();
 
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
-    let exercise_ids = projects_config
-        .courses
-        .iter_mut()
-        .flat_map(|c| &mut c.1.exercises)
-        .map(|e| e.1.id)
+    let exercises = projects_config
+        .tmc_courses
+        .values()
+        .flat_map(|cc| cc.exercises.values())
         .collect::<Vec<_>>();
 
+    let mut exercises_to_update = vec![];
     // request would error with 0 exercise ids
-    if !exercise_ids.is_empty() {
-        let mut server_exercises = client
-            .get_exercises_details(&exercise_ids)
+    if !exercises.is_empty() {
+        let tmc_exercise_ids = exercises.iter().map(|e| e.id).collect::<Vec<_>>();
+        let mut tmc_server_exercises = client
+            .get_exercises_details(&tmc_exercise_ids)
             .map_err(Box::new)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
 
-        for course_config in projects_config.courses.values_mut() {
+        // first, handle tmc
+        for course_config in projects_config.tmc_courses.values_mut() {
             for local_exercise in course_config.exercises.values_mut() {
-                let server_exercise = server_exercises
+                let server_exercise = tmc_server_exercises
                     .remove(&local_exercise.id)
                     .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
                 if server_exercise.checksum != local_exercise.checksum {
                     // server has an updated exercise
-                    let target = ProjectsConfig::get_exercise_download_target(
+                    let target = ProjectsConfig::get_tmc_exercise_download_target(
                         projects_dir,
                         &server_exercise.course_name,
                         &server_exercise.exercise_name,
                     );
-                    exercises_to_update.push(ExerciseDownload {
+                    exercises_to_update.push(TmcExerciseDownload {
                         id: server_exercise.id,
                         course_slug: server_exercise.course_name.clone(),
                         exercise_slug: server_exercise.exercise_name.clone(),
                         path: target,
                     });
-                    *local_exercise = ProjectsDirExercise {
+                    *local_exercise = ProjectsDirTmcExercise {
                         id: server_exercise.id,
                         checksum: server_exercise.checksum,
                     };
@@ -691,14 +695,14 @@ pub fn update_exercises(
             for (course_name, exercise_names) in course_data {
                 let mut exercises = BTreeMap::new();
                 for (exercise_name, checksum, id) in exercise_names {
-                    exercises.insert(exercise_name, ProjectsDirExercise { id, checksum });
+                    exercises.insert(exercise_name, ProjectsDirTmcExercise { id, checksum });
                 }
 
-                if let Some(course_config) = projects_config.courses.get_mut(&course_name) {
+                if let Some(course_config) = projects_config.tmc_courses.get_mut(&course_name) {
                     course_config.exercises.extend(exercises);
                     course_config.save_to_projects_dir(projects_dir)?;
                 } else {
-                    let course_config = CourseConfig {
+                    let course_config = TmcCourseConfig {
                         course: course_name,
                         exercises,
                     };
@@ -707,8 +711,65 @@ pub fn update_exercises(
             }
         }
     }
-    Ok(DownloadOrUpdateCourseExercisesResult {
+
+    Ok(DownloadOrUpdateTmcCourseExercisesResult {
         downloaded: exercises_to_update,
+        skipped: vec![],
+        failed: None,
+    })
+}
+
+/// Updates the mooc exercises in the local projects directory.
+pub fn update_mooc_exercises(
+    client: &MoocClient,
+    projects_dir: &Path,
+) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
+    let projects_config = ProjectsConfig::load(projects_dir)?;
+    let exercises = projects_config
+        .mooc_courses
+        .values()
+        .map(|cc| (cc, &cc.exercises))
+        .flat_map(|(cc, cce)| cce.values().map(move |e| (e.id, (cc, e))))
+        .collect::<HashMap<_, _>>();
+
+    let mut downloaded = Vec::new();
+    if !exercises.is_empty() {
+        let exercise_update_data = exercises
+            .values()
+            .map(|(_c, e)| ExerciseUpdateData {
+                id: e.id,
+                checksum: &e.checksum,
+            })
+            .collect::<Vec<_>>();
+        let exercise_updates = client
+            .check_exercise_updates(&exercise_update_data)
+            .map_err(Box::new)?;
+        for updated_exercise in exercise_updates.updated_exercises {
+            if let Some((course, exercise)) = exercises.get(&updated_exercise) {
+                let target = ProjectsConfig::get_mooc_exercise_download_target(
+                    projects_dir,
+                    &course.directory,
+                    &exercise.directory,
+                );
+                let data = client
+                    .download_exercise(updated_exercise)
+                    .map_err(Box::new)?;
+                extract_project(Cursor::new(data), &target, Compression::Zip, false, false)?;
+                downloaded.push(MoocExerciseDownload {
+                    id: updated_exercise,
+                    path: target,
+                })
+            } else {
+                log::warn!("Server returned unexpected exercise id {updated_exercise}");
+            }
+        }
+        for _deleted_exercise in exercise_updates.deleted_exercises {
+            // todo
+        }
+    }
+
+    Ok(DownloadOrUpdateMoocCourseExercisesResult {
+        downloaded,
         skipped: vec![],
         failed: None,
     })
@@ -796,8 +857,29 @@ pub fn clean(exercise_path: &Path) -> Result<(), LangsError> {
 }
 
 /// Compresses the exercise to the target path.
-/// Returns the BLAKE3 hash of the resulting file.
 pub fn compress_project_to(
+    source: &Path,
+    target: &Path,
+    compression: Compression,
+    deterministic: bool,
+    naive: bool,
+) -> Result<(), LangsError> {
+    log::debug!(
+        "compressing {} to {} ({})",
+        source.display(),
+        target.display(),
+        compression
+    );
+
+    let (data, _hash) =
+        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, false)?;
+    file_util::write_to_file(data, target)?;
+    Ok(())
+}
+
+/// Compresses the exercise to the target path.
+/// Returns the BLAKE3 hash of the resulting file.
+pub fn compress_project_to_with_hash(
     source: &Path,
     target: &Path,
     compression: Compression,
@@ -811,8 +893,9 @@ pub fn compress_project_to(
         compression
     );
 
-    let data = tmc_langs_plugins::compress_project(source, compression, deterministic, naive)?;
-    let hash = blake3::hash(&data);
+    let (data, hash) =
+        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, true)?;
+    let hash = hash.expect("set hash to true");
     file_util::write_to_file(data, target)?;
     Ok(hash.to_string())
 }
