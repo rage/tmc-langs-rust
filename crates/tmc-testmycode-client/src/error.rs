@@ -11,7 +11,7 @@ type TokenError = oauth2::RequestTokenError<
     oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
 >;
 
-pub type TestMyCodeClientResult<T> = Result<T, TestMyCodeClientError>;
+pub type TestMyCodeClientResult<T> = Result<T, Box<TestMyCodeClientError>>;
 
 /// The main error type for tmc-testmycode-client.
 #[derive(Debug, Error)]

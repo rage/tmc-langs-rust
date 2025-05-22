@@ -138,7 +138,7 @@ impl TestMyCodeClient {
         password: String,
     ) -> TestMyCodeClientResult<Token> {
         if self.0.token.is_some() {
-            return Err(TestMyCodeClientError::AlreadyAuthenticated);
+            return Err(Box::new(TestMyCodeClientError::AlreadyAuthenticated));
         }
 
         let auth_url = self.0.root_url.join("/oauth/token").map_err(|e| {

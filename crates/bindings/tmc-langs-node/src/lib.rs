@@ -297,9 +297,7 @@ fn download_model_solution(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .download_model_solution(exercise_id, &target)
-            .map_err(Box::new)?)
+        Ok(client.download_model_solution(exercise_id, &target)?)
     });
     convert_res(&mut cx, res)
 }
@@ -393,7 +391,7 @@ fn get_course_details(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_course_details(course_id).map_err(Box::new)?)
+        Ok(client.get_course_details(course_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -407,7 +405,7 @@ fn get_course_exercises(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_course_exercises(course_id).map_err(Box::new)?)
+        Ok(client.get_course_exercises(course_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -421,7 +419,7 @@ fn get_course_settings(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_course(course_id).map_err(Box::new)?)
+        Ok(client.get_course(course_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -435,7 +433,7 @@ fn get_courses(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.list_courses(&organization).map_err(Box::new)?)
+        Ok(client.list_courses(&organization)?)
     });
     convert_res(&mut cx, res)
 }
@@ -449,7 +447,7 @@ fn get_exercise_details(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_exercise_details(exercise_id).map_err(Box::new)?)
+        Ok(client.get_exercise_details(exercise_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -463,9 +461,7 @@ fn get_exercise_submissions(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .get_exercise_submissions_for_current_user(exercise_id)
-            .map_err(Box::new)?)
+        Ok(client.get_exercise_submissions_for_current_user(exercise_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -481,9 +477,7 @@ fn get_exercise_updates(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let map = exercise.into_iter().collect();
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .get_exercise_updates(course_id, map)
-            .map_err(Box::new)?)
+        Ok(client.get_exercise_updates(course_id, map)?)
     });
     convert_res(&mut cx, res)
 }
@@ -497,7 +491,7 @@ fn get_organization(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_organization(&organization).map_err(Box::new)?)
+        Ok(client.get_organization(&organization)?)
     });
     convert_res(&mut cx, res)
 }
@@ -506,7 +500,7 @@ fn get_organizations(mut cx: FunctionContext) -> JsResult<JsValue> {
     parse_args!(cx, client_name: String, client_version: String);
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_organizations().map_err(Box::new)?)
+        Ok(client.get_organizations()?)
     });
     convert_res(&mut cx, res)
 }
@@ -520,7 +514,7 @@ fn get_unread_reviews(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.get_unread_reviews(course_id).map_err(Box::new)?)
+        Ok(client.get_unread_reviews(course_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -599,9 +593,7 @@ fn mark_review_as_read(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .mark_review_as_read(course_id, review_id)
-            .map_err(Box::new)?)
+        Ok(client.mark_review_as_read(course_id, review_id)?)
     });
     convert_res(&mut cx, res)
 }
@@ -620,9 +612,7 @@ fn paste(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = locale.map(|l| Language::from_639_3(&l).expect("Invalid locale"));
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .paste(exercise_id, &submission_path, paste_message, locale)
-            .map_err(Box::new)?)
+        Ok(client.paste(exercise_id, &submission_path, paste_message, locale)?)
     });
     convert_res(&mut cx, res)
 }
@@ -641,14 +631,12 @@ fn request_code_review(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = Language::from_639_3(&locale).expect("Invalid locale");
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .request_code_review(
-                exercise_id,
-                &submission_path,
-                message_for_reviewer,
-                Some(locale),
-            )
-            .map_err(Box::new)?)
+        Ok(client.request_code_review(
+            exercise_id,
+            &submission_path,
+            message_for_reviewer,
+            Some(locale),
+        )?)
     });
     convert_res(&mut cx, res)
 }
@@ -666,9 +654,7 @@ fn reset_exercise(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let res = with_client(client_name, client_version, |client| {
         if save_old_state {
-            client
-                .submit(exercise_id, &exercise_path, None)
-                .map_err(Box::new)?;
+            client.submit(exercise_id, &exercise_path, None)?;
         }
         tmc_langs::reset(client, exercise_id, &exercise_path)
     });
@@ -692,9 +678,7 @@ fn send_feedback(mut cx: FunctionContext) -> JsResult<JsValue> {
         })
         .collect();
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .send_feedback(submission_id, feedback)
-            .map_err(Box::new)?)
+        Ok(client.send_feedback(submission_id, feedback)?)
     });
     convert_res(&mut cx, res)
 }
@@ -717,9 +701,7 @@ fn submit(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = locale.map(|l| Language::from_639_3(&l).expect("Invalid locale"));
     let temp = with_client(client_name, client_version, |client| {
-        let new_submission = client
-            .submit(exercise_id, &submission_path, locale)
-            .map_err(Box::new)?;
+        let new_submission = client.submit(exercise_id, &submission_path, locale)?;
         if dont_block {
             Ok(Temp::NewSubmission(new_submission))
         } else {
@@ -727,9 +709,7 @@ fn submit(mut cx: FunctionContext) -> JsResult<JsValue> {
                 .submission_url
                 .parse()
                 .expect("Failed to parse submission URL");
-            let finished = client
-                .wait_for_submission_at(submission_url)
-                .map_err(Box::new)?;
+            let finished = client.wait_for_submission_at(submission_url)?;
             Ok(Temp::Finished(Box::new(finished)))
         }
     })
@@ -760,9 +740,7 @@ fn wait_for_submission(mut cx: FunctionContext) -> JsResult<JsValue> {
     );
 
     let res = with_client(client_name, client_version, |client| {
-        Ok(client
-            .wait_for_submission(submission_id)
-            .map_err(Box::new)?)
+        Ok(client.wait_for_submission(submission_id)?)
     });
     convert_res(&mut cx, res)
 }

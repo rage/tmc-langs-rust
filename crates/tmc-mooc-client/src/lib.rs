@@ -95,7 +95,7 @@ impl MoocClient {
 /// API methods.
 impl MoocClient {
     pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
-        let url = make_langs_api_url(&self, "course-instances")?;
+        let url = make_langs_api_url(self, "course-instances")?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<Vec<api::CourseInstance>>()?;
@@ -107,7 +107,7 @@ impl MoocClient {
         course_instance: Uuid,
     ) -> MoocClientResult<Vec<TmcExerciseSlide>> {
         let url = make_langs_api_url(
-            &self,
+            self,
             format!("course-instances/{course_instance}/exercises"),
         )?;
         let res = self
@@ -124,7 +124,7 @@ impl MoocClient {
     }
 
     pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
-        let url = make_langs_api_url(&self, format!("exercises/{exercise}"))?;
+        let url = make_langs_api_url(self, format!("exercises/{exercise}"))?;
         let res = self
             .request(Method::GET, url.clone())
             .send_expect_json::<api::ExerciseSlide>()?
@@ -140,7 +140,7 @@ impl MoocClient {
         &self,
         exercises: &[ExerciseUpdateData],
     ) -> MoocClientResult<ExerciseUpdates> {
-        let url = make_langs_api_url(&self, format!("updates"))?;
+        let url = make_langs_api_url(self, "updates")?;
         let res = self
             .request(Method::POST, url.clone())
             .json(&api::ExerciseUpdatesRequest { exercises })
@@ -155,7 +155,7 @@ impl MoocClient {
     }
 
     pub fn download_exercise(&self, exercise: Uuid) -> MoocClientResult<Bytes> {
-        let url = make_langs_api_url(&self, format!("exercises/{exercise}/download"))?;
+        let url = make_langs_api_url(self, format!("exercises/{exercise}/download"))?;
         let res = self.request(Method::GET, url).send_expect_bytes()?;
         Ok(res)
     }
@@ -172,7 +172,9 @@ impl MoocClient {
             exercise_task_id: task_id,
             data_json: serde_json::Value::Null,
         };
-        let exercise_slide_submission = serialize::to_json_vec(&exercise_slide_submission)?;
+        let exercise_slide_submission = serialize::to_json_vec(&exercise_slide_submission)
+            .map_err(Into::into)
+            .map_err(Box::new)?;
         let submission = Form::new()
             .part(
                 "metadata",
@@ -193,7 +195,7 @@ impl MoocClient {
         //exercise_task_id: task_id,
         //data_json,
         //};
-        let url = make_langs_api_url(&self, format!("exercises/{exercise_id}/submit"))?;
+        let url = make_langs_api_url(self, format!("exercises/{exercise_id}/submit"))?;
         let res = self
             .request(Method::POST, url)
             .multipart(submission)
@@ -205,7 +207,7 @@ impl MoocClient {
         &self,
         submission_id: Uuid,
     ) -> MoocClientResult<ExerciseTaskSubmissionStatus> {
-        let url = make_langs_api_url(&self, format!("submissions/{submission_id}/grading"))?;
+        let url = make_langs_api_url(self, format!("submissions/{submission_id}/grading"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::ExerciseTaskSubmissionStatus>()?;
@@ -237,7 +239,7 @@ impl MoocRequest {
                 let status = res.status();
                 match status {
                     _success if status.is_success() => Ok(res),
-                    StatusCode::UNAUTHORIZED => Err(MoocClientError::NotAuthenticated),
+                    StatusCode::UNAUTHORIZED => Err(Box::new(MoocClientError::NotAuthenticated)),
                     _other => {
                         let status = res.status();
                         let body =
@@ -247,20 +249,20 @@ impl MoocRequest {
                                     url: self.url.clone(),
                                     error: Box::new(err),
                                 })?;
-                        Err(MoocClientError::HttpError {
+                        Err(Box::new(MoocClientError::HttpError {
                             url: self.url,
                             status,
                             error: body,
                             obsolete_client: false,
-                        })
+                        }))
                     }
                 }
             }
-            Err(error) => Err(MoocClientError::ConnectionError(
+            Err(error) => Err(Box::new(MoocClientError::ConnectionError(
                 self.method,
                 self.url,
                 error,
-            )),
+            ))),
         }
     }
 
@@ -295,13 +297,14 @@ impl MoocRequest {
 }
 
 // joins the URL "tail" with the API url root from the client
-fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> Result<Url, MoocClientError> {
+fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClientResult<Url> {
     client
         .0
         .root_url
         .join("/api/v0/langs/")
         .and_then(|u| u.join(tail.as_ref()))
         .map_err(|e| MoocClientError::UrlParse(tail.as_ref().to_string(), e))
+        .map_err(Box::new)
 }
 
 #[derive(Debug, Serialize, JsonSchema)]

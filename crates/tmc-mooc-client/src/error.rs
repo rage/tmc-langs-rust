@@ -4,7 +4,7 @@ use reqwest::{Method, StatusCode, Url};
 use std::error::Error;
 use thiserror::Error;
 
-pub type MoocClientResult<T> = Result<T, MoocClientError>;
+pub type MoocClientResult<T> = Result<T, Box<MoocClientError>>;
 
 #[derive(Debug, Error)]
 pub enum MoocClientError {

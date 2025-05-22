@@ -120,8 +120,7 @@ pub fn check_exercise_updates(
     if !local_exercises.is_empty() {
         let exercise_ids = local_exercises.iter().map(|e| e.id).collect::<Vec<_>>();
         let server_exercises = client
-            .get_exercises_details(&exercise_ids)
-            .map_err(Box::new)?
+            .get_exercises_details(&exercise_ids)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
@@ -152,9 +151,7 @@ pub fn download_old_submission(
 
     if save_old_state {
         // submit old exercise
-        client
-            .submit(exercise_id, output_path, None)
-            .map_err(Box::new)?;
+        client.submit(exercise_id, output_path, None)?;
         log::debug!("finished submission");
     }
 
@@ -164,9 +161,7 @@ pub fn download_old_submission(
 
     // dl submission
     let mut buf = vec![];
-    client
-        .download_old_submission(submission_id, &mut buf)
-        .map_err(Box::new)?;
+    client.download_old_submission(submission_id, &mut buf)?;
     log::debug!("downloaded old submission");
 
     // extract submission
@@ -193,7 +188,6 @@ pub fn submit_exercise(
 
     client
         .submit(exercise.id, exercise_path.as_path(), locale)
-        .map_err(Box::new)
         .map_err(Into::into)
 }
 
@@ -216,7 +210,6 @@ pub fn paste_exercise(
 
     client
         .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
-        .map_err(Box::new)
         .map_err(Into::into)
 }
 
@@ -239,7 +232,7 @@ pub fn download_or_update_course_exercises(
 
     client.require_authentication().map_err(Box::new)?;
 
-    let exercises_details = client.get_exercises_details(exercises).map_err(Box::new)?;
+    let exercises_details = client.get_exercises_details(exercises)?;
     let projects_config = ProjectsConfig::load(projects_dir)?;
 
     // separate exercises into downloads and skipped
@@ -279,8 +272,7 @@ pub fn download_or_update_course_exercises(
             // not on disk, if flag isn't set check if there are any previous submissions and take the latest one if so
             if !download_template {
                 if let Some(latest_submission) = client
-                    .get_exercise_submissions_for_current_user(exercise_detail.id)
-                    .map_err(Box::new)?
+                    .get_exercise_submissions_for_current_user(exercise_detail.id)?
                     .into_iter()
                     .max_by_key(|s| s.created_at)
                 {
@@ -371,9 +363,7 @@ pub fn download_or_update_course_exercises(
                     match &download_target.kind {
                         DownloadTargetKind::Template => {
                             let mut buf = vec![];
-                            client
-                                .download_exercise(download_target.target.id, &mut buf)
-                                .map_err(Box::new)?;
+                            client.download_exercise(download_target.target.id, &mut buf)?;
                             extract_project(
                                 Cursor::new(buf),
                                 &download_target.target.path,
@@ -384,9 +374,7 @@ pub fn download_or_update_course_exercises(
                         }
                         DownloadTargetKind::Submission { submission_id } => {
                             let mut buf = vec![];
-                            client
-                                .download_exercise(download_target.target.id, &mut buf)
-                                .map_err(Box::new)?;
+                            client.download_exercise(download_target.target.id, &mut buf)?;
                             extract_project(
                                 Cursor::new(buf),
                                 &download_target.target.path,
@@ -409,9 +397,7 @@ pub fn download_or_update_course_exercises(
                             }
 
                             let mut buf = vec![];
-                            client
-                                .download_old_submission(*submission_id, &mut buf)
-                                .map_err(Box::new)?;
+                            client.download_old_submission(*submission_id, &mut buf)?;
                             if let Err(err) = plugin.extract_student_files(
                                 Cursor::new(buf),
                                 Compression::Zip,
@@ -539,9 +525,9 @@ pub fn get_course_data(
 ) -> Result<CombinedCourseData, LangsError> {
     log::debug!("getting course data for {course_id}");
 
-    let details = client.get_course_details(course_id).map_err(Box::new)?;
-    let exercises = client.get_course_exercises(course_id).map_err(Box::new)?;
-    let settings = client.get_course(course_id).map_err(Box::new)?;
+    let details = client.get_course_details(course_id)?;
+    let exercises = client.get_course_exercises(course_id)?;
+    let settings = client.get_course(course_id)?;
     Ok(CombinedCourseData {
         details,
         exercises,
@@ -571,9 +557,7 @@ pub fn login_with_password(
     password: String,
 ) -> Result<tmc::Token, LangsError> {
     log::debug!("logging in with password");
-    let token = client
-        .authenticate(client_name, email, password)
-        .map_err(Box::new)?;
+    let token = client.authenticate(client_name, email, password)?;
     Ok(token)
 }
 
@@ -588,8 +572,7 @@ pub fn init_testmycode_client_with_credentials(
         root_url,
         client_name.to_string(),
         client_version.to_string(),
-    )
-    .map_err(Box::new)?;
+    )?;
 
     // set token from the credentials file if one exists
     let credentials = Credentials::load(client_name)?;
@@ -640,8 +623,7 @@ pub fn update_tmc_exercises(
     if !exercises.is_empty() {
         let tmc_exercise_ids = exercises.iter().map(|e| e.id).collect::<Vec<_>>();
         let mut tmc_server_exercises = client
-            .get_exercises_details(&tmc_exercise_ids)
-            .map_err(Box::new)?
+            .get_exercises_details(&tmc_exercise_ids)?
             .into_iter()
             .map(|e| (e.id, e))
             .collect::<HashMap<_, _>>();
@@ -681,9 +663,7 @@ pub fn update_tmc_exercises(
         if !exercises_to_update.is_empty() {
             for exercise in &exercises_to_update {
                 let mut buf = vec![];
-                client
-                    .download_exercise(exercise.id, &mut buf)
-                    .map_err(Box::new)?;
+                client.download_exercise(exercise.id, &mut buf)?;
                 extract_project(
                     Cursor::new(buf),
                     &exercise.path,
@@ -741,9 +721,7 @@ pub fn update_mooc_exercises(
                 checksum: &e.checksum,
             })
             .collect::<Vec<_>>();
-        let exercise_updates = client
-            .check_exercise_updates(&exercise_update_data)
-            .map_err(Box::new)?;
+        let exercise_updates = client.check_exercise_updates(&exercise_update_data)?;
         for updated_exercise in exercise_updates.updated_exercises {
             if let Some((course, exercise)) = exercises.get(&updated_exercise) {
                 let target = ProjectsConfig::get_mooc_exercise_download_target(
@@ -751,9 +729,7 @@ pub fn update_mooc_exercises(
                     &course.directory,
                     &exercise.directory,
                 );
-                let data = client
-                    .download_exercise(updated_exercise)
-                    .map_err(Box::new)?;
+                let data = client.download_exercise(updated_exercise)?;
                 extract_project(Cursor::new(data), &target, Compression::Zip, false, false)?;
                 downloaded.push(MoocExerciseDownload {
                     id: updated_exercise,
@@ -923,9 +899,7 @@ pub fn reset(
         file_util::remove_dir_all(exercise_path)?;
     }
     let mut buf = vec![];
-    client
-        .download_exercise(exercise_id, &mut buf)
-        .map_err(Box::new)?;
+    client.download_exercise(exercise_id, &mut buf)?;
     extract_project(
         Cursor::new(buf),
         exercise_path,
