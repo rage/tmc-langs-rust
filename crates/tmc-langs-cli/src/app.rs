@@ -5,7 +5,7 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, DownloadOrUpdateCourseExercisesResult, ExerciseDesc,
+    CombinedCourseData, Compression, DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc,
     ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
     UpdatedExercise,
     mooc::CourseInstance,
@@ -307,7 +307,7 @@ pub enum TestMyCodeCommand {
     },
 
     /// Downloads exercises. If downloading an exercise that has been downloaded before, the student file policy will be used to avoid overwriting student files, effectively just updating the exercise files
-    #[clap(long_about = schema_leaked::<DownloadOrUpdateCourseExercisesResult>())]
+    #[clap(long_about = schema_leaked::<DownloadOrUpdateTmcCourseExercisesResult>())]
     DownloadOrUpdateCourseExercises {
         /// If set, will always download the course template instead of the latest submission, even if one exists.
         #[clap(long)]
@@ -569,6 +569,9 @@ pub enum MoocCommand {
         #[clap(long)]
         target: PathBuf,
     },
+    /// Updates all local exercises that have been updated on the server
+    #[clap(long_about = SCHEMA_NULL)]
+    UpdateExercises,
     /// Submits an exercise.
     Submit {
         #[clap(long)]

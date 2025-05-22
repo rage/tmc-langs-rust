@@ -33,8 +33,8 @@ fn main() {
         // checkExerciseUpdates
         tmc_langs::UpdatedExercise,
         // downloadOrUpdateCourseExercises
-        tmc_langs::DownloadOrUpdateCourseExercisesResult,
-        tmc_langs::ExerciseDownload,
+        tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
+        tmc_langs::TmcExerciseDownload,
         // getCourseData
         tmc_langs::CombinedCourseData,
 

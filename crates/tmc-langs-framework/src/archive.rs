@@ -7,7 +7,6 @@ use std::{
     fmt::Display,
     io::{BufReader, Cursor, Read, Seek, Write},
     ops::ControlFlow::{self, Break},
-    os::unix::ffi::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -223,7 +222,7 @@ impl<T: Read + Seek> ArchiveIterator<'_, T> {
 pub enum Entry<'a, T: Read> {
     Tar(tar::Entry<'a, T>),
     TarZstd(tar::Entry<'a, zstd::Decoder<'static, BufReader<T>>>),
-    Zip(zip::read::ZipFile<'a, T>),
+    Zip(zip::read::ZipFile<'a>),
 }
 
 impl<T: Read> Entry<'_, T> {

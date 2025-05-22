@@ -80,7 +80,7 @@ pub fn migrate_exercise(
             exercises: BTreeMap::new(),
         });
 
-    let target_dir = ProjectsConfig::get_exercise_download_target(
+    let target_dir = ProjectsConfig::get_tmc_exercise_download_target(
         &tmc_config.projects_dir,
         course_slug,
         exercise_slug,

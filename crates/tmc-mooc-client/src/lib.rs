@@ -12,6 +12,7 @@ pub use self::{
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 pub use mooc_langs_api as api;
+use mooc_langs_api::ExerciseUpdateData;
 use oauth2::TokenResponse;
 use reqwest::{
     Method, StatusCode,
@@ -135,6 +136,19 @@ impl MoocClient {
         Ok(res)
     }
 
+    pub fn check_exercise_updates(
+        &self,
+        exercises: &[ExerciseUpdateData],
+    ) -> MoocClientResult<ExerciseUpdates> {
+        let url = make_langs_api_url(&self, format!("updates"))?;
+        let res = self
+            .request(Method::POST, url.clone())
+            .json(&api::ExerciseUpdatesRequest { exercises })
+            .send_expect_json::<api::ExerciseUpdates>()?
+            .into();
+        Ok(res)
+    }
+
     pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
         let res = self.request(Method::GET, url).send_expect_bytes()?;
         Ok(res)
@@ -207,6 +221,11 @@ struct MoocRequest {
 }
 
 impl MoocRequest {
+    fn json<T: Serialize>(mut self, json: &T) -> Self {
+        self.builder = self.builder.json(json);
+        self
+    }
+
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
@@ -397,6 +416,21 @@ impl From<api::GradingProgress> for GradingProgress {
             api::GradingProgress::PendingManual => Self::PendingManual,
             api::GradingProgress::Pending => Self::Pending,
             api::GradingProgress::FullyGraded => Self::FullyGraded,
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ExerciseUpdates {
+    pub updated_exercises: Vec<Uuid>,
+    pub deleted_exercises: Vec<Uuid>,
+}
+
+impl From<api::ExerciseUpdates> for ExerciseUpdates {
+    fn from(value: api::ExerciseUpdates) -> Self {
+        Self {
+            updated_exercises: value.updated_exercises,
+            deleted_exercises: value.deleted_exercises,
         }
     }
 }

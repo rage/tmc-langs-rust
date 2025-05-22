@@ -21,7 +21,8 @@ pub struct ProjectsConfig {
     // BTreeMap used so the exercises in the config file are ordered by key
     // slug => course
     pub tmc_courses: HashMap<String, TmcCourseConfig>,
-    pub mooc_courses: HashMap<String, MoocCourseConfig>,
+    // instance_id => course
+    pub mooc_courses: HashMap<Uuid, MoocCourseConfig>,
 }
 
 impl ProjectsConfig {
@@ -30,7 +31,7 @@ impl ProjectsConfig {
         let _guard = lock.lock()?;
 
         let mut tmc_course_configs = HashMap::<String, TmcCourseConfig>::new();
-        let mut mooc_course_configs = HashMap::<String, MoocCourseConfig>::new();
+        let mut mooc_course_configs = HashMap::<Uuid, MoocCourseConfig>::new();
 
         // the projects dir has a separate directory for each TMC course, which are all expected to contain a `course_config.toml` file for TMC courses
         // MOOC courses are in a `mooc` subdirectory to prevent the course slugs (which are used as the directory names) from conflicting
@@ -67,13 +68,9 @@ impl ProjectsConfig {
 
                 let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
                 if course_config_path.exists() {
-                    let file_name = entry.file_name();
-                    let course_dir_name = file_name.to_str().ok_or_else(|| {
-                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
-                    })?;
                     let file = file_util::read_file_to_string(&course_config_path)?;
-                    let course_config = deserialize::toml_from_str(&file)?;
-                    mooc_course_configs.insert(course_dir_name.to_string(), course_config);
+                    let course_config = deserialize::toml_from_str::<MoocCourseConfig>(&file)?;
+                    mooc_course_configs.insert(course_config.instance_id, course_config);
                 } else {
                     unexpected_entries.push(entry);
                 }
@@ -99,7 +96,7 @@ impl ProjectsConfig {
         for (_, course_config) in tmc_course_configs.iter_mut() {
             let mut deleted_exercises = vec![];
             for exercise_name in course_config.exercises.keys() {
-                let expected_dir = Self::get_exercise_download_target(
+                let expected_dir = Self::get_tmc_exercise_download_target(
                     projects_dir,
                     &course_config.course,
                     exercise_name,
@@ -129,12 +126,22 @@ impl ProjectsConfig {
         })
     }
 
-    pub fn get_exercise_download_target(
+    pub fn get_tmc_exercise_download_target(
         projects_dir: &Path,
         course_name: &str,
         exercise_name: &str,
     ) -> PathBuf {
         projects_dir.join(course_name).join(exercise_name)
+    }
+
+    pub fn get_mooc_exercise_download_target(
+        projects_dir: &Path,
+        instance_directory: &str,
+        exercise_directory: &str,
+    ) -> PathBuf {
+        projects_dir
+            .join(instance_directory)
+            .join(exercise_directory)
     }
 
     pub fn get_tmc_exercise(
@@ -149,11 +156,11 @@ impl ProjectsConfig {
 
     pub fn get_mooc_exercise(
         &self,
-        course_name: &str,
+        instance_id: Uuid,
         exercise_id: Uuid,
     ) -> Option<&ProjectsDirMoocExercise> {
         self.mooc_courses
-            .get(course_name)
+            .get(&instance_id)
             .and_then(|c| c.exercises.get(&exercise_id))
     }
 
@@ -184,19 +191,44 @@ impl ProjectsConfig {
     /// Note: does not save the config on initialization.
     pub fn get_or_init_mooc_course_config(
         &mut self,
-        course_name: String,
-        course_id: Uuid,
         instance_id: Uuid,
+        course_id: Uuid,
+        course_name: String,
     ) -> &mut MoocCourseConfig {
+        let existing_dirs = self
+            .mooc_courses
+            .values()
+            .map(|mc| &mc.directory)
+            .collect::<Vec<_>>();
+        let kebab_name = simple_kebab_case(&course_name);
+        let directory = if existing_dirs.contains(&&kebab_name) {
+            // need to use another course name to avoid conflicts
+            let mut dir = None;
+            for i in 1.. {
+                let proposal = format!("{kebab_name}-{i}");
+                if !existing_dirs.contains(&&proposal) {
+                    dir = Some(proposal);
+                    break;
+                }
+            }
+            dir.expect("unreachable")
+        } else {
+            kebab_name
+        };
         self.mooc_courses
-            .entry(course_name.clone())
+            .entry(instance_id)
             .or_insert(MoocCourseConfig {
                 course: course_name,
                 exercises: BTreeMap::new(),
                 course_id,
                 instance_id,
+                directory,
             })
     }
+}
+
+fn simple_kebab_case(s: &str) -> String {
+    s.to_lowercase().replace(" ", "-")
 }
 
 /// A course configuration file. Contains information of all of the exercises of this course in the projects directory.
@@ -234,6 +266,7 @@ pub struct MoocCourseConfig {
     pub instance_id: Uuid,
     /// The course's name.
     pub course: String,
+    pub directory: String,
     /// The course's exercises in a map with the exercise's id as the key.
     #[serde(default)]
     pub exercises: BTreeMap<Uuid, ProjectsDirMoocExercise>,
@@ -252,6 +285,7 @@ pub struct ProjectsDirMoocExercise {
     pub name: String,
     pub id: Uuid,
     pub checksum: String,
+    pub directory: String,
 }
 
 #[cfg(test)]

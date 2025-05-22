@@ -24,8 +24,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    CommandError, Compression, Credentials, DownloadOrUpdateCourseExercisesResult, DownloadResult,
-    Language, StyleValidationResult, TmcConfig, UpdatedExercise,
+    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult,
+    DownloadResult, Language, StyleValidationResult, TmcConfig, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{MoocClient, MoocClientError},
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
@@ -231,7 +231,7 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             let mut lock = Lock::dir(&exercise_path, LockOptions::Read)?;
             let _guard = lock.lock()?;
 
-            let hash = tmc_langs::compress_project_to(
+            let hash = tmc_langs::compress_project_to_with_hash(
                 &exercise_path,
                 &output_path,
                 compression,
@@ -674,7 +674,7 @@ fn run_tmc_inner(
                 DownloadResult::Success {
                     downloaded,
                     skipped,
-                } => DownloadOrUpdateCourseExercisesResult {
+                } => DownloadOrUpdateTmcCourseExercisesResult {
                     downloaded,
                     skipped,
                     failed: None,
@@ -683,7 +683,7 @@ fn run_tmc_inner(
                     downloaded,
                     skipped,
                     failed,
-                } => DownloadOrUpdateCourseExercisesResult {
+                } => DownloadOrUpdateTmcCourseExercisesResult {
                     downloaded,
                     skipped,
                     failed: Some(failed),
@@ -691,7 +691,7 @@ fn run_tmc_inner(
             };
             CliOutput::finished_with_data(
                 "downloaded or updated exercises",
-                DataKind::ExerciseDownload(data),
+                DataKind::TmcExerciseDownload(data),
             )
         }
 
@@ -1011,10 +1011,10 @@ fn run_tmc_inner(
 
         TestMyCodeCommand::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let data = tmc_langs::update_exercises(client, &projects_dir)?;
+            let data = tmc_langs::update_tmc_exercises(client, &projects_dir)?;
             CliOutput::finished_with_data(
                 "downloaded or updated exercises",
-                DataKind::ExerciseDownload(data),
+                DataKind::TmcExerciseDownload(data),
             )
         }
 
@@ -1064,6 +1064,8 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
 }
 
 fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
+    let client_name = &mooc.client_name;
+
     let output = match mooc.command {
         MoocCommand::CourseInstance {
             course_instance_id: _,
@@ -1101,6 +1103,11 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 false,
             )?;
             CliOutput::finished("downloaded exercise")
+        }
+        MoocCommand::UpdateExercises => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
+            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
         }
         MoocCommand::Submit {
             exercise_id,

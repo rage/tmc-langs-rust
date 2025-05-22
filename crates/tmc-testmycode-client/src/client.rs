@@ -192,9 +192,14 @@ impl TestMyCodeClient {
         self.require_authentication()?;
 
         start_stage(2, "Compressing submission...", None);
-        let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
-                .map_err(TestMyCodeClientError::from)?;
+        let (compressed, _hash) = tmc_langs_plugins::compress_project(
+            submission_path,
+            Compression::Zip,
+            false,
+            false,
+            false,
+        )
+        .map_err(TestMyCodeClientError::from)?;
         progress_stage("Compressed submission. Posting submission...", None);
 
         let result = api_v8::core::submit_exercise(
@@ -259,9 +264,14 @@ impl TestMyCodeClient {
 
         // compress
         start_stage(2, "Compressing paste submission...", None);
-        let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
-                .map_err(TestMyCodeClientError::from)?;
+        let (compressed, _hash) = tmc_langs_plugins::compress_project(
+            submission_path,
+            Compression::Zip,
+            false,
+            false,
+            false,
+        )
+        .map_err(TestMyCodeClientError::from)?;
         progress_stage(
             "Compressed paste submission. Posting paste submission...",
             None,
@@ -496,9 +506,14 @@ impl TestMyCodeClient {
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
-        let compressed =
-            tmc_langs_plugins::compress_project(submission_path, Compression::Zip, false, false)
-                .map_err(TestMyCodeClientError::from)?;
+        let (compressed, _hash) = tmc_langs_plugins::compress_project(
+            submission_path,
+            Compression::Zip,
+            false,
+            false,
+            false,
+        )
+        .map_err(TestMyCodeClientError::from)?;
         let review = if let Some(message) = message_for_reviewer {
             ReviewData::WithMessage(message)
         } else {
