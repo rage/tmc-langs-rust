@@ -222,7 +222,7 @@ impl<T: Read + Seek> ArchiveIterator<'_, T> {
 pub enum Entry<'a, T: Read> {
     Tar(tar::Entry<'a, T>),
     TarZstd(tar::Entry<'a, zstd::Decoder<'static, BufReader<T>>>),
-    Zip(zip::read::ZipFile<'a>),
+    Zip(zip::read::ZipFile<'a, T>),
 }
 
 impl<T: Read> Entry<'_, T> {
