@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error"],"macro":["debug_expect","expect"],"mod":["de","ser"],"struct":["EventReader","ParserConfig"]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"mod":["config","de","ser"]};

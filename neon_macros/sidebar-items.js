@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":["main"]};
+window.SIDEBAR_ITEMS = {"attr":["export","main"]};

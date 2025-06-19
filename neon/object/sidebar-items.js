@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Object","PropertyKey"]};
+window.SIDEBAR_ITEMS = {"struct":["PropOptions"],"trait":["Object","PropertyKey"]};

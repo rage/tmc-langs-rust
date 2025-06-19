@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["CONTENT","TEXT"],"struct":["Namespaces","SerdeXml"]};

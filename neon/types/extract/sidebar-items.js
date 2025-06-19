@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["with"],"struct":["ArrayBuffer","BigInt64Array","BigUint64Array","Boxed","Buffer","Date","Error","Float32Array","Float64Array","Int16Array","Int32Array","Int8Array","TypeExpected","Uint16Array","Uint32Array","Uint8Array"],"trait":["FromArgs","TryFromJs","TryIntoJs"]};

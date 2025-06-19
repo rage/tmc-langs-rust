@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MAX_WBITS","MIN_WBITS"],"enum":["DeflateFlush","InflateFlush","ReturnCode"],"fn":["adler32","adler32_combine"],"macro":["flush_block","trace"],"mod":["allocate","c_api","crc32","deflate","inflate","read_buf"]};

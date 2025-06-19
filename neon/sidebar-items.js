@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"attr":["main"],"mod":["context","event","handle","meta","object","prelude","reflect","result","thread","types"]};
+window.SIDEBAR_ITEMS = {"attr":["export","main"],"fn":["registered"],"mod":["context","event","handle","meta","object","prelude","reflect","result","thread","types"],"struct":["Exports"]};

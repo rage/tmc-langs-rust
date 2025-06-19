@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Requests that gzip header information be stored in the provided `gz_header` structure."><title>inflateGetHeader in libz_rs_sys - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="libz_rs_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0 (17067e9ac 2025-05-09)" data-channel="1.87.0" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../static.files/storage-82c7156e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../libz_rs_sys/index.html">libz_<wbr>rs_<wbr>sys</a><span class="version">0.5.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">inflate<wbr>GetHeader</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#returns" title="Returns">Returns</a></li><li><a href="#safety" title="Safety">Safety</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate libz_<wbr>rs_<wbr>sys</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">libz_rs_sys</a></div><h1>Function <span class="fn">inflateGetHeader</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/libz_rs_sys/lib.rs.html#851-860">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe extern &quot;C-unwind&quot; fn inflateGetHeader(
+    strm: <a class="type" href="type.z_streamp.html" title="type libz_rs_sys::z_streamp">z_streamp</a>,
+    head: <a class="type" href="type.gz_headerp.html" title="type libz_rs_sys::gz_headerp">gz_headerp</a>,
+) -&gt; <a class="type" href="https://doc.rust-lang.org/1.87.0/core/ffi/primitives/type.c_int.html" title="type core::ffi::primitives::c_int">c_int</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Requests that gzip header information be stored in the provided <a href="struct.gz_header.html" title="struct libz_rs_sys::gz_header"><code>gz_header</code></a> structure.</p>
+<p>The <a href="fn.inflateGetHeader.html" title="fn libz_rs_sys::inflateGetHeader"><code>inflateGetHeader</code></a> function may be called after <a href="fn.inflateInit2_.html" title="fn libz_rs_sys::inflateInit2_"><code>inflateInit2_</code></a> or <a href="fn.inflateReset.html" title="fn libz_rs_sys::inflateReset"><code>inflateReset</code></a>, and before the first call of <a href="fn.inflate.html" title="fn libz_rs_sys::inflate"><code>inflate</code></a>.
+As <a href="fn.inflate.html" title="fn libz_rs_sys::inflate"><code>inflate</code></a> processes the gzip stream, <code>head.done</code> is zero until the header is completed, at which time <code>head.done</code> is set to one.
+If a zlib stream is being decoded, then <code>head.done</code> is set to <code>-1</code> to indicate that there will be no gzip header information forthcoming.
+Note that <a href="constant.Z_BLOCK.html" title="constant libz_rs_sys::Z_BLOCK"><code>Z_BLOCK</code></a> can be used to force <a href="fn.inflate.html" title="fn libz_rs_sys::inflate"><code>inflate</code></a> to return immediately after header processing is complete and before any actual data is decompressed.</p>
+<ul>
+<li>The <code>text</code>, <code>time</code>, <code>xflags</code>, and <code>os</code> fields are filled in with the gzip header contents.</li>
+<li><code>hcrc</code> is set to true if there is a header CRC. (The header CRC was valid if done is set to one.)</li>
+<li>If <code>extra</code> is not <code>NULL</code>, then <code>extra_max</code> contains the maximum number of bytes to write to extra.
+Once <code>done</code> is <code>true</code>, <code>extra_len</code> contains the actual extra field length,
+and <code>extra</code> contains the extra field, or that field truncated if <code>extra_max</code> is less than <code>extra_len</code>.</li>
+<li>If <code>name</code> is not <code>NULL</code>, then up to <code>name_max</code> characters are written there, terminated with a zero unless the length is greater than <code>name_max</code>.</li>
+<li>If <code>comment</code> is not <code>NULL</code>, then up to <code>comm_max</code> characters are written there, terminated with a zero unless the length is greater than <code>comm_max</code>.</li>
+</ul>
+<p>When any of <code>extra</code>, <code>name</code>, or <code>comment</code> are not <code>NULL</code> and the respective field is not present in the header, then that field is set to <code>NULL</code> to signal its absence.
+This allows the use of <a href="fn.deflateSetHeader.html" title="fn libz_rs_sys::deflateSetHeader"><code>deflateSetHeader</code></a> with the returned structure to duplicate the header. However if those fields are set to allocated memory,
+then the application will need to save those pointers elsewhere so that they can be eventually freed.</p>
+<p>If <a href="fn.inflateGetHeader.html" title="fn libz_rs_sys::inflateGetHeader"><code>inflateGetHeader</code></a> is not used, then the header information is simply discarded. The header is always checked for validity, including the header CRC if present.
+<a href="fn.inflateReset.html" title="fn libz_rs_sys::inflateReset"><code>inflateReset</code></a> will reset the process to discard the header information.
+The application would need to call <a href="fn.inflateGetHeader.html" title="fn libz_rs_sys::inflateGetHeader"><code>inflateGetHeader</code></a> again to retrieve the header from the next gzip stream.</p>
+<h2 id="returns"><a class="doc-anchor" href="#returns">§</a>Returns</h2>
+<ul>
+<li><a href="constant.Z_OK.html" title="constant libz_rs_sys::Z_OK"><code>Z_OK</code></a> if success</li>
+<li><a href="constant.Z_STREAM_ERROR.html" title="constant libz_rs_sys::Z_STREAM_ERROR"><code>Z_STREAM_ERROR</code></a> if the source stream state was inconsistent (such as zalloc being NULL)</li>
+</ul>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<ul>
+<li>Either
+<ul>
+<li><code>strm</code> is <code>NULL</code></li>
+<li><code>strm</code> satisfies the requirements of <code>&amp;mut *strm</code> and was initialized with <a href="fn.inflateInit_.html" title="fn libz_rs_sys::inflateInit_"><code>inflateInit_</code></a> or similar</li>
+</ul>
+</li>
+<li>Either
+<ul>
+<li><code>head</code> is <code>NULL</code></li>
+<li><code>head</code> satisfies the requirements of <code>&amp;mut *head</code></li>
+</ul>
+</li>
+<li>If <code>head</code> is not <code>NULL</code>:
+<ul>
+<li>if <code>head.extra</code> is not NULL, it must be writable for at least <code>head.extra_max</code> bytes</li>
+<li>if <code>head.name</code> is not NULL, it must be writable for at least <code>head.name_max</code> bytes</li>
+<li>if <code>head.comment</code> is not NULL, it must be writable for at least <code>head.comm_max</code> bytes</li>
+</ul>
+</li>
+</ul>
+</div></details></section></div></main></body></html>

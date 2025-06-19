@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Method","Strategy"],"fn":["bound","compress","compress_bound","compress_slice","compress_slice_with_flush","compress_with_flush","copy","deflate","end","get_dictionary","init","params","prime","reset","set_dictionary","set_header","tune"],"struct":["DeflateConfig","DeflateStream"]};

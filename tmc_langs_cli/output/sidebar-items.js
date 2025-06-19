@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CliOutput","DataKind","Kind","OutputResult","Status","StatusUpdateData"],"struct":["DownloadTarget","OutputData","ProjectsDirExercise"]};
+window.SIDEBAR_ITEMS = {"enum":["CliOutput","DataKind","Kind","OutputResult","Status","StatusUpdateData"],"struct":["DownloadTarget","OutputData","ProjectsDirTmcExercise"]};

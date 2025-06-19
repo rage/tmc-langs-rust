@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ExerciseTaskSubmissionStatus","GradingProgress","ModelSolutionSpec","PublicSpec"],"struct":["CourseInstance","ExerciseFile","ExerciseTaskSubmissionResult","MoocClient","TmcExerciseSlide","TmcExerciseTask"]};
+window.SIDEBAR_ITEMS = {"enum":["ExerciseTaskSubmissionStatus","GradingProgress","ModelSolutionSpec","MoocClientError","PublicSpec"],"struct":["CourseInstance","CourseInstanceInfo","ExerciseFile","ExerciseTaskSubmissionResult","ExerciseUpdates","MoocClient","TmcExerciseSlide","TmcExerciseTask"],"type":["MoocClientResult"]};

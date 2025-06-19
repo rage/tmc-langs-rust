@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy_decode","copy_encode","decode_all","encode_all","uncompressed_size"],"mod":["bufread","read","stream","write"]};

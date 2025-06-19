@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["UnpackedSize"],"struct":["Options"]};

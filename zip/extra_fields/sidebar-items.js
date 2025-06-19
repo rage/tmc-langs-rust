@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ExtraField"],"struct":["CentralHeaderVersion","ExtendedTimestamp","LocalHeaderVersion","UnicodeExtraField"],"trait":["ExtraFieldVersion"]};
+window.SIDEBAR_ITEMS = {"enum":["ExtraField"],"struct":["CentralHeaderVersion","ExtendedTimestamp","LocalHeaderVersion","Ntfs","UnicodeExtraField"],"trait":["ExtraFieldVersion"]};

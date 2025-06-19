@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Http2ServerConnExec"]};
+window.SIDEBAR_ITEMS = {"trait":["Http2ClientConnExec","Http2ServerConnExec"]};

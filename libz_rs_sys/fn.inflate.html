@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Decompresses as much data as possible, and stops when the input buffer becomes empty or the output buffer becomes full."><title>inflate in libz_rs_sys - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="libz_rs_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0 (17067e9ac 2025-05-09)" data-channel="1.87.0" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../static.files/storage-82c7156e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../libz_rs_sys/index.html">libz_<wbr>rs_<wbr>sys</a><span class="version">0.5.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">inflate</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#returns" title="Returns">Returns</a></li><li><a href="#safety" title="Safety">Safety</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate libz_<wbr>rs_<wbr>sys</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">libz_rs_sys</a></div><h1>Function <span class="fn">inflate</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/libz_rs_sys/lib.rs.html#353-360">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe extern &quot;C-unwind&quot; fn inflate(
+    strm: <a class="primitive" href="https://doc.rust-lang.org/1.87.0/std/primitive.pointer.html">*mut </a><a class="struct" href="struct.z_stream.html" title="struct libz_rs_sys::z_stream">z_stream</a>,
+    flush: <a class="primitive" href="https://doc.rust-lang.org/1.87.0/std/primitive.i32.html">i32</a>,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.87.0/std/primitive.i32.html">i32</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Decompresses as much data as possible, and stops when the input buffer becomes empty or the output buffer becomes full.</p>
+<h2 id="returns"><a class="doc-anchor" href="#returns">§</a>Returns</h2>
+<ul>
+<li><a href="constant.Z_OK.html" title="constant libz_rs_sys::Z_OK"><code>Z_OK</code></a> if success</li>
+<li><a href="constant.Z_STREAM_END.html" title="constant libz_rs_sys::Z_STREAM_END"><code>Z_STREAM_END</code></a> if the end of the compressed data has been reached and all uncompressed output has been produced</li>
+<li><a href="constant.Z_NEED_DICT.html" title="constant libz_rs_sys::Z_NEED_DICT"><code>Z_NEED_DICT</code></a> if a preset dictionary is needed at this point</li>
+<li><a href="constant.Z_STREAM_ERROR.html" title="constant libz_rs_sys::Z_STREAM_ERROR"><code>Z_STREAM_ERROR</code></a> if the stream state was inconsistent</li>
+<li><a href="constant.Z_DATA_ERROR.html" title="constant libz_rs_sys::Z_DATA_ERROR"><code>Z_DATA_ERROR</code></a> if the input data was corrupted</li>
+<li><a href="constant.Z_MEM_ERROR.html" title="constant libz_rs_sys::Z_MEM_ERROR"><code>Z_MEM_ERROR</code></a> if there was not enough memory</li>
+<li><a href="constant.Z_BUF_ERROR.html" title="constant libz_rs_sys::Z_BUF_ERROR"><code>Z_BUF_ERROR</code></a> if no progress was possible or if there was not enough room in the output buffer when <a href="constant.Z_FINISH.html" title="constant libz_rs_sys::Z_FINISH"><code>Z_FINISH</code></a> is used</li>
+</ul>
+<p>Note that <a href="constant.Z_BUF_ERROR.html" title="constant libz_rs_sys::Z_BUF_ERROR"><code>Z_BUF_ERROR</code></a> is not fatal, and <a href="fn.inflate.html" title="fn libz_rs_sys::inflate"><code>inflate</code></a> can be called again with more input and more output space to continue decompressing.
+If <a href="constant.Z_DATA_ERROR.html" title="constant libz_rs_sys::Z_DATA_ERROR"><code>Z_DATA_ERROR</code></a> is returned, the application may then call <a href="fn.inflateSync.html" title="fn libz_rs_sys::inflateSync"><code>inflateSync</code></a> to look for a good compression block if a partial recovery of the data is to be attempted.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<ul>
+<li>Either
+<ul>
+<li><code>strm</code> is <code>NULL</code></li>
+<li><code>strm</code> satisfies the requirements of <code>&amp;mut *strm</code> and was initialized with <a href="fn.inflateInit_.html" title="fn libz_rs_sys::inflateInit_"><code>inflateInit_</code></a> or similar</li>
+</ul>
+</li>
+<li>Either
+<ul>
+<li><code>strm.next_out</code> is <code>NULL</code></li>
+<li><code>strm.next_out</code> and <code>strm.avail_out</code> satisfy the requirements of <a href="https://doc.rust-lang.org/1.87.0/core/slice/raw/fn.from_raw_parts_mut.html" title="fn core::slice::raw::from_raw_parts_mut"><code>core::slice::from_raw_parts_mut::&lt;MaybeUninit&lt;u8&gt;&gt;</code></a></li>
+</ul>
+</li>
+<li>Either
+<ul>
+<li><code>strm.next_in</code> is <code>NULL</code></li>
+<li><code>strm.next_in</code> and <code>strm.avail_in</code> satisfy the requirements of <a href="https://doc.rust-lang.org/1.87.0/core/slice/raw/fn.from_raw_parts.html" title="fn core::slice::raw::from_raw_parts"><code>core::slice::from_raw_parts::&lt;u8&gt;</code></a></li>
+</ul>
+</li>
+</ul>
+</div></details></section></div></main></body></html>

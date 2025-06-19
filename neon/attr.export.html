@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Register an item to be exported by the Neon addon"><title>export in neon - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="neon" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0 (17067e9ac 2025-05-09)" data-channel="1.87.0" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../static.files/storage-82c7156e.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../neon/index.html">neon</a><span class="version">1.1.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">export</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#exporting-constants-and-statics" title="Exporting constants and statics">Exporting constants and statics</a><ul><li><a href="#renaming-an-export" title="Renaming an export">Renaming an export</a></li><li><a href="#json-exports" title="JSON exports">JSON exports</a></li></ul></li><li><a href="#exporting-functions" title="Exporting functions">Exporting functions</a><ul><li><a href="#naming-exported-functions" title="Naming exported functions">Naming exported functions</a></li><li><a href="#exporting-a-function-that-uses-json" title="Exporting a function that uses JSON">Exporting a function that uses JSON</a></li><li><a href="#tasks" title="Tasks">Tasks</a></li><li><a href="#async-functions" title="Async Functions">Async Functions</a></li><li><a href="#error-handling" title="Error Handling">Error Handling</a></li><li><a href="#interact-with-the-javascript-runtime" title="Interact with the JavaScript runtime">Interact with the JavaScript runtime</a></li><li><a href="#advanced" title="Advanced">Advanced</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate neon</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">neon</a></div><h1>Attribute Macro <span class="attr">export</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/neon_macros/lib.rs.html#38-41">Source</a> </span></div><pre class="rust item-decl"><code>#[export]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Register an item to be exported by the Neon addon</p>
+<h3 id="exporting-constants-and-statics"><a class="doc-anchor" href="#exporting-constants-and-statics">§</a>Exporting constants and statics</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">static </span>GREETING: <span class="kw-2">&amp;</span>str = <span class="string">"Hello, Neon!"</span>;
+
+<span class="attr">#[neon::export]
+</span><span class="kw">const </span>ANSWER: u8 = <span class="number">42</span>;</code></pre></div>
+<h4 id="renaming-an-export"><a class="doc-anchor" href="#renaming-an-export">§</a>Renaming an export</h4>
+<p>By default, items will be exported with their Rust name. Exports may
+be renamed by providing the <code>name</code> attribute.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(name = <span class="string">"myGreeting"</span>)]
+</span><span class="kw">static </span>GREETING: <span class="kw-2">&amp;</span>str = <span class="string">"Hello, Neon!"</span>;</code></pre></div>
+<h4 id="json-exports"><a class="doc-anchor" href="#json-exports">§</a>JSON exports</h4>
+<p>Complex values may be exported by automatically serializing to JSON and
+parsing in JavaScript. Any type that implements <code>serde::Serialize</code> may be used.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(json)]
+</span><span class="kw">static </span>MESSAGES: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>str] = <span class="kw-2">&amp;</span>[<span class="string">"hello"</span>, <span class="string">"goodbye"</span>];</code></pre></div>
+<h3 id="exporting-functions"><a class="doc-anchor" href="#exporting-functions">§</a>Exporting functions</h3>
+<p>Functions may take any type that implements <a href="types/extract/trait.TryFromJs.html" title="trait neon::types::extract::TryFromJs"><code>TryFromJs</code></a> as
+an argument and return any type that implements <a href="types/extract/trait.TryIntoJs.html" title="trait neon::types::extract::TryIntoJs"><code>TryIntoJs</code></a>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>add(a: f64, b: f64) -&gt; f64 {
+    a + b
+}</code></pre></div>
+<h4 id="naming-exported-functions"><a class="doc-anchor" href="#naming-exported-functions">§</a>Naming exported functions</h4>
+<p>Conventionally, Rust uses <code>snake_case</code> for function identifiers and JavaScript uses <code>camelCase</code>.
+By default, Neon will attempt to convert function names to camel case. For example:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>add_one(n: f64) -&gt; f64 {
+    n + <span class="number">1.0
+</span>}</code></pre></div>
+<p>The <code>add_one</code> function will be exported as <code>addOne</code> in JavaScript.</p>
+<div class="example-wrap"><pre class="language-js"><code>import { addOne } from &quot;.&quot;;</code></pre></div>
+<p><a href="#renaming-an-export">Similar to globals</a>, exported functions can be overridden with the <code>name</code>
+attribute.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(name = <span class="string">"addOneSync"</span>)]
+</span><span class="kw">fn </span>add_one(n: f64) -&gt; f64 {
+    n + <span class="number">1.0
+</span>}</code></pre></div>
+<p>Neon uses the following rules when converting <code>snake_case</code> to <code>camelCase</code>:</p>
+<ul>
+<li>All <em>leading</em> and <em>trailing</em> underscores (<code>_</code>) are preserved</li>
+<li>Characters <em>immediately</em> following a <em>non-leading</em> underscore are converted to uppercase</li>
+<li>If the identifier contains an <em>unexpected</em> character, <strong>no</strong> conversion is performed and
+the identifier is used <em>unchanged</em>. Unexpected characters include:
+<ul>
+<li>Uppercase characters</li>
+<li>Duplicate <em>interior</em> (non-leading, non-trailing underscores)</li>
+</ul>
+</li>
+</ul>
+<h4 id="exporting-a-function-that-uses-json"><a class="doc-anchor" href="#exporting-a-function-that-uses-json">§</a>Exporting a function that uses JSON</h4>
+<p>The <a href="crate::types::extract::Json"><code>Json</code></a> wrapper allows ergonomically handling complex
+types that implement <code>serde::Deserialize</code> and <code>serde::Serialize</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>sort(Json(<span class="kw-2">mut </span>items): Json&lt;Vec&lt;String&gt;&gt;) -&gt; Json&lt;Vec&lt;String&gt;&gt; {
+    items.sort();
+    Json(items)
+}</code></pre></div>
+<p>As a convenience, macro uses may add the <code>json</code> attribute to automatically
+wrap arguments and return values with <code>Json</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(json)]
+</span><span class="kw">fn </span>sort(<span class="kw-2">mut </span>items: Vec&lt;String&gt;) -&gt; Vec&lt;String&gt; {
+    items.sort();
+    items
+}</code></pre></div>
+<h4 id="tasks"><a class="doc-anchor" href="#tasks">§</a>Tasks</h4>
+<p>Neon provides an API for spawning tasks to execute asynchronously on Node’s worker
+pool. JavaScript may await a promise for completion of the task.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>add&lt;<span class="lifetime">'cx</span>&gt;(cx: <span class="kw-2">&amp;mut </span>FunctionContext&lt;<span class="lifetime">'cx</span>&gt;, a: f64, b: f64) -&gt; JsResult&lt;<span class="lifetime">'cx</span>, JsPromise&gt; {
+    <span class="kw">let </span>promise = cx
+        .task(<span class="kw">move </span>|| a + b)
+        .promise(|<span class="kw-2">mut </span>cx, res| <span class="prelude-val">Ok</span>(cx.number(res)));
+
+    <span class="prelude-val">Ok</span>(promise)
+}</code></pre></div>
+<p>As a convenience, macro users may indicate that a function should be executed
+asynchronously on the worker pool by adding the <code>task</code> attribute.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(task)]
+</span><span class="kw">fn </span>add(a: f64, b: f64) -&gt; f64 {
+    a + b
+}</code></pre></div>
+<h4 id="async-functions"><a class="doc-anchor" href="#async-functions">§</a>Async Functions</h4>
+<p>The <a href="attr.export.html" title="attr neon::export"><code>export</code></a> macro can export <code>async fn</code>, converting to a JavaScript <code>Promise</code>, if a global
+future executor is registered. See <a href="crate::set_global_executor"><code>neon::set_global_executor</code></a> for
+more details.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">async fn </span>add(a: f64, b: f64) -&gt; f64 {
+    a + b
+}</code></pre></div>
+<p>A <code>fn</code> that returns a <a href="https://doc.rust-lang.org/1.87.0/core/future/future/trait.Future.html" title="trait core::future::future::Future"><code>Future</code></a> can be annotated with <code>#[neon::export(async)]</code>
+if it needs to perform some setup on the JavaScript main thread before running asynchronously.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(<span class="kw">async</span>)]
+</span><span class="kw">fn </span>add(a: f64, b: f64) -&gt; <span class="kw">impl </span>Future&lt;Output = f64&gt; {
+    <span class="macro">println!</span>(<span class="string">"Hello from the JavaScript main thread!"</span>);
+
+    <span class="kw">async move </span>{
+        a + b
+    }
+}</code></pre></div>
+<p>If work needs to be performed on the JavaScript main thread <em>after</em> the asynchronous operation,
+the <a href="crate::types::extract::With"><code>With</code></a> extractor can be used to execute a closure before returning.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">async fn </span>add(a: f64, b: f64) -&gt; <span class="kw">impl for</span>&lt;<span class="lifetime">'cx</span>&gt; TryIntoJs&lt;<span class="lifetime">'cx</span>&gt; {
+    <span class="kw">let </span>sum = a + b;
+
+    extract::with(<span class="kw">move </span>|cx| {
+        <span class="macro">println!</span>(<span class="string">"Hello from the JavaScript main thread!"</span>);
+
+        sum.try_into_js(cx)
+    })
+}</code></pre></div>
+<h4 id="error-handling"><a class="doc-anchor" href="#error-handling">§</a>Error Handling</h4>
+<p>If an exported function returns a <a href="https://doc.rust-lang.org/1.87.0/core/result/enum.Result.html" title="enum core::result::Result"><code>Result</code></a>, a JavaScript exception will be thrown
+with the <a href="https://doc.rust-lang.org/1.87.0/core/result/enum.Result.html#variant.Err" title="variant core::result::Result::Err"><code>Err</code></a>. Any error type that implements <a href="types/extract/trait.TryIntoJs.html" title="trait neon::types::extract::TryIntoJs"><code>TryIntoJs</code></a>
+may be used.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>throw(msg: String) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+    <span class="prelude-val">Err</span>(msg)
+}</code></pre></div>
+<p>The <a href="types/extract/struct.Error.html" title="struct neon::types::extract::Error"><code>Error</code></a> type is provided for ergonomic error conversions
+from most error types using the <code>?</code> operator.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>neon::types::extract::Error;
+
+<span class="attr">#[neon::export]
+</span><span class="kw">fn </span>read_file(path: String) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
+    <span class="kw">let </span>contents = std::fs::read_to_string(path)<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(contents)
+}</code></pre></div>
+<h4 id="interact-with-the-javascript-runtime"><a class="doc-anchor" href="#interact-with-the-javascript-runtime">§</a>Interact with the JavaScript runtime</h4>
+<p>More complex functions may need to interact directly with the JavaScript runtime,
+for example with <a href="context/trait.Context.html" title="trait neon::context::Context"><code>Context</code></a> or handles to JavaScript values.</p>
+<p>Functions may optionally include a <a href="context/struct.Cx.html" title="struct neon::context::Cx"><code>Cx</code></a> or
+<a href="context/struct.FunctionContext.html" title="struct neon::context::FunctionContext"><code>FunctionContext</code></a> argument. Note that unlike functions
+created with <a href="types/struct.JsFunction.html" title="struct neon::types::JsFunction"><code>JsFunction::new</code></a>, exported function receive a borrowed
+context and may require explicit lifetimes.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export]
+</span><span class="kw">fn </span>add&lt;<span class="lifetime">'cx</span>&gt;(
+    cx: <span class="kw-2">&amp;mut </span>Cx&lt;<span class="lifetime">'cx</span>&gt;,
+    a: Handle&lt;JsNumber&gt;,
+    b: Handle&lt;JsNumber&gt;,
+) -&gt; JsResult&lt;<span class="lifetime">'cx</span>, JsNumber&gt; {
+    <span class="kw">let </span>a = a.value(cx);
+    <span class="kw">let </span>b = b.value(cx);
+
+    <span class="prelude-val">Ok</span>(cx.number(a + b))
+}</code></pre></div>
+<h4 id="advanced"><a class="doc-anchor" href="#advanced">§</a>Advanced</h4>
+<p>The following attributes are for advanced configuration and may not be
+necessary for most users.</p>
+<h5 id="context"><a class="doc-anchor" href="#context">§</a><code>context</code></h5>
+<p>The <code>#[neon::export]</code> uses a heuristic to determine if the first argument
+to a function is a <em>context</em> argument.</p>
+<ul>
+<li>In a function executed on the JavaScript main thread, it looks for <code>&amp;mut Cx</code>
+or <code>&amp;mut FunctionContext</code> to determine if the <a href="context/trait.Context.html" title="trait neon::context::Context"><code>Context</code></a>
+should be passed.</li>
+<li>In a function executed on another thread, it looks for <a href="event/struct.Channel.html" title="struct neon::event::Channel"><code>Channel</code></a>.</li>
+</ul>
+<p>If the type has been renamed when importing, the <code>context</code> attribute can be
+added to force it to be passed.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>neon::event::Channel <span class="kw">as </span>Ch;
+<span class="kw">use </span>neon::context::FunctionContext <span class="kw">as </span>FnCtx;
+
+<span class="attr">#[neon::export(context)]
+</span><span class="kw">fn </span>add(_cx: <span class="kw-2">&amp;mut </span>FnCtx, a: f64, b: f64) -&gt; f64 {
+    a + b
+}
+
+<span class="attr">#[neon::export(context)]
+</span><span class="kw">async fn </span>div(_ch: Ch, a: f64, b: f64) -&gt; f64 {
+    a / b
+}</code></pre></div>
+<h5 id="this"><a class="doc-anchor" href="#this">§</a><code>this</code></h5>
+<p>The <code>#[neon::export]</code> uses a heuristic to determine if an argument to this function is
+referring to <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this"><code>this</code></a>.</p>
+<ol>
+<li>If the first argument is a <a href="#context">context</a>, use the 0th argument, otherwise use the 1st.</li>
+<li>If the argument binding is named <code>this</code></li>
+<li>Or if it is a tuple struct pattern with an element named <code>this</code></li>
+</ol>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>neon::types::extract::Boxed;
+
+<span class="attr">#[neon::export]
+</span><span class="kw">fn </span>buffer_clone(this: Vec&lt;u8&gt;) -&gt; Vec&lt;u8&gt; {
+    this
+}
+
+<span class="attr">#[neon::export]
+</span><span class="kw">fn </span>box_to_string(Boxed(this): Boxed&lt;String&gt;) -&gt; String {
+    this
+}</code></pre></div>
+<p>If the function uses a variable name other than <code>this</code>, the <code>this</code> attribute may
+be added.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[neon::export(this)]
+</span><span class="kw">fn </span>buffer_clone(me: Vec&lt;u8&gt;) -&gt; Vec&lt;u8&gt; {
+    me
+}</code></pre></div>
+</div></details></section></div></main></body></html>

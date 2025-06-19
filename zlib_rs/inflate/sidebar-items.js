@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Mode"],"fn":["codes_used","copy","end","get_dictionary","get_header","inflate","init","mark","prime","reset","reset_keep","reset_with_config","set_dictionary","sync","sync_point","uncompress","uncompress_slice","undermine"],"struct":["InflateConfig","InflateStream"]};
