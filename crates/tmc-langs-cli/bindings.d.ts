@@ -136,7 +136,11 @@ export type UpdatedExercise = { id: number, }
 
 export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
+export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>, }
+
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
+
+export type MoocExerciseDownload = { id: string, path: string, }
 
 export type CombinedCourseData = { details: CourseDetails, exercises: Array<CourseExercise>, settings: CourseData, }
 

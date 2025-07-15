@@ -818,7 +818,18 @@ fn unset_setting(mut cx: FunctionContext) -> JsResult<JsValue> {
 
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
+    // do not use outside export_function argument
+    fn unsafe_set_env(mut cx: FunctionContext) -> JsResult<JsNull> {
+        parse_args!(cx, key: String, value: String);
+        // SAFETY: node is single-threaded so calling set_var is always fine
+        unsafe {
+            std::env::set_var(key, value);
+        }
+        Ok(cx.null())
+    }
+
     cx.export_function("initLogging", init_logging)?;
+    cx.export_function("setEnv", unsafe_set_env)?;
 
     cx.export_function("checkstyle", checkstyle)?;
     cx.export_function("clean", clean)?;

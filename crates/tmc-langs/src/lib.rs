@@ -19,13 +19,12 @@ pub use crate::{
     data::{
         CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
         DownloadOrUpdateTmcCourseExercisesResult, DownloadResult, LocalExercise, LocalMoocExercise,
-        LocalTmcExercise, TmcExerciseDownload, TmcParams,
+        LocalTmcExercise, MoocExerciseDownload, TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
     submission_processing::prepare_solution,
 };
-use data::MoocExerciseDownload;
 use hmac::{Hmac, Mac};
 // use heim::disk;
 use jwt::SignWithKey;

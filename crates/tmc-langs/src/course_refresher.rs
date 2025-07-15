@@ -351,7 +351,7 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
     }
 
     // convert the digest into a hex string
-    let digest = digest.compute();
+    let digest = digest.finalize();
     Ok(format!("{digest:x}"))
 }
 

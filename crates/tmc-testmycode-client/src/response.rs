@@ -107,13 +107,13 @@ pub struct CourseData {
 
 /// Represents a course details response from tmc-server,
 /// converted to the more convenient CourseDetails during deserialization
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, JsonSchema)]
 struct CourseDetailsWrapper {
     pub course: CourseDetailsInner,
 }
 
 // TODO: improve
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, JsonSchema)]
 struct CourseDetailsInner {
     #[serde(flatten)]
     pub course: Course,

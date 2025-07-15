@@ -1250,7 +1250,9 @@ mod test {
             tmc_langs::UpdatedExercise,
             // downloadOrUpdateCourseExercises
             tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
+            tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,
             tmc_langs::TmcExerciseDownload,
+            tmc_langs::MoocExerciseDownload,
             // getCourseData
             tmc_langs::CombinedCourseData,
             // getCourseDetails

@@ -1,4 +1,5 @@
-import tmc, { Token } from "./functions";
+import * as tmc from "./functions"
+import { Token } from "./functions";
 import types, { Compression } from "./generated";
 
 export { types, Token };
@@ -82,7 +83,7 @@ export class Tmc {
     return tmc.getExercisePackagingConfiguration(exercisePath);
   }
 
-  listLocalCourseExercises(courseSlug: string): Array<types.LocalExercise> {
+  listLocalCourseExercises(courseSlug: string): Array<types.LocalTmcExercise> {
     return tmc.listLocalCourseExercises(this.clientName, courseSlug);
   }
 

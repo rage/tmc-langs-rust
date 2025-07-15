@@ -12,7 +12,13 @@ pub mod progress_reporter;
 pub mod serialize;
 
 pub use error::FileError;
+use thiserror::Error;
 
 pub type JsonError = serde_path_to_error::Error<serde_json::Error>;
-pub type TomlError = serde_path_to_error::Error<toml::de::Error>;
+#[derive(Debug, Error)]
+#[error(transparent)]
+pub enum TomlError {
+    Path(#[from] serde_path_to_error::Error<toml::de::Error>),
+    Toml(#[from] toml::de::Error),
+}
 pub type YamlError = serde_path_to_error::Error<serde_yaml::Error>;

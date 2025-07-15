@@ -34,7 +34,7 @@ export function getExercisePackagingConfiguration(
 export function listLocalCourseExercises(
   clientName: string,
   courseSlug: string
-): Array<types.LocalExercise>;
+): Array<types.LocalTmcExercise>;
 export function prepareSolution(exercisePath: string, outputPath: string): void;
 export function prepareStub(exercisePath: string, outputPath: string): void;
 export function prepareSubmission(
