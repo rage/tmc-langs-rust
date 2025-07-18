@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PPMD7_MAX_MEM_SIZE","PPMD7_MAX_ORDER","PPMD7_MIN_MEM_SIZE","PPMD7_MIN_ORDER","PPMD8_MAX_MEM_SIZE","PPMD8_MAX_ORDER","PPMD8_MIN_MEM_SIZE","PPMD8_MIN_ORDER"],"enum":["Error","RestoreMethod"],"struct":["Ppmd7Decoder","Ppmd7Encoder","Ppmd8Decoder","Ppmd8Encoder"],"type":["Result"]};
