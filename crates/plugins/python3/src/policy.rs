@@ -20,12 +20,19 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        // all non-pyc or __pycache__ files in src are student source files
-        let in_src = path.starts_with("src");
+        // no files in tmc, test and venv subdirectories are considered student files
         let is_cache_file = path.extension() == Some(OsStr::new("pyc"))
             || path
                 .components()
                 .any(|c| c.as_os_str() == OsStr::new("__pycache__"));
+        let is_in_exercise_subdir = path.starts_with("test") || path.starts_with("tmc");
+        let is_in_venv = path.starts_with(".venv") || path.starts_with("venv");
+        if is_cache_file || is_in_exercise_subdir || is_in_venv {
+            return false;
+        }
+
+        // all non-pyc or __pycache__ files in src are student source files
+        let in_src = path.starts_with("src");
         // .py files in exercise root are student source files
         let is_in_project_root = match path.parent() {
             Some(s) => s.as_os_str().is_empty(),
@@ -34,13 +41,12 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
         let is_py_file = path.extension() == Some(OsStr::new("py"));
         let is_ipynb = path.extension() == Some(OsStr::new("ipynb"));
 
-        // all files in non-tmc and non-test subdirectories are considered student files
-        let is_in_exercise_subdir = path.starts_with("test") || path.starts_with("tmc");
-
-        in_src && !is_cache_file
+        // all in all, excluding cache files and the exception subdirs,
+        // we take non-cache files in src, py files in root, everything not in the root and not in src, and all ipynb files
+        in_src
             || is_in_project_root && is_py_file
-            || !is_in_exercise_subdir && !is_in_project_root && !is_cache_file
-            || is_ipynb && !is_cache_file
+            || !is_in_exercise_subdir && !is_in_project_root
+            || is_ipynb
     }
 }
 
@@ -95,5 +101,12 @@ mod test {
         let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
         assert!(!policy.is_student_file(Path::new("test")));
         assert!(!policy.is_student_file(Path::new("root_file")));
+    }
+
+    #[test]
+    fn venv_dir_is_not_student_file() {
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_file(Path::new("venv/asd.py")));
+        assert!(!policy.is_student_file(Path::new(".venv/asd.py")));
     }
 }
