@@ -12,7 +12,6 @@ pub use self::{
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 pub use mooc_langs_api as api;
-use mooc_langs_api::ExerciseUpdateData;
 use oauth2::TokenResponse;
 use reqwest::{
     Method, StatusCode,
@@ -94,6 +93,10 @@ impl MoocClient {
 
 /// API methods.
 impl MoocClient {
+    pub fn course_instance(&self, instance_id: Uuid) -> MoocClientResult<CourseInstance> {
+        todo!()
+    }
+
     pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
         let url = make_langs_api_url(self, "course-instances")?;
         let res = self
@@ -133,19 +136,6 @@ impl MoocClient {
                 url,
                 error: err.into(),
             })?;
-        Ok(res)
-    }
-
-    pub fn check_exercise_updates(
-        &self,
-        exercises: &[ExerciseUpdateData],
-    ) -> MoocClientResult<ExerciseUpdates> {
-        let url = make_langs_api_url(self, "updates")?;
-        let res = self
-            .request(Method::POST, url.clone())
-            .json(&api::ExerciseUpdatesRequest { exercises })
-            .send_expect_json::<api::ExerciseUpdates>()?
-            .into();
         Ok(res)
     }
 
@@ -212,6 +202,10 @@ impl MoocClient {
             .request(Method::GET, url)
             .send_expect_json::<api::ExerciseTaskSubmissionStatus>()?;
         Ok(res.into())
+    }
+
+    pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseTask>> {
+        todo!()
     }
 }
 

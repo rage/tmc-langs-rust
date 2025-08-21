@@ -24,8 +24,8 @@ use std::{
     path::{Path, PathBuf},
 };
 use tmc_langs::{
-    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult,
-    DownloadResult, Language, StyleValidationResult, TmcConfig, UpdatedExercise,
+    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult, Language,
+    StyleValidationResult, TmcConfig, TmcDownloadResult, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{MoocClient, MoocClientError},
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
@@ -333,7 +333,7 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
-        Command::ListLocalTmcCourseExercises {
+        Command::ListLocalCourseExercises {
             client_name,
             course_slug,
         } => {
@@ -614,7 +614,7 @@ fn run_tmc_inner(
     let output = match tmc.command {
         TestMyCodeCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises = tmc_langs::check_exercise_updates(client, &projects_dir)
+            let updated_exercises = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
                 .context("Failed to check exercise updates")?
                 .into_iter()
                 .map(|id| UpdatedExercise { id })
@@ -671,7 +671,7 @@ fn run_tmc_inner(
                 &exercise_ids,
                 download_template,
             )? {
-                DownloadResult::Success {
+                TmcDownloadResult::Success {
                     downloaded,
                     skipped,
                 } => DownloadOrUpdateTmcCourseExercisesResult {
@@ -679,7 +679,7 @@ fn run_tmc_inner(
                     skipped,
                     failed: None,
                 },
-                DownloadResult::Failure {
+                TmcDownloadResult::Failure {
                     downloaded,
                     skipped,
                     failed,
@@ -1067,10 +1067,20 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
     let client_name = &mooc.client_name;
 
     let output = match mooc.command {
-        MoocCommand::CourseInstance {
-            course_instance_id: _,
-        } => {
-            todo!()
+        MoocCommand::CheckExerciseUpdates => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let course_instance = tmc_langs::check_mooc_exercise_updates(client, &projects_dir)?;
+            CliOutput::finished_with_data(
+                "checked exercise updates",
+                DataKind::MoocUpdatedExercises(course_instance),
+            )
+        }
+        MoocCommand::CourseInstance { course_instance_id } => {
+            let course_instance = client.course_instance(course_instance_id)?;
+            CliOutput::finished_with_data(
+                "fetched course instance",
+                DataKind::MoocCourseInstance(course_instance),
+            )
         }
         MoocCommand::CourseInstances => {
             let course_instances = client.course_instances()?;
@@ -1104,11 +1114,6 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             )?;
             CliOutput::finished("downloaded exercise")
         }
-        MoocCommand::UpdateExercises => {
-            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
-            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
-        }
         MoocCommand::Submit {
             exercise_id,
             slide_id,
@@ -1132,6 +1137,11 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 "submitted exercise",
                 DataKind::MoocSubmissionFinished(result),
             )
+        }
+        MoocCommand::UpdateExercises => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
+            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
         }
     };
     Ok(output)

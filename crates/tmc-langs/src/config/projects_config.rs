@@ -283,7 +283,7 @@ pub struct ProjectsDirTmcExercise {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProjectsDirMoocExercise {
     pub name: String,
-    pub id: Uuid,
+    pub task_id: Uuid,
     pub checksum: String,
     pub directory: String,
 }

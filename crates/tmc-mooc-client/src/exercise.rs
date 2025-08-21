@@ -44,6 +44,7 @@ pub struct TmcExerciseTask {
     pub assignment: serde_json::Value,
     pub public_spec: Option<PublicSpec>,
     pub model_solution_spec: Option<ModelSolutionSpec>,
+    pub checksum: String,
 }
 
 impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
@@ -61,6 +62,7 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
                 .model_solution_spec
                 .map(deserialize::json_from_value)
                 .transpose()?,
+            checksum: todo!(),
         };
         Ok(task)
     }

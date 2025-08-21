@@ -17,6 +17,7 @@ use tmc_langs::{
     },
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
+use uuid::Uuid;
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize)]
@@ -77,13 +78,10 @@ pub enum DataKind {
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
-    LocalTmcExercises(Vec<LocalTmcExercise>),
-    LocalMoocExercises(Vec<LocalMoocExercise>),
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
-    TmcExerciseDownload(DownloadOrUpdateTmcCourseExercisesResult),
     MoocExerciseDownload(DownloadOrUpdateMoocCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
@@ -101,9 +99,18 @@ pub enum DataKind {
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
     ConfigValue(ConfigValue),
-    TmcConfig(TmcConfig),
     CompressedProjectHash(String),
     SubmissionSandbox(String),
+
+    // tmc
+    LocalTmcExercises(Vec<LocalTmcExercise>),
+    TmcExerciseDownload(DownloadOrUpdateTmcCourseExercisesResult),
+    TmcConfig(TmcConfig),
+
+    // mooc
+    MoocUpdatedExercises(Vec<Uuid>),
+    LocalMoocExercises(Vec<LocalMoocExercise>),
+    MoocCourseInstance(mooc::CourseInstance),
     MoocCourseInstances(Vec<mooc::CourseInstance>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),

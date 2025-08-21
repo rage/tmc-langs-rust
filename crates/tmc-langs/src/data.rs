@@ -167,7 +167,7 @@ impl Display for ShellString {
 }
 
 #[derive(Debug)]
-pub enum DownloadResult {
+pub enum TmcDownloadResult {
     Success {
         downloaded: Vec<TmcExerciseDownload>,
         skipped: Vec<TmcExerciseDownload>,
@@ -204,7 +204,7 @@ pub struct TmcExerciseDownload {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct MoocExerciseDownload {
-    pub id: Uuid,
+    pub task_id: Uuid,
     pub path: PathBuf,
 }
 

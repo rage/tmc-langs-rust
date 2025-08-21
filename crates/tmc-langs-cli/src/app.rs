@@ -135,7 +135,7 @@ pub enum Command {
 
     /// Returns a list of local exercises for the given course
     #[clap(long_about = schema_leaked::<Vec<LocalExercise>>())]
-    ListLocalTmcCourseExercises {
+    ListLocalCourseExercises {
         /// The client name of which the exercises should be listed.
         #[clap(long)]
         client_name: String,
@@ -544,7 +544,10 @@ pub struct Mooc {
 
 #[derive(Parser)]
 pub enum MoocCommand {
+    #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
+    CheckExerciseUpdates,
     /// Fetches information about a course instance.
+    #[clap(long_about = schema_leaked::<CourseInstance>())]
     CourseInstance {
         #[clap(long)]
         course_instance_id: Uuid,
@@ -569,9 +572,6 @@ pub enum MoocCommand {
         #[clap(long)]
         target: PathBuf,
     },
-    /// Updates all local exercises that have been updated on the server
-    #[clap(long_about = SCHEMA_NULL)]
-    UpdateExercises,
     /// Submits an exercise.
     Submit {
         #[clap(long)]
@@ -583,6 +583,9 @@ pub enum MoocCommand {
         #[clap(long)]
         submission_path: PathBuf,
     },
+    /// Updates all local exercises that have been updated on the server
+    #[clap(long_about = SCHEMA_NULL)]
+    UpdateExercises,
 }
 
 /// Configure the CLI
@@ -796,7 +799,7 @@ mod base_test {
     #[test]
     fn list_local_course_exercises() {
         get_matches(&[
-            "list-local-tmc-course-exercises",
+            "list-local-ourse-exercises",
             "--client-name",
             "client",
             "--course-slug",

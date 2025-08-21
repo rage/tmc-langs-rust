@@ -282,7 +282,7 @@ fn check_exercise_updates(mut cx: FunctionContext) -> JsResult<JsValue> {
     let projects_dir =
         tmc_langs::get_projects_dir(&client_name).map_err(|e| convert_err(&mut cx, e))?;
     let res = with_client(client_name, client_version, |client| {
-        tmc_langs::check_exercise_updates(client, &projects_dir)
+        tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
     });
     convert_res(&mut cx, res)
 }
@@ -347,7 +347,7 @@ fn download_or_update_course_exercises(mut cx: FunctionContext) -> JsResult<JsVa
     .map_err(|e| convert_err(&mut cx, e))?;
 
     let res = match res {
-        tmc_langs::DownloadResult::Success {
+        tmc_langs::TmcDownloadResult::Success {
             downloaded,
             skipped,
         } => DownloadOrUpdateTmcCourseExercisesResult {
@@ -355,7 +355,7 @@ fn download_or_update_course_exercises(mut cx: FunctionContext) -> JsResult<JsVa
             skipped,
             failed: None,
         },
-        tmc_langs::DownloadResult::Failure {
+        tmc_langs::TmcDownloadResult::Failure {
             downloaded,
             skipped,
             failed,

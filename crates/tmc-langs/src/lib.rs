@@ -18,8 +18,8 @@ pub use crate::{
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
         CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
-        DownloadOrUpdateTmcCourseExercisesResult, DownloadResult, LocalExercise, LocalMoocExercise,
-        LocalTmcExercise, MoocExerciseDownload, TmcExerciseDownload, TmcParams,
+        DownloadOrUpdateTmcCourseExercisesResult, LocalExercise, LocalMoocExercise,
+        LocalTmcExercise, MoocExerciseDownload, TmcDownloadResult, TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -59,6 +59,7 @@ use tmc_mooc_client::{MoocClient, api::ExerciseUpdateData};
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;
+use uuid::Uuid;
 use walkdir::WalkDir;
 #[cfg(not(target_env = "musl"))]
 use {
@@ -104,7 +105,7 @@ pub fn get_projects_dir(client_name: &str) -> Result<PathBuf, LangsError> {
 
 /// Checks the server for any updates for exercises within the given projects directory.
 /// Returns the ids of each exercise that can be updated.
-pub fn check_exercise_updates(
+pub fn check_tmc_exercise_updates(
     client: &tmc::TestMyCodeClient,
     projects_dir: &Path,
 ) -> Result<Vec<u32>, LangsError> {
@@ -126,10 +127,47 @@ pub fn check_exercise_updates(
         for local_exercise in local_exercises {
             let server_exercise = server_exercises
                 .get(&local_exercise.id)
-                .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+                .ok_or(LangsError::TmcExerciseMissingOnServer(local_exercise.id))?;
             if server_exercise.checksum != local_exercise.checksum {
                 // server has an updated exercise
                 updated_exercises.push(local_exercise.id);
+            }
+        }
+    }
+    Ok(updated_exercises)
+}
+
+/// Checks the server for any updates for exercises within the given projects directory.
+/// Returns the ids of each exercise that can be updated.
+pub fn check_mooc_exercise_updates(
+    client: &mooc::MoocClient,
+    projects_dir: &Path,
+) -> Result<Vec<Uuid>, LangsError> {
+    log::debug!("checking exercise updates in {}", projects_dir.display());
+
+    let mut updated_exercises = vec![];
+
+    let config = ProjectsConfig::load(projects_dir)?;
+    let local_exercises = config.get_all_mooc_exercises().collect::<Vec<_>>();
+
+    // request would fail with empty id list
+    if !local_exercises.is_empty() {
+        let exercise_ids = local_exercises
+            .iter()
+            .map(|e| e.task_id)
+            .collect::<Vec<_>>();
+        let server_exercises = client
+            .get_exercises(&exercise_ids)?
+            .into_iter()
+            .map(|e| (e.task_id, e))
+            .collect::<HashMap<_, _>>();
+        for local_exercise in local_exercises {
+            let server_exercise = server_exercises.get(&local_exercise.task_id).ok_or(
+                LangsError::MoocExerciseMissingOnServer(local_exercise.task_id),
+            )?;
+            if server_exercise.checksum != local_exercise.checksum {
+                // server has an updated exercise
+                updated_exercises.push(local_exercise.task_id);
             }
         }
     }
@@ -223,7 +261,7 @@ pub fn download_or_update_course_exercises(
     projects_dir: &Path,
     exercises: &[u32],
     download_template: bool,
-) -> Result<DownloadResult, LangsError> {
+) -> Result<TmcDownloadResult, LangsError> {
     log::debug!(
         "downloading or updating course exercises in {}",
         projects_dir.display()
@@ -504,14 +542,14 @@ pub fn download_or_update_course_exercises(
                 (target.target, chain)
             })
             .collect();
-        return Ok(DownloadResult::Failure {
+        return Ok(TmcDownloadResult::Failure {
             downloaded,
             skipped: to_be_skipped,
             failed,
         });
     }
 
-    Ok(DownloadResult::Success {
+    Ok(TmcDownloadResult::Success {
         downloaded,
         skipped: to_be_skipped,
     })
@@ -632,7 +670,7 @@ pub fn update_tmc_exercises(
             for local_exercise in course_config.exercises.values_mut() {
                 let server_exercise = tmc_server_exercises
                     .remove(&local_exercise.id)
-                    .ok_or(LangsError::ExerciseMissingOnServer(local_exercise.id))?;
+                    .ok_or(LangsError::TmcExerciseMissingOnServer(local_exercise.id))?;
                 if server_exercise.checksum != local_exercise.checksum {
                     // server has an updated exercise
                     let target = ProjectsConfig::get_tmc_exercise_download_target(
@@ -708,37 +746,48 @@ pub fn update_mooc_exercises(
         .mooc_courses
         .values()
         .map(|cc| (cc, &cc.exercises))
-        .flat_map(|(cc, cce)| cce.values().map(move |e| (e.id, (cc, e))))
+        .flat_map(|(cc, cce)| cce.values().map(move |e| (e.task_id, (cc, e))))
         .collect::<HashMap<_, _>>();
 
     let mut downloaded = Vec::new();
     if !exercises.is_empty() {
         let exercise_update_data = exercises
             .values()
-            .map(|(_c, e)| ExerciseUpdateData {
-                id: e.id,
-                checksum: &e.checksum,
-            })
+            .map(|(_c, e)| e.task_id)
             .collect::<Vec<_>>();
-        let exercise_updates = client.check_exercise_updates(&exercise_update_data)?;
-        for updated_exercise in exercise_updates.updated_exercises {
-            if let Some((course, exercise)) = exercises.get(&updated_exercise) {
+        let server_exercises = client.get_exercises(&exercise_update_data)?;
+        let mut updated_exercises = Vec::new();
+        let mut deleted_exercises = Vec::new();
+        for se in server_exercises {
+            if let Some((_cc, local_exercise)) = exercises.get(&se.task_id) {
+                if local_exercise.checksum != se.checksum {
+                    updated_exercises.push(se);
+                }
+            } else {
+                deleted_exercises.push(se);
+            }
+        }
+        for updated_exercise in updated_exercises {
+            if let Some((course, exercise)) = exercises.get(&updated_exercise.task_id) {
                 let target = ProjectsConfig::get_mooc_exercise_download_target(
                     projects_dir,
                     &course.directory,
                     &exercise.directory,
                 );
-                let data = client.download_exercise(updated_exercise)?;
+                let data = client.download_exercise(updated_exercise.task_id)?;
                 extract_project(Cursor::new(data), &target, Compression::Zip, false, false)?;
                 downloaded.push(MoocExerciseDownload {
-                    id: updated_exercise,
+                    task_id: updated_exercise.task_id,
                     path: target,
                 })
             } else {
-                log::warn!("Server returned unexpected exercise id {updated_exercise}");
+                log::warn!(
+                    "Server returned unexpected exercise id {}",
+                    updated_exercise.task_id
+                );
             }
         }
-        for _deleted_exercise in exercise_updates.deleted_exercises {
+        for _deleted_exercise in deleted_exercises {
             // todo
         }
     }
@@ -1288,7 +1337,7 @@ checksum = 'old checksum'
         file_to(&projects_dir, "some course/some exercise/some file", "");
 
         let client = mock_testmycode_client(&server);
-        let updates = check_exercise_updates(&client, projects_dir.path()).unwrap();
+        let updates = check_tmc_exercise_updates(&client, projects_dir.path()).unwrap();
         assert_eq!(updates.len(), 1);
         assert_eq!(&updates[0], &1);
     }
@@ -1596,7 +1645,7 @@ checksum = 'new checksum'
             download_or_update_course_exercises(&client, projects_dir.path(), &exercises, false)
                 .unwrap();
         let (downloaded, skipped) = match res {
-            DownloadResult::Success {
+            TmcDownloadResult::Success {
                 downloaded,
                 skipped,
             } => (downloaded, skipped),
