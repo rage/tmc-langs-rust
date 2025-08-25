@@ -95,3 +95,12 @@ jobs:
 
       - name: Run tests
         run: cargo test --no-fail-fast --target ${{ matrix.rust-target }}
+
+      - name: Check number of dynamic libraries hasn't changed
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          EXPECTED=5
+          ACTUAL=$(ldd ./target/debug/tmc-langs-cli | wc -l)
+          if [ $ACTUAL -ne $EXPECTED ]; then
+            echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL"
+          fi
