@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Deflate64Decoder","InflateResult","InflaterManaged"]};
