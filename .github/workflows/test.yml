@@ -100,7 +100,18 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           EXPECTED=5
-          ACTUAL=$(ldd ./target/debug/tmc-langs-cli | wc -l)
+          ACTUAL=$(ldd ./target/x86_64-unknown-linux-gnu/debug/tmc-langs-cli | wc -l)
           if [ $ACTUAL -ne $EXPECTED ]; then
             echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL"
+            exit 1
+          fi
+
+      - name: Check number of dynamic libraries hasn't changed
+        if: matrix.os == 'macos-latest'
+        run: |
+          EXPECTED=5
+          ACTUAL=$(ldd ./target/aarch64-apple-darwin/debug/tmc-langs-cli | wc -l)
+          if [ $ACTUAL -ne $EXPECTED ]; then
+            echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL"
+            exit 1
           fi
