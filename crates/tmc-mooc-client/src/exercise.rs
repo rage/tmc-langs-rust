@@ -62,24 +62,29 @@ impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
                 .model_solution_spec
                 .map(deserialize::json_from_value)
                 .transpose()?,
-            checksum: todo!(),
+            checksum: value.checksum,
         };
         Ok(task)
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum ExerciseType {
+    Browser,
+    Editor,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
-pub enum PublicSpec {
-    Browser {
-        files: Vec<ExerciseFile>,
-    },
-    Editor {
-        archive_name: String,
-        archive_download_url: String,
-        checksum: String,
-    },
+pub struct PublicSpec {
+    exercise_type: ExerciseType,
+    archive_name: String,
+    stub_download_url: String,
+    student_file_paths: Vec<String>,
+    checksum: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

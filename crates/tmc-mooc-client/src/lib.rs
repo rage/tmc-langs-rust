@@ -94,7 +94,11 @@ impl MoocClient {
 /// API methods.
 impl MoocClient {
     pub fn course_instance(&self, instance_id: Uuid) -> MoocClientResult<CourseInstance> {
-        todo!()
+        let url = make_langs_api_url(self, &format!("course-instances/{instance_id}"))?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<api::CourseInstance>()?;
+        Ok(res.into())
     }
 
     pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
@@ -205,7 +209,13 @@ impl MoocClient {
     }
 
     pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseTask>> {
-        todo!()
+        // todo: implement in a single request...
+        let mut exercises = Vec::new();
+        for exercise_id in exercise_ids {
+            let exercise = self.exercise(*exercise_id)?;
+            exercises.extend(exercise.tasks)
+        }
+        Ok(exercises)
     }
 }
 

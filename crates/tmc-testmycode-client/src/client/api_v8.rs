@@ -402,7 +402,6 @@ pub mod point {
                 percent_encode(course_name)
             ),
         )?;
-        todo!()
     }
     */
 
