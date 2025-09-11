@@ -292,7 +292,7 @@ export type ConfigValue = unknown | null | string;
 
 export type TmcConfig = { projects_dir: string, }
 
-export type CourseInstance = { id: string, course_id: string, course_slug: string, course_name: string, course_description: string | null, instance_name: string | null, instance_description: string | null, }
+export type CourseInstance = { id: string, course_id: string, course_slug: string, course_name: string, course_description: string | null, instance_name: string | null, instance_description: string | null, organization_name: string, }
 
 export type TmcExerciseSlide = { slide_id: string, exercise_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>, }
 

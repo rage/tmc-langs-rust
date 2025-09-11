@@ -311,6 +311,7 @@ pub struct CourseInstance {
     pub course_description: Option<String>,
     pub instance_name: Option<String>,
     pub instance_description: Option<String>,
+    pub organization_name: String,
 }
 
 impl From<api::CourseInstance> for CourseInstance {
@@ -323,6 +324,7 @@ impl From<api::CourseInstance> for CourseInstance {
             course_description: value.course_description,
             instance_name: value.instance_name,
             instance_description: value.instance_description,
+            organization_name: value.organization_name,
         }
     }
 }

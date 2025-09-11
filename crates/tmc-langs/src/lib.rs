@@ -55,7 +55,7 @@ use tmc_langs_util::file_util::LOCK_FILE_NAME;
 // the Java plugin is disabled on musl
 pub use tmc_langs_util::{file_util, notification_reporter, progress_reporter};
 pub use tmc_mooc_client as mooc;
-use tmc_mooc_client::{MoocClient, api::ExerciseUpdateData};
+use tmc_mooc_client::MoocClient;
 pub use tmc_testmycode_client as tmc;
 use toml::Value as TomlValue;
 use url::Url;

@@ -13,7 +13,8 @@ use tmc_langs_util::{
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-/// A project directory is a directory which contains directories of courses (which contain a `course_config.toml`).
+/// A project directory is a directory which contains directories of backends
+/// which contain directories of courses (which contain a `course_config.toml`).
 const COURSE_CONFIG_FILE_NAME: &str = "course_config.toml";
 
 #[derive(Debug)]
@@ -35,16 +36,14 @@ impl ProjectsConfig {
 
         // the projects dir has a separate directory for each TMC course, which are all expected to contain a `course_config.toml` file for TMC courses
         // MOOC courses are in a `mooc` subdirectory to prevent the course slugs (which are used as the directory names) from conflicting
+
         // process tmc courses first
         let mut unexpected_entries = Vec::new();
-        if projects_dir.exists() {
-            for entry in WalkDir::new(projects_dir).min_depth(1).max_depth(1) {
+        let tmc_projects_dir = projects_dir.join("tmc");
+        if tmc_projects_dir.exists() {
+            for entry in WalkDir::new(tmc_projects_dir).min_depth(1).max_depth(1) {
                 let entry = entry?;
                 let file_name = entry.file_name();
-                if file_name == "mooc" {
-                    // skip the special `mooc` dir
-                    continue;
-                }
 
                 let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
                 if course_config_path.exists() {
@@ -91,6 +90,37 @@ impl ProjectsConfig {
             }
         }
 
+        // there may also be old course directories in the projects dir directly,
+        // as that is where they used to be stored
+        // rather than move them, we'll just process them here to make things easier
+        // users of langs can move them to the new dir if they like
+        let mut unexpected_entries = Vec::new();
+        let legacy_projects_dir = projects_dir;
+        if legacy_projects_dir.exists() {
+            for entry in WalkDir::new(legacy_projects_dir).min_depth(1).max_depth(1) {
+                let entry = entry?;
+                let file_name = entry.file_name();
+
+                if file_name == "tmc" || file_name == "mooc" {
+                    // skip tmc and mooc dirs
+                    continue;
+                }
+
+                // only tmc courses were ever stored this way
+                let course_config_path = entry.path().join(COURSE_CONFIG_FILE_NAME);
+                if course_config_path.exists() {
+                    let course_dir_name = file_name.to_str().ok_or_else(|| {
+                        LangsError::FileError(FileError::NoFileName(entry.path().to_path_buf()))
+                    })?;
+                    let file = file_util::read_file_to_string(&course_config_path)?;
+                    let course_config = deserialize::toml_from_str(&file)?;
+                    tmc_course_configs.insert(course_dir_name.to_string(), course_config);
+                } else {
+                    unexpected_entries.push(entry);
+                }
+            }
+        }
+
         // maintenance: check that the exercises in the config actually exist on disk
         // if any are found that do not, update the course config file accordingly
         for (_, course_config) in tmc_course_configs.iter_mut() {
@@ -119,6 +149,32 @@ impl ProjectsConfig {
                 course_config.save_to_projects_dir(projects_dir)?;
             }
         }
+        for (_, course_config) in mooc_course_configs.iter_mut() {
+            let mut deleted_exercises = vec![];
+            for (exercise_id, exercise) in course_config.exercises.iter() {
+                let expected_dir = Self::get_mooc_exercise_download_target(
+                    projects_dir,
+                    &course_config.directory,
+                    &exercise.directory,
+                );
+                if !expected_dir.exists() {
+                    log::debug!(
+                        "local exercise {} not found, deleting from config",
+                        expected_dir.display()
+                    );
+                    deleted_exercises.push(*exercise_id);
+                }
+            }
+            for deleted_exercise in &deleted_exercises {
+                course_config
+                    .exercises
+                    .remove(deleted_exercise)
+                    .expect("this should never fail");
+            }
+            if !deleted_exercises.is_empty() {
+                course_config.save_to_projects_dir(projects_dir)?;
+            }
+        }
 
         Ok(Self {
             tmc_courses: tmc_course_configs,
@@ -131,7 +187,10 @@ impl ProjectsConfig {
         course_name: &str,
         exercise_name: &str,
     ) -> PathBuf {
-        projects_dir.join(course_name).join(exercise_name)
+        projects_dir
+            .join("tmc")
+            .join(course_name)
+            .join(exercise_name)
     }
 
     pub fn get_mooc_exercise_download_target(
@@ -140,6 +199,7 @@ impl ProjectsConfig {
         exercise_directory: &str,
     ) -> PathBuf {
         projects_dir
+            .join("mooc")
             .join(instance_directory)
             .join(exercise_directory)
     }
@@ -270,6 +330,19 @@ pub struct MoocCourseConfig {
     /// The course's exercises in a map with the exercise's id as the key.
     #[serde(default)]
     pub exercises: BTreeMap<Uuid, ProjectsDirMoocExercise>,
+}
+
+impl MoocCourseConfig {
+    pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
+        let course_dir = projects_dir.join(&self.course);
+        if !course_dir.exists() {
+            file_util::create_dir_all(&course_dir)?;
+        }
+        let target = course_dir.join(COURSE_CONFIG_FILE_NAME);
+        let s = toml::to_string_pretty(&self)?;
+        file_util::write_to_file(s.as_bytes(), target)?;
+        Ok(())
+    }
 }
 
 /// A TMC exercise in the projects directory.
