@@ -191,6 +191,20 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
     )?;
     jvm.invoke_static("java.lang.System", "setErr", &[InvocationArg::from(err)])
         .map_err(JavaError::j4rs)?;
+
+    // print version for debugging purposes, but do not fail on error
+    match jvm.invoke_static(
+        "java.lang.System",
+        "getProperty",
+        &[InvocationArg::try_from("java.version".to_string()).expect("should never fail")],
+    ) {
+        Ok(version) => match jvm.to_rust::<String>(version).map_err(JavaError::j4rs) {
+            Ok(version) => log::info!("Java version: {version}"),
+            Err(err) => log::error!("Error while trying to convert Java version: {err}"),
+        },
+        Err(err) => log::error!("Error while trying to read Java version: {err}"),
+    }
+
     Ok(JvmWrapper {
         jvm,
         stdout_path,
