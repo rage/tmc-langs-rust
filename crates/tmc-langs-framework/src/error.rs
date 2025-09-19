@@ -29,6 +29,10 @@ pub enum TmcError {
     ZstdRead(#[source] std::io::Error),
     #[error("Failed to write zstd archive")]
     ZstdWrite(#[source] std::io::Error),
+    #[error(
+        "Archive size limit exceeded when compressing proejct (limit: {limit} MB, archive: {actual} MB)"
+    )]
+    ArchiveSizeLimitExceeded { limit: u32, actual: usize },
 
     #[error("Path {0} is not valid UTF-8")]
     InvalidUtf8(PathBuf),

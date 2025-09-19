@@ -14,6 +14,8 @@ use tmc_langs_util::{
     file_util::{self, Lock, LockOptions},
 };
 
+const DEFAULT_SUBMISSION_SIZE_LIMIT_MB: u32 = 500;
+
 /// Extra data from a `.tmcproject.yml` file.
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -60,6 +62,11 @@ pub struct TmcProjectYml {
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sandbox_image: Option<String>,
+
+    /// Overrides the default archive size limit (500 Mb).
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub submission_size_limit_mb: Option<u32>,
 }
 
 impl TmcProjectYml {
@@ -120,6 +127,9 @@ impl TmcProjectYml {
             minimum_python_version: old.minimum_python_version.or(with.minimum_python_version),
             sandbox_image: old.sandbox_image.or(with.sandbox_image),
             no_tests: old.no_tests.or(with.no_tests),
+            submission_size_limit_mb: old
+                .submission_size_limit_mb
+                .or(with.submission_size_limit_mb),
         };
         *self = new;
     }
@@ -131,6 +141,11 @@ impl TmcProjectYml {
         let mut guard = lock.lock()?;
         serde_yaml::to_writer(guard.get_file_mut(), &self)?;
         Ok(())
+    }
+
+    pub fn get_submission_size_limit_mb(&self) -> u32 {
+        self.submission_size_limit_mb
+            .unwrap_or(DEFAULT_SUBMISSION_SIZE_LIMIT_MB)
     }
 }
 

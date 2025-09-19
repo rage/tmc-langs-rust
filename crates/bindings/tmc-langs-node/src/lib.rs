@@ -612,7 +612,7 @@ fn paste(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = locale.map(|l| Language::from_639_3(&l).expect("Invalid locale"));
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.paste(exercise_id, &submission_path, paste_message, locale)?)
+        Ok(client.paste(exercise_id, &submission_path, paste_message, locale, 500)?)
     });
     convert_res(&mut cx, res)
 }
@@ -636,6 +636,7 @@ fn request_code_review(mut cx: FunctionContext) -> JsResult<JsValue> {
             &submission_path,
             message_for_reviewer,
             Some(locale),
+            500,
         )?)
     });
     convert_res(&mut cx, res)
@@ -654,7 +655,7 @@ fn reset_exercise(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let res = with_client(client_name, client_version, |client| {
         if save_old_state {
-            client.submit(exercise_id, &exercise_path, None)?;
+            client.submit(exercise_id, &exercise_path, 500, None)?;
         }
         tmc_langs::reset(client, exercise_id, &exercise_path)
     });
@@ -701,7 +702,7 @@ fn submit(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = locale.map(|l| Language::from_639_3(&l).expect("Invalid locale"));
     let temp = with_client(client_name, client_version, |client| {
-        let new_submission = client.submit(exercise_id, &submission_path, locale)?;
+        let new_submission = client.submit(exercise_id, &submission_path, 500, locale)?;
         if dont_block {
             Ok(Temp::NewSubmission(new_submission))
         } else {

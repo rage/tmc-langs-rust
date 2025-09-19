@@ -54,9 +54,10 @@ pub fn compress_project(
     deterministic: bool,
     naive: bool,
     hash: bool,
+    size_limit_mb: u32,
 ) -> Result<(Vec<u8>, Option<Hash>), PluginError> {
     let (compressed, hash) = if naive {
-        compression.compress(path, hash)?
+        compression.compress(path, hash, size_limit_mb)?
     } else {
         let policy = get_student_file_policy(path)?;
         compression::compress_student_files(
@@ -65,9 +66,9 @@ pub fn compress_project(
             compression,
             deterministic,
             hash,
+            size_limit_mb,
         )?
     };
-
     Ok((compressed, hash))
 }
 

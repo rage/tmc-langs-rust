@@ -25,7 +25,7 @@ use std::{
 };
 use tmc_langs::{
     CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult,
-    DownloadResult, Language, StyleValidationResult, TmcConfig, UpdatedExercise,
+    DownloadResult, Language, StyleValidationResult, TmcConfig, TmcProjectYml, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{MoocClient, MoocClientError},
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
@@ -894,9 +894,16 @@ fn run_tmc_inner(
             let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
             let _guard = lock.lock()?;
 
+            let tmc_project_yml = TmcProjectYml::load_or_default(&submission_path)?;
             let locale = locale.map(|l| l.0);
             let new_submission = client
-                .paste(exercise_id, &submission_path, paste_message, locale)
+                .paste(
+                    exercise_id,
+                    &submission_path,
+                    paste_message,
+                    locale,
+                    tmc_project_yml.get_submission_size_limit_mb(),
+                )
                 .context("Failed to get paste with comment")?;
             CliOutput::finished_with_data("sent paste", DataKind::NewSubmission(new_submission))
         }
@@ -910,12 +917,14 @@ fn run_tmc_inner(
             let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
             let _guard = lock.lock()?;
 
+            let tmc_project_yml = TmcProjectYml::load_or_default(&submission_path)?;
             let new_submission = client
                 .request_code_review(
                     exercise_id,
                     &submission_path,
                     message_for_reviewer,
                     Some(locale),
+                    tmc_project_yml.get_submission_size_limit_mb(),
                 )
                 .context("Failed to request code review")?;
             CliOutput::finished_with_data(
@@ -934,7 +943,13 @@ fn run_tmc_inner(
 
             if save_old_state {
                 // submit current state
-                client.submit(exercise_id, &exercise_path, None)?;
+                let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
+                client.submit(
+                    exercise_id,
+                    &exercise_path,
+                    tmc_project_yml.get_submission_size_limit_mb(),
+                    None,
+                )?;
             }
             tmc_langs::reset(client, exercise_id, &exercise_path)?;
             CliOutput::finished("reset exercise")
@@ -987,8 +1002,14 @@ fn run_tmc_inner(
             let _guard = lock.lock()?;
 
             let locale = locale.map(|l| l.0);
+            let tmc_project_yml = TmcProjectYml::load_or_default(&submission_path)?;
             let new_submission = client
-                .submit(exercise_id, &submission_path, locale)
+                .submit(
+                    exercise_id,
+                    &submission_path,
+                    tmc_project_yml.get_submission_size_limit_mb(),
+                    locale,
+                )
                 .context("Failed to submit")?;
 
             if dont_block {

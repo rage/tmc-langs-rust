@@ -24,6 +24,7 @@ use std::{
     sync::Arc,
     thread,
     time::Duration,
+    u32,
 };
 use tmc_langs_plugins::{Compression, Language};
 use tmc_langs_util::progress_reporter;
@@ -187,6 +188,7 @@ impl TestMyCodeClient {
         &self,
         exercise_id: u32,
         submission_path: &Path,
+        submission_size_limit_mb: u32,
         locale: Option<Language>,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
@@ -198,6 +200,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         progress_stage("Compressed submission. Posting submission...", None);
@@ -259,6 +262,7 @@ impl TestMyCodeClient {
         submission_path: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
+        submission_size_limit_mb: u32,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
@@ -270,6 +274,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         progress_stage(
@@ -503,6 +508,7 @@ impl TestMyCodeClient {
         submission_path: &Path,
         message_for_reviewer: Option<String>,
         locale: Option<Language>,
+        submission_size_limit_mb: u32,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
@@ -512,6 +518,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         let review = if let Some(message) = message_for_reviewer {
@@ -892,4 +899,7 @@ mod test {
         let _res = client.wait_for_submission(0).unwrap();
         m.assert();
     }
+
+    #[test]
+    fn asd() {}
 }
