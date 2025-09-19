@@ -293,7 +293,12 @@ pub enum Compression {
 }
 
 impl Compression {
-    pub fn compress(self, path: &Path, hash: bool) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
+    pub fn compress(
+        self,
+        path: &Path,
+        hash: bool,
+        size_limit_mb: u32,
+    ) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
         let mut hasher = if hash { Some(Hasher::new()) } else { None };
         let buf = match self {
             Self::Tar => {
@@ -365,7 +370,21 @@ impl Compression {
             }
         };
         let hash = hasher.map(|h| h.finalize());
+        Self::enforce_archive_size_limit(&buf, size_limit_mb)?;
         Ok((buf, hash))
+    }
+
+    pub fn enforce_archive_size_limit(data: &[u8], size_limit_mb: u32) -> Result<(), TmcError> {
+        if let Ok(data_len_b) = u64::try_from(data.len()) {
+            let size_limit_b = u64::from(size_limit_mb) * 1000 * 1000;
+            if data_len_b <= size_limit_b {
+                return Ok(());
+            }
+        }
+        Err(TmcError::ArchiveSizeLimitExceeded {
+            limit: size_limit_mb,
+            actual: data.len(),
+        })
     }
 }
 

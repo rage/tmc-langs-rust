@@ -150,7 +150,13 @@ pub fn download_old_submission(
 
     if save_old_state {
         // submit old exercise
-        client.submit(exercise_id, output_path, None)?;
+        let tmc_project_yml = TmcProjectYml::load_or_default(output_path)?;
+        client.submit(
+            exercise_id,
+            output_path,
+            tmc_project_yml.get_submission_size_limit_mb(),
+            None,
+        )?;
         log::debug!("finished submission");
     }
 
@@ -185,8 +191,14 @@ pub fn submit_exercise(
     let exercise_path =
         ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
+    let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
-        .submit(exercise.id, exercise_path.as_path(), locale)
+        .submit(
+            exercise.id,
+            exercise_path.as_path(),
+            tmc_project_yml.get_submission_size_limit_mb(),
+            locale,
+        )
         .map_err(Into::into)
 }
 
@@ -207,8 +219,15 @@ pub fn paste_exercise(
     let exercise_path =
         ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
+    let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
-        .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .paste(
+            exercise.id,
+            exercise_path.as_path(),
+            paste_message,
+            locale,
+            tmc_project_yml.get_submission_size_limit_mb(),
+        )
         .map_err(Into::into)
 }
 
@@ -846,8 +865,15 @@ pub fn compress_project_to(
         compression
     );
 
-    let (data, _hash) =
-        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, false)?;
+    let tmc_project_yml = TmcProjectYml::load_or_default(source)?;
+    let (data, _hash) = tmc_langs_plugins::compress_project(
+        source,
+        compression,
+        deterministic,
+        naive,
+        false,
+        tmc_project_yml.get_submission_size_limit_mb(),
+    )?;
     file_util::write_to_file(data, target)?;
     Ok(())
 }
@@ -868,8 +894,15 @@ pub fn compress_project_to_with_hash(
         compression
     );
 
-    let (data, hash) =
-        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, true)?;
+    let tmc_project_yml = TmcProjectYml::load_or_default(source)?;
+    let (data, hash) = tmc_langs_plugins::compress_project(
+        source,
+        compression,
+        deterministic,
+        naive,
+        true,
+        tmc_project_yml.get_submission_size_limit_mb(),
+    )?;
     let hash = hash.expect("set hash to true");
     file_util::write_to_file(data, target)?;
     Ok(hash.to_string())
