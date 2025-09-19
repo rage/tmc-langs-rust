@@ -1,6 +1,6 @@
 //! Contains the language policy for the plugin.
 
-use std::path::Path;
+use std::{ffi::OsStr, path::Path};
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct MakeStudentFilePolicy {
@@ -20,7 +20,7 @@ impl StudentFilePolicy for MakeStudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        path.starts_with("src")
+        path.starts_with("src") && path.extension() == Some(OsStr::new("c"))
     }
 }
 

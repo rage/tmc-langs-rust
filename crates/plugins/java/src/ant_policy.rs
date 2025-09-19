@@ -1,6 +1,6 @@
 //! Ant student file policy
 
-use std::path::Path;
+use std::{ffi::OsStr, path::Path};
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct AntStudentFilePolicy {
@@ -20,7 +20,7 @@ impl StudentFilePolicy for AntStudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        path.starts_with("src")
+        path.starts_with("src") && path.extension() == Some(OsStr::new(".java"))
     }
 }
 
