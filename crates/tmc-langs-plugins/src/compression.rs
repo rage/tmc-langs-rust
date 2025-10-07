@@ -24,7 +24,7 @@ pub fn compress_student_files(
     let mut writer = ArchiveBuilder::new(
         Cursor::new(vec![]),
         compression,
-        size_limit_mb,
+        Some(size_limit_mb),
         deterministic,
         hash,
     );

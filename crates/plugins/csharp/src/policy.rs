@@ -33,14 +33,14 @@ mod test {
     fn file_in_binary_dir_is_not_student_file() {
         let policy = CSharpStudentFilePolicy::new(Path::new(".")).unwrap();
         assert!(!policy.is_student_file(Path::new("src/bin/any/file")));
-        assert!(!policy.is_student_file(Path::new("obj/any/src/file")));
+        assert!(!policy.is_student_file(Path::new("obj/any/src/file.cs")));
     }
 
     #[test]
-    fn file_in_src_is_student_file() {
+    fn cs_file_in_src_is_student_file() {
         let policy = CSharpStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_file(Path::new("src/file")));
-        assert!(policy.is_student_file(Path::new("src/any/file")));
+        assert!(policy.is_student_file(Path::new("src/file.cs")));
+        assert!(policy.is_student_file(Path::new("src/any/file.cs")));
     }
 
     #[test]

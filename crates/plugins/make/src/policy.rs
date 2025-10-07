@@ -32,14 +32,17 @@ mod test {
     #[test]
     fn is_student_file() {
         let policy = MakeStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_file(Path::new("src")));
-        assert!(policy.is_student_file(Path::new("src/file")));
-        assert!(policy.is_student_file(Path::new("src/dir/file")));
+        assert!(policy.is_student_file(Path::new("src/file.c")));
+        assert!(policy.is_student_file(Path::new("src/file.h")));
+        assert!(policy.is_student_file(Path::new("src/dir/file.c")));
+        assert!(policy.is_student_file(Path::new("src/dir/file.h")));
     }
 
     #[test]
     fn is_not_student_source_file() {
         let policy = MakeStudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_file(Path::new("a.c")));
+        assert!(!policy.is_student_file(Path::new("a.h")));
         assert!(!policy.is_student_file(Path::new("srcc")));
         assert!(!policy.is_student_file(Path::new("dir/src/file")));
     }

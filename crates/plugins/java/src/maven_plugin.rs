@@ -17,7 +17,7 @@ use tmc_langs_framework::{
     Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
     TmcError, nom::IResult, nom_language::error::VerboseError,
 };
-use tmc_langs_util::{file_util, path_util};
+use tmc_langs_util::file_util;
 
 const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.8.1-bin.tar.gz");
 const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base directory in the maven archive
@@ -137,12 +137,9 @@ impl LanguagePlugin for MavenPlugin {
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
-                if file.is_file() && file_path.extension() == Some(OsStr::new("java")) {
-                    // check if java file has src as ancestor
-                    for ancestor in file_path.ancestors() {
-                        if let Some(src_parent) = path_util::get_parent_of_named(ancestor, "src") {
-                            return Ok(Break(Some(src_parent)));
-                        }
+                if file.is_file() && file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
                     }
                 }
                 Ok(Continue(()))

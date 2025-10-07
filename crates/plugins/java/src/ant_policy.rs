@@ -38,7 +38,7 @@ mod test {
     #[test]
     fn is_not_student_source_file() {
         let policy = AntStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_file(Path::new("src/file")));
+        assert!(!policy.is_student_file(Path::new("src/file")));
         assert!(!policy.is_student_file(Path::new("file")));
         assert!(!policy.is_student_file(Path::new("dir/src/file")));
         assert!(!policy.is_student_file(Path::new("srca/file")));

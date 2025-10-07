@@ -20,6 +20,7 @@ impl StudentFilePolicy for MavenStudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
+        // technically pom.xml would need to be included to differentiate between maven and ant projects
         path.starts_with("src/main") && path.extension() == Some(OsStr::new("java"))
     }
 }
@@ -31,8 +32,8 @@ mod test {
     #[test]
     fn is_student_file() {
         let policy = MavenStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_file(Path::new("src/main/file")));
-        assert!(policy.is_student_file(Path::new("src/main/dir/file")));
+        assert!(policy.is_student_file(Path::new("src/main/file.java")));
+        assert!(policy.is_student_file(Path::new("src/main/dir/file.java")));
     }
 
     #[test]

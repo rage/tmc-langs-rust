@@ -39,7 +39,6 @@ mod test {
         init();
 
         let policy = RStudentFilePolicy::new(Path::new(".")).unwrap();
-        assert!(policy.is_student_file(Path::new("R")));
         assert!(policy.is_student_file(Path::new("R/file.R")));
     }
 
@@ -48,6 +47,7 @@ mod test {
         init();
 
         let policy = RStudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_file(Path::new("a.R")));
         assert!(!policy.is_student_file(Path::new("dir/R")));
         assert!(!policy.is_student_file(Path::new("dir/R/file")));
     }

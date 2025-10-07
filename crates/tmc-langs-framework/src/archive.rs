@@ -295,15 +295,9 @@ pub enum Compression {
 }
 
 impl Compression {
-    pub fn compress(
-        self,
-        path: &Path,
-        hash: bool,
-        size_limit_mb: u32,
-    ) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
-        let mut builder =
-            ArchiveBuilder::new(Cursor::new(Vec::new()), self, size_limit_mb, true, hash);
-        walk_dir_for_compression(path, size_limit_mb, |entry, relative_path| {
+    pub fn compress(self, path: &Path, hash: bool) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
+        let mut builder = ArchiveBuilder::new(Cursor::new(Vec::new()), self, None, true, hash);
+        walk_dir_for_compression(path, |entry, relative_path| {
             if entry.path().is_dir() {
                 builder.add_directory(entry.path(), relative_path)?;
             } else if entry.path().is_file() {
@@ -312,23 +306,14 @@ impl Compression {
             Ok(())
         })?;
         let (cursor, hash) = builder.finish()?;
-        if u32::try_from(cursor.get_ref().len()).unwrap_or(u32::MAX) > size_limit_mb {
-            return Err(TmcError::ArchiveSizeLimitExceeded {
-                limit: size_limit_mb,
-            });
-        }
         Ok((cursor.into_inner(), hash))
     }
 }
 
 fn walk_dir_for_compression(
     root: &Path,
-    size_limit_mb: u32,
     mut f: impl FnMut(&walkdir::DirEntry, &str) -> Result<(), TmcError>,
 ) -> Result<(), TmcError> {
-    let size_limit_b = u64::from(size_limit_mb).saturating_mul(1000 * 1000);
-    let mut size_total_b = 0;
-
     let parent = root.parent().map(PathBuf::from).unwrap_or_default();
     for entry in WalkDir::new(root)
         .sort_by_file_name()
@@ -337,13 +322,6 @@ fn walk_dir_for_compression(
         .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
     {
         let entry = entry?;
-        let metadata = entry.metadata()?;
-        size_total_b += metadata.len();
-        if size_total_b > size_limit_b {
-            return Err(TmcError::ArchiveSizeLimitExceeded {
-                limit: size_limit_mb,
-            });
-        }
         let stripped = entry
             .path()
             .strip_prefix(&parent)
@@ -381,8 +359,8 @@ impl FromStr for Compression {
 }
 
 pub struct ArchiveBuilder<W: Write + Seek> {
-    size_limit_b: usize,
-    size_limit_mb: u32,
+    size_limit_b: Option<usize>,
+    size_limit_mb: Option<u32>,
     size_total_b: usize,
     hasher: Option<Hasher>,
     kind: Kind<W>,
@@ -406,13 +384,15 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
     pub fn new(
         writer: W,
         compression: Compression,
-        size_limit_mb: u32,
+        size_limit_mb: Option<u32>,
         deterministic: bool,
         hash: bool,
     ) -> Self {
-        let size_limit_b = usize::try_from(size_limit_mb)
-            .unwrap_or(usize::MAX)
-            .saturating_mul(1000 * 1000);
+        let size_limit_b = size_limit_mb.map(|slmb| {
+            usize::try_from(slmb)
+                .unwrap_or(usize::MAX)
+                .saturating_mul(1000 * 1000)
+        });
         let hasher = if hash { Some(Hasher::new()) } else { None };
         let kind = match compression {
             Compression::Tar => {
@@ -471,10 +451,12 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
         self.hash(path_in_archive.as_bytes());
         let bytes = file_util::read_file(source)?;
         self.size_total_b += bytes.len();
-        if self.size_total_b > self.size_limit_b {
-            return Err(TmcError::ArchiveSizeLimitExceeded {
-                limit: self.size_limit_mb,
-            });
+        if let (Some(size_limit_b), Some(size_limit_mb)) = (self.size_limit_b, self.size_limit_mb) {
+            if self.size_total_b > size_limit_b {
+                return Err(TmcError::ArchiveSizeLimitExceeded {
+                    limit: size_limit_mb,
+                });
+            }
         }
         self.hash(&bytes);
         match &mut self.kind {
@@ -538,8 +520,13 @@ mod test {
 
     #[test]
     fn exceeding_file_limit_causes_error() {
-        let mut builder =
-            ArchiveBuilder::new(Cursor::new(Vec::new()), Compression::Tar, 1, true, true);
+        let mut builder = ArchiveBuilder::new(
+            Cursor::new(Vec::new()),
+            Compression::Tar,
+            Some(1),
+            true,
+            true,
+        );
 
         // write exactly 1MB, OK
         let mut temp = NamedTempFile::new().unwrap();
