@@ -14,7 +14,7 @@ use tmc_langs_util::{
     file_util::{self, Lock, LockOptions},
 };
 
-const DEFAULT_SUBMISSION_SIZE_LIMIT_MB: u32 = 500;
+const DEFAULT_SUBMISSION_SIZE_LIMIT_MB: u32 = 1;
 
 /// Extra data from a `.tmcproject.yml` file.
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
@@ -313,24 +313,6 @@ mod test {
         let no_tests = cfg.no_tests.unwrap();
         assert!(no_tests.flag);
         assert_eq!(no_tests.points, &["1", "notests"]);
-    }
-
-    #[test]
-    fn deserialize_submission_size_limit_mb() {
-        init();
-
-        let submission_size_limit_mb = r#"submission_size_limit_mb: 100
-"#;
-
-        let cfg: TmcProjectYml = deserialize::yaml_from_str(submission_size_limit_mb).unwrap();
-        let submission_size_limit_mb = cfg.submission_size_limit_mb.unwrap();
-        assert_eq!(submission_size_limit_mb, 100);
-        let submission_size_limit_mb = cfg.get_submission_size_limit_mb();
-        assert_eq!(submission_size_limit_mb, 100);
-
-        let cfg: TmcProjectYml = deserialize::yaml_from_str("").unwrap();
-        let submission_size_limit_mb = cfg.get_submission_size_limit_mb();
-        assert_eq!(submission_size_limit_mb, DEFAULT_SUBMISSION_SIZE_LIMIT_MB);
     }
 
     #[test]

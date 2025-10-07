@@ -847,7 +847,7 @@ fn run_tmc_inner(
                 } else {
                     password
                 };
-                tmc_langs::login_with_password(client, client_name, email, decoded)?
+                tmc_langs::login_with_password(client, email, decoded)?
             } else {
                 unreachable!("validation error");
             };

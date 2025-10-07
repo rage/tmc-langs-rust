@@ -547,7 +547,7 @@ fn login(mut cx: FunctionContext) -> JsResult<JsValue> {
         password
     };
     let token = with_client(&client_name, client_version, |client| {
-        tmc_langs::login_with_password(client, &client_name, email, decoded)
+        tmc_langs::login_with_password(client, email, decoded)
     })
     .map_err(|e| convert_err(&mut cx, e))?;
 

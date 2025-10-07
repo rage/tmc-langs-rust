@@ -6,7 +6,7 @@
 //! use tmc_testmycode_client::TestMyCodeClient;
 //!
 //! let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
-//! client.authenticate("client_name", "email".to_string(), "password".to_string());
+//! client.authenticate("email".to_string(), "password".to_string());
 //! let organizations = client.get_organizations();
 //! ```
 //!

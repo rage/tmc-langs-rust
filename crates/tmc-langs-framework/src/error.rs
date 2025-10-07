@@ -13,6 +13,9 @@ pub enum TmcError {
     #[error("Failed to seek archive")]
     Seek(#[source] std::io::Error),
 
+    #[error("Failed to hash file")]
+    Hash(#[source] std::io::Error),
+
     #[error("Failed to read zip file")]
     ZipRead(#[source] std::io::Error),
     #[error("Failed to read file inside zip archive with path {0}")]
@@ -29,16 +32,16 @@ pub enum TmcError {
     ZstdRead(#[source] std::io::Error),
     #[error("Failed to write zstd archive")]
     ZstdWrite(#[source] std::io::Error),
-    #[error(
-        "Archive size limit exceeded when compressing proejct (limit: {limit} MB, archive: {actual} MB)"
-    )]
-    ArchiveSizeLimitExceeded { limit: u32, actual: usize },
+    #[error("Archive size limit exceeded when compressing project (limit: {limit} MB)")]
+    ArchiveSizeLimitExceeded { limit: u32 },
 
     #[error("Path {0} is not valid UTF-8")]
     InvalidUtf8(PathBuf),
 
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
+    #[error("Failed to get file metadata")]
+    FileMetadata(#[source] std::io::Error),
     #[error("Failed to canonicalize path {0}")]
     Canonicalize(PathBuf, #[source] std::io::Error),
     #[error("File {0} not in given project root {1}")]

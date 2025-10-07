@@ -2,7 +2,6 @@
 
 //! Abstracts over the various language plugins.
 
-pub mod archive;
 pub mod compression;
 mod error;
 
@@ -57,7 +56,7 @@ pub fn compress_project(
     size_limit_mb: u32,
 ) -> Result<(Vec<u8>, Option<Hash>), PluginError> {
     let (compressed, hash) = if naive {
-        compression.compress(path, hash, size_limit_mb)?
+        compression.compress(path, hash)?
     } else {
         let policy = get_student_file_policy(path)?;
         compression::compress_student_files(

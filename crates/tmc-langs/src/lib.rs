@@ -570,12 +570,11 @@ pub fn login_with_token(token: String) -> tmc::Token {
 /// Reads the password from stdin.
 pub fn login_with_password(
     client: &mut tmc::TestMyCodeClient,
-    client_name: &str,
     email: String,
     password: String,
 ) -> Result<tmc::Token, LangsError> {
     log::debug!("logging in with password");
-    let token = client.authenticate(client_name, email, password)?;
+    let token = client.authenticate(email, password)?;
     Ok(token)
 }
 
@@ -966,8 +965,7 @@ pub fn extract_project(
             plugin.extract_project(&mut archive, target_location, clean)?;
         } else {
             log::debug!(
-                "no matching language plugin found for {}, extracting naively",
-                target_location.display()
+                "no matching language plugin found for compressed project, extracting naively",
             );
             let compressed_project = archive.into_inner();
             extract_project_overwrite(compressed_project, target_location, compression)?;
