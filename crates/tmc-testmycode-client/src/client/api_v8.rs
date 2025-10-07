@@ -163,10 +163,8 @@ pub fn post_form<T: DeserializeOwned>(
 
 /// get /api/v8/application/{client_name}/credentials
 /// Fetches oauth2 credentials info.
-pub fn get_credentials(
-    client: &TestMyCodeClient,
-    client_name: &str,
-) -> Result<Credentials, TestMyCodeClientError> {
+pub fn get_credentials(client: &TestMyCodeClient) -> Result<Credentials, TestMyCodeClientError> {
+    let client_name = &client.0.client_name;
     let url = make_url(
         client,
         format!("/api/v8/application/{client_name}/credentials"),
@@ -1072,7 +1070,7 @@ mod test {
         "#,
         );
 
-        let _res = get_credentials(&client, "client").unwrap();
+        let _res = get_credentials(&client).unwrap();
     }
 
     #[test]

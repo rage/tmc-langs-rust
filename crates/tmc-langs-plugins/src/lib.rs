@@ -2,7 +2,6 @@
 
 //! Abstracts over the various language plugins.
 
-pub mod archive;
 pub mod compression;
 mod error;
 

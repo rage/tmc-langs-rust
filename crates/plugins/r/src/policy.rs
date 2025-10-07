@@ -1,6 +1,6 @@
 //! Contains the R student file policy
 
-use std::path::Path;
+use std::{ffi::OsStr, path::Path};
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct RStudentFilePolicy {
@@ -20,7 +20,7 @@ impl StudentFilePolicy for RStudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        path.starts_with("R")
+        path.starts_with("R") && path.extension() == Some(OsStr::new("R"))
     }
 }
 
@@ -40,7 +40,7 @@ mod test {
 
         let policy = RStudentFilePolicy::new(Path::new(".")).unwrap();
         assert!(policy.is_student_file(Path::new("R")));
-        assert!(policy.is_student_file(Path::new("R/file")));
+        assert!(policy.is_student_file(Path::new("R/file.R")));
     }
 
     #[test]

@@ -1,6 +1,6 @@
 //! Maven student file policy
 
-use std::path::Path;
+use std::{ffi::OsStr, path::Path};
 use tmc_langs_framework::{StudentFilePolicy, TmcProjectYml};
 
 pub struct MavenStudentFilePolicy {
@@ -20,7 +20,7 @@ impl StudentFilePolicy for MavenStudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        path.starts_with("src/main")
+        path.starts_with("src/main") && path.extension() == Some(OsStr::new("java"))
     }
 }
 

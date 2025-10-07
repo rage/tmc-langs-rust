@@ -6,7 +6,7 @@ use crate::{
 };
 use flate2::read::GzDecoder;
 use std::{
-    ffi::OsString,
+    ffi::{OsStr, OsString},
     io::{Cursor, Read, Seek},
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
@@ -132,14 +132,17 @@ impl LanguagePlugin for MavenPlugin {
         archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
         let mut iter = archive.iter()?;
+
         let project_dir = loop {
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
-                if file.is_file() {
-                    // check for pom.xml
-                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "pom.xml") {
-                        return Ok(Break(Some(parent)));
+                if file.is_file() && file_path.extension() == Some(OsStr::new("java")) {
+                    // check if java file has src as ancestor
+                    for ancestor in file_path.ancestors() {
+                        if let Some(src_parent) = path_util::get_parent_of_named(ancestor, "src") {
+                            return Ok(Break(Some(src_parent)));
+                        }
                     }
                 }
                 Ok(Continue(()))
