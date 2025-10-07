@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.5/src/ser/value/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-84e720fa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0 (29483883e 2025-08-04)" data-channel="1.89.0" data-search-js="search-92309212.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-4e99c027.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-fd3af306.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/value/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::fmt::Write <span class="kw">as _</span>;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.7/src/ser/value/map.rs`."><title>map.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/value/</div>map.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>core::fmt::Write <span class="kw">as _</span>;
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>toml_writer::TomlWrite <span class="kw">as _</span>;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -35,13 +35,13 @@
 <a href=#35 id=35 data-nosnippet>35</a>    }
 <a href=#36 id=36 data-nosnippet>36</a>}
 <a href=#37 id=37 data-nosnippet>37</a>
-<a href=#38 id=38 data-nosnippet>38</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#38 id=38 data-nosnippet>38</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeMap <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#39 id=39 data-nosnippet>39</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#40 id=40 data-nosnippet>40</a>    <span class="kw">type </span>Error = Error;
 <a href=#41 id=41 data-nosnippet>41</a>
 <a href=#42 id=42 data-nosnippet>42</a>    <span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#43 id=43 data-nosnippet>43</a>    <span class="kw">where
-<a href=#44 id=44 data-nosnippet>44</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#44 id=44 data-nosnippet>44</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#45 id=45 data-nosnippet>45</a>    {
 <a href=#46 id=46 data-nosnippet>46</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#47 id=47 data-nosnippet>47</a>            <span class="self">Self</span>::Datetime(s) =&gt; s.serialize_key(input),
@@ -51,7 +51,7 @@
 <a href=#51 id=51 data-nosnippet>51</a>
 <a href=#52 id=52 data-nosnippet>52</a>    <span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#53 id=53 data-nosnippet>53</a>    <span class="kw">where
-<a href=#54 id=54 data-nosnippet>54</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#54 id=54 data-nosnippet>54</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#55 id=55 data-nosnippet>55</a>    {
 <a href=#56 id=56 data-nosnippet>56</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#57 id=57 data-nosnippet>57</a>            <span class="self">Self</span>::Datetime(s) =&gt; s.serialize_value(value),
@@ -67,13 +67,13 @@
 <a href=#67 id=67 data-nosnippet>67</a>    }
 <a href=#68 id=68 data-nosnippet>68</a>}
 <a href=#69 id=69 data-nosnippet>69</a>
-<a href=#70 id=70 data-nosnippet>70</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#70 id=70 data-nosnippet>70</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeStruct <span class="kw">for </span>SerializeMap&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#71 id=71 data-nosnippet>71</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#72 id=72 data-nosnippet>72</a>    <span class="kw">type </span>Error = Error;
 <a href=#73 id=73 data-nosnippet>73</a>
 <a href=#74 id=74 data-nosnippet>74</a>    <span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#75 id=75 data-nosnippet>75</a>    <span class="kw">where
-<a href=#76 id=76 data-nosnippet>76</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#76 id=76 data-nosnippet>76</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#77 id=77 data-nosnippet>77</a>    {
 <a href=#78 id=78 data-nosnippet>78</a>        <span class="kw">match </span><span class="self">self </span>{
 <a href=#79 id=79 data-nosnippet>79</a>            <span class="self">Self</span>::Datetime(s) =&gt; s.serialize_field(key, value),
@@ -104,20 +104,20 @@
 <a href=#104 id=104 data-nosnippet>104</a>    }
 <a href=#105 id=105 data-nosnippet>105</a>}
 <a href=#106 id=106 data-nosnippet>106</a>
-<a href=#107 id=107 data-nosnippet>107</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeDatetime&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#107 id=107 data-nosnippet>107</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeMap <span class="kw">for </span>SerializeDatetime&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#108 id=108 data-nosnippet>108</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#109 id=109 data-nosnippet>109</a>    <span class="kw">type </span>Error = Error;
 <a href=#110 id=110 data-nosnippet>110</a>
 <a href=#111 id=111 data-nosnippet>111</a>    <span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _input: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#112 id=112 data-nosnippet>112</a>    <span class="kw">where
-<a href=#113 id=113 data-nosnippet>113</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#113 id=113 data-nosnippet>113</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#114 id=114 data-nosnippet>114</a>    {
 <a href=#115 id=115 data-nosnippet>115</a>        <span class="macro">unreachable!</span>(<span class="string">"datetimes should only be serialized as structs, not maps"</span>)
 <a href=#116 id=116 data-nosnippet>116</a>    }
 <a href=#117 id=117 data-nosnippet>117</a>
 <a href=#118 id=118 data-nosnippet>118</a>    <span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#119 id=119 data-nosnippet>119</a>    <span class="kw">where
-<a href=#120 id=120 data-nosnippet>120</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#120 id=120 data-nosnippet>120</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#121 id=121 data-nosnippet>121</a>    {
 <a href=#122 id=122 data-nosnippet>122</a>        <span class="macro">unreachable!</span>(<span class="string">"datetimes should only be serialized as structs, not maps"</span>)
 <a href=#123 id=123 data-nosnippet>123</a>    }
@@ -127,13 +127,13 @@
 <a href=#127 id=127 data-nosnippet>127</a>    }
 <a href=#128 id=128 data-nosnippet>128</a>}
 <a href=#129 id=129 data-nosnippet>129</a>
-<a href=#130 id=130 data-nosnippet>130</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeDatetime&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#130 id=130 data-nosnippet>130</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeStruct <span class="kw">for </span>SerializeDatetime&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#131 id=131 data-nosnippet>131</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#132 id=132 data-nosnippet>132</a>    <span class="kw">type </span>Error = Error;
 <a href=#133 id=133 data-nosnippet>133</a>
 <a href=#134 id=134 data-nosnippet>134</a>    <span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#135 id=135 data-nosnippet>135</a>    <span class="kw">where
-<a href=#136 id=136 data-nosnippet>136</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#136 id=136 data-nosnippet>136</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#137 id=137 data-nosnippet>137</a>    {
 <a href=#138 id=138 data-nosnippet>138</a>        <span class="self">self</span>.inner.serialize_field(key, value).map_err(dt_err)<span class="question-mark">?</span>;
 <a href=#139 id=139 data-nosnippet>139</a>
@@ -182,13 +182,13 @@
 <a href=#182 id=182 data-nosnippet>182</a>    }
 <a href=#183 id=183 data-nosnippet>183</a>}
 <a href=#184 id=184 data-nosnippet>184</a>
-<a href=#185 id=185 data-nosnippet>185</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeMap <span class="kw">for </span>SerializeTable&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#185 id=185 data-nosnippet>185</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeMap <span class="kw">for </span>SerializeTable&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#186 id=186 data-nosnippet>186</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#187 id=187 data-nosnippet>187</a>    <span class="kw">type </span>Error = Error;
 <a href=#188 id=188 data-nosnippet>188</a>
 <a href=#189 id=189 data-nosnippet>189</a>    <span class="kw">fn </span>serialize_key&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#190 id=190 data-nosnippet>190</a>    <span class="kw">where
-<a href=#191 id=191 data-nosnippet>191</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#191 id=191 data-nosnippet>191</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#192 id=192 data-nosnippet>192</a>    {
 <a href=#193 id=193 data-nosnippet>193</a>        <span class="kw">let </span><span class="kw-2">mut </span>encoded_key = String::new();
 <a href=#194 id=194 data-nosnippet>194</a>        input.serialize(KeySerializer {
@@ -200,7 +200,7 @@
 <a href=#200 id=200 data-nosnippet>200</a>
 <a href=#201 id=201 data-nosnippet>201</a>    <span class="kw">fn </span>serialize_value&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#202 id=202 data-nosnippet>202</a>    <span class="kw">where
-<a href=#203 id=203 data-nosnippet>203</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#203 id=203 data-nosnippet>203</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#204 id=204 data-nosnippet>204</a>    {
 <a href=#205 id=205 data-nosnippet>205</a>        <span class="kw">let </span>encoded_key = <span class="self">self
 <a href=#206 id=206 data-nosnippet>206</a>            </span>.key
@@ -240,13 +240,13 @@
 <a href=#240 id=240 data-nosnippet>240</a>    }
 <a href=#241 id=241 data-nosnippet>241</a>}
 <a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStruct <span class="kw">for </span>SerializeTable&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#243 id=243 data-nosnippet>243</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeStruct <span class="kw">for </span>SerializeTable&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#244 id=244 data-nosnippet>244</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#245 id=245 data-nosnippet>245</a>    <span class="kw">type </span>Error = Error;
 <a href=#246 id=246 data-nosnippet>246</a>
 <a href=#247 id=247 data-nosnippet>247</a>    <span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#248 id=248 data-nosnippet>248</a>    <span class="kw">where
-<a href=#249 id=249 data-nosnippet>249</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#249 id=249 data-nosnippet>249</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#250 id=250 data-nosnippet>250</a>    {
 <a href=#251 id=251 data-nosnippet>251</a>        <span class="kw">let </span><span class="kw-2">mut </span>encoded_value = String::new();
 <a href=#252 id=252 data-nosnippet>252</a>        <span class="kw">let </span><span class="kw-2">mut </span>is_none = <span class="bool-val">false</span>;
@@ -299,7 +299,7 @@
 <a href=#299 id=299 data-nosnippet>299</a>    }
 <a href=#300 id=300 data-nosnippet>300</a>}
 <a href=#301 id=301 data-nosnippet>301</a>
-<a href=#302 id=302 data-nosnippet>302</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::Serializer <span class="kw">for </span>MapValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#302 id=302 data-nosnippet>302</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::Serializer <span class="kw">for </span>MapValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#303 id=303 data-nosnippet>303</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#304 id=304 data-nosnippet>304</a>    <span class="kw">type </span>Error = Error;
 <a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">type </span>SerializeSeq = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
@@ -373,7 +373,7 @@
 <a href=#373 id=373 data-nosnippet>373</a>
 <a href=#374 id=374 data-nosnippet>374</a>    <span class="kw">fn </span>serialize_some&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#375 id=375 data-nosnippet>375</a>    <span class="kw">where
-<a href=#376 id=376 data-nosnippet>376</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#376 id=376 data-nosnippet>376</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#377 id=377 data-nosnippet>377</a>    {
 <a href=#378 id=378 data-nosnippet>378</a>        ValueSerializer::with_style(<span class="self">self</span>.dst, <span class="self">self</span>.style).serialize_some(value)
 <a href=#379 id=379 data-nosnippet>379</a>    }
@@ -405,7 +405,7 @@
 <a href=#405 id=405 data-nosnippet>405</a>        value: <span class="kw-2">&amp;</span>T,
 <a href=#406 id=406 data-nosnippet>406</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#407 id=407 data-nosnippet>407</a>    <span class="kw">where
-<a href=#408 id=408 data-nosnippet>408</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#408 id=408 data-nosnippet>408</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#409 id=409 data-nosnippet>409</a>    {
 <a href=#410 id=410 data-nosnippet>410</a>        value.serialize(<span class="self">self</span>)
 <a href=#411 id=411 data-nosnippet>411</a>    }
@@ -418,7 +418,7 @@
 <a href=#418 id=418 data-nosnippet>418</a>        value: <span class="kw-2">&amp;</span>T,
 <a href=#419 id=419 data-nosnippet>419</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#420 id=420 data-nosnippet>420</a>    <span class="kw">where
-<a href=#421 id=421 data-nosnippet>421</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#421 id=421 data-nosnippet>421</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#422 id=422 data-nosnippet>422</a>    {
 <a href=#423 id=423 data-nosnippet>423</a>        ValueSerializer::with_style(<span class="self">self</span>.dst, <span class="self">self</span>.style).serialize_newtype_variant(
 <a href=#424 id=424 data-nosnippet>424</a>            name,
@@ -510,21 +510,21 @@
 <a href=#510 id=510 data-nosnippet>510</a>    }
 <a href=#511 id=511 data-nosnippet>511</a>}
 <a href=#512 id=512 data-nosnippet>512</a>
-<a href=#513 id=513 data-nosnippet>513</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeStructVariant <span class="kw">for </span>SerializeStructVariant&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#513 id=513 data-nosnippet>513</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeStructVariant <span class="kw">for </span>SerializeStructVariant&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#514 id=514 data-nosnippet>514</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#515 id=515 data-nosnippet>515</a>    <span class="kw">type </span>Error = Error;
 <a href=#516 id=516 data-nosnippet>516</a>
 <a href=#517 id=517 data-nosnippet>517</a>    <span class="attr">#[inline]
 <a href=#518 id=518 data-nosnippet>518</a>    </span><span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;
 <a href=#519 id=519 data-nosnippet>519</a>    <span class="kw">where
-<a href=#520 id=520 data-nosnippet>520</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#520 id=520 data-nosnippet>520</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#521 id=521 data-nosnippet>521</a>    {
-<a href=#522 id=522 data-nosnippet>522</a>        serde::ser::SerializeStruct::serialize_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, key, value)
+<a href=#522 id=522 data-nosnippet>522</a>        serde_core::ser::SerializeStruct::serialize_field(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner, key, value)
 <a href=#523 id=523 data-nosnippet>523</a>    }
 <a href=#524 id=524 data-nosnippet>524</a>
 <a href=#525 id=525 data-nosnippet>525</a>    <span class="attr">#[inline]
 <a href=#526 id=526 data-nosnippet>526</a>    </span><span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-<a href=#527 id=527 data-nosnippet>527</a>        <span class="kw">let </span>dst = serde::ser::SerializeStruct::end(<span class="self">self</span>.inner)<span class="question-mark">?</span>;
+<a href=#527 id=527 data-nosnippet>527</a>        <span class="kw">let </span>dst = serde_core::ser::SerializeStruct::end(<span class="self">self</span>.inner)<span class="question-mark">?</span>;
 <a href=#528 id=528 data-nosnippet>528</a>        dst.space()<span class="question-mark">?</span>;
 <a href=#529 id=529 data-nosnippet>529</a>        dst.close_inline_table()<span class="question-mark">?</span>;
 <a href=#530 id=530 data-nosnippet>530</a>        <span class="prelude-val">Ok</span>(dst)

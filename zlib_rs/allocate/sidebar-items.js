@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Allocator"]};
+window.SIDEBAR_ITEMS = {"static":["RUST"],"struct":["Allocator"]};

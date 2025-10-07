@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.5/src/ser/document/array_of_tables.rs`."><title>array_of_tables.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-84e720fa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0 (29483883e 2025-08-04)" data-channel="1.89.0" data-search-js="search-92309212.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-4e99c027.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-fd3af306.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/document/</div>array_of_tables.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">super</span>::style::Style;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.7/src/ser/document/array_of_tables.rs`."><title>array_of_tables.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/document/</div>array_of_tables.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">super</span>::style::Style;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">super</span>::Buffer;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">super</span>::Error;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">super</span>::Serializer;
@@ -27,16 +27,16 @@
 <a href=#27 id=27 data-nosnippet>27</a>    }
 <a href=#28 id=28 data-nosnippet>28</a>}
 <a href=#29 id=29 data-nosnippet>29</a>
-<a href=#30 id=30 data-nosnippet>30</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::Serializer <span class="kw">for </span>ArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#30 id=30 data-nosnippet>30</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::Serializer <span class="kw">for </span>ArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>Buffer;
 <a href=#32 id=32 data-nosnippet>32</a>    <span class="kw">type </span>Error = Error;
 <a href=#33 id=33 data-nosnippet>33</a>    <span class="kw">type </span>SerializeSeq = SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt;;
 <a href=#34 id=34 data-nosnippet>34</a>    <span class="kw">type </span>SerializeTuple = SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt;;
 <a href=#35 id=35 data-nosnippet>35</a>    <span class="kw">type </span>SerializeTupleStruct = SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt;;
-<a href=#36 id=36 data-nosnippet>36</a>    <span class="kw">type </span>SerializeTupleVariant = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
-<a href=#37 id=37 data-nosnippet>37</a>    <span class="kw">type </span>SerializeMap = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
-<a href=#38 id=38 data-nosnippet>38</a>    <span class="kw">type </span>SerializeStruct = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
-<a href=#39 id=39 data-nosnippet>39</a>    <span class="kw">type </span>SerializeStructVariant = serde::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
+<a href=#36 id=36 data-nosnippet>36</a>    <span class="kw">type </span>SerializeTupleVariant = serde_core::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
+<a href=#37 id=37 data-nosnippet>37</a>    <span class="kw">type </span>SerializeMap = serde_core::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
+<a href=#38 id=38 data-nosnippet>38</a>    <span class="kw">type </span>SerializeStruct = serde_core::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
+<a href=#39 id=39 data-nosnippet>39</a>    <span class="kw">type </span>SerializeStructVariant = serde_core::ser::Impossible&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;;
 <a href=#40 id=40 data-nosnippet>40</a>
 <a href=#41 id=41 data-nosnippet>41</a>    <span class="kw">fn </span>serialize_bool(<span class="self">self</span>, _v: bool) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
 <a href=#42 id=42 data-nosnippet>42</a>        <span class="prelude-val">Err</span>(Error::unsupported_type(<span class="prelude-val">Some</span>(<span class="string">"bool"</span>)))
@@ -100,7 +100,7 @@
 <a href=#100 id=100 data-nosnippet>100</a>
 <a href=#101 id=101 data-nosnippet>101</a>    <span class="kw">fn </span>serialize_some&lt;T&gt;(<span class="self">self</span>, v: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#102 id=102 data-nosnippet>102</a>    <span class="kw">where
-<a href=#103 id=103 data-nosnippet>103</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#103 id=103 data-nosnippet>103</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#104 id=104 data-nosnippet>104</a>    {
 <a href=#105 id=105 data-nosnippet>105</a>        v.serialize(<span class="self">self</span>)
 <a href=#106 id=106 data-nosnippet>106</a>    }
@@ -128,7 +128,7 @@
 <a href=#128 id=128 data-nosnippet>128</a>        v: <span class="kw-2">&amp;</span>T,
 <a href=#129 id=129 data-nosnippet>129</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#130 id=130 data-nosnippet>130</a>    <span class="kw">where
-<a href=#131 id=131 data-nosnippet>131</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#131 id=131 data-nosnippet>131</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#132 id=132 data-nosnippet>132</a>    {
 <a href=#133 id=133 data-nosnippet>133</a>        v.serialize(<span class="self">self</span>)
 <a href=#134 id=134 data-nosnippet>134</a>    }
@@ -141,7 +141,7 @@
 <a href=#141 id=141 data-nosnippet>141</a>        _value: <span class="kw-2">&amp;</span>T,
 <a href=#142 id=142 data-nosnippet>142</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#143 id=143 data-nosnippet>143</a>    <span class="kw">where
-<a href=#144 id=144 data-nosnippet>144</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#144 id=144 data-nosnippet>144</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#145 id=145 data-nosnippet>145</a>    {
 <a href=#146 id=146 data-nosnippet>146</a>        <span class="prelude-val">Err</span>(Error::unsupported_type(<span class="prelude-val">Some</span>(variant)))
 <a href=#147 id=147 data-nosnippet>147</a>    }
@@ -223,13 +223,13 @@
 <a href=#223 id=223 data-nosnippet>223</a>    }
 <a href=#224 id=224 data-nosnippet>224</a>}
 <a href=#225 id=225 data-nosnippet>225</a>
-<a href=#226 id=226 data-nosnippet>226</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeSeq <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#226 id=226 data-nosnippet>226</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeSeq <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#227 id=227 data-nosnippet>227</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>Buffer;
 <a href=#228 id=228 data-nosnippet>228</a>    <span class="kw">type </span>Error = Error;
 <a href=#229 id=229 data-nosnippet>229</a>
 <a href=#230 id=230 data-nosnippet>230</a>    <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <a href=#231 id=231 data-nosnippet>231</a>    <span class="kw">where
-<a href=#232 id=232 data-nosnippet>232</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#232 id=232 data-nosnippet>232</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#233 id=233 data-nosnippet>233</a>    {
 <a href=#234 id=234 data-nosnippet>234</a>        <span class="kw">let </span>child = <span class="self">self</span>.buf.element_table(<span class="kw-2">&amp;mut </span><span class="self">self</span>.parent, <span class="self">self</span>.key.clone());
 <a href=#235 id=235 data-nosnippet>235</a>        <span class="kw">let </span>value_serializer = Serializer::with_table(<span class="self">self</span>.buf, child, <span class="self">self</span>.style);
@@ -242,34 +242,34 @@
 <a href=#242 id=242 data-nosnippet>242</a>    }
 <a href=#243 id=243 data-nosnippet>243</a>}
 <a href=#244 id=244 data-nosnippet>244</a>
-<a href=#245 id=245 data-nosnippet>245</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTuple <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#245 id=245 data-nosnippet>245</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeTuple <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#246 id=246 data-nosnippet>246</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>Buffer;
 <a href=#247 id=247 data-nosnippet>247</a>    <span class="kw">type </span>Error = Error;
 <a href=#248 id=248 data-nosnippet>248</a>
 <a href=#249 id=249 data-nosnippet>249</a>    <span class="kw">fn </span>serialize_element&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <a href=#250 id=250 data-nosnippet>250</a>    <span class="kw">where
-<a href=#251 id=251 data-nosnippet>251</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#251 id=251 data-nosnippet>251</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#252 id=252 data-nosnippet>252</a>    {
-<a href=#253 id=253 data-nosnippet>253</a>        serde::ser::SerializeSeq::serialize_element(<span class="self">self</span>, value)
+<a href=#253 id=253 data-nosnippet>253</a>        serde_core::ser::SerializeSeq::serialize_element(<span class="self">self</span>, value)
 <a href=#254 id=254 data-nosnippet>254</a>    }
 <a href=#255 id=255 data-nosnippet>255</a>
 <a href=#256 id=256 data-nosnippet>256</a>    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-<a href=#257 id=257 data-nosnippet>257</a>        serde::ser::SerializeSeq::end(<span class="self">self</span>)
+<a href=#257 id=257 data-nosnippet>257</a>        serde_core::ser::SerializeSeq::end(<span class="self">self</span>)
 <a href=#258 id=258 data-nosnippet>258</a>    }
 <a href=#259 id=259 data-nosnippet>259</a>}
 <a href=#260 id=260 data-nosnippet>260</a>
-<a href=#261 id=261 data-nosnippet>261</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::SerializeTupleStruct <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#261 id=261 data-nosnippet>261</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::SerializeTupleStruct <span class="kw">for </span>SerializeArrayOfTablesSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#262 id=262 data-nosnippet>262</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>Buffer;
 <a href=#263 id=263 data-nosnippet>263</a>    <span class="kw">type </span>Error = Error;
 <a href=#264 id=264 data-nosnippet>264</a>
 <a href=#265 id=265 data-nosnippet>265</a>    <span class="kw">fn </span>serialize_field&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <a href=#266 id=266 data-nosnippet>266</a>    <span class="kw">where
-<a href=#267 id=267 data-nosnippet>267</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#267 id=267 data-nosnippet>267</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#268 id=268 data-nosnippet>268</a>    {
-<a href=#269 id=269 data-nosnippet>269</a>        serde::ser::SerializeSeq::serialize_element(<span class="self">self</span>, value)
+<a href=#269 id=269 data-nosnippet>269</a>        serde_core::ser::SerializeSeq::serialize_element(<span class="self">self</span>, value)
 <a href=#270 id=270 data-nosnippet>270</a>    }
 <a href=#271 id=271 data-nosnippet>271</a>
 <a href=#272 id=272 data-nosnippet>272</a>    <span class="kw">fn </span>end(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-<a href=#273 id=273 data-nosnippet>273</a>        serde::ser::SerializeSeq::end(<span class="self">self</span>)
+<a href=#273 id=273 data-nosnippet>273</a>        serde_core::ser::SerializeSeq::end(<span class="self">self</span>)
 <a href=#274 id=274 data-nosnippet>274</a>    }
 <a href=#275 id=275 data-nosnippet>275</a>}</code></pre></div></section></main></body></html>

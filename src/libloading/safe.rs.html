@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libloading-0.8.8/src/safe.rs`."><title>safe.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-84e720fa.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="libloading" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0 (29483883e 2025-08-04)" data-channel="1.89.0" data-search-js="search-92309212.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fd3af306.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">libloading/</div>safe.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#[cfg(libloading_docs)]
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/libloading-0.8.9/src/safe.rs`."><title>safe.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="libloading" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">libloading/</div>safe.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="attr">#[cfg(libloading_docs)]
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">use </span><span class="kw">super</span>::os::unix <span class="kw">as </span>imp; <span class="comment">// the implementation used here doesn't matter particularly much...
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="attr">#[cfg(all(not(libloading_docs), unix))]
 <a href=#4 id=4 data-nosnippet>4</a></span><span class="kw">use </span><span class="kw">super</span>::os::unix <span class="kw">as </span>imp;
@@ -145,7 +145,7 @@
 <a href=#145 id=145 data-nosnippet>145</a>    ///     **awesome_variable = 42.0;
 <a href=#146 id=146 data-nosnippet>146</a>    /// };
 <a href=#147 id=147 data-nosnippet>147</a>    /// ```
-<a href=#148 id=148 data-nosnippet>148</a>    </span><span class="kw">pub unsafe fn </span>get&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;T&gt;, Error&gt; {
+<a href=#148 id=148 data-nosnippet>148</a>    </span><span class="kw">pub unsafe fn </span>get&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, symbol: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Symbol&lt;<span class="lifetime">'_</span>, T&gt;, Error&gt; {
 <a href=#149 id=149 data-nosnippet>149</a>        <span class="self">self</span>.<span class="number">0</span>.get(symbol).map(|from| Symbol::from_raw(from, <span class="self">self</span>))
 <a href=#150 id=150 data-nosnippet>150</a>    }
 <a href=#151 id=151 data-nosnippet>151</a>
@@ -261,60 +261,58 @@
 <a href=#261 id=261 data-nosnippet>261</a>    /// was loaded from.
 <a href=#262 id=262 data-nosnippet>262</a>    </span><span class="kw">pub unsafe fn </span>try_as_raw_ptr(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">*mut </span>raw::c_void&gt; {
 <a href=#263 id=263 data-nosnippet>263</a>        <span class="prelude-val">Some</span>(
-<a href=#264 id=264 data-nosnippet>264</a>            <span class="attr">#[allow(unused_unsafe)] </span><span class="comment">// 1.56.0 compat
-<a href=#265 id=265 data-nosnippet>265</a>            </span><span class="kw">unsafe </span>{
-<a href=#266 id=266 data-nosnippet>266</a>                <span class="comment">// SAFE: the calling function has the same soundness invariants as this callee.
-<a href=#267 id=267 data-nosnippet>267</a>                </span><span class="self">self</span>.into_raw()
-<a href=#268 id=268 data-nosnippet>268</a>            }
-<a href=#269 id=269 data-nosnippet>269</a>            .as_raw_ptr(),
-<a href=#270 id=270 data-nosnippet>270</a>        )
-<a href=#271 id=271 data-nosnippet>271</a>    }
-<a href=#272 id=272 data-nosnippet>272</a>}
-<a href=#273 id=273 data-nosnippet>273</a>
-<a href=#274 id=274 data-nosnippet>274</a><span class="kw">impl</span>&lt;<span class="lifetime">'lib</span>, T&gt; Symbol&lt;<span class="lifetime">'lib</span>, <span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
-<a href=#275 id=275 data-nosnippet>275</a>    <span class="doccomment">/// Lift Option out of the symbol.
-<a href=#276 id=276 data-nosnippet>276</a>    ///
-<a href=#277 id=277 data-nosnippet>277</a>    /// # Examples
-<a href=#278 id=278 data-nosnippet>278</a>    ///
-<a href=#279 id=279 data-nosnippet>279</a>    /// ```no_run
-<a href=#280 id=280 data-nosnippet>280</a>    /// # use ::libloading::{Library, Symbol};
-<a href=#281 id=281 data-nosnippet>281</a>    /// unsafe {
-<a href=#282 id=282 data-nosnippet>282</a>    ///     let lib = Library::new("/path/to/awesome.module").unwrap();
-<a href=#283 id=283 data-nosnippet>283</a>    ///     let symbol: Symbol&lt;Option&lt;*mut u32&gt;&gt; = lib.get(b"symbol\0").unwrap();
-<a href=#284 id=284 data-nosnippet>284</a>    ///     let symbol: Symbol&lt;*mut u32&gt; = symbol.lift_option().expect("static is not null");
-<a href=#285 id=285 data-nosnippet>285</a>    /// }
-<a href=#286 id=286 data-nosnippet>286</a>    /// ```
-<a href=#287 id=287 data-nosnippet>287</a>    </span><span class="kw">pub fn </span>lift_option(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Symbol&lt;<span class="lifetime">'lib</span>, T&gt;&gt; {
-<a href=#288 id=288 data-nosnippet>288</a>        <span class="self">self</span>.inner.lift_option().map(|is| Symbol {
-<a href=#289 id=289 data-nosnippet>289</a>            inner: is,
-<a href=#290 id=290 data-nosnippet>290</a>            pd: marker::PhantomData,
-<a href=#291 id=291 data-nosnippet>291</a>        })
-<a href=#292 id=292 data-nosnippet>292</a>    }
-<a href=#293 id=293 data-nosnippet>293</a>}
-<a href=#294 id=294 data-nosnippet>294</a>
-<a href=#295 id=295 data-nosnippet>295</a><span class="kw">impl</span>&lt;<span class="lifetime">'lib</span>, T&gt; Clone <span class="kw">for </span>Symbol&lt;<span class="lifetime">'lib</span>, T&gt; {
-<a href=#296 id=296 data-nosnippet>296</a>    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Symbol&lt;<span class="lifetime">'lib</span>, T&gt; {
-<a href=#297 id=297 data-nosnippet>297</a>        Symbol {
-<a href=#298 id=298 data-nosnippet>298</a>            inner: <span class="self">self</span>.inner.clone(),
-<a href=#299 id=299 data-nosnippet>299</a>            pd: marker::PhantomData,
-<a href=#300 id=300 data-nosnippet>300</a>        }
-<a href=#301 id=301 data-nosnippet>301</a>    }
-<a href=#302 id=302 data-nosnippet>302</a>}
-<a href=#303 id=303 data-nosnippet>303</a>
-<a href=#304 id=304 data-nosnippet>304</a><span class="comment">// FIXME: implement FnOnce for callable stuff instead.
-<a href=#305 id=305 data-nosnippet>305</a></span><span class="kw">impl</span>&lt;T&gt; ops::Deref <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#306 id=306 data-nosnippet>306</a>    <span class="kw">type </span>Target = T;
-<a href=#307 id=307 data-nosnippet>307</a>    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
-<a href=#308 id=308 data-nosnippet>308</a>        ops::Deref::deref(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
-<a href=#309 id=309 data-nosnippet>309</a>    }
-<a href=#310 id=310 data-nosnippet>310</a>}
-<a href=#311 id=311 data-nosnippet>311</a>
-<a href=#312 id=312 data-nosnippet>312</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {
-<a href=#313 id=313 data-nosnippet>313</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
-<a href=#314 id=314 data-nosnippet>314</a>        <span class="self">self</span>.inner.fmt(f)
-<a href=#315 id=315 data-nosnippet>315</a>    }
-<a href=#316 id=316 data-nosnippet>316</a>}
-<a href=#317 id=317 data-nosnippet>317</a>
-<a href=#318 id=318 data-nosnippet>318</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {}
-<a href=#319 id=319 data-nosnippet>319</a><span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {}
-<a href=#320 id=320 data-nosnippet>320</a></code></pre></div></section></main></body></html>
+<a href=#264 id=264 data-nosnippet>264</a>            <span class="kw">unsafe </span>{
+<a href=#265 id=265 data-nosnippet>265</a>                <span class="comment">// SAFE: the calling function has the same soundness invariants as this callee.
+<a href=#266 id=266 data-nosnippet>266</a>                </span><span class="self">self</span>.into_raw()
+<a href=#267 id=267 data-nosnippet>267</a>            }
+<a href=#268 id=268 data-nosnippet>268</a>            .as_raw_ptr(),
+<a href=#269 id=269 data-nosnippet>269</a>        )
+<a href=#270 id=270 data-nosnippet>270</a>    }
+<a href=#271 id=271 data-nosnippet>271</a>}
+<a href=#272 id=272 data-nosnippet>272</a>
+<a href=#273 id=273 data-nosnippet>273</a><span class="kw">impl</span>&lt;<span class="lifetime">'lib</span>, T&gt; Symbol&lt;<span class="lifetime">'lib</span>, <span class="prelude-ty">Option</span>&lt;T&gt;&gt; {
+<a href=#274 id=274 data-nosnippet>274</a>    <span class="doccomment">/// Lift Option out of the symbol.
+<a href=#275 id=275 data-nosnippet>275</a>    ///
+<a href=#276 id=276 data-nosnippet>276</a>    /// # Examples
+<a href=#277 id=277 data-nosnippet>277</a>    ///
+<a href=#278 id=278 data-nosnippet>278</a>    /// ```no_run
+<a href=#279 id=279 data-nosnippet>279</a>    /// # use ::libloading::{Library, Symbol};
+<a href=#280 id=280 data-nosnippet>280</a>    /// unsafe {
+<a href=#281 id=281 data-nosnippet>281</a>    ///     let lib = Library::new("/path/to/awesome.module").unwrap();
+<a href=#282 id=282 data-nosnippet>282</a>    ///     let symbol: Symbol&lt;Option&lt;*mut u32&gt;&gt; = lib.get(b"symbol\0").unwrap();
+<a href=#283 id=283 data-nosnippet>283</a>    ///     let symbol: Symbol&lt;*mut u32&gt; = symbol.lift_option().expect("static is not null");
+<a href=#284 id=284 data-nosnippet>284</a>    /// }
+<a href=#285 id=285 data-nosnippet>285</a>    /// ```
+<a href=#286 id=286 data-nosnippet>286</a>    </span><span class="kw">pub fn </span>lift_option(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Symbol&lt;<span class="lifetime">'lib</span>, T&gt;&gt; {
+<a href=#287 id=287 data-nosnippet>287</a>        <span class="self">self</span>.inner.lift_option().map(|is| Symbol {
+<a href=#288 id=288 data-nosnippet>288</a>            inner: is,
+<a href=#289 id=289 data-nosnippet>289</a>            pd: marker::PhantomData,
+<a href=#290 id=290 data-nosnippet>290</a>        })
+<a href=#291 id=291 data-nosnippet>291</a>    }
+<a href=#292 id=292 data-nosnippet>292</a>}
+<a href=#293 id=293 data-nosnippet>293</a>
+<a href=#294 id=294 data-nosnippet>294</a><span class="kw">impl</span>&lt;<span class="lifetime">'lib</span>, T&gt; Clone <span class="kw">for </span>Symbol&lt;<span class="lifetime">'lib</span>, T&gt; {
+<a href=#295 id=295 data-nosnippet>295</a>    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Symbol&lt;<span class="lifetime">'lib</span>, T&gt; {
+<a href=#296 id=296 data-nosnippet>296</a>        Symbol {
+<a href=#297 id=297 data-nosnippet>297</a>            inner: <span class="self">self</span>.inner.clone(),
+<a href=#298 id=298 data-nosnippet>298</a>            pd: marker::PhantomData,
+<a href=#299 id=299 data-nosnippet>299</a>        }
+<a href=#300 id=300 data-nosnippet>300</a>    }
+<a href=#301 id=301 data-nosnippet>301</a>}
+<a href=#302 id=302 data-nosnippet>302</a>
+<a href=#303 id=303 data-nosnippet>303</a><span class="comment">// FIXME: implement FnOnce for callable stuff instead.
+<a href=#304 id=304 data-nosnippet>304</a></span><span class="kw">impl</span>&lt;T&gt; ops::Deref <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {
+<a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">type </span>Target = T;
+<a href=#306 id=306 data-nosnippet>306</a>    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
+<a href=#307 id=307 data-nosnippet>307</a>        ops::Deref::deref(<span class="kw-2">&amp;</span><span class="self">self</span>.inner)
+<a href=#308 id=308 data-nosnippet>308</a>    }
+<a href=#309 id=309 data-nosnippet>309</a>}
+<a href=#310 id=310 data-nosnippet>310</a>
+<a href=#311 id=311 data-nosnippet>311</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {
+<a href=#312 id=312 data-nosnippet>312</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+<a href=#313 id=313 data-nosnippet>313</a>        <span class="self">self</span>.inner.fmt(f)
+<a href=#314 id=314 data-nosnippet>314</a>    }
+<a href=#315 id=315 data-nosnippet>315</a>}
+<a href=#316 id=316 data-nosnippet>316</a>
+<a href=#317 id=317 data-nosnippet>317</a><span class="kw">unsafe impl</span>&lt;T: Send&gt; Send <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {}
+<a href=#318 id=318 data-nosnippet>318</a><span class="kw">unsafe impl</span>&lt;T: Sync&gt; Sync <span class="kw">for </span>Symbol&lt;<span class="lifetime">'_</span>, T&gt; {}</code></pre></div></section></main></body></html>

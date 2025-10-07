@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["crc32","crc32_braid","crc32_combine"],"struct":["Crc32Fold"]};
+window.SIDEBAR_ITEMS = {"fn":["crc32","crc32_braid","crc32_combine","get_crc_table"],"struct":["Crc32Fold"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.5/src/ser/value/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-84e720fa.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0 (29483883e 2025-08-04)" data-channel="1.89.0" data-search-js="search-92309212.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-4e99c027.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-fd3af306.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/value/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">mod </span>array;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/toml-0.9.7/src/ser/value/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../" data-static-root-path="../../../../static.files/" data-current-crate="toml" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../src-files.js"></script><script defer src="../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">toml/ser/value/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">mod </span>array;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">mod </span>key;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">mod </span>map;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -80,7 +80,7 @@
 <a href=#80 id=80 data-nosnippet>80</a>    }
 <a href=#81 id=81 data-nosnippet>81</a>}
 <a href=#82 id=82 data-nosnippet>82</a>
-<a href=#83 id=83 data-nosnippet>83</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde::ser::Serializer <span class="kw">for </span>ValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
+<a href=#83 id=83 data-nosnippet>83</a><span class="kw">impl</span>&lt;<span class="lifetime">'d</span>&gt; serde_core::ser::Serializer <span class="kw">for </span>ValueSerializer&lt;<span class="lifetime">'d</span>&gt; {
 <a href=#84 id=84 data-nosnippet>84</a>    <span class="kw">type </span><span class="prelude-val">Ok </span>= <span class="kw-2">&amp;</span><span class="lifetime">'d </span><span class="kw-2">mut </span>String;
 <a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">type </span>Error = Error;
 <a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">type </span>SerializeSeq = SerializeValueArray&lt;<span class="lifetime">'d</span>&gt;;
@@ -179,7 +179,7 @@
 <a href=#179 id=179 data-nosnippet>179</a>    }
 <a href=#180 id=180 data-nosnippet>180</a>
 <a href=#181 id=181 data-nosnippet>181</a>    <span class="kw">fn </span>serialize_bytes(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt; {
-<a href=#182 id=182 data-nosnippet>182</a>        <span class="kw">use </span>serde::ser::Serialize;
+<a href=#182 id=182 data-nosnippet>182</a>        <span class="kw">use </span>serde_core::ser::Serialize;
 <a href=#183 id=183 data-nosnippet>183</a>        value.serialize(<span class="self">self</span>)
 <a href=#184 id=184 data-nosnippet>184</a>    }
 <a href=#185 id=185 data-nosnippet>185</a>
@@ -189,7 +189,7 @@
 <a href=#189 id=189 data-nosnippet>189</a>
 <a href=#190 id=190 data-nosnippet>190</a>    <span class="kw">fn </span>serialize_some&lt;T&gt;(<span class="self">self</span>, value: <span class="kw-2">&amp;</span>T) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#191 id=191 data-nosnippet>191</a>    <span class="kw">where
-<a href=#192 id=192 data-nosnippet>192</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#192 id=192 data-nosnippet>192</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#193 id=193 data-nosnippet>193</a>    {
 <a href=#194 id=194 data-nosnippet>194</a>        value.serialize(<span class="self">self</span>)
 <a href=#195 id=195 data-nosnippet>195</a>    }
@@ -217,7 +217,7 @@
 <a href=#217 id=217 data-nosnippet>217</a>        value: <span class="kw-2">&amp;</span>T,
 <a href=#218 id=218 data-nosnippet>218</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#219 id=219 data-nosnippet>219</a>    <span class="kw">where
-<a href=#220 id=220 data-nosnippet>220</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#220 id=220 data-nosnippet>220</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#221 id=221 data-nosnippet>221</a>    {
 <a href=#222 id=222 data-nosnippet>222</a>        value.serialize(<span class="self">self</span>)
 <a href=#223 id=223 data-nosnippet>223</a>    }
@@ -230,7 +230,7 @@
 <a href=#230 id=230 data-nosnippet>230</a>        value: <span class="kw-2">&amp;</span>T,
 <a href=#231 id=231 data-nosnippet>231</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
 <a href=#232 id=232 data-nosnippet>232</a>    <span class="kw">where
-<a href=#233 id=233 data-nosnippet>233</a>        </span>T: serde::ser::Serialize + <span class="question-mark">?</span>Sized,
+<a href=#233 id=233 data-nosnippet>233</a>        </span>T: serde_core::ser::Serialize + <span class="question-mark">?</span>Sized,
 <a href=#234 id=234 data-nosnippet>234</a>    {
 <a href=#235 id=235 data-nosnippet>235</a>        <span class="self">self</span>.dst.open_inline_table()<span class="question-mark">?</span>;
 <a href=#236 id=236 data-nosnippet>236</a>        <span class="self">self</span>.dst.space()<span class="question-mark">?</span>;
