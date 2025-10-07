@@ -24,7 +24,6 @@ use std::{
     sync::Arc,
     thread,
     time::Duration,
-    u32,
 };
 use tmc_langs_plugins::{Compression, Language};
 use tmc_langs_util::progress_reporter;
