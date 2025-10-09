@@ -20,20 +20,19 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
     }
 
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
-        // never include pyc files
-        let is_pyc = path.extension() == Some(OsStr::new("pyc"));
-        if is_pyc {
-            return false;
-        }
+        // include all .py and .ipynb files,
+        // since python project structure is more freeform than most languages
+        // so there may not be a src dir etc.
+        // but exclude venv, test and tmc dirs
 
-        let in_src = path.starts_with("src");
-        let in_exercise_root = match path.parent() {
-            Some(s) => s.as_os_str().is_empty(),
-            None => true,
-        };
+        let in_venv = path.starts_with("venv") || path.starts_with(".venv");
+        let in_test = path.starts_with("test");
+        let in_tmc = path.starts_with("tmc");
+        let excluded = in_venv || in_test || in_tmc;
+
         let is_py = path.extension() == Some(OsStr::new("py"));
         let is_ipynb = path.extension() == Some(OsStr::new("ipynb"));
-        (in_src || in_exercise_root) && (is_py || is_ipynb)
+        !excluded && (is_py || is_ipynb)
     }
 }
 
