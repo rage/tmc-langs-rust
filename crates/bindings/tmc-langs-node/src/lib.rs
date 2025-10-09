@@ -612,7 +612,7 @@ fn paste(mut cx: FunctionContext) -> JsResult<JsValue> {
 
     let locale = locale.map(|l| Language::from_639_3(&l).expect("Invalid locale"));
     let res = with_client(client_name, client_version, |client| {
-        Ok(client.paste(exercise_id, &submission_path, paste_message, locale, 500)?)
+        Ok(client.paste(exercise_id, &submission_path, paste_message, locale, 1)?)
     });
     convert_res(&mut cx, res)
 }
@@ -636,7 +636,7 @@ fn request_code_review(mut cx: FunctionContext) -> JsResult<JsValue> {
             &submission_path,
             message_for_reviewer,
             Some(locale),
-            500,
+            1,
         )?)
     });
     convert_res(&mut cx, res)
