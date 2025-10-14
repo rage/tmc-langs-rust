@@ -217,6 +217,7 @@ pub trait LanguagePlugin {
     /// Extracts student files from the compressed project.
     /// It finds the project dir from the zip and extracts the student files from there.
     /// Overwrites all files.
+    /// Important: does not extract .tmcproject.yml from the students' submission as they control that file and they could use it to modify the test files.
     fn extract_student_files(
         compressed_project: impl Read + Seek,
         compression: Compression,
@@ -230,15 +231,6 @@ pub trait LanguagePlugin {
         let project_dir = Self::find_project_dir_in_archive(&mut archive)?;
         log::debug!("Project directory in archive: {}", project_dir.display());
 
-        // extract config file if any
-        let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
-        let tmc_project_yml_path = tmc_project_yml_path
-            .to_str()
-            .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = archive.by_path(tmc_project_yml_path) {
-            let target_path = target_location.join(".tmcproject.yml");
-            file_util::read_to_file(&mut file, target_path)?;
-        }
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         let mut iter = archive.iter()?;
@@ -1110,5 +1102,29 @@ force_update:
 
         MockPlugin::extract_student_files(buf, Compression::Zip, temp.path()).unwrap();
         assert!(temp.path().join("src/file").exists());
+    }
+
+    #[test]
+    fn extract_student_files_does_not_extract_tmcproject_yml() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // create a project with a .tmcproject.yml in the project root and a student file under src
+        file_to(&temp, "dir/src/student_file", "");
+        file_to(&temp, "dir/.tmcproject.yml", "some: yaml");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // ensure student files are extracted
+        assert!(temp.path().join("extracted/src/student_file").exists());
+        // ensure .tmcproject.yml is NOT extracted
+        assert!(!temp.path().join("extracted/.tmcproject.yml").exists());
     }
 }
