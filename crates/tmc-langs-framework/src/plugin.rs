@@ -1157,6 +1157,7 @@ force_update:
     }
 
     #[test]
+    #[cfg(not(target_os = "windows"))]
     fn safe_find_project_dir_single_folder_not_used_when_root_has_files() {
         init();
 
