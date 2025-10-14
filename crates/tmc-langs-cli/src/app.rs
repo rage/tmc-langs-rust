@@ -182,8 +182,7 @@ pub enum Command {
         #[clap(long)]
         output_path: PathBuf,
         /// If given, the tests will be copied from this stub instead, effectively ignoring hidden tests.
-        // alias for backwards compatibility
-        #[clap(long, alias = "stub-zip-path")]
+        #[clap(long)]
         stub_archive_path: Option<PathBuf>,
         /// Compression algorithm used for the stub archive.
         #[clap(long, default_value_t = Compression::Zip)]
@@ -836,7 +835,7 @@ mod base_test {
             "tar",
             "--output-path",
             "path",
-            "--stub-zip-path",
+            "--stub-archive-path",
             "path",
             "--submission-path",
             "path",
