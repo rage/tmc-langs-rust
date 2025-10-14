@@ -306,34 +306,44 @@
 <a href=#306 id=306 data-nosnippet>306</a>        <span class="macro">delegate_plugin_type!</span>(<span class="self">self</span>, find_project_dir_in_archive(archive))
 <a href=#307 id=307 data-nosnippet>307</a>    }
 <a href=#308 id=308 data-nosnippet>308</a>
-<a href=#309 id=309 data-nosnippet>309</a>    <span class="kw">pub fn </span>get_available_points(<span class="self">self</span>, exercise_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, TmcError&gt; {
-<a href=#310 id=310 data-nosnippet>310</a>        <span class="macro">delegate_plugin_type!</span>(<span class="self">self</span>, get_available_points(exercise_path))
-<a href=#311 id=311 data-nosnippet>311</a>    }
-<a href=#312 id=312 data-nosnippet>312</a>}
-<a href=#313 id=313 data-nosnippet>313</a>
-<a href=#314 id=314 data-nosnippet>314</a><span class="kw">pub fn </span>get_student_file_policy(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>StudentFilePolicy&gt;, PluginError&gt; {
-<a href=#315 id=315 data-nosnippet>315</a>    <span class="kw">let </span>policy: Box&lt;<span class="kw">dyn </span>StudentFilePolicy&gt; = <span class="kw">match </span>PluginType::from_exercise(path)<span class="question-mark">? </span>{
-<a href=#316 id=316 data-nosnippet>316</a>        PluginType::NoTests =&gt; Box::new(&lt;NoTestsPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
-<a href=#317 id=317 data-nosnippet>317</a>            path,
-<a href=#318 id=318 data-nosnippet>318</a>        )<span class="question-mark">?</span>),
-<a href=#319 id=319 data-nosnippet>319</a>        PluginType::CSharp =&gt; Box::new(&lt;CSharpPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
-<a href=#320 id=320 data-nosnippet>320</a>            path,
-<a href=#321 id=321 data-nosnippet>321</a>        )<span class="question-mark">?</span>),
-<a href=#322 id=322 data-nosnippet>322</a>        PluginType::Make =&gt; Box::new(&lt;MakePlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
-<a href=#323 id=323 data-nosnippet>323</a>            path,
-<a href=#324 id=324 data-nosnippet>324</a>        )<span class="question-mark">?</span>),
-<a href=#325 id=325 data-nosnippet>325</a>        PluginType::Python3 =&gt; Box::new(&lt;Python3Plugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
-<a href=#326 id=326 data-nosnippet>326</a>            path,
-<a href=#327 id=327 data-nosnippet>327</a>        )<span class="question-mark">?</span>),
-<a href=#328 id=328 data-nosnippet>328</a>        PluginType::R =&gt; Box::new(&lt;RPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(path)<span class="question-mark">?</span>),
-<a href=#329 id=329 data-nosnippet>329</a>        <span class="comment">// the Java plugin is disabled on musl
-<a href=#330 id=330 data-nosnippet>330</a>        </span><span class="attr">#[cfg(not(target_env = <span class="string">"musl"</span>))]
-<a href=#331 id=331 data-nosnippet>331</a>        </span>PluginType::Maven =&gt; Box::new(&lt;MavenPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
-<a href=#332 id=332 data-nosnippet>332</a>            path,
-<a href=#333 id=333 data-nosnippet>333</a>        )<span class="question-mark">?</span>),
-<a href=#334 id=334 data-nosnippet>334</a>        <span class="comment">// the Java plugin is disabled on musl
-<a href=#335 id=335 data-nosnippet>335</a>        </span><span class="attr">#[cfg(not(target_env = <span class="string">"musl"</span>))]
-<a href=#336 id=336 data-nosnippet>336</a>        </span>PluginType::Ant =&gt; Box::new(&lt;AntPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(path)<span class="question-mark">?</span>),
-<a href=#337 id=337 data-nosnippet>337</a>    };
-<a href=#338 id=338 data-nosnippet>338</a>    <span class="prelude-val">Ok</span>(policy)
-<a href=#339 id=339 data-nosnippet>339</a>}</code></pre></div></section></main></body></html>
+<a href=#309 id=309 data-nosnippet>309</a>    <span class="kw">pub fn </span>safe_find_project_dir_in_archive&lt;R: Read + Seek&gt;(
+<a href=#310 id=310 data-nosnippet>310</a>        <span class="self">self</span>,
+<a href=#311 id=311 data-nosnippet>311</a>        archive: <span class="kw-2">&amp;mut </span>Archive&lt;R&gt;,
+<a href=#312 id=312 data-nosnippet>312</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, TmcError&gt; {
+<a href=#313 id=313 data-nosnippet>313</a>        <span class="prelude-val">Ok</span>(<span class="macro">delegate_plugin_type!</span>(
+<a href=#314 id=314 data-nosnippet>314</a>            <span class="self">self</span>,
+<a href=#315 id=315 data-nosnippet>315</a>            safe_find_project_dir_in_archive(archive)
+<a href=#316 id=316 data-nosnippet>316</a>        ))
+<a href=#317 id=317 data-nosnippet>317</a>    }
+<a href=#318 id=318 data-nosnippet>318</a>
+<a href=#319 id=319 data-nosnippet>319</a>    <span class="kw">pub fn </span>get_available_points(<span class="self">self</span>, exercise_path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;String&gt;, TmcError&gt; {
+<a href=#320 id=320 data-nosnippet>320</a>        <span class="macro">delegate_plugin_type!</span>(<span class="self">self</span>, get_available_points(exercise_path))
+<a href=#321 id=321 data-nosnippet>321</a>    }
+<a href=#322 id=322 data-nosnippet>322</a>}
+<a href=#323 id=323 data-nosnippet>323</a>
+<a href=#324 id=324 data-nosnippet>324</a><span class="kw">pub fn </span>get_student_file_policy(path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;Box&lt;<span class="kw">dyn </span>StudentFilePolicy&gt;, PluginError&gt; {
+<a href=#325 id=325 data-nosnippet>325</a>    <span class="kw">let </span>policy: Box&lt;<span class="kw">dyn </span>StudentFilePolicy&gt; = <span class="kw">match </span>PluginType::from_exercise(path)<span class="question-mark">? </span>{
+<a href=#326 id=326 data-nosnippet>326</a>        PluginType::NoTests =&gt; Box::new(&lt;NoTestsPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
+<a href=#327 id=327 data-nosnippet>327</a>            path,
+<a href=#328 id=328 data-nosnippet>328</a>        )<span class="question-mark">?</span>),
+<a href=#329 id=329 data-nosnippet>329</a>        PluginType::CSharp =&gt; Box::new(&lt;CSharpPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
+<a href=#330 id=330 data-nosnippet>330</a>            path,
+<a href=#331 id=331 data-nosnippet>331</a>        )<span class="question-mark">?</span>),
+<a href=#332 id=332 data-nosnippet>332</a>        PluginType::Make =&gt; Box::new(&lt;MakePlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
+<a href=#333 id=333 data-nosnippet>333</a>            path,
+<a href=#334 id=334 data-nosnippet>334</a>        )<span class="question-mark">?</span>),
+<a href=#335 id=335 data-nosnippet>335</a>        PluginType::Python3 =&gt; Box::new(&lt;Python3Plugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
+<a href=#336 id=336 data-nosnippet>336</a>            path,
+<a href=#337 id=337 data-nosnippet>337</a>        )<span class="question-mark">?</span>),
+<a href=#338 id=338 data-nosnippet>338</a>        PluginType::R =&gt; Box::new(&lt;RPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(path)<span class="question-mark">?</span>),
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="comment">// the Java plugin is disabled on musl
+<a href=#340 id=340 data-nosnippet>340</a>        </span><span class="attr">#[cfg(not(target_env = <span class="string">"musl"</span>))]
+<a href=#341 id=341 data-nosnippet>341</a>        </span>PluginType::Maven =&gt; Box::new(&lt;MavenPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(
+<a href=#342 id=342 data-nosnippet>342</a>            path,
+<a href=#343 id=343 data-nosnippet>343</a>        )<span class="question-mark">?</span>),
+<a href=#344 id=344 data-nosnippet>344</a>        <span class="comment">// the Java plugin is disabled on musl
+<a href=#345 id=345 data-nosnippet>345</a>        </span><span class="attr">#[cfg(not(target_env = <span class="string">"musl"</span>))]
+<a href=#346 id=346 data-nosnippet>346</a>        </span>PluginType::Ant =&gt; Box::new(&lt;AntPlugin <span class="kw">as </span>LanguagePlugin&gt;::StudentFilePolicy::new(path)<span class="question-mark">?</span>),
+<a href=#347 id=347 data-nosnippet>347</a>    };
+<a href=#348 id=348 data-nosnippet>348</a>    <span class="prelude-val">Ok</span>(policy)
+<a href=#349 id=349 data-nosnippet>349</a>}</code></pre></div></section></main></body></html>
