@@ -330,8 +330,11 @@ pub trait LanguagePlugin {
             loop {
                 let next = iter.with_next::<(), _>(|file| {
                     let file_path = file.path()?;
+                    // Normalize the path to handle Windows backslashes correctly
+                    let normalized_path = file_path.to_string_lossy().replace('\\', "/");
+                    let normalized_path = Path::new(&normalized_path);
                     // Only consider entries at the archive root
-                    if file_path.components().count() == 1 {
+                    if normalized_path.components().count() == 1 {
                         if file.is_dir() {
                             folders.push(file_path.to_path_buf());
                         } else if file.is_file() {
