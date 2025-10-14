@@ -314,10 +314,10 @@ fn extract_with_filter<F: Fn(&Path) -> bool>(
     let file = file_util::open_file(archive)?;
     let mut zip = Archive::new(file, compression)?;
     let project_dir_in_archive = if naive {
-        PathBuf::new()
+        Ok(PathBuf::new())
     } else {
-        plugin.find_project_dir_in_archive(&mut zip)?
-    };
+        plugin.safe_find_project_dir_in_archive(&mut zip)
+    }?;
 
     let mut iter = zip.iter()?;
     loop {
@@ -781,6 +781,85 @@ mod test {
             output
                 .join("some_course/PythonExercise/__init__.py")
                 .exists()
+        );
+    }
+
+    #[test]
+    fn includes_files_in_root_dir_from_exercise() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let clone_root = temp.path().join("some_course");
+        file_util::create_dir_all(&clone_root).unwrap();
+
+        // Copy the Maven exercise to our temp directory
+        let src_clone = Path::new(MAVEN_CLONE);
+        file_util::copy(src_clone, &clone_root).unwrap();
+
+        let exercise_dir = clone_root.join("MavenExercise");
+
+        // Create a file in the root directory of the exercise (simulating repo file)
+        let repo_file_path = exercise_dir.join("foo.txt");
+        file_util::write_to_file(b"repohello", &repo_file_path).unwrap();
+
+        // Create a submission zip that also has foo.txt but with different content
+        // We need to create a proper Maven project structure that the plugin can understand
+        let sub_zip_path = temp.path().join("submission.zip");
+        let sub_zip_file = file_util::create_file(&sub_zip_path).unwrap();
+        let mut zw = zip::ZipWriter::new(sub_zip_file);
+        let opts = SimpleFileOptions::default();
+
+        // Create the Maven project structure
+        zw.add_directory("MavenExercise", opts).unwrap();
+        zw.add_directory("MavenExercise/src", opts).unwrap();
+        zw.add_directory("MavenExercise/src/main", opts).unwrap();
+        zw.add_directory("MavenExercise/src/main/java", opts)
+            .unwrap();
+
+        // Add the student's modified file
+        zw.start_file("MavenExercise/foo.txt", opts).unwrap();
+        std::io::Write::write_all(&mut zw, b"submissionhello").unwrap();
+
+        // Add a source file
+        zw.start_file("MavenExercise/src/main/java/SimpleStuff.java", opts)
+            .unwrap();
+        std::io::Write::write_all(&mut zw, b"public class SimpleStuff { }").unwrap();
+
+        zw.finish().unwrap();
+
+        let output_arch = temp.path().join("out.tar");
+        prepare_submission(
+            PrepareSubmission {
+                archive: &sub_zip_path,
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
+            &output_arch,
+            false,
+            TmcParams::new(),
+            &exercise_dir,
+            None,
+            Compression::Tar,
+        )
+        .unwrap();
+        assert!(output_arch.exists());
+
+        // Unpack and verify that foo.txt content is from the repo, not submission
+        let output_file = file_util::open_file(&output_arch).unwrap();
+        let mut archive = tar::Archive::new(output_file);
+        let output_extracted = temp.path().join("output");
+        archive.unpack(&output_extracted).unwrap();
+
+        // Verify foo.txt exists and has content from repo, not submission
+        let foo_file = output_extracted.join("some_course/MavenExercise/foo.txt");
+        assert!(
+            foo_file.exists(),
+            "foo.txt should be included in the archive"
+        );
+        let content = fs::read_to_string(foo_file).unwrap();
+        assert_eq!(
+            content, "repohello",
+            "Should use repo content, not submission content"
         );
     }
 }

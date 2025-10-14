@@ -306,6 +306,16 @@ impl PluginType {
         delegate_plugin_type!(self, find_project_dir_in_archive(archive))
     }
 
+    pub fn safe_find_project_dir_in_archive<R: Read + Seek>(
+        self,
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        Ok(delegate_plugin_type!(
+            self,
+            safe_find_project_dir_in_archive(archive)
+        ))
+    }
+
     pub fn get_available_points(self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {
         delegate_plugin_type!(self, get_available_points(exercise_path))
     }
