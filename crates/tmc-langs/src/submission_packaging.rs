@@ -53,7 +53,7 @@ pub fn prepare_submission(
         file_util::LOCK_FILE_NAME,
     ];
     if let Some((stub_zip, compression)) = stub_archive {
-        // if defined, extract and use as the base
+        // This branch is used when a student downloads their old submission, and we take the files from the stub (the exercise template) instead of the clone path. This makes sure they cannot see the hidden tests in the downloaded file.
         extract_with_filter(
             plugin,
             stub_zip,
@@ -70,7 +70,7 @@ pub fn prepare_submission(
             false,
         )?;
     } else {
-        // else, copy clone path
+        // This code branch is used when we package a submission for the sandbox. We use the clone path because it contains the hidden tests, and we want the sandbox to run them.
         for entry in WalkDir::new(stub_clone_path).min_depth(1) {
             let entry = entry?;
 
@@ -101,8 +101,25 @@ pub fn prepare_submission(
     log::debug!("extracting student files");
     let file = file_util::open_file(submission.archive)?;
     if submission.extract_naively {
+        // If the stub contains a .tmcproject.yml, preserve it so the student's cannot override it
+        let tmcproject_path = extract_dest_path.join(".tmcproject.yml");
+        let preserved_tmcproject = if tmcproject_path.exists() {
+            Some(
+                std::fs::read(&tmcproject_path)
+                    .map_err(|e| FileError::FileRead(tmcproject_path.clone(), e))?,
+            )
+        } else {
+            None
+        };
+
         extract_project_overwrite(file, &extract_dest_path, submission.compression)?;
+
+        if let Some(bytes) = preserved_tmcproject {
+            // restore the stub's .tmcproject.yml
+            file_util::write_to_file(&bytes, &tmcproject_path)?;
+        }
     } else {
+        // This code branch is used when we package a submission for the sandbox. This extraction method makes sure we don't allow the student to update the files they are not allowed to edit.
         plugin.extract_student_files(file, submission.compression, &extract_dest_path)?;
     }
 
@@ -297,10 +314,10 @@ fn extract_with_filter<F: Fn(&Path) -> bool>(
     let file = file_util::open_file(archive)?;
     let mut zip = Archive::new(file, compression)?;
     let project_dir_in_archive = if naive {
-        PathBuf::new()
+        Ok(PathBuf::new())
     } else {
-        plugin.find_project_dir_in_archive(&mut zip)?
-    };
+        plugin.safe_find_project_dir_in_archive(&mut zip)
+    }?;
 
     let mut iter = zip.iter()?;
     loop {
@@ -646,6 +663,89 @@ mod test {
     }
 
     #[test]
+    fn stub_tmcproject_yml_overrides_student_in_naive_mode() {
+        init();
+
+        // Copy an existing Python exercise fixture to a temp clone path
+        let temp = tempfile::tempdir().unwrap();
+        let clone_root = temp.path().join("some_course");
+        file_util::create_dir_all(&clone_root).unwrap();
+        let src_clone = Path::new(PYTHON_CLONE);
+        file_util::copy(src_clone, &clone_root).unwrap();
+
+        let stub_ex_dir = clone_root.join("PythonExercise");
+        // Ensure stub has its own .tmcproject.yml
+        file_util::write_to_file(b"key: stub", stub_ex_dir.join(".tmcproject.yml")).unwrap();
+
+        // Create a submission zip that attempts to include its own .tmcproject.yml
+        let sub_zip_path = temp.path().join("submission.zip");
+        let sub_zip_file = file_util::create_file(&sub_zip_path).unwrap();
+        let mut zw = zip::ZipWriter::new(sub_zip_file);
+        let opts = SimpleFileOptions::default();
+        zw.add_directory("PythonExercise", opts).unwrap();
+        zw.add_directory("PythonExercise/src", opts).unwrap();
+        zw.start_file("PythonExercise/src/__init__.py", opts)
+            .unwrap();
+        std::io::Write::write_all(&mut zw, b"print('student')\n").unwrap();
+        zw.start_file("PythonExercise/.tmcproject.yml", opts)
+            .unwrap();
+        std::io::Write::write_all(&mut zw, b"key: student\n").unwrap();
+        zw.finish().unwrap();
+
+        let output_arch = temp.path().join("out.tar");
+        prepare_submission(
+            PrepareSubmission {
+                archive: &sub_zip_path,
+                compression: Compression::Zip,
+                extract_naively: true,
+            },
+            &output_arch,
+            false,
+            TmcParams::new(),
+            &stub_ex_dir,
+            None,
+            Compression::Tar,
+        )
+        .unwrap();
+        assert!(output_arch.exists());
+
+        // Unpack and verify that .tmcproject.yml content is from stub, not student
+        let output_file = file_util::open_file(&output_arch).unwrap();
+        let mut archive = tar::Archive::new(output_file);
+        let output_extracted = temp.path().join("output");
+        archive.unpack(&output_extracted).unwrap();
+
+        // Verify .tmcproject.yml content is from stub, not student
+        let yml =
+            fs::read_to_string(output_extracted.join("some_course/PythonExercise/.tmcproject.yml"))
+                .unwrap();
+        assert!(yml.contains("key: stub"));
+        assert!(!yml.contains("key: student"));
+
+        // Verify other expected files are present
+        assert!(
+            output_extracted
+                .join("some_course/PythonExercise/src/__init__.py")
+                .exists()
+        );
+        assert!(
+            output_extracted
+                .join("some_course/PythonExercise/src/__main__.py")
+                .exists()
+        );
+        assert!(
+            output_extracted
+                .join("some_course/PythonExercise/test/test_greeter.py")
+                .exists()
+        );
+        assert!(
+            output_extracted
+                .join("some_course/PythonExercise/__init__.py")
+                .exists()
+        );
+    }
+
+    #[test]
     fn prepare_make_submission() {
         init();
         let (_temp, output) = generic_submission(MAKE_CLONE, MAKE_ZIP);
@@ -681,6 +781,85 @@ mod test {
             output
                 .join("some_course/PythonExercise/__init__.py")
                 .exists()
+        );
+    }
+
+    #[test]
+    fn includes_files_in_root_dir_from_exercise() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let clone_root = temp.path().join("some_course");
+        file_util::create_dir_all(&clone_root).unwrap();
+
+        // Copy the Maven exercise to our temp directory
+        let src_clone = Path::new(MAVEN_CLONE);
+        file_util::copy(src_clone, &clone_root).unwrap();
+
+        let exercise_dir = clone_root.join("MavenExercise");
+
+        // Create a file in the root directory of the exercise (simulating repo file)
+        let repo_file_path = exercise_dir.join("foo.txt");
+        file_util::write_to_file(b"repohello", &repo_file_path).unwrap();
+
+        // Create a submission zip that also has foo.txt but with different content
+        // We need to create a proper Maven project structure that the plugin can understand
+        let sub_zip_path = temp.path().join("submission.zip");
+        let sub_zip_file = file_util::create_file(&sub_zip_path).unwrap();
+        let mut zw = zip::ZipWriter::new(sub_zip_file);
+        let opts = SimpleFileOptions::default();
+
+        // Create the Maven project structure
+        zw.add_directory("MavenExercise", opts).unwrap();
+        zw.add_directory("MavenExercise/src", opts).unwrap();
+        zw.add_directory("MavenExercise/src/main", opts).unwrap();
+        zw.add_directory("MavenExercise/src/main/java", opts)
+            .unwrap();
+
+        // Add the student's modified file
+        zw.start_file("MavenExercise/foo.txt", opts).unwrap();
+        std::io::Write::write_all(&mut zw, b"submissionhello").unwrap();
+
+        // Add a source file
+        zw.start_file("MavenExercise/src/main/java/SimpleStuff.java", opts)
+            .unwrap();
+        std::io::Write::write_all(&mut zw, b"public class SimpleStuff { }").unwrap();
+
+        zw.finish().unwrap();
+
+        let output_arch = temp.path().join("out.tar");
+        prepare_submission(
+            PrepareSubmission {
+                archive: &sub_zip_path,
+                compression: Compression::Zip,
+                extract_naively: false,
+            },
+            &output_arch,
+            false,
+            TmcParams::new(),
+            &exercise_dir,
+            None,
+            Compression::Tar,
+        )
+        .unwrap();
+        assert!(output_arch.exists());
+
+        // Unpack and verify that foo.txt content is from the repo, not submission
+        let output_file = file_util::open_file(&output_arch).unwrap();
+        let mut archive = tar::Archive::new(output_file);
+        let output_extracted = temp.path().join("output");
+        archive.unpack(&output_extracted).unwrap();
+
+        // Verify foo.txt exists and has content from repo, not submission
+        let foo_file = output_extracted.join("some_course/MavenExercise/foo.txt");
+        assert!(
+            foo_file.exists(),
+            "foo.txt should be included in the archive"
+        );
+        let content = fs::read_to_string(foo_file).unwrap();
+        assert_eq!(
+            content, "repohello",
+            "Should use repo content, not submission content"
         );
     }
 }
