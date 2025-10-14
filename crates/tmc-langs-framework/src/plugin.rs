@@ -350,8 +350,16 @@ pub trait LanguagePlugin {
                 }
             }
 
-            // If there's exactly one folder at the root and no files, use it
-            if folders.len() == 1 && root_file_count == 0 {
+            // If there's exactly one folder at the root and no files, skip over it
+            // Special case: don't skip over certain folders
+            let excluded_folders = ["src"];
+            if folders.len() == 1
+                && root_file_count == 0
+                && !folders[0]
+                    .file_name()
+                    .map(|name| excluded_folders.contains(&name.to_string_lossy().as_ref()))
+                    .unwrap_or(false)
+            {
                 return folders[0].clone();
             }
         }
@@ -1189,6 +1197,32 @@ force_update:
                 .join("extracted/project_folder/src/student_file"),
         )
         .unwrap();
+        assert_eq!(content, "content");
+    }
+
+    #[test]
+    fn safe_find_project_dir_does_not_skip_over_src_folder() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // root has only a single "src" folder, no root files
+        // SimpleMockPlugin will never find project directory, so fallback logic will be used
+        file_to(&temp, "src/student_file", "content");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files - should use the "src" folder as project root
+        SimpleMockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // The file should be extracted as student_file (using the src folder as project root)
+        // This test verifies that the "src" folder is used as the project directory
+        assert!(temp.path().join("extracted/src/student_file").exists());
+        let content =
+            std::fs::read_to_string(temp.path().join("extracted/src/student_file")).unwrap();
         assert_eq!(content, "content");
     }
 }
