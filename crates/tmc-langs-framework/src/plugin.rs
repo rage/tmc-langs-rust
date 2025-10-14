@@ -14,6 +14,7 @@ use nom::{IResult, Parser, branch, bytes, character, combinator, multi, sequence
 use nom_language::error::VerboseError;
 use std::{
     collections::HashSet,
+    ffi::OsStr,
     io::{Read, Seek},
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
@@ -228,7 +229,7 @@ pub trait LanguagePlugin {
         let mut archive = Archive::new(compressed_project, compression)?;
 
         // find the exercise root directory inside the archive
-        let project_dir = Self::find_project_dir_in_archive(&mut archive)?;
+        let project_dir = Self::safe_find_project_dir_in_archive(&mut archive);
         log::debug!("Project directory in archive: {}", project_dir.display());
 
         let policy = Self::StudentFilePolicy::new(target_location)?;
@@ -280,6 +281,81 @@ pub trait LanguagePlugin {
     fn find_project_dir_in_archive<R: Read + Seek>(
         archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError>;
+
+    /// A safer variant of `find_project_dir_in_archive` used by default extraction helpers.
+    ///
+    /// Fallback order:
+    /// 1) Delegate to `find_project_dir_in_archive` implemented by the language plugin
+    /// 2) First directory containing a `.tmcproject.yml`
+    /// 3) If archive root has only one folder, use that folder
+    /// 4) Archive root (empty path)
+    fn safe_find_project_dir_in_archive<R: Read + Seek>(archive: &mut Archive<R>) -> PathBuf {
+        // 1) Try plugin-specific project dir detection first
+        if let Ok(dir) = Self::find_project_dir_in_archive(archive) {
+            return dir;
+        }
+
+        // 2) Try to find the first directory that contains a .tmcproject.yml
+        if let Ok(mut iter) = archive.iter() {
+            loop {
+                let next = iter.with_next(|file| {
+                    let file_path = file.path()?;
+                    if file.is_file()
+                        && file_path
+                            .file_name()
+                            .map(|name| name == OsStr::new(".tmcproject.yml"))
+                            .unwrap_or(false)
+                    {
+                        let parent = file_path
+                            .parent()
+                            .map(PathBuf::from)
+                            .unwrap_or_else(|| PathBuf::from(""));
+                        return Ok(Break(Some(parent)));
+                    }
+                    Ok(Continue(()))
+                });
+                match next {
+                    Ok(Continue(_)) => continue,
+                    Ok(Break(Some(dir))) => return dir,
+                    Ok(Break(None)) => break,
+                    Err(_) => break,
+                }
+            }
+        }
+
+        // 3) Check if archive root has only one folder. This is the format tmc-langs-cli sends submissions, so all official clients should use this format.
+        if let Ok(mut iter) = archive.iter() {
+            let mut folders = Vec::new();
+            let mut root_file_count: usize = 0;
+            loop {
+                let next = iter.with_next::<(), _>(|file| {
+                    let file_path = file.path()?;
+                    // Only consider entries at the archive root
+                    if file_path.components().count() == 1 {
+                        if file.is_dir() {
+                            folders.push(file_path.to_path_buf());
+                        } else if file.is_file() {
+                            root_file_count += 1;
+                        }
+                    }
+                    Ok(Continue(()))
+                });
+                match next {
+                    Ok(Continue(_)) => continue,
+                    Ok(Break(_)) => break,
+                    Err(_) => break,
+                }
+            }
+
+            // If there's exactly one folder at the root and no files, use it
+            if folders.len() == 1 && root_file_count == 0 {
+                return folders[0].clone();
+            }
+        }
+
+        // 4) Default to archive root
+        PathBuf::from("")
+    }
 
     /// Tells if there's a valid exercise in this archive.
     /// Unlike `is_exercise_type_correct`, searches the entire archive.
@@ -442,10 +518,8 @@ enum Parse {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use crate::TmcProjectYml;
-    use nom::character;
+    use crate::test_helpers::{MockPlugin, SimpleMockPlugin};
     use std::io::Write;
-    use tmc_langs_util::path_util;
     use zip::{ZipWriter, write::SimpleFileOptions};
 
     fn init() {
@@ -503,131 +577,6 @@ mod test {
 
         zip.finish().unwrap();
         target
-    }
-
-    struct MockPlugin {}
-
-    struct MockPolicy {
-        project_config: TmcProjectYml,
-    }
-
-    impl StudentFilePolicy for MockPolicy {
-        fn new_with_project_config(project_config: TmcProjectYml) -> Self
-        where
-            Self: Sized,
-        {
-            Self { project_config }
-        }
-        fn get_project_config(&self) -> &TmcProjectYml {
-            &self.project_config
-        }
-        fn is_non_extra_student_file(&self, path: &Path) -> bool {
-            path.starts_with("src")
-        }
-    }
-
-    impl LanguagePlugin for MockPlugin {
-        const PLUGIN_NAME: &'static str = "mock_plugin";
-        const DEFAULT_SANDBOX_IMAGE: &'static str = "mock_image";
-        const LINE_COMMENT: &'static str = "//";
-        const BLOCK_COMMENT: Option<(&'static str, &'static str)> = Some(("/*", "*/"));
-        type StudentFilePolicy = MockPolicy;
-
-        fn scan_exercise(
-            &self,
-            _path: &Path,
-            _exercise_name: String,
-        ) -> Result<ExerciseDesc, TmcError> {
-            unimplemented!()
-        }
-
-        fn run_tests_with_timeout(
-            &self,
-            _path: &Path,
-            _timeout: Option<Duration>,
-        ) -> Result<RunResult, TmcError> {
-            Ok(RunResult {
-                status: RunStatus::Passed,
-                test_results: vec![],
-                logs: std::collections::HashMap::new(),
-            })
-        }
-
-        fn find_project_dir_in_archive<R: Read + Seek>(
-            archive: &mut Archive<R>,
-        ) -> Result<PathBuf, TmcError> {
-            let mut iter = archive.iter()?;
-            let project_dir = loop {
-                let next = iter.with_next(|file| {
-                    let file_path = file.path()?;
-
-                    if let Some(parent) =
-                        path_util::get_parent_of_component_in_path(&file_path, "src")
-                    {
-                        return Ok(Break(Some(parent)));
-                    }
-                    Ok(Continue(()))
-                });
-                match next? {
-                    Continue(_) => continue,
-                    Break(project_dir) => break project_dir,
-                }
-            };
-
-            match project_dir {
-                Some(project_dir) => Ok(project_dir),
-                None => Err(TmcError::NoProjectDirInArchive),
-            }
-        }
-
-        fn is_exercise_type_correct(_path: &Path) -> bool {
-            unimplemented!()
-        }
-
-        fn clean(&self, _path: &Path) -> Result<(), TmcError> {
-            Ok(())
-        }
-
-        fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>> {
-            combinator::map(
-                sequence::delimited(
-                    (
-                        bytes::complete::tag("@"),
-                        character::complete::multispace0,
-                        bytes::complete::tag_no_case("points"),
-                        character::complete::multispace0,
-                        character::complete::char('('),
-                        character::complete::multispace0,
-                    ),
-                    branch::alt((
-                        sequence::delimited(
-                            character::complete::char('"'),
-                            bytes::complete::is_not("\""),
-                            character::complete::char('"'),
-                        ),
-                        sequence::delimited(
-                            character::complete::char('\''),
-                            bytes::complete::is_not("'"),
-                            character::complete::char('\''),
-                        ),
-                    )),
-                    (
-                        character::complete::multispace0,
-                        character::complete::char(')'),
-                    ),
-                ),
-                |s: &str| vec![s.trim()],
-            )
-            .parse(i)
-        }
-
-        fn get_default_student_file_paths() -> Vec<PathBuf> {
-            vec![PathBuf::from("src")]
-        }
-
-        fn get_default_exercise_file_paths() -> Vec<PathBuf> {
-            vec![PathBuf::from("test")]
-        }
     }
 
     #[test]
@@ -1126,5 +1075,116 @@ force_update:
         assert!(temp.path().join("extracted/src/student_file").exists());
         // ensure .tmcproject.yml is NOT extracted
         assert!(!temp.path().join("extracted/.tmcproject.yml").exists());
+    }
+
+    #[test]
+    fn safe_find_project_dir_fallback_to_tmcproject_yml() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // create an archive without src directory (which would normally fail)
+        // but with a .tmcproject.yml in a subdirectory
+        file_to(&temp, "some/deep/path/.tmcproject.yml", "some: yaml");
+        file_to(&temp, "some/deep/path/src/student_file", "content");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files - should use fallback to .tmcproject.yml parent
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // ensure student files are extracted from the fallback directory
+        assert!(temp.path().join("extracted/src/student_file").exists());
+        let content =
+            std::fs::read_to_string(temp.path().join("extracted/src/student_file")).unwrap();
+        assert_eq!(content, "content");
+    }
+
+    #[test]
+    /** Matches the format tmc-langs-cli sends submissions. This makes sure submissions created by official clients are supported. */
+    fn safe_find_project_dir_fallback_to_single_folder() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // create an archive with only one folder at root level
+        file_to(&temp, "project_folder/src/student_file", "content");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files - should use fallback to the single folder
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // ensure student files are extracted from the single folder
+        assert!(temp.path().join("extracted/src/student_file").exists());
+        let content =
+            std::fs::read_to_string(temp.path().join("extracted/src/student_file")).unwrap();
+        assert_eq!(content, "content");
+    }
+
+    #[test]
+    fn safe_find_project_dir_fallback_to_root() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // create an archive without src directory and without .tmcproject.yml
+        // should fallback to root
+        file_to(&temp, "src/student_file", "content");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files - should use fallback to root
+        MockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // ensure student files are extracted from the root
+        assert!(temp.path().join("extracted/src/student_file").exists());
+        let content =
+            std::fs::read_to_string(temp.path().join("extracted/src/student_file")).unwrap();
+        assert_eq!(content, "content");
+    }
+
+    #[test]
+    fn safe_find_project_dir_single_folder_not_used_when_root_has_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        // root has a single folder and also a file at root
+        // SimpleMockPlugin will never find project directory, so fallback logic will be used
+        file_to(&temp, "project_folder/src/student_file", "content");
+        file_to(&temp, "root_file.txt", "x");
+        let zip = dir_to_zip(&temp);
+
+        // extract student files - should NOT use the single-folder fallback because there's a root file
+        // so it should fallback to root, which extracts project_folder/src/student_file
+        SimpleMockPlugin::extract_student_files(
+            std::io::Cursor::new(zip),
+            Compression::Zip,
+            &temp.path().join("extracted"),
+        )
+        .unwrap();
+
+        // The file should be extracted as project_folder/src/student_file (preserving full path from root)
+        // This test verifies that the single folder fallback is not used when there's a root file
+        assert!(
+            temp.path()
+                .join("extracted/project_folder/src/student_file")
+                .exists()
+        );
+        let content = std::fs::read_to_string(
+            temp.path()
+                .join("extracted/project_folder/src/student_file"),
+        )
+        .unwrap();
+        assert_eq!(content, "content");
     }
 }

@@ -11,6 +11,9 @@ mod plugin;
 mod policy;
 mod tmc_project_yml;
 
+#[cfg(test)]
+mod test_helpers;
+
 pub use self::{
     archive::{Archive, ArchiveBuilder, Compression},
     command::{ExitStatus, Output, TmcCommand},
