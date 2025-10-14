@@ -712,4 +712,41 @@ mod test {
         assert_eq!(tpyb.tests_timeout_ms, Some(1234));
         assert_eq!(tpyb.fail_on_valgrind_error, Some(false));
     }
+
+    #[test]
+    fn merges_tmcproject_configs_exercise_overrides_root() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        let exercise_path = PathBuf::from("exercise");
+        let exercise_dir = temp.path().join(&exercise_path);
+        file_util::create_dir(&exercise_dir).unwrap();
+
+        // Root config has tests_timeout_ms: 1000
+        let root = TmcProjectYml {
+            tests_timeout_ms: Some(1000),
+            fail_on_valgrind_error: Some(true),
+            ..Default::default()
+        };
+
+        // Exercise config has tests_timeout_ms: 2000 (should override root)
+        let exercise_config = TmcProjectYml {
+            tests_timeout_ms: Some(2000),
+            ..Default::default()
+        };
+        exercise_config.save_to_dir(&exercise_dir).unwrap();
+
+        let exercise_dirs = vec![exercise_path];
+
+        let dirs_configs =
+            get_and_merge_tmcproject_configs(Some(root), temp.path(), exercise_dirs).unwrap();
+
+        let (_, merged_config) = &dirs_configs[0];
+        let merged_config = merged_config.as_ref().unwrap();
+
+        // Exercise values should override root values when both are present
+        assert_eq!(merged_config.tests_timeout_ms, Some(2000));
+        // Root values should be inherited when exercise doesn't have that field
+        assert_eq!(merged_config.fail_on_valgrind_error, Some(true));
+    }
 }

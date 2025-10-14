@@ -137,7 +137,8 @@ impl TmcProjectYml {
     /// Saves the TmcProjectYml to the given directory.
     pub fn save_to_dir(&self, dir: &Path) -> Result<(), TmcError> {
         let config_path = Self::path_in_dir(dir);
-        let mut lock = Lock::file(&config_path, LockOptions::WriteCreate)?;
+        // It is important to truncate the file here, when we save the merged tmcproject.yml files, the exercise folder can already contain a .tmcproject.yml file. If we don't truncate the file before writing, all the merged values will be appended to the file, and duplicate keys will make the file invalid YAML.
+        let mut lock = Lock::file(&config_path, LockOptions::WriteTruncate)?;
         let mut guard = lock.lock()?;
         serde_yaml::to_writer(guard.get_file_mut(), &self)?;
         Ok(())
@@ -373,5 +374,40 @@ mod test {
         assert!(path.exists());
         let tpy = TmcProjectYml::load(temp.path()).unwrap().unwrap();
         assert_eq!(tpy.tests_timeout_ms, Some(1234));
+    }
+
+    #[test]
+    fn saves_truncates_file_not_appends() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+
+        // First save
+        let first = TmcProjectYml {
+            tests_timeout_ms: Some(1000),
+            ..Default::default()
+        };
+        first.save_to_dir(temp.path()).unwrap();
+
+        // Second save with a different value to ensure old contents are not kept
+        let second = TmcProjectYml {
+            tests_timeout_ms: Some(2000),
+            ..Default::default()
+        };
+        second.save_to_dir(temp.path()).unwrap();
+
+        // Read raw YAML and ensure tests_timeout_ms occurs only once
+        let yaml_path = TmcProjectYml::path_in_dir(temp.path());
+        let yaml = std::fs::read_to_string(&yaml_path).unwrap();
+        let occurrences = yaml.matches("tests_timeout_ms").count();
+        assert_eq!(
+            occurrences, 1,
+            "YAML should contain the key only once: {}",
+            yaml
+        );
+
+        // And the file is still valid YAML after the second save
+        let parsed = TmcProjectYml::load(temp.path()).unwrap().unwrap();
+        assert_eq!(parsed.tests_timeout_ms, Some(2000));
     }
 }
