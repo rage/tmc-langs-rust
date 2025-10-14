@@ -712,4 +712,41 @@
 <a href=#712 id=712 data-nosnippet>712</a>        <span class="macro">assert_eq!</span>(tpyb.tests_timeout_ms, <span class="prelude-val">Some</span>(<span class="number">1234</span>));
 <a href=#713 id=713 data-nosnippet>713</a>        <span class="macro">assert_eq!</span>(tpyb.fail_on_valgrind_error, <span class="prelude-val">Some</span>(<span class="bool-val">false</span>));
 <a href=#714 id=714 data-nosnippet>714</a>    }
-<a href=#715 id=715 data-nosnippet>715</a>}</code></pre></div></section></main></body></html>
+<a href=#715 id=715 data-nosnippet>715</a>
+<a href=#716 id=716 data-nosnippet>716</a>    <span class="attr">#[test]
+<a href=#717 id=717 data-nosnippet>717</a>    </span><span class="kw">fn </span>merges_tmcproject_configs_exercise_overrides_root() {
+<a href=#718 id=718 data-nosnippet>718</a>        init();
+<a href=#719 id=719 data-nosnippet>719</a>
+<a href=#720 id=720 data-nosnippet>720</a>        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
+<a href=#721 id=721 data-nosnippet>721</a>        <span class="kw">let </span>exercise_path = PathBuf::from(<span class="string">"exercise"</span>);
+<a href=#722 id=722 data-nosnippet>722</a>        <span class="kw">let </span>exercise_dir = temp.path().join(<span class="kw-2">&amp;</span>exercise_path);
+<a href=#723 id=723 data-nosnippet>723</a>        file_util::create_dir(<span class="kw-2">&amp;</span>exercise_dir).unwrap();
+<a href=#724 id=724 data-nosnippet>724</a>
+<a href=#725 id=725 data-nosnippet>725</a>        <span class="comment">// Root config has tests_timeout_ms: 1000
+<a href=#726 id=726 data-nosnippet>726</a>        </span><span class="kw">let </span>root = TmcProjectYml {
+<a href=#727 id=727 data-nosnippet>727</a>            tests_timeout_ms: <span class="prelude-val">Some</span>(<span class="number">1000</span>),
+<a href=#728 id=728 data-nosnippet>728</a>            fail_on_valgrind_error: <span class="prelude-val">Some</span>(<span class="bool-val">true</span>),
+<a href=#729 id=729 data-nosnippet>729</a>            ..Default::default()
+<a href=#730 id=730 data-nosnippet>730</a>        };
+<a href=#731 id=731 data-nosnippet>731</a>
+<a href=#732 id=732 data-nosnippet>732</a>        <span class="comment">// Exercise config has tests_timeout_ms: 2000 (should override root)
+<a href=#733 id=733 data-nosnippet>733</a>        </span><span class="kw">let </span>exercise_config = TmcProjectYml {
+<a href=#734 id=734 data-nosnippet>734</a>            tests_timeout_ms: <span class="prelude-val">Some</span>(<span class="number">2000</span>),
+<a href=#735 id=735 data-nosnippet>735</a>            ..Default::default()
+<a href=#736 id=736 data-nosnippet>736</a>        };
+<a href=#737 id=737 data-nosnippet>737</a>        exercise_config.save_to_dir(<span class="kw-2">&amp;</span>exercise_dir).unwrap();
+<a href=#738 id=738 data-nosnippet>738</a>
+<a href=#739 id=739 data-nosnippet>739</a>        <span class="kw">let </span>exercise_dirs = <span class="macro">vec!</span>[exercise_path];
+<a href=#740 id=740 data-nosnippet>740</a>
+<a href=#741 id=741 data-nosnippet>741</a>        <span class="kw">let </span>dirs_configs =
+<a href=#742 id=742 data-nosnippet>742</a>            get_and_merge_tmcproject_configs(<span class="prelude-val">Some</span>(root), temp.path(), exercise_dirs).unwrap();
+<a href=#743 id=743 data-nosnippet>743</a>
+<a href=#744 id=744 data-nosnippet>744</a>        <span class="kw">let </span>(<span class="kw">_</span>, merged_config) = <span class="kw-2">&amp;</span>dirs_configs[<span class="number">0</span>];
+<a href=#745 id=745 data-nosnippet>745</a>        <span class="kw">let </span>merged_config = merged_config.as_ref().unwrap();
+<a href=#746 id=746 data-nosnippet>746</a>
+<a href=#747 id=747 data-nosnippet>747</a>        <span class="comment">// Exercise values should override root values when both are present
+<a href=#748 id=748 data-nosnippet>748</a>        </span><span class="macro">assert_eq!</span>(merged_config.tests_timeout_ms, <span class="prelude-val">Some</span>(<span class="number">2000</span>));
+<a href=#749 id=749 data-nosnippet>749</a>        <span class="comment">// Root values should be inherited when exercise doesn't have that field
+<a href=#750 id=750 data-nosnippet>750</a>        </span><span class="macro">assert_eq!</span>(merged_config.fail_on_valgrind_error, <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));
+<a href=#751 id=751 data-nosnippet>751</a>    }
+<a href=#752 id=752 data-nosnippet>752</a>}</code></pre></div></section></main></body></html>
