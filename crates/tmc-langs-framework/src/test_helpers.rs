@@ -1,10 +1,10 @@
 //! Test helpers for plugin tests
 
-use crate::plugin::LanguagePlugin;
 use crate::{
     Archive, TmcProjectYml,
     domain::{ExerciseDesc, RunResult, RunStatus},
     error::TmcError,
+    plugin::LanguagePlugin,
     policy::StudentFilePolicy,
 };
 use nom::{IResult, Parser, branch, bytes, character, combinator, sequence};

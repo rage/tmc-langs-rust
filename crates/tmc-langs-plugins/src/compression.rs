@@ -4,7 +4,6 @@ use blake3::Hash;
 use std::{
     io::{Cursor, Read, Seek},
     path::{Path, PathBuf},
-    u32,
 };
 use tmc_langs_framework::{ArchiveBuilder, Compression, StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;

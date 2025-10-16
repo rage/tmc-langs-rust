@@ -9,7 +9,6 @@ use std::{
     ops::ControlFlow::{self, Break},
     path::{Path, PathBuf},
     str::FromStr,
-    usize,
 };
 use tar::Builder;
 use tmc_langs_util::file_util;
