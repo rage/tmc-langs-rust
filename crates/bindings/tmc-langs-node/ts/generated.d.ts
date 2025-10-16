@@ -1,6 +1,6 @@
-export type StyleValidationResult = { strategy: StyleValidationStrategy, validationErrors: Record<string, Array<StyleValidationError>> | null, }
+export type StyleValidationResult = { strategy: StyleValidationStrategy, validation_errors: Record<string, Array<StyleValidationError>> | null, }
 
-export type StyleValidationError = { column: number, line: number, message: string, sourceName: string, }
+export type StyleValidationError = { column: number, line: number, message: string, source_name: string, }
 
 export type StyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
 
@@ -51,7 +51,11 @@ minimum_python_version?: PythonVer,
 /**
  * Overrides the default sandbox image. e.g. `eu.gcr.io/moocfi-public/tmc-sandbox-python:latest`
  */
-sandbox_image?: string, }
+sandbox_image?: string,
+/**
+ * Overrides the default archive size limit (500 Mb).
+ */
+submission_size_limit_mb?: number, }
 
 export type PythonVer = { major: number, minor: number | null, patch: number | null, }
 
@@ -106,9 +110,9 @@ points: Array<string>, }
 
 export type UpdatedExercise = { id: number, }
 
-export type DownloadOrUpdateCourseExercisesResult = { downloaded: Array<ExerciseDownload>, skipped: Array<ExerciseDownload>, failed?: Array<[ExerciseDownload, Array<string>]>, }
+export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
-export type ExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
+export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
 export type CombinedCourseData = { details: CourseDetails, exercises: Array<CourseExercise>, settings: CourseData, }
 
@@ -208,9 +212,9 @@ export type SubmissionFeedbackResponse = { api_version: number, status: Submissi
 
 export type SubmissionStatus = "processing" | "fail" | "ok" | "error" | "hidden";
 
-export type TmcStyleValidationResult = { strategy: TmcStyleValidationStrategy, validation_errors: Record<string, Array<TmcStyleValidationError>> | null, }
+export type TmcStyleValidationResult = { strategy: TmcStyleValidationStrategy, validationErrors: Record<string, Array<TmcStyleValidationError>> | null, }
 
-export type TmcStyleValidationError = { column: number, line: number, message: string, source_name: string, }
+export type TmcStyleValidationError = { column: number, line: number, message: string, sourceName: string, }
 
 export type TmcStyleValidationStrategy = "FAIL" | "WARN" | "DISABLED";
 
