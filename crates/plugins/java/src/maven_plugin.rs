@@ -156,7 +156,7 @@ impl LanguagePlugin for MavenPlugin {
                 let mut components = file_path.iter();
                 let mut in_src = false;
                 let mut in_src_main = false;
-                while let Some(next) = components.next() {
+                for next in components {
                     if in_src_main {
                         if Path::new(next).extension() == Some(OsStr::new("java")) {
                             let root = file_path
