@@ -76,11 +76,6 @@ pub fn prepare_submission(
         // This code branch is used when we package a submission for the sandbox. We use the clone path because it contains the hidden tests, and we want the sandbox to run them.
         for entry in WalkDir::new(stub_clone_path).min_depth(1) {
             let entry = entry?;
-            log::info!(
-                "processing entry in stub clone path {}",
-                entry.path().display()
-            );
-
             // do not take student files from stub
             if policy.is_student_file(entry.path())
                 || entry.path().components().any(|c| {

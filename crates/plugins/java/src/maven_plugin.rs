@@ -153,7 +153,7 @@ impl LanguagePlugin for MavenPlugin {
             let root = iter.with_next(|file| {
                 let file_path = file.path()?;
 
-                let mut components = file_path.iter();
+                let components = file_path.iter();
                 let mut in_src = false;
                 let mut in_src_main = false;
                 for next in components {
