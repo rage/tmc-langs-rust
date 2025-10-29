@@ -134,6 +134,7 @@ impl LanguagePlugin for MavenPlugin {
         let mut iter = archive.iter()?;
 
         let project_dir = loop {
+            // try to find pom.xml
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
@@ -143,8 +144,55 @@ impl LanguagePlugin for MavenPlugin {
                     }
                 }
                 Ok(Continue(()))
+            })?;
+            if let Some(Some(root)) = next.break_value() {
+                return Ok(root);
+            }
+
+            // accept any dir with src/main/*.java
+            let root = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                let mut components = file_path.iter();
+                let mut in_src = false;
+                let mut in_src_main = false;
+                while let Some(next) = components.next() {
+                    if in_src_main {
+                        if Path::new(next).extension() == Some(OsStr::new("java")) {
+                            let root = file_path
+                                .iter()
+                                .take_while(|c| c != &OsStr::new("main"))
+                                .collect();
+                            return Ok(Break(Some(root)));
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if in_src {
+                        if next == "main" {
+                            in_src_main = true;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if next == "src" {
+                        in_src = true;
+                    } else {
+                        break;
+                    }
+                }
+                if file.is_file() && file_path.extension() == Some(OsStr::new("java")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
+                    }
+                }
+                Ok(Continue(()))
             });
-            match next? {
+            match root? {
                 Continue(_) => continue,
                 Break(project_dir) => break project_dir,
             }

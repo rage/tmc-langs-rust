@@ -16,7 +16,7 @@ public class AppTest {
     public void trol() {
         App.main(null);
         assertEquals("Hello Maven!\n", mio.getSysOut());
-        ReflectionUtils.newInstanceOfClass("App");
+        ReflectionUtils.newInstanceOfClass("fi.helsinki.cs.maventest.App");
 
 
         System.out.println("Tests executed");

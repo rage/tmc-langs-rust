@@ -2,6 +2,7 @@
 
 use crate::{
     Archive, Compression,
+    archive::ArchiveIterator,
     domain::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
         TestResult,
@@ -14,7 +15,7 @@ use nom::{IResult, Parser, branch, bytes, character, combinator, multi, sequence
 use nom_language::error::VerboseError;
 use std::{
     collections::HashSet,
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     io::{Read, Seek},
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
@@ -234,7 +235,7 @@ pub trait LanguagePlugin {
 
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
-        let mut iter = archive.iter()?;
+        let mut iter: ArchiveIterator<_> = archive.iter()?;
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 // get the path where the file should be extracted
@@ -325,21 +326,12 @@ pub trait LanguagePlugin {
 
         // 3) Check if archive root has only one folder. This is the format tmc-langs-cli sends submissions, so all official clients should use this format.
         if let Ok(mut iter) = archive.iter() {
-            let mut folders = Vec::new();
-            let mut root_file_count: usize = 0;
+            let mut root_entries = HashSet::<OsString>::new();
             loop {
                 let next = iter.with_next::<(), _>(|file| {
                     let file_path = file.path()?;
-                    // Normalize the path to handle Windows backslashes correctly
-                    let normalized_path = file_path.to_string_lossy().replace('\\', "/");
-                    let normalized_path = Path::new(&normalized_path);
-                    // Only consider entries at the archive root
-                    if normalized_path.components().count() == 1 {
-                        if file.is_dir() {
-                            folders.push(file_path.to_path_buf());
-                        } else if file.is_file() {
-                            root_file_count += 1;
-                        }
+                    if let Some(first_component) = file_path.iter().next() {
+                        root_entries.insert(first_component.to_os_string());
                     }
                     Ok(Continue(()))
                 });
@@ -352,15 +344,13 @@ pub trait LanguagePlugin {
 
             // If there's exactly one folder at the root and no files, skip over it
             // Special case: don't skip over certain folders
-            let excluded_folders = ["src"];
-            if folders.len() == 1
-                && root_file_count == 0
-                && !folders[0]
-                    .file_name()
-                    .map(|name| excluded_folders.contains(&name.to_string_lossy().as_ref()))
-                    .unwrap_or(false)
-            {
-                return folders[0].clone();
+            let excluded_folders = [OsStr::new("src")];
+
+            if root_entries.len() == 1 {
+                let only = root_entries.iter().next().expect("len is 1");
+                if !excluded_folders.contains(&only.as_os_str()) {
+                    return PathBuf::from(only);
+                }
             }
         }
 

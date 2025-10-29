@@ -38,6 +38,7 @@ pub fn prepare_submission(
     log::debug!("preparing submission for {}", submission.archive.display());
 
     let plugin = PluginType::from_exercise(stub_clone_path)?;
+    let policy = tmc_langs_plugins::get_student_file_policy(stub_clone_path)?;
 
     let extract_dest = tempfile::tempdir().map_err(LangsError::TempDir)?;
     let extract_dest_path = extract_dest.path().to_path_buf();
@@ -59,12 +60,14 @@ pub fn prepare_submission(
             stub_zip,
             compression,
             |path| {
-                path.components().any(|c| {
-                    c.as_os_str()
-                        .to_str()
-                        .map(|s| ignore_list.contains(&s))
-                        .unwrap_or_default()
-                })
+                // do not take student files from stub
+                policy.is_student_file(path)
+                    || path.components().any(|c| {
+                        c.as_os_str()
+                            .to_str()
+                            .map(|s| ignore_list.contains(&s))
+                            .unwrap_or_default()
+                    })
             },
             &extract_dest_path,
             false,
@@ -73,14 +76,21 @@ pub fn prepare_submission(
         // This code branch is used when we package a submission for the sandbox. We use the clone path because it contains the hidden tests, and we want the sandbox to run them.
         for entry in WalkDir::new(stub_clone_path).min_depth(1) {
             let entry = entry?;
+            log::info!(
+                "processing entry in stub clone path {}",
+                entry.path().display()
+            );
 
-            if entry.path().components().any(|c| {
-                c.as_os_str()
-                    .to_str()
-                    .map(|s| ignore_list.contains(&s))
-                    .unwrap_or_default()
-            }) {
-                // path component on ignore list
+            // do not take student files from stub
+            if policy.is_student_file(entry.path())
+                || entry.path().components().any(|c| {
+                    c.as_os_str()
+                        .to_str()
+                        .map(|s| ignore_list.contains(&s))
+                        .unwrap_or_default()
+                })
+            {
+                // path is student file or component on ignore list
                 continue;
             }
 
