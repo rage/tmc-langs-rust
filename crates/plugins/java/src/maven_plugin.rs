@@ -149,19 +149,27 @@ impl LanguagePlugin for MavenPlugin {
                 return Ok(root);
             }
 
-            // accept any dir with src/main/*.java
             let root = iter.with_next(|file| {
                 let file_path = file.path()?;
 
                 let components = file_path.iter();
                 let mut in_src = false;
                 let mut in_src_main = false;
+
+                // accept any dir with pom.xml
+                if file.is_file() && file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
+                    }
+                }
+
+                // accept any dir with src/main/*.java
                 for next in components {
                     if in_src_main {
                         if Path::new(next).extension() == Some(OsStr::new("java")) {
                             let root = file_path
                                 .iter()
-                                .take_while(|c| c != &OsStr::new("main"))
+                                .take_while(|c| c != &OsStr::new("src"))
                                 .collect();
                             return Ok(Break(Some(root)));
                         }
@@ -183,11 +191,6 @@ impl LanguagePlugin for MavenPlugin {
                         in_src = true;
                     } else {
                         break;
-                    }
-                }
-                if file.is_file() && file_path.extension() == Some(OsStr::new("java")) {
-                    if let Some(pom_parent) = file_path.parent() {
-                        return Ok(Break(Some(pom_parent.to_path_buf())));
                     }
                 }
                 Ok(Continue(()))
