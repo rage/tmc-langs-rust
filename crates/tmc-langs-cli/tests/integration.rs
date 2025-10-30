@@ -393,6 +393,9 @@ fn prepare_submission_zstd() {
 }
 
 #[test]
+// dirs returns wrong user's cache dir on github's windows runner which causes issues with maven plugin
+// todo: use python exercise as base instead
+#[cfg(not(target_os = "windows"))]
 fn prepare_submission_fails_tests() {
     let _ = env_logger::try_init();
 
@@ -511,6 +514,9 @@ fn prepare_submission_fails_tests() {
 }
 
 #[test]
+// dirs returns wrong user's cache dir on github's windows runner which causes issues with maven plugin
+// todo: use python exercise as base instead
+#[cfg(not(target_os = "windows"))]
 fn prepare_submission_passes_tests() {
     let _ = env_logger::try_init();
 
