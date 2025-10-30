@@ -40,10 +40,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Cache
         uses: Swatinem/rust-cache@v2
-      - name: Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
       - id: "auth"
         uses: google-github-actions/auth@v2
         with:
@@ -66,29 +62,15 @@ jobs:
         run: |
           rustup target add ${{ matrix.target }}
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
-          npm --prefix ./crates/bindings/tmc-langs-node install
-
-      - name: Build for node
-        if: ${{ matrix.target != 'x86_64-unknown-linux-musl' }}
-        run: npm --prefix ./crates/bindings/tmc-langs-node run build -- --release --target ${{ matrix.target }}
 
       - name: Generate checksums
         run: |
           sha256sum ./target/${{ matrix.target }}/release/tmc-langs-cli > ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
-          if [ "${{ matrix.target }}" != "x86_64-unknown-linux-musl" ]; then
-            sha256sum ./crates/bindings/tmc-langs-node/ts/functions.node > ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$TAG.node.sha256
-          fi
 
       - name: Deploy
         run: |
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
-
-      - name: Deploy for node
-        if: ${{ matrix.target != 'x86_64-unknown-linux-musl' }}
-        run: |
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$TAG.node.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node.sha256
 
   windows:
     runs-on: windows-2022
@@ -103,10 +85,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Cache
         uses: Swatinem/rust-cache@v2
-      - name: Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
       - id: "auth"
         uses: google-github-actions/auth@v2
         with:
@@ -121,12 +99,10 @@ jobs:
           rustup target add ${{ matrix.target }}
           $env:RUSTFLAGS="-C target-feature=+crt-static"  # crt-static is set with RUSTFLAGS to statically link MSVCRT (VCRUNTIME140.dll)
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
-          cd ./crates/bindings/tmc-langs-node && npm install && npm run build -- --release --target ${{ matrix.target }}
 
       - name: Generate checksums
         run: |
           Get-FileHash -Path ./target/${{ matrix.target }}/release/tmc-langs-cli.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File -Encoding ASCII ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256
-          Get-FileHash -Path ./crates/bindings/tmc-langs-node/ts/functions.node -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File -Encoding ASCII ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$Env:TAG.node.sha256
 
       - name: Deploy
         run: |
@@ -134,8 +110,6 @@ jobs:
           $env:CLOUDSDK_PYTHON="C:\hostedtoolcache\windows\Python\$env:python_version\x64\python"
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli.exe gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$Env:TAG.node.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$Env:TAG.node.sha256
 
   macos:
     runs-on: macos-13
@@ -150,10 +124,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Cache
         uses: Swatinem/rust-cache@v2
-      - name: Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
       - id: "auth"
         uses: google-github-actions/auth@v2
         with:
@@ -169,8 +139,6 @@ jobs:
         run: |
           rustup target add ${{ matrix.target }}
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
-          npm --prefix ./crates/bindings/tmc-langs-node install
-          npm run --prefix ./crates/bindings/tmc-langs-node build -- --release
 
       - name: Sign
         run: codesign --force -s - target/${{ matrix.target }}/release/tmc-langs-cli
@@ -178,11 +146,8 @@ jobs:
       - name: Generate checksums
         run: |
           shasum -a 256 ./target/${{ matrix.target }}/release/tmc-langs-cli > ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
-          shasum -a 256 ./crates/bindings/tmc-langs-node/ts/functions.node > ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$TAG.node.sha256
 
       - name: Deploy
         run: |
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions.node gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node
-          gsutil cp ./crates/bindings/tmc-langs-node/ts/functions-${{ matrix.target }}-$TAG.node.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-${{ matrix.target }}-$TAG.node.sha256
