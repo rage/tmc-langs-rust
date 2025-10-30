@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["BindOptions","CallOptions","ConstructOptions"],"trait":["Arguments","TryIntoArguments"]};

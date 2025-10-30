@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["distributed_slice"],"struct":["DistributedSlice"]};

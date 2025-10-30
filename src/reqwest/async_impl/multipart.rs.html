@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.12.23/src/async_impl/multipart.rs`."><title>multipart.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">reqwest/async_impl/</div>multipart.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! multipart/form-data
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/reqwest-0.12.24/src/async_impl/multipart.rs`."><title>multipart.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">reqwest/async_impl/</div>multipart.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! multipart/form-data
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">use </span>std::borrow::Cow;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>std::fmt;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::pin::Pin;
@@ -633,118 +633,121 @@
 <a href=#633 id=633 data-nosnippet>633</a>                ))))),
 <a href=#634 id=634 data-nosnippet>634</a>            )
 <a href=#635 id=635 data-nosnippet>635</a>            .part(<span class="string">"key1"</span>, Part::text(<span class="string">"value1"</span>))
-<a href=#636 id=636 data-nosnippet>636</a>            .part(<span class="string">"key2"</span>, Part::text(<span class="string">"value2"</span>).mime(mime::IMAGE_BMP))
-<a href=#637 id=637 data-nosnippet>637</a>            .part(
-<a href=#638 id=638 data-nosnippet>638</a>                <span class="string">"reader2"</span>,
-<a href=#639 id=639 data-nosnippet>639</a>                Part::stream(Body::stream(stream::once(future::ready::&lt;
-<a href=#640 id=640 data-nosnippet>640</a>                    <span class="prelude-ty">Result</span>&lt;String, <span class="kw">crate</span>::Error&gt;,
-<a href=#641 id=641 data-nosnippet>641</a>                &gt;(<span class="prelude-val">Ok</span>(
-<a href=#642 id=642 data-nosnippet>642</a>                    <span class="string">"part2"</span>.to_owned()
-<a href=#643 id=643 data-nosnippet>643</a>                ))))),
-<a href=#644 id=644 data-nosnippet>644</a>            )
-<a href=#645 id=645 data-nosnippet>645</a>            .part(<span class="string">"key3"</span>, Part::text(<span class="string">"value3"</span>).file_name(<span class="string">"filename"</span>));
-<a href=#646 id=646 data-nosnippet>646</a>        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
-<a href=#647 id=647 data-nosnippet>647</a>        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
-<a href=#648 id=648 data-nosnippet>648</a>             Content-Disposition: form-data; name=\"reader1\"\r\n\r\n\
-<a href=#649 id=649 data-nosnippet>649</a>             part1\r\n\
-<a href=#650 id=650 data-nosnippet>650</a>             --boundary\r\n\
-<a href=#651 id=651 data-nosnippet>651</a>             Content-Disposition: form-data; name=\"key1\"\r\n\r\n\
-<a href=#652 id=652 data-nosnippet>652</a>             value1\r\n\
+<a href=#636 id=636 data-nosnippet>636</a>            .part(
+<a href=#637 id=637 data-nosnippet>637</a>                <span class="string">"key2"</span>,
+<a href=#638 id=638 data-nosnippet>638</a>                Part::text(<span class="string">"value2"</span>).mime(mime_guess::mime::IMAGE_BMP),
+<a href=#639 id=639 data-nosnippet>639</a>            )
+<a href=#640 id=640 data-nosnippet>640</a>            .part(
+<a href=#641 id=641 data-nosnippet>641</a>                <span class="string">"reader2"</span>,
+<a href=#642 id=642 data-nosnippet>642</a>                Part::stream(Body::stream(stream::once(future::ready::&lt;
+<a href=#643 id=643 data-nosnippet>643</a>                    <span class="prelude-ty">Result</span>&lt;String, <span class="kw">crate</span>::Error&gt;,
+<a href=#644 id=644 data-nosnippet>644</a>                &gt;(<span class="prelude-val">Ok</span>(
+<a href=#645 id=645 data-nosnippet>645</a>                    <span class="string">"part2"</span>.to_owned()
+<a href=#646 id=646 data-nosnippet>646</a>                ))))),
+<a href=#647 id=647 data-nosnippet>647</a>            )
+<a href=#648 id=648 data-nosnippet>648</a>            .part(<span class="string">"key3"</span>, Part::text(<span class="string">"value3"</span>).file_name(<span class="string">"filename"</span>));
+<a href=#649 id=649 data-nosnippet>649</a>        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
+<a href=#650 id=650 data-nosnippet>650</a>        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
+<a href=#651 id=651 data-nosnippet>651</a>             Content-Disposition: form-data; name=\"reader1\"\r\n\r\n\
+<a href=#652 id=652 data-nosnippet>652</a>             part1\r\n\
 <a href=#653 id=653 data-nosnippet>653</a>             --boundary\r\n\
-<a href=#654 id=654 data-nosnippet>654</a>             Content-Disposition: form-data; name=\"key2\"\r\n\
-<a href=#655 id=655 data-nosnippet>655</a>             Content-Type: image/bmp\r\n\r\n\
-<a href=#656 id=656 data-nosnippet>656</a>             value2\r\n\
-<a href=#657 id=657 data-nosnippet>657</a>             --boundary\r\n\
-<a href=#658 id=658 data-nosnippet>658</a>             Content-Disposition: form-data; name=\"reader2\"\r\n\r\n\
-<a href=#659 id=659 data-nosnippet>659</a>             part2\r\n\
+<a href=#654 id=654 data-nosnippet>654</a>             Content-Disposition: form-data; name=\"key1\"\r\n\r\n\
+<a href=#655 id=655 data-nosnippet>655</a>             value1\r\n\
+<a href=#656 id=656 data-nosnippet>656</a>             --boundary\r\n\
+<a href=#657 id=657 data-nosnippet>657</a>             Content-Disposition: form-data; name=\"key2\"\r\n\
+<a href=#658 id=658 data-nosnippet>658</a>             Content-Type: image/bmp\r\n\r\n\
+<a href=#659 id=659 data-nosnippet>659</a>             value2\r\n\
 <a href=#660 id=660 data-nosnippet>660</a>             --boundary\r\n\
-<a href=#661 id=661 data-nosnippet>661</a>             Content-Disposition: form-data; name=\"key3\"; filename=\"filename\"\r\n\r\n\
-<a href=#662 id=662 data-nosnippet>662</a>             value3\r\n--boundary--\r\n"</span>;
-<a href=#663 id=663 data-nosnippet>663</a>        <span class="kw">let </span>rt = runtime::Builder::new_current_thread()
-<a href=#664 id=664 data-nosnippet>664</a>            .enable_all()
-<a href=#665 id=665 data-nosnippet>665</a>            .build()
-<a href=#666 id=666 data-nosnippet>666</a>            .expect(<span class="string">"new rt"</span>);
-<a href=#667 id=667 data-nosnippet>667</a>        <span class="kw">let </span>body = form.stream().into_stream();
-<a href=#668 id=668 data-nosnippet>668</a>        <span class="kw">let </span>s = body.map(|try_c| try_c.map(|r| r.to_vec())).try_concat();
-<a href=#669 id=669 data-nosnippet>669</a>
-<a href=#670 id=670 data-nosnippet>670</a>        <span class="kw">let </span>out = rt.block_on(s).unwrap();
-<a href=#671 id=671 data-nosnippet>671</a>        <span class="comment">// These prints are for debug purposes in case the test fails
-<a href=#672 id=672 data-nosnippet>672</a>        </span><span class="macro">println!</span>(
-<a href=#673 id=673 data-nosnippet>673</a>            <span class="string">"START REAL\n{}\nEND REAL"</span>,
-<a href=#674 id=674 data-nosnippet>674</a>            std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap()
-<a href=#675 id=675 data-nosnippet>675</a>        );
-<a href=#676 id=676 data-nosnippet>676</a>        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{expected}\nEND EXPECTED"</span>);
-<a href=#677 id=677 data-nosnippet>677</a>        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap(), expected);
-<a href=#678 id=678 data-nosnippet>678</a>    }
-<a href=#679 id=679 data-nosnippet>679</a>
-<a href=#680 id=680 data-nosnippet>680</a>    <span class="attr">#[test]
-<a href=#681 id=681 data-nosnippet>681</a>    </span><span class="kw">fn </span>stream_to_end_with_header() {
-<a href=#682 id=682 data-nosnippet>682</a>        <span class="kw">let </span><span class="kw-2">mut </span>part = Part::text(<span class="string">"value2"</span>).mime(mime::IMAGE_BMP);
-<a href=#683 id=683 data-nosnippet>683</a>        <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
-<a href=#684 id=684 data-nosnippet>684</a>        headers.insert(<span class="string">"Hdr3"</span>, <span class="string">"/a/b/c"</span>.parse().unwrap());
-<a href=#685 id=685 data-nosnippet>685</a>        part = part.headers(headers);
-<a href=#686 id=686 data-nosnippet>686</a>        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new().part(<span class="string">"key2"</span>, part);
-<a href=#687 id=687 data-nosnippet>687</a>        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
-<a href=#688 id=688 data-nosnippet>688</a>        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
-<a href=#689 id=689 data-nosnippet>689</a>                        Content-Disposition: form-data; name=\"key2\"\r\n\
-<a href=#690 id=690 data-nosnippet>690</a>                        Content-Type: image/bmp\r\n\
-<a href=#691 id=691 data-nosnippet>691</a>                        hdr3: /a/b/c\r\n\
-<a href=#692 id=692 data-nosnippet>692</a>                        \r\n\
-<a href=#693 id=693 data-nosnippet>693</a>                        value2\r\n\
-<a href=#694 id=694 data-nosnippet>694</a>                        --boundary--\r\n"</span>;
-<a href=#695 id=695 data-nosnippet>695</a>        <span class="kw">let </span>rt = runtime::Builder::new_current_thread()
-<a href=#696 id=696 data-nosnippet>696</a>            .enable_all()
-<a href=#697 id=697 data-nosnippet>697</a>            .build()
-<a href=#698 id=698 data-nosnippet>698</a>            .expect(<span class="string">"new rt"</span>);
-<a href=#699 id=699 data-nosnippet>699</a>        <span class="kw">let </span>body = form.stream().into_stream();
-<a href=#700 id=700 data-nosnippet>700</a>        <span class="kw">let </span>s = body.map(|try_c| try_c.map(|r| r.to_vec())).try_concat();
-<a href=#701 id=701 data-nosnippet>701</a>
-<a href=#702 id=702 data-nosnippet>702</a>        <span class="kw">let </span>out = rt.block_on(s).unwrap();
-<a href=#703 id=703 data-nosnippet>703</a>        <span class="comment">// These prints are for debug purposes in case the test fails
-<a href=#704 id=704 data-nosnippet>704</a>        </span><span class="macro">println!</span>(
-<a href=#705 id=705 data-nosnippet>705</a>            <span class="string">"START REAL\n{}\nEND REAL"</span>,
-<a href=#706 id=706 data-nosnippet>706</a>            std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap()
-<a href=#707 id=707 data-nosnippet>707</a>        );
-<a href=#708 id=708 data-nosnippet>708</a>        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{expected}\nEND EXPECTED"</span>);
-<a href=#709 id=709 data-nosnippet>709</a>        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap(), expected);
-<a href=#710 id=710 data-nosnippet>710</a>    }
-<a href=#711 id=711 data-nosnippet>711</a>
-<a href=#712 id=712 data-nosnippet>712</a>    <span class="attr">#[test]
-<a href=#713 id=713 data-nosnippet>713</a>    </span><span class="kw">fn </span>correct_content_length() {
-<a href=#714 id=714 data-nosnippet>714</a>        <span class="comment">// Setup an arbitrary data stream
-<a href=#715 id=715 data-nosnippet>715</a>        </span><span class="kw">let </span>stream_data = <span class="string">b"just some stream data"</span>;
-<a href=#716 id=716 data-nosnippet>716</a>        <span class="kw">let </span>stream_len = stream_data.len();
-<a href=#717 id=717 data-nosnippet>717</a>        <span class="kw">let </span>stream_data = stream_data
-<a href=#718 id=718 data-nosnippet>718</a>            .chunks(<span class="number">3</span>)
-<a href=#719 id=719 data-nosnippet>719</a>            .map(|c| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, std::io::Error&gt;(Bytes::from(c)));
-<a href=#720 id=720 data-nosnippet>720</a>        <span class="kw">let </span>the_stream = futures_util::stream::iter(stream_data);
-<a href=#721 id=721 data-nosnippet>721</a>
-<a href=#722 id=722 data-nosnippet>722</a>        <span class="kw">let </span>bytes_data = <span class="string">b"some bytes data"</span>.to_vec();
-<a href=#723 id=723 data-nosnippet>723</a>        <span class="kw">let </span>bytes_len = bytes_data.len();
+<a href=#661 id=661 data-nosnippet>661</a>             Content-Disposition: form-data; name=\"reader2\"\r\n\r\n\
+<a href=#662 id=662 data-nosnippet>662</a>             part2\r\n\
+<a href=#663 id=663 data-nosnippet>663</a>             --boundary\r\n\
+<a href=#664 id=664 data-nosnippet>664</a>             Content-Disposition: form-data; name=\"key3\"; filename=\"filename\"\r\n\r\n\
+<a href=#665 id=665 data-nosnippet>665</a>             value3\r\n--boundary--\r\n"</span>;
+<a href=#666 id=666 data-nosnippet>666</a>        <span class="kw">let </span>rt = runtime::Builder::new_current_thread()
+<a href=#667 id=667 data-nosnippet>667</a>            .enable_all()
+<a href=#668 id=668 data-nosnippet>668</a>            .build()
+<a href=#669 id=669 data-nosnippet>669</a>            .expect(<span class="string">"new rt"</span>);
+<a href=#670 id=670 data-nosnippet>670</a>        <span class="kw">let </span>body = form.stream().into_stream();
+<a href=#671 id=671 data-nosnippet>671</a>        <span class="kw">let </span>s = body.map(|try_c| try_c.map(|r| r.to_vec())).try_concat();
+<a href=#672 id=672 data-nosnippet>672</a>
+<a href=#673 id=673 data-nosnippet>673</a>        <span class="kw">let </span>out = rt.block_on(s).unwrap();
+<a href=#674 id=674 data-nosnippet>674</a>        <span class="comment">// These prints are for debug purposes in case the test fails
+<a href=#675 id=675 data-nosnippet>675</a>        </span><span class="macro">println!</span>(
+<a href=#676 id=676 data-nosnippet>676</a>            <span class="string">"START REAL\n{}\nEND REAL"</span>,
+<a href=#677 id=677 data-nosnippet>677</a>            std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap()
+<a href=#678 id=678 data-nosnippet>678</a>        );
+<a href=#679 id=679 data-nosnippet>679</a>        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{expected}\nEND EXPECTED"</span>);
+<a href=#680 id=680 data-nosnippet>680</a>        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap(), expected);
+<a href=#681 id=681 data-nosnippet>681</a>    }
+<a href=#682 id=682 data-nosnippet>682</a>
+<a href=#683 id=683 data-nosnippet>683</a>    <span class="attr">#[test]
+<a href=#684 id=684 data-nosnippet>684</a>    </span><span class="kw">fn </span>stream_to_end_with_header() {
+<a href=#685 id=685 data-nosnippet>685</a>        <span class="kw">let </span><span class="kw-2">mut </span>part = Part::text(<span class="string">"value2"</span>).mime(mime_guess::mime::IMAGE_BMP);
+<a href=#686 id=686 data-nosnippet>686</a>        <span class="kw">let </span><span class="kw-2">mut </span>headers = HeaderMap::new();
+<a href=#687 id=687 data-nosnippet>687</a>        headers.insert(<span class="string">"Hdr3"</span>, <span class="string">"/a/b/c"</span>.parse().unwrap());
+<a href=#688 id=688 data-nosnippet>688</a>        part = part.headers(headers);
+<a href=#689 id=689 data-nosnippet>689</a>        <span class="kw">let </span><span class="kw-2">mut </span>form = Form::new().part(<span class="string">"key2"</span>, part);
+<a href=#690 id=690 data-nosnippet>690</a>        form.inner.boundary = <span class="string">"boundary"</span>.to_string();
+<a href=#691 id=691 data-nosnippet>691</a>        <span class="kw">let </span>expected = <span class="string">"--boundary\r\n\
+<a href=#692 id=692 data-nosnippet>692</a>                        Content-Disposition: form-data; name=\"key2\"\r\n\
+<a href=#693 id=693 data-nosnippet>693</a>                        Content-Type: image/bmp\r\n\
+<a href=#694 id=694 data-nosnippet>694</a>                        hdr3: /a/b/c\r\n\
+<a href=#695 id=695 data-nosnippet>695</a>                        \r\n\
+<a href=#696 id=696 data-nosnippet>696</a>                        value2\r\n\
+<a href=#697 id=697 data-nosnippet>697</a>                        --boundary--\r\n"</span>;
+<a href=#698 id=698 data-nosnippet>698</a>        <span class="kw">let </span>rt = runtime::Builder::new_current_thread()
+<a href=#699 id=699 data-nosnippet>699</a>            .enable_all()
+<a href=#700 id=700 data-nosnippet>700</a>            .build()
+<a href=#701 id=701 data-nosnippet>701</a>            .expect(<span class="string">"new rt"</span>);
+<a href=#702 id=702 data-nosnippet>702</a>        <span class="kw">let </span>body = form.stream().into_stream();
+<a href=#703 id=703 data-nosnippet>703</a>        <span class="kw">let </span>s = body.map(|try_c| try_c.map(|r| r.to_vec())).try_concat();
+<a href=#704 id=704 data-nosnippet>704</a>
+<a href=#705 id=705 data-nosnippet>705</a>        <span class="kw">let </span>out = rt.block_on(s).unwrap();
+<a href=#706 id=706 data-nosnippet>706</a>        <span class="comment">// These prints are for debug purposes in case the test fails
+<a href=#707 id=707 data-nosnippet>707</a>        </span><span class="macro">println!</span>(
+<a href=#708 id=708 data-nosnippet>708</a>            <span class="string">"START REAL\n{}\nEND REAL"</span>,
+<a href=#709 id=709 data-nosnippet>709</a>            std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap()
+<a href=#710 id=710 data-nosnippet>710</a>        );
+<a href=#711 id=711 data-nosnippet>711</a>        <span class="macro">println!</span>(<span class="string">"START EXPECTED\n{expected}\nEND EXPECTED"</span>);
+<a href=#712 id=712 data-nosnippet>712</a>        <span class="macro">assert_eq!</span>(std::str::from_utf8(<span class="kw-2">&amp;</span>out).unwrap(), expected);
+<a href=#713 id=713 data-nosnippet>713</a>    }
+<a href=#714 id=714 data-nosnippet>714</a>
+<a href=#715 id=715 data-nosnippet>715</a>    <span class="attr">#[test]
+<a href=#716 id=716 data-nosnippet>716</a>    </span><span class="kw">fn </span>correct_content_length() {
+<a href=#717 id=717 data-nosnippet>717</a>        <span class="comment">// Setup an arbitrary data stream
+<a href=#718 id=718 data-nosnippet>718</a>        </span><span class="kw">let </span>stream_data = <span class="string">b"just some stream data"</span>;
+<a href=#719 id=719 data-nosnippet>719</a>        <span class="kw">let </span>stream_len = stream_data.len();
+<a href=#720 id=720 data-nosnippet>720</a>        <span class="kw">let </span>stream_data = stream_data
+<a href=#721 id=721 data-nosnippet>721</a>            .chunks(<span class="number">3</span>)
+<a href=#722 id=722 data-nosnippet>722</a>            .map(|c| <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, std::io::Error&gt;(Bytes::from(c)));
+<a href=#723 id=723 data-nosnippet>723</a>        <span class="kw">let </span>the_stream = futures_util::stream::iter(stream_data);
 <a href=#724 id=724 data-nosnippet>724</a>
-<a href=#725 id=725 data-nosnippet>725</a>        <span class="kw">let </span>stream_part = Part::stream_with_length(Body::stream(the_stream), stream_len <span class="kw">as </span>u64);
-<a href=#726 id=726 data-nosnippet>726</a>        <span class="kw">let </span>body_part = Part::bytes(bytes_data);
+<a href=#725 id=725 data-nosnippet>725</a>        <span class="kw">let </span>bytes_data = <span class="string">b"some bytes data"</span>.to_vec();
+<a href=#726 id=726 data-nosnippet>726</a>        <span class="kw">let </span>bytes_len = bytes_data.len();
 <a href=#727 id=727 data-nosnippet>727</a>
-<a href=#728 id=728 data-nosnippet>728</a>        <span class="comment">// A simple check to make sure we get the configured body length
-<a href=#729 id=729 data-nosnippet>729</a>        </span><span class="macro">assert_eq!</span>(stream_part.value_len().unwrap(), stream_len <span class="kw">as </span>u64);
+<a href=#728 id=728 data-nosnippet>728</a>        <span class="kw">let </span>stream_part = Part::stream_with_length(Body::stream(the_stream), stream_len <span class="kw">as </span>u64);
+<a href=#729 id=729 data-nosnippet>729</a>        <span class="kw">let </span>body_part = Part::bytes(bytes_data);
 <a href=#730 id=730 data-nosnippet>730</a>
-<a href=#731 id=731 data-nosnippet>731</a>        <span class="comment">// Make sure it delegates to the underlying body if length is not specified
-<a href=#732 id=732 data-nosnippet>732</a>        </span><span class="macro">assert_eq!</span>(body_part.value_len().unwrap(), bytes_len <span class="kw">as </span>u64);
-<a href=#733 id=733 data-nosnippet>733</a>    }
-<a href=#734 id=734 data-nosnippet>734</a>
-<a href=#735 id=735 data-nosnippet>735</a>    <span class="attr">#[test]
-<a href=#736 id=736 data-nosnippet>736</a>    </span><span class="kw">fn </span>header_percent_encoding() {
-<a href=#737 id=737 data-nosnippet>737</a>        <span class="kw">let </span>name = <span class="string">"start%'\"\r\nßend"</span>;
-<a href=#738 id=738 data-nosnippet>738</a>        <span class="kw">let </span>field = Part::text(<span class="string">""</span>);
-<a href=#739 id=739 data-nosnippet>739</a>
-<a href=#740 id=740 data-nosnippet>740</a>        <span class="macro">assert_eq!</span>(
-<a href=#741 id=741 data-nosnippet>741</a>            PercentEncoding::PathSegment.encode_headers(name, <span class="kw-2">&amp;</span>field.meta),
-<a href=#742 id=742 data-nosnippet>742</a>            <span class="kw-2">&amp;</span><span class="string">b"Content-Disposition: form-data; name*=utf-8''start%25'%22%0D%0A%C3%9Fend"</span>[..]
-<a href=#743 id=743 data-nosnippet>743</a>        );
-<a href=#744 id=744 data-nosnippet>744</a>
-<a href=#745 id=745 data-nosnippet>745</a>        <span class="macro">assert_eq!</span>(
-<a href=#746 id=746 data-nosnippet>746</a>            PercentEncoding::AttrChar.encode_headers(name, <span class="kw-2">&amp;</span>field.meta),
-<a href=#747 id=747 data-nosnippet>747</a>            <span class="kw-2">&amp;</span><span class="string">b"Content-Disposition: form-data; name*=utf-8''start%25%27%22%0D%0A%C3%9Fend"</span>[..]
-<a href=#748 id=748 data-nosnippet>748</a>        );
-<a href=#749 id=749 data-nosnippet>749</a>    }
-<a href=#750 id=750 data-nosnippet>750</a>}</code></pre></div></section></main></body></html>
+<a href=#731 id=731 data-nosnippet>731</a>        <span class="comment">// A simple check to make sure we get the configured body length
+<a href=#732 id=732 data-nosnippet>732</a>        </span><span class="macro">assert_eq!</span>(stream_part.value_len().unwrap(), stream_len <span class="kw">as </span>u64);
+<a href=#733 id=733 data-nosnippet>733</a>
+<a href=#734 id=734 data-nosnippet>734</a>        <span class="comment">// Make sure it delegates to the underlying body if length is not specified
+<a href=#735 id=735 data-nosnippet>735</a>        </span><span class="macro">assert_eq!</span>(body_part.value_len().unwrap(), bytes_len <span class="kw">as </span>u64);
+<a href=#736 id=736 data-nosnippet>736</a>    }
+<a href=#737 id=737 data-nosnippet>737</a>
+<a href=#738 id=738 data-nosnippet>738</a>    <span class="attr">#[test]
+<a href=#739 id=739 data-nosnippet>739</a>    </span><span class="kw">fn </span>header_percent_encoding() {
+<a href=#740 id=740 data-nosnippet>740</a>        <span class="kw">let </span>name = <span class="string">"start%'\"\r\nßend"</span>;
+<a href=#741 id=741 data-nosnippet>741</a>        <span class="kw">let </span>field = Part::text(<span class="string">""</span>);
+<a href=#742 id=742 data-nosnippet>742</a>
+<a href=#743 id=743 data-nosnippet>743</a>        <span class="macro">assert_eq!</span>(
+<a href=#744 id=744 data-nosnippet>744</a>            PercentEncoding::PathSegment.encode_headers(name, <span class="kw-2">&amp;</span>field.meta),
+<a href=#745 id=745 data-nosnippet>745</a>            <span class="kw-2">&amp;</span><span class="string">b"Content-Disposition: form-data; name*=utf-8''start%25'%22%0D%0A%C3%9Fend"</span>[..]
+<a href=#746 id=746 data-nosnippet>746</a>        );
+<a href=#747 id=747 data-nosnippet>747</a>
+<a href=#748 id=748 data-nosnippet>748</a>        <span class="macro">assert_eq!</span>(
+<a href=#749 id=749 data-nosnippet>749</a>            PercentEncoding::AttrChar.encode_headers(name, <span class="kw-2">&amp;</span>field.meta),
+<a href=#750 id=750 data-nosnippet>750</a>            <span class="kw-2">&amp;</span><span class="string">b"Content-Disposition: form-data; name*=utf-8''start%25%27%22%0D%0A%C3%9Fend"</span>[..]
+<a href=#751 id=751 data-nosnippet>751</a>        );
+<a href=#752 id=752 data-nosnippet>752</a>    }
+<a href=#753 id=753 data-nosnippet>753</a>}</code></pre></div></section></main></body></html>

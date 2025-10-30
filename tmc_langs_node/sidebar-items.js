@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["init_logging"],"macro":["lock","parse_arg","parse_args"]};

@@ -1,1 +1,0 @@
-searchState.loadedDescShard("neon_macros", 0, "Procedural macros supporting Neon")

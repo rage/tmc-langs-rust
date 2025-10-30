@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["CallKind"],"struct":["Cx","FunctionContext","Lock","ModuleContext"],"trait":["Context"]};

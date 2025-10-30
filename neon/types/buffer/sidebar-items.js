@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["BorrowError","Ref","RefMut","Region"],"trait":["Binary","TypedArray"]};
