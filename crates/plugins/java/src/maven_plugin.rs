@@ -134,6 +134,7 @@ impl LanguagePlugin for MavenPlugin {
         let mut iter = archive.iter()?;
 
         let project_dir = loop {
+            // try to find pom.xml
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
@@ -143,8 +144,58 @@ impl LanguagePlugin for MavenPlugin {
                     }
                 }
                 Ok(Continue(()))
+            })?;
+            if let Some(Some(root)) = next.break_value() {
+                return Ok(root);
+            }
+
+            let root = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                let components = file_path.iter();
+                let mut in_src = false;
+                let mut in_src_main = false;
+
+                // accept any dir with pom.xml
+                if file.is_file() && file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
+                    }
+                }
+
+                // accept any dir with src/main/*.java
+                for next in components {
+                    if in_src_main {
+                        if Path::new(next).extension() == Some(OsStr::new("java")) {
+                            let root = file_path
+                                .iter()
+                                .take_while(|c| c != &OsStr::new("src"))
+                                .collect();
+                            return Ok(Break(Some(root)));
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if in_src {
+                        if next == "main" {
+                            in_src_main = true;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if next == "src" {
+                        in_src = true;
+                    } else {
+                        break;
+                    }
+                }
+                Ok(Continue(()))
             });
-            match next? {
+            match root? {
                 Continue(_) => continue,
                 Break(project_dir) => break project_dir,
             }

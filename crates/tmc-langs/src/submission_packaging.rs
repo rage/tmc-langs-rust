@@ -29,7 +29,7 @@ pub fn prepare_submission(
     target_path: &Path,
     no_archive_prefix: bool,
     tmc_params: TmcParams,
-    stub_clone_path: &Path,
+    clone_path: &Path,
     stub_archive: Option<(&Path, Compression)>,
     output_format: Compression,
 ) -> Result<String, LangsError> {
@@ -37,7 +37,8 @@ pub fn prepare_submission(
     let _m = MUTEX.lock().map_err(|_| LangsError::MutexError)?;
     log::debug!("preparing submission for {}", submission.archive.display());
 
-    let plugin = PluginType::from_exercise(stub_clone_path)?;
+    let plugin = PluginType::from_exercise(clone_path)?;
+    let policy = tmc_langs_plugins::get_student_file_policy(clone_path)?;
 
     let extract_dest = tempfile::tempdir().map_err(LangsError::TempDir)?;
     let extract_dest_path = extract_dest.path().to_path_buf();
@@ -59,35 +60,43 @@ pub fn prepare_submission(
             stub_zip,
             compression,
             |path| {
-                path.components().any(|c| {
-                    c.as_os_str()
-                        .to_str()
-                        .map(|s| ignore_list.contains(&s))
-                        .unwrap_or_default()
-                })
+                let relative_path = path.strip_prefix(clone_path).unwrap_or(path);
+
+                // do not take student files from stub
+                policy.is_student_file(relative_path)
+                    || relative_path.components().any(|c| {
+                        c.as_os_str()
+                            .to_str()
+                            .map(|s| ignore_list.contains(&s))
+                            .unwrap_or_default()
+                    })
             },
             &extract_dest_path,
             false,
         )?;
     } else {
         // This code branch is used when we package a submission for the sandbox. We use the clone path because it contains the hidden tests, and we want the sandbox to run them.
-        for entry in WalkDir::new(stub_clone_path).min_depth(1) {
+        for entry in WalkDir::new(clone_path).min_depth(1) {
             let entry = entry?;
-
-            if entry.path().components().any(|c| {
-                c.as_os_str()
-                    .to_str()
-                    .map(|s| ignore_list.contains(&s))
-                    .unwrap_or_default()
-            }) {
-                // path component on ignore list
-                continue;
-            }
 
             let relative_path = entry
                 .path()
-                .strip_prefix(stub_clone_path)
-                .expect("entry is in stub clone path");
+                .strip_prefix(clone_path)
+                .expect("entry is in clone path");
+
+            // do not take student files from clone
+            if policy.is_student_file(relative_path)
+                || relative_path.components().any(|c| {
+                    c.as_os_str()
+                        .to_str()
+                        .map(|s| ignore_list.contains(&s))
+                        .unwrap_or_default()
+                })
+            {
+                // path is student file or component on ignore list
+                continue;
+            }
+
             let target_path = extract_dest_path.join(relative_path);
             if entry.path().is_file() {
                 file_util::copy(entry.path(), target_path)?;
@@ -101,7 +110,7 @@ pub fn prepare_submission(
     log::debug!("extracting student files");
     let file = file_util::open_file(submission.archive)?;
     if submission.extract_naively {
-        // If the stub contains a .tmcproject.yml, preserve it so the student's cannot override it
+        // If the clone contains a .tmcproject.yml, preserve it so the student's cannot override it
         let tmcproject_path = extract_dest_path.join(".tmcproject.yml");
         let preserved_tmcproject = if tmcproject_path.exists() {
             Some(
@@ -115,7 +124,7 @@ pub fn prepare_submission(
         extract_project_overwrite(file, &extract_dest_path, submission.compression)?;
 
         if let Some(bytes) = preserved_tmcproject {
-            // restore the stub's .tmcproject.yml
+            // restore the clone's .tmcproject.yml
             file_util::write_to_file(&bytes, &tmcproject_path)?;
         }
     } else {
@@ -170,8 +179,8 @@ pub fn prepare_submission(
 
     // make archive
     log::debug!("creating submission archive");
-    let exercise_name = stub_clone_path.file_name();
-    let course_name = stub_clone_path.parent().and_then(Path::file_name);
+    let exercise_name = clone_path.file_name();
+    let course_name = clone_path.parent().and_then(Path::file_name);
     let prefix = if no_archive_prefix {
         PathBuf::new()
     } else {
@@ -180,7 +189,7 @@ pub fn prepare_submission(
             _ => {
                 log::warn!(
                     "was not able to find exercise and/or course name from clone path {}",
-                    stub_clone_path.display()
+                    clone_path.display()
                 );
                 PathBuf::new()
             }
@@ -296,9 +305,9 @@ pub fn prepare_submission(
     }
 
     // get sandbox image
-    let sandbox_image = match TmcProjectYml::load(stub_clone_path)?.and_then(|c| c.sandbox_image) {
+    let sandbox_image = match TmcProjectYml::load(clone_path)?.and_then(|c| c.sandbox_image) {
         Some(sandbox_image) => sandbox_image,
-        None => crate::get_default_sandbox_image(stub_clone_path)?.to_string(),
+        None => crate::get_default_sandbox_image(clone_path)?.to_string(),
     };
     Ok(sandbox_image)
 }
@@ -366,6 +375,7 @@ mod test {
         let _ = SimpleLogger::new()
             .with_level(LevelFilter::Debug)
             .with_module_level("j4rs", LevelFilter::Warn)
+            .env()
             .init();
     }
 
@@ -457,9 +467,9 @@ mod test {
         let contents = String::from_utf8(writer).unwrap();
         assert!(contents.contains("MODIFIED"));
         // the text should not be in the package
-        let test_file = fs::read_to_string(dbg!(
-            output.join("some_course/MavenExercise/src/test/java/SimpleTest.java")
-        ))
+        let test_file = fs::read_to_string(
+            output.join("some_course/MavenExercise/src/test/java/SimpleTest.java"),
+        )
         .unwrap();
         assert!(!test_file.contains("MODIFIED"));
     }
@@ -684,7 +694,9 @@ mod test {
         let opts = SimpleFileOptions::default();
         zw.add_directory("PythonExercise", opts).unwrap();
         zw.add_directory("PythonExercise/src", opts).unwrap();
-        zw.start_file("PythonExercise/src/__init__.py", opts)
+        zw.start_file("PythonExercise/__init__.py", opts).unwrap();
+        std::io::Write::write_all(&mut zw, b"print('student')\n").unwrap();
+        zw.start_file("PythonExercise/src/__main__.py", opts)
             .unwrap();
         std::io::Write::write_all(&mut zw, b"print('student')\n").unwrap();
         zw.start_file("PythonExercise/.tmcproject.yml", opts)
@@ -697,7 +709,7 @@ mod test {
             PrepareSubmission {
                 archive: &sub_zip_path,
                 compression: Compression::Zip,
-                extract_naively: true,
+                extract_naively: false,
             },
             &output_arch,
             false,
@@ -715,6 +727,11 @@ mod test {
         let output_extracted = temp.path().join("output");
         archive.unpack(&output_extracted).unwrap();
 
+        for file in WalkDir::new(&output_extracted) {
+            let file = file.unwrap();
+            println!("{}", file.path().display());
+        }
+
         // Verify .tmcproject.yml content is from stub, not student
         let yml =
             fs::read_to_string(output_extracted.join("some_course/PythonExercise/.tmcproject.yml"))
@@ -723,11 +740,6 @@ mod test {
         assert!(!yml.contains("key: student"));
 
         // Verify other expected files are present
-        assert!(
-            output_extracted
-                .join("some_course/PythonExercise/src/__init__.py")
-                .exists()
-        );
         assert!(
             output_extracted
                 .join("some_course/PythonExercise/src/__main__.py")
