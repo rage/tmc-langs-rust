@@ -442,7 +442,7 @@ fn prepare_submission_fails_tests() {
         _ => panic!(),
     }
 
-    println!("nprepare submission");
+    println!("prepare submission");
     let prepared_tar = tempfile::NamedTempFile::new().unwrap();
     let cli = Cli::parse_from([
         "tmc-langs-cli",
