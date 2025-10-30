@@ -14,10 +14,6 @@ Additional documentation for other aspects of TMC such as configuration file for
 
 A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended to be used programmatically, for a CLI meant for manual use see [tmc-cli-rust](https://github.com/rage/tmc-cli-rust).
 
-### bindings/tmc-langs-node
-
-Bindings for using tmc-langs from Node.js.
-
 ### tmc-langs
 
 The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this library. The other libraries are considered internal.
