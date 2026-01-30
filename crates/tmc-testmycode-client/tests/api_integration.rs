@@ -25,9 +25,7 @@ fn init_client() -> TestMyCodeClient {
         "1.0.0".to_string(),
     )
     .unwrap();
-    client
-        .authenticate("vscode_plugin", email, password)
-        .unwrap();
+    client.authenticate(email, password).unwrap();
     client
 }
 

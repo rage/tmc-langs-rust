@@ -129,11 +129,10 @@ impl TestMyCodeClient {
     /// use tmc_testmycode_client::TestMyCodeClient;
     ///
     /// let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
-    /// client.authenticate("client", "user".to_string(), "pass".to_string()).unwrap();
+    /// client.authenticate("user".to_string(), "pass".to_string()).unwrap();
     /// ```
     pub fn authenticate(
         &mut self,
-        client_name: &str,
         email: String,
         password: String,
     ) -> TestMyCodeClientResult<Token> {
@@ -145,7 +144,7 @@ impl TestMyCodeClient {
             TestMyCodeClientError::UrlParse(self.0.root_url.to_string() + "/oauth/token", e)
         })?;
 
-        let credentials = api_v8::get_credentials(self, client_name)?;
+        let credentials = api_v8::get_credentials(self)?;
 
         log::debug!("authenticating at {auth_url}");
         let client = BasicClient::new(ClientId::new(credentials.application_id))
@@ -187,6 +186,7 @@ impl TestMyCodeClient {
         &self,
         exercise_id: u32,
         submission_path: &Path,
+        submission_size_limit_mb: u32,
         locale: Option<Language>,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
@@ -198,6 +198,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         progress_stage("Compressed submission. Posting submission...", None);
@@ -251,7 +252,9 @@ impl TestMyCodeClient {
     ///     123,
     ///     Path::new("./exercises/python/123"),
     ///     Some("my python solution".to_string()),
-    ///     Some(Language::Eng)).unwrap();
+    ///     Some(Language::Eng),
+    ///     1,
+    /// ).unwrap();
     /// ```
     pub fn paste(
         &self,
@@ -259,6 +262,7 @@ impl TestMyCodeClient {
         submission_path: &Path,
         paste_message: Option<String>,
         locale: Option<Language>,
+        submission_size_limit_mb: u32,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
@@ -270,6 +274,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         progress_stage(
@@ -342,6 +347,16 @@ impl TestMyCodeClient {
         api_v8::core::download_exercise_solution(self, exercise_id, &mut buf)?;
         tmc_langs_plugins::extract_project(Cursor::new(buf), target, Compression::Zip, false)
             .map_err(TestMyCodeClientError::from)?;
+        Ok(())
+    }
+
+    pub fn download_model_solution_archive(
+        &self,
+        exercise_id: u32,
+        target: &mut dyn Write,
+    ) -> TestMyCodeClientResult<()> {
+        self.require_authentication()?;
+        api_v8::core::download_exercise_solution(self, exercise_id, target)?;
         Ok(())
     }
 
@@ -503,6 +518,7 @@ impl TestMyCodeClient {
         submission_path: &Path,
         message_for_reviewer: Option<String>,
         locale: Option<Language>,
+        submission_size_limit_mb: u32,
     ) -> TestMyCodeClientResult<NewSubmission> {
         self.require_authentication()?;
 
@@ -512,6 +528,7 @@ impl TestMyCodeClient {
             false,
             false,
             false,
+            submission_size_limit_mb,
         )
         .map_err(TestMyCodeClientError::from)?;
         let review = if let Some(message) = message_for_reviewer {
@@ -892,4 +909,7 @@ mod test {
         let _res = client.wait_for_submission(0).unwrap();
         m.assert();
     }
+
+    #[test]
+    fn asd() {}
 }

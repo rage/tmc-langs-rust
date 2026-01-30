@@ -6,7 +6,7 @@ use crate::{
 };
 use flate2::read::GzDecoder;
 use std::{
-    ffi::OsString,
+    ffi::{OsStr, OsString},
     io::{Cursor, Read, Seek},
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
@@ -17,7 +17,7 @@ use tmc_langs_framework::{
     Archive, ExerciseDesc, Language, LanguagePlugin, RunResult, StyleValidationResult, TmcCommand,
     TmcError, nom::IResult, nom_language::error::VerboseError,
 };
-use tmc_langs_util::{file_util, path_util};
+use tmc_langs_util::file_util;
 
 const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.8.1-bin.tar.gz");
 const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base directory in the maven archive
@@ -132,19 +132,70 @@ impl LanguagePlugin for MavenPlugin {
         archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
         let mut iter = archive.iter()?;
+
         let project_dir = loop {
+            // try to find pom.xml
             let next = iter.with_next(|file| {
                 let file_path = file.path()?;
 
-                if file.is_file() {
-                    // check for pom.xml
-                    if let Some(parent) = path_util::get_parent_of_named(&file_path, "pom.xml") {
-                        return Ok(Break(Some(parent)));
+                if file.is_file() && file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
+                    }
+                }
+                Ok(Continue(()))
+            })?;
+            if let Some(Some(root)) = next.break_value() {
+                return Ok(root);
+            }
+
+            let root = iter.with_next(|file| {
+                let file_path = file.path()?;
+
+                let components = file_path.iter();
+                let mut in_src = false;
+                let mut in_src_main = false;
+
+                // accept any dir with pom.xml
+                if file.is_file() && file_path.file_name() == Some(OsStr::new("pom.xml")) {
+                    if let Some(pom_parent) = file_path.parent() {
+                        return Ok(Break(Some(pom_parent.to_path_buf())));
+                    }
+                }
+
+                // accept any dir with src/main/*.java
+                for next in components {
+                    if in_src_main {
+                        if Path::new(next).extension() == Some(OsStr::new("java")) {
+                            let root = file_path
+                                .iter()
+                                .take_while(|c| c != &OsStr::new("src"))
+                                .collect();
+                            return Ok(Break(Some(root)));
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if in_src {
+                        if next == "main" {
+                            in_src_main = true;
+                        } else {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+
+                    if next == "src" {
+                        in_src = true;
+                    } else {
+                        break;
                     }
                 }
                 Ok(Continue(()))
             });
-            match next? {
+            match root? {
                 Continue(_) => continue,
                 Break(project_dir) => break project_dir,
             }

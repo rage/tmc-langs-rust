@@ -1,8 +1,11 @@
 use clap::Parser;
 use std::path::Path;
 use tempfile::{NamedTempFile, TempDir, tempdir};
-use tmc_langs::Compression;
-use tmc_langs_cli::app::Cli;
+use tmc_langs::{Compression, RunStatus, file_util};
+use tmc_langs_cli::{
+    app::Cli,
+    output::{CliOutput, DataKind, OutputResult},
+};
 use walkdir::WalkDir;
 
 fn cp_exercise(path: &Path) -> TempDir {
@@ -387,4 +390,245 @@ fn prepare_submission_zstd() {
         let files = sorted_list_of_files(&extract_target);
         insta::assert_yaml_snapshot!(files);
     })
+}
+
+#[test]
+// dirs returns wrong user's cache dir on github's windows runner which causes issues with maven plugin
+// todo: use python exercise as base instead
+#[cfg(not(target_os = "windows"))]
+fn prepare_submission_fails_tests() {
+    let _ = env_logger::try_init();
+
+    println!("set up user submission");
+    let submission_super = tempfile::tempdir().unwrap();
+    let exercise_clone = "../../sample_exercises/java/maven-exercise";
+    let exercise_model = "../../sample_exercises/java/maven-exercise-model";
+    file_util::copy(exercise_clone, &submission_super.path()).unwrap();
+    let submission_dir = submission_super.path().join("maven-exercise");
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "run-tests",
+        "--exercise-path",
+        path_str(&submission_dir),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+
+    println!("ensure unmodified exercise fails");
+    match output {
+        CliOutput::OutputData(data) => match data.data {
+            Some(DataKind::TestResult(result)) => {
+                print!("{:#?}", result.logs);
+                assert_eq!(result.status, RunStatus::TestsFailed);
+            }
+            _ => panic!(),
+        },
+        _ => panic!(),
+    }
+
+    println!("compress");
+    let compressed_project = tempfile::NamedTempFile::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "compress-project",
+        "--exercise-path",
+        path_str(&submission_dir),
+        "--output-path",
+        path_str(&compressed_project.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("prepare submission");
+    let prepared_tar = tempfile::NamedTempFile::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "prepare-submission",
+        "--clone-path",
+        exercise_model,
+        "--submission-path",
+        path_str(&compressed_project.path()),
+        "--output-path",
+        path_str(&prepared_tar.path()),
+        "--no-archive-prefix",
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("extract tar at {}", prepared_tar.path().display());
+    let submission_prepared = tempfile::TempDir::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "extract-project",
+        "--naive",
+        "--archive-path",
+        path_str(&prepared_tar.path()),
+        "--compression",
+        "tar",
+        "--output-path",
+        path_str(&submission_prepared.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("test submission");
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "run-tests",
+        "--exercise-path",
+        path_str(&submission_prepared.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+
+    println!("ensure exercise still fails after prep");
+    match output {
+        CliOutput::OutputData(data) => match data.data {
+            Some(DataKind::TestResult(result)) => {
+                println!("{:#?}", result.logs);
+                println!("{:#?}", result.test_results);
+                assert_eq!(result.status, RunStatus::TestsFailed);
+            }
+            _ => panic!(),
+        },
+        _ => panic!(),
+    }
+}
+
+#[test]
+// dirs returns wrong user's cache dir on github's windows runner which causes issues with maven plugin
+// todo: use python exercise as base instead
+#[cfg(not(target_os = "windows"))]
+fn prepare_submission_passes_tests() {
+    let _ = env_logger::try_init();
+
+    println!("set up user submission");
+    let temp_maven = tempfile::tempdir().unwrap();
+    let maven_exercise = "../../sample_exercises/java/maven-exercise-model";
+    file_util::copy(maven_exercise, &temp_maven.path()).unwrap();
+    let user_path = temp_maven.path().join("maven-exercise-model");
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "run-tests",
+        "--exercise-path",
+        path_str(&user_path),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+
+    println!("ensure unmodified exercise passes");
+    match output {
+        CliOutput::OutputData(data) => match data.data {
+            Some(DataKind::TestResult(result)) => {
+                print!("{:#?}", result.logs);
+                assert_eq!(result.status, RunStatus::Passed);
+            }
+            _ => panic!(),
+        },
+        _ => panic!(),
+    }
+
+    println!("compress");
+    let temp_compressed = tempfile::NamedTempFile::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "compress-project",
+        "--exercise-path",
+        path_str(&user_path),
+        "--output-path",
+        path_str(&temp_compressed.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("prepare submission");
+    let temp_tar = tempfile::NamedTempFile::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "prepare-submission",
+        "--clone-path",
+        maven_exercise,
+        "--submission-path",
+        path_str(&temp_compressed.path()),
+        "--output-path",
+        path_str(&temp_tar.path()),
+        "--no-archive-prefix",
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("extract tar at {}", temp_tar.path().display());
+    let submission_finished = tempfile::TempDir::new().unwrap();
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "extract-project",
+        "--naive",
+        "--archive-path",
+        path_str(&temp_tar.path()),
+        "--compression",
+        "tar",
+        "--output-path",
+        path_str(&submission_finished.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+    match output {
+        CliOutput::OutputData(data) => {
+            assert_eq!(data.result, OutputResult::ExecutedCommand);
+        }
+        _ => panic!(),
+    }
+
+    println!("test submission");
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "--pretty",
+        "run-tests",
+        "--exercise-path",
+        path_str(&submission_finished.path()),
+    ]);
+    let output = tmc_langs_cli::run(cli).unwrap();
+
+    println!("ensure exercise passes after prep");
+    match output {
+        CliOutput::OutputData(data) => match data.data {
+            Some(DataKind::TestResult(result)) => {
+                println!("{:#?}", result.logs);
+                println!("{:#?}", result.test_results);
+                assert_eq!(result.status, RunStatus::Passed);
+            }
+            _ => panic!(),
+        },
+        _ => panic!(),
+    }
 }

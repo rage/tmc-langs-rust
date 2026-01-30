@@ -79,7 +79,11 @@ minimum_python_version?: PythonVer,
 /**
  * Overrides the default sandbox image. e.g. `eu.gcr.io/moocfi-public/tmc-sandbox-python:latest`
  */
-sandbox_image?: string, }
+sandbox_image?: string,
+/**
+ * Overrides the default archive size limit (500 Mb).
+ */
+submission_size_limit_mb?: number, }
 
 export type PythonVer = { major: number, minor: number | null, patch: number | null, }
 

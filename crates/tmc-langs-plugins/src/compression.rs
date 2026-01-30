@@ -1,12 +1,11 @@
 //! Contains functions for compressing and uncompressing projects.
 
-use crate::archive::ArchiveBuilder;
-use blake3::{Hash, Hasher};
+use blake3::Hash;
 use std::{
     io::{Cursor, Read, Seek},
     path::{Path, PathBuf},
 };
-use tmc_langs_framework::{Compression, StudentFilePolicy, TmcError};
+use tmc_langs_framework::{ArchiveBuilder, Compression, StudentFilePolicy, TmcError};
 use tmc_langs_util::file_util;
 use walkdir::{DirEntry, WalkDir};
 use zip::ZipArchive;
@@ -19,9 +18,19 @@ pub fn compress_student_files(
     compression: Compression,
     deterministic: bool,
     hash: bool,
+    size_limit_mb: u32,
 ) -> Result<(Vec<u8>, Option<Hash>), TmcError> {
-    let mut hasher = if hash { Some(Hasher::new()) } else { None };
-    let mut writer = ArchiveBuilder::new(Cursor::new(vec![]), compression, deterministic);
+    let mut writer = ArchiveBuilder::new(
+        Cursor::new(vec![]),
+        compression,
+        Some(size_limit_mb),
+        deterministic,
+        hash,
+    );
+    let size_limit_b = usize::try_from(size_limit_mb)
+        .unwrap_or(usize::MAX) // saturating from...
+        .saturating_mul(1000 * 1000);
+    let mut total_size_b = 0;
 
     for entry in WalkDir::new(root_directory)
         .sort_by(|a, b| a.path().cmp(b.path()))
@@ -33,7 +42,11 @@ pub fn compress_student_files(
             .path()
             .strip_prefix(root_directory)
             .expect("all entries are inside root");
-        log::trace!("processing {}", entry.path().display());
+        log::trace!(
+            "processing {} ({})",
+            entry.path().display(),
+            relative.display()
+        );
         if policy.is_student_file(relative) {
             let path = root_directory
                 .parent()
@@ -46,20 +59,31 @@ pub fn compress_student_files(
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
                 let path_in_archive = path_to_zip_compatible_string(path);
-                hasher
-                    .as_mut()
-                    .map(|h| h.update(path_in_archive.as_bytes()));
                 writer.add_directory(entry.path(), &path_in_archive)?;
             } else {
                 let contents = file_util::read_file(entry.path())?;
-                hasher.as_mut().map(|h| h.update(&contents));
-                writer.add_file(entry.path(), &path_to_zip_compatible_string(path))?;
+                total_size_b += contents.len();
+                if total_size_b > size_limit_b {
+                    return Err(TmcError::ArchiveSizeLimitExceeded {
+                        limit: size_limit_mb,
+                    });
+                }
+                let path_in_archive = path_to_zip_compatible_string(path);
+                writer.add_file(entry.path(), &path_in_archive)?;
             }
         }
     }
-    let hash = hasher.map(|h| h.finalize());
-    let cursor = writer.finish()?;
-    Ok((cursor.into_inner(), hash))
+    let (cursor, hash) = writer.finish()?;
+    let size_limit_b = usize::try_from(size_limit_mb)
+        .unwrap_or(usize::MAX)
+        .saturating_mul(1000 * 1000);
+    if cursor.get_ref().len() > size_limit_b {
+        return Err(TmcError::ArchiveSizeLimitExceeded {
+            limit: size_limit_mb,
+        });
+    }
+    let data = cursor.into_inner();
+    Ok((data, hash))
 }
 
 // ensures the / separator is used
@@ -195,7 +219,7 @@ mod test {
         fs::{self, *},
     };
     use tempfile::tempdir;
-    use tmc_langs_framework::EverythingIsStudentFilePolicy;
+    use tmc_langs_framework::{EverythingIsStudentFilePolicy, TmcProjectYml};
 
     fn init() {
         use log::*;
@@ -228,12 +252,14 @@ mod test {
         File::create(missing_file_path).unwrap();
 
         let path = temp.path().join("exercise-name");
+        let tmcprojectyml = TmcProjectYml::load_or_default(&path).unwrap();
         let (zipped, _hash) = compress_student_files(
             &EverythingIsStudentFilePolicy::new(&path).unwrap(),
             &path,
             Compression::Zip,
             true,
             false,
+            tmcprojectyml.get_submission_size_limit_mb(),
         )
         .unwrap();
         let mut archive = ZipArchive::new(Cursor::new(zipped)).unwrap();

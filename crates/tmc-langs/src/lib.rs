@@ -193,7 +193,13 @@ pub fn download_old_submission(
 
     if save_old_state {
         // submit old exercise
-        client.submit(exercise_id, output_path, None)?;
+        let tmc_project_yml = TmcProjectYml::load_or_default(output_path)?;
+        client.submit(
+            exercise_id,
+            output_path,
+            tmc_project_yml.get_submission_size_limit_mb(),
+            None,
+        )?;
         log::debug!("finished submission");
     }
 
@@ -228,8 +234,14 @@ pub fn submit_exercise(
     let exercise_path =
         ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
+    let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
-        .submit(exercise.id, exercise_path.as_path(), locale)
+        .submit(
+            exercise.id,
+            exercise_path.as_path(),
+            tmc_project_yml.get_submission_size_limit_mb(),
+            locale,
+        )
         .map_err(Into::into)
 }
 
@@ -250,8 +262,15 @@ pub fn paste_exercise(
     let exercise_path =
         ProjectsConfig::get_tmc_exercise_download_target(projects_dir, course_slug, exercise_slug);
 
+    let tmc_project_yml = TmcProjectYml::load_or_default(&exercise_path)?;
     client
-        .paste(exercise.id, exercise_path.as_path(), paste_message, locale)
+        .paste(
+            exercise.id,
+            exercise_path.as_path(),
+            paste_message,
+            locale,
+            tmc_project_yml.get_submission_size_limit_mb(),
+        )
         .map_err(Into::into)
 }
 
@@ -594,12 +613,11 @@ pub fn login_with_token(token: String) -> tmc::Token {
 /// Reads the password from stdin.
 pub fn login_with_password(
     client: &mut tmc::TestMyCodeClient,
-    client_name: &str,
     email: String,
     password: String,
 ) -> Result<tmc::Token, LangsError> {
     log::debug!("logging in with password");
-    let token = client.authenticate(client_name, email, password)?;
+    let token = client.authenticate(email, password)?;
     Ok(token)
 }
 
@@ -905,8 +923,15 @@ pub fn compress_project_to(
         compression
     );
 
-    let (data, _hash) =
-        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, false)?;
+    let tmc_project_yml = TmcProjectYml::load_or_default(source)?;
+    let (data, _hash) = tmc_langs_plugins::compress_project(
+        source,
+        compression,
+        deterministic,
+        naive,
+        false,
+        tmc_project_yml.get_submission_size_limit_mb(),
+    )?;
     file_util::write_to_file(data, target)?;
     Ok(())
 }
@@ -927,8 +952,15 @@ pub fn compress_project_to_with_hash(
         compression
     );
 
-    let (data, hash) =
-        tmc_langs_plugins::compress_project(source, compression, deterministic, naive, true)?;
+    let tmc_project_yml = TmcProjectYml::load_or_default(source)?;
+    let (data, hash) = tmc_langs_plugins::compress_project(
+        source,
+        compression,
+        deterministic,
+        naive,
+        true,
+        tmc_project_yml.get_submission_size_limit_mb(),
+    )?;
     let hash = hash.expect("set hash to true");
     file_util::write_to_file(data, target)?;
     Ok(hash.to_string())
@@ -992,8 +1024,7 @@ pub fn extract_project(
             plugin.extract_project(&mut archive, target_location, clean)?;
         } else {
             log::debug!(
-                "no matching language plugin found for {}, extracting naively",
-                target_location.display()
+                "no matching language plugin found for compressed project, extracting naively",
             );
             let compressed_project = archive.into_inner();
             extract_project_overwrite(compressed_project, target_location, compression)?;

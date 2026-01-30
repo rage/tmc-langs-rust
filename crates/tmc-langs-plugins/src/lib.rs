@@ -2,7 +2,6 @@
 
 //! Abstracts over the various language plugins.
 
-pub mod archive;
 pub mod compression;
 mod error;
 
@@ -54,6 +53,7 @@ pub fn compress_project(
     deterministic: bool,
     naive: bool,
     hash: bool,
+    size_limit_mb: u32,
 ) -> Result<(Vec<u8>, Option<Hash>), PluginError> {
     let (compressed, hash) = if naive {
         compression.compress(path, hash)?
@@ -65,9 +65,9 @@ pub fn compress_project(
             compression,
             deterministic,
             hash,
+            size_limit_mb,
         )?
     };
-
     Ok((compressed, hash))
 }
 
@@ -304,6 +304,16 @@ impl PluginType {
         archive: &mut Archive<R>,
     ) -> Result<PathBuf, TmcError> {
         delegate_plugin_type!(self, find_project_dir_in_archive(archive))
+    }
+
+    pub fn safe_find_project_dir_in_archive<R: Read + Seek>(
+        self,
+        archive: &mut Archive<R>,
+    ) -> Result<PathBuf, TmcError> {
+        Ok(delegate_plugin_type!(
+            self,
+            safe_find_project_dir_in_archive(archive)
+        ))
     }
 
     pub fn get_available_points(self, exercise_path: &Path) -> Result<Vec<String>, TmcError> {
