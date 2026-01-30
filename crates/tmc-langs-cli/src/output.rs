@@ -110,8 +110,8 @@ pub enum DataKind {
     // mooc
     MoocUpdatedExercises(Vec<Uuid>),
     LocalMoocExercises(Vec<LocalMoocExercise>),
-    MoocCourseInstance(mooc::CourseInstance),
-    MoocCourseInstances(Vec<mooc::CourseInstance>),
+    MoocCourse(mooc::Course),
+    MoocCourses(Vec<mooc::Course>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),

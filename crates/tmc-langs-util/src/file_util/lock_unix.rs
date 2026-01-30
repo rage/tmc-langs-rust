@@ -8,6 +8,7 @@ use crate::{
 use file_lock::{FileLock, FileOptions};
 use std::{
     fs::File,
+    io,
     path::{Path, PathBuf},
 };
 
@@ -112,10 +113,14 @@ impl Drop for Lock {
                     let _ = file_util::remove_file(&lock_file_path);
                 }
                 Err(err) => {
-                    log::warn!(
-                        "Failed to remove lock file {}: {err}",
-                        lock_file_path.display()
-                    );
+                    // no need to report cases where the lockfile no longer exists
+                    // (for example due to the dir being moved)
+                    if !matches!(err.kind(), io::ErrorKind::NotFound) {
+                        log::warn!(
+                            "Failed to remove lock file {}: {err}",
+                            lock_file_path.display()
+                        );
+                    }
                 }
             }
         }

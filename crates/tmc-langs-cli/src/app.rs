@@ -7,12 +7,11 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     CombinedCourseData, Compression, DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc,
     ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
-    UpdatedExercise,
-    mooc::CourseInstance,
+    UpdatedExercise, mooc,
     tmc::{
-        UpdateResult,
+        self, UpdateResult,
         response::{
-            Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
             Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
         },
     },
@@ -350,7 +349,7 @@ pub enum TestMyCodeCommand {
     },
 
     /// Lists courses
-    #[clap(long_about = schema_leaked::<Vec<Course>>())]
+    #[clap(long_about = schema_leaked::<Vec<tmc::response::Course>>())]
     GetCourses {
         /// Organization slug (e.g. mooc, hy).
         #[clap(long)]
@@ -545,20 +544,21 @@ pub struct Mooc {
 #[derive(Parser)]
 pub enum MoocCommand {
     #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
+    CourseUpdates,
     CheckExerciseUpdates,
-    /// Fetches information about a course instance.
-    #[clap(long_about = schema_leaked::<CourseInstance>())]
-    CourseInstance {
+    /// Fetches information about a course.
+    #[clap(long_about = schema_leaked::<mooc::Course>())]
+    Course {
         #[clap(long)]
-        course_instance_id: Uuid,
+        course_id: Uuid,
     },
     /// Fetches the user's enrolled courses.
-    #[clap(long_about = schema_leaked::<Vec<CourseInstance>>())]
-    CourseInstances,
-    /// Fetches the available exercises for a course instance.
-    CourseInstanceExercises {
+    #[clap(long_about = schema_leaked::<Vec<mooc::Course>>())]
+    Courses,
+    /// Fetches the available exercises for a course.
+    CourseExercises {
         #[clap(long)]
-        course_instance_id: Uuid,
+        course_id: Uuid,
     },
     /// Fetches information about an exercise.
     Exercise {
@@ -799,7 +799,7 @@ mod base_test {
     #[test]
     fn list_local_course_exercises() {
         get_matches(&[
-            "list-local-ourse-exercises",
+            "list-local-course-exercises",
             "--client-name",
             "client",
             "--course-slug",
@@ -1300,7 +1300,7 @@ mod test {
             // settings list
             tmc_langs::TmcConfig,
             // mooc
-            tmc_langs::mooc::CourseInstance,
+            tmc_langs::mooc::Course,
             tmc_langs::mooc::TmcExerciseSlide,
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,

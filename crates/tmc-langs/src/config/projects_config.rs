@@ -459,8 +459,8 @@ id = 5432
 checksum = "bcde2345"
 "#,
         );
-        dir_to(&temp, "python/ex1");
-        dir_to(&temp, "python/ex 2");
+        dir_to(&temp, "tmc/python/ex1");
+        dir_to(&temp, "tmc/python/ex 2");
         file_to(
             &temp,
             "java/course_config.toml",
@@ -476,8 +476,8 @@ id = 7654
 checksum = "defg4567"
 "#,
         );
-        dir_to(&temp, "java/ex3");
-        dir_to(&temp, "java/ex 4");
+        dir_to(&temp, "tmc/java/ex3");
+        dir_to(&temp, "tmc/java/ex 4");
 
         let mut pc = ProjectsConfig::load(temp.path()).unwrap();
         assert_eq!(pc.tmc_courses.len(), 2);

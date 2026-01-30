@@ -1069,31 +1069,28 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
     let output = match mooc.command {
         MoocCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let course_instance = tmc_langs::check_mooc_exercise_updates(client, &projects_dir)?;
+            let course = tmc_langs::check_mooc_exercise_updates(client, &projects_dir)?;
             CliOutput::finished_with_data(
                 "checked exercise updates",
-                DataKind::MoocUpdatedExercises(course_instance),
+                DataKind::MoocUpdatedExercises(course),
             )
         }
-        MoocCommand::CourseInstance { course_instance_id } => {
-            let course_instance = client.course_instance(course_instance_id)?;
-            CliOutput::finished_with_data(
-                "fetched course instance",
-                DataKind::MoocCourseInstance(course_instance),
-            )
+        MoocCommand::CourseUpdates => {
+            todo!()
         }
-        MoocCommand::CourseInstances => {
-            let course_instances = client.course_instances()?;
-            CliOutput::finished_with_data(
-                "fetched course instances",
-                DataKind::MoocCourseInstances(course_instances),
-            )
+        MoocCommand::Course { course_id } => {
+            let course = client.course(course_id)?;
+            CliOutput::finished_with_data("fetched course", DataKind::MoocCourse(course))
         }
-        MoocCommand::CourseInstanceExercises { course_instance_id } => {
-            let course_instance_exercises = client.course_instance_exercises(course_instance_id)?;
+        MoocCommand::Courses => {
+            let course = client.courses()?;
+            CliOutput::finished_with_data("fetched course", DataKind::MoocCourses(course))
+        }
+        MoocCommand::CourseExercises { course_id } => {
+            let course_exercises = client.course_exercises(course_id)?;
             CliOutput::finished_with_data(
-                "fetched course instance exercises",
-                DataKind::MoocExerciseSlides(course_instance_exercises),
+                "fetched course exercises",
+                DataKind::MoocExerciseSlides(course_exercises),
             )
         }
         MoocCommand::Exercise { exercise_id } => {

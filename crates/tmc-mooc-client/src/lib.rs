@@ -93,30 +93,24 @@ impl MoocClient {
 
 /// API methods.
 impl MoocClient {
-    pub fn course_instance(&self, instance_id: Uuid) -> MoocClientResult<CourseInstance> {
-        let url = make_langs_api_url(self, &format!("course-instances/{instance_id}"))?;
+    pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
+        let url = make_langs_api_url(self, &format!("courses/{course_id}"))?;
         let res = self
             .request(Method::GET, url)
-            .send_expect_json::<api::CourseInstance>()?;
+            .send_expect_json::<api::Course>()?;
         Ok(res.into())
     }
 
-    pub fn course_instances(&self) -> MoocClientResult<Vec<CourseInstance>> {
-        let url = make_langs_api_url(self, "course-instances")?;
+    pub fn courses(&self) -> MoocClientResult<Vec<Course>> {
+        let url = make_langs_api_url(self, "courses")?;
         let res = self
             .request(Method::GET, url)
-            .send_expect_json::<Vec<api::CourseInstance>>()?;
+            .send_expect_json::<Vec<api::Course>>()?;
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    pub fn course_instance_exercises(
-        &self,
-        course_instance: Uuid,
-    ) -> MoocClientResult<Vec<TmcExerciseSlide>> {
-        let url = make_langs_api_url(
-            self,
-            format!("course-instances/{course_instance}/exercises"),
-        )?;
+    pub fn course_exercises(&self, course: Uuid) -> MoocClientResult<Vec<TmcExerciseSlide>> {
+        let url = make_langs_api_url(self, format!("courses/{course}/exercises"))?;
         let res = self
             .request(Method::GET, url.clone())
             .send_expect_json::<Vec<api::ExerciseSlide>>()?
@@ -313,27 +307,21 @@ fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClientR
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
-pub struct CourseInstance {
+pub struct Course {
     pub id: Uuid,
-    pub course_id: Uuid,
-    pub course_slug: String,
-    pub course_name: String,
-    pub course_description: Option<String>,
-    pub instance_name: Option<String>,
-    pub instance_description: Option<String>,
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
     pub organization_name: String,
 }
 
-impl From<api::CourseInstance> for CourseInstance {
-    fn from(value: api::CourseInstance) -> Self {
+impl From<api::Course> for Course {
+    fn from(value: api::Course) -> Self {
         Self {
             id: value.id,
-            course_id: value.course_id,
-            course_slug: value.course_slug,
-            course_name: value.course_name,
-            course_description: value.course_description,
-            instance_name: value.instance_name,
-            instance_description: value.instance_description,
+            slug: value.slug,
+            name: value.name,
+            description: value.description,
             organization_name: value.organization_name,
         }
     }
@@ -341,14 +329,11 @@ impl From<api::CourseInstance> for CourseInstance {
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
-pub struct CourseInstanceInfo {
+pub struct CourseInfo {
     pub id: Uuid,
-    pub course_id: Uuid,
-    pub course_slug: String,
-    pub course_name: String,
-    pub course_description: Option<String>,
-    pub instance_name: Option<String>,
-    pub instance_description: Option<String>,
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -478,36 +463,35 @@ mod test {
     }
 
     #[test]
-    fn gets_course_instances() {
+    fn gets_courses() {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
         server
-            .mock("GET", "/api/v0/langs/course-instances")
+            .mock("GET", "/api/v0/langs/courses")
             .with_body(
                 serde_json::json!([{
                     "id": Uuid::new_v4(),
-                    "course_id": Uuid::new_v4(),
-                    "course_slug": "mockslug",
-                    "course_name": "mockname",
-                    "course_description": "mockdesc",
+                    "slug": "mockslug",
+                    "name": "mockname",
+                    "description": "mockdesc",
                 }])
                 .to_string(),
             )
             .create();
-        let course_instances = client.course_instances().unwrap();
-        assert_eq!(course_instances[0].course_name, "mockname");
+        let courses = client.courses().unwrap();
+        assert_eq!(courses[0].name, "mockname");
     }
 
     #[test]
-    fn gets_course_instance_exercise_slides() {
+    fn gets_course_exercise_slides() {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
         server
             .mock(
                 "GET",
-                "/api/v0/langs/course-instances/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
+                "/api/v0/langs/courses/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
             )
             .with_body(
                 serde_json::json!([{
@@ -520,12 +504,10 @@ mod test {
                 .to_string(),
             )
             .create();
-        let exercise_sludes = client
-            .course_instance_exercises(
-                Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap(),
-            )
+        let exercise_slides = client
+            .course_exercises(Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap())
             .unwrap();
-        assert_eq!(exercise_sludes[0].exercise_name, "mockname");
+        assert_eq!(exercise_slides[0].exercise_name, "mockname");
     }
 
     #[test]

@@ -44,25 +44,26 @@ pub struct TmcExerciseTask {
     pub assignment: serde_json::Value,
     pub public_spec: Option<PublicSpec>,
     pub model_solution_spec: Option<ModelSolutionSpec>,
-    pub checksum: String,
+    pub checksum: Option<String>,
 }
 
 impl TryFrom<api::ExerciseTask> for TmcExerciseTask {
     type Error = JsonError;
     fn try_from(value: api::ExerciseTask) -> Result<Self, Self::Error> {
+        let public_spec: Option<PublicSpec> = value
+            .public_spec
+            .map(deserialize::json_from_value)
+            .transpose()?;
         let task = Self {
             task_id: value.task_id,
             order_number: value.order_number,
             assignment: value.assignment,
-            public_spec: value
-                .public_spec
-                .map(deserialize::json_from_value)
-                .transpose()?,
+            checksum: public_spec.as_ref().map(|ps| ps.checksum.clone()),
+            public_spec,
             model_solution_spec: value
                 .model_solution_spec
                 .map(deserialize::json_from_value)
                 .transpose()?,
-            checksum: value.checksum,
         };
         Ok(task)
     }

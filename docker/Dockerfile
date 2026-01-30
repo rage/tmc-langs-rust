@@ -14,7 +14,7 @@ RUN apt update \
     # languages
     npm \
     python3 \
-    openjdk-17-jdk ant maven \
+    openjdk-21-jdk ant maven \
     dotnet-sdk-9.0 \
     check valgrind \
     r-base r-cran-devtools locales \

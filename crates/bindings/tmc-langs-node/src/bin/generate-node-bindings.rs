@@ -79,8 +79,8 @@ fn main() {
         tmc_langs::TmcConfig,
 
         // MOOC
-        // course-instances
-        tmc_langs::mooc::CourseInstance,
+        // courses
+        tmc_langs::mooc::Course,
     }
     .unwrap();
     println!("Wrote bindings to `{path}`");

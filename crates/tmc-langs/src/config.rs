@@ -176,7 +176,7 @@ mod test {
         assert!(
             !projects_dir
                 .path()
-                .join("course/exercise/some_file")
+                .join("tmc/course/exercise/some_file")
                 .exists()
         );
 
@@ -193,7 +193,7 @@ mod test {
         assert!(
             projects_dir
                 .path()
-                .join("course/exercise/some_file")
+                .join("tmc/course/exercise/some_file")
                 .exists()
         );
 

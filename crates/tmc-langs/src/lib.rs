@@ -165,7 +165,12 @@ pub fn check_mooc_exercise_updates(
             let server_exercise = server_exercises.get(&local_exercise.task_id).ok_or(
                 LangsError::MoocExerciseMissingOnServer(local_exercise.task_id),
             )?;
-            if server_exercise.checksum != local_exercise.checksum {
+            if server_exercise
+                .checksum
+                .as_ref()
+                .map(|cs| cs != &local_exercise.checksum)
+                .unwrap_or_default()
+            {
                 // server has an updated exercise
                 updated_exercises.push(local_exercise.task_id);
             }
@@ -760,7 +765,12 @@ pub fn update_mooc_exercises(
         let mut deleted_exercises = Vec::new();
         for se in server_exercises {
             if let Some((_cc, local_exercise)) = exercises.get(&se.task_id) {
-                if local_exercise.checksum != se.checksum {
+                if se
+                    .checksum
+                    .as_ref()
+                    .map(|cs| cs != &local_exercise.checksum)
+                    .unwrap_or_default()
+                {
                     updated_exercises.push(se);
                 }
             } else {
@@ -1321,7 +1331,7 @@ mod test {
 
         file_to(
             &projects_dir,
-            "some course/course_config.toml",
+            "tmc/some course/course_config.toml",
             r#"
 course = 'some course'
 
@@ -1334,7 +1344,7 @@ id = 2
 checksum = 'old checksum'
 "#,
         );
-        file_to(&projects_dir, "some course/some exercise/some file", "");
+        file_to(&projects_dir, "tmc/some course/some exercise/some file", "");
 
         let client = mock_testmycode_client(&server);
         let updates = check_tmc_exercise_updates(&client, projects_dir.path()).unwrap();
@@ -1373,7 +1383,7 @@ checksum = 'old checksum'
         let projects_dir = tempfile::tempdir().unwrap();
         file_to(
             &projects_dir,
-            "some course/course_config.toml",
+            "tmc/some course/course_config.toml",
             r#"
 course = 'some course'
 
@@ -1388,12 +1398,12 @@ checksum = 'new checksum'
         );
         file_to(
             &projects_dir,
-            "some course/on disk exercise with update and submission/some file",
+            "tmc/some course/on disk exercise with update and submission/some file",
             "",
         );
         file_to(
             &projects_dir,
-            "some course/on disk exercise without update/some file",
+            "tmc/some course/on disk exercise without update/some file",
             "",
         );
 
