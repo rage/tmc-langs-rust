@@ -1250,13 +1250,16 @@ mod test {
     fn signs_with_jwt() {
         init();
 
-        let value = "some string";
-        let secret = "some secret".as_bytes();
-        let signed = sign_with_jwt(value, secret).unwrap();
-        assert_eq!(
-            signed,
-            "eyJhbGciOiJIUzI1NiJ9.InNvbWUgc3RyaW5nIg.FfWkq8BeQRe2vlrfLbJHObFAslXqK5_V_hH2TbBqggc"
-        );
+        let value = serde_json::json!({
+                "some key": "some value"
+        });
+        let secret = "some secret some secret some secret some secret some secret some secret some secret some secret".as_bytes();
+        let signed = sign_with_jwt(&value, secret).unwrap();
+        let key = HS256Key::from_bytes(secret);
+        let claims = key
+            .verify_token::<serde_json::Value>(&signed, None)
+            .unwrap();
+        assert_eq!(claims.custom, value);
     }
 
     #[test]
