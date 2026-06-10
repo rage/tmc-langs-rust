@@ -269,7 +269,7 @@ impl LanguagePlugin for MakePlugin {
                 for (test_result, valgrind_result) in run_result
                     .test_results
                     .iter_mut()
-                    .zip(valgrind_log.results.into_iter())
+                    .zip(valgrind_log.results)
                 {
                     if valgrind_result.errors {
                         if test_result.successful {

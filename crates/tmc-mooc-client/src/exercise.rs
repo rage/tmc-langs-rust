@@ -82,6 +82,7 @@ pub enum PublicSpec {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
+#[allow(unused)]
 pub enum UserAnswer {
     Browser { files: Vec<ExerciseFile> },
     Editor { archive_download_url: String },
