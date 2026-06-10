@@ -2,14 +2,14 @@
 
 use crate::{TmcError, error::CommandError};
 use std::{
-    ffi::OsStr,
+    ffi::OsString,
     fs::File,
-    io::{Read, Write},
+    io::{self, Read, Write},
     thread::JoinHandle,
     time::Duration,
 };
 pub use subprocess::ExitStatus;
-use subprocess::{Exec, PopenError, Redirection};
+use subprocess::{Exec, Redirection};
 
 /// Wrapper around subprocess::Exec
 #[must_use]
@@ -20,7 +20,7 @@ pub struct TmcCommand {
 
 impl TmcCommand {
     /// Creates a new command
-    pub fn new(cmd: impl AsRef<OsStr>) -> Self {
+    pub fn new(cmd: impl Into<OsString>) -> Self {
         Self {
             exec: Exec::cmd(cmd).env("LANG", "en_US.UTF-8"),
             stdin: None,
@@ -28,7 +28,7 @@ impl TmcCommand {
     }
 
     /// Creates a new command with piped stdout/stderr.
-    pub fn piped(cmd: impl AsRef<OsStr>) -> Self {
+    pub fn piped(cmd: impl Into<OsString>) -> Self {
         Self {
             exec: Exec::cmd(cmd)
                 .stdout(Redirection::Pipe)
@@ -62,7 +62,7 @@ impl TmcCommand {
         let Self { exec, stdin } = self;
 
         // starts executing the command
-        let mut popen = exec.popen().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
+        let mut popen = exec.start().map_err(|e| popen_to_tmc_err(cmd.clone(), e))?;
         let stdin_handle = spawn_writer(popen.stdin.take(), stdin);
         let stdout_handle = spawn_reader(popen.stdout.take());
         let stderr_handle = spawn_reader(popen.stderr.take());
@@ -196,15 +196,11 @@ fn spawn_reader(file: Option<File>) -> JoinHandle<Vec<u8>> {
 }
 
 // convenience function to convert an error while checking for command not found error
-fn popen_to_tmc_err(cmd: String, err: PopenError) -> TmcError {
-    if let PopenError::IoError(io) = &err {
-        if let std::io::ErrorKind::NotFound = io.kind() {
-            TmcError::Command(CommandError::NotFound { cmd, source: err })
-        } else {
-            TmcError::Command(CommandError::FailedToRun(cmd, err))
-        }
+fn popen_to_tmc_err(cmd: String, err: io::Error) -> TmcError {
+    if let std::io::ErrorKind::NotFound = err.kind() {
+        TmcError::Command(CommandError::NotFound { cmd, source: err })
     } else {
-        TmcError::Command(CommandError::Popen(cmd, err))
+        TmcError::Command(CommandError::FailedToRun(cmd, err))
     }
 }
 

@@ -25,15 +25,13 @@ pub use crate::{
     submission_packaging::{PrepareSubmission, prepare_submission},
     submission_processing::prepare_solution,
 };
-use hmac::{Hmac, Mac};
+use jwt_simple::prelude::*;
 // use heim::disk;
-use jwt::SignWithKey;
 use oauth2::{
     AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse, basic::BasicTokenType,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::Sha256;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::TryFrom,
@@ -90,8 +88,9 @@ pub struct UpdatedExercise {
 /// # Errors
 /// Should never fail, but returns an error to be safe against changes in external libraries.
 pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
-    let key: Hmac<Sha256> = Hmac::<Sha256>::new_from_slice(secret)?;
-    let token = value.sign_with_key(&key)?;
+    let key = HS256Key::from_bytes(secret);
+    let claims = Claims::with_custom_claims(value, Duration::from_mins(15));
+    let token = key.authenticate(claims)?;
     Ok(token)
 }
 

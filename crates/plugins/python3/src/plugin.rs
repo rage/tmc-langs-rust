@@ -3,9 +3,9 @@
 use crate::{
     error::PythonError, policy::Python3StudentFilePolicy, python_test_result::PythonTestResult,
 };
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use once_cell::sync::Lazy;
-use rand::Rng;
+use rand::RngExt;
 use sha2::Sha256;
 use std::{
     collections::{HashMap, HashSet},
