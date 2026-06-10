@@ -8,7 +8,6 @@ use std::{
     thread::JoinHandle,
     time::Duration,
 };
-pub use subprocess::ExitStatus;
 use subprocess::{Exec, Redirection};
 
 /// Wrapper around subprocess::Exec
@@ -134,7 +133,7 @@ impl TmcCommand {
             log::debug!("stderr: {}", String::from_utf8_lossy(&stderr).into_owned());
         }
         Ok(Output {
-            status: exit_status,
+            status: exit_status.into(),
             stdout,
             stderr,
         })
@@ -209,6 +208,31 @@ pub struct Output {
     pub status: ExitStatus,
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct ExitStatus {
+    signal: Option<i32>,
+}
+
+impl ExitStatus {
+    pub fn new(signal: i32) -> Self {
+        Self {
+            signal: Some(signal),
+        }
+    }
+
+    pub fn success(&self) -> bool {
+        self.signal.map(|s| s == 0).unwrap_or_default()
+    }
+}
+
+impl From<subprocess::ExitStatus> for ExitStatus {
+    fn from(value: subprocess::ExitStatus) -> Self {
+        Self {
+            signal: value.signal(),
+        }
+    }
 }
 
 #[cfg(test)]
