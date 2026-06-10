@@ -266,10 +266,8 @@ impl LanguagePlugin for MakePlugin {
                 // valgrind failed
                 run_result.status = RunStatus::TestsFailed;
                 // TODO: tests and valgrind results are not guaranteed to be in the same order
-                for (test_result, valgrind_result) in run_result
-                    .test_results
-                    .iter_mut()
-                    .zip(valgrind_log.results)
+                for (test_result, valgrind_result) in
+                    run_result.test_results.iter_mut().zip(valgrind_log.results)
                 {
                     if valgrind_result.errors {
                         if test_result.successful {
