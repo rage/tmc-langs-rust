@@ -65,7 +65,10 @@ jobs:
 
       - name: Generate checksums
         run: |
-          sha256sum ./target/${{ matrix.target }}/release/tmc-langs-cli > ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
+          # canonical "<lowercase-hash>  <deployed-filename>" (sha256sum already lowercases)
+          NAME=tmc-langs-cli-${{ matrix.target }}-$TAG
+          DIR=./target/${{ matrix.target }}/release
+          echo "$(sha256sum "$DIR/tmc-langs-cli" | cut -d' ' -f1)  $NAME" > "$DIR/$NAME.sha256"
 
       - name: Deploy
         run: |
@@ -102,7 +105,13 @@ jobs:
 
       - name: Generate checksums
         run: |
-          Get-FileHash -Path ./target/${{ matrix.target }}/release/tmc-langs-cli.exe -Algorithm SHA256 | Select-Object -ExpandProperty Hash | Out-File -Encoding ASCII ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256
+          $name = "tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe"
+          $dir = "./target/${{ matrix.target }}/release"
+          $hash = (Get-FileHash -Path "$dir/tmc-langs-cli.exe" -Algorithm SHA256).Hash.ToLower()
+          # canonical "<lowercase-hash>  <filename>" with LF and no BOM
+          # (Get-FileHash emits UPPERCASE and Out-File would add CRLF, which is what
+          # caused the extension's every-startup redownload before it lowercased hashes)
+          [System.IO.File]::WriteAllText("$dir/$name.sha256", "$hash  $name`n")
 
       - name: Deploy
         run: |
@@ -145,7 +154,10 @@ jobs:
 
       - name: Generate checksums
         run: |
-          shasum -a 256 ./target/${{ matrix.target }}/release/tmc-langs-cli > ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
+          # canonical "<lowercase-hash>  <deployed-filename>" (shasum already lowercases)
+          NAME=tmc-langs-cli-${{ matrix.target }}-$TAG
+          DIR=./target/${{ matrix.target }}/release
+          echo "$(shasum -a 256 "$DIR/tmc-langs-cli" | cut -d' ' -f1)  $NAME" > "$DIR/$NAME.sha256"
 
       - name: Deploy
         run: |
