@@ -25,15 +25,13 @@ pub use crate::{
     submission_packaging::{PrepareSubmission, prepare_submission},
     submission_processing::prepare_solution,
 };
-use hmac::{Hmac, Mac};
+use jwt_simple::prelude::*;
 // use heim::disk;
-use jwt::SignWithKey;
 use oauth2::{
     AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse, basic::BasicTokenType,
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use sha2::Sha256;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::TryFrom,
@@ -91,8 +89,9 @@ pub struct UpdatedExercise {
 /// # Errors
 /// Should never fail, but returns an error to be safe against changes in external libraries.
 pub fn sign_with_jwt<T: Serialize>(value: T, secret: &[u8]) -> Result<String, LangsError> {
-    let key: Hmac<Sha256> = Hmac::<Sha256>::new_from_slice(secret)?;
-    let token = value.sign_with_key(&key)?;
+    let key = HS256Key::from_bytes(secret);
+    let claims = Claims::with_custom_claims(value, Duration::from_mins(15));
+    let token = key.authenticate(claims)?;
     Ok(token)
 }
 
@@ -1310,13 +1309,16 @@ mod test {
     fn signs_with_jwt() {
         init();
 
-        let value = "some string";
-        let secret = "some secret".as_bytes();
-        let signed = sign_with_jwt(value, secret).unwrap();
-        assert_eq!(
-            signed,
-            "eyJhbGciOiJIUzI1NiJ9.InNvbWUgc3RyaW5nIg.FfWkq8BeQRe2vlrfLbJHObFAslXqK5_V_hH2TbBqggc"
-        );
+        let value = serde_json::json!({
+                "some key": "some value"
+        });
+        let secret = "some secret some secret some secret some secret some secret some secret some secret some secret".as_bytes();
+        let signed = sign_with_jwt(&value, secret).unwrap();
+        let key = HS256Key::from_bytes(secret);
+        let claims = key
+            .verify_token::<serde_json::Value>(&signed, None)
+            .unwrap();
+        assert_eq!(claims.custom, value);
     }
 
     #[test]

@@ -1,8 +1,8 @@
 //! Contains the TmcError type.
 
 pub use nom_language::error::VerboseError;
-use std::{path::PathBuf, time::Duration};
-pub use subprocess::{ExitStatus, PopenError};
+use std::{io, path::PathBuf, time::Duration};
+pub use subprocess::ExitStatus;
 use thiserror::Error;
 pub use tmc_langs_util::{FileError, YamlError};
 pub use zip::result::ZipError;
@@ -76,13 +76,13 @@ pub enum TmcError {
 #[derive(Error, Debug)]
 pub enum CommandError {
     #[error("Failed to execute command: {0}")]
-    Popen(String, #[source] PopenError),
+    Popen(String, #[source] io::Error),
     #[error(
         "The executable for command {cmd} could not be found. Please make sure you have installed it correctly."
     )]
-    NotFound { cmd: String, source: PopenError },
+    NotFound { cmd: String, source: io::Error },
     #[error("Failed to run command {0}")]
-    FailedToRun(String, #[source] PopenError),
+    FailedToRun(String, #[source] io::Error),
     #[error("Command {command} exited with status {status:?}")]
     Failed {
         command: String,

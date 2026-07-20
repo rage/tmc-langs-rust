@@ -215,7 +215,7 @@ fn initialize_new_cache_clone(
     // clone_repository
     TmcCommand::piped("git")
         .with(|e| {
-            e.args(&["clone", "-q", "-b"])
+            e.args(["clone", "-q", "-b"])
                 .arg(course_git_branch)
                 .arg(course_source_url)
                 .arg(new_clone_path)

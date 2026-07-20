@@ -13,8 +13,8 @@ use std::{
     time::Duration,
 };
 use tmc_langs_framework::{
-    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, PopenError, RunResult, RunStatus,
-    TestDesc, TmcCommand, TmcError, TmcProjectYml,
+    Archive, CommandError, ExerciseDesc, LanguagePlugin, Output, RunResult, RunStatus, TestDesc,
+    TmcCommand, TmcError, TmcProjectYml,
     nom::{IResult, Parser, bytes, character, combinator, sequence},
     nom_language::error::VerboseError,
 };
@@ -181,8 +181,8 @@ impl LanguagePlugin for MakePlugin {
                 match error {
                     MakeError::Tmc(TmcError::Command(command_error)) => {
                         match command_error {
-                            CommandError::Popen(_, PopenError::IoError(io_error))
-                            | CommandError::FailedToRun(_, PopenError::IoError(io_error))
+                            CommandError::Popen(_, io_error)
+                            | CommandError::FailedToRun(_, io_error)
                                 if io_error.kind() == io::ErrorKind::PermissionDenied =>
                             {
                                 // failed due to lacking permissions, try to clean and rerun
@@ -266,10 +266,8 @@ impl LanguagePlugin for MakePlugin {
                 // valgrind failed
                 run_result.status = RunStatus::TestsFailed;
                 // TODO: tests and valgrind results are not guaranteed to be in the same order
-                for (test_result, valgrind_result) in run_result
-                    .test_results
-                    .iter_mut()
-                    .zip(valgrind_log.results.into_iter())
+                for (test_result, valgrind_result) in
+                    run_result.test_results.iter_mut().zip(valgrind_log.results)
                 {
                     if valgrind_result.errors {
                         if test_result.successful {

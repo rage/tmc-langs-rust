@@ -3,9 +3,9 @@
 use crate::{
     error::PythonError, policy::Python3StudentFilePolicy, python_test_result::PythonTestResult,
 };
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use once_cell::sync::Lazy;
-use rand::Rng;
+use rand::RngExt;
 use sha2::Sha256;
 use std::{
     collections::{HashMap, HashSet},
@@ -80,7 +80,7 @@ impl Python3Plugin {
 
     fn get_local_python_ver() -> Result<(u32, u32, u32), PythonError> {
         let output = Self::get_local_python_command()
-        .with(|e| e.args(&["-c", "import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);"]))
+        .with(|e| e.args(["-c", "import sys; print(sys.version_info.major); print(sys.version_info.minor); print(sys.version_info.micro);"]))
         .output_checked()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         let mut lines = stdout.lines();
@@ -139,7 +139,7 @@ impl Python3Plugin {
         let common_args = ["-m", "tmc"];
 
         let command = Self::get_local_python_command();
-        let command = command.with(|e| e.args(&common_args).args(extra_args).cwd(path));
+        let command = command.with(|e| e.args(common_args).args(extra_args).cwd(path));
         let command = if let Some(stdin) = stdin {
             command.set_stdin_data(stdin)
         } else {

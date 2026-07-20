@@ -21,7 +21,7 @@ pub use self::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
         StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult,
     },
-    error::{CommandError, PopenError, TmcError},
+    error::{CommandError, TmcError},
     meta_syntax::{MetaString, MetaSyntaxParser},
     plugin::{Language, LanguagePlugin},
     policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy, StudentFilePolicy},

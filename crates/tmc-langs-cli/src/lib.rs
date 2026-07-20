@@ -15,6 +15,7 @@ use anyhow::{Context, Result};
 use app::{Command, Mooc, MoocCommand, Settings, SettingsCommand, TestMyCode, TestMyCodeCommand};
 use base64::Engine;
 use clap::{CommandFactory, error::ErrorKind};
+use rpassword::ConfigBuilder;
 use serde::Serialize;
 use serde_json::Value;
 use std::{
@@ -835,9 +836,11 @@ fn run_tmc_inner(
             } else if let Some(email) = email {
                 // TODO: print "Please enter password" and add "quiet"  flag
                 let password = if stdin {
-                    let mut stdin = BufReader::new(std::io::stdin());
-                    rpassword::read_password_from_bufread(&mut stdin)
-                        .context("Failed to read password")?
+                    let stdin = BufReader::new(std::io::stdin());
+                    rpassword::read_password_with_config(
+                        ConfigBuilder::new().input_reader(stdin).build(),
+                    )
+                    .context("Failed to read password")?
                 } else {
                     rpassword::read_password().context("Failed to read password")?
                 };

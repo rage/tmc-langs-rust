@@ -10,6 +10,7 @@ use oauth2::{
     AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
     basic::BasicClient,
 };
+use oauth2_reqwest::ReqwestBlockingClient;
 use reqwest::{
     Url,
     blocking::{Client, ClientBuilder},
@@ -46,7 +47,7 @@ pub struct TestMyCodeClient(Arc<TmcCore>);
 
 struct TmcCore {
     client: Client,
-    oauth_client: Client,
+    oauth_client: ReqwestBlockingClient,
     root_url: Url,
     token: Option<Token>,
     client_name: String,
@@ -91,6 +92,7 @@ impl TestMyCodeClient {
             .redirect(Policy::none())
             .build()
             .map_err(TestMyCodeClientError::HttpClientBuilder)?;
+        let oauth_client = ReqwestBlockingClient::from(oauth_client);
 
         let client = TestMyCodeClient(Arc::new(TmcCore {
             client: Client::new(),

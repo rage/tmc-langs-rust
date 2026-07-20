@@ -126,8 +126,6 @@ pub enum LangsError {
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error(transparent)]
-    Jwt(#[from] jwt::Error),
-    #[error(transparent)]
     Hmac(#[from] hmac::digest::InvalidLength),
     #[error(transparent)]
     TestMyCodeClient(#[from] Box<tmc_testmycode_client::TestMyCodeClientError>),
@@ -135,6 +133,8 @@ pub enum LangsError {
     MoocClient(#[from] Box<tmc_mooc_client::MoocClientError>),
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
+    #[error(transparent)]
+    Jwt(#[from] jwt_simple::Error),
 }
 
 /// Error validating TMC params values.
