@@ -698,7 +698,7 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 }
 
 /// The update data type for the progress reporter.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "client-update-data-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]

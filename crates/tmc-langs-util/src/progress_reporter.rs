@@ -1,12 +1,13 @@
 //! Utility struct for printing progress reports.
 
 use once_cell::sync::OnceCell;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{ops::DerefMut, sync::RwLock, time::Instant};
 use type_map::concurrent::TypeMap;
 
 /// The format for all status updates. May contain some data.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct StatusUpdate<T> {

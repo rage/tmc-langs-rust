@@ -2,6 +2,7 @@
 
 use crate::{error::LangsError, progress_reporter};
 use md5::Context;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::{
@@ -18,18 +19,21 @@ use zip::write::SimpleFileOptions;
 pub type ModeBits = nix::sys::stat::mode_t;
 
 /// Data from a finished course refresh.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct RefreshData {
     pub new_cache_path: PathBuf,
     #[cfg_attr(feature = "ts-rs", ts(type = "object"))]
+    // `serde_yaml::Mapping` does not implement `JsonSchema`; represent it as a
+    // generic object, matching the `object` ts-rs renders it as.
+    #[schemars(with = "std::collections::BTreeMap<String, serde_json::Value>")]
     pub course_options: Mapping,
     pub exercises: Vec<RefreshExercise>,
 }
 
 /// An exercise from a finished course refresh.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct RefreshExercise {

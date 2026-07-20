@@ -226,11 +226,13 @@ pub struct DownloadOrUpdateTmcCourseExercisesResult {
 }
 
 /// A setting in a TmcConfig file.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(untagged)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ConfigValue {
-    Value(Option<toml::Value>),
+    // `toml::Value` does not implement `JsonSchema`; represent it as an
+    // arbitrary JSON value, matching the `unknown` ts-rs renders it as.
+    Value(#[schemars(with = "Option<serde_json::Value>")] Option<toml::Value>),
     Path(PathBuf),
 }
 

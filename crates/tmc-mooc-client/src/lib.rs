@@ -307,6 +307,11 @@ fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClientR
 
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
+// Renamed to avoid colliding with the TMC `Course` type: a duplicate
+// `export type Course` would make `bindings.d.ts` uncompilable, and schemars
+// would auto-disambiguate the `$defs` key to `Course2`.
+#[cfg_attr(feature = "ts-rs", ts(rename = "MoocCourse"))]
+#[schemars(rename = "MoocCourse")]
 pub struct Course {
     pub id: Uuid,
     pub slug: String,
@@ -336,7 +341,7 @@ pub struct CourseInfo {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseTaskSubmissionResult {
     pub submission_id: Uuid,
@@ -350,7 +355,7 @@ impl From<api::ExerciseTaskSubmissionResult> for ExerciseTaskSubmissionResult {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum ExerciseTaskSubmissionStatus {
     NoGradingYet,
@@ -387,7 +392,7 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum GradingProgress {
     /// The grading could not complete.
@@ -475,6 +480,7 @@ mod test {
                     "slug": "mockslug",
                     "name": "mockname",
                     "description": "mockdesc",
+                    "organization_name": "mockorg",
                 }])
                 .to_string(),
             )

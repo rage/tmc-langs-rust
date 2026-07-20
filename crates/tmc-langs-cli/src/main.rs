@@ -7,9 +7,9 @@ use std::{any::Any, fs::File, io::Write, path::PathBuf, process::ExitCode};
 use tmc_langs::{notification_reporter, progress_reporter, tmc::ClientUpdateData};
 use tmc_langs_cli::{
     ParsingResult,
-    app::Cli,
+    app::{Cli, Command},
     map_parsing_result,
-    output::{CliOutput, OutputData, OutputResult, Status, StatusUpdateData},
+    output::{self, CliOutput, OutputData, OutputResult, Status, StatusUpdateData},
 };
 
 fn main() -> ExitCode {
@@ -60,6 +60,13 @@ fn run() -> Result<(), ()> {
             return Err(());
         }
     };
+    // Handled here, not in the library: prints the raw schema, not a
+    // `CliOutput` envelope, and the library crate can't print to stdout.
+    if matches!(cli.command, Command::Schema) {
+        print!("{}", output::cli_output_json_schema());
+        return Ok(());
+    }
+
     let pretty = cli.pretty;
     let catch = std::panic::catch_unwind(|| {
         register_reporters(pretty);
