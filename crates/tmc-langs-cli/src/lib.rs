@@ -570,6 +570,16 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
                 DataKind::ExerciseDesc(scan_result),
             )
         }
+
+        // `main.rs` intercepts `Command::Schema` before calling the library,
+        // because printing the raw schema requires stdout access the library
+        // crate must not assume. Reaching this arm means a library caller
+        // dispatched `Schema` directly, which the library cannot service.
+        Command::Schema => {
+            anyhow::bail!(
+                "the `schema` subcommand is handled by the CLI binary, not the library `run()`"
+            )
+        }
     };
     Ok(output)
 }

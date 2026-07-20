@@ -1,5 +1,6 @@
 //! Contains the type definition for the output format of the CLI.
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tmc_langs::{
@@ -20,7 +21,7 @@ use tmc_langs_util::progress_reporter::StatusUpdate;
 use uuid::Uuid;
 
 /// The format for all messages written to stdout by the CLI
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -53,7 +54,7 @@ impl CliOutput {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct OutputData {
@@ -63,7 +64,7 @@ pub struct OutputData {
     pub data: Option<DataKind>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -94,7 +95,11 @@ pub enum DataKind {
     Organization(Organization),
     Organizations(Vec<Organization>),
     Reviews(Vec<Review>),
-    Token(#[cfg_attr(feature = "ts-rs", ts(type = "unknown"))] Token),
+    Token(
+        #[cfg_attr(feature = "ts-rs", ts(type = "unknown"))]
+        #[schemars(with = "serde_json::Value")]
+        Token,
+    ),
     NewSubmission(NewSubmission),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
@@ -117,7 +122,7 @@ pub enum DataKind {
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "update-data-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -126,7 +131,7 @@ pub enum StatusUpdateData {
     None(StatusUpdate<()>),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Status {
@@ -136,7 +141,7 @@ pub enum Status {
     Crashed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum OutputResult {
@@ -147,7 +152,7 @@ pub enum OutputResult {
     ExecutedCommand,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Kind {
@@ -177,6 +182,30 @@ pub use tmc_langs::ProjectsDirTmcExercise;
 pub struct DownloadTarget {
     pub id: u32,
     pub path: PathBuf,
+}
+
+/// Returns the JSON Schema describing everything the CLI writes to stdout.
+///
+/// [`CliOutput`] is the schema root; definitions are included for every type
+/// it references transitively. Single source of truth for clients (e.g.
+/// tmc-vscode) validating CLI output.
+pub fn cli_output_schema() -> schemars::Schema {
+    // Serialize contract, not deserialize: `#[serde(from = ...)]` types (e.g.
+    // `CourseDetails`) deserialize through a wrapper but serialize flattened,
+    // and `Option` omitted-vs-null differs between the two. `for_serialize()`
+    // picks the wire format clients actually see.
+    let settings = schemars::generate::SchemaSettings::draft2020_12().for_serialize();
+    schemars::SchemaGenerator::new(settings).into_root_schema_for::<CliOutput>()
+}
+
+/// Returns [`cli_output_schema`] as pretty-printed JSON, terminated by a
+/// newline — the exact bytes of the committed `bindings.schema.json` and of
+/// the `tmc-langs-cli schema` subcommand's stdout.
+pub fn cli_output_json_schema() -> String {
+    let mut json = serde_json::to_string_pretty(&cli_output_schema())
+        .expect("serializing a JSON schema should never fail");
+    json.push('\n');
+    json
 }
 
 #[cfg(test)]

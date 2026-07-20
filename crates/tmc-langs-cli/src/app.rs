@@ -254,6 +254,14 @@ pub enum Command {
         #[clap(long)]
         output_path: Option<PathBuf>,
     },
+
+    /// Prints the JSON Schema of the CLI's stdout output types to stdout.
+    ///
+    /// Unlike other commands, prints the raw schema rather than a `CliOutput`
+    /// envelope, matching the committed `bindings.schema.json` byte for byte.
+    /// Clients use it to check the binary they spawn matches the schema they
+    /// were built against.
+    Schema,
 }
 
 /// Various commands that communicate with the TestMyCode server.
@@ -1203,13 +1211,71 @@ mod settings_test {
 
 #[cfg(test)]
 mod test {
+    use std::path::{Path, PathBuf};
+
+    /// Path to the committed JSON Schema artifact.
+    fn schema_path() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.schema.json")
+    }
+
+    /// Path to the committed TypeScript bindings artifact.
+    #[cfg(feature = "ts-rs")]
+    fn dts_path() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.d.ts")
+    }
+
     #[test]
-    #[ignore]
+    #[ignore = "run manually to regenerate the committed bindings.schema.json"]
+    fn generate_cli_bindings_schema() {
+        std::fs::write(schema_path(), crate::output::cli_output_json_schema()).unwrap();
+    }
+
+    /// Drift gate: fails if `bindings.schema.json` no longer matches the
+    /// current types.
+    #[test]
+    fn bindings_schema_up_to_date() {
+        let committed = std::fs::read_to_string(schema_path()).expect(
+            "bindings.schema.json should exist; regenerate it with \
+             `cargo test -p tmc-langs-cli generate_cli_bindings_schema -- --ignored`",
+        );
+        let generated = crate::output::cli_output_json_schema();
+        assert_eq!(
+            committed, generated,
+            "bindings.schema.json is out of date; regenerate it with \
+             `cargo test -p tmc-langs-cli generate_cli_bindings_schema -- --ignored`"
+        );
+    }
+
+    /// Drift gate: fails if `bindings.d.ts` no longer matches the current
+    /// types. Requires `--features ts-rs`.
+    #[test]
+    #[cfg(feature = "ts-rs")]
+    fn bindings_dts_up_to_date() {
+        let committed = std::fs::read_to_string(dts_path()).expect(
+            "bindings.d.ts should exist; regenerate it with \
+             `cargo test -p tmc-langs-cli --features ts-rs generate_cli_bindings -- --ignored`",
+        );
+        let generated = generate_cli_bindings_dts();
+        assert_eq!(
+            committed, generated,
+            "bindings.d.ts is out of date; regenerate it with \
+             `cargo test -p tmc-langs-cli --features ts-rs generate_cli_bindings -- --ignored`"
+        );
+    }
+
+    #[test]
+    #[ignore = "run manually to regenerate the committed bindings.d.ts"]
     #[cfg(feature = "ts-rs")]
     fn generate_cli_bindings() {
-        let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
+        std::fs::write(dts_path(), generate_cli_bindings_dts()).unwrap();
+    }
+
+    /// Produces the TypeScript bindings as a string from the current types.
+    #[cfg(feature = "ts-rs")]
+    fn generate_cli_bindings_dts() -> String {
+        let mut buf = Vec::new();
         ts_rs::export_to!(
-            &mut f,
+            &mut buf,
             // input
             crate::app::Locale,
             // output
@@ -1308,5 +1374,6 @@ mod test {
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
         )
         .unwrap();
+        String::from_utf8(buf).unwrap()
     }
 }
