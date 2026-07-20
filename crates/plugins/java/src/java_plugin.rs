@@ -465,7 +465,7 @@ mod test {
 
         fn build(&self, _project_root_path: &Path) -> Result<CompileResult, JavaError> {
             Ok(CompileResult {
-                status_code: tmc_langs_framework::ExitStatus::Exited(0),
+                status_code: tmc_langs_framework::ExitStatus::new(0),
                 stdout: vec![],
                 stderr: vec![],
             })
@@ -606,7 +606,7 @@ openjdk version "1.8.0_252"S
         let compile_result = CompileResult {
             stdout: vec![],
             stderr: vec![],
-            status_code: tmc_langs_framework::ExitStatus::Exited(0),
+            status_code: tmc_langs_framework::ExitStatus::new(0),
         };
         let desc = plugin
             .scan_exercise_with_compile_result(temp_dir.path(), "ex".to_string(), compile_result)
@@ -620,7 +620,7 @@ openjdk version "1.8.0_252"S
 
         let plugin = Stub::new();
         let compile_result = CompileResult {
-            status_code: tmc_langs_framework::ExitStatus::Exited(0),
+            status_code: tmc_langs_framework::ExitStatus::new(0),
             stdout: "hello, 世界".as_bytes().to_vec(),
             stderr: "エラー".as_bytes().to_vec(),
         };

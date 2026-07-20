@@ -7,7 +7,7 @@ use tmc_langs_util::{FileError, JsonError};
 use url::Url;
 
 type TokenError = oauth2::RequestTokenError<
-    HttpClientError<oauth2::reqwest::Error>,
+    HttpClientError<reqwest::Error>,
     oauth2::StandardErrorResponse<oauth2::basic::BasicErrorResponseType>,
 >;
 
