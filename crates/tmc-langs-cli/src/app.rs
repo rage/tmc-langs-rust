@@ -5,9 +5,10 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc,
-    ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
-    UpdatedExercise, mooc,
+    CombinedCourseData, Compression, DownloadOrUpdateMoocCourseExercisesResult,
+    DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
+    Language, LocalExercise, LocalMoocExercise, RunResult, StyleValidationResult, UpdatedExercise,
+    mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -257,10 +258,9 @@ pub enum Command {
 
     /// Prints the JSON Schema of the CLI's stdout output types to stdout.
     ///
-    /// Unlike other commands, prints the raw schema rather than a `CliOutput`
-    /// envelope, matching the committed `bindings.schema.json` byte for byte.
-    /// Clients use it to check the binary they spawn matches the schema they
-    /// were built against.
+    /// Prints the raw schema rather than a `CliOutput` envelope, matching the
+    /// committed `bindings.schema.json` byte for byte so clients can check the
+    /// binary against the schema they were built against.
     Schema,
 }
 
@@ -539,7 +539,7 @@ pub enum TestMyCodeCommand {
     },
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Mooc {
     /// Name used to differentiate between different frontends (e.g. the VSCode extension).
     #[clap(long, short)]
@@ -548,10 +548,22 @@ pub struct Mooc {
     pub command: MoocCommand,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub enum MoocCommand {
+    /// Logs in to the Courses MOOC backend using the OAuth2 device
+    /// authorization grant (RFC 8628). Emits a `mooc-device-login` status
+    /// update carrying the verification URL and user code, then blocks polling
+    /// until the login is approved (or the parent process cancels by killing
+    /// this one).
+    #[clap(long_about = SCHEMA_NULL)]
+    Login,
+    /// Checks whether the CLI holds mooc credentials. Prints the access token if so.
+    #[clap(long_about = SCHEMA_TOKEN)]
+    LoggedIn,
+    /// Logs out of the Courses MOOC backend, removing the stored credentials.
+    #[clap(long_about = SCHEMA_NULL)]
+    Logout,
     #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
-    CourseUpdates,
     CheckExerciseUpdates,
     /// Fetches information about a course.
     #[clap(long_about = schema_leaked::<mooc::Course>())]
@@ -567,6 +579,12 @@ pub enum MoocCommand {
         #[clap(long)]
         course_id: Uuid,
     },
+    /// Fetches the current user's per-exercise progress for a course.
+    #[clap(long_about = schema_leaked::<mooc::CourseProgress>())]
+    CourseProgress {
+        #[clap(long)]
+        course_id: Uuid,
+    },
     /// Fetches information about an exercise.
     Exercise {
         #[clap(long)]
@@ -579,16 +597,89 @@ pub enum MoocCommand {
         #[clap(long)]
         target: PathBuf,
     },
-    /// Submits an exercise.
+    /// Downloads or updates the given course exercises into the projects directory.
+    #[clap(long_about = schema_leaked::<DownloadOrUpdateMoocCourseExercisesResult>())]
+    DownloadOrUpdateCourseExercises {
+        /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
+        #[clap(long, num_args = 1..)]
+        exercise_id: Vec<Uuid>,
+        /// The course the exercises belong to. When given, only that course's
+        /// slides are fetched to resolve the exercises instead of scanning every
+        /// enrolled course.
+        #[clap(long)]
+        course_id: Option<Uuid>,
+    },
+    /// Lists the local exercises of a mooc course, looked up by course id.
+    #[clap(long_about = schema_leaked::<Vec<LocalMoocExercise>>())]
+    ListLocalCourseExercises {
+        #[clap(long)]
+        course_id: Uuid,
+    },
+    /// Submits an exercise, resolving the slide and editor task ids from the
+    /// exercise id. By default blocks until grading reaches a terminal state,
+    /// emitting progress updates.
     Submit {
         #[clap(long)]
         exercise_id: Uuid,
         #[clap(long)]
-        slide_id: Uuid,
+        submission_path: PathBuf,
+        /// Return immediately with just the submission id instead of waiting for
+        /// the grading to finish.
         #[clap(long)]
-        task_id: Uuid,
+        dont_block: bool,
+    },
+    /// Waits for a submission's grading to reach a terminal state, polling the
+    /// backend and emitting progress updates.
+    WaitForGrading {
+        #[clap(long)]
+        submission_id: Uuid,
+    },
+    /// Submits an exercise (non-blocking) and shares the resulting submission,
+    /// returning a public paste URL — the "share a submission" equivalent of TMC
+    /// paste.
+    #[clap(long_about = schema_leaked::<mooc::PasteResult>())]
+    Paste {
+        #[clap(long)]
+        exercise_id: Uuid,
         #[clap(long)]
         submission_path: PathBuf,
+    },
+    /// Fetches the current user's past submissions to an exercise, newest first.
+    #[clap(long_about = schema_leaked::<Vec<mooc::ExerciseSlideSubmissionListItem>>())]
+    GetExerciseSubmissions {
+        #[clap(long)]
+        exercise_id: Uuid,
+    },
+    /// Downloads a past submission of an exercise, restoring its student files on
+    /// top of a fresh exercise stub at `output_path`.
+    DownloadOldSubmission {
+        /// The id of the submission to download (an exercise-slide-submission id
+        /// from `get-exercise-submissions`).
+        #[clap(long)]
+        submission_id: Uuid,
+        /// The id of the exercise the submission belongs to.
+        #[clap(long)]
+        exercise_id: Uuid,
+        /// Path to the directory where the project resides / should be restored.
+        #[clap(long)]
+        output_path: PathBuf,
+        /// Submit the current state of `output_path` before overwriting it.
+        #[clap(long)]
+        save_old_state: bool,
+    },
+    /// Resets an exercise. Removes the contents of the exercise directory and
+    /// re-downloads and re-extracts the exercise's stub archive from the server.
+    #[clap(long_about = SCHEMA_NULL)]
+    ResetExercise {
+        /// If set, the exercise's current state is submitted to the server before resetting it.
+        #[clap(long)]
+        save_old_state: bool,
+        /// The id of the exercise.
+        #[clap(long)]
+        exercise_id: Uuid,
+        /// Path to the directory where the project resides.
+        #[clap(long)]
+        exercise_path: PathBuf,
     },
     /// Updates all local exercises that have been updated on the server
     #[clap(long_about = SCHEMA_NULL)]
@@ -1210,6 +1301,45 @@ mod settings_test {
 }
 
 #[cfg(test)]
+mod mooc_test {
+    use super::*;
+
+    fn get_matches_mooc(args: &[&str]) {
+        Cli::try_parse_from(
+            ["tmc-langs-cli", "mooc", "--client-name", "client"]
+                .iter()
+                .chain(args)
+                .collect::<Vec<_>>(),
+        )
+        .map_err(|e| e.to_string())
+        .unwrap();
+    }
+
+    #[test]
+    fn reset_exercise() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--save-old-state",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn reset_exercise_without_save_old_state() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+}
+
+#[cfg(test)]
 mod test {
     use std::path::{Path, PathBuf};
 
@@ -1286,6 +1416,7 @@ mod test {
             crate::output::OutputResult,
             crate::output::Status,
             crate::output::StatusUpdateData,
+            crate::output::MoocDeviceLogin,
             tmc_langs::notification_reporter::Notification,
             tmc_langs::notification_reporter::NotificationKind,
             tmc_langs::progress_reporter::StatusUpdate<()>,
@@ -1372,6 +1503,12 @@ mod test {
             tmc_langs::mooc::ModelSolutionSpec,
             tmc_langs::mooc::ExerciseFile,
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
+            tmc_langs::mooc::ExerciseTaskSubmissionStatus,
+            tmc_langs::mooc::GradingProgress,
+            tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::CourseProgress,
+            tmc_langs::mooc::ExerciseProgress,
+            tmc_langs::mooc::MoocClientUpdateData,
         )
         .unwrap();
         String::from_utf8(buf).unwrap()

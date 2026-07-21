@@ -120,6 +120,10 @@ pub enum DataKind {
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
+    MoocSubmissionStatus(mooc::ExerciseTaskSubmissionStatus),
+    MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
+    MoocPaste(mooc::PasteResult),
+    MoocCourseProgress(mooc::CourseProgress),
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -128,7 +132,31 @@ pub enum DataKind {
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
+    /// Mooc's per-exercise download progress, mirroring `ClientUpdateData` for
+    /// mooc's UUID-keyed exercises.
+    MoocClientUpdateData(StatusUpdate<mooc::MoocClientUpdateData>),
+    /// Emitted once at the start of `mooc login`, before the CLI blocks polling:
+    /// carries the verification URL and user code the client shows the user to
+    /// complete the OAuth2 device authorization login.
+    MoocDeviceLogin(StatusUpdate<MoocDeviceLogin>),
     None(StatusUpdate<()>),
+}
+
+/// The data attached to a `mooc-device-login` status update. Mirrors the
+/// relevant fields of the RFC 8628 device authorization response.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocDeviceLogin {
+    /// URL the user opens to enter the `user_code`.
+    pub verification_uri: String,
+    /// URL that already includes the `user_code`, if the server provided one.
+    pub verification_uri_complete: Option<String>,
+    /// The code the user enters (or confirms) on the verification page.
+    pub user_code: String,
+    /// Seconds until the device/user codes expire.
+    pub expires_in: u32,
+    /// Minimum seconds between token-endpoint polls.
+    pub interval: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -168,6 +196,9 @@ pub enum Kind {
     ObsoleteClient,
     /// Invalid token
     InvalidToken,
+    /// The user is not enrolled on the course this exercise belongs to
+    /// (backend `message_key: "not_enrolled"`, HTTP 422)
+    NotEnrolled,
     /// Failed to download some or all exercises
     FailedExerciseDownload {
         completed: Vec<TmcExerciseDownload>,
@@ -184,11 +215,8 @@ pub struct DownloadTarget {
     pub path: PathBuf,
 }
 
-/// Returns the JSON Schema describing everything the CLI writes to stdout.
-///
-/// [`CliOutput`] is the schema root; definitions are included for every type
-/// it references transitively. Single source of truth for clients (e.g.
-/// tmc-vscode) validating CLI output.
+/// JSON Schema for everything the CLI writes to stdout, rooted at [`CliOutput`].
+/// The single source of truth clients (e.g. tmc-vscode) validate against.
 pub fn cli_output_schema() -> schemars::Schema {
     // Serialize contract, not deserialize: `#[serde(from = ...)]` types (e.g.
     // `CourseDetails`) deserialize through a wrapper but serialize flattened,
@@ -307,5 +335,33 @@ mod test {
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn mooc_client_update_data_status_update_shape() {
+        // Locks the wire shape the VSCode side parses for mooc download progress:
+        // outer `update-data-kind` = `mooc-client-update-data`, inner
+        // `client-update-data-kind` = `exercise-download` with a UUID `id`.
+        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let status_update =
+            CliOutput::StatusUpdate(StatusUpdateData::MoocClientUpdateData(StatusUpdate {
+                data: Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                    id,
+                    path: PathBuf::from("some/path"),
+                }),
+                finished: false,
+                message: "downloading...".to_string(),
+                percent_done: 50.0,
+                time: 1000,
+            }));
+        let actual = serde_json::to_value(&status_update).unwrap();
+        assert_eq!(actual["output-kind"], "status-update");
+        assert_eq!(actual["update-data-kind"], "mooc-client-update-data");
+        assert_eq!(actual["data"]["client-update-data-kind"], "exercise-download");
+        assert_eq!(
+            actual["data"]["id"],
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f"
+        );
+        assert_eq!(actual["data"]["path"], "some/path");
     }
 }

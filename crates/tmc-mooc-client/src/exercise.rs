@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use mooc_langs_api as api;
+use exercise_services_api as api;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tmc_langs_util::{JsonError, deserialize};
@@ -12,10 +12,47 @@ use uuid::Uuid;
 pub struct TmcExerciseSlide {
     pub slide_id: Uuid,
     pub exercise_id: Uuid,
+    /// The course the exercise belongs to, so a client can locate it without a
+    /// separate lookup or an enrolled-course scan.
+    pub course_id: Uuid,
     pub exercise_name: String,
     pub exercise_order_number: i32,
     pub deadline: Option<DateTime<Utc>>,
     pub tasks: Vec<TmcExerciseTask>,
+}
+
+impl TmcExerciseSlide {
+    /// Stub archive download URL for this slide's first editor task, if any.
+    /// `None` for browser exercises, which expose no downloadable archive.
+    pub fn editor_stub_download_url(&self) -> Option<&str> {
+        self.tasks
+            .iter()
+            .filter_map(|task| task.public_spec.as_ref())
+            .find_map(|spec| spec.editor_stub_download_url())
+    }
+
+    /// Task id of this slide's first editor task (the one a native client submits
+    /// to), if any. `None` for browser exercises, which have no editor task.
+    pub fn editor_task_id(&self) -> Option<Uuid> {
+        self.editor_task().map(|task| task.task_id)
+    }
+
+    /// Checksum of this slide's first editor task, if any. Compared against the
+    /// stored one to detect whether the local exercise is out of date.
+    pub fn editor_checksum(&self) -> Option<&str> {
+        self.editor_task().and_then(|task| task.checksum.as_deref())
+    }
+
+    /// This slide's first editor task: the one a native client downloads, works
+    /// on, and submits. Browser tasks do not count.
+    fn editor_task(&self) -> Option<&TmcExerciseTask> {
+        self.tasks.iter().find(|task| {
+            task.public_spec
+                .as_ref()
+                .and_then(|spec| spec.editor_stub_download_url())
+                .is_some()
+        })
+    }
 }
 
 impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
@@ -24,6 +61,7 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
         let slide = Self {
             slide_id: value.slide_id,
             exercise_id: value.exercise_id,
+            course_id: value.course_id,
             exercise_name: value.exercise_name,
             exercise_order_number: value.exercise_order_number,
             deadline: value.deadline,
@@ -87,10 +125,28 @@ pub struct PublicSpec {
     stub_download_url: String,
     student_file_paths: Vec<String>,
     checksum: String,
-    /// In-browser test config: script to run in the client and optional error
-    /// if the build failed. Omitted for editor exercises or when no script was
-    /// built. Serde treats the `Option` field as optional when absent.
+    /// In-browser test config; omitted for editor exercises or when no script
+    /// was built.
     browser_test: Option<BrowserTestSpec>,
+}
+
+impl PublicSpec {
+    pub fn exercise_type(&self) -> &ExerciseType {
+        &self.exercise_type
+    }
+
+    pub fn stub_download_url(&self) -> &str {
+        &self.stub_download_url
+    }
+
+    /// Returns the stub archive download URL for editor exercises. Returns `None`
+    /// for browser exercises, which have no downloadable project archive.
+    pub fn editor_stub_download_url(&self) -> Option<&str> {
+        match self.exercise_type {
+            ExerciseType::Editor => Some(&self.stub_download_url),
+            ExerciseType::Browser => None,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
@@ -209,5 +265,81 @@ mod test {
         assert_eq!(spec.checksum, "abcd");
         // `browser_test` is absent for editor exercises and must deserialize to `None`.
         assert!(spec.browser_test.is_none());
+    }
+
+    /// Guards the deserialize (input) side that the serialize-only bindings drift
+    /// gate can't catch: parses a mixed editor+browser slide, then re-serializes
+    /// and re-parses it.
+    #[test]
+    fn slide_with_mixed_tasks_round_trips() {
+        let editor_task_id = Uuid::new_v4();
+        let browser_task_id = Uuid::new_v4();
+        let slide_json = serde_json::json!({
+            "slide_id": Uuid::new_v4(),
+            "exercise_id": Uuid::new_v4(),
+            "course_id": Uuid::new_v4(),
+            "exercise_name": "mixed",
+            "exercise_order_number": 3,
+            "deadline": null,
+            "tasks": [
+                {
+                    "task_id": editor_task_id,
+                    "order_number": 0,
+                    "assignment": [{"type": "paragraph"}],
+                    "public_spec": {
+                        "type": "editor",
+                        "archive_name": "stub.tar.zst",
+                        "stub_download_url": "http://example.com/e.tar.zst",
+                        "student_file_paths": ["src/main.py"],
+                        "checksum": "editorsum"
+                    },
+                    "model_solution_spec": { "type": "Editor", "download_url": "http://example.com/sol" },
+                    "exercise_service_slug": "tmc"
+                },
+                {
+                    "task_id": browser_task_id,
+                    "order_number": 1,
+                    "assignment": [],
+                    "public_spec": {
+                        "type": "browser",
+                        "archive_name": "stub.tar.zst",
+                        "stub_download_url": "http://example.com/b.tar.zst",
+                        "student_file_paths": [],
+                        "checksum": "browsersum",
+                        "browser_test": { "runtime": "python", "script": "print(1)" }
+                    },
+                    "model_solution_spec": null,
+                    "exercise_service_slug": "tmc"
+                }
+            ]
+        });
+
+        let api_slide: api::ExerciseSlide = serde_json::from_value(slide_json).unwrap();
+        let slide: TmcExerciseSlide = api_slide.try_into().unwrap();
+        assert_eq!(slide.tasks.len(), 2);
+        assert_eq!(slide.tasks[0].task_id, editor_task_id);
+        // checksum is derived from the public spec
+        assert_eq!(slide.tasks[0].checksum.as_deref(), Some("editorsum"));
+        assert_eq!(
+            slide.tasks[0].public_spec.as_ref().unwrap().exercise_type(),
+            &ExerciseType::Editor
+        );
+        assert_eq!(
+            slide.editor_stub_download_url(),
+            Some("http://example.com/e.tar.zst")
+        );
+
+        let serialized = serde_json::to_string(&slide).unwrap();
+        let reparsed: TmcExerciseSlide = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(reparsed.tasks.len(), 2);
+        assert_eq!(reparsed.tasks[1].task_id, browser_task_id);
+        assert_eq!(
+            reparsed.tasks[1]
+                .public_spec
+                .as_ref()
+                .unwrap()
+                .exercise_type(),
+            &ExerciseType::Browser
+        );
     }
 }

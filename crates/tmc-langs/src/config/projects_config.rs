@@ -90,10 +90,8 @@ impl ProjectsConfig {
             }
         }
 
-        // there may also be old course directories in the projects dir directly,
-        // as that is where they used to be stored
-        // rather than move them, we'll just process them here to make things easier
-        // users of langs can move them to the new dir if they like
+        // Old course directories may sit directly in the projects dir, where they
+        // used to be stored; process them in place rather than moving them.
         let mut unexpected_entries = Vec::new();
         let legacy_projects_dir = projects_dir;
         if legacy_projects_dir.exists() {
@@ -102,7 +100,6 @@ impl ProjectsConfig {
                 let file_name = entry.file_name();
 
                 if file_name == "tmc" || file_name == "mooc" {
-                    // skip tmc and mooc dirs
                     continue;
                 }
 
@@ -231,13 +228,6 @@ impl ProjectsConfig {
             .map(|e| e.1)
     }
 
-    pub fn get_all_mooc_exercises(&self) -> impl Iterator<Item = &ProjectsDirMoocExercise> {
-        self.mooc_courses
-            .iter()
-            .flat_map(|c| &c.1.exercises)
-            .map(|e| e.1)
-    }
-
     /// Note: does not save the config on initialization.
     pub fn get_or_init_tmc_course_config(&mut self, course_name: String) -> &mut TmcCourseConfig {
         self.tmc_courses
@@ -287,7 +277,7 @@ impl ProjectsConfig {
     }
 }
 
-fn simple_kebab_case(s: &str) -> String {
+pub(crate) fn simple_kebab_case(s: &str) -> String {
     s.to_lowercase().replace(" ", "-")
 }
 
@@ -333,8 +323,39 @@ pub struct MoocCourseConfig {
 }
 
 impl MoocCourseConfig {
+    /// Inserts or replaces an exercise entry, returning its on-disk directory.
+    /// Existing entries keep their directory; new ones use the kebab-cased
+    /// exercise name (unique within a course, mirroring the TMC layout).
+    pub fn add_exercise(
+        &mut self,
+        exercise_id: Uuid,
+        name: String,
+        task_id: Uuid,
+        checksum: String,
+    ) -> String {
+        let directory = self
+            .exercises
+            .get(&exercise_id)
+            .map(|e| e.directory.clone())
+            .unwrap_or_else(|| simple_kebab_case(&name));
+        self.exercises.insert(
+            exercise_id,
+            ProjectsDirMoocExercise {
+                name,
+                task_id,
+                checksum,
+                directory: directory.clone(),
+            },
+        );
+        directory
+    }
+
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
-        let course_dir = projects_dir.join(&self.course);
+        // MOOC configs must live under `projects_dir/mooc/<directory>/`: the
+        // loader and `get_mooc_exercise_download_target` both key off the
+        // sanitized `directory`, not the raw course name. Writing anywhere else
+        // orphans the config.
+        let course_dir = projects_dir.join("mooc").join(&self.directory);
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
         }
@@ -501,5 +522,66 @@ checksum = "defg4567"
         let ex = cc.exercises.remove("ex 4").unwrap();
         assert_eq!(ex.id, 7654);
         assert_eq!(ex.checksum, "defg4567");
+    }
+
+    #[test]
+    fn mooc_config_save_load_round_trip() {
+        // Regression test: `save_to_projects_dir` once wrote to the raw course
+        // name while the loader reads only `projects_dir/mooc/<directory>/`,
+        // orphaning every saved config. Both must agree on that canonical layout.
+        init_logging();
+
+        let temp = tempfile::TempDir::new().unwrap();
+
+        let course_id = Uuid::new_v4();
+        let instance_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
+        let exercise_id = Uuid::new_v4();
+
+        let mut exercises = BTreeMap::new();
+        exercises.insert(
+            exercise_id,
+            ProjectsDirMoocExercise {
+                name: "Exercise 1".to_string(),
+                task_id,
+                checksum: "abcd1234".to_string(),
+                directory: "exercise-1".to_string(),
+            },
+        );
+        let course_config = MoocCourseConfig {
+            course_id,
+            instance_id,
+            course: "My MOOC Course".to_string(),
+            directory: "my-mooc-course".to_string(),
+            exercises,
+        };
+        course_config.save_to_projects_dir(temp.path()).unwrap();
+
+        // the config must land where the loader looks: mooc/<directory>/course_config.toml
+        let expected_config_path = temp
+            .path()
+            .join("mooc")
+            .join("my-mooc-course")
+            .join(COURSE_CONFIG_FILE_NAME);
+        assert!(
+            expected_config_path.exists(),
+            "config should be saved under mooc/<directory>/, was not found at {}",
+            expected_config_path.display()
+        );
+
+        // create the exercise dir so the load maintenance pass doesn't prune it
+        dir_to(&temp, "mooc/my-mooc-course/exercise-1");
+
+        let pc = ProjectsConfig::load(temp.path()).unwrap();
+        assert_eq!(pc.mooc_courses.len(), 1);
+        let cc = pc.mooc_courses.get(&instance_id).unwrap();
+        assert_eq!(cc.course, "My MOOC Course");
+        assert_eq!(cc.directory, "my-mooc-course");
+        assert_eq!(cc.course_id, course_id);
+        assert_eq!(cc.exercises.len(), 1);
+        let ex = cc.exercises.get(&exercise_id).unwrap();
+        assert_eq!(ex.task_id, task_id);
+        assert_eq!(ex.checksum, "abcd1234");
+        assert_eq!(ex.directory, "exercise-1");
     }
 }
