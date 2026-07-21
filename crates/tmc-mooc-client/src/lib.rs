@@ -7,11 +7,14 @@ mod exercise;
 
 pub use self::{
     error::{MoocClientError, MoocClientResult},
-    exercise::{ExerciseFile, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask},
+    exercise::{
+        ExerciseFile, ExerciseType, ModelSolutionSpec, PublicSpec, TmcExerciseSlide,
+        TmcExerciseTask,
+    },
 };
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
-pub use mooc_langs_api as api;
+pub use exercise_services_api as api;
 use oauth2::TokenResponse;
 use reqwest::{
     Method, StatusCode,
@@ -21,13 +24,17 @@ use reqwest::{
     },
 };
 use schemars::JsonSchema;
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{path::Path, sync::Arc};
 use tmc_langs_util::{JsonError, serialize};
 #[cfg(feature = "ts-rs")]
 use ts_rs::TS;
 use url::Url;
 use uuid::Uuid;
+
+/// Header advertising this client's version to the backend, which may reject
+/// obsolete clients with `426 Upgrade Required`.
+const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
@@ -66,7 +73,13 @@ impl MoocClient {
             .domain()
             .map(|d| trusted_domains.contains(&d))
             .unwrap_or_default();
-        let mut builder = self.0.client.request(method.clone(), url.clone());
+        let mut builder = self
+            .0
+            .client
+            .request(method.clone(), url.clone())
+            // The crate version is the langs version this client ships as,
+            // mirroring the TMC client's `client_version`.
+            .header(CLIENT_VERSION_HEADER, env!("CARGO_PKG_VERSION"));
         if let Some(token) = self.0.token.as_ref() {
             if is_trusted_domain {
                 log::debug!("setting bearer token");
@@ -94,7 +107,7 @@ impl MoocClient {
 /// API methods.
 impl MoocClient {
     pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
-        let url = make_langs_api_url(self, &format!("courses/{course_id}"))?;
+        let url = make_client_api_url(self, &format!("courses/{course_id}"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::Course>()?;
@@ -102,7 +115,7 @@ impl MoocClient {
     }
 
     pub fn courses(&self) -> MoocClientResult<Vec<Course>> {
-        let url = make_langs_api_url(self, "courses")?;
+        let url = make_client_api_url(self, "courses")?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<Vec<api::Course>>()?;
@@ -110,7 +123,7 @@ impl MoocClient {
     }
 
     pub fn course_exercises(&self, course: Uuid) -> MoocClientResult<Vec<TmcExerciseSlide>> {
-        let url = make_langs_api_url(self, format!("courses/{course}/exercises"))?;
+        let url = make_client_api_url(self, format!("courses/{course}/exercises"))?;
         let res = self
             .request(Method::GET, url.clone())
             .send_expect_json::<Vec<api::ExerciseSlide>>()?
@@ -125,7 +138,7 @@ impl MoocClient {
     }
 
     pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
-        let url = make_langs_api_url(self, format!("exercises/{exercise}"))?;
+        let url = make_client_api_url(self, format!("exercises/{exercise}"))?;
         let res = self
             .request(Method::GET, url.clone())
             .send_expect_json::<api::ExerciseSlide>()?
@@ -142,10 +155,40 @@ impl MoocClient {
         Ok(res)
     }
 
+    /// Downloads the stub archive for an exercise.
+    ///
+    /// There is no `exercises/{id}/download` route; the archive lives at the
+    /// editor task public spec's `stub_download_url`. Returns
+    /// [`MoocClientError::NoDownloadableExerciseTask`] for a browser-only exercise
+    /// with no editor task.
     pub fn download_exercise(&self, exercise: Uuid) -> MoocClientResult<Bytes> {
-        let url = make_langs_api_url(self, format!("exercises/{exercise}/download"))?;
-        let res = self.request(Method::GET, url).send_expect_bytes()?;
-        Ok(res)
+        let slide = self.exercise(exercise)?;
+        let download_url = slide.editor_stub_download_url().ok_or_else(|| {
+            Box::new(MoocClientError::NoDownloadableExerciseTask {
+                exercise_id: exercise,
+            })
+        })?;
+        let url = Url::parse(download_url)
+            .map_err(|err| MoocClientError::UrlParse(download_url.to_string(), err))
+            .map_err(Box::new)?;
+        self.download(url)
+    }
+
+    /// Submits an archive for an exercise.
+    ///
+    /// A native client stores only the exercise id, so this fetches the slide to
+    /// resolve its editor task and submits to it. Returns
+    /// [`MoocClientError::NoSubmittableExerciseTask`] for a browser-only exercise.
+    pub fn submit_exercise(
+        &self,
+        exercise_id: Uuid,
+        archive: &Path,
+    ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
+        let slide = self.exercise(exercise_id)?;
+        let task_id = slide
+            .editor_task_id()
+            .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))?;
+        self.submit(exercise_id, slide.slide_id, task_id, archive)
     }
 
     pub fn submit(
@@ -155,17 +198,20 @@ impl MoocClient {
         task_id: Uuid,
         archive: &Path,
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
+        // The `submission` part is just the two ids now; the backend derives the
+        // task's `data_json` (the tmc editor answer) itself from the uploaded file.
         let exercise_slide_submission = api::ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
             exercise_task_id: task_id,
-            data_json: serde_json::Value::Null,
         };
         let exercise_slide_submission = serialize::to_json_vec(&exercise_slide_submission)
             .map_err(Into::into)
             .map_err(Box::new)?;
         let submission = Form::new()
             .part(
-                "metadata",
+                // Backend `SubmissionForm` names this JSON part `submission`
+                // (headless-lms exercise_services/client.rs).
+                "submission",
                 Part::bytes(exercise_slide_submission)
                     .mime_str("application/json")
                     .expect("known to work"),
@@ -173,17 +219,7 @@ impl MoocClient {
             .file("file", archive)
             .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
 
-        // send submission
-        //let user_answer = UserAnswer::Editor {
-        //archive_download_url: res.download_url,
-        //};
-        //let data_json = serialize::to_json_value(&user_answer)?;
-        //let exercise_slide_submission = api::ExerciseSlideSubmission {
-        //exercise_slide_id: slide_id,
-        //exercise_task_id: task_id,
-        //data_json,
-        //};
-        let url = make_langs_api_url(self, format!("exercises/{exercise_id}/submit"))?;
+        let url = make_client_api_url(self, format!("exercises/{exercise_id}/submit"))?;
         let res = self
             .request(Method::POST, url)
             .multipart(submission)
@@ -195,21 +231,58 @@ impl MoocClient {
         &self,
         submission_id: Uuid,
     ) -> MoocClientResult<ExerciseTaskSubmissionStatus> {
-        let url = make_langs_api_url(self, format!("submissions/{submission_id}/grading"))?;
+        let url = make_client_api_url(self, format!("submissions/{submission_id}/grading"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::ExerciseTaskSubmissionStatus>()?;
         Ok(res.into())
     }
 
-    pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseTask>> {
+    /// Fetches each exercise by its exercise id, one slide per id. Each slide
+    /// carries `exercise_id` so callers can correlate results back to requests.
+    pub fn get_exercises(&self, exercise_ids: &[Uuid]) -> MoocClientResult<Vec<TmcExerciseSlide>> {
         // todo: implement in a single request...
-        let mut exercises = Vec::new();
+        let mut slides = Vec::new();
         for exercise_id in exercise_ids {
-            let exercise = self.exercise(*exercise_id)?;
-            exercises.extend(exercise.tasks)
+            slides.push(self.exercise(*exercise_id)?);
         }
-        Ok(exercises)
+        Ok(slides)
+    }
+
+    /// Returns the current user's past submissions to an exercise, newest first.
+    /// Each item's `id` is an exercise-slide-submission id, the value passed to
+    /// [`MoocClient::download_submission_archive_url`] and
+    /// [`MoocClient::share_submission`].
+    pub fn get_exercise_submissions(
+        &self,
+        exercise_id: Uuid,
+    ) -> MoocClientResult<Vec<ExerciseSlideSubmissionListItem>> {
+        let url = make_client_api_url(self, format!("exercises/{exercise_id}/submissions"))?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<Vec<api::ExerciseSlideSubmissionListItem>>()?;
+        Ok(res.into_iter().map(Into::into).collect())
+    }
+
+    /// Resolves an exercise-slide-submission id (from
+    /// [`MoocClient::get_exercise_submissions`]) to the file-store URL of the
+    /// archive that was submitted, so an old submission can be re-downloaded.
+    pub fn download_submission_archive_url(&self, submission_id: Uuid) -> MoocClientResult<String> {
+        let url = make_client_api_url(self, format!("submissions/{submission_id}/download"))?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<api::SubmissionArchiveDownloadUrl>()?;
+        Ok(res.archive_download_url)
+    }
+
+    /// Mints a shareable link to an existing submission of the current user and
+    /// returns the paste URL.
+    pub fn share_submission(&self, submission_id: Uuid) -> MoocClientResult<PasteResult> {
+        let url = make_client_api_url(self, format!("submissions/{submission_id}/share"))?;
+        let res = self
+            .request(Method::POST, url)
+            .send_expect_json::<api::PasteResult>()?;
+        Ok(res.into())
     }
 }
 
@@ -240,6 +313,9 @@ impl MoocRequest {
                     StatusCode::UNAUTHORIZED => Err(Box::new(MoocClientError::NotAuthenticated)),
                     _other => {
                         let status = res.status();
+                        // 426 Upgrade Required signals the client is too old; the
+                        // backend enforces a minimum `X-Client-Version`.
+                        let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
                         let body =
                             res.text()
                                 .map_err(|err| MoocClientError::ReadingResponseBody {
@@ -247,11 +323,19 @@ impl MoocRequest {
                                     url: self.url.clone(),
                                     error: Box::new(err),
                                 })?;
+                        // The backend returns controlled errors as an
+                        // `ApiErrorResponse` carrying a `message_key` (e.g.
+                        // `not_enrolled`). Try to lift that key so the CLI can map
+                        // it to a typed error kind; keep the raw body for messages.
+                        let message_key = serde_json::from_str::<ApiErrorBody>(&body)
+                            .ok()
+                            .and_then(|parsed| parsed.message_key);
                         Err(Box::new(MoocClientError::HttpError {
                             url: self.url,
                             status,
                             error: body,
-                            obsolete_client: false,
+                            obsolete_client,
+                            message_key,
                         }))
                     }
                 }
@@ -294,12 +378,22 @@ impl MoocRequest {
     }
 }
 
+/// The single field of the backend's `ApiErrorResponse` the client needs: the
+/// stable `message_key` identifying a controlled error. Deserialized leniently
+/// (missing/null key = `None`) so any non-conforming error body simply yields no
+/// key rather than failing.
+#[derive(Deserialize)]
+struct ApiErrorBody {
+    #[serde(default)]
+    message_key: Option<String>,
+}
+
 // joins the URL "tail" with the API url root from the client
-fn make_langs_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClientResult<Url> {
+fn make_client_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClientResult<Url> {
     client
         .0
         .root_url
-        .join("/api/v0/langs/")
+        .join("/api/v0/exercise-services/client/")
         .and_then(|u| u.join(tail.as_ref()))
         .map_err(|e| MoocClientError::UrlParse(tail.as_ref().to_string(), e))
         .map_err(Box::new)
@@ -419,17 +513,41 @@ impl From<api::GradingProgress> for GradingProgress {
     }
 }
 
-#[derive(Debug, Serialize)]
-pub struct ExerciseUpdates {
-    pub updated_exercises: Vec<Uuid>,
-    pub deleted_exercises: Vec<Uuid>,
+/// A single past submission of the current user to an exercise. `id` is the
+/// exercise-slide-submission id used to download or share the submission.
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ExerciseSlideSubmissionListItem {
+    pub id: Uuid,
+    pub exercise_id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub score_given: Option<f32>,
+    pub grading_progress: Option<GradingProgress>,
 }
 
-impl From<api::ExerciseUpdates> for ExerciseUpdates {
-    fn from(value: api::ExerciseUpdates) -> Self {
+impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListItem {
+    fn from(value: api::ExerciseSlideSubmissionListItem) -> Self {
         Self {
-            updated_exercises: value.updated_exercises,
-            deleted_exercises: value.deleted_exercises,
+            id: value.id,
+            exercise_id: value.exercise_id,
+            created_at: value.created_at,
+            score_given: value.score_given,
+            grading_progress: value.grading_progress.map(Into::into),
+        }
+    }
+}
+
+/// A shareable URL for a submission.
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct PasteResult {
+    pub paste_url: String,
+}
+
+impl From<api::PasteResult> for PasteResult {
+    fn from(value: api::PasteResult) -> Self {
+        Self {
+            paste_url: value.paste_url,
         }
     }
 }
@@ -437,8 +555,8 @@ impl From<api::ExerciseUpdates> for ExerciseUpdates {
 #[cfg(test)]
 mod test {
     use super::*;
-    use mockito::Server;
-    use mooc_langs_api::Token;
+    use exercise_services_api::Token;
+    use mockito::{Matcher, Server};
     use oauth2::{AccessToken, EmptyExtraTokenFields, basic::BasicTokenType};
 
     fn init() {
@@ -473,7 +591,7 @@ mod test {
         let mut server = Server::new();
         let client = make_client(&server);
         server
-            .mock("GET", "/api/v0/langs/courses")
+            .mock("GET", "/api/v0/exercise-services/client/courses")
             .with_body(
                 serde_json::json!([{
                     "id": Uuid::new_v4(),
@@ -497,12 +615,13 @@ mod test {
         server
             .mock(
                 "GET",
-                "/api/v0/langs/courses/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
+                "/api/v0/exercise-services/client/courses/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
             )
             .with_body(
                 serde_json::json!([{
                     "slide_id": Uuid::new_v4(),
                     "exercise_id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
                     "exercise_name": "mockname",
                     "exercise_order_number": 0,
                     "tasks": [],
@@ -517,6 +636,57 @@ mod test {
     }
 
     #[test]
+    fn gets_course_exercise_slides_with_browser_task() {
+        // Exercises the typed PublicSpec path that empty-task fixtures never hit.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+            )
+            .with_body(
+                serde_json::json!([{
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "browser exercise",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(),
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "browser",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": [],
+                            "checksum": "abcd1234",
+                            "browser_test": {
+                                "runtime": "python",
+                                "script": "print('hi')"
+                            }
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                }])
+                .to_string(),
+            )
+            .create();
+        let slides = client
+            .course_exercises(Uuid::parse_str(course_id).unwrap())
+            .unwrap();
+        assert_eq!(slides.len(), 1);
+        let spec = slides[0].tasks[0].public_spec.as_ref().unwrap();
+        assert_eq!(spec.exercise_type(), &ExerciseType::Browser);
+        // browser exercises are not downloadable as a local project archive
+        assert!(spec.editor_stub_download_url().is_none());
+    }
+
+    #[test]
     fn gets_exercise() {
         init();
         let mut server = Server::new();
@@ -524,12 +694,13 @@ mod test {
         server
             .mock(
                 "GET",
-                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+                "/api/v0/exercise-services/client/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
             )
             .with_body(
                 serde_json::json!({
                     "slide_id": Uuid::new_v4(),
                     "exercise_id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
                     "exercise_name": "mockname",
                     "exercise_order_number": 0,
                     "tasks": [],
@@ -545,20 +716,196 @@ mod test {
 
     #[test]
     fn downloads_exercise() {
+        // No download route: the archive comes from the editor task's stub_download_url.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(),
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "editor",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": stub_download_url,
+                            "student_file_paths": ["src/main.py"],
+                            "checksum": "abcd1234"
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create();
+        server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body_from_file("./tests/data/file")
+            .create();
+        let exercise = client
+            .download_exercise(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap();
+        assert_eq!(String::from_utf8(exercise.into()).unwrap(), "hello!");
+    }
+
+    #[test]
+    fn download_exercise_errors_on_browser_only_exercise() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": Uuid::new_v4(),
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(),
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "browser",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": [],
+                            "checksum": "abcd1234",
+                            "browser_test": { "runtime": "python", "script": "" }
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create();
+        let err = client
+            .download_exercise(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap_err();
+        assert!(matches!(
+            *err,
+            MoocClientError::NoDownloadableExerciseTask { .. }
+        ));
+    }
+
+    #[test]
+    fn downloads_from_raw_url() {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
         server
-            .mock(
-                "GET",
-                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/download",
-            )
+            .mock("GET", "/files/archive.tar.zst")
             .with_body_from_file("./tests/data/file")
             .create();
-        let exercise = client
-            .download_exercise(Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap())
+        let url = format!("{}/files/archive.tar.zst", server.url())
+            .parse()
             .unwrap();
-        assert_eq!(String::from_utf8(exercise.into()).unwrap(), "hello!");
+        let bytes = client.download(url).unwrap();
+        assert_eq!(String::from_utf8(bytes.into()).unwrap(), "hello!");
+    }
+
+    #[test]
+    fn gets_single_course() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "id": course_id,
+                    "slug": "mockslug",
+                    "name": "mockname",
+                    "description": "mockdesc",
+                    "organization_name": "mockorg",
+                })
+                .to_string(),
+            )
+            .create();
+        let course = client.course(Uuid::parse_str(course_id).unwrap()).unwrap();
+        assert_eq!(course.name, "mockname");
+        assert_eq!(course.organization_name, "mockorg");
+    }
+
+    #[test]
+    fn gets_exercises_batched() {
+        // Exercises the typed editor PublicSpec path and checksum derivation.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": exercise_id,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": task_id,
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "editor",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": ["src/main.py"],
+                            "checksum": "abcd1234"
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create();
+        let slides = client
+            .get_exercises(&[Uuid::parse_str(exercise_id).unwrap()])
+            .unwrap();
+        assert_eq!(slides.len(), 1);
+        assert_eq!(slides[0].exercise_id, Uuid::parse_str(exercise_id).unwrap());
+        assert_eq!(slides[0].tasks.len(), 1);
+        assert_eq!(
+            slides[0].tasks[0].task_id,
+            Uuid::parse_str(task_id).unwrap()
+        );
+        assert_eq!(slides[0].editor_checksum(), Some("abcd1234"));
+        let public_spec = slides[0].tasks[0].public_spec.as_ref().unwrap();
+        assert_eq!(public_spec.exercise_type(), &ExerciseType::Editor);
+        assert_eq!(
+            public_spec.stub_download_url(),
+            "http://example.com/stub.tar.zst"
+        );
     }
 
     #[test]
@@ -569,8 +916,13 @@ mod test {
         server
             .mock(
                 "POST",
-                "/api/v0/langs/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/submit",
+                "/api/v0/exercise-services/client/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/submit",
             )
+            // The JSON part must be named `submission` (backend `SubmissionForm`), not `metadata`.
+            .match_body(Matcher::AllOf(vec![
+                Matcher::Regex(r#"name="submission""#.to_string()),
+                Matcher::Regex(r#"name="file""#.to_string()),
+            ]))
             .with_body(
                 serde_json::json!({
                     "submission_id": Uuid::new_v4(),
@@ -589,6 +941,112 @@ mod test {
     }
 
     #[test]
+    fn submits_by_exercise_id_resolving_slide_and_task() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+        let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": slide_id,
+                    "exercise_id": exercise_id,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": task_id,
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "editor",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": ["src/main.py"],
+                            "checksum": "abcd1234"
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create();
+        server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
+            )
+            .match_body(Matcher::AllOf(vec![
+                Matcher::Regex(format!(r#""exercise_slide_id":"{slide_id}""#)),
+                Matcher::Regex(format!(r#""exercise_task_id":"{task_id}""#)),
+            ]))
+            .with_body(serde_json::json!({ "submission_id": Uuid::new_v4() }).to_string())
+            .create();
+        client
+            .submit_exercise(
+                Uuid::parse_str(exercise_id).unwrap(),
+                Path::new("./tests/data/file"),
+            )
+            .unwrap();
+    }
+
+    #[test]
+    fn submit_exercise_errors_on_browser_only_exercise() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": Uuid::new_v4(),
+                    "exercise_id": exercise_id,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "browser",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": Uuid::new_v4(),
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "browser",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": [],
+                            "checksum": "abcd1234",
+                            "browser_test": { "runtime": "python", "script": "" }
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create();
+        let err = client
+            .submit_exercise(
+                Uuid::parse_str(exercise_id).unwrap(),
+                Path::new("./tests/data/file"),
+            )
+            .unwrap_err();
+        assert!(matches!(
+            *err,
+            MoocClientError::NoSubmittableExerciseTask { .. }
+        ));
+    }
+
+    #[test]
     fn gets_submission_grading() {
         init();
         let mut server = Server::new();
@@ -596,14 +1054,14 @@ mod test {
         server
             .mock(
                 "GET",
-                "/api/v0/langs/submissions/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/grading",
+                "/api/v0/exercise-services/client/submissions/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/grading",
             )
             .with_body(serde_json::json!("NoGradingYet").to_string())
             .create();
         server
             .mock(
                 "GET",
-                "/api/v0/langs/submissions/e7bd5a07-1b83-4c97-91f2-e48cccf66b2a/grading",
+                "/api/v0/exercise-services/client/submissions/e7bd5a07-1b83-4c97-91f2-e48cccf66b2a/grading",
             )
             .with_body(
                 serde_json::json!({
@@ -632,5 +1090,193 @@ mod test {
             submission_result,
             ExerciseTaskSubmissionStatus::Grading { .. }
         ));
+    }
+
+    #[test]
+    fn gets_exercise_submissions() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        let submission_id = Uuid::new_v4();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submissions")
+                    .as_str(),
+            )
+            .with_body(
+                serde_json::json!([{
+                    "id": submission_id,
+                    "exercise_id": exercise_id,
+                    "created_at": "2026-07-21T00:00:00Z",
+                    "score_given": 1.0,
+                    "grading_progress": "FullyGraded"
+                }])
+                .to_string(),
+            )
+            .create();
+        let submissions = client
+            .get_exercise_submissions(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap();
+        assert_eq!(submissions.len(), 1);
+        assert_eq!(submissions[0].id, submission_id);
+        assert_eq!(submissions[0].score_given, Some(1.0));
+        assert!(matches!(
+            submissions[0].grading_progress,
+            Some(GradingProgress::FullyGraded)
+        ));
+    }
+
+    #[test]
+    fn downloads_submission_archive_url() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                    .as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "archive_download_url": "http://example.com/archive.tar.zst"
+                })
+                .to_string(),
+            )
+            .create();
+        let url = client
+            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
+            .unwrap();
+        assert_eq!(url, "http://example.com/archive.tar.zst");
+    }
+
+    #[test]
+    fn shares_submission() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/submissions/{submission_id}/share")
+                    .as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "paste_url": "http://example.com/shared-submissions/abc"
+                })
+                .to_string(),
+            )
+            .create();
+        let result = client
+            .share_submission(Uuid::parse_str(submission_id).unwrap())
+            .unwrap();
+        assert_eq!(
+            result.paste_url,
+            "http://example.com/shared-submissions/abc"
+        );
+    }
+
+    #[test]
+    fn obsolete_client_maps_426_to_obsolete_flag() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .with_status(426)
+            .with_body("This client is obsolete")
+            .create();
+        let err = client.courses().unwrap_err();
+        match *err {
+            MoocClientError::HttpError {
+                status,
+                obsolete_client,
+                ..
+            } => {
+                assert_eq!(status.as_u16(), 426);
+                assert!(obsolete_client);
+            }
+            other => panic!("expected HttpError, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_message_key_off_api_error_body() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_status(422)
+            .with_body(
+                serde_json::json!({
+                    "errors": [],
+                    "message": "not enrolled to this course",
+                    "message_key": "not_enrolled",
+                    "metadata": null,
+                    "type": "validation_error",
+                })
+                .to_string(),
+            )
+            .create();
+        let err = client.exercise(Uuid::parse_str(exercise_id).unwrap()).unwrap_err();
+        match *err {
+            MoocClientError::HttpError {
+                status,
+                message_key,
+                error,
+                ..
+            } => {
+                assert_eq!(status.as_u16(), 422);
+                assert_eq!(message_key.as_deref(), Some("not_enrolled"));
+                assert!(error.contains("not enrolled to this course"));
+            }
+            other => panic!("expected HttpError, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn non_conforming_error_body_yields_no_message_key() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .with_status(500)
+            .with_body("internal server error")
+            .create();
+        let err = client.courses().unwrap_err();
+        match *err {
+            MoocClientError::HttpError {
+                message_key, error, ..
+            } => {
+                assert_eq!(message_key, None);
+                assert_eq!(error, "internal server error");
+            }
+            other => panic!("expected HttpError, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn sends_client_version_header() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .match_header("x-client-version", env!("CARGO_PKG_VERSION"))
+            .with_body(serde_json::json!([]).to_string())
+            .create();
+        let courses = client.courses().unwrap();
+        assert!(courses.is_empty());
     }
 }

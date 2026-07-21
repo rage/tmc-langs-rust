@@ -15,7 +15,6 @@ use anyhow::{Context, Result};
 use app::{Command, Mooc, MoocCommand, Settings, SettingsCommand, TestMyCode, TestMyCodeCommand};
 use base64::Engine;
 use clap::{CommandFactory, error::ErrorKind};
-use rpassword::ConfigBuilder;
 use serde::Serialize;
 use serde_json::Value;
 use std::{
@@ -23,15 +22,19 @@ use std::{
     env,
     io::{self, BufReader, Cursor, Read},
     path::{Path, PathBuf},
+    thread,
+    time::{Duration, Instant},
 };
 use tmc_langs::{
     CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult, Language,
     StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
-    mooc::{MoocClient, MoocClientError},
+    mooc::{self, MoocClient, MoocClientError},
+    progress_reporter,
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
 };
 use tmc_langs_util::deserialize;
+use uuid::Uuid;
 
 pub enum ParsingResult {
     Ok(Cli),
@@ -130,16 +133,28 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             _ => {}
         }
 
-        // check for tmc client errors
-        match cause.downcast_ref::<MoocClientError>() {
+        // NB: mooc errors travel the chain as `Box<MoocClientError>`, so a bare
+        // downcast never matches; the boxed form must be checked too (same as the
+        // 401 handler in `run_mooc`).
+        match cause.downcast_ref::<MoocClientError>().or_else(|| {
+            cause
+                .downcast_ref::<Box<MoocClientError>>()
+                .map(Box::as_ref)
+        }) {
             Some(MoocClientError::HttpError {
                 url: _,
                 status,
                 error: _,
                 obsolete_client,
+                message_key,
             }) => {
-                if *obsolete_client {
+                // `message_key` is the backend's stable identifier for a
+                // controlled error; prefer it over the raw status where present.
+                if *obsolete_client || message_key.as_deref() == Some("obsolete_client") {
                     return Kind::ObsoleteClient;
+                }
+                if message_key.as_deref() == Some("not_enrolled") {
+                    return Kind::NotEnrolled;
                 }
                 if status.as_u16() == 403 {
                     return Kind::Forbidden;
@@ -571,10 +586,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
-        // `main.rs` intercepts `Command::Schema` before calling the library,
-        // because printing the raw schema requires stdout access the library
-        // crate must not assume. Reaching this arm means a library caller
-        // dispatched `Schema` directly, which the library cannot service.
+        // `main.rs` intercepts `Command::Schema` before the library runs, since
+        // printing the raw schema needs stdout the library must not assume.
+        // Reaching this arm means a library caller dispatched it directly.
         Command::Schema => {
             anyhow::bail!(
                 "the `schema` subcommand is handled by the CLI binary, not the library `run()`"
@@ -846,11 +860,12 @@ fn run_tmc_inner(
             } else if let Some(email) = email {
                 // TODO: print "Please enter password" and add "quiet"  flag
                 let password = if stdin {
-                    let stdin = BufReader::new(std::io::stdin());
-                    rpassword::read_password_with_config(
-                        ConfigBuilder::new().input_reader(stdin).build(),
-                    )
-                    .context("Failed to read password")?
+                    let mut stdin = BufReader::new(std::io::stdin());
+                    // the suggested replacement (read_password_with_config +
+                    // input_reader) still opens /dev/tty and fails on piped stdin
+                    #[allow(deprecated)]
+                    rpassword::read_password_from_bufread(&mut stdin)
+                        .context("Failed to read password")?
                 } else {
                     rpassword::read_password().context("Failed to read password")?
                 };
@@ -1076,19 +1091,26 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     match run_mooc_inner(mooc, &mut client) {
         Err(error) => {
             for cause in error.chain() {
-                // check if the token was rejected and delete it if so
-                if let Some(TestMyCodeClientError::HttpError { status, .. }) =
-                    cause.downcast_ref::<TestMyCodeClientError>()
-                {
-                    if status.as_u16() == 401 {
-                        log::error!("Received HTTP 401 error, deleting credentials");
-                        if let Some(credentials) = credentials {
-                            credentials.remove()?;
-                        }
-                        return Err(InvalidTokenError { source: error }.into());
-                    } else {
-                        log::warn!("401 without credentials");
+                // Delete the credentials if the token was rejected. The mooc path
+                // maps a 401 to `MoocClientError::NotAuthenticated` (not an
+                // `HttpError` with a status) and returns it boxed, so match both
+                // that and the boxed form to mirror the tmc path.
+                let mooc_err = cause.downcast_ref::<MoocClientError>().or_else(|| {
+                    cause
+                        .downcast_ref::<Box<MoocClientError>>()
+                        .map(Box::as_ref)
+                });
+                let rejected = match mooc_err {
+                    Some(MoocClientError::NotAuthenticated) => true,
+                    Some(MoocClientError::HttpError { status, .. }) => status.as_u16() == 401,
+                    _ => false,
+                };
+                if rejected {
+                    log::error!("mooc token was rejected, deleting credentials");
+                    if let Some(credentials) = credentials {
+                        credentials.remove()?;
                     }
+                    return Err(InvalidTokenError { source: error }.into());
                 }
             }
             Err(error)
@@ -1108,9 +1130,6 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 "checked exercise updates",
                 DataKind::MoocUpdatedExercises(course),
             )
-        }
-        MoocCommand::CourseUpdates => {
-            todo!()
         }
         MoocCommand::Course { course_id } => {
             let course = client.course(course_id)?;
@@ -1145,10 +1164,70 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             )?;
             CliOutput::finished("downloaded exercise")
         }
+        MoocCommand::DownloadOrUpdateCourseExercises {
+            exercise_id: exercise_ids,
+            course_id,
+        } => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let data = tmc_langs::download_or_update_mooc_course_exercises(
+                client,
+                &projects_dir,
+                &exercise_ids,
+                course_id,
+            )?;
+            CliOutput::finished_with_data(
+                "downloaded or updated exercises",
+                DataKind::MoocExerciseDownload(data),
+            )
+        }
+        MoocCommand::ListLocalCourseExercises { course_id } => {
+            let local_exercises =
+                tmc_langs::list_local_mooc_course_exercises(client_name, course_id)?;
+            CliOutput::finished_with_data(
+                format!("listed local exercises for {course_id}"),
+                DataKind::LocalMoocExercises(local_exercises),
+            )
+        }
         MoocCommand::Submit {
             exercise_id,
-            slide_id,
-            task_id,
+            submission_path,
+            dont_block,
+        } => {
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
+            let temp = file_util::named_temp_file()?;
+            tmc_langs::compress_project_to(
+                &submission_path,
+                temp.path(),
+                Compression::TarZstd,
+                false,
+                false,
+            )?;
+
+            let result = client.submit_exercise(exercise_id, temp.path())?;
+            if dont_block {
+                CliOutput::finished_with_data(
+                    "submitted exercise",
+                    DataKind::MoocSubmissionFinished(result),
+                )
+            } else {
+                let status = wait_for_mooc_grading(client, result.submission_id)?;
+                CliOutput::finished_with_data(
+                    "submitted exercise",
+                    DataKind::MoocSubmissionStatus(status),
+                )
+            }
+        }
+        MoocCommand::WaitForGrading { submission_id } => {
+            let status = wait_for_mooc_grading(client, submission_id)?;
+            CliOutput::finished_with_data(
+                "waited for grading",
+                DataKind::MoocSubmissionStatus(status),
+            )
+        }
+        MoocCommand::Paste {
+            exercise_id,
             submission_path,
         } => {
             let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
@@ -1163,11 +1242,50 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 false,
             )?;
 
-            let result = client.submit(exercise_id, slide_id, task_id, temp.path())?;
+            // Submit non-blocking. The submit response carries a TASK-submission
+            // id, but sharing takes a SLIDE-submission id, so we can't share it
+            // directly. Instead we list the exercise's submissions (newest first)
+            // and share the one we just created — its `id` is the slide-submission
+            // id `share_submission` expects.
+            client.submit_exercise(exercise_id, temp.path())?;
+            let newest = client
+                .get_exercise_submissions(exercise_id)?
+                .into_iter()
+                .next()
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "no submission found for exercise {exercise_id} after submitting it"
+                    )
+                })?;
+            let paste = client.share_submission(newest.id)?;
+            CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
+        }
+        MoocCommand::GetExerciseSubmissions { exercise_id } => {
+            let submissions = client.get_exercise_submissions(exercise_id)?;
             CliOutput::finished_with_data(
-                "submitted exercise",
-                DataKind::MoocSubmissionFinished(result),
+                "fetched exercise submissions",
+                DataKind::MoocSubmissions(submissions),
             )
+        }
+        MoocCommand::DownloadOldSubmission {
+            submission_id,
+            exercise_id,
+            output_path,
+            save_old_state,
+        } => {
+            let mut output_lock = Lock::dir(&output_path, LockOptions::Write)?;
+            let output_guard = output_lock.lock()?;
+
+            tmc_langs::download_mooc_old_submission(
+                client,
+                exercise_id,
+                &output_path,
+                submission_id,
+                save_old_state,
+            )?;
+            drop(output_guard);
+            output_lock.forget();
+            CliOutput::finished("extracted project")
         }
         MoocCommand::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
@@ -1176,6 +1294,123 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
         }
     };
     Ok(output)
+}
+
+/// Default grading-poll interval and the overall wait bound, both overridable via
+/// env vars so tests can poll fast without sleeping real seconds. The backend
+/// grades asynchronously, so a blocking submit must poll, bounded so the caller
+/// is never wedged forever.
+fn mooc_poll_config() -> (Duration, Duration) {
+    fn millis(var: &str, default: u64, min: u64) -> Duration {
+        Duration::from_millis(parse_poll_millis(var, env::var(var).ok(), default, min))
+    }
+    (
+        // Floor the interval at a sane minimum so a bogus `0` can't busy-loop.
+        millis("TMC_LANGS_MOOC_POLL_INTERVAL_MS", 2000, 10),
+        millis("TMC_LANGS_MOOC_POLL_TIMEOUT_MS", 180_000, 0),
+    )
+}
+
+/// Parses a poll-knob millisecond value. `None` yields `default`; a valid value
+/// yields `value.max(min)` (so it can be floored); an invalid one logs a warning
+/// and falls back to `default`.
+fn parse_poll_millis(var: &str, raw: Option<String>, default: u64, min: u64) -> u64 {
+    match raw {
+        None => default,
+        Some(s) => match s.parse::<u64>() {
+            Ok(value) => value.max(min),
+            Err(_) => {
+                log::warn!("ignoring unparseable {var}={s:?}, falling back to default {default}ms");
+                default
+            }
+        },
+    }
+}
+
+/// Whether a grading status is terminal from the student's point of view.
+///
+/// `FullyGraded`/`Failed` are final; `PendingManual` is terminal-for-student
+/// (the automated part is done, results won't change synchronously — the student
+/// sees "awaiting manual grading"). `Pending`/`NotReady` and `NoGradingYet` keep
+/// the loop polling.
+fn mooc_grading_is_terminal(status: &mooc::ExerciseTaskSubmissionStatus) -> bool {
+    use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
+    match status {
+        Status::NoGradingYet => false,
+        Status::Grading {
+            grading_progress, ..
+        } => matches!(
+            grading_progress,
+            Progress::FullyGraded | Progress::Failed | Progress::PendingManual
+        ),
+    }
+}
+
+/// A human-readable progress message for the current grading status.
+fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
+    use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
+    match status {
+        Status::NoGradingYet => "Grading has not started yet".to_string(),
+        Status::Grading {
+            grading_progress, ..
+        } => match grading_progress {
+            Progress::NotReady => "Grading not ready".to_string(),
+            Progress::Pending => "Grading in progress".to_string(),
+            Progress::PendingManual => "Awaiting manual grading".to_string(),
+            Progress::FullyGraded => "Fully graded".to_string(),
+            Progress::Failed => "Grading failed".to_string(),
+        },
+    }
+}
+
+/// Polls a submission's grading until it reaches a terminal state (see
+/// [`mooc_grading_is_terminal`]) or the timeout elapses, emitting stdout progress
+/// updates as the TMC submit loop does. On timeout the latest non-terminal status
+/// is returned as data (not an error), so the caller can show "still grading"
+/// rather than treat the wait as a failure.
+fn wait_for_mooc_grading(
+    client: &MoocClient,
+    submission_id: Uuid,
+) -> Result<mooc::ExerciseTaskSubmissionStatus> {
+    let (interval, timeout) = mooc_poll_config();
+    progress_reporter::start_stage::<()>(1, "Waiting for grading".to_string(), None);
+    let deadline = Instant::now() + timeout;
+    loop {
+        // A transient poll error (network blip, 5xx) must not abort a submit that
+        // the backend has already recorded: keep polling until the deadline and
+        // only surface a persistent failure then.
+        match client.get_submission_grading(submission_id) {
+            Ok(status) => {
+                if mooc_grading_is_terminal(&status) {
+                    progress_reporter::finish_stage::<()>(mooc_grading_message(&status), None);
+                    return Ok(status);
+                }
+                if Instant::now() >= deadline {
+                    progress_reporter::finish_stage::<()>(
+                        "Grading still in progress, stopped waiting".to_string(),
+                        None,
+                    );
+                    return Ok(status);
+                }
+                progress_reporter::progress_stage::<()>(mooc_grading_message(&status), None);
+            }
+            Err(e) => {
+                if Instant::now() >= deadline {
+                    progress_reporter::finish_stage::<()>(
+                        "Grading status unavailable, stopped waiting".to_string(),
+                        None,
+                    );
+                    return Err(e.into());
+                }
+                log::warn!("transient error while polling grading, retrying: {e}");
+                progress_reporter::progress_stage::<()>(
+                    "Grading status temporarily unavailable, retrying".to_string(),
+                    None,
+                );
+            }
+        }
+        thread::sleep(interval);
+    }
 }
 
 fn run_settings(settings: Settings) -> Result<CliOutput> {
@@ -1333,5 +1568,35 @@ mod test {
         } else {
             panic!()
         }
+    }
+
+    #[test]
+    fn parse_poll_millis_uses_default_when_unset() {
+        assert_eq!(parse_poll_millis("VAR", None, 2000, 10), 2000);
+    }
+
+    #[test]
+    fn parse_poll_millis_floors_to_min() {
+        // A bogus `0` interval would busy-loop, so it is floored to `min`.
+        assert_eq!(
+            parse_poll_millis("VAR", Some("0".to_string()), 2000, 10),
+            10
+        );
+    }
+
+    #[test]
+    fn parse_poll_millis_passes_through_valid_value() {
+        assert_eq!(
+            parse_poll_millis("VAR", Some("500".to_string()), 2000, 10),
+            500
+        );
+    }
+
+    #[test]
+    fn parse_poll_millis_falls_back_on_unparseable() {
+        assert_eq!(
+            parse_poll_millis("VAR", Some("abc".to_string()), 2000, 10),
+            2000
+        );
     }
 }

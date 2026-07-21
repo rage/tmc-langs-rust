@@ -120,6 +120,9 @@ pub enum DataKind {
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
+    MoocSubmissionStatus(mooc::ExerciseTaskSubmissionStatus),
+    MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
+    MoocPaste(mooc::PasteResult),
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -168,6 +171,9 @@ pub enum Kind {
     ObsoleteClient,
     /// Invalid token
     InvalidToken,
+    /// The user is not enrolled on the course this exercise belongs to
+    /// (backend `message_key: "not_enrolled"`, HTTP 422)
+    NotEnrolled,
     /// Failed to download some or all exercises
     FailedExerciseDownload {
         completed: Vec<TmcExerciseDownload>,
@@ -184,11 +190,8 @@ pub struct DownloadTarget {
     pub path: PathBuf,
 }
 
-/// Returns the JSON Schema describing everything the CLI writes to stdout.
-///
-/// [`CliOutput`] is the schema root; definitions are included for every type
-/// it references transitively. Single source of truth for clients (e.g.
-/// tmc-vscode) validating CLI output.
+/// JSON Schema for everything the CLI writes to stdout, rooted at [`CliOutput`].
+/// The single source of truth clients (e.g. tmc-vscode) validate against.
 pub fn cli_output_schema() -> schemars::Schema {
     // Serialize contract, not deserialize: `#[serde(from = ...)]` types (e.g.
     // `CourseDetails`) deserialize through a wrapper but serialize flattened,

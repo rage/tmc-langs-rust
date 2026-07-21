@@ -4,12 +4,17 @@ mod credentials;
 mod projects_config;
 mod tmc_config;
 
+pub(crate) use self::projects_config::simple_kebab_case;
 pub use self::{
     credentials::Credentials,
     projects_config::{ProjectsConfig, ProjectsDirTmcExercise, TmcCourseConfig},
     tmc_config::TmcConfig,
 };
-use crate::{TMC_LANGS_CONFIG_DIR_VAR, data::LocalTmcExercise, error::LangsError};
+use crate::{
+    TMC_LANGS_CONFIG_DIR_VAR,
+    data::{LocalMoocExercise, LocalTmcExercise},
+    error::LangsError,
+};
 use std::{
     collections::BTreeMap,
     env,
@@ -19,6 +24,7 @@ use tmc_langs_util::{
     FileError,
     file_util::{self, Lock, LockOptions},
 };
+use uuid::Uuid;
 
 // base directory for a given plugin's settings files
 fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
@@ -47,9 +53,48 @@ pub fn list_local_tmc_course_exercises(
     let mut local_exercises: Vec<LocalTmcExercise> = vec![];
     for (exercise_slug, _) in exercises {
         local_exercises.push(LocalTmcExercise {
-            exercise_path: projects_dir.join(course_slug).join(&exercise_slug),
+            exercise_path: ProjectsConfig::get_tmc_exercise_download_target(
+                &projects_dir,
+                course_slug,
+                &exercise_slug,
+            ),
             exercise_slug,
         })
+    }
+    Ok(local_exercises)
+}
+
+/// Returns the local mooc exercises for the given course, looked up by course id
+/// (mooc configs store no slug, so the TMC slug-based lookup does not apply). Each
+/// exercise's slug is its on-disk directory name, as in the TMC path.
+pub fn list_local_mooc_course_exercises(
+    client_name: &str,
+    course_id: Uuid,
+) -> Result<Vec<LocalMoocExercise>, LangsError> {
+    log::debug!("listing local course exercises of {course_id} for {client_name}");
+
+    let projects_dir = TmcConfig::load(client_name)?.projects_dir;
+    let projects_config = ProjectsConfig::load(&projects_dir)?;
+
+    let Some(course_config) = projects_config
+        .mooc_courses
+        .values()
+        .find(|cc| cc.course_id == course_id)
+    else {
+        return Ok(vec![]);
+    };
+
+    let mut local_exercises: Vec<LocalMoocExercise> = vec![];
+    for (exercise_id, exercise) in &course_config.exercises {
+        local_exercises.push(LocalMoocExercise {
+            exercise_path: ProjectsConfig::get_mooc_exercise_download_target(
+                &projects_dir,
+                &course_config.directory,
+                &exercise.directory,
+            ),
+            exercise_slug: exercise.directory.clone(),
+            exercise_id: *exercise_id,
+        });
     }
     Ok(local_exercises)
 }

@@ -3,6 +3,7 @@
 use reqwest::{Method, StatusCode, Url};
 use std::error::Error;
 use thiserror::Error;
+use uuid::Uuid;
 
 pub type MoocClientResult<T> = Result<T, Box<MoocClientError>>;
 
@@ -14,6 +15,11 @@ pub enum MoocClientError {
         status: StatusCode,
         error: String,
         obsolete_client: bool,
+        /// `message_key` parsed off the backend's `ApiErrorResponse` body, if the
+        /// body was that shape. Lets the CLI map controlled errors (e.g.
+        /// `not_enrolled`) to a typed `Kind` while `error` keeps the raw body for
+        /// human-readable messages.
+        message_key: Option<String>,
     },
     #[error("Connection error trying to {0} {1}")]
     ConnectionError(Method, Url, #[source] reqwest::Error),
@@ -42,4 +48,14 @@ pub enum MoocClientError {
     },
     #[error(transparent)]
     JsonError(#[from] tmc_langs_util::JsonError),
+    #[error(
+        "Exercise {exercise_id} has no downloadable editor task; browser exercises \
+         have no project archive to download"
+    )]
+    NoDownloadableExerciseTask { exercise_id: Uuid },
+    #[error(
+        "Exercise {exercise_id} has no submittable editor task; browser exercises \
+         are solved in-browser and cannot be submitted from a native client"
+    )]
+    NoSubmittableExerciseTask { exercise_id: Uuid },
 }

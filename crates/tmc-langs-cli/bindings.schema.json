@@ -1165,6 +1165,57 @@
             "output-data-kind",
             "output-data"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "$ref": "#/$defs/ExerciseTaskSubmissionStatus"
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "mooc-submission-status"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ExerciseSlideSubmissionListItem"
+              }
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "mooc-submissions"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "$ref": "#/$defs/PasteResult"
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "mooc-paste"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
         }
       ]
     },
@@ -1543,6 +1594,48 @@
         "requires_review"
       ]
     },
+    "ExerciseSlideSubmissionListItem": {
+      "description": "A single past submission of the current user to an exercise. `id` is the\nexercise-slide-submission id used to download or share the submission.",
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "exercise_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "grading_progress": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GradingProgress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "score_given": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "float"
+        }
+      },
+      "required": [
+        "id",
+        "exercise_id",
+        "created_at",
+        "score_given",
+        "grading_progress"
+      ]
+    },
     "ExerciseSubmission": {
       "type": "object",
       "properties": {
@@ -1630,11 +1723,103 @@
         "submission_id"
       ]
     },
+    "ExerciseTaskSubmissionStatus": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "NoGradingYet"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Grading": {
+              "type": "object",
+              "properties": {
+                "feedback_json": true,
+                "feedback_text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "grading_completed_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "grading_progress": {
+                  "$ref": "#/$defs/GradingProgress"
+                },
+                "grading_started_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "score_given": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "format": "float"
+                }
+              },
+              "required": [
+                "grading_progress",
+                "score_given",
+                "grading_started_at",
+                "grading_completed_at",
+                "feedback_json",
+                "feedback_text"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "Grading"
+          ]
+        }
+      ]
+    },
     "ExerciseType": {
       "type": "string",
       "enum": [
         "browser",
         "editor"
+      ]
+    },
+    "GradingProgress": {
+      "oneOf": [
+        {
+          "description": "The grading could not complete.",
+          "type": "string",
+          "const": "Failed"
+        },
+        {
+          "description": "There is no grading process occurring; for example, the student has not yet made any submission.",
+          "type": "string",
+          "const": "NotReady"
+        },
+        {
+          "description": "Final Grade is pending, and it does require human intervention; if a Score value is present, it indicates the current value is partial and may be updated during the manual grading.",
+          "type": "string",
+          "const": "PendingManual"
+        },
+        {
+          "description": "Final Grade is pending, but does not require manual intervention; if a Score value is present, it indicates the current value is partial and may be updated.",
+          "type": "string",
+          "const": "Pending"
+        },
+        {
+          "description": "The grading process is completed; the score value, if any, represents the current Final Grade;",
+          "type": "string",
+          "const": "FullyGraded"
+        }
       ]
     },
     "Kind": {
@@ -1668,6 +1853,11 @@
           "description": "Invalid token",
           "type": "string",
           "const": "invalid-token"
+        },
+        {
+          "description": "The user is not enrolled on the course this exercise belongs to\n(backend `message_key: \"not_enrolled\"`, HTTP 422)",
+          "type": "string",
+          "const": "not-enrolled"
         },
         {
           "description": "Failed to download some or all exercises",
@@ -1732,9 +1922,14 @@
         },
         "exercise-path": {
           "type": "string"
+        },
+        "exercise-slug": {
+          "description": "The exercise's on-disk directory name, used as its slug when building a\nworkspace entry (mirrors the TMC exercise slug). Exercise names are unique\nwithin a course, so this is stable per exercise.",
+          "type": "string"
         }
       },
       "required": [
+        "exercise-slug",
         "exercise-id",
         "exercise-path"
       ]
@@ -1828,16 +2023,17 @@
     "MoocExerciseDownload": {
       "type": "object",
       "properties": {
-        "path": {
-          "type": "string"
-        },
-        "task-id": {
+        "exercise-id": {
+          "description": "The requested exercise's id. Results are keyed by this so the caller can\ncorrelate each download/skip/failure back to the exercise it asked for\n(the editor task id, an internal detail, is not exposed here).",
           "type": "string",
           "format": "uuid"
+        },
+        "path": {
+          "type": "string"
         }
       },
       "required": [
-        "task-id",
+        "exercise-id",
         "path"
       ]
     },
@@ -1952,6 +2148,18 @@
         "not-logged-in",
         "error",
         "executed-command"
+      ]
+    },
+    "PasteResult": {
+      "description": "A shareable URL for a submission.",
+      "type": "object",
+      "properties": {
+        "paste_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "paste_url"
       ]
     },
     "PublicSpec": {
@@ -2913,6 +3121,11 @@
     "TmcExerciseSlide": {
       "type": "object",
       "properties": {
+        "course_id": {
+          "description": "The course the exercise belongs to. Lets a client locate an exercise's\ncourse without a separate lookup or an enrolled-course scan.",
+          "type": "string",
+          "format": "uuid"
+        },
         "deadline": {
           "type": [
             "string",
@@ -2945,6 +3158,7 @@
       "required": [
         "slide_id",
         "exercise_id",
+        "course_id",
         "exercise_name",
         "exercise_order_number",
         "deadline",
