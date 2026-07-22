@@ -539,7 +539,7 @@ pub enum TestMyCodeCommand {
     },
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Mooc {
     /// Name used to differentiate between different frontends (e.g. the VSCode extension).
     #[clap(long, short)]
@@ -548,8 +548,21 @@ pub struct Mooc {
     pub command: MoocCommand,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub enum MoocCommand {
+    /// Logs in to the Courses MOOC backend using the OAuth2 device
+    /// authorization grant (RFC 8628). Emits a `mooc-device-login` status
+    /// update carrying the verification URL and user code, then blocks polling
+    /// until the login is approved (or the parent process cancels by killing
+    /// this one).
+    #[clap(long_about = SCHEMA_NULL)]
+    Login,
+    /// Checks whether the CLI holds mooc credentials. Prints the access token if so.
+    #[clap(long_about = SCHEMA_TOKEN)]
+    LoggedIn,
+    /// Logs out of the Courses MOOC backend, removing the stored credentials.
+    #[clap(long_about = SCHEMA_NULL)]
+    Logout,
     #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
     CheckExerciseUpdates,
     /// Fetches information about a course.
@@ -1344,6 +1357,7 @@ mod test {
             crate::output::OutputResult,
             crate::output::Status,
             crate::output::StatusUpdateData,
+            crate::output::MoocDeviceLogin,
             tmc_langs::notification_reporter::Notification,
             tmc_langs::notification_reporter::NotificationKind,
             tmc_langs::progress_reporter::StatusUpdate<()>,

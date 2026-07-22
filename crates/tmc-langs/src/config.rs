@@ -1,12 +1,14 @@
 //! Handles the CLI's configuration files and credentials.
 
 mod credentials;
+mod mooc_credentials;
 mod projects_config;
 mod tmc_config;
 
 pub(crate) use self::projects_config::simple_kebab_case;
 pub use self::{
     credentials::Credentials,
+    mooc_credentials::MoocCredentials,
     projects_config::{ProjectsConfig, ProjectsDirTmcExercise, TmcCourseConfig},
     tmc_config::TmcConfig,
 };

@@ -2,10 +2,16 @@
 
 //! Used to communicate with the Courses MOOC server. See the `MoocClient` struct for more details.
 
+mod auth;
 mod error;
 mod exercise;
 
 pub use self::{
+    auth::{
+        DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE, DEVICE_SCOPE,
+        DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization, poll_device_token,
+        refresh_token,
+    },
     error::{MoocClientError, MoocClientResult},
     exercise::{
         ExerciseFile, ExerciseType, ModelSolutionSpec, PublicSpec, TmcExerciseSlide,
@@ -35,6 +41,17 @@ use uuid::Uuid;
 /// Header advertising this client's version to the backend, which may reject
 /// obsolete clients with `426 Upgrade Required`.
 const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
+
+/// Env knob (`=1`) that also trusts `localhost`/`127.0.0.1` as bearer-token
+/// destinations. Off by default so the token is never silently sent to a local
+/// host in production; tests and local development set it to exercise the
+/// authenticated request path against a mock or a locally-served backend. Gating
+/// it on an explicit opt-in keeps production behavior byte-identical.
+const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
+
+fn trust_localhost() -> bool {
+    std::env::var(TRUST_LOCALHOST_VAR).as_deref() == Ok("1")
+}
 
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
@@ -68,10 +85,18 @@ impl MoocClient {
     fn request(&self, method: Method, url: Url) -> MoocRequest {
         log::debug!("building a request to {url}");
 
+        // The bearer token is only attached to hosts we trust, so it is never
+        // leaked to an arbitrary host a (possibly attacker-controlled) URL points
+        // at. `host_str` rather than `domain` so IP literals (e.g. `127.0.0.1`)
+        // are considered too; for real domains the two agree, so production
+        // behavior is unchanged.
         let trusted_domains = &["courses.mooc.fi", "project-331.local"];
         let is_trusted_domain = url
-            .domain()
-            .map(|d| trusted_domains.contains(&d))
+            .host_str()
+            .map(|h| {
+                trusted_domains.contains(&h)
+                    || (trust_localhost() && (h == "localhost" || h == "127.0.0.1"))
+            })
             .unwrap_or_default();
         let mut builder = self
             .0
@@ -558,6 +583,15 @@ mod test {
     use exercise_services_api::Token;
     use mockito::{Matcher, Server};
     use oauth2::{AccessToken, EmptyExtraTokenFields, basic::BasicTokenType};
+    use std::sync::{Mutex, MutexGuard};
+
+    // `TMC_LANGS_MOOC_TRUST_LOCALHOST` is process-wide, so the test that toggles
+    // it holds this lock to keep concurrent tests from reading it mid-flight.
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    fn env_lock() -> MutexGuard<'static, ()> {
+        ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+    }
 
     fn init() {
         use log::*;
@@ -583,6 +617,56 @@ mod test {
         );
         client.set_token(token);
         client
+    }
+
+    fn make_client_with_token(server: &Server, access_token: &str) -> MoocClient {
+        let mut client = MoocClient::new(server.url().parse().unwrap());
+        let token = Token::new(
+            AccessToken::new(access_token.to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        client.set_token(token);
+        client
+    }
+
+    #[test]
+    fn bearer_attached_to_localhost_only_with_trust_knob() {
+        // mockito serves on 127.0.0.1, an untrusted host, so by default the bearer
+        // token is NOT sent. `TMC_LANGS_MOOC_TRUST_LOCALHOST=1` opts localhost in,
+        // which is what lets tests (and the cross-repo auth coverage) exercise the
+        // authenticated request path against a local mock.
+        init();
+        let _env = env_lock();
+        // SAFETY: all reads/writes of this var in tests are serialized by ENV_LOCK.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+
+        let mut server = Server::new();
+        let client = make_client_with_token(&server, "test-token");
+
+        // Without the knob: no Authorization header reaches the mock.
+        let no_auth = server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .match_header("authorization", Matcher::Missing)
+            .with_body("[]")
+            .expect(1)
+            .create();
+        client.courses().unwrap();
+        no_auth.assert();
+
+        // With the knob: localhost is trusted, so the bearer is attached.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+        let with_auth = server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .match_header("authorization", "Bearer test-token")
+            .with_body("[]")
+            .expect(1)
+            .create();
+        let res = client.courses();
+        // Clear the var before any assertion that could panic and leak it.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        res.unwrap();
+        with_auth.assert();
     }
 
     #[test]
@@ -1228,7 +1312,9 @@ mod test {
                 .to_string(),
             )
             .create();
-        let err = client.exercise(Uuid::parse_str(exercise_id).unwrap()).unwrap_err();
+        let err = client
+            .exercise(Uuid::parse_str(exercise_id).unwrap())
+            .unwrap_err();
         match *err {
             MoocClientError::HttpError {
                 status,

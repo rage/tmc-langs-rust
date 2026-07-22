@@ -12,9 +12,9 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        Credentials, ProjectsConfig, ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig,
-        list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
-        move_projects_dir,
+        Credentials, MoocCredentials, ProjectsConfig, ProjectsDirTmcExercise, TmcConfig,
+        TmcCourseConfig, list_local_mooc_course_exercises, list_local_tmc_course_exercises,
+        migrate_exercise, move_projects_dir,
     },
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
@@ -650,15 +650,21 @@ pub fn init_testmycode_client_with_credentials(
 }
 
 /// Initializes a MoocClient, using and returning the stored credentials, if any.
+///
+/// The stored token is refreshed first if it is expired (see
+/// [`MoocCredentials::load_valid`]), so the returned client carries a token that
+/// is valid at call time when possible. `client_id` is the OAuth2 client id the
+/// refresh grant is made with.
 pub fn init_mooc_client_with_credentials(
     root_url: Url,
     client_name: &str,
-) -> Result<(mooc::MoocClient, Option<Credentials>), LangsError> {
+    client_id: &str,
+) -> Result<(mooc::MoocClient, Option<MoocCredentials>), LangsError> {
     // create client
-    let mut client = mooc::MoocClient::new(root_url);
+    let mut client = mooc::MoocClient::new(root_url.clone());
 
-    // set token from the credentials file if one exists
-    let credentials = Credentials::load(client_name)?;
+    // set token from the credentials file if one exists, refreshing if expired
+    let credentials = MoocCredentials::load_valid(client_name, &root_url, client_id)?;
     if let Some(credentials) = &credentials {
         client.set_token(credentials.token());
     }

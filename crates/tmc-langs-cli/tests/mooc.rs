@@ -110,24 +110,86 @@ fn run_mooc_in_expect_error(
     tmc_langs_cli::run(cli).expect_err("expected the command to fail")
 }
 
-/// Writes a `credentials.json` for `--client-name test` into `config_dir`, as a
-/// successful login would, so a rejected-token path has a file to delete. The
-/// token shape mirrors the stored OAuth2 `StandardTokenResponse`.
+/// Writes a `credentials_mooc.json` for `--client-name test` into `config_dir`,
+/// as a successful mooc login would, so a rejected-token path has a file to
+/// delete. The wrapper mirrors the stored `{token, obtained_at}` shape; the
+/// token carries no refresh token, so a 401 falls straight through to deletion
+/// instead of attempting a refresh.
 fn write_test_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("credentials.json");
+    let path = dir.join("credentials_mooc.json");
     std::fs::write(
         &path,
         serde_json::json!({
-            "access_token": "rejected-token",
-            "token_type": "bearer",
-            "scope": "public"
+            "token": {
+                "access_token": "rejected-token",
+                "token_type": "bearer",
+                "scope": "public"
+            },
+            "obtained_at": "2026-07-22T00:00:00Z"
         })
         .to_string(),
     )
     .unwrap();
     path
+}
+
+/// Writes an *expired* `credentials_mooc.json` that still carries a refresh
+/// token, so loading it triggers the proactive refresh path.
+fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
+    let dir = config_dir.join("tmc-test");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("credentials_mooc.json");
+    std::fs::write(
+        &path,
+        serde_json::json!({
+            "token": {
+                "access_token": "expired-access",
+                "refresh_token": "stored-refresh",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "scope": "exercise-services"
+            },
+            // Obtained well over an hour ago with a one-hour lifetime -> expired.
+            "obtained_at": "2000-01-01T00:00:00Z"
+        })
+        .to_string(),
+    )
+    .unwrap();
+    path
+}
+
+#[test]
+fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error() {
+    // A 5xx on the proactive refresh is transient: the CLI must keep the
+    // credentials (so a retry can succeed) and report `connection-error`, NOT
+    // delete them and force a re-login.
+    let mut server = mockito::Server::new();
+    let _refresh = server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_status(503)
+        .with_body("service unavailable")
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let credentials_path = write_expired_refreshable_credentials(config_dir.path());
+    assert!(credentials_path.exists());
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert!(
+        credentials_path.exists(),
+        "a transient refresh failure must NOT delete the credentials file"
+    );
+    assert_error_kind(error, "connection-error");
 }
 
 #[test]
@@ -1497,6 +1559,186 @@ fn paste_submits_then_shares_the_slide_submission() {
         }
         other => panic!("expected MoocPaste, got {other:?}"),
     }
+}
+
+// --- device-flow login / logged-in / logout ---------------------------------
+
+/// Runs a `mooc login`-family command in-process, returning the raw result so
+/// tests can assert on either the success output or the error `Kind`. Sets a
+/// tiny device poll interval so the login poll loop does not sleep the real
+/// multi-second interval.
+fn run_mooc_auth(
+    server: &mockito::Server,
+    args: &[&str],
+    config_dir: &std::path::Path,
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
+        std::env::set_var("TMC_LANGS_MOOC_DEVICE_POLL_INTERVAL_MS", "5");
+    }
+    let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
+    full.extend_from_slice(args);
+    let cli = Cli::parse_from(full);
+    tmc_langs_cli::run(cli)
+}
+
+/// Mounts the device-authorization endpoint returning a fixed device/user code.
+fn mock_device_authorization(server: &mut mockito::Server) -> mockito::Mock {
+    server
+        .mock("POST", "/api/v0/main-frontend/oauth/device_authorization")
+        .with_body(
+            serde_json::json!({
+                "device_code": "dev-code",
+                "user_code": "WXYZ-1234",
+                "verification_uri": "https://courses.mooc.fi/oauth_device",
+                "verification_uri_complete":
+                    "https://courses.mooc.fi/oauth_device?user_code=WXYZ-1234",
+                "expires_in": 900,
+                "interval": 1
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create()
+}
+
+fn token_endpoint() -> &'static str {
+    "/api/v0/main-frontend/oauth/token"
+}
+
+#[test]
+fn mooc_login_pending_slow_down_then_success() {
+    // The poll loop tolerates `authorization_pending` then `slow_down` before
+    // the grant is approved, then saves the issued token.
+    let mut server = mockito::Server::new();
+    let _device = mock_device_authorization(&mut server);
+    // Ordered token responses: pending, then slow_down, then success.
+    let _pending = server
+        .mock("POST", token_endpoint())
+        .with_status(400)
+        .with_body(r#"{"error":"authorization_pending"}"#)
+        .expect(1)
+        .create();
+    let _slow_down = server
+        .mock("POST", token_endpoint())
+        .with_status(400)
+        .with_body(r#"{"error":"slow_down"}"#)
+        .expect(1)
+        .create();
+    let _authorized = server
+        .mock("POST", token_endpoint())
+        .with_body(
+            serde_json::json!({
+                "access_token": "at",
+                "refresh_token": "rt",
+                "token_type": "bearer",
+                "expires_in": 3600
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let output = run_mooc_auth(&server, &["login"], config_dir.path()).unwrap();
+    assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
+
+    // The issued token pair was persisted in the wrapper shape.
+    let creds_path = config_dir.path().join("tmc-test/credentials_mooc.json");
+    assert!(
+        creds_path.exists(),
+        "login should save credentials_mooc.json"
+    );
+    let stored: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&creds_path).unwrap()).unwrap();
+    assert_eq!(stored["token"]["access_token"], "at");
+    assert_eq!(stored["token"]["refresh_token"], "rt");
+    assert!(stored.get("obtained_at").is_some());
+}
+
+#[test]
+fn mooc_login_denied_maps_to_not_logged_in() {
+    let mut server = mockito::Server::new();
+    let _device = mock_device_authorization(&mut server);
+    let _denied = server
+        .mock("POST", token_endpoint())
+        .with_status(400)
+        .with_body(r#"{"error":"access_denied"}"#)
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_auth(&server, &["login"], config_dir.path())
+        .expect_err("a denied device login should fail");
+    assert_error_kind(error, "not-logged-in");
+    assert!(
+        !config_dir
+            .path()
+            .join("tmc-test/credentials_mooc.json")
+            .exists(),
+        "a failed login must not persist credentials"
+    );
+}
+
+#[test]
+fn mooc_login_expired_maps_to_not_logged_in() {
+    let mut server = mockito::Server::new();
+    let _device = mock_device_authorization(&mut server);
+    let _expired = server
+        .mock("POST", token_endpoint())
+        .with_status(400)
+        .with_body(r#"{"error":"expired_token"}"#)
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_auth(&server, &["login"], config_dir.path())
+        .expect_err("an expired device code should fail");
+    assert_error_kind(error, "not-logged-in");
+}
+
+#[test]
+fn mooc_logged_in_reports_stored_credentials() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+
+    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::LoggedIn));
+    assert!(matches!(data.data, Some(DataKind::Token(_))));
+}
+
+#[test]
+fn mooc_logged_in_without_credentials_reports_not_logged_in() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+
+    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::NotLoggedIn));
+    assert!(data.data.is_none());
+}
+
+#[test]
+fn mooc_logout_removes_credentials() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+    let creds_path = write_test_credentials(config_dir.path());
+    assert!(creds_path.exists());
+
+    let output = run_mooc_auth(&server, &["logout"], config_dir.path()).unwrap();
+    assert!(matches!(
+        output_data(output).result,
+        OutputResult::LoggedOut
+    ));
+    assert!(
+        !creds_path.exists(),
+        "logout should delete the credentials file"
+    );
 }
 
 /// Builds a `.tar.zst` archive from (relative path, contents) pairs.

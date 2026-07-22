@@ -12,7 +12,29 @@ export type OutputResult = "logged-in" | "logged-out" | "not-logged-in" | "error
 
 export type Status = "finished" | "crashed";
 
-export type StatusUpdateData = { "update-data-kind": "client-update-data" } & StatusUpdate<ClientUpdateData> | { "update-data-kind": "none" } & StatusUpdate<null>;
+export type StatusUpdateData = { "update-data-kind": "client-update-data" } & StatusUpdate<ClientUpdateData> | { "update-data-kind": "mooc-device-login" } & StatusUpdate<MoocDeviceLogin> | { "update-data-kind": "none" } & StatusUpdate<null>;
+
+export type MoocDeviceLogin = { 
+/**
+ * URL the user opens to enter the `user_code`.
+ */
+verification_uri: string,
+/**
+ * URL that already includes the `user_code`, if the server provided one.
+ */
+verification_uri_complete: string | null,
+/**
+ * The code the user enters (or confirms) on the verification page.
+ */
+user_code: string,
+/**
+ * Seconds until the device/user codes expire.
+ */
+expires_in: number,
+/**
+ * Minimum seconds between token-endpoint polls.
+ */
+interval: number, }
 
 export type Notification = { "notification-kind": NotificationKind, message: string, }
 
@@ -45,8 +67,8 @@ export type LocalTmcExercise = { "exercise-slug": string, "exercise-path": strin
 export type LocalMoocExercise = { 
 /**
  * The exercise's on-disk directory name, used as its slug when building a
- * workspace entry (mirrors the TMC exercise slug). Exercise names are unique
- * within a course, so this is stable per exercise.
+ * workspace entry (mirrors the TMC slug); stable since names are unique per
+ * course.
  */
 "exercise-slug": string, "exercise-id": string, "exercise-path": string, }
 
@@ -152,9 +174,9 @@ export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise
 
 export type MoocExerciseDownload = { 
 /**
- * The requested exercise's id. Results are keyed by this so the caller can
- * correlate each download/skip/failure back to the exercise it asked for
- * (the editor task id, an internal detail, is not exposed here).
+ * The requested exercise's id; results are keyed by it so callers can
+ * correlate each download/skip/failure back to the exercise (not the internal
+ * editor task id).
  */
 "exercise-id": string, path: string, }
 
@@ -312,8 +334,8 @@ export type MoocCourse = { id: string, slug: string, name: string, description: 
 
 export type TmcExerciseSlide = { slide_id: string, exercise_id: string,
 /**
- * The course the exercise belongs to. Lets a client locate an exercise's
- * course without a separate lookup or an enrolled-course scan.
+ * The course the exercise belongs to, so a client can locate it without a
+ * separate lookup or an enrolled-course scan.
  */
 course_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>, }
 
@@ -321,9 +343,8 @@ export type TmcExerciseTask = { task_id: string, order_number: number, assignmen
 
 export type PublicSpec = { type: ExerciseType, archive_name: string, stub_download_url: string, student_file_paths: Array<string>, checksum: string,
 /**
- * In-browser test config: script to run in the client and optional error
- * if the build failed. Omitted for editor exercises or when no script was
- * built. Serde treats the `Option` field as optional when absent.
+ * In-browser test config; omitted for editor exercises or when no script
+ * was built.
  */
 browser_test: BrowserTestSpec | null, }
 

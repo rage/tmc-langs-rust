@@ -131,7 +131,28 @@ pub enum DataKind {
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
+    /// Emitted once at the start of `mooc login`, before the CLI blocks polling:
+    /// carries the verification URL and user code the client shows the user to
+    /// complete the OAuth2 device authorization login.
+    MoocDeviceLogin(StatusUpdate<MoocDeviceLogin>),
     None(StatusUpdate<()>),
+}
+
+/// The data attached to a `mooc-device-login` status update. Mirrors the
+/// relevant fields of the RFC 8628 device authorization response.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocDeviceLogin {
+    /// URL the user opens to enter the `user_code`.
+    pub verification_uri: String,
+    /// URL that already includes the `user_code`, if the server provided one.
+    pub verification_uri_complete: Option<String>,
+    /// The code the user enters (or confirms) on the verification page.
+    pub user_code: String,
+    /// Seconds until the device/user codes expire.
+    pub expires_in: u32,
+    /// Minimum seconds between token-endpoint polls.
+    pub interval: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

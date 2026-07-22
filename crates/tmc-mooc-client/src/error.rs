@@ -27,6 +27,19 @@ pub enum MoocClientError {
     UrlParse(String, #[source] url::ParseError),
     #[error("Authentication required")]
     NotAuthenticated,
+    #[error("The device authorization request expired before it was approved")]
+    DeviceCodeExpired,
+    #[error("The device authorization request was denied")]
+    DeviceAccessDenied,
+    /// The token endpoint rejected a refresh grant with an OAuth error (a 400
+    /// with an `error` code, e.g. `invalid_grant`), meaning the refresh token is
+    /// no longer valid — revoked or expired. This is a *permanent* failure:
+    /// retrying will not help, so stored credentials should be discarded. It is
+    /// deliberately distinct from [`Self::HttpError`] / [`Self::ConnectionError`],
+    /// which are transient (5xx, timeouts, dropped connections) and must NOT
+    /// cause credentials to be deleted.
+    #[error("The authorization server rejected the refresh token: {error}")]
+    RefreshTokenRejected { error: String },
     #[error("Failed to attach file to submission form: {error}")]
     AttachFileToForm { error: Box<dyn Error + Send + Sync> },
     #[error("Failed to send {method} request to {url}: {error}.")]

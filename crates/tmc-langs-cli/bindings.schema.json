@@ -1924,7 +1924,7 @@
           "type": "string"
         },
         "exercise-slug": {
-          "description": "The exercise's on-disk directory name, used as its slug when building a\nworkspace entry (mirrors the TMC exercise slug). Exercise names are unique\nwithin a course, so this is stable per exercise.",
+          "description": "The exercise's on-disk directory name, used as its slug when building a\nworkspace entry (mirrors the TMC slug); stable since names are unique per\ncourse.",
           "type": "string"
         }
       },
@@ -2020,11 +2020,51 @@
         "organization_name"
       ]
     },
+    "MoocDeviceLogin": {
+      "description": "The data attached to a `mooc-device-login` status update. Mirrors the\nrelevant fields of the RFC 8628 device authorization response.",
+      "type": "object",
+      "properties": {
+        "expires_in": {
+          "description": "Seconds until the device/user codes expire.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "interval": {
+          "description": "Minimum seconds between token-endpoint polls.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "user_code": {
+          "description": "The code the user enters (or confirms) on the verification page.",
+          "type": "string"
+        },
+        "verification_uri": {
+          "description": "URL the user opens to enter the `user_code`.",
+          "type": "string"
+        },
+        "verification_uri_complete": {
+          "description": "URL that already includes the `user_code`, if the server provided one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "verification_uri",
+        "verification_uri_complete",
+        "user_code",
+        "expires_in",
+        "interval"
+      ]
+    },
     "MoocExerciseDownload": {
       "type": "object",
       "properties": {
         "exercise-id": {
-          "description": "The requested exercise's id. Results are keyed by this so the caller can\ncorrelate each download/skip/failure back to the exercise it asked for\n(the editor task id, an internal detail, is not exposed here).",
+          "description": "The requested exercise's id; results are keyed by it so callers can\ncorrelate each download/skip/failure back to the exercise (not the internal\neditor task id).",
           "type": "string",
           "format": "uuid"
         },
@@ -2169,7 +2209,7 @@
           "type": "string"
         },
         "browser_test": {
-          "description": "In-browser test config: script to run in the client and optional error\nif the build failed. Omitted for editor exercises or when no script was\nbuilt. Serde treats the `Option` field as optional when absent.",
+          "description": "In-browser test config; omitted for editor exercises or when no script\nwas built.",
           "anyOf": [
             {
               "$ref": "#/$defs/BrowserTestSpec"
@@ -2484,6 +2524,44 @@
       "type": "object",
       "properties": {
         "data": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoocDeviceLogin"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finished": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "percent-done": {
+          "type": "number",
+          "format": "double"
+        },
+        "time": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "finished",
+        "message",
+        "percent-done",
+        "time",
+        "data"
+      ]
+    },
+    "StatusUpdate3": {
+      "description": "The format for all status updates. May contain some data.",
+      "type": "object",
+      "properties": {
+        "data": {
           "type": "null"
         },
         "finished": {
@@ -2526,6 +2604,20 @@
           ]
         },
         {
+          "description": "Emitted once at the start of `mooc login`, before the CLI blocks polling:\ncarries the verification URL and user code the client shows the user to\ncomplete the OAuth2 device authorization login.",
+          "type": "object",
+          "properties": {
+            "update-data-kind": {
+              "type": "string",
+              "const": "mooc-device-login"
+            }
+          },
+          "$ref": "#/$defs/StatusUpdate2",
+          "required": [
+            "update-data-kind"
+          ]
+        },
+        {
           "type": "object",
           "properties": {
             "update-data-kind": {
@@ -2533,7 +2625,7 @@
               "const": "none"
             }
           },
-          "$ref": "#/$defs/StatusUpdate2",
+          "$ref": "#/$defs/StatusUpdate3",
           "required": [
             "update-data-kind"
           ]
@@ -3122,7 +3214,7 @@
       "type": "object",
       "properties": {
         "course_id": {
-          "description": "The course the exercise belongs to. Lets a client locate an exercise's\ncourse without a separate lookup or an enrolled-course scan.",
+          "description": "The course the exercise belongs to, so a client can locate it without a\nseparate lookup or an enrolled-course scan.",
           "type": "string",
           "format": "uuid"
         },
