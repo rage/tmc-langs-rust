@@ -579,6 +579,12 @@ pub enum MoocCommand {
         #[clap(long)]
         course_id: Uuid,
     },
+    /// Fetches the current user's per-exercise progress for a course.
+    #[clap(long_about = schema_leaked::<mooc::CourseProgress>())]
+    CourseProgress {
+        #[clap(long)]
+        course_id: Uuid,
+    },
     /// Fetches information about an exercise.
     Exercise {
         #[clap(long)]
@@ -660,6 +666,20 @@ pub enum MoocCommand {
         /// Submit the current state of `output_path` before overwriting it.
         #[clap(long)]
         save_old_state: bool,
+    },
+    /// Resets an exercise. Removes the contents of the exercise directory and
+    /// re-downloads and re-extracts the exercise's stub archive from the server.
+    #[clap(long_about = SCHEMA_NULL)]
+    ResetExercise {
+        /// If set, the exercise's current state is submitted to the server before resetting it.
+        #[clap(long)]
+        save_old_state: bool,
+        /// The id of the exercise.
+        #[clap(long)]
+        exercise_id: Uuid,
+        /// Path to the directory where the project resides.
+        #[clap(long)]
+        exercise_path: PathBuf,
     },
     /// Updates all local exercises that have been updated on the server
     #[clap(long_about = SCHEMA_NULL)]
@@ -1281,6 +1301,45 @@ mod settings_test {
 }
 
 #[cfg(test)]
+mod mooc_test {
+    use super::*;
+
+    fn get_matches_mooc(args: &[&str]) {
+        Cli::try_parse_from(
+            ["tmc-langs-cli", "mooc", "--client-name", "client"]
+                .iter()
+                .chain(args)
+                .collect::<Vec<_>>(),
+        )
+        .map_err(|e| e.to_string())
+        .unwrap();
+    }
+
+    #[test]
+    fn reset_exercise() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--save-old-state",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn reset_exercise_without_save_old_state() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+}
+
+#[cfg(test)]
 mod test {
     use std::path::{Path, PathBuf};
 
@@ -1447,6 +1506,9 @@ mod test {
             tmc_langs::mooc::ExerciseTaskSubmissionStatus,
             tmc_langs::mooc::GradingProgress,
             tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::CourseProgress,
+            tmc_langs::mooc::ExerciseProgress,
+            tmc_langs::mooc::MoocClientUpdateData,
         )
         .unwrap();
         String::from_utf8(buf).unwrap()

@@ -31,7 +31,11 @@ use reqwest::{
 };
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::{path::Path, sync::Arc};
+use std::{
+    path::{Path, PathBuf},
+    sync::{Arc, RwLock},
+    time::Duration,
+};
 use tmc_langs_util::{JsonError, serialize};
 #[cfg(feature = "ts-rs")]
 use ts_rs::TS;
@@ -53,6 +57,17 @@ fn trust_localhost() -> bool {
     std::env::var(TRUST_LOCALHOST_VAR).as_deref() == Ok("1")
 }
 
+/// Timeout for ordinary metadata requests, and the connect timeout for every
+/// request. Mirrors the 30s bound in `auth.rs`: without it a wedged host or
+/// dropped connection hangs the CLI forever instead of surfacing a retryable
+/// `ConnectionError`.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Timeout for large-payload transfers (archive download/upload), which can
+/// legitimately outlast a metadata round-trip. The connect timeout is still
+/// [`REQUEST_TIMEOUT`].
+const TRANSFER_TIMEOUT: Duration = Duration::from_secs(60 * 5);
+
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
 #[derive(Clone)]
@@ -61,13 +76,20 @@ pub struct MoocClient(Arc<MoocClientInner>);
 struct MoocClientInner {
     client: Client,
     root_url: Url,
-    token: Option<api::Token>,
+    // RwLock so `set_token` works on any clone: `MoocClient` is cloned across
+    // download threads, so `Arc::get_mut` (unique-ownership only) won't do.
+    token: RwLock<Option<api::Token>>,
 }
 
 /// Non-API methods.
 impl MoocClient {
     /// Creates a new client.
-    pub fn new(root_url: Url) -> Self {
+    ///
+    /// Fails with [`MoocClientError::InsecureScheme`] if the root URL points at
+    /// the production host `courses.mooc.fi` over anything but `https`; the
+    /// local-dev host `project-331.local` (and other hosts, e.g. test mocks) may
+    /// use `http`.
+    pub fn new(root_url: Url) -> MoocClientResult<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.as_str().ends_with('/') {
             root_url
@@ -75,11 +97,23 @@ impl MoocClient {
             format!("{root_url}/").parse().expect("invalid root url")
         };
 
-        Self(Arc::new(MoocClientInner {
-            client: Client::new(),
+        // Bearer token must never go over plaintext to production; mirrors the
+        // trusted-domain split used below when attaching the token.
+        if root_url.host_str() == Some("courses.mooc.fi") && root_url.scheme() != "https" {
+            return Err(Box::new(MoocClientError::InsecureScheme { url: root_url }));
+        }
+
+        let client = Client::builder()
+            .timeout(REQUEST_TIMEOUT)
+            .connect_timeout(REQUEST_TIMEOUT)
+            .build()
+            .expect("failed to build MoocClient HTTP client");
+
+        Ok(Self(Arc::new(MoocClientInner {
+            client,
             root_url,
-            token: None,
-        }))
+            token: RwLock::new(None),
+        })))
     }
 
     fn request(&self, method: Method, url: Url) -> MoocRequest {
@@ -105,7 +139,14 @@ impl MoocClient {
             // The crate version is the langs version this client ships as,
             // mirroring the TMC client's `client_version`.
             .header(CLIENT_VERSION_HEADER, env!("CARGO_PKG_VERSION"));
-        if let Some(token) = self.0.token.as_ref() {
+        // A poisoned lock still yields the last-written token, which is fine:
+        // it's plain data, never left half-updated.
+        let token_guard = self
+            .0
+            .token
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(token) = token_guard.as_ref() {
             if is_trusted_domain {
                 log::debug!("setting bearer token");
                 builder = builder.bearer_auth(token.access_token().secret());
@@ -115,6 +156,7 @@ impl MoocClient {
         } else {
             log::debug!("no bearer token");
         }
+        drop(token_guard);
         MoocRequest {
             url,
             method,
@@ -122,10 +164,16 @@ impl MoocClient {
         }
     }
 
+    /// Sets (or replaces) the bearer token used for authenticated requests.
+    ///
+    /// Works on any clone via the internal `RwLock`; `&mut self` is kept only
+    /// for source compatibility, not because unique ownership is required.
     pub fn set_token(&mut self, token: api::Token) {
-        Arc::get_mut(&mut self.0)
-            .expect("called when multiple clones exist")
-            .token = Some(token);
+        *self
+            .0
+            .token
+            .write()
+            .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(token);
     }
 }
 
@@ -162,6 +210,19 @@ impl MoocClient {
         Ok(res)
     }
 
+    /// Fetches the current user's per-exercise progress for a whole course in a
+    /// single round-trip. Returns one entry per exercise the user can see in the
+    /// course (open chapters); untouched exercises come back with zeroed
+    /// progress. Course-level totals are not sent; the caller derives them by
+    /// summing over the entries.
+    pub fn course_progress(&self, course: Uuid) -> MoocClientResult<CourseProgress> {
+        let url = make_client_api_url(self, format!("courses/{course}/progress"))?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<api::CourseProgress>()?;
+        Ok(res.into())
+    }
+
     pub fn exercise(&self, exercise: Uuid) -> MoocClientResult<TmcExerciseSlide> {
         let url = make_client_api_url(self, format!("exercises/{exercise}"))?;
         let res = self
@@ -176,7 +237,11 @@ impl MoocClient {
     }
 
     pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
-        let res = self.request(Method::GET, url).send_expect_bytes()?;
+        // Archive downloads can be large: use the more generous transfer timeout.
+        let res = self
+            .request(Method::GET, url)
+            .transfer_timeout()
+            .send_expect_bytes()?;
         Ok(res)
     }
 
@@ -248,6 +313,8 @@ impl MoocClient {
         let res = self
             .request(Method::POST, url)
             .multipart(submission)
+            // The uploaded archive can be large: use the more generous transfer timeout.
+            .transfer_timeout()
             .send_expect_json::<api::ExerciseTaskSubmissionResult>()?;
         Ok(res.into())
     }
@@ -326,6 +393,13 @@ impl MoocRequest {
 
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
+        self
+    }
+
+    /// Overrides the timeout with the more generous [`TRANSFER_TIMEOUT`], for
+    /// large-payload transfers that can outlast a metadata round-trip.
+    fn transfer_timeout(mut self) -> Self {
+        self.builder = self.builder.timeout(TRANSFER_TIMEOUT);
         self
     }
 
@@ -447,6 +521,56 @@ impl From<api::Course> for Course {
             name: value.name,
             description: value.description,
             organization_name: value.organization_name,
+        }
+    }
+}
+
+/// The current user's progress across every exercise they can see in a course.
+/// Course-level totals (awarded/available points, passed count, percentage) are
+/// not sent separately; derive them by summing over `exercises`, guarding the
+/// percentage against a zero total.
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct CourseProgress {
+    pub course_id: Uuid,
+    pub exercises: Vec<ExerciseProgress>,
+}
+
+impl From<api::CourseProgress> for CourseProgress {
+    fn from(value: api::CourseProgress) -> Self {
+        Self {
+            course_id: value.course_id,
+            exercises: value.exercises.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+/// The current user's progress on a single exercise. The authoritative "passed"
+/// signal is `completed`; `attempted` distinguishes "not started" from "started
+/// but not passed".
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ExerciseProgress {
+    pub exercise_id: Uuid,
+    /// Points awarded to the user; `0.0` when the user has no state for the
+    /// exercise. Can be fractional (partial credit).
+    pub score_given: f32,
+    /// The maximum points obtainable from the exercise; can be `0`.
+    pub score_maximum: i32,
+    /// `true` once the exercise reached the `Completed` activity stage.
+    pub completed: bool,
+    /// `true` once the user has started or submitted the exercise.
+    pub attempted: bool,
+}
+
+impl From<api::ExerciseProgress> for ExerciseProgress {
+    fn from(value: api::ExerciseProgress) -> Self {
+        Self {
+            exercise_id: value.exercise_id,
+            score_given: value.score_given,
+            score_maximum: value.score_maximum,
+            completed: value.completed,
+            attempted: value.attempted,
         }
     }
 }
@@ -577,6 +701,17 @@ impl From<api::PasteResult> for PasteResult {
     }
 }
 
+/// Per-exercise download progress, mirroring TMC's `ClientUpdateData`. Surfaced
+/// by the CLI as a `mooc-client-update-data` status update; `id` is a [`Uuid`]
+/// since mooc exercises are UUID-keyed.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[serde(tag = "client-update-data-kind")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum MoocClientUpdateData {
+    ExerciseDownload { id: Uuid, path: PathBuf },
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -609,7 +744,7 @@ mod test {
     }
 
     fn make_client(server: &Server) -> MoocClient {
-        let mut client = MoocClient::new(server.url().parse().unwrap());
+        let mut client = MoocClient::new(server.url().parse().unwrap()).unwrap();
         let token = Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
@@ -620,7 +755,7 @@ mod test {
     }
 
     fn make_client_with_token(server: &Server, access_token: &str) -> MoocClient {
-        let mut client = MoocClient::new(server.url().parse().unwrap());
+        let mut client = MoocClient::new(server.url().parse().unwrap()).unwrap();
         let token = Token::new(
             AccessToken::new(access_token.to_string()),
             BasicTokenType::Bearer,
@@ -933,6 +1068,64 @@ mod test {
         let course = client.course(Uuid::parse_str(course_id).unwrap()).unwrap();
         assert_eq!(course.name, "mockname");
         assert_eq!(course.organization_name, "mockorg");
+    }
+
+    #[test]
+    fn gets_course_progress() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let course_id = "5f9e0a1c-3b2d-4e6f-8a9b-0c1d2e3f4a5b";
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/progress").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "course_id": "5f9e0a1c-3b2d-4e6f-8a9b-0c1d2e3f4a5b",
+                    "exercises": [
+                        {
+                            "exercise_id": "a1b2c3d4-0000-4000-8000-000000000001",
+                            "score_given": 1.0,
+                            "score_maximum": 1,
+                            "completed": true,
+                            "attempted": true
+                        },
+                        {
+                            "exercise_id": "a1b2c3d4-0000-4000-8000-000000000002",
+                            "score_given": 0.5,
+                            "score_maximum": 2,
+                            "completed": false,
+                            "attempted": true
+                        },
+                        {
+                            "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
+                            "score_given": 0.0,
+                            "score_maximum": 3,
+                            "completed": false,
+                            "attempted": false
+                        }
+                    ]
+                })
+                .to_string(),
+            )
+            .create();
+        let progress = client
+            .course_progress(Uuid::parse_str(course_id).unwrap())
+            .unwrap();
+        assert_eq!(progress.course_id, Uuid::parse_str(course_id).unwrap());
+        assert_eq!(progress.exercises.len(), 3);
+        assert_eq!(progress.exercises[0].score_given, 1.0);
+        assert_eq!(progress.exercises[0].score_maximum, 1);
+        assert!(progress.exercises[0].completed);
+        assert!(progress.exercises[0].attempted);
+        // partial credit stays fractional
+        assert_eq!(progress.exercises[1].score_given, 0.5);
+        assert!(!progress.exercises[1].completed);
+        // untouched exercise: zeroed, not attempted
+        assert_eq!(progress.exercises[2].score_given, 0.0);
+        assert!(!progress.exercises[2].attempted);
     }
 
     #[test]
@@ -1350,6 +1543,70 @@ mod test {
             }
             other => panic!("expected HttpError, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn set_token_works_after_cloning_client() {
+        // Regression: `set_token` used `Arc::get_mut().expect(...)`, which panics
+        // if any clone exists — and `MoocClient` is cloned across download threads.
+        init();
+        let server = Server::new();
+        let mut client = MoocClient::new(server.url().parse().unwrap()).unwrap();
+        // Keep several clones alive so `Arc::get_mut` would fail.
+        let _clone_a = client.clone();
+        let _clone_b = client.clone();
+        let token = Token::new(
+            AccessToken::new("after-clone".to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        // Must not panic.
+        client.set_token(token);
+    }
+
+    #[test]
+    fn set_token_on_clone_is_visible_to_that_clone() {
+        // A token set on one handle is stored behind the shared `Arc`, so a clone
+        // observes it too (the interior mutability is shared, not per-handle).
+        init();
+        let _env = env_lock();
+        // SAFETY: serialized by ENV_LOCK.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+
+        let mut server = Server::new();
+        let mut client = MoocClient::new(server.url().parse().unwrap()).unwrap();
+        let clone = client.clone();
+        let token = Token::new(
+            AccessToken::new("shared-token".to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        client.set_token(token);
+
+        let with_auth = server
+            .mock("GET", "/api/v0/exercise-services/client/courses")
+            .match_header("authorization", "Bearer shared-token")
+            .with_body("[]")
+            .expect(1)
+            .create();
+        let res = clone.courses();
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+        res.unwrap();
+        with_auth.assert();
+    }
+
+    #[test]
+    fn rejects_insecure_scheme_for_production_host() {
+        // courses.mooc.fi over http is refused so the bearer token can never be
+        // sent in plaintext; https is accepted.
+        init();
+        match MoocClient::new("http://courses.mooc.fi/".parse().unwrap()) {
+            Err(err) => assert!(matches!(*err, MoocClientError::InsecureScheme { .. })),
+            Ok(_) => panic!("http://courses.mooc.fi should be rejected"),
+        }
+        assert!(MoocClient::new("https://courses.mooc.fi/".parse().unwrap()).is_ok());
+        // The local-dev host may use http.
+        assert!(MoocClient::new("http://project-331.local/".parse().unwrap()).is_ok());
     }
 
     #[test]

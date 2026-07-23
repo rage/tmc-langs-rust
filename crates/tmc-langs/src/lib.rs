@@ -148,27 +148,22 @@ pub fn check_mooc_exercise_updates(
     let mut updated_exercises = vec![];
 
     let config = ProjectsConfig::load(projects_dir)?;
-    // Key each exercise by its config map key (the EXERCISE id) — the identity
-    // the extension uses and the id the `exercises/{id}` route expects. The
-    // stored `task_id` is the editor task's id, not a valid exercise key.
-    let local_exercises = config
-        .mooc_courses
-        .values()
-        .flat_map(|cc| cc.exercises.iter())
-        .collect::<Vec<_>>();
 
-    // request would fail with empty id list
-    if !local_exercises.is_empty() {
-        let exercise_ids = local_exercises
-            .iter()
-            .map(|(exercise_id, _)| **exercise_id)
-            .collect::<Vec<_>>();
-        let server_exercises = client
-            .get_exercises(&exercise_ids)?
-            .into_iter()
-            .map(|slide| (slide.exercise_id, slide))
-            .collect::<HashMap<_, _>>();
-        for (exercise_id, local_exercise) in local_exercises {
+    // One `course_exercises` request per course, not one per exercise; correlate
+    // by exercise id (the config map key and the extension's identity) — the
+    // stored `task_id` is the editor task's id, not a valid exercise key.
+    let mut server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = HashMap::new();
+    for course_config in config.mooc_courses.values() {
+        if course_config.exercises.is_empty() {
+            continue;
+        }
+        for slide in client.course_exercises(course_config.course_id)? {
+            server_exercises.insert(slide.exercise_id, slide);
+        }
+    }
+
+    for course_config in config.mooc_courses.values() {
+        for (exercise_id, local_exercise) in &course_config.exercises {
             let server_exercise = server_exercises
                 .get(exercise_id)
                 .ok_or(LangsError::MoocExerciseMissingOnServer(*exercise_id))?;
@@ -661,7 +656,7 @@ pub fn init_mooc_client_with_credentials(
     client_id: &str,
 ) -> Result<(mooc::MoocClient, Option<MoocCredentials>), LangsError> {
     // create client
-    let mut client = mooc::MoocClient::new(root_url.clone());
+    let mut client = mooc::MoocClient::new(root_url.clone())?;
 
     // set token from the credentials file if one exists, refreshing if expired
     let credentials = MoocCredentials::load_valid(client_name, &root_url, client_id)?;
@@ -808,8 +803,17 @@ pub fn update_mooc_exercises(
 
     let mut downloaded = Vec::new();
     if !locals.is_empty() {
-        let exercise_ids = locals.keys().copied().collect::<Vec<_>>();
-        let server_exercises = client.get_exercises(&exercise_ids)?;
+        // One `course_exercises` request per course, not one per exercise.
+        // `instance_id` and `course_id` coincide for mooc courses.
+        let course_ids: HashSet<Uuid> = projects_config
+            .mooc_courses
+            .values()
+            .map(|cc| cc.course_id)
+            .collect();
+        let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
+        for course_id in course_ids {
+            server_exercises.extend(client.course_exercises(course_id)?);
+        }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
                 // Not tracked locally (e.g. deleted). Nothing to update.
@@ -1026,6 +1030,16 @@ pub fn download_or_update_mooc_course_exercises(
     let mut skipped = Vec::new();
     let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
 
+    // Report per-exercise download progress, mirroring the TMC download path.
+    let total_steps = u32::try_from(exercise_ids.len())
+        .unwrap_or(u32::MAX)
+        .saturating_add(1);
+    progress_reporter::start_stage::<mooc::MoocClientUpdateData>(
+        total_steps,
+        format!("Downloading {} mooc exercises", exercise_ids.len()),
+        None,
+    );
+
     for &exercise_id in exercise_ids {
         let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
             failed.push((
@@ -1101,6 +1115,17 @@ pub fn download_or_update_mooc_course_exercises(
             }
         }
 
+        progress_reporter::progress_stage::<mooc::MoocClientUpdateData>(
+            format!(
+                "Downloading exercise {exercise_id} to '{}'",
+                target.display()
+            ),
+            Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                id: exercise_id,
+                path: target.clone(),
+            }),
+        );
+
         match download_and_extract_mooc_archive(client, &download_url, &target) {
             Ok(()) => {
                 course_config.add_exercise(exercise_id, exercise_name, task_id, checksum);
@@ -1127,6 +1152,11 @@ pub fn download_or_update_mooc_course_exercises(
             }
         }
     }
+
+    progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
+        format!("Finished downloading {} mooc exercises", exercise_ids.len()),
+        None,
+    );
 
     Ok(DownloadOrUpdateMoocCourseExercisesResult {
         downloaded,
@@ -1309,6 +1339,95 @@ pub fn reset(
         false,
         false,
     )?;
+    Ok(())
+}
+
+/// Resets a mooc exercise: mirrors TMC's [`reset`], optionally submitting the
+/// current state first, then replacing the directory with a freshly extracted
+/// stub.
+///
+/// Never leaves `exercise_path` half-written: the stub is fetched and extracted
+/// into a staging sibling *before* the original is touched, so a download or
+/// extraction failure leaves it intact. Only once extraction fully succeeds is
+/// the old directory moved aside and the staged one swapped in (a same-filesystem
+/// rename); the old copy is restored if that swap fails.
+pub fn reset_mooc_exercise(
+    client: &MoocClient,
+    exercise_id: Uuid,
+    exercise_path: &Path,
+    save_old_state: bool,
+) -> Result<(), LangsError> {
+    log::debug!(
+        "resetting mooc exercise {exercise_id} at {}",
+        exercise_path.display()
+    );
+
+    if save_old_state {
+        // submit the current state before resetting
+        let temp = file_util::named_temp_file()?;
+        compress_project_to(exercise_path, temp.path(), Compression::TarZstd, false, false)?;
+        client.submit_exercise(exercise_id, temp.path())?;
+        log::debug!("submitted current state before resetting exercise");
+    }
+
+    // Fetch before touching the directory: a download failure must not wipe
+    // existing work.
+    let stub = client.download_exercise(exercise_id)?;
+
+    // Staging dir is a sibling of `exercise_path` (same filesystem, so the
+    // swap-in below is a rename, not a cross-device copy). A failed/partial
+    // extraction never touches the original; on early return the `TempDir`
+    // guard removes the staging dir.
+    let parent = match exercise_path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    file_util::create_dir_all(parent)?;
+    let staging = tempfile::Builder::new()
+        .prefix(".tmc-reset-")
+        .tempdir_in(parent)
+        .map_err(FileError::TempFile)?;
+    extract_project(
+        Cursor::new(stub),
+        staging.path(),
+        Compression::TarZstd,
+        false,
+        false,
+    )?;
+
+    // Extraction succeeded; only rename/remove ops remain, so the swap can't
+    // leave a half-written directory. Disarm the `TempDir` guard: it's about to
+    // be moved into place, not dropped.
+    let staging_path = staging.keep();
+
+    if exercise_path.exists() {
+        // Move the old dir aside instead of deleting, so it can be restored if the
+        // rename-in fails. Reserve a unique name via tempdir, then free it so the
+        // rename target doesn't exist (required on Windows).
+        let backup_path = tempfile::Builder::new()
+            .prefix(".tmc-reset-old-")
+            .tempdir_in(parent)
+            .map_err(FileError::TempFile)?
+            .keep();
+        file_util::remove_dir_all(&backup_path)?;
+        file_util::rename(exercise_path, &backup_path)?;
+
+        match file_util::rename(&staging_path, exercise_path) {
+            Ok(()) => {
+                // The fresh copy is in place; drop the old one.
+                file_util::remove_dir_all(&backup_path)?;
+            }
+            Err(err) => {
+                // Roll back: restore the original and clean up the stage, so the
+                // failure is a no-op.
+                let _ = file_util::rename(&backup_path, exercise_path);
+                let _ = file_util::remove_dir_all(&staging_path);
+                return Err(err.into());
+            }
+        }
+    } else {
+        file_util::rename(&staging_path, exercise_path)?;
+    }
     Ok(())
 }
 
@@ -1619,7 +1738,7 @@ mod test {
     }
 
     fn mock_mooc_client(server: &Server) -> mooc::MoocClient {
-        let mut client = mooc::MoocClient::new(server.url().parse().unwrap());
+        let mut client = mooc::MoocClient::new(server.url().parse().unwrap()).unwrap();
         let token = mooc::api::Token::new(
             AccessToken::new("".to_string()),
             BasicTokenType::Bearer,
@@ -2234,19 +2353,23 @@ checksum = 'new checksum'
         let (_instance_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
-        // The update check must fetch via the EXERCISE-id route, not the task-id
-        // route. Only the exercise-id path is mocked, so a regression to task-id
-        // routing hits an unmatched route and fails.
+        // Update check batches via the COURSE-exercises route, not one request per
+        // exercise. Only that route is mocked, so a per-exercise regression fails.
         let _m = server
             .mock(
                 "GET",
-                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
             )
-            .with_body(editor_slide_json(
-                exercise_id,
-                task_id,
-                "new checksum",
-                "http://example.com/stub.tar.zst",
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "new checksum",
+                    "http://example.com/stub.tar.zst",
+                )
             ))
             .create();
 
@@ -2268,13 +2391,18 @@ checksum = 'new checksum'
         let _m = server
             .mock(
                 "GET",
-                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
             )
-            .with_body(editor_slide_json(
-                exercise_id,
-                task_id,
-                "same checksum",
-                "http://example.com/stub.tar.zst",
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "same checksum",
+                    "http://example.com/stub.tar.zst",
+                )
             ))
             .create();
 
@@ -2299,13 +2427,13 @@ checksum = 'new checksum'
         let _slide = server
             .mock(
                 "GET",
-                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
             )
-            .with_body(editor_slide_json(
-                exercise_id,
-                task_id,
-                "new checksum",
-                &stub_download_url,
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(exercise_id, task_id, "new checksum", &stub_download_url)
             ))
             .create();
         let archive = make_tar_zst(&[("src/main.py", b"print('updated')")]);
@@ -2338,17 +2466,17 @@ checksum = 'new checksum'
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
-        // The exercise-id route reports the new checksum on every request.
+        // The course-exercises route reports the new checksum on every request.
         let _slide = server
             .mock(
                 "GET",
-                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
             )
-            .with_body(editor_slide_json(
-                exercise_id,
-                task_id,
-                "new checksum",
-                &stub_download_url,
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(exercise_id, task_id, "new checksum", &stub_download_url)
             ))
             .create();
         let archive = make_tar_zst(&[("src/main.py", b"print('updated')")]);
@@ -2366,6 +2494,112 @@ checksum = 'new checksum'
         assert!(
             updates.is_empty(),
             "update re-reported after the refreshed checksum should have been persisted: {updates:?}"
+        );
+    }
+
+    #[test]
+    fn resets_mooc_exercise_over_local_dir() {
+        // Reset replaces the whole directory, not just overlays the archive:
+        // leftover.txt (absent from the fresh stub) must be gone too.
+        init();
+        let mut server = Server::new();
+        let exercise_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
+
+        let exercise_dir = tempfile::tempdir().unwrap();
+        // seed stale files the reset must clear
+        file_to(&exercise_dir, "src/main.py", b"stale student code");
+        file_to(&exercise_dir, "leftover.txt", b"should be gone");
+
+        let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
+        let _slide = server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(editor_slide_json(
+                exercise_id,
+                task_id,
+                "checksum",
+                &stub_download_url,
+            ))
+            .create();
+        let archive = make_tar_zst(&[("src/main.py", b"print('fresh stub')")]);
+        let _archive = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(archive)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        reset_mooc_exercise(&client, exercise_id, exercise_dir.path(), false).unwrap();
+
+        let main =
+            file_util::read_file_to_string(exercise_dir.path().join("src/main.py")).unwrap();
+        assert_eq!(main, "print('fresh stub')");
+        assert!(!exercise_dir.path().join("leftover.txt").exists());
+    }
+
+    #[test]
+    fn reset_mooc_exercise_preserves_dir_on_extraction_failure() {
+        // Regression: reset used to clear the dir before extracting, so a corrupt
+        // archive left an empty/half-written dir with no recovery. Extraction is
+        // now staged and swapped in only on success, so a failure must leave the
+        // original dir untouched.
+        init();
+        let mut server = Server::new();
+        let exercise_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
+
+        // Dedicated parent dir so staging-sibling cleanup can be asserted without
+        // racing other tests under the shared system temp dir.
+        let parent = tempfile::tempdir().unwrap();
+        let exercise_path = parent.path().join("exercise");
+        // pre-existing student work that must survive a failed reset
+        file_to(&exercise_path, "src/main.py", b"student code");
+        file_to(&exercise_path, "notes.txt", b"my notes");
+
+        let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
+        let _slide = server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_body(editor_slide_json(
+                exercise_id,
+                task_id,
+                "checksum",
+                &stub_download_url,
+            ))
+            .create();
+        // corrupt archive: extraction must fail
+        let _archive = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(b"not a valid tar.zst archive".to_vec())
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let result = reset_mooc_exercise(&client, exercise_id, &exercise_path, false);
+        assert!(
+            result.is_err(),
+            "a corrupt stub archive must make the reset fail"
+        );
+
+        assert_eq!(
+            file_util::read_file_to_string(exercise_path.join("src/main.py")).unwrap(),
+            "student code"
+        );
+        assert_eq!(
+            file_util::read_file_to_string(exercise_path.join("notes.txt")).unwrap(),
+            "my notes"
+        );
+        let leftovers = std::fs::read_dir(parent.path())
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .filter(|e| e.file_name() != std::ffi::OsStr::new("exercise"))
+            .count();
+        assert_eq!(
+            leftovers, 0,
+            "staging/backup directories must be cleaned up, leaving only the exercise"
         );
     }
 

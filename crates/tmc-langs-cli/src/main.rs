@@ -103,6 +103,10 @@ fn register_reporters(pretty: bool) {
         let output = CliOutput::StatusUpdate(StatusUpdateData::ClientUpdateData(update));
         let _r = print_output(&output, pretty, None);
     });
+    progress_reporter::subscribe::<tmc_langs::mooc::MoocClientUpdateData, _>(move |update| {
+        let output = CliOutput::StatusUpdate(StatusUpdateData::MoocClientUpdateData(update));
+        let _r = print_output(&output, pretty, None);
+    });
     progress_reporter::subscribe::<output::MoocDeviceLogin, _>(move |update| {
         let output = CliOutput::StatusUpdate(StatusUpdateData::MoocDeviceLogin(update));
         let _r = print_output(&output, pretty, None);

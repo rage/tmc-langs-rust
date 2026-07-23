@@ -123,6 +123,7 @@ pub enum DataKind {
     MoocSubmissionStatus(mooc::ExerciseTaskSubmissionStatus),
     MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
     MoocPaste(mooc::PasteResult),
+    MoocCourseProgress(mooc::CourseProgress),
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -131,6 +132,9 @@ pub enum DataKind {
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
+    /// Mooc's per-exercise download progress, mirroring `ClientUpdateData` for
+    /// mooc's UUID-keyed exercises.
+    MoocClientUpdateData(StatusUpdate<mooc::MoocClientUpdateData>),
     /// Emitted once at the start of `mooc login`, before the CLI blocks polling:
     /// carries the verification URL and user code the client shows the user to
     /// complete the OAuth2 device authorization login.
@@ -331,5 +335,33 @@ mod test {
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn mooc_client_update_data_status_update_shape() {
+        // Locks the wire shape the VSCode side parses for mooc download progress:
+        // outer `update-data-kind` = `mooc-client-update-data`, inner
+        // `client-update-data-kind` = `exercise-download` with a UUID `id`.
+        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let status_update =
+            CliOutput::StatusUpdate(StatusUpdateData::MoocClientUpdateData(StatusUpdate {
+                data: Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                    id,
+                    path: PathBuf::from("some/path"),
+                }),
+                finished: false,
+                message: "downloading...".to_string(),
+                percent_done: 50.0,
+                time: 1000,
+            }));
+        let actual = serde_json::to_value(&status_update).unwrap();
+        assert_eq!(actual["output-kind"], "status-update");
+        assert_eq!(actual["update-data-kind"], "mooc-client-update-data");
+        assert_eq!(actual["data"]["client-update-data-kind"], "exercise-download");
+        assert_eq!(
+            actual["data"]["id"],
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f"
+        );
+        assert_eq!(actual["data"]["path"], "some/path");
     }
 }

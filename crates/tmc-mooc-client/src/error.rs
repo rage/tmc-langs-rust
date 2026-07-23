@@ -25,6 +25,11 @@ pub enum MoocClientError {
     ConnectionError(Method, Url, #[source] reqwest::Error),
     #[error("Failed to parse as URL: {0}")]
     UrlParse(String, #[source] url::ParseError),
+    #[error(
+        "Refusing to use an insecure URL scheme for {url}: courses.mooc.fi must be reached over \
+         https so the bearer token is never sent in plaintext"
+    )]
+    InsecureScheme { url: Url },
     #[error("Authentication required")]
     NotAuthenticated,
     #[error("The device authorization request expired before it was approved")]

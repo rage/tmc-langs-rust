@@ -160,6 +160,118 @@ fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::p
     path
 }
 
+/// Writes a *valid* (not expired) `credentials_mooc.json`, so the first request
+/// uses the stored token (no proactive refresh) and a 401 on it triggers the
+/// on-401 refresh-then-retry path.
+fn write_valid_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
+    let dir = config_dir.join("tmc-test");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("credentials_mooc.json");
+    std::fs::write(
+        &path,
+        serde_json::json!({
+            "token": {
+                "access_token": "valid-access",
+                "refresh_token": "stored-refresh",
+                "token_type": "bearer",
+                // ~1000 year lifetime: unexpired regardless of when the test runs.
+                "expires_in": 32_503_680_000_u64,
+                "scope": "exercise-services"
+            },
+            "obtained_at": "2020-01-01T00:00:00Z"
+        })
+        .to_string(),
+    )
+    .unwrap();
+    path
+}
+
+/// Like [`run_mooc_in_expect_error`] but also trusts localhost for bearer tokens,
+/// so the mock sees the `Authorization` header and can tell the pre-refresh
+/// request apart from the post-refresh retry. Unsets the trust knob before
+/// returning so it doesn't leak into other tests sharing the process.
+fn run_mooc_trusting_localhost_expect_error(
+    server: &mockito::Server,
+    args: &[&str],
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+) -> tmc_langs_cli::CliError {
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
+        std::env::set_var("TMC_LANGS_DEFAULT_PROJECTS_DIR", projects_dir);
+        std::env::set_var("TMC_LANGS_MOOC_TRUST_LOCALHOST", "1");
+    }
+    let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
+    full.extend_from_slice(args);
+    let cli = Cli::parse_from(full);
+    let result = tmc_langs_cli::run(cli);
+    // SAFETY: still holding ENV_LOCK.
+    unsafe {
+        std::env::remove_var("TMC_LANGS_MOOC_TRUST_LOCALHOST");
+    }
+    result.expect_err("expected the command to fail")
+}
+
+#[test]
+fn mooc_non_auth_retry_after_successful_refresh_keeps_credentials() {
+    // Refresh succeeds, but the retry of the original request hits a transient
+    // 503. That must NOT be treated as invalid-token: keep the refreshed
+    // credentials and surface the 503 as-is. Regression for the retry-error gate.
+    let mut server = mockito::Server::new();
+    // Pre-refresh request: the stored access token is rejected.
+    let _rejected = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .match_header("authorization", "Bearer valid-access")
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect_at_least(1)
+        .create();
+    // The refresh itself succeeds, rotating the access token.
+    let _refresh = server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_body(
+            serde_json::json!({
+                "access_token": "refreshed-access",
+                "refresh_token": "rotated-refresh",
+                "token_type": "bearer",
+                "expires_in": 3600
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+    // Post-refresh retry carries the rotated token and hits a transient 5xx.
+    let _retry = server
+        .mock("GET", "/api/v0/exercise-services/client/courses")
+        .match_header("authorization", "Bearer refreshed-access")
+        .with_status(503)
+        .with_body("service unavailable")
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+    assert!(credentials_path.exists());
+
+    let error = run_mooc_trusting_localhost_expect_error(
+        &server,
+        &["courses"],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert!(
+        credentials_path.exists(),
+        "a non-auth failure on the post-refresh retry must NOT delete the credentials"
+    );
+    // Propagated as-is, not masked as an invalid-token/auth error.
+    assert_error_kind(error, "connection-error");
+}
+
 #[test]
 fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error() {
     // A 5xx on the proactive refresh is transient: the CLI must keep the
@@ -462,6 +574,59 @@ fn dispatches_course_exercises() {
             assert_eq!(slides[0].tasks.len(), 1);
         }
         other => panic!("expected MoocExerciseSlides, got {other:?}"),
+    }
+}
+
+#[test]
+fn dispatches_course_progress() {
+    let mut server = mockito::Server::new();
+    let course_id = "5f9e0a1c-3b2d-4e6f-8a9b-0c1d2e3f4a5b";
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/progress").as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "course_id": course_id,
+                "exercises": [
+                    {
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000001",
+                        "score_given": 1.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true
+                    },
+                    {
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000002",
+                        "score_given": 0.5,
+                        "score_maximum": 2,
+                        "completed": false,
+                        "attempted": true
+                    },
+                    {
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
+                        "score_given": 0.0,
+                        "score_maximum": 3,
+                        "completed": false,
+                        "attempted": false
+                    }
+                ]
+            })
+            .to_string(),
+        )
+        .create();
+    let output = run_mooc(&server, &["course-progress", "--course-id", course_id]).unwrap();
+    match data_of(output) {
+        DataKind::MoocCourseProgress(progress) => {
+            assert_eq!(progress.course_id, Uuid::parse_str(course_id).unwrap());
+            assert_eq!(progress.exercises.len(), 3);
+            assert_eq!(progress.exercises[0].score_given, 1.0);
+            assert!(progress.exercises[0].completed);
+            assert_eq!(progress.exercises[1].score_given, 0.5);
+            assert!(!progress.exercises[2].attempted);
+        }
+        other => panic!("expected MoocCourseProgress, got {other:?}"),
     }
 }
 

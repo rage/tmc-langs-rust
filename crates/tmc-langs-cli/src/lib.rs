@@ -1178,13 +1178,24 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
                     client.set_token(refreshed.token());
                     match run_mooc_inner(retry_mooc, &mut client) {
                         Ok(output) => return Ok(output),
-                        Err(retry_error) => {
-                            log::error!("mooc retry after refresh failed, deleting credentials");
+                        // Only delete credentials if the retry was itself a token
+                        // rejection (mirrors the outer `mooc_token_rejected` gate).
+                        // A non-auth failure must not discard the fresh refresh.
+                        Err(retry_error) if mooc_token_rejected(&retry_error) => {
+                            log::error!(
+                                "mooc retry after refresh was still rejected, deleting credentials"
+                            );
                             refreshed.remove()?;
                             return Err(InvalidTokenError {
                                 source: retry_error,
                             }
                             .into());
+                        }
+                        Err(retry_error) => {
+                            log::error!(
+                                "mooc retry after refresh failed with a non-auth error, keeping credentials"
+                            );
+                            return Err(retry_error);
                         }
                     }
                 }
@@ -1362,6 +1373,13 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 DataKind::MoocExerciseSlides(course_exercises),
             )
         }
+        MoocCommand::CourseProgress { course_id } => {
+            let progress = client.course_progress(course_id)?;
+            CliOutput::finished_with_data(
+                "fetched course progress",
+                DataKind::MoocCourseProgress(progress),
+            )
+        }
         MoocCommand::Exercise { exercise_id } => {
             let exercise = client.exercise(exercise_id)?;
             CliOutput::finished_with_data("fetched exercise", DataKind::MoocExerciseSlide(exercise))
@@ -1502,6 +1520,17 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             drop(output_guard);
             output_lock.forget();
             CliOutput::finished("extracted project")
+        }
+        MoocCommand::ResetExercise {
+            save_old_state,
+            exercise_id,
+            exercise_path,
+        } => {
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Write)?;
+            let _guard = lock.lock()?;
+
+            tmc_langs::reset_mooc_exercise(client, exercise_id, &exercise_path, save_old_state)?;
+            CliOutput::finished("reset exercise")
         }
         MoocCommand::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
