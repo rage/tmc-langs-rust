@@ -35,7 +35,9 @@ const FORM_CONTENT_TYPE: HeaderValue =
 /// hung connection here would block every other CLI process until the OS gives
 /// up. A bounded timeout turns that into a transient `ConnectionError` the caller
 /// classifies as retryable, releasing the locks promptly.
-const AUTH_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+/// Public so the caller that holds the locks across the refresh can assert its own
+/// lock-wait budget is larger than this (see `tmc-langs` `mooc_credentials`).
+pub const AUTH_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Builds the blocking HTTP client used by the auth flows, with an overall
 /// [`AUTH_REQUEST_TIMEOUT`]. Panics on a client build failure, mirroring
@@ -320,7 +322,7 @@ fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClient
 }
 
 /// The single field of an RFC 6749 / RFC 8628 error response the poll loop
-/// needs. Parsed leniently so a non-conforming body simply yields `None`.
+/// needs. Parsed leniently so a non-conforming body yields `None`.
 #[derive(Deserialize)]
 struct OAuthErrorBody {
     #[serde(default)]

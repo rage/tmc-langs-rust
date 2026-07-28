@@ -8,9 +8,9 @@ mod exercise;
 
 pub use self::{
     auth::{
-        DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE, DEVICE_SCOPE,
-        DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization, poll_device_token,
-        refresh_token,
+        AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
+        DEVICE_SCOPE, DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization,
+        poll_device_token, refresh_token,
     },
     error::{MoocClientError, MoocClientResult},
     exercise::{
@@ -51,9 +51,11 @@ const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 /// host in production; tests and local development set it to exercise the
 /// authenticated request path against a mock or a locally-served backend. Gating
 /// it on an explicit opt-in keeps production behavior byte-identical.
-const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
+pub const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
 
-fn trust_localhost() -> bool {
+/// Public because the same access token is also accepted by tmc-server, so the
+/// decision to hand it to a local host has to be made identically on both paths.
+pub fn trust_localhost() -> bool {
     std::env::var(TRUST_LOCALHOST_VAR).as_deref() == Ok("1")
 }
 
@@ -175,12 +177,23 @@ impl MoocClient {
             .write()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(token);
     }
+
+    /// The access token secret currently set on this client, if any -- e.g. so a caller
+    /// that just got rejected knows which token to pass to a refresh call.
+    pub fn access_token(&self) -> Option<String> {
+        self.0
+            .token
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .as_ref()
+            .map(|token| token.access_token().secret().clone())
+    }
 }
 
 /// API methods.
 impl MoocClient {
     pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
-        let url = make_client_api_url(self, &format!("courses/{course_id}"))?;
+        let url = make_client_api_url(self, format!("courses/{course_id}"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::Course>()?;
@@ -386,11 +399,6 @@ struct MoocRequest {
 }
 
 impl MoocRequest {
-    fn json<T: Serialize>(mut self, json: &T) -> Self {
-        self.builder = self.builder.json(json);
-        self
-    }
-
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
@@ -479,8 +487,8 @@ impl MoocRequest {
 
 /// The single field of the backend's `ApiErrorResponse` the client needs: the
 /// stable `message_key` identifying a controlled error. Deserialized leniently
-/// (missing/null key = `None`) so any non-conforming error body simply yields no
-/// key rather than failing.
+/// (missing/null key = `None`) so a non-conforming error body yields no key
+/// rather than failing.
 #[derive(Deserialize)]
 struct ApiErrorBody {
     #[serde(default)]
@@ -1542,6 +1550,29 @@ mod test {
                 assert_eq!(error, "internal server error");
             }
             other => panic!("expected HttpError, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn malformed_json_on_success_status_yields_deserializing_response_error() {
+        // `send_expect_bytes` only errors on a read failure, not on status, so a
+        // 2xx response with a non-JSON body reaches `serde_json::from_slice` in
+        // `send_expect_json` and must surface as `DeserializingResponse`, not
+        // silently succeed or panic.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let path = "/api/v0/exercise-services/client/courses";
+        server
+            .mock("GET", path)
+            .with_body("not valid json")
+            .create();
+        let err = client.courses().unwrap_err();
+        match *err {
+            MoocClientError::DeserializingResponse { url, .. } => {
+                assert_eq!(url.path(), path);
+            }
+            other => panic!("expected DeserializingResponse, got {other:?}"),
         }
     }
 

@@ -3,11 +3,13 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+#[cfg(test)]
+use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
     LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig,
-    TmcExerciseDownload, UpdatedExercise, mooc,
+    UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -199,12 +201,6 @@ pub enum Kind {
     /// The user is not enrolled on the course this exercise belongs to
     /// (backend `message_key: "not_enrolled"`, HTTP 422)
     NotEnrolled,
-    /// Failed to download some or all exercises
-    FailedExerciseDownload {
-        completed: Vec<TmcExerciseDownload>,
-        skipped: Vec<TmcExerciseDownload>,
-        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
-    },
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -357,11 +353,11 @@ mod test {
         let actual = serde_json::to_value(&status_update).unwrap();
         assert_eq!(actual["output-kind"], "status-update");
         assert_eq!(actual["update-data-kind"], "mooc-client-update-data");
-        assert_eq!(actual["data"]["client-update-data-kind"], "exercise-download");
         assert_eq!(
-            actual["data"]["id"],
-            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f"
+            actual["data"]["client-update-data-kind"],
+            "exercise-download"
         );
+        assert_eq!(actual["data"]["id"], "df5ee6c1-57d1-43b6-b39e-5d72119edb5f");
         assert_eq!(actual["data"]["path"], "some/path");
     }
 }

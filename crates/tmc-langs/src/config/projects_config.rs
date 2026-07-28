@@ -90,8 +90,8 @@ impl ProjectsConfig {
             }
         }
 
-        // Old course directories may sit directly in the projects dir, where they
-        // used to be stored; process them in place rather than moving them.
+        // Legacy layout: course directories directly in the projects dir (before
+        // the tmc/mooc split). Process them in place rather than moving them.
         let mut unexpected_entries = Vec::new();
         let legacy_projects_dir = projects_dir;
         if legacy_projects_dir.exists() {

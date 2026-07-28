@@ -1,5 +1,7 @@
 use std::{env, io::Read};
-use tmc_testmycode_client::{TestMyCodeClient, api_v8, request::FeedbackAnswer};
+use tmc_testmycode_client::{
+    TestMyCodeClient, Token, TokenSource, api_v8, oauth2, request::FeedbackAnswer,
+};
 
 const ORGANIZATION_SLUG: &str = "hy";
 const COURSE_NAME: &str = "java-1-f2020";
@@ -16,8 +18,9 @@ fn init_client() -> TestMyCodeClient {
     let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
 
     dotenvy::dotenv().ok();
-    let email = env::var("TMC_EMAIL").unwrap();
-    let password = env::var("TMC_PASSWORD").unwrap();
+    // There is no password grant any more; supply an access token tmc-server
+    // accepts (its own, or a courses.mooc.fi one).
+    let access_token = env::var("TMC_ACCESS_TOKEN").unwrap();
 
     let mut client = TestMyCodeClient::new(
         "https://tmc.mooc.fi".parse().unwrap(),
@@ -25,7 +28,12 @@ fn init_client() -> TestMyCodeClient {
         "1.0.0".to_string(),
     )
     .unwrap();
-    client.authenticate(email, password).unwrap();
+    let token = Token::new(
+        oauth2::AccessToken::new(access_token),
+        oauth2::basic::BasicTokenType::Bearer,
+        oauth2::EmptyExtraTokenFields {},
+    );
+    client.set_token(token, TokenSource::Tmc);
     client
 }
 
