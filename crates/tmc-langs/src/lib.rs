@@ -78,13 +78,22 @@ pub struct UpdatedExercise {
 ///
 /// # Example
 /// ```
-/// #[derive(serde::Serialize)]
+/// use jwt_simple::prelude::*;
+///
+/// #[derive(serde::Serialize, serde::Deserialize)]
 /// struct TestResult {
 ///     passed: bool,
 /// }
 ///
-/// let token = tmc_langs::sign_with_jwt(TestResult { passed: true }, "secret".as_bytes()).unwrap();
-/// assert_eq!(token, "eyJhbGciOiJIUzI1NiJ9.eyJwYXNzZWQiOnRydWV9.y-jXHgxZ_5wRqursLTb1hJOYob6LKj0mYBPnZSGtsnU");
+/// // the secret must be at least 96 bits (12 bytes) long
+/// let secret = "example secret key".as_bytes();
+/// let token = tmc_langs::sign_with_jwt(TestResult { passed: true }, secret).unwrap();
+///
+/// // token has time-based claims (iat/exp), so verify by decoding it instead
+/// // of comparing to a fixed string
+/// let key = HS256Key::from_bytes(secret);
+/// let claims = key.verify_token::<TestResult>(&token, None).unwrap();
+/// assert!(claims.custom.passed);
 /// ```
 ///
 /// # Errors

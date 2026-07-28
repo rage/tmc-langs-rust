@@ -10,6 +10,16 @@ cargo build
 
 If you have any troubles building the project, please do make an issue!
 
+### Nix development shell (optional)
+
+As an alternative to installing the toolchain and test dependencies below by
+hand, a [Nix](https://nixos.org/) flake at the repo root provides a dev shell
+with everything pinned: the Rust toolchain, the Java/Maven/Ant, .NET, `check`,
+valgrind, Python, Node, and an R environment with `tmcRtestrunner` already
+installed. Run `nix develop` (or `direnv allow`, via the bundled `.envrc`) and
+then use `cargo` as usual. The shell also points `JAVA_HOME` at the nix-provided
+JDK, so the embedded-JVM tests work out of the box.
+
 ## Testing
 
 Install [zstd](https://github.com/facebook/zstd) (`sudo apt install libzstd1`). For Windows, download the appropriate archive from the [releases](https://github.com/facebook/zstd/releases), extract it and add the extracted directory to your PATH.

@@ -212,25 +212,28 @@ pub struct Output {
 
 #[derive(Debug)]
 pub struct ExitStatus {
-    signal: Option<i32>,
+    /// `None` if killed by a signal or undetermined — both treated as failure.
+    code: Option<i32>,
 }
 
 impl ExitStatus {
-    pub fn new(signal: i32) -> Self {
-        Self {
-            signal: Some(signal),
-        }
+    /// For a process that exited normally with `code`.
+    pub fn new(code: i32) -> Self {
+        Self { code: Some(code) }
     }
 
     pub fn success(&self) -> bool {
-        self.signal.map(|s| s == 0).unwrap_or_default()
+        self.code == Some(0)
     }
 }
 
 impl From<subprocess::ExitStatus> for ExitStatus {
     fn from(value: subprocess::ExitStatus) -> Self {
+        // `code()` is `Some` only on a normal exit, `None` if killed by a signal
+        // or undetermined. Don't use `signal()` as the success check: it's
+        // `None` on a normal exit, which would flag every success as a failure.
         Self {
-            signal: value.signal(),
+            code: value.code().map(|c| c as i32),
         }
     }
 }
@@ -246,6 +249,26 @@ mod test {
             cmd.output_with_timeout(Duration::from_nanos(1)),
             Err(TmcError::Command(CommandError::TimeOut { .. }))
         ));
+    }
+
+    fn shell_exit(code: i32) -> ExitStatus {
+        // Separate args so no quoting is involved: cmd.exe sees `/c exit <code>`.
+        #[cfg(windows)]
+        let cmd = TmcCommand::piped("cmd").with(|e| e.arg("/c").arg("exit").arg(code.to_string()));
+        #[cfg(not(windows))]
+        let cmd = TmcCommand::piped("sh").with(|e| e.arg("-c").arg(format!("exit {code}")));
+        cmd.status().expect("the shell should be runnable")
+    }
+
+    #[test]
+    fn success_reflects_exit_code() {
+        // Deriving this from `subprocess::ExitStatus::signal()` instead of `code()`
+        // reports every normally-exited command as a failure, because `signal()` is
+        // `None` unless the process was killed by a signal (and always `None` on
+        // Windows). Callers that branch on an unchecked command's status then see
+        // successful builds and installed tools as broken.
+        assert!(shell_exit(0).success());
+        assert!(!shell_exit(3).success());
     }
 
     #[test]
