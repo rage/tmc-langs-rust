@@ -12,9 +12,9 @@ mod submission_processing;
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
-        Credentials, MoocCredentials, ProjectsConfig, ProjectsDirTmcExercise, TmcConfig,
-        TmcCourseConfig, list_local_mooc_course_exercises, list_local_tmc_course_exercises,
-        migrate_exercise, move_projects_dir,
+        Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
+        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_mooc_course_exercises,
+        list_local_tmc_course_exercises, migrate_exercise, move_projects_dir,
     },
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{
@@ -150,6 +150,7 @@ pub fn check_tmc_exercise_updates(
 /// Returns the ids of each exercise that can be updated.
 pub fn check_mooc_exercise_updates(
     client: &mooc::MoocClient,
+    auth: &MoocAuth,
     projects_dir: &Path,
 ) -> Result<Vec<Uuid>, LangsError> {
     log::debug!("checking exercise updates in {}", projects_dir.display());
@@ -166,7 +167,8 @@ pub fn check_mooc_exercise_updates(
         if course_config.exercises.is_empty() {
             continue;
         }
-        for slide in client.course_exercises(course_config.course_id)? {
+        let slides = auth.call(client, |c| c.course_exercises(course_config.course_id))?;
+        for slide in slides {
             server_exercises.insert(slide.exercise_id, slide);
         }
     }
@@ -778,6 +780,7 @@ pub fn update_tmc_exercises(
 /// Updates the mooc exercises in the local projects directory.
 pub fn update_mooc_exercises(
     client: &MoocClient,
+    auth: &MoocAuth,
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
@@ -821,7 +824,7 @@ pub fn update_mooc_exercises(
             .collect();
         let mut server_exercises: Vec<mooc::TmcExerciseSlide> = Vec::new();
         for course_id in course_ids {
-            server_exercises.extend(client.course_exercises(course_id)?);
+            server_exercises.extend(auth.call(client, |c| c.course_exercises(course_id))?);
         }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
@@ -849,7 +852,7 @@ pub fn update_mooc_exercises(
                 );
                 continue;
             };
-            download_and_extract_mooc_archive(client, download_url, &target)?;
+            download_and_extract_mooc_archive(client, auth, download_url, &target)?;
 
             // Persist the refreshed checksum, or the same update is re-reported on
             // every subsequent check. Use the slide's editor task id (the id the
@@ -885,7 +888,37 @@ pub fn update_mooc_exercises(
         downloaded,
         skipped: vec![],
         failed: None,
+        not_attempted: vec![],
+        stopped_for_auth: false,
     })
+}
+
+/// Flattens an error's `source()` chain into human-readable strings, most
+/// specific first, for the CLI's `failed` list entries.
+fn error_chain(err: &dyn std::error::Error) -> Vec<String> {
+    let mut chain = vec![err.to_string()];
+    let mut error = err;
+    while let Some(source) = error.source() {
+        chain.push(source.to_string());
+        error = source;
+    }
+    chain
+}
+
+/// The failure shape of [`download_and_extract_mooc_archive`]: an auth failure
+/// (see [`MoocAuthFailure::is_permanent`]), or a purely local one (bad URL, extraction).
+enum DownloadArchiveError {
+    Auth(MoocAuthFailure),
+    Local(LangsError),
+}
+
+impl From<DownloadArchiveError> for LangsError {
+    fn from(err: DownloadArchiveError) -> Self {
+        match err {
+            DownloadArchiveError::Auth(e) => e.into(),
+            DownloadArchiveError::Local(e) => e,
+        }
+    }
 }
 
 /// Downloads a mooc exercise stub archive from `download_url` (an editor task's
@@ -893,23 +926,26 @@ pub fn update_mooc_exercises(
 /// file-store archives are `.tar.zst`.
 fn download_and_extract_mooc_archive(
     client: &MoocClient,
+    auth: &MoocAuth,
     download_url: &str,
     target: &Path,
-) -> Result<(), LangsError> {
+) -> Result<(), DownloadArchiveError> {
     let url = Url::parse(download_url).map_err(|err| {
-        Box::new(mooc::MoocClientError::UrlParse(
-            download_url.to_string(),
-            err,
-        ))
+        DownloadArchiveError::Local(LangsError::MoocClient(Box::new(
+            mooc::MoocClientError::UrlParse(download_url.to_string(), err),
+        )))
     })?;
-    let data = client.download(url)?;
+    let data = auth
+        .call(client, |c| c.download(url.clone()))
+        .map_err(DownloadArchiveError::Auth)?;
     extract_project(
         Cursor::new(data),
         target,
         Compression::TarZstd,
         false,
         false,
-    )?;
+    )
+    .map_err(DownloadArchiveError::Local)?;
     Ok(())
 }
 
@@ -924,6 +960,7 @@ fn download_and_extract_mooc_archive(
 /// first (non-blocking) so nothing the student wrote is lost.
 pub fn download_mooc_old_submission(
     client: &MoocClient,
+    auth: &MoocAuth,
     exercise_id: Uuid,
     output_path: &Path,
     submission_id: Uuid,
@@ -937,20 +974,20 @@ pub fn download_mooc_old_submission(
     if save_old_state {
         let temp = file_util::named_temp_file()?;
         compress_project_to(output_path, temp.path(), Compression::TarZstd, false, false)?;
-        client.submit_exercise(exercise_id, temp.path())?;
+        auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
         log::debug!("submitted current state before downloading old submission");
     }
 
     let temp_dir = tempfile::tempdir().map_err(FileError::TempFile)?;
     let base = temp_dir.path();
-    let stub = client.download_exercise(exercise_id)?;
+    let stub = auth.call(client, |c| c.download_exercise(exercise_id))?;
     extract_project(Cursor::new(stub), base, Compression::TarZstd, false, false)?;
     log::debug!("extracted fresh stub to temp base");
 
-    let archive_url = client.download_submission_archive_url(submission_id)?;
+    let archive_url = auth.call(client, |c| c.download_submission_archive_url(submission_id))?;
     let url = Url::parse(&archive_url)
         .map_err(|err| Box::new(mooc::MoocClientError::UrlParse(archive_url.clone(), err)))?;
-    let archive = client.download(url)?;
+    let archive = auth.call(client, |c| c.download(url.clone()))?;
     extract_student_files(Cursor::new(archive), Compression::TarZstd, base)?;
     log::debug!("overlaid old submission student files");
 
@@ -987,6 +1024,7 @@ pub fn download_mooc_old_submission(
 /// Results are keyed by the requested `exercise_id`.
 pub fn download_or_update_mooc_course_exercises(
     client: &MoocClient,
+    auth: &MoocAuth,
     projects_dir: &Path,
     exercise_ids: &[Uuid],
     course_id: Option<Uuid>,
@@ -1008,8 +1046,8 @@ pub fn download_or_update_mooc_course_exercises(
             // The caller knows the course: fetch just that course's slides instead
             // of scanning every enrolled course.
             Some(course_id) => {
-                let course = client.course(course_id)?;
-                for slide in client.course_exercises(course_id)? {
+                let course = auth.call(client, |c| c.course(course_id))?;
+                for slide in auth.call(client, |c| c.course_exercises(course_id))? {
                     if requested.contains(&slide.exercise_id) {
                         resolved.insert(slide.exercise_id, (course.id, course.name.clone(), slide));
                     }
@@ -1018,8 +1056,8 @@ pub fn download_or_update_mooc_course_exercises(
             // No course context: resolve each exercise's course by scanning the
             // enrolled courses' exercise slides.
             None => {
-                'courses: for course in client.courses()? {
-                    for slide in client.course_exercises(course.id)? {
+                'courses: for course in auth.call(client, |c| c.courses())? {
+                    for slide in auth.call(client, |c| c.course_exercises(course.id))? {
                         if requested.contains(&slide.exercise_id)
                             && !resolved.contains_key(&slide.exercise_id)
                         {
@@ -1038,6 +1076,9 @@ pub fn download_or_update_mooc_course_exercises(
     let mut downloaded = Vec::new();
     let mut skipped = Vec::new();
     let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
+    // Index the batch stopped at on a permanent auth failure, so the rest can be
+    // reported as `not_attempted` instead of silently dropped.
+    let mut stop_at: Option<usize> = None;
 
     // Report per-exercise download progress, mirroring the TMC download path.
     let total_steps = u32::try_from(exercise_ids.len())
@@ -1049,7 +1090,7 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
-    for &exercise_id in exercise_ids {
+    for (item_index, &exercise_id) in exercise_ids.iter().enumerate() {
         let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
             failed.push((
                 MoocExerciseDownload {
@@ -1135,7 +1176,7 @@ pub fn download_or_update_mooc_course_exercises(
             }),
         );
 
-        match download_and_extract_mooc_archive(client, &download_url, &target) {
+        match download_and_extract_mooc_archive(client, auth, &download_url, &target) {
             Ok(()) => {
                 course_config.add_exercise(exercise_id, exercise_name, task_id, checksum);
                 course_config.save_to_projects_dir(projects_dir)?;
@@ -1144,19 +1185,31 @@ pub fn download_or_update_mooc_course_exercises(
                     path: target,
                 });
             }
-            Err(err) => {
-                let mut error = &err as &dyn std::error::Error;
-                let mut chain = vec![error.to_string()];
-                while let Some(source) = error.source() {
-                    chain.push(source.to_string());
-                    error = source;
-                }
+            // Every remaining item would fail identically: record this one as failed,
+            // stop iterating, and report the rest as `not_attempted`.
+            Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
+                log::error!(
+                    "mooc auth permanently failed while downloading exercise {exercise_id}, \
+                     stopping the batch: {auth_err}"
+                );
                 failed.push((
                     MoocExerciseDownload {
                         exercise_id,
                         path: target,
                     },
-                    chain,
+                    error_chain(&auth_err),
+                ));
+                stop_at = Some(item_index);
+                break;
+            }
+            Err(err) => {
+                let err: LangsError = err.into();
+                failed.push((
+                    MoocExerciseDownload {
+                        exercise_id,
+                        path: target,
+                    },
+                    error_chain(&err),
                 ));
             }
         }
@@ -1167,6 +1220,18 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
+    // Everything after the stop point was never attempted.
+    let not_attempted = match stop_at {
+        Some(stop_at) => exercise_ids[stop_at + 1..]
+            .iter()
+            .map(|&exercise_id| MoocExerciseDownload {
+                exercise_id,
+                path: projects_dir.join("mooc"),
+            })
+            .collect(),
+        None => Vec::new(),
+    };
+
     Ok(DownloadOrUpdateMoocCourseExercisesResult {
         downloaded,
         skipped,
@@ -1175,6 +1240,8 @@ pub fn download_or_update_mooc_course_exercises(
         } else {
             Some(failed)
         },
+        not_attempted,
+        stopped_for_auth: stop_at.is_some(),
     })
 }
 
@@ -1362,6 +1429,7 @@ pub fn reset(
 /// rename); the old copy is restored if that swap fails.
 pub fn reset_mooc_exercise(
     client: &MoocClient,
+    auth: &MoocAuth,
     exercise_id: Uuid,
     exercise_path: &Path,
     save_old_state: bool,
@@ -1375,13 +1443,13 @@ pub fn reset_mooc_exercise(
         // submit the current state before resetting
         let temp = file_util::named_temp_file()?;
         compress_project_to(exercise_path, temp.path(), Compression::TarZstd, false, false)?;
-        client.submit_exercise(exercise_id, temp.path())?;
+        auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
         log::debug!("submitted current state before resetting exercise");
     }
 
     // Fetch before touching the directory: a download failure must not wipe
     // existing work.
-    let stub = client.download_exercise(exercise_id)?;
+    let stub = auth.call(client, |c| c.download_exercise(exercise_id))?;
 
     // Staging dir is a sibling of `exercise_path` (same filesystem, so the
     // swap-in below is a rename, not a cross-device copy). A failed/partial
@@ -1755,6 +1823,12 @@ mod test {
         );
         client.set_token(token);
         client
+    }
+
+    /// A `MoocAuth` pointed at the mock server. None of these tests exercise
+    /// a 401/refresh, so the client id and name are arbitrary.
+    fn mock_mooc_auth(server: &Server) -> MoocAuth {
+        MoocAuth::new("test", server.url().parse().unwrap(), "test-client")
     }
 
     /// Builds a `.tar.zst` archive from the given (relative path, contents) pairs.
@@ -2383,7 +2457,8 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
-        let updates = check_mooc_exercise_updates(&client, projects_dir.path()).unwrap();
+        let auth = mock_mooc_auth(&server);
+        let updates = check_mooc_exercise_updates(&client, &auth, projects_dir.path()).unwrap();
         // the update list is keyed by EXERCISE id, the identity the extension addresses
         assert_eq!(updates, vec![exercise_id]);
     }
@@ -2416,7 +2491,8 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
-        let updates = check_mooc_exercise_updates(&client, projects_dir.path()).unwrap();
+        let auth = mock_mooc_auth(&server);
+        let updates = check_mooc_exercise_updates(&client, &auth, projects_dir.path()).unwrap();
         assert!(updates.is_empty());
     }
 
@@ -2452,7 +2528,8 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
-        let result = update_mooc_exercises(&client, projects_dir.path()).unwrap();
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
 
         assert_eq!(result.downloaded.len(), 1);
         // results are keyed by the exercise id, not the editor task id
@@ -2495,11 +2572,12 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
 
-        let result = update_mooc_exercises(&client, projects_dir.path()).unwrap();
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
         assert_eq!(result.downloaded.len(), 1);
 
-        let updates = check_mooc_exercise_updates(&client, projects_dir.path()).unwrap();
+        let updates = check_mooc_exercise_updates(&client, &auth, projects_dir.path()).unwrap();
         assert!(
             updates.is_empty(),
             "update re-reported after the refreshed checksum should have been persisted: {updates:?}"
@@ -2540,7 +2618,8 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
-        reset_mooc_exercise(&client, exercise_id, exercise_dir.path(), false).unwrap();
+        let auth = mock_mooc_auth(&server);
+        reset_mooc_exercise(&client, &auth, exercise_id, exercise_dir.path(), false).unwrap();
 
         let main =
             file_util::read_file_to_string(exercise_dir.path().join("src/main.py")).unwrap();
@@ -2587,7 +2666,8 @@ checksum = 'new checksum'
             .create();
 
         let client = mock_mooc_client(&server);
-        let result = reset_mooc_exercise(&client, exercise_id, &exercise_path, false);
+        let auth = mock_mooc_auth(&server);
+        let result = reset_mooc_exercise(&client, &auth, exercise_id, &exercise_path, false);
         assert!(
             result.is_err(),
             "a corrupt stub archive must make the reset fail"
@@ -2749,9 +2829,11 @@ directory = "skip-me"
             .create();
 
         let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
         // course_id = None exercises the enrolled-course scan resolution path
         let result = download_or_update_mooc_course_exercises(
             &client,
+            &auth,
             projects_dir.path(),
             &[ex_skip, ex_new, ex_browser, ex_missing],
             None,
@@ -2846,8 +2928,10 @@ directory = "skip-me"
             .create();
 
         let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
         let result = download_or_update_mooc_course_exercises(
             &client,
+            &auth,
             projects_dir.path(),
             &[ex_new],
             Some(course_id),

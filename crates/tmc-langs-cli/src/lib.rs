@@ -7,7 +7,7 @@ pub mod error;
 pub mod output;
 
 use self::{
-    error::{DownloadsFailedError, InvalidTokenError, SandboxTestError},
+    error::{InvalidTokenError, SandboxTestError},
     output::{CliOutput, DataKind, Kind, OutputData, OutputResult, Status},
 };
 use crate::app::{Cli, Locale};
@@ -160,18 +160,18 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             }
         }
 
-        // check for download failed error
-        if let Some(DownloadsFailedError {
-            downloaded: completed,
-            skipped,
-            failed,
-        }) = cause.downcast_ref::<DownloadsFailedError>()
-        {
-            return Kind::FailedExerciseDownload {
-                completed: completed.clone(),
-                skipped: skipped.clone(),
-                failed: failed.clone(),
+        // Every individual mooc network call now goes through
+        // `MoocAuth::call`, which surfaces a failed call as `MoocAuthFailure`
+        // (see `mooc_credentials.rs`). Unwrap it explicitly rather than
+        // relying on exactly how its `#[source]` link shapes the chain.
+        if let Some(mooc_auth_err) = cause.downcast_ref::<tmc_langs::MoocAuthFailure>() {
+            let inner = match mooc_auth_err {
+                tmc_langs::MoocAuthFailure::Permanent(e)
+                | tmc_langs::MoocAuthFailure::Other(e) => e.as_ref(),
             };
+            if let Some(kind) = mooc_error_kind(inner) {
+                return kind;
+            }
         }
     }
 
@@ -1120,24 +1120,6 @@ fn mooc_client_id() -> String {
     env::var("TMC_LANGS_MOOC_CLIENT_ID").unwrap_or_else(|_| mooc::DEFAULT_CLIENT_ID.to_string())
 }
 
-/// Whether an error chain indicates the mooc token was rejected (a 401 or the
-/// `NotAuthenticated` variant). Mooc errors travel the anyhow chain as
-/// `Box<MoocClientError>`, so the boxed form is checked too.
-fn mooc_token_rejected(error: &anyhow::Error) -> bool {
-    error.chain().any(|cause| {
-        let mooc_err = cause.downcast_ref::<MoocClientError>().or_else(|| {
-            cause
-                .downcast_ref::<Box<MoocClientError>>()
-                .map(Box::as_ref)
-        });
-        match mooc_err {
-            Some(MoocClientError::NotAuthenticated) => true,
-            Some(MoocClientError::HttpError { status, .. }) => status.as_u16() == 401,
-            _ => false,
-        }
-    })
-}
-
 fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     let root_url: url::Url = env::var("TMC_LANGS_MOOC_ROOT_URL")
         .unwrap_or_else(|_| "https://courses.mooc.fi/".to_string())
@@ -1147,7 +1129,7 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     let client_name = mooc.client_name.clone();
 
     // Auth commands are handled before initializing the client: there is no
-    // token yet, so the 401 refresh/delete wrapper below must not apply to them.
+    // token yet, so the auth-failure handling below must not apply to them.
     match &mooc.command {
         MoocCommand::Login => return run_mooc_login(&client_name, &root_url, &client_id),
         MoocCommand::LoggedIn => return mooc_logged_in(&client_name),
@@ -1155,62 +1137,26 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
         _ => {}
     }
 
-    let (mut client, credentials) =
+    let (client, credentials) =
         tmc_langs::init_mooc_client_with_credentials(root_url.clone(), &client_name, &client_id)?;
+    let had_credentials = credentials.is_some();
+    let auth = tmc_langs::MoocAuth::new(client_name.clone(), root_url.clone(), client_id.clone());
 
-    // Keep a clone of the command so a rejected token can be retried once after a
-    // token refresh.
-    let retry_mooc = mooc.clone();
-
-    match run_mooc_inner(mooc, &mut client) {
-        Err(error) if mooc_token_rejected(&error) => {
-            // On a 401, refresh the token once (under a file lock) and retry the
-            // command before falling back to deleting the credentials. Skipped
-            // when there were no credentials to begin with.
-            if let Some(rejected_access_token) = credentials.as_ref().map(|c| c.access_token()) {
-                if let Some(refreshed) = tmc_langs::MoocCredentials::refresh_after_401(
-                    &client_name,
-                    &root_url,
-                    &client_id,
-                    &rejected_access_token,
-                )? {
-                    log::debug!("refreshed mooc token after 401, retrying");
-                    client.set_token(refreshed.token());
-                    match run_mooc_inner(retry_mooc, &mut client) {
-                        Ok(output) => return Ok(output),
-                        // Only delete credentials if the retry was itself a token
-                        // rejection (mirrors the outer `mooc_token_rejected` gate).
-                        // A non-auth failure must not discard the fresh refresh.
-                        Err(retry_error) if mooc_token_rejected(&retry_error) => {
-                            log::error!(
-                                "mooc retry after refresh was still rejected, deleting credentials"
-                            );
-                            refreshed.remove()?;
-                            return Err(InvalidTokenError {
-                                source: retry_error,
-                            }
-                            .into());
-                        }
-                        Err(retry_error) => {
-                            log::error!(
-                                "mooc retry after refresh failed with a non-auth error, keeping credentials"
-                            );
-                            return Err(retry_error);
-                        }
-                    }
-                }
+    match run_mooc_inner(mooc, &client, &auth) {
+        Ok(output) => Ok(output),
+        Err(error) => {
+            // Each network call retries itself on a 401 (see
+            // `MoocCredentials::call_with_refresh`), so credentials are only deleted mid-call
+            // on a permanent rejection. Check that durable fact instead of the error's shape,
+            // which can get rewrapped on its way here.
+            if had_credentials && tmc_langs::MoocCredentials::load(&client_name)?.is_none() {
+                log::error!(
+                    "mooc credentials were deleted during the call, reporting invalid token"
+                );
+                return Err(InvalidTokenError { source: error }.into());
             }
-            // No credentials, nothing to refresh with, or the refresh failed (in
-            // which case `refresh_after_401` already deleted the file). Delete any
-            // remaining credentials and surface the invalid-token kind.
-            log::error!("mooc token was rejected, deleting credentials");
-            if let Some(credentials) = credentials {
-                // The file may already be gone if the refresh deleted it.
-                let _ = credentials.remove();
-            }
-            Err(InvalidTokenError { source: error }.into())
+            Err(error)
         }
-        output => output,
     }
 }
 
@@ -1342,7 +1288,7 @@ fn mooc_logout(client_name: &str) -> Result<CliOutput> {
     })))
 }
 
-fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
+fn run_mooc_inner(mooc: Mooc, client: &MoocClient, auth: &tmc_langs::MoocAuth) -> Result<CliOutput> {
     let client_name = &mooc.client_name;
 
     let output = match mooc.command {
@@ -1352,43 +1298,43 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
         }
         MoocCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let course = tmc_langs::check_mooc_exercise_updates(client, &projects_dir)?;
+            let course = tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?;
             CliOutput::finished_with_data(
                 "checked exercise updates",
                 DataKind::MoocUpdatedExercises(course),
             )
         }
         MoocCommand::Course { course_id } => {
-            let course = client.course(course_id)?;
+            let course = auth.call(client, |c| c.course(course_id))?;
             CliOutput::finished_with_data("fetched course", DataKind::MoocCourse(course))
         }
         MoocCommand::Courses => {
-            let course = client.courses()?;
+            let course = auth.call(client, |c| c.courses())?;
             CliOutput::finished_with_data("fetched course", DataKind::MoocCourses(course))
         }
         MoocCommand::CourseExercises { course_id } => {
-            let course_exercises = client.course_exercises(course_id)?;
+            let course_exercises = auth.call(client, |c| c.course_exercises(course_id))?;
             CliOutput::finished_with_data(
                 "fetched course exercises",
                 DataKind::MoocExerciseSlides(course_exercises),
             )
         }
         MoocCommand::CourseProgress { course_id } => {
-            let progress = client.course_progress(course_id)?;
+            let progress = auth.call(client, |c| c.course_progress(course_id))?;
             CliOutput::finished_with_data(
                 "fetched course progress",
                 DataKind::MoocCourseProgress(progress),
             )
         }
         MoocCommand::Exercise { exercise_id } => {
-            let exercise = client.exercise(exercise_id)?;
+            let exercise = auth.call(client, |c| c.exercise(exercise_id))?;
             CliOutput::finished_with_data("fetched exercise", DataKind::MoocExerciseSlide(exercise))
         }
         MoocCommand::DownloadExercise {
             exercise_id,
             target,
         } => {
-            let exercise = client.download_exercise(exercise_id)?;
+            let exercise = auth.call(client, |c| c.download_exercise(exercise_id))?;
             tmc_langs::extract_project(
                 Cursor::new(exercise),
                 &target,
@@ -1405,6 +1351,7 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
             let data = tmc_langs::download_or_update_mooc_course_exercises(
                 client,
+                auth,
                 &projects_dir,
                 &exercise_ids,
                 course_id,
@@ -1439,14 +1386,14 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 false,
             )?;
 
-            let result = client.submit_exercise(exercise_id, temp.path())?;
+            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
             if dont_block {
                 CliOutput::finished_with_data(
                     "submitted exercise",
                     DataKind::MoocSubmissionFinished(result),
                 )
             } else {
-                let status = wait_for_mooc_grading(client, result.submission_id)?;
+                let status = wait_for_mooc_grading(client, auth, result.submission_id)?;
                 CliOutput::finished_with_data(
                     "submitted exercise",
                     DataKind::MoocSubmissionStatus(status),
@@ -1454,7 +1401,7 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             }
         }
         MoocCommand::WaitForGrading { submission_id } => {
-            let status = wait_for_mooc_grading(client, submission_id)?;
+            let status = wait_for_mooc_grading(client, auth, submission_id)?;
             CliOutput::finished_with_data(
                 "waited for grading",
                 DataKind::MoocSubmissionStatus(status),
@@ -1480,10 +1427,12 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             // id, but sharing takes a SLIDE-submission id, so we can't share it
             // directly. Instead we list the exercise's submissions (newest first)
             // and share the one we just created — its `id` is the slide-submission
-            // id `share_submission` expects.
-            client.submit_exercise(exercise_id, temp.path())?;
-            let newest = client
-                .get_exercise_submissions(exercise_id)?
+            // id `share_submission` expects. Each request is refreshed-and-retried
+            // independently, so a 401 on the (idempotent) list or share step never
+            // re-runs the (non-idempotent) submit above.
+            auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
+            let newest = auth
+                .call(client, |c| c.get_exercise_submissions(exercise_id))?
                 .into_iter()
                 .next()
                 .ok_or_else(|| {
@@ -1491,11 +1440,11 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                         "no submission found for exercise {exercise_id} after submitting it"
                     )
                 })?;
-            let paste = client.share_submission(newest.id)?;
+            let paste = auth.call(client, |c| c.share_submission(newest.id))?;
             CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
         }
         MoocCommand::GetExerciseSubmissions { exercise_id } => {
-            let submissions = client.get_exercise_submissions(exercise_id)?;
+            let submissions = auth.call(client, |c| c.get_exercise_submissions(exercise_id))?;
             CliOutput::finished_with_data(
                 "fetched exercise submissions",
                 DataKind::MoocSubmissions(submissions),
@@ -1512,6 +1461,7 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
 
             tmc_langs::download_mooc_old_submission(
                 client,
+                auth,
                 exercise_id,
                 &output_path,
                 submission_id,
@@ -1529,12 +1479,18 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             let mut lock = Lock::dir(&exercise_path, LockOptions::Write)?;
             let _guard = lock.lock()?;
 
-            tmc_langs::reset_mooc_exercise(client, exercise_id, &exercise_path, save_old_state)?;
+            tmc_langs::reset_mooc_exercise(
+                client,
+                auth,
+                exercise_id,
+                &exercise_path,
+                save_old_state,
+            )?;
             CliOutput::finished("reset exercise")
         }
         MoocCommand::UpdateExercises => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
+            let res = tmc_langs::update_mooc_exercises(client, auth, &projects_dir)?;
             CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
         }
     };
@@ -1613,18 +1569,21 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
 /// updates as the TMC submit loop does. On timeout the latest non-terminal status
 /// is returned as data (not an error), so the caller can show "still grading"
 /// rather than treat the wait as a failure.
+///
+/// Each poll goes through [`tmc_langs::MoocAuth::call`], so a 401 is
+/// refreshed-and-retried transparently without resubmitting anything. Only a
+/// *permanent* auth failure aborts the wait immediately; anything else is
+/// treated as a transient poll error and retried until the deadline.
 fn wait_for_mooc_grading(
     client: &MoocClient,
+    auth: &tmc_langs::MoocAuth,
     submission_id: Uuid,
 ) -> Result<mooc::ExerciseTaskSubmissionStatus> {
     let (interval, timeout) = mooc_poll_config();
     progress_reporter::start_stage::<()>(1, "Waiting for grading".to_string(), None);
     let deadline = Instant::now() + timeout;
     loop {
-        // A transient poll error (network blip, 5xx) must not abort a submit that
-        // the backend has already recorded: keep polling until the deadline and
-        // only surface a persistent failure then.
-        match client.get_submission_grading(submission_id) {
+        match auth.call(client, |c| c.get_submission_grading(submission_id)) {
             Ok(status) => {
                 if mooc_grading_is_terminal(&status) {
                     progress_reporter::finish_stage::<()>(mooc_grading_message(&status), None);
@@ -1639,6 +1598,20 @@ fn wait_for_mooc_grading(
                 }
                 progress_reporter::progress_stage::<()>(mooc_grading_message(&status), None);
             }
+            // The token was permanently rejected: waiting any longer cannot
+            // help (there is no session left to poll with), so fail fast
+            // instead of burning the rest of the poll timeout.
+            Err(e) if e.is_permanent() => {
+                progress_reporter::finish_stage::<()>(
+                    "Grading status unavailable, stopped waiting".to_string(),
+                    None,
+                );
+                return Err(e.into());
+            }
+            // A transient poll error (network blip, 5xx, or a refresh that
+            // itself failed transiently) must not abort a submit that the
+            // backend has already recorded: keep polling until the deadline
+            // and only surface a persistent failure then.
             Err(e) => {
                 if Instant::now() >= deadline {
                     progress_reporter::finish_stage::<()>(

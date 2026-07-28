@@ -287,6 +287,150 @@ impl MoocCredentials {
             }
         }
     }
+
+    /// Runs `op` once; on an auth rejection (401 /
+    /// [`mooc::MoocClientError::NotAuthenticated`]), refreshes the stored
+    /// credentials and retries `op` exactly once against the refreshed token.
+    ///
+    /// Applied at the point of each network call rather than around a whole
+    /// multi-call subcommand, so a 401 on request N never causes requests
+    /// `1..N-1` to be repeated -- wrong for a non-idempotent request like
+    /// submitting an exercise. See [`MoocAuthFailure`] for the failure modes.
+    pub fn call_with_refresh<T>(
+        client_name: &str,
+        root_url: &Url,
+        client_id: &str,
+        client: &mooc::MoocClient,
+        mut op: impl FnMut(&mooc::MoocClient) -> mooc::MoocClientResult<T>,
+    ) -> Result<T, MoocAuthFailure> {
+        let err = match op(client) {
+            Ok(value) => return Ok(value),
+            Err(err) => err,
+        };
+        if !is_auth_rejection(&err) {
+            return Err(MoocAuthFailure::Other(err));
+        }
+
+        // Nothing to refresh with (no token was ever set on this client) --
+        // there is no path to recovery.
+        let Some(rejected_access_token) = client.access_token() else {
+            return Err(MoocAuthFailure::Permanent(err));
+        };
+
+        // Refresh, retrying once more if the refresh call itself fails
+        // transiently (a network blip talking to the token endpoint, not a
+        // rejection of the refresh token itself).
+        let mut refresh_result =
+            Self::refresh_after_401(client_name, root_url, client_id, &rejected_access_token);
+        if refresh_result.is_err() {
+            refresh_result =
+                Self::refresh_after_401(client_name, root_url, client_id, &rejected_access_token);
+        }
+
+        match refresh_result {
+            Ok(Some(refreshed)) => {
+                let mut refreshed_client = client.clone();
+                refreshed_client.set_token(refreshed.token());
+                match op(&refreshed_client) {
+                    Ok(value) => Ok(value),
+                    Err(retry_err) if is_auth_rejection(&retry_err) => {
+                        log::error!(
+                            "mooc call was still rejected after a token refresh, deleting credentials"
+                        );
+                        let _ = refreshed.remove();
+                        Err(MoocAuthFailure::Permanent(retry_err))
+                    }
+                    Err(retry_err) => Err(MoocAuthFailure::Other(retry_err)),
+                }
+            }
+            // Refresh permanently failed (the refresh token was rejected) or
+            // there was nothing to refresh with; `refresh_after_401` already
+            // deleted the credentials in that case.
+            Ok(None) => Err(MoocAuthFailure::Permanent(err)),
+            // The refresh call itself failed transiently, twice in a row.
+            // Credentials are untouched; surface the original rejection as a
+            // non-permanent failure so a later call can retry.
+            Err(_transient) => Err(MoocAuthFailure::Other(err)),
+        }
+    }
+}
+
+/// Whether a mooc client error indicates the token was rejected (401 or the
+/// dedicated `NotAuthenticated` variant).
+fn is_auth_rejection(err: &mooc::MoocClientError) -> bool {
+    matches!(err, mooc::MoocClientError::NotAuthenticated)
+        || matches!(err, mooc::MoocClientError::HttpError { status, .. } if status.as_u16() == 401)
+}
+
+/// Bundles the parameters [`MoocCredentials::call_with_refresh`] needs, so
+/// functions that make several mooc API calls can thread one value through
+/// instead of three loose ones.
+#[derive(Debug, Clone)]
+pub struct MoocAuth {
+    client_name: String,
+    root_url: Url,
+    client_id: String,
+}
+
+impl MoocAuth {
+    pub fn new(
+        client_name: impl Into<String>,
+        root_url: Url,
+        client_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            client_name: client_name.into(),
+            root_url,
+            client_id: client_id.into(),
+        }
+    }
+
+    /// Runs `op` once against `client`, refreshing and retrying once on an
+    /// auth rejection. See [`MoocCredentials::call_with_refresh`] for the full
+    /// contract.
+    pub fn call<T>(
+        &self,
+        client: &mooc::MoocClient,
+        op: impl FnMut(&mooc::MoocClient) -> mooc::MoocClientResult<T>,
+    ) -> Result<T, MoocAuthFailure> {
+        MoocCredentials::call_with_refresh(
+            &self.client_name,
+            &self.root_url,
+            &self.client_id,
+            client,
+            op,
+        )
+    }
+}
+
+/// The outcome of a failed [`MoocAuth::call`] / [`MoocCredentials::call_with_refresh`].
+#[derive(Debug, thiserror::Error)]
+pub enum MoocAuthFailure {
+    /// Rejected and refreshing didn't recover it (refresh token itself rejected, nothing to
+    /// refresh with, or the retry was rejected too). Credentials are already deleted.
+    #[error("mooc authentication was rejected and could not be refreshed: {0}")]
+    Permanent(#[source] Box<mooc::MoocClientError>),
+    /// Anything else -- an ordinary error from `op`, or a refresh that failed only transiently.
+    /// Safe to retry later; credentials are untouched.
+    #[error("{0}")]
+    Other(#[source] Box<mooc::MoocClientError>),
+}
+
+impl MoocAuthFailure {
+    /// Whether this is an unrecoverable auth failure (credentials already
+    /// deleted), as opposed to an ordinary or transient one that is safe to
+    /// retry.
+    pub fn is_permanent(&self) -> bool {
+        matches!(self, Self::Permanent(_))
+    }
+}
+
+impl From<MoocAuthFailure> for LangsError {
+    fn from(err: MoocAuthFailure) -> Self {
+        match err {
+            MoocAuthFailure::Permanent(e) | MoocAuthFailure::Other(e) => LangsError::MoocClient(e),
+        }
+    }
 }
 
 /// Reads and parses the credentials file under a shared read lock. The outer

@@ -250,4 +250,12 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     pub skipped: Vec<MoocExerciseDownload>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>)>>,
+    /// Exercises never attempted because the batch stopped early on a permanent auth
+    /// failure (see `stopped_for_auth`). Empty unless that happened.
+    #[serde(default)]
+    pub not_attempted: Vec<MoocExerciseDownload>,
+    /// True if a mooc token refresh permanently failed partway through the batch,
+    /// leaving `not_attempted` non-empty.
+    #[serde(default)]
+    pub stopped_for_auth: bool,
 }

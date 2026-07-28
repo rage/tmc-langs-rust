@@ -872,6 +872,98 @@ directory = "skip-me"
 }
 
 #[test]
+fn dispatches_update_exercises() {
+    // `update-exercises` takes no exercise ids: it scans the locally tracked
+    // mooc exercises' course configs and refreshes any whose server checksum
+    // changed, downloading the new stub archive in the process.
+    let mut server = mockito::Server::new();
+    let course_id = Uuid::new_v4();
+    let ex_stale = Uuid::new_v4();
+    let task_stale = Uuid::new_v4();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_root = tempfile::tempdir().unwrap();
+    // The CLI derives the projects dir as <root>/<client-name> ("test" here).
+    let projects_dir = projects_root.path().join("test");
+    // pre-seed the tracked exercise with a stale checksum
+    let course_config = projects_dir.join("mooc/course/course_config.toml");
+    std::fs::create_dir_all(course_config.parent().unwrap()).unwrap();
+    std::fs::write(
+        &course_config,
+        format!(
+            r#"
+course_id = "{course_id}"
+instance_id = "{course_id}"
+course = "Course"
+directory = "course"
+
+[exercises."{ex_stale}"]
+name = "Stale Exercise"
+task_id = "{task_stale}"
+checksum = "old checksum"
+directory = "stale-exercise"
+"#
+        ),
+    )
+    .unwrap();
+    std::fs::create_dir_all(projects_dir.join("mooc/course/stale-exercise")).unwrap();
+
+    let stub_url = format!("{}/files/updated.tar.zst", server.url());
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+        )
+        .with_body(
+            serde_json::json!([
+                {
+                    "slide_id": Uuid::new_v4(), "exercise_id": ex_stale,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "Stale Exercise", "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": task_stale, "order_number": 0, "assignment": [],
+                        "public_spec": {
+                            "type": "editor", "archive_name": "u.tar.zst",
+                            "stub_download_url": stub_url,
+                            "student_file_paths": ["src/main.py"], "checksum": "new checksum"
+                        },
+                        "model_solution_spec": null, "exercise_service_slug": "tmc"
+                    }],
+                }
+            ])
+            .to_string(),
+        )
+        .create();
+    server
+        .mock("GET", "/files/updated.tar.zst")
+        .with_body(make_tar_zst(&[("src/main.py", b"print('updated')")]))
+        .create();
+
+    let output = run_mooc_in(
+        &server,
+        &["update-exercises"],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+
+    match data_of(output) {
+        DataKind::MoocExerciseDownload(result) => {
+            assert_eq!(result.downloaded.len(), 1, "one downloaded");
+            assert_eq!(result.downloaded[0].exercise_id, ex_stale);
+            assert!(result.skipped.is_empty());
+            assert!(result.failed.is_none());
+        }
+        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    }
+
+    let extracted =
+        std::fs::read_to_string(projects_dir.join("mooc/course/stale-exercise/src/main.py"))
+            .unwrap();
+    assert_eq!(extracted, "print('updated')");
+}
+
+#[test]
 fn download_or_update_course_exercises_rejects_download_template() {
     // mooc has no template-vs-submission concept (the stub archive is the only
     // downloadable), so the bulk command rejects `--download-template`.
@@ -967,6 +1059,281 @@ fn download_or_update_course_exercises_with_course_id_skips_scan() {
         }
         other => panic!("expected MoocExerciseDownload, got {other:?}"),
     }
+}
+
+/// Mounts a `POST /api/v0/main-frontend/oauth/token` refresh endpoint that
+/// returns a rotated token pair. Mirrors `mock_refresh` in
+/// `mooc_credentials.rs`'s own tests.
+fn mock_oauth_refresh(server: &mut mockito::Server, new_access: &str, new_refresh: &str) -> mockito::Mock {
+    server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_body(
+            serde_json::json!({
+                "access_token": new_access,
+                "refresh_token": new_refresh,
+                "token_type": "bearer",
+                "expires_in": 3600,
+            })
+            .to_string(),
+        )
+        .create()
+}
+
+#[test]
+fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
+    // A 401 on one item's archive download whose refresh attempt itself fails
+    // transiently (a network blip talking to the token endpoint, not a
+    // rejection of the refresh token) must not abort the batch or the item:
+    // the refresh is retried once more by `call_with_refresh`, succeeds, and
+    // the failed item's download is retried in place. All five items must
+    // end up downloaded and the credentials must survive untouched.
+    let mut server = mockito::Server::new();
+    let course_id = Uuid::new_v4();
+    let exercise_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+    let task_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+    let stub_urls: Vec<String> = (0..5)
+        .map(|i| format!("{}/files/ex{i}.tar.zst", server.url()))
+        .collect();
+
+    let slides: Vec<serde_json::Value> = (0..5)
+        .map(|i| {
+            serde_json::json!({
+                "slide_id": Uuid::new_v4(), "exercise_id": exercise_ids[i], "course_id": course_id,
+                "exercise_name": format!("Exercise {i}"), "exercise_order_number": i,
+                "tasks": [{
+                    "task_id": task_ids[i], "order_number": 0, "assignment": [],
+                    "public_spec": {
+                        "type": "editor", "archive_name": format!("ex{i}.tar.zst"),
+                        "stub_download_url": stub_urls[i],
+                        "student_file_paths": ["src/main.py"], "checksum": format!("checksum-{i}")
+                    },
+                    "model_solution_spec": null, "exercise_service_slug": "tmc"
+                }],
+            })
+        })
+        .collect();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "id": course_id, "slug": "course", "name": "Course",
+                "description": null, "organization_name": "org",
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+        )
+        .with_body(serde_json::Value::Array(slides).to_string())
+        .create();
+
+    for (i, url) in stub_urls.iter().enumerate() {
+        if i == 2 {
+            continue; // item 3 (index 2) gets the special 401-then-success sequencing below
+        }
+        let path = url.strip_prefix(&server.url()).unwrap();
+        server
+            .mock("GET", path)
+            .with_body(make_tar_zst(&[(
+                "src/main.py",
+                format!("print('{i}')").as_bytes(),
+            )]))
+            .create();
+    }
+    let item3_path = stub_urls[2].strip_prefix(&server.url()).unwrap().to_string();
+    // Item 3's first download attempt is rejected...
+    server
+        .mock("GET", item3_path.as_str())
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect(1)
+        .create();
+    // ...and the retried download (after the refresh below) succeeds.
+    server
+        .mock("GET", item3_path.as_str())
+        .with_body(make_tar_zst(&[("src/main.py", b"print('2')")]))
+        .create();
+
+    // The refresh triggered by item 3's 401 fails transiently once...
+    server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_status(503)
+        .with_body("service unavailable")
+        .expect(1)
+        .create();
+    // ...then succeeds on the retry `call_with_refresh` makes in place.
+    let refresh_ok = mock_oauth_refresh(&mut server, "refreshed-access", "refreshed-refresh");
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_root = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+
+    let mut args = vec![
+        "download-or-update-course-exercises".to_string(),
+        "--course-id".to_string(),
+        course_id.to_string(),
+        "--exercise-id".to_string(),
+    ];
+    args.extend(exercise_ids.iter().map(Uuid::to_string));
+    let args: Vec<&str> = args.iter().map(String::as_str).collect();
+
+    let output = run_mooc_in(&server, &args, config_dir.path(), projects_root.path()).unwrap();
+
+    match data_of(output) {
+        DataKind::MoocExerciseDownload(result) => {
+            assert_eq!(
+                result.downloaded.len(),
+                5,
+                "all five exercises should end up downloaded: {result:?}"
+            );
+            assert!(result.failed.is_none(), "no failures expected: {result:?}");
+            assert!(result.not_attempted.is_empty());
+            assert!(!result.stopped_for_auth);
+        }
+        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    }
+    refresh_ok.assert();
+    assert!(
+        credentials_path.exists(),
+        "a transient refresh hiccup must not delete valid credentials"
+    );
+}
+
+#[test]
+fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
+    // A permanent refresh rejection (the refresh token itself is rejected) on
+    // item 3 of 5 must stop the batch there: items 1-2 stay downloaded, item 3
+    // is reported failed, items 4-5 are reported `not_attempted` (never
+    // tried), `stopped_for_auth` is set, and the credentials are deleted.
+    let mut server = mockito::Server::new();
+    let course_id = Uuid::new_v4();
+    let exercise_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+    let task_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
+    let stub_urls: Vec<String> = (0..5)
+        .map(|i| format!("{}/files/ex{i}.tar.zst", server.url()))
+        .collect();
+
+    let slides: Vec<serde_json::Value> = (0..5)
+        .map(|i| {
+            serde_json::json!({
+                "slide_id": Uuid::new_v4(), "exercise_id": exercise_ids[i], "course_id": course_id,
+                "exercise_name": format!("Exercise {i}"), "exercise_order_number": i,
+                "tasks": [{
+                    "task_id": task_ids[i], "order_number": 0, "assignment": [],
+                    "public_spec": {
+                        "type": "editor", "archive_name": format!("ex{i}.tar.zst"),
+                        "stub_download_url": stub_urls[i],
+                        "student_file_paths": ["src/main.py"], "checksum": format!("checksum-{i}")
+                    },
+                    "model_solution_spec": null, "exercise_service_slug": "tmc"
+                }],
+            })
+        })
+        .collect();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "id": course_id, "slug": "course", "name": "Course",
+                "description": null, "organization_name": "org",
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+        )
+        .with_body(serde_json::Value::Array(slides).to_string())
+        .create();
+
+    // Items 1-2 (index 0-1) download normally. Items 4-5 (index 3-4) are
+    // deliberately left unmocked: the batch must stop before ever reaching
+    // them, so a request there would mean a regression.
+    for (i, url) in stub_urls.iter().take(2).enumerate() {
+        let path = url.strip_prefix(&server.url()).unwrap();
+        server
+            .mock("GET", path)
+            .with_body(make_tar_zst(&[(
+                "src/main.py",
+                format!("print('{i}')").as_bytes(),
+            )]))
+            .create();
+    }
+    // Item 3 (index 2) is rejected...
+    let item3_path = stub_urls[2].strip_prefix(&server.url()).unwrap().to_string();
+    server
+        .mock("GET", item3_path.as_str())
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect(1)
+        .create();
+    // ...and the refresh triggered by that rejection is permanently denied.
+    let refresh_rejected = server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_status(400)
+        .with_body(r#"{"error":"invalid_grant"}"#)
+        .expect(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_root = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+
+    let mut args = vec![
+        "download-or-update-course-exercises".to_string(),
+        "--course-id".to_string(),
+        course_id.to_string(),
+        "--exercise-id".to_string(),
+    ];
+    args.extend(exercise_ids.iter().map(Uuid::to_string));
+    let args: Vec<&str> = args.iter().map(String::as_str).collect();
+
+    let output = run_mooc_in(&server, &args, config_dir.path(), projects_root.path()).unwrap();
+
+    match data_of(output) {
+        DataKind::MoocExerciseDownload(result) => {
+            assert_eq!(result.downloaded.len(), 2, "items 1-2: {result:?}");
+            let downloaded_ids: std::collections::HashSet<_> =
+                result.downloaded.iter().map(|d| d.exercise_id).collect();
+            assert_eq!(
+                downloaded_ids,
+                [exercise_ids[0], exercise_ids[1]].into_iter().collect()
+            );
+
+            let failed = result.failed.as_ref().expect("item 3 must be reported failed");
+            assert_eq!(failed.len(), 1);
+            assert_eq!(failed[0].0.exercise_id, exercise_ids[2]);
+
+            assert_eq!(result.not_attempted.len(), 2, "items 4-5: {result:?}");
+            let not_attempted_ids: std::collections::HashSet<_> =
+                result.not_attempted.iter().map(|d| d.exercise_id).collect();
+            assert_eq!(
+                not_attempted_ids,
+                [exercise_ids[3], exercise_ids[4]].into_iter().collect()
+            );
+
+            assert!(result.stopped_for_auth);
+        }
+        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    }
+    refresh_rejected.assert();
+    assert!(
+        !credentials_path.exists(),
+        "a permanently rejected refresh must delete the credentials"
+    );
 }
 
 #[test]
@@ -1240,6 +1607,174 @@ fn blocking_submit_errors_when_grading_fails_until_timeout() {
         40,
     );
     assert!(result.is_err(), "expected the blocking submit to fail");
+}
+
+/// Like [`run_mooc_in_expect_error`] but with an explicit grading poll
+/// interval and timeout, so a test proving a fast failure isn't defeated by
+/// the (real, minutes-long) default poll timeout.
+fn run_mooc_in_expect_error_with_poll(
+    server: &mockito::Server,
+    args: &[&str],
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+    poll_interval_ms: u64,
+    poll_timeout_ms: u64,
+) -> tmc_langs_cli::CliError {
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
+        std::env::set_var("TMC_LANGS_DEFAULT_PROJECTS_DIR", projects_dir);
+        std::env::set_var(
+            "TMC_LANGS_MOOC_POLL_INTERVAL_MS",
+            poll_interval_ms.to_string(),
+        );
+        std::env::set_var("TMC_LANGS_MOOC_POLL_TIMEOUT_MS", poll_timeout_ms.to_string());
+    }
+    let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
+    full.extend_from_slice(args);
+    let cli = Cli::parse_from(full);
+    tmc_langs_cli::run(cli).expect_err("expected the command to fail")
+}
+
+#[test]
+fn blocking_submit_transient_401_during_grading_poll_does_not_resubmit() {
+    // A 401 mid-poll (not on the initial submit) must be refreshed and
+    // retried in place by `call_with_refresh`: the poll resumes on the same
+    // submission id, and the backend must see exactly one create-submission
+    // POST, never a second one from replaying the whole `Submit` dispatch.
+    let mut server = mockito::Server::new();
+    let submission_id = "66666666-6666-6666-6666-666666666666";
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let submit = mock_submit(&mut server, submission_id);
+
+    // First poll: rejected.
+    let _rejected = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect(1)
+        .create();
+    // The refresh the 401 triggers succeeds.
+    let refresh = mock_oauth_refresh(&mut server, "refreshed-access", "refreshed-refresh");
+    // The retried poll (still inside the same `call_with_refresh` call):
+    // not graded yet.
+    let _pending = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(serde_json::json!("NoGradingYet").to_string())
+        .expect(1)
+        .create();
+    // A later, ordinary poll: fully graded.
+    let _graded = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(
+            serde_json::json!({
+                "Grading": {
+                    "grading_progress": "FullyGraded",
+                    "score_given": 1.0,
+                    "grading_started_at": "2026-07-21T00:00:00Z",
+                    "grading_completed_at": "2026-07-21T00:00:01Z",
+                    "feedback_json": null,
+                    "feedback_text": "All tests passed"
+                }
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+
+    let project = submittable_project();
+    let output = run_mooc_in(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    )
+    .unwrap();
+
+    let json = submission_status_json(output);
+    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
+
+    // Exactly one submission was ever created, despite the 401 mid-poll.
+    submit.assert();
+    refresh.assert();
+    assert!(
+        credentials_path.exists(),
+        "a transient auth hiccup mid-poll must not delete valid credentials"
+    );
+}
+
+#[test]
+fn blocking_submit_permanent_refresh_rejection_during_grading_poll_fails_fast() {
+    // A permanent refresh rejection mid-poll must abort the wait immediately
+    // -- not burn through the rest of the (potentially very long) poll
+    // timeout -- and must not have caused a second submission to be created.
+    let mut server = mockito::Server::new();
+    let submission_id = "77777777-7777-7777-7777-777777777777";
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let submit = mock_submit(&mut server, submission_id);
+
+    let _rejected = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect(1)
+        .create();
+    let refresh_rejected = server
+        .mock("POST", "/api/v0/main-frontend/oauth/token")
+        .with_status(400)
+        .with_body(r#"{"error":"invalid_grant"}"#)
+        .expect(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+
+    let project = submittable_project();
+    let start = std::time::Instant::now();
+    let error = run_mooc_in_expect_error_with_poll(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+        50,
+        // A poll timeout long enough that a regression to "wait it out"
+        // would make this test very obviously slow (and eventually fail
+        // outright with a plain timeout error, not an invalid-token one).
+        60_000,
+    );
+    let elapsed = start.elapsed();
+
+    assert!(
+        elapsed < std::time::Duration::from_secs(5),
+        "a permanent auth failure must fail fast, not wait out the poll timeout \
+         (took {elapsed:?})"
+    );
+    assert_error_kind(error, "invalid-token");
+    submit.assert();
+    refresh_rejected.assert();
+    assert!(
+        !credentials_path.exists(),
+        "a permanently rejected refresh must delete the credentials"
+    );
 }
 
 #[test]
@@ -1654,6 +2189,101 @@ fn download_old_submission_save_old_state_submits_first() {
     assert_eq!(
         std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
         "print('restored')"
+    );
+}
+
+#[test]
+fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubmit() {
+    // `--save-old-state` submits the current state, then downloads a fresh
+    // stub to reset with. A 401 on the download step (after the submit
+    // already succeeded) must be refreshed and retried in place: the submit
+    // must never be repeated.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+    let _slide = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect_at_least(1)
+        .create();
+    // The save-old-state submit: must happen exactly once.
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
+        )
+        .with_body(serde_json::json!({ "submission_id": Uuid::new_v4() }).to_string())
+        .create();
+    // The first download attempt (after the submit) is rejected...
+    let _rejected = server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .expect(1)
+        .create();
+    // ...the refresh it triggers succeeds...
+    let refresh = mock_oauth_refresh(&mut server, "refreshed-access", "refreshed-refresh");
+    // ...and the retried download succeeds.
+    server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_body(make_tar_zst(&[("src/main.py", b"print('fresh stub')")]))
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let credentials_path = write_valid_refreshable_credentials(config_dir.path());
+
+    // A valid, compressible project (python3 marker) so the save-old-state
+    // submit can package it.
+    let exercise_dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(exercise_dir.path().join("src")).unwrap();
+    std::fs::write(exercise_dir.path().join("requirements.txt"), b"").unwrap();
+    std::fs::write(
+        exercise_dir.path().join("src/main.py"),
+        b"print('current work')",
+    )
+    .unwrap();
+
+    let output = run_mooc_in(
+        &server,
+        &[
+            "reset-exercise",
+            "--exercise-id",
+            exercise_id,
+            "--exercise-path",
+            exercise_dir.path().to_str().unwrap(),
+            "--save-old-state",
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    )
+    .unwrap();
+
+    assert!(matches!(
+        output_data(output).result,
+        OutputResult::ExecutedCommand
+    ));
+    // Exactly one submit call, despite the retried download.
+    submit.assert();
+    refresh.assert();
+    assert_eq!(
+        std::fs::read_to_string(exercise_dir.path().join("src/main.py")).unwrap(),
+        "print('fresh stub')"
+    );
+    assert!(
+        credentials_path.exists(),
+        "a transient 401 recovered by a refresh must not delete credentials"
     );
 }
 

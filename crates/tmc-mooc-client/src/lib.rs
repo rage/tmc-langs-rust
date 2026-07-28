@@ -175,6 +175,17 @@ impl MoocClient {
             .write()
             .unwrap_or_else(|poisoned| poisoned.into_inner()) = Some(token);
     }
+
+    /// The access token secret currently set on this client, if any -- e.g. so a caller
+    /// that just got rejected knows which token to pass to a refresh call.
+    pub fn access_token(&self) -> Option<String> {
+        self.0
+            .token
+            .read()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .as_ref()
+            .map(|token| token.access_token().secret().clone())
+    }
 }
 
 /// API methods.
@@ -1542,6 +1553,29 @@ mod test {
                 assert_eq!(error, "internal server error");
             }
             other => panic!("expected HttpError, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn malformed_json_on_success_status_yields_deserializing_response_error() {
+        // `send_expect_bytes` only errors on a read failure, not on status, so a
+        // 2xx response with a non-JSON body reaches `serde_json::from_slice` in
+        // `send_expect_json` and must surface as `DeserializingResponse`, not
+        // silently succeed or panic.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let path = "/api/v0/exercise-services/client/courses";
+        server
+            .mock("GET", path)
+            .with_body("not valid json")
+            .create();
+        let err = client.courses().unwrap_err();
+        match *err {
+            MoocClientError::DeserializingResponse { url, .. } => {
+                assert_eq!(url.path(), path);
+            }
+            other => panic!("expected DeserializingResponse, got {other:?}"),
         }
     }
 

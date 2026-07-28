@@ -7,7 +7,7 @@ use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
     LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig,
-    TmcExerciseDownload, UpdatedExercise, mooc,
+    UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -17,6 +17,8 @@ use tmc_langs::{
         },
     },
 };
+#[cfg(test)]
+use tmc_langs::TmcExerciseDownload;
 use tmc_langs_util::progress_reporter::StatusUpdate;
 use uuid::Uuid;
 
@@ -199,12 +201,6 @@ pub enum Kind {
     /// The user is not enrolled on the course this exercise belongs to
     /// (backend `message_key: "not_enrolled"`, HTTP 422)
     NotEnrolled,
-    /// Failed to download some or all exercises
-    FailedExerciseDownload {
-        completed: Vec<TmcExerciseDownload>,
-        skipped: Vec<TmcExerciseDownload>,
-        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
-    },
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

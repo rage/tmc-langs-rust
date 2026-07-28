@@ -4,7 +4,7 @@ export type CliOutput = { "output-kind": "output-data" } & OutputData | { "outpu
 
 export type DataKind = { "output-data-kind": "error", "output-data": { kind: Kind, trace: Array<string>, } } | { "output-data-kind": "validation", "output-data": StyleValidationResult | null } | { "output-data-kind": "available-points", "output-data": Array<string> } | { "output-data-kind": "exercises", "output-data": Array<string> } | { "output-data-kind": "exercise-packaging-configuration", "output-data": ExercisePackagingConfiguration } | { "output-data-kind": "refresh-result", "output-data": RefreshData } | { "output-data-kind": "test-result", "output-data": RunResult } | { "output-data-kind": "exercise-desc", "output-data": ExerciseDesc } | { "output-data-kind": "updated-exercises", "output-data": Array<UpdatedExercise> } | { "output-data-kind": "mooc-exercise-download", "output-data": DownloadOrUpdateMoocCourseExercisesResult } | { "output-data-kind": "combined-course-data", "output-data": CombinedCourseData } | { "output-data-kind": "course-details", "output-data": CourseDetails } | { "output-data-kind": "course-exercises", "output-data": Array<CourseExercise> } | { "output-data-kind": "course-data", "output-data": CourseData } | { "output-data-kind": "courses", "output-data": Array<Course> } | { "output-data-kind": "exercise-details", "output-data": ExerciseDetails } | { "output-data-kind": "submissions", "output-data": Array<Submission> } | { "output-data-kind": "update-result", "output-data": UpdateResult } | { "output-data-kind": "organization", "output-data": Organization } | { "output-data-kind": "organizations", "output-data": Array<Organization> } | { "output-data-kind": "reviews", "output-data": Array<Review> } | { "output-data-kind": "token", "output-data": unknown } | { "output-data-kind": "new-submission", "output-data": NewSubmission } | { "output-data-kind": "submission-feedback-response", "output-data": SubmissionFeedbackResponse } | { "output-data-kind": "submission-finished", "output-data": SubmissionFinished } | { "output-data-kind": "config-value", "output-data": ConfigValue } | { "output-data-kind": "compressed-project-hash", "output-data": string } | { "output-data-kind": "submission-sandbox", "output-data": string } | { "output-data-kind": "local-tmc-exercises", "output-data": Array<LocalTmcExercise> } | { "output-data-kind": "tmc-exercise-download", "output-data": DownloadOrUpdateTmcCourseExercisesResult } | { "output-data-kind": "tmc-config", "output-data": TmcConfig } | { "output-data-kind": "mooc-updated-exercises", "output-data": Array<string> } | { "output-data-kind": "local-mooc-exercises", "output-data": Array<LocalMoocExercise> } | { "output-data-kind": "mooc-course", "output-data": MoocCourse } | { "output-data-kind": "mooc-courses", "output-data": Array<MoocCourse> } | { "output-data-kind": "mooc-exercise-slides", "output-data": Array<TmcExerciseSlide> } | { "output-data-kind": "mooc-exercise-slide", "output-data": TmcExerciseSlide } | { "output-data-kind": "mooc-submission-finished", "output-data": ExerciseTaskSubmissionResult } | { "output-data-kind": "mooc-submission-status", "output-data": ExerciseTaskSubmissionStatus } | { "output-data-kind": "mooc-submissions", "output-data": Array<ExerciseSlideSubmissionListItem> } | { "output-data-kind": "mooc-paste", "output-data": PasteResult } | { "output-data-kind": "mooc-course-progress", "output-data": CourseProgress };
 
-export type Kind = "generic" | "forbidden" | "not-logged-in" | "connection-error" | "obsolete-client" | "invalid-token" | "not-enrolled" | { "failed-exercise-download": { completed: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed: Array<[TmcExerciseDownload, Array<string>]>, } };
+export type Kind = "generic" | "forbidden" | "not-logged-in" | "connection-error" | "obsolete-client" | "invalid-token" | "not-enrolled";
 
 export type OutputData = { status: Status, message: string, result: OutputResult, data: DataKind | null, }
 
@@ -168,7 +168,17 @@ export type UpdatedExercise = { id: number, }
 
 export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
-export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>, }
+export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>,
+/**
+ * Exercises never attempted because the batch stopped early on a permanent auth
+ * failure (see `stopped_for_auth`). Empty unless that happened.
+ */
+not_attempted: Array<MoocExerciseDownload>,
+/**
+ * True if a mooc token refresh permanently failed partway through the batch,
+ * leaving `not_attempted` non-empty.
+ */
+stopped_for_auth: boolean, }
 
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
