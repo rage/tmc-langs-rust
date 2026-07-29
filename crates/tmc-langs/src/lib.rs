@@ -1442,7 +1442,13 @@ pub fn reset_mooc_exercise(
     if save_old_state {
         // submit the current state before resetting
         let temp = file_util::named_temp_file()?;
-        compress_project_to(exercise_path, temp.path(), Compression::TarZstd, false, false)?;
+        compress_project_to(
+            exercise_path,
+            temp.path(),
+            Compression::TarZstd,
+            false,
+            false,
+        )?;
         auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
         log::debug!("submitted current state before resetting exercise");
     }
@@ -2621,18 +2627,15 @@ checksum = 'new checksum'
         let auth = mock_mooc_auth(&server);
         reset_mooc_exercise(&client, &auth, exercise_id, exercise_dir.path(), false).unwrap();
 
-        let main =
-            file_util::read_file_to_string(exercise_dir.path().join("src/main.py")).unwrap();
+        let main = file_util::read_file_to_string(exercise_dir.path().join("src/main.py")).unwrap();
         assert_eq!(main, "print('fresh stub')");
         assert!(!exercise_dir.path().join("leftover.txt").exists());
     }
 
     #[test]
     fn reset_mooc_exercise_preserves_dir_on_extraction_failure() {
-        // Regression: reset used to clear the dir before extracting, so a corrupt
-        // archive left an empty/half-written dir with no recovery. Extraction is
-        // now staged and swapped in only on success, so a failure must leave the
-        // original dir untouched.
+        // Extraction is staged and swapped in only on success; a failure must
+        // leave the original dir untouched, never empty or half-written.
         init();
         let mut server = Server::new();
         let exercise_id = Uuid::new_v4();

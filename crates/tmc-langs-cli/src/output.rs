@@ -3,6 +3,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+#[cfg(test)]
+use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
@@ -17,8 +19,6 @@ use tmc_langs::{
         },
     },
 };
-#[cfg(test)]
-use tmc_langs::TmcExerciseDownload;
 use tmc_langs_util::progress_reporter::StatusUpdate;
 use uuid::Uuid;
 
@@ -353,11 +353,11 @@ mod test {
         let actual = serde_json::to_value(&status_update).unwrap();
         assert_eq!(actual["output-kind"], "status-update");
         assert_eq!(actual["update-data-kind"], "mooc-client-update-data");
-        assert_eq!(actual["data"]["client-update-data-kind"], "exercise-download");
         assert_eq!(
-            actual["data"]["id"],
-            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f"
+            actual["data"]["client-update-data-kind"],
+            "exercise-download"
         );
+        assert_eq!(actual["data"]["id"], "df5ee6c1-57d1-43b6-b39e-5d72119edb5f");
         assert_eq!(actual["data"]["path"], "some/path");
     }
 }

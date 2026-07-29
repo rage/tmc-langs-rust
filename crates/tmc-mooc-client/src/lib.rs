@@ -490,8 +490,8 @@ impl MoocRequest {
 
 /// The single field of the backend's `ApiErrorResponse` the client needs: the
 /// stable `message_key` identifying a controlled error. Deserialized leniently
-/// (missing/null key = `None`) so any non-conforming error body simply yields no
-/// key rather than failing.
+/// (missing/null key = `None`) so a non-conforming error body yields no key
+/// rather than failing.
 #[derive(Deserialize)]
 struct ApiErrorBody {
     #[serde(default)]

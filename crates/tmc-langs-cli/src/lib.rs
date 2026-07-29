@@ -166,8 +166,9 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         // relying on exactly how its `#[source]` link shapes the chain.
         if let Some(mooc_auth_err) = cause.downcast_ref::<tmc_langs::MoocAuthFailure>() {
             let inner = match mooc_auth_err {
-                tmc_langs::MoocAuthFailure::Permanent(e)
-                | tmc_langs::MoocAuthFailure::Other(e) => e.as_ref(),
+                tmc_langs::MoocAuthFailure::Permanent(e) | tmc_langs::MoocAuthFailure::Other(e) => {
+                    e.as_ref()
+                }
             };
             if let Some(kind) = mooc_error_kind(inner) {
                 return kind;
@@ -1288,7 +1289,11 @@ fn mooc_logout(client_name: &str) -> Result<CliOutput> {
     })))
 }
 
-fn run_mooc_inner(mooc: Mooc, client: &MoocClient, auth: &tmc_langs::MoocAuth) -> Result<CliOutput> {
+fn run_mooc_inner(
+    mooc: Mooc,
+    client: &MoocClient,
+    auth: &tmc_langs::MoocAuth,
+) -> Result<CliOutput> {
     let client_name = &mooc.client_name;
 
     let output = match mooc.command {

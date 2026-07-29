@@ -146,8 +146,8 @@ impl MoocCredentials {
     /// so the caller proceeds unauthenticated and hits the usual "not logged in"
     /// path. A *transient* failure (connection error, timeout, 5xx, unparseable
     /// response) leaves the file untouched and returns `Err`, so the command
-    /// fails with a connection-error kind and the user can simply retry without
-    /// being logged out.
+    /// fails with a connection-error kind and the user can retry without being
+    /// logged out.
     pub fn load_valid(
         client_name: &str,
         root_url: &Url,
@@ -747,8 +747,8 @@ mod test {
     #[test]
     fn load_valid_keeps_credentials_on_transient_refresh_failure() {
         // A transient failure (here a 503) must NOT delete the credentials or log
-        // the user out: it surfaces an error the user can simply retry, and a
-        // later refresh against a healthy backend reuses the retained token.
+        // the user out: it surfaces a retryable error, and a later refresh
+        // against a healthy backend reuses the retained token.
         let _guard = env_lock();
         let config_dir = tempfile::tempdir().unwrap();
         set_config_dir(config_dir.path());

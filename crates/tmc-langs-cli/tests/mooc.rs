@@ -1064,7 +1064,11 @@ fn download_or_update_course_exercises_with_course_id_skips_scan() {
 /// Mounts a `POST /api/v0/main-frontend/oauth/token` refresh endpoint that
 /// returns a rotated token pair. Mirrors `mock_refresh` in
 /// `mooc_credentials.rs`'s own tests.
-fn mock_oauth_refresh(server: &mut mockito::Server, new_access: &str, new_refresh: &str) -> mockito::Mock {
+fn mock_oauth_refresh(
+    server: &mut mockito::Server,
+    new_access: &str,
+    new_refresh: &str,
+) -> mockito::Mock {
     server
         .mock("POST", "/api/v0/main-frontend/oauth/token")
         .with_body(
@@ -1147,7 +1151,10 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
             )]))
             .create();
     }
-    let item3_path = stub_urls[2].strip_prefix(&server.url()).unwrap().to_string();
+    let item3_path = stub_urls[2]
+        .strip_prefix(&server.url())
+        .unwrap()
+        .to_string();
     // Item 3's first download attempt is rejected...
     server
         .mock("GET", item3_path.as_str())
@@ -1273,7 +1280,10 @@ fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
             .create();
     }
     // Item 3 (index 2) is rejected...
-    let item3_path = stub_urls[2].strip_prefix(&server.url()).unwrap().to_string();
+    let item3_path = stub_urls[2]
+        .strip_prefix(&server.url())
+        .unwrap()
+        .to_string();
     server
         .mock("GET", item3_path.as_str())
         .with_status(401)
@@ -1313,7 +1323,10 @@ fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
                 [exercise_ids[0], exercise_ids[1]].into_iter().collect()
             );
 
-            let failed = result.failed.as_ref().expect("item 3 must be reported failed");
+            let failed = result
+                .failed
+                .as_ref()
+                .expect("item 3 must be reported failed");
             assert_eq!(failed.len(), 1);
             assert_eq!(failed[0].0.exercise_id, exercise_ids[2]);
 
@@ -1630,7 +1643,10 @@ fn run_mooc_in_expect_error_with_poll(
             "TMC_LANGS_MOOC_POLL_INTERVAL_MS",
             poll_interval_ms.to_string(),
         );
-        std::env::set_var("TMC_LANGS_MOOC_POLL_TIMEOUT_MS", poll_timeout_ms.to_string());
+        std::env::set_var(
+            "TMC_LANGS_MOOC_POLL_TIMEOUT_MS",
+            poll_timeout_ms.to_string(),
+        );
     }
     let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
     full.extend_from_slice(args);

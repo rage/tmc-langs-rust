@@ -320,7 +320,7 @@ fn http_error(response: reqwest::blocking::Response, url: Url) -> Box<MoocClient
 }
 
 /// The single field of an RFC 6749 / RFC 8628 error response the poll loop
-/// needs. Parsed leniently so a non-conforming body simply yields `None`.
+/// needs. Parsed leniently so a non-conforming body yields `None`.
 #[derive(Deserialize)]
 struct OAuthErrorBody {
     #[serde(default)]
