@@ -7,6 +7,7 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
+use tmc_langs::MoocCredentials;
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -110,7 +111,8 @@ fn run_mooc_in_expect_error(
     tmc_langs_cli::run(cli).expect_err("expected the command to fail")
 }
 
-/// Writes a `credentials_mooc.json` for `--client-name test` into `config_dir`,
+/// Writes this machine's mooc credentials file for `--client-name test` into
+/// `config_dir`,
 /// as a successful mooc login would, so a rejected-token path has a file to
 /// delete. The wrapper mirrors the stored `{token, obtained_at}` shape; the
 /// token carries no refresh token, so a 401 falls straight through to deletion
@@ -118,7 +120,7 @@ fn run_mooc_in_expect_error(
 fn write_test_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("credentials_mooc.json");
+    let path = dir.join(MoocCredentials::credentials_file_name());
     std::fs::write(
         &path,
         serde_json::json!({
@@ -135,12 +137,12 @@ fn write_test_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     path
 }
 
-/// Writes an *expired* `credentials_mooc.json` that still carries a refresh
+/// Writes an *expired* credentials file that still carries a refresh
 /// token, so loading it triggers the proactive refresh path.
 fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("credentials_mooc.json");
+    let path = dir.join(MoocCredentials::credentials_file_name());
     std::fs::write(
         &path,
         serde_json::json!({
@@ -160,13 +162,13 @@ fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::p
     path
 }
 
-/// Writes a *valid* (not expired) `credentials_mooc.json`, so the first request
+/// Writes a *valid* (not expired) credentials file, so the first request
 /// uses the stored token (no proactive refresh) and a 401 on it triggers the
 /// on-401 refresh-then-retry path.
 fn write_valid_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("credentials_mooc.json");
+    let path = dir.join(MoocCredentials::credentials_file_name());
     std::fs::write(
         &path,
         serde_json::json!({
@@ -2458,10 +2460,13 @@ fn mooc_login_pending_slow_down_then_success() {
     assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
 
     // The issued token pair was persisted in the wrapper shape.
-    let creds_path = config_dir.path().join("tmc-test/credentials_mooc.json");
+    let creds_path = config_dir
+        .path()
+        .join("tmc-test")
+        .join(MoocCredentials::credentials_file_name());
     assert!(
         creds_path.exists(),
-        "login should save credentials_mooc.json"
+        "login should save this machine's credentials file"
     );
     let stored: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&creds_path).unwrap()).unwrap();
@@ -2488,7 +2493,8 @@ fn mooc_login_denied_maps_to_not_logged_in() {
     assert!(
         !config_dir
             .path()
-            .join("tmc-test/credentials_mooc.json")
+            .join("tmc-test")
+            .join(MoocCredentials::credentials_file_name())
             .exists(),
         "a failed login must not persist credentials"
     );

@@ -8,9 +8,9 @@ mod exercise;
 
 pub use self::{
     auth::{
-        DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE, DEVICE_SCOPE,
-        DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization, poll_device_token,
-        refresh_token,
+        AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
+        DEVICE_SCOPE, DeviceAuthorizationResponse, DeviceTokenPoll, device_authorization,
+        poll_device_token, refresh_token,
     },
     error::{MoocClientError, MoocClientResult},
     exercise::{
@@ -191,7 +191,7 @@ impl MoocClient {
 /// API methods.
 impl MoocClient {
     pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
-        let url = make_client_api_url(self, &format!("courses/{course_id}"))?;
+        let url = make_client_api_url(self, format!("courses/{course_id}"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::Course>()?;
@@ -397,11 +397,6 @@ struct MoocRequest {
 }
 
 impl MoocRequest {
-    fn json<T: Serialize>(mut self, json: &T) -> Self {
-        self.builder = self.builder.json(json);
-        self
-    }
-
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
