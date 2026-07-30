@@ -5,7 +5,7 @@ use std::{
 };
 use tempfile::{NamedTempFile, TempDir};
 use tmc_langs::{Compression, LangsError, RunStatus, file_util};
-use tmc_testmycode_client::TestMyCodeClient;
+use tmc_testmycode_client::{TestMyCodeClient, Token, TokenSource, oauth2};
 
 #[test]
 #[ignore = "\
@@ -29,9 +29,16 @@ fn test_policies_on_course_exercises() {
     )
     .unwrap();
 
-    let email = "daniel.x.martinez@helsinki.fi".to_string();
-    let pass = rpassword::prompt_password("password").unwrap();
-    client.authenticate(email, pass).unwrap();
+    // No password grant any more; paste an access token tmc-server accepts.
+    let access_token = rpassword::prompt_password("access token").unwrap();
+    client.set_token(
+        Token::new(
+            oauth2::AccessToken::new(access_token),
+            oauth2::basic::BasicTokenType::Bearer,
+            oauth2::EmptyExtraTokenFields {},
+        ),
+        TokenSource::Tmc,
+    );
 
     let root = Path::new("../../test-cache");
     let solutions_dir = root.join("solutions");

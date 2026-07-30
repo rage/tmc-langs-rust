@@ -767,16 +767,12 @@ mod test {
     use super::*;
     use mockito::{Matcher, Server};
     use oauth2::{AccessToken, EmptyExtraTokenFields, RefreshToken, basic::BasicTokenType};
-    use std::sync::{Mutex, MutexGuard};
     use std::time::Duration;
 
     // The credentials path is derived from `TMC_LANGS_CONFIG_DIR`, a process-wide
-    // env var, so tests that set it run under a shared lock.
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
-
-    fn env_lock() -> MutexGuard<'static, ()> {
-        ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
-    }
+    // env var, so tests that set it run under a lock shared with the crate's
+    // other env-dependent tests.
+    use crate::config::env_lock;
 
     fn set_config_dir(dir: &Path) {
         // SAFETY: all env access in these tests is serialized by ENV_LOCK.

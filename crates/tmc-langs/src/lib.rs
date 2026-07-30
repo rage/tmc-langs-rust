@@ -28,9 +28,6 @@ pub use crate::{
 };
 use jwt_simple::prelude::*;
 // use heim::disk;
-use oauth2::{
-    AccessToken, EmptyExtraTokenFields, Scope, StandardTokenResponse, basic::BasicTokenType,
-};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -608,51 +605,116 @@ pub fn get_course_data(
     })
 }
 
-/// Creates a login Token from a token string.
-pub fn login_with_token(token: String) -> tmc::Token {
-    log::debug!("creating token from token string");
+/// tmc-server hosts that may be handed a courses.mooc.fi access token.
+///
+/// The tmc root URL is taken from the environment, so it is not by itself
+/// evidence that the host really is tmc-server. Restricting the reuse of the mooc
+/// access token to this list means a redirected root URL cannot turn a tmc
+/// command into a token handover.
+const TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN: &[&str] = &["tmc.mooc.fi"];
 
-    let mut token_response = StandardTokenResponse::new(
-        AccessToken::new(token),
-        BasicTokenType::Bearer,
-        EmptyExtraTokenFields {},
-    );
-    token_response.set_scopes(Some(vec![Scope::new("public".to_string())]));
-    token_response
+/// See [`TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN`]. Loopback is allowed only under the
+/// same opt-in the mooc client uses, so a mock or a locally served backend can
+/// exercise the path without production ever trusting a local host implicitly.
+fn tmc_host_may_receive_mooc_token(root_url: &Url) -> bool {
+    let Some(host) = root_url.host_str() else {
+        return false;
+    };
+    if TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN.contains(&host) {
+        // A bearer for a second backend must not cross the network in plaintext.
+        return root_url.scheme() == "https";
+    }
+    mooc::trust_localhost() && matches!(host, "localhost" | "127.0.0.1" | "[::1]")
 }
 
-/// Authenticates with the server, returning a login Token.
-/// Reads the password from stdin.
-pub fn login_with_password(
-    client: &mut tmc::TestMyCodeClient,
-    email: String,
-    password: String,
-) -> Result<tmc::Token, LangsError> {
-    log::debug!("logging in with password");
-    let token = client.authenticate(email, password)?;
-    Ok(token)
+/// Which credential authenticates a [`tmc::TestMyCodeClient`].
+///
+/// New tmc-server logins no longer exist, so there are only two sources: a token
+/// stored by an older version, and the courses.mooc.fi access token that
+/// tmc-server accepts by introspecting it.
+#[derive(Debug)]
+pub enum TestMyCodeAuth {
+    /// A tmc-server token from the legacy `credentials.json`.
+    StoredTmc(Credentials),
+    /// The courses.mooc.fi access token.
+    Mooc(tmc::Token),
+    /// No usable credential; only unauthenticated endpoints will work.
+    Unauthenticated,
 }
 
-/// Initializes a TestMyCodeClient, using and returning the stored credentials, if any.
+impl TestMyCodeAuth {
+    /// The token the client was given, for reporting login status.
+    pub fn token(&self) -> Option<tmc::Token> {
+        match self {
+            Self::StoredTmc(credentials) => Some(credentials.token()),
+            Self::Mooc(token) => Some(token.clone()),
+            Self::Unauthenticated => None,
+        }
+    }
+
+    /// Takes the stored tmc credentials out, leaving the value unauthenticated.
+    ///
+    /// Used by the 401 handling, which may delete a rejected *tmc* token but must
+    /// never touch the mooc credentials: tmc-server rejecting a mooc token says
+    /// nothing about that token's validity at courses.mooc.fi (it may simply not
+    /// be accepting them), so deleting it would log the user out of the backend
+    /// that actually issued it.
+    pub fn take_stored_tmc(&mut self) -> Option<Credentials> {
+        match std::mem::replace(self, Self::Unauthenticated) {
+            Self::StoredTmc(credentials) => Some(credentials),
+            other => {
+                *self = other;
+                None
+            }
+        }
+    }
+}
+
+/// Initializes a TestMyCodeClient with whichever credential authenticates it.
+///
+/// Precedence is deliberate: a stored tmc `credentials.json` wins while it
+/// exists, so a user who logged in with a password before that flow was removed
+/// keeps working until tmc-server rejects the token. The 401 handling then
+/// deletes the file, and the next invocation falls through to the mooc access
+/// token. The mooc token is only used when there is no stored tmc token at all,
+/// so this never changes the credential under a session that still works.
+///
+/// `mooc_root_url` and `mooc_client_id` are needed to refresh the mooc token, the
+/// same way [`init_mooc_client_with_credentials`] does.
 pub fn init_testmycode_client_with_credentials(
     root_url: Url,
     client_name: &str,
     client_version: &str,
-) -> Result<(tmc::TestMyCodeClient, Option<Credentials>), LangsError> {
-    // create client
+    mooc_root_url: &Url,
+    mooc_client_id: &str,
+) -> Result<(tmc::TestMyCodeClient, TestMyCodeAuth), LangsError> {
     let mut client = tmc::TestMyCodeClient::new(
-        root_url,
+        root_url.clone(),
         client_name.to_string(),
         client_version.to_string(),
     )?;
 
-    // set token from the credentials file if one exists
-    let credentials = Credentials::load(client_name)?;
-    if let Some(credentials) = &credentials {
-        client.set_token(credentials.token());
+    if let Some(credentials) = Credentials::load(client_name)? {
+        client.set_token(credentials.token(), tmc::TokenSource::Tmc);
+        return Ok((client, TestMyCodeAuth::StoredTmc(credentials)));
     }
 
-    Ok((client, credentials))
+    if !tmc_host_may_receive_mooc_token(&root_url) {
+        log::warn!(
+            "not authenticating with {root_url} using the courses.mooc.fi access token: \
+             the host is not trusted with it"
+        );
+        return Ok((client, TestMyCodeAuth::Unauthenticated));
+    }
+
+    let Some(mooc_credentials) =
+        MoocCredentials::load_valid(client_name, mooc_root_url, mooc_client_id)?
+    else {
+        return Ok((client, TestMyCodeAuth::Unauthenticated));
+    };
+    let token = mooc_credentials.token();
+    client.set_token(token.clone(), tmc::TokenSource::Mooc);
+    Ok((client, TestMyCodeAuth::Mooc(token)))
 }
 
 /// Initializes a MoocClient, using and returning the stored credentials, if any.
@@ -1776,6 +1838,7 @@ fn get_default_sandbox_image(path: &Path) -> Result<&'static str, LangsError> {
 mod test {
     use super::*;
     use mockito::Server;
+    use oauth2::{AccessToken, EmptyExtraTokenFields, TokenResponse, basic::BasicTokenType};
     use std::io::Write;
     use tmc_testmycode_client::response::ExercisesDetails;
     use zip::write::SimpleFileOptions;
@@ -1816,7 +1879,7 @@ mod test {
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        client.set_token(token);
+        client.set_token(token, tmc::TokenSource::Tmc);
         client
     }
 
@@ -2945,5 +3008,178 @@ directory = "skip-me"
         assert_eq!(result.downloaded[0].exercise_id, ex_new);
         let reloaded = ProjectsConfig::load(projects_dir.path()).unwrap();
         assert!(reloaded.get_mooc_exercise(course_id, ex_new).is_some());
+    }
+    /// Serializes the env-dependent auth tests with the crate's other
+    /// `TMC_LANGS_CONFIG_DIR` users.
+    fn auth_env(config_dir: &Path, trust_localhost: bool) -> std::sync::MutexGuard<'static, ()> {
+        let guard = crate::config::env_lock();
+        // SAFETY: every read/write of these vars in the crate's tests is
+        // serialized by `config::env_lock`.
+        unsafe {
+            std::env::set_var(TMC_LANGS_CONFIG_DIR_VAR, config_dir);
+            if trust_localhost {
+                std::env::set_var(mooc::TRUST_LOCALHOST_VAR, "1");
+            } else {
+                std::env::remove_var(mooc::TRUST_LOCALHOST_VAR);
+            }
+        }
+        guard
+    }
+
+    fn token(access: &str) -> tmc::Token {
+        let mut token = tmc::Token::new(
+            AccessToken::new(access.to_string()),
+            BasicTokenType::Bearer,
+            EmptyExtraTokenFields {},
+        );
+        token.set_expires_in(Some(&std::time::Duration::from_secs(3600)));
+        token
+    }
+
+    /// Writes the legacy tmc `credentials.json` the way a version that still had
+    /// a password login would have.
+    fn write_stored_tmc_credentials(client_name: &str, access: &str) {
+        let path = crate::config::get_tmc_dir(client_name)
+            .unwrap()
+            .join("credentials.json");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, serde_json::to_vec(&token(access)).unwrap()).unwrap();
+    }
+
+    fn init_tmc_client(
+        tmc_root: &str,
+        client_name: &str,
+    ) -> (tmc::TestMyCodeClient, TestMyCodeAuth) {
+        init_testmycode_client_with_credentials(
+            tmc_root.parse().unwrap(),
+            client_name,
+            "version",
+            // Unused unless a refresh is needed, and the seeded tokens are valid.
+            &"http://localhost:1/".parse().unwrap(),
+            "test-client",
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn a_stored_tmc_credential_takes_precedence_over_the_mooc_token() {
+        let config_dir = tempfile::tempdir().unwrap();
+        let _env = auth_env(config_dir.path(), true);
+
+        write_stored_tmc_credentials("prec-tmc-wins", "stored-tmc-token");
+        MoocCredentials::save("prec-tmc-wins", token("mooc-token")).unwrap();
+
+        let (_client, auth) = init_tmc_client("http://localhost:4001/", "prec-tmc-wins");
+        assert!(
+            matches!(auth, TestMyCodeAuth::StoredTmc(_)),
+            "a still-present tmc credential must keep working, got {auth:?}"
+        );
+        assert_eq!(
+            auth.token().unwrap().access_token().secret(),
+            "stored-tmc-token"
+        );
+    }
+
+    #[test]
+    fn the_mooc_token_is_used_when_there_is_no_stored_tmc_credential() {
+        let config_dir = tempfile::tempdir().unwrap();
+        let _env = auth_env(config_dir.path(), true);
+
+        MoocCredentials::save("prec-mooc-only", token("mooc-token")).unwrap();
+
+        let (_client, auth) = init_tmc_client("http://localhost:4001/", "prec-mooc-only");
+        assert!(
+            matches!(auth, TestMyCodeAuth::Mooc(_)),
+            "the mooc token should authenticate tmc commands, got {auth:?}"
+        );
+        assert_eq!(auth.token().unwrap().access_token().secret(), "mooc-token");
+    }
+
+    #[test]
+    fn no_credential_at_all_leaves_the_client_unauthenticated() {
+        let config_dir = tempfile::tempdir().unwrap();
+        let _env = auth_env(config_dir.path(), true);
+
+        let (_client, auth) = init_tmc_client("http://localhost:4001/", "prec-none");
+        assert!(matches!(auth, TestMyCodeAuth::Unauthenticated));
+        assert!(auth.token().is_none());
+    }
+
+    #[test]
+    fn the_mooc_token_is_withheld_from_an_untrusted_tmc_host() {
+        let config_dir = tempfile::tempdir().unwrap();
+        let _env = auth_env(config_dir.path(), true);
+
+        MoocCredentials::save("prec-untrusted", token("mooc-token")).unwrap();
+
+        // The tmc root URL comes from the environment, so pointing it elsewhere
+        // must not hand the mooc access token to that host.
+        for root in [
+            "https://attacker.example/",
+            "https://tmc.mooc.fi.attacker.example/",
+            "http://tmc.mooc.fi/",
+        ] {
+            let (_client, auth) = init_tmc_client(root, "prec-untrusted");
+            assert!(
+                matches!(auth, TestMyCodeAuth::Unauthenticated),
+                "the mooc token must not be used against {root}, got {auth:?}"
+            );
+        }
+        // And the credentials themselves are untouched.
+        assert!(MoocCredentials::load("prec-untrusted").unwrap().is_some());
+    }
+
+    #[test]
+    fn loopback_is_trusted_with_the_mooc_token_only_under_the_opt_in() {
+        let config_dir = tempfile::tempdir().unwrap();
+
+        {
+            let _env = auth_env(config_dir.path(), false);
+            MoocCredentials::save("prec-loopback", token("mooc-token")).unwrap();
+            let (_client, auth) = init_tmc_client("http://localhost:4001/", "prec-loopback");
+            assert!(
+                matches!(auth, TestMyCodeAuth::Unauthenticated),
+                "production must not implicitly trust a local host, got {auth:?}"
+            );
+        }
+        {
+            let _env = auth_env(config_dir.path(), true);
+            let (_client, auth) = init_tmc_client("http://localhost:4001/", "prec-loopback");
+            assert!(matches!(auth, TestMyCodeAuth::Mooc(_)));
+        }
+    }
+
+    #[test]
+    fn production_tmc_over_https_is_trusted_with_the_mooc_token() {
+        let _env = crate::config::env_lock();
+        assert!(tmc_host_may_receive_mooc_token(
+            &"https://tmc.mooc.fi/".parse().unwrap()
+        ));
+        // Never in plaintext, and never a host that merely looks like it.
+        assert!(!tmc_host_may_receive_mooc_token(
+            &"http://tmc.mooc.fi/".parse().unwrap()
+        ));
+        assert!(!tmc_host_may_receive_mooc_token(
+            &"https://evil.tmc.mooc.fi/".parse().unwrap()
+        ));
+        assert!(!tmc_host_may_receive_mooc_token(
+            &"file:///etc/passwd".parse().unwrap()
+        ));
+    }
+
+    #[test]
+    fn the_401_handler_can_only_delete_a_stored_tmc_credential() {
+        // tmc-server rejecting a mooc token says nothing about that token's
+        // validity at courses.mooc.fi, so the 401 path must find nothing to
+        // delete.
+        let mut auth = TestMyCodeAuth::Mooc(token("mooc-token"));
+        assert!(auth.take_stored_tmc().is_none());
+        assert!(
+            auth.token().is_some(),
+            "the mooc token must survive the attempt"
+        );
+
+        let mut auth = TestMyCodeAuth::Unauthenticated;
+        assert!(auth.take_stored_tmc().is_none());
     }
 }

@@ -135,7 +135,7 @@ pub enum Command {
 
     /// Returns a list of local exercises for the given course
     #[clap(long_about = schema_leaked::<Vec<LocalExercise>>())]
-    ListLocalCourseExercises {
+    ListLocalTmcCourseExercises {
         /// The client name of which the exercises should be listed.
         #[clap(long)]
         client_name: String,
@@ -410,29 +410,14 @@ pub enum TestMyCodeCommand {
         course_id: u32,
     },
 
-    /// Checks if the CLI is authenticated. Prints the access token if so
+    /// Checks whether the CLI can authenticate with the TMC server, either with a
+    /// stored TMC token or with the Courses MOOC access token. Prints the access
+    /// token if so
     #[clap(long_about = SCHEMA_TOKEN)]
     LoggedIn,
 
-    /// Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token
-    #[clap(long_about = SCHEMA_NULL)]
-    Login {
-        /// If set, the password is expected to be a base64 encoded string. This can be useful if the password contains special characters.
-        #[clap(long)]
-        base64: bool,
-        /// The email address of your TMC account. The password will be read through stdin.
-        #[clap(long, required_unless_present = "set_access_token")]
-        email: Option<String>,
-        /// The OAUTH2 access token that should be used for authentication.
-        #[clap(long, required_unless_present = "email")]
-        set_access_token: Option<String>,
-        /// If set, the password will be read from stdin instead of TTY like usual.
-        /// The keyboard input is not hidden in this case, so this should only be used when running the CLI programmatically.
-        #[clap(long)]
-        stdin: bool,
-    },
-
-    /// Logs out and removes the OAuth2 token from config
+    /// Removes a stored TMC OAuth2 token from config. Does not affect the Courses
+    /// MOOC credentials; use `mooc logout` for those
     #[clap(long_about = SCHEMA_NULL)]
     Logout,
 
@@ -895,9 +880,11 @@ mod base_test {
     }
 
     #[test]
-    fn list_local_course_exercises() {
+    fn list_local_tmc_course_exercises() {
+        // The released spelling. Renaming a legacy command breaks every client
+        // pinned to an older CLI, so this name is fixed.
         get_matches(&[
-            "list-local-course-exercises",
+            "list-local-tmc-course-exercises",
             "--client-name",
             "client",
             "--course-slug",
@@ -1131,15 +1118,20 @@ mod core_test {
     }
 
     #[test]
-    fn login() {
-        get_matches_tmc(&[
+    fn no_login_command() {
+        // A new tmc username/password login no longer exists; a client
+        // authenticates with a stored tmc token or the Courses MOOC one.
+        Cli::try_parse_from([
+            "tmc-langs-cli",
+            "tmc",
+            "--client-name",
+            "client",
+            "--client-version",
+            "version",
             "login",
-            "--base64",
-            "--email",
-            "email",
-            "--set-access-token",
-            "access token",
-        ]);
+        ])
+        .err()
+        .expect("`tmc login` must not be accepted");
     }
 
     #[test]

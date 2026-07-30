@@ -20,14 +20,14 @@ use serde_json::Value;
 use std::{
     collections::HashMap,
     env,
-    io::{self, BufReader, Cursor, Read},
+    io::{self, Cursor, Read},
     path::{Path, PathBuf},
     thread,
     time::{Duration, Instant},
 };
 use tmc_langs::{
-    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult, LangsError,
-    Language, StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml, UpdatedExercise,
+    CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult, LangsError, Language,
+    StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{self, MoocClient, MoocClientError},
     progress_reporter,
@@ -383,7 +383,7 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
-        Command::ListLocalCourseExercises {
+        Command::ListLocalTmcCourseExercises {
             client_name,
             course_slug,
         } => {
@@ -639,10 +639,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
         .context("Invalid TMC root url")?;
-    let (mut client, mut credentials) =
-        tmc_langs::init_testmycode_client_with_credentials(root_url, client_name, client_version)?;
+    let mooc_root_url = mooc_root_url()?;
+    let mooc_client_id = mooc_client_id();
+    let (mut client, mut auth) = tmc_langs::init_testmycode_client_with_credentials(
+        root_url,
+        client_name,
+        client_version,
+        &mooc_root_url,
+        &mooc_client_id,
+    )?;
 
-    match run_tmc_inner(tmc, &mut client, &mut credentials) {
+    match run_tmc_inner(tmc, &mut client, &mut auth) {
         Err(error) => {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
@@ -650,11 +657,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
                     cause.downcast_ref::<TestMyCodeClientError>()
                 {
                     if status.as_u16() == 401 {
-                        log::error!("Received HTTP 401 error, deleting credentials");
-                        if let Some(credentials) = credentials {
+                        // Only a stored TMC token is deleted here. A rejected
+                        // mooc token stays put: tmc-server may simply not be
+                        // accepting mooc tokens, which says nothing about the
+                        // token's validity at courses.mooc.fi. That case falls
+                        // through to the plain 401 mapping (`not-logged-in`)
+                        // instead of claiming credentials were deleted.
+                        if let Some(credentials) = auth.take_stored_tmc() {
+                            log::error!("Received HTTP 401 error, deleting TMC credentials");
                             credentials.remove()?;
+                            return Err(InvalidTokenError { source: error }.into());
                         }
-                        return Err(InvalidTokenError { source: error }.into());
                     }
                 }
             }
@@ -667,7 +680,7 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
 fn run_tmc_inner(
     tmc: TestMyCode,
     client: &mut TestMyCodeClient,
-    credentials: &mut Option<Credentials>,
+    auth: &mut tmc_langs::TestMyCodeAuth,
 ) -> Result<CliOutput> {
     let client_name = &tmc.client_name;
     let output = match tmc.command {
@@ -865,12 +878,12 @@ fn run_tmc_inner(
         }
 
         TestMyCodeCommand::LoggedIn => {
-            if let Some(credentials) = credentials {
+            if let Some(token) = auth.token() {
                 CliOutput::OutputData(Box::new(OutputData {
                     status: Status::Finished,
                     message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
-                    data: Some(DataKind::Token(credentials.token())),
+                    data: Some(DataKind::Token(token)),
                 }))
             } else {
                 CliOutput::OutputData(Box::new(OutputData {
@@ -882,51 +895,11 @@ fn run_tmc_inner(
             }
         }
 
-        TestMyCodeCommand::Login {
-            base64,
-            email,
-            set_access_token,
-            stdin,
-        } => {
-            // get token from argument or server
-            let token = if let Some(token) = set_access_token {
-                tmc_langs::login_with_token(token)
-            } else if let Some(email) = email {
-                // TODO: print "Please enter password" and add "quiet"  flag
-                let password = if stdin {
-                    let mut stdin = BufReader::new(std::io::stdin());
-                    // the suggested replacement (read_password_with_config +
-                    // input_reader) still opens /dev/tty and fails on piped stdin
-                    #[allow(deprecated)]
-                    rpassword::read_password_from_bufread(&mut stdin)
-                        .context("Failed to read password")?
-                } else {
-                    rpassword::read_password().context("Failed to read password")?
-                };
-                let decoded = if base64 {
-                    let bytes = base64::engine::general_purpose::STANDARD.decode(password)?;
-                    String::from_utf8(bytes).context("Failed to decode password with base64")?
-                } else {
-                    password
-                };
-                tmc_langs::login_with_password(client, email, decoded)?
-            } else {
-                unreachable!("validation error");
-            };
-
-            // create token file
-            Credentials::save(client_name, token)?;
-
-            CliOutput::OutputData(Box::new(OutputData {
-                status: Status::Finished,
-                message: "logged in".to_string(),
-                result: OutputResult::LoggedIn,
-                data: None,
-            }))
-        }
-
         TestMyCodeCommand::Logout => {
-            if let Some(credentials) = credentials.take() {
+            // Only the legacy TMC token, never the mooc credentials: `mooc
+            // logout` owns those, and dropping them here would log the user out
+            // of the backend that issued them.
+            if let Some(credentials) = auth.take_stored_tmc() {
                 credentials.remove()?;
             }
             CliOutput::OutputData(Box::new(OutputData {
@@ -1121,11 +1094,15 @@ fn mooc_client_id() -> String {
     env::var("TMC_LANGS_MOOC_CLIENT_ID").unwrap_or_else(|_| mooc::DEFAULT_CLIENT_ID.to_string())
 }
 
-fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
-    let root_url: url::Url = env::var("TMC_LANGS_MOOC_ROOT_URL")
+fn mooc_root_url() -> Result<url::Url> {
+    env::var("TMC_LANGS_MOOC_ROOT_URL")
         .unwrap_or_else(|_| "https://courses.mooc.fi/".to_string())
         .parse()
-        .context("Invalid TMC root url")?;
+        .context("Invalid Courses MOOC root url")
+}
+
+fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
+    let root_url = mooc_root_url()?;
     let client_id = mooc_client_id();
     let client_name = mooc.client_name.clone();
 

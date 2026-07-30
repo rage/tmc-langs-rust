@@ -51,9 +51,11 @@ const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 /// host in production; tests and local development set it to exercise the
 /// authenticated request path against a mock or a locally-served backend. Gating
 /// it on an explicit opt-in keeps production behavior byte-identical.
-const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
+pub const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
 
-fn trust_localhost() -> bool {
+/// Public because the same access token is also accepted by tmc-server, so the
+/// decision to hand it to a local host has to be made identically on both paths.
+pub fn trust_localhost() -> bool {
     std::env::var(TRUST_LOCALHOST_VAR).as_deref() == Ok("1")
 }
 

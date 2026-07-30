@@ -28,8 +28,17 @@ use tmc_langs_util::{
 };
 use uuid::Uuid;
 
+/// A process-wide lock for tests that set `TMC_LANGS_CONFIG_DIR` or the
+/// bearer-token trust knob. Shared across the crate's test modules because the
+/// env vars are process-wide: a per-module lock would not serialize them.
+#[cfg(test)]
+pub(crate) fn env_lock() -> std::sync::MutexGuard<'static, ()> {
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 // base directory for a given plugin's settings files
-fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
+pub(crate) fn get_tmc_dir(client_name: &str) -> Result<PathBuf, LangsError> {
     let config_dir = match env::var(TMC_LANGS_CONFIG_DIR_VAR) {
         Ok(v) => PathBuf::from(v),
         Err(_) => dirs::config_dir().ok_or(LangsError::NoConfigDir)?,
