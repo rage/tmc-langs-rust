@@ -1252,6 +1252,22 @@
             "output-data-kind",
             "output-data"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "$ref": "#/$defs/MoocOldSubmissionRestore"
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "mooc-old-submission-restore"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
         }
       ]
     },
@@ -1577,21 +1593,6 @@
         "submissions"
       ]
     },
-    "ExerciseFile": {
-      "type": "object",
-      "properties": {
-        "contents": {
-          "type": "string"
-        },
-        "filepath": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "filepath",
-        "contents"
-      ]
-    },
     "ExercisePackagingConfiguration": {
       "description": "Represents configuration based on which submission may be packaged.",
       "type": "object",
@@ -1800,13 +1801,20 @@
     "ExerciseTaskSubmissionResult": {
       "type": "object",
       "properties": {
-        "submission_id": {
+        "slide_submission_id": {
+          "description": "Identifies the slide submission; what downloading and sharing take.",
+          "type": "string",
+          "format": "uuid"
+        },
+        "task_submission_id": {
+          "description": "Identifies the task submission; what grading is polled for.",
           "type": "string",
           "format": "uuid"
         }
       },
       "required": [
-        "submission_id"
+        "task_submission_id",
+        "slide_submission_id"
       ]
     },
     "ExerciseTaskSubmissionStatus": {
@@ -1944,6 +1952,16 @@
           "description": "The user is not enrolled on the course this exercise belongs to\n(backend `message_key: \"not_enrolled\"`, HTTP 422)",
           "type": "string",
           "const": "not-enrolled"
+        },
+        {
+          "description": "A submitted file's retention window elapsed before the submission naming\nit was accepted (backend `message_key: \"upload_expired\"`, HTTP 422). The\nupload is retried once first, so this means the retry failed too.",
+          "type": "string",
+          "const": "upload-expired"
+        },
+        {
+          "description": "A submission named a file that was never uploaded for that exercise by\nthat user (backend `message_key: \"unknown_upload\"`, HTTP 422). Indicates\na client bug or tampering, never a race.",
+          "type": "string",
+          "const": "unknown-upload"
         }
       ]
     },
@@ -1986,42 +2004,19 @@
       ]
     },
     "ModelSolutionSpec": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "solution_files": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/ExerciseFile"
-              }
-            },
-            "type": {
-              "type": "string",
-              "const": "Browser"
-            }
-          },
-          "required": [
-            "type",
-            "solution_files"
-          ]
+      "description": "Mirrors the `tmc` exercise service's `ModelSolutionSpec`\n(`services/tmc/src/util/stateInterfaces.ts`). The backend forwards it once\nthe model solution may be revealed; the solution is an uploaded project\narchive for both exercise types.",
+      "type": "object",
+      "properties": {
+        "solution_download_url": {
+          "type": "string"
         },
-        {
-          "type": "object",
-          "properties": {
-            "download_url": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string",
-              "const": "Editor"
-            }
-          },
-          "required": [
-            "type",
-            "download_url"
-          ]
+        "type": {
+          "$ref": "#/$defs/ExerciseType"
         }
+      },
+      "required": [
+        "type",
+        "solution_download_url"
       ]
     },
     "MoocClientUpdateData": {
@@ -2136,6 +2131,21 @@
       "required": [
         "exercise-id",
         "path"
+      ]
+    },
+    "MoocOldSubmissionRestore": {
+      "description": "Outcome of restoring a past mooc submission.",
+      "oneOf": [
+        {
+          "description": "The submission's archive was overlaid on a fresh stub.",
+          "type": "string",
+          "const": "restored"
+        },
+        {
+          "description": "The host has no files for the submission, so nothing on disk was touched:\nan exercise type with no files, or a service that declares no way to\nenumerate its answers' files.",
+          "type": "string",
+          "const": "nothing-to-download"
+        }
       ]
     },
     "NewSubmission": {

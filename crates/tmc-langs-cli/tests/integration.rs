@@ -403,7 +403,7 @@ fn prepare_submission_fails_tests() {
     let submission_super = tempfile::tempdir().unwrap();
     let exercise_clone = "../../sample_exercises/java/maven-exercise";
     let exercise_model = "../../sample_exercises/java/maven-exercise-model";
-    file_util::copy(exercise_clone, &submission_super.path()).unwrap();
+    file_util::copy(exercise_clone, submission_super.path()).unwrap();
     let submission_dir = submission_super.path().join("maven-exercise");
     let cli = Cli::parse_from([
         "tmc-langs-cli",
@@ -523,7 +523,7 @@ fn prepare_submission_passes_tests() {
     println!("set up user submission");
     let temp_maven = tempfile::tempdir().unwrap();
     let maven_exercise = "../../sample_exercises/java/maven-exercise-model";
-    file_util::copy(maven_exercise, &temp_maven.path()).unwrap();
+    file_util::copy(maven_exercise, temp_maven.path()).unwrap();
     let user_path = temp_maven.path().join("maven-exercise-model");
     let cli = Cli::parse_from([
         "tmc-langs-cli",

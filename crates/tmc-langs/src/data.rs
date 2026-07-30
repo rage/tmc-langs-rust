@@ -259,3 +259,16 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     #[serde(default)]
     pub stopped_for_auth: bool,
 }
+
+/// Outcome of restoring a past mooc submission.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum MoocOldSubmissionRestore {
+    /// The submission's archive was overlaid on a fresh stub.
+    Restored,
+    /// The host has no files for the submission, so nothing on disk was touched:
+    /// an exercise type with no files, or a service that declares no way to
+    /// enumerate its answers' files.
+    NothingToDownload,
+}

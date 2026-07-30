@@ -197,6 +197,15 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(Kind::ObsoleteClient)
             } else if message_key.as_deref() == Some("not_enrolled") {
                 Some(Kind::NotEnrolled)
+            } else if message_key.as_deref() == Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) {
+                Some(Kind::UploadExpired)
+            } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
+                Some(Kind::UnknownUpload)
+            // `duplicate_upload` is deliberately left unmapped: unlike the two
+            // above it is reachable only by a client that names one upload twice,
+            // which no retry or user action can fix, so `generic` is the honest
+            // kind. Mapping it would add a `Kind` variant the client must mirror
+            // in bindings.schema.json and langsSchema.ts for no user-visible gain.
             } else if status.as_u16() == 403 {
                 Some(Kind::Forbidden)
             } else if status.as_u16() == 401 {
@@ -1375,7 +1384,7 @@ fn run_mooc_inner(
                     DataKind::MoocSubmissionFinished(result),
                 )
             } else {
-                let status = wait_for_mooc_grading(client, auth, result.submission_id)?;
+                let status = wait_for_mooc_grading(client, auth, result.task_submission_id)?;
                 CliOutput::finished_with_data(
                     "submitted exercise",
                     DataKind::MoocSubmissionStatus(status),
@@ -1405,24 +1414,12 @@ fn run_mooc_inner(
                 false,
             )?;
 
-            // Submit non-blocking. The submit response carries a TASK-submission
-            // id, but sharing takes a SLIDE-submission id, so we can't share it
-            // directly. Instead we list the exercise's submissions (newest first)
-            // and share the one we just created — its `id` is the slide-submission
-            // id `share_submission` expects. Each request is refreshed-and-retried
-            // independently, so a 401 on the (idempotent) list or share step never
-            // re-runs the (non-idempotent) submit above.
-            auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
-            let newest = auth
-                .call(client, |c| c.get_exercise_submissions(exercise_id))?
-                .into_iter()
-                .next()
-                .ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "no submission found for exercise {exercise_id} after submitting it"
-                    )
-                })?;
-            let paste = auth.call(client, |c| c.share_submission(newest.id))?;
+            // Submit non-blocking, then share. Sharing takes a slide-submission
+            // id, which the submit response carries. Each request is
+            // refreshed-and-retried independently, so a 401 on the (idempotent)
+            // share step never re-runs the (non-idempotent) submit above.
+            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
+            let paste = auth.call(client, |c| c.share_submission(result.slide_submission_id))?;
             CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
         }
         MoocCommand::GetExerciseSubmissions { exercise_id } => {
@@ -1441,7 +1438,7 @@ fn run_mooc_inner(
             let mut output_lock = Lock::dir(&output_path, LockOptions::Write)?;
             let output_guard = output_lock.lock()?;
 
-            tmc_langs::download_mooc_old_submission(
+            let restore = tmc_langs::download_mooc_old_submission(
                 client,
                 auth,
                 exercise_id,
@@ -1451,7 +1448,13 @@ fn run_mooc_inner(
             )?;
             drop(output_guard);
             output_lock.forget();
-            CliOutput::finished("extracted project")
+            let message = match restore {
+                tmc_langs::MoocOldSubmissionRestore::Restored => "extracted project",
+                tmc_langs::MoocOldSubmissionRestore::NothingToDownload => {
+                    "submission has no downloadable files"
+                }
+            };
+            CliOutput::finished_with_data(message, DataKind::MoocOldSubmissionRestore(restore))
         }
         MoocCommand::ResetExercise {
             save_old_state,
