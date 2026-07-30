@@ -201,6 +201,11 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(Kind::UploadExpired)
             } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
                 Some(Kind::UnknownUpload)
+            // `duplicate_upload` is deliberately left unmapped: unlike the two
+            // above it is reachable only by a client that names one upload twice,
+            // which no retry or user action can fix, so `generic` is the honest
+            // kind. Mapping it would add a `Kind` variant the client must mirror
+            // in bindings.schema.json and langsSchema.ts for no user-visible gain.
             } else if status.as_u16() == 403 {
                 Some(Kind::Forbidden)
             } else if status.as_u16() == 401 {
