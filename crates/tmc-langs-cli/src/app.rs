@@ -1493,7 +1493,6 @@ mod test {
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,
             tmc_langs::mooc::ModelSolutionSpec,
-            tmc_langs::mooc::ExerciseFile,
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
             tmc_langs::mooc::ExerciseTaskSubmissionStatus,
             tmc_langs::mooc::GradingProgress,
@@ -1501,6 +1500,7 @@ mod test {
             tmc_langs::mooc::CourseProgress,
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::MoocClientUpdateData,
+            tmc_langs::MoocOldSubmissionRestore,
         )
         .unwrap();
         String::from_utf8(buf).unwrap()

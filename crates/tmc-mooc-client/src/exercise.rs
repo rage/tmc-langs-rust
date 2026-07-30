@@ -166,19 +166,26 @@ pub struct BrowserTestSpec {
     error: Option<String>,
 }
 
+/// Mirrors the `tmc` exercise service's `ModelSolutionSpec`
+/// (`services/tmc/src/util/stateInterfaces.ts`). The backend forwards it once
+/// the model solution may be revealed; the solution is an uploaded project
+/// archive for both exercise types.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(tag = "type")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
-pub enum ModelSolutionSpec {
-    Browser { solution_files: Vec<ExerciseFile> },
-    Editor { download_url: String },
+pub struct ModelSolutionSpec {
+    #[serde(rename = "type")]
+    exercise_type: ExerciseType,
+    solution_download_url: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[cfg_attr(feature = "ts-rs", derive(TS))]
-pub struct ExerciseFile {
-    filepath: String,
-    contents: String,
+impl ModelSolutionSpec {
+    pub fn exercise_type(&self) -> &ExerciseType {
+        &self.exercise_type
+    }
+
+    pub fn solution_download_url(&self) -> &str {
+        &self.solution_download_url
+    }
 }
 
 #[cfg(test)]
@@ -259,6 +266,27 @@ mod test {
         assert!(spec.browser_test.is_none());
     }
 
+    /// The exact bytes `services/tmc`'s model-solution endpoint emits (pinned on
+    /// that side by `modelSolution.test.ts`). A task the student has solved
+    /// carries this, so a mismatch breaks every later `mooc exercise`,
+    /// `download-exercise` and `submit` for that exercise.
+    #[test]
+    fn deserializes_the_emitted_model_solution_spec() {
+        let editor =
+            r#"{ "type": "editor", "solution_download_url": "http://example.com/sol.tar.zst" }"#;
+        let spec = serde_json::from_str::<ModelSolutionSpec>(editor).unwrap();
+        assert_eq!(spec.exercise_type(), &ExerciseType::Editor);
+        assert_eq!(
+            spec.solution_download_url(),
+            "http://example.com/sol.tar.zst"
+        );
+
+        let browser =
+            r#"{ "type": "browser", "solution_download_url": "http://example.com/sol.tar.zst" }"#;
+        let spec = serde_json::from_str::<ModelSolutionSpec>(browser).unwrap();
+        assert_eq!(spec.exercise_type(), &ExerciseType::Browser);
+    }
+
     /// Guards the deserialize (input) side that the serialize-only bindings drift
     /// gate can't catch: parses a mixed editor+browser slide, then re-serializes
     /// and re-parses it.
@@ -285,7 +313,7 @@ mod test {
                         "student_file_paths": ["src/main.py"],
                         "checksum": "editorsum"
                     },
-                    "model_solution_spec": { "type": "Editor", "download_url": "http://example.com/sol" },
+                    "model_solution_spec": { "type": "editor", "solution_download_url": "http://example.com/sol" },
                     "exercise_service_slug": "tmc"
                 },
                 {
@@ -319,6 +347,13 @@ mod test {
         assert_eq!(
             slide.editor_stub_download_url(),
             Some("http://example.com/e.tar.zst")
+        );
+        assert_eq!(
+            slide.tasks[0]
+                .model_solution_spec
+                .as_ref()
+                .map(|spec| spec.solution_download_url()),
+            Some("http://example.com/sol")
         );
 
         let serialized = serde_json::to_string(&slide).unwrap();

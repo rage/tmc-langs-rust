@@ -13,10 +13,7 @@ pub use self::{
         poll_device_token, refresh_token,
     },
     error::{MoocClientError, MoocClientResult},
-    exercise::{
-        ExerciseFile, ExerciseType, ModelSolutionSpec, PublicSpec, TmcExerciseSlide,
-        TmcExerciseTask,
-    },
+    exercise::{ExerciseType, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask},
 };
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
@@ -453,19 +450,26 @@ impl MoocClient {
     /// single project archive it was made from, so an old submission can be
     /// re-downloaded.
     ///
-    /// The wire contract allows any number of files, but a submission this client
-    /// made is always exactly one archive. Any other count means the submission
-    /// came from elsewhere, and restoring it would silently produce the wrong
-    /// project — so it is an error rather than a guess at which file to take.
-    pub fn download_submission_archive_url(&self, submission_id: Uuid) -> MoocClientResult<String> {
+    /// `Ok(None)` for a submission with no downloadable files: the exercise's
+    /// submission list includes browser-iframe answers, which have no uploads at
+    /// all, and the wire contract blesses `{"files": []}` for them.
+    ///
+    /// More than one file means the submission came from elsewhere, and restoring
+    /// it would silently produce the wrong project — so that is an error rather
+    /// than a guess at which file to take.
+    pub fn download_submission_archive_url(
+        &self,
+        submission_id: Uuid,
+    ) -> MoocClientResult<Option<String>> {
         let mut files = self.download_submission_files(submission_id)?;
-        if files.len() != 1 {
-            return Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
+        match files.len() {
+            0 => Ok(None),
+            1 => Ok(Some(files.remove(0).download_url)),
+            count => Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
                 submission_id,
-                count: files.len(),
-            }));
+                count,
+            })),
         }
-        Ok(files.remove(0).download_url)
     }
 
     /// Mints a shareable link to an existing submission of the current user and
@@ -1808,7 +1812,7 @@ mod test {
         let url = client
             .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
             .unwrap();
-        assert_eq!(url, "http://example.com/archive.tar.zst");
+        assert_eq!(url.as_deref(), Some("http://example.com/archive.tar.zst"));
     }
 
     #[test]
@@ -1837,21 +1841,19 @@ mod test {
     }
 
     #[test]
-    fn download_submission_archive_url_rejects_a_submission_with_no_files() {
-        // An empty list is a valid response now (no 404), so it must be rejected
-        // here rather than indexing off the end of the list.
+    fn download_submission_archive_url_reports_a_submission_with_no_files() {
+        // The exercise's submission list includes browser answers, which have no
+        // uploads: `{"files": []}` is the contract's blessed response for them,
+        // not an error.
         init();
         let mut server = Server::new();
         let client = make_client(&server);
         let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
         mock_submission_download(&mut server, submission_id, serde_json::json!([]));
-        let err = client
+        let url = client
             .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap_err();
-        assert!(matches!(
-            *err,
-            MoocClientError::UnexpectedSubmissionFileCount { count: 0, .. }
-        ));
+            .unwrap();
+        assert_eq!(url, None);
     }
 
     #[test]
