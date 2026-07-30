@@ -8,8 +8,8 @@ use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig,
-    UpdatedExercise, mooc,
+    LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore, RunResult,
+    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -126,6 +126,7 @@ pub enum DataKind {
     MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
     MoocPaste(mooc::PasteResult),
     MoocCourseProgress(mooc::CourseProgress),
+    MoocOldSubmissionRestore(MoocOldSubmissionRestore),
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

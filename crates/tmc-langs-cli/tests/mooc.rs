@@ -2400,6 +2400,77 @@ fn download_old_submission_save_old_state_submits_first() {
 }
 
 #[test]
+fn download_old_submission_reports_a_submission_with_no_files() {
+    // An exercise's submission list includes answers made in the browser, which
+    // have no uploads: the download is `{"files": []}` by contract. That is a
+    // reported outcome, not an error, and must leave the local exercise alone --
+    // and skip the save-old-state submit, since nothing is being overwritten.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let submission_id = "99999999-9999-9999-9999-999999999999";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+    let slide = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect(0)
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                .as_str(),
+        )
+        .with_body(serde_json::json!({ "files": [] }).to_string())
+        .create();
+
+    let output_dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(output_dir.path().join("src")).unwrap();
+    std::fs::write(output_dir.path().join("requirements.txt"), b"").unwrap();
+    std::fs::write(
+        output_dir.path().join("src/main.py"),
+        b"print('current work')",
+    )
+    .unwrap();
+
+    let output = run_mooc(
+        &server,
+        &[
+            "download-old-submission",
+            "--submission-id",
+            submission_id,
+            "--exercise-id",
+            exercise_id,
+            "--output-path",
+            output_dir.path().to_str().unwrap(),
+            "--save-old-state",
+        ],
+    )
+    .unwrap();
+    assert!(matches!(
+        data_of(output),
+        DataKind::MoocOldSubmissionRestore(tmc_langs::MoocOldSubmissionRestore::NothingToDownload)
+    ));
+
+    // Nothing was fetched or submitted: no stub download, no submit.
+    slide.assert();
+    assert_eq!(
+        std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
+        "print('current work')"
+    );
+}
+
+#[test]
 fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubmit() {
     // `--save-old-state` submits the current state, then downloads a fresh
     // stub to reset with. A 401 on the download step (after the submit

@@ -76,6 +76,8 @@ pub enum MoocClientError {
          are solved in-browser and cannot be submitted from a native client"
     )]
     NoSubmittableExerciseTask { exercise_id: Uuid },
+    /// Only ever raised for more than one file; no files is a legitimate outcome
+    /// (see [`crate::MoocClient::download_submission_archive_url`]).
     #[error(
         "Submission {submission_id} consists of {count} files, not the single project \
          archive an editor submission is made of, so it cannot be restored"

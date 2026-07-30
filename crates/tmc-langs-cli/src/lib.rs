@@ -1438,7 +1438,7 @@ fn run_mooc_inner(
             let mut output_lock = Lock::dir(&output_path, LockOptions::Write)?;
             let output_guard = output_lock.lock()?;
 
-            tmc_langs::download_mooc_old_submission(
+            let restore = tmc_langs::download_mooc_old_submission(
                 client,
                 auth,
                 exercise_id,
@@ -1448,7 +1448,13 @@ fn run_mooc_inner(
             )?;
             drop(output_guard);
             output_lock.forget();
-            CliOutput::finished("extracted project")
+            let message = match restore {
+                tmc_langs::MoocOldSubmissionRestore::Restored => "extracted project",
+                tmc_langs::MoocOldSubmissionRestore::NothingToDownload => {
+                    "submission has no downloadable files"
+                }
+            };
+            CliOutput::finished_with_data(message, DataKind::MoocOldSubmissionRestore(restore))
         }
         MoocCommand::ResetExercise {
             save_old_state,

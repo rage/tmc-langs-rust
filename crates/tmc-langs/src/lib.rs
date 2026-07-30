@@ -20,7 +20,8 @@ pub use crate::{
     data::{
         CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
         DownloadOrUpdateTmcCourseExercisesResult, LocalExercise, LocalMoocExercise,
-        LocalTmcExercise, MoocExerciseDownload, TmcDownloadResult, TmcExerciseDownload, TmcParams,
+        LocalTmcExercise, MoocExerciseDownload, MoocOldSubmissionRestore, TmcDownloadResult,
+        TmcExerciseDownload, TmcParams,
     },
     error::{LangsError, ParamError},
     submission_packaging::{PrepareSubmission, prepare_submission},
@@ -1020,6 +1021,11 @@ fn download_and_extract_mooc_archive(
 /// rebuilt in a temp dir and moved into `output_path`, fully replacing it (stale
 /// files dropped). If `save_old_state` is set, the current state is submitted
 /// first (non-blocking) so nothing the student wrote is lost.
+///
+/// A submission with no downloadable files (an answer made in the browser) is
+/// reported as [`MoocOldSubmissionRestore::NothingToDownload`]; the archive is
+/// resolved before anything else so that case leaves the local exercise — and the
+/// server — untouched.
 pub fn download_mooc_old_submission(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1027,11 +1033,17 @@ pub fn download_mooc_old_submission(
     output_path: &Path,
     submission_id: Uuid,
     save_old_state: bool,
-) -> Result<(), LangsError> {
+) -> Result<MoocOldSubmissionRestore, LangsError> {
     log::debug!(
         "downloading old mooc submission {submission_id} for exercise {exercise_id} to {}",
         output_path.display()
     );
+
+    let archive_url = auth.call(client, |c| c.download_submission_archive_url(submission_id))?;
+    let Some(archive_url) = archive_url else {
+        log::debug!("submission {submission_id} has no downloadable files");
+        return Ok(MoocOldSubmissionRestore::NothingToDownload);
+    };
 
     if save_old_state {
         let temp = file_util::named_temp_file()?;
@@ -1046,7 +1058,6 @@ pub fn download_mooc_old_submission(
     extract_project(Cursor::new(stub), base, Compression::TarZstd, false, false)?;
     log::debug!("extracted fresh stub to temp base");
 
-    let archive_url = auth.call(client, |c| c.download_submission_archive_url(submission_id))?;
     let url = Url::parse(&archive_url)
         .map_err(|err| Box::new(mooc::MoocClientError::UrlParse(archive_url.clone(), err)))?;
     let archive = auth.call(client, |c| c.download(url.clone()))?;
@@ -1059,7 +1070,7 @@ pub fn download_mooc_old_submission(
     file_util::create_dir_all(output_path)?;
     move_dir(base, output_path)?;
     log::debug!("moved restored exercise into place");
-    Ok(())
+    Ok(MoocOldSubmissionRestore::Restored)
 }
 
 /// Downloads or updates the given mooc exercises in the local projects directory.
