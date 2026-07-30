@@ -201,6 +201,14 @@ pub enum Kind {
     /// The user is not enrolled on the course this exercise belongs to
     /// (backend `message_key: "not_enrolled"`, HTTP 422)
     NotEnrolled,
+    /// A submitted file's retention window elapsed before the submission naming
+    /// it was accepted (backend `message_key: "upload_expired"`, HTTP 422). The
+    /// upload is retried once first, so this means the retry failed too.
+    UploadExpired,
+    /// A submission named a file that was never uploaded for that exercise by
+    /// that user (backend `message_key: "unknown_upload"`, HTTP 422). Indicates
+    /// a client bug or tampering, never a race.
+    UnknownUpload,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

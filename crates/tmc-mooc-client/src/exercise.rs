@@ -166,14 +166,6 @@ pub struct BrowserTestSpec {
     error: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
-#[allow(unused)]
-pub enum UserAnswer {
-    Browser { files: Vec<ExerciseFile> },
-    Editor { archive_download_url: String },
-}
-
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "type")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]

@@ -70,6 +70,19 @@ const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 /// [`REQUEST_TIMEOUT`].
 const TRANSFER_TIMEOUT: Duration = Duration::from_secs(60 * 5);
 
+/// Backend `message_key` for a submit naming an upload whose retention window
+/// elapsed. Recoverable by uploading again, so [`MoocClient::submit`] matches on
+/// it; also mapped to a CLI error kind for the case where the retry fails too.
+pub const UPLOAD_EXPIRED_MESSAGE_KEY: &str = "upload_expired";
+
+/// Backend `message_key` for a submit naming an upload that was never made for
+/// this exercise by this user. Never a race, so it is never retried.
+pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
+
+/// File name sent for the submitted project archive. The host stores it as the
+/// upload's `name`; nothing depends on the extension.
+const SUBMISSION_ARCHIVE_FILE_NAME: &str = "submission.tar.zst";
+
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
 #[derive(Clone)]
@@ -294,6 +307,49 @@ impl MoocClient {
         self.submit(exercise_id, slide.slide_id, task_id, archive)
     }
 
+    /// Stores files for an exercise, returning the host's record of each in the
+    /// order they were sent.
+    ///
+    /// Each part is keyed by a fresh client-chosen UUID, as the host's upload
+    /// handler requires. That UUID is *not* the file's identity: only
+    /// [`api::UploadedFile::id`], the host's own file id, may be named in a
+    /// submit.
+    pub fn upload_files(
+        &self,
+        exercise_id: Uuid,
+        files: &[(&str, &Path)],
+    ) -> MoocClientResult<Vec<api::UploadedFile>> {
+        if files.is_empty() {
+            // The host rejects an empty multipart body, and there is nothing to record.
+            return Ok(Vec::new());
+        }
+
+        let mut form = Form::new();
+        for (name, path) in files {
+            // The host requires a file name on every part.
+            let part = Part::file(path)
+                .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?
+                .file_name((*name).to_string());
+            form = form.part(Uuid::new_v4().to_string(), part);
+        }
+
+        let url = make_client_api_url(self, format!("exercises/{exercise_id}/files"))?;
+        let res = self
+            .request(Method::POST, url)
+            .multipart(form)
+            // Uploads can be large: use the more generous transfer timeout.
+            .transfer_timeout()
+            .send_expect_json::<api::UploadedFiles>()?;
+        Ok(res.files)
+    }
+
+    /// Submits an archive as the answer to an exercise task: uploads it, then
+    /// submits a body naming the stored file.
+    ///
+    /// The host may reap an upload between the two calls, so an `upload_expired`
+    /// submit re-uploads and submits once more. Nothing above this call can
+    /// recover from it — the archive is the only input, and it is still on disk
+    /// here.
     pub fn submit(
         &self,
         exercise_id: Uuid,
@@ -301,33 +357,43 @@ impl MoocClient {
         task_id: Uuid,
         archive: &Path,
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
-        // The `submission` part is just the two ids now; the backend derives the
-        // task's `data_json` (the tmc editor answer) itself from the uploaded file.
-        let exercise_slide_submission = api::ExerciseSlideSubmission {
+        let files = [(SUBMISSION_ARCHIVE_FILE_NAME, archive)];
+        let uploaded = self.upload_files(exercise_id, &files)?;
+        match self.submit_uploaded(exercise_id, slide_id, task_id, &uploaded) {
+            Err(error) if is_upload_expired(&error) => {
+                log::warn!(
+                    "an upload for exercise {exercise_id} expired before it could be submitted; \
+                     uploading again"
+                );
+                let uploaded = self.upload_files(exercise_id, &files)?;
+                self.submit_uploaded(exercise_id, slide_id, task_id, &uploaded)
+            }
+            other => other,
+        }
+    }
+
+    /// Submits a body naming already-stored files. Split out of [`Self::submit`]
+    /// so the upload can be retried without re-entering the retry itself.
+    fn submit_uploaded(
+        &self,
+        exercise_id: Uuid,
+        slide_id: Uuid,
+        task_id: Uuid,
+        uploaded: &[api::UploadedFile],
+    ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
+        let submission = api::ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
             exercise_task_id: task_id,
+            uploaded_file_ids: uploaded.iter().map(|file| file.id).collect(),
         };
-        let exercise_slide_submission = serialize::to_json_vec(&exercise_slide_submission)
+        let submission = serialize::to_json_vec(&submission)
             .map_err(Into::into)
             .map_err(Box::new)?;
-        let submission = Form::new()
-            .part(
-                // Backend `SubmissionForm` names this JSON part `submission`
-                // (headless-lms exercise_services/client.rs).
-                "submission",
-                Part::bytes(exercise_slide_submission)
-                    .mime_str("application/json")
-                    .expect("known to work"),
-            )
-            .file("file", archive)
-            .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
 
         let url = make_client_api_url(self, format!("exercises/{exercise_id}/submit"))?;
         let res = self
             .request(Method::POST, url)
-            .multipart(submission)
-            // The uploaded archive can be large: use the more generous transfer timeout.
-            .transfer_timeout()
+            .json_body(submission)
             .send_expect_json::<api::ExerciseTaskSubmissionResult>()?;
         Ok(res.into())
     }
@@ -369,15 +435,37 @@ impl MoocClient {
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    /// Resolves an exercise-slide-submission id (from
-    /// [`MoocClient::get_exercise_submissions`]) to the file-store URL of the
-    /// archive that was submitted, so an old submission can be re-downloaded.
-    pub fn download_submission_archive_url(&self, submission_id: Uuid) -> MoocClientResult<String> {
+    /// Returns the files that were uploaded for an exercise-slide submission (an
+    /// id from [`MoocClient::get_exercise_submissions`]), in submit order. Empty
+    /// for a submission whose answer needed no files.
+    pub fn download_submission_files(
+        &self,
+        submission_id: Uuid,
+    ) -> MoocClientResult<Vec<api::UploadedFile>> {
         let url = make_client_api_url(self, format!("submissions/{submission_id}/download"))?;
         let res = self
             .request(Method::GET, url)
-            .send_expect_json::<api::SubmissionArchiveDownloadUrl>()?;
-        Ok(res.archive_download_url)
+            .send_expect_json::<api::SubmissionFiles>()?;
+        Ok(res.files)
+    }
+
+    /// Resolves an exercise-slide-submission id to the file-store URL of the
+    /// single project archive it was made from, so an old submission can be
+    /// re-downloaded.
+    ///
+    /// The wire contract allows any number of files, but a submission this client
+    /// made is always exactly one archive. Any other count means the submission
+    /// came from elsewhere, and restoring it would silently produce the wrong
+    /// project — so it is an error rather than a guess at which file to take.
+    pub fn download_submission_archive_url(&self, submission_id: Uuid) -> MoocClientResult<String> {
+        let mut files = self.download_submission_files(submission_id)?;
+        if files.len() != 1 {
+            return Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
+                submission_id,
+                count: files.len(),
+            }));
+        }
+        Ok(files.remove(0).download_url)
     }
 
     /// Mints a shareable link to an existing submission of the current user and
@@ -401,6 +489,16 @@ struct MoocRequest {
 impl MoocRequest {
     fn multipart(mut self, form: Form) -> Self {
         self.builder = self.builder.multipart(form);
+        self
+    }
+
+    /// Sends pre-serialized JSON, so the caller keeps control of the serializer
+    /// (and its error type) rather than deferring to reqwest's.
+    fn json_body(mut self, body: Vec<u8>) -> Self {
+        self.builder = self
+            .builder
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(body);
         self
     }
 
@@ -493,6 +591,16 @@ impl MoocRequest {
 struct ApiErrorBody {
     #[serde(default)]
     message_key: Option<String>,
+}
+
+fn is_upload_expired(error: &MoocClientError) -> bool {
+    matches!(
+        error,
+        MoocClientError::HttpError {
+            message_key: Some(key),
+            ..
+        } if key == UPLOAD_EXPIRED_MESSAGE_KEY
+    )
 }
 
 // joins the URL "tail" with the API url root from the client
@@ -595,13 +703,17 @@ pub struct CourseInfo {
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseTaskSubmissionResult {
-    pub submission_id: Uuid,
+    /// Identifies the task submission; what grading is polled for.
+    pub task_submission_id: Uuid,
+    /// Identifies the slide submission; what downloading and sharing take.
+    pub slide_submission_id: Uuid,
 }
 
 impl From<api::ExerciseTaskSubmissionResult> for ExerciseTaskSubmissionResult {
     fn from(value: api::ExerciseTaskSubmissionResult) -> Self {
         Self {
-            submission_id: value.submission_id,
+            task_submission_id: value.task_submission_id,
+            slide_submission_id: value.slide_submission_id,
         }
     }
 }
@@ -1193,36 +1305,256 @@ mod test {
         );
     }
 
-    #[test]
-    fn submits() {
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
+    const EXERCISE_ID: &str = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    const SLIDE_ID: &str = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    const TASK_ID: &str = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    /// The host's file id, deliberately unequal to the UUID the client picks as
+    /// the multipart field name — a submit naming the field name is a bug.
+    const FILE_UPLOAD_ID: &str = "8f0a3c6d-2f1e-4f5b-9c7a-0d1e2f3a4b5c";
+
+    /// Mocks `POST exercises/{id}/files` returning one stored file with
+    /// [`FILE_UPLOAD_ID`], asserting the part carries a file name.
+    fn mock_upload(server: &mut Server) -> mockito::Mock {
         server
             .mock(
                 "POST",
-                "/api/v0/exercise-services/client/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/submit",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
             )
-            // The JSON part must be named `submission` (backend `SubmissionForm`), not `metadata`.
-            .match_body(Matcher::AllOf(vec![
-                Matcher::Regex(r#"name="submission""#.to_string()),
-                Matcher::Regex(r#"name="file""#.to_string()),
-            ]))
+            .match_body(Matcher::Regex(
+                r#"filename="submission.tar.zst""#.to_string(),
+            ))
             .with_body(
                 serde_json::json!({
-                    "submission_id": Uuid::new_v4(),
+                    "files": [{
+                        "id": FILE_UPLOAD_ID,
+                        "name": "submission.tar.zst",
+                        "download_url": "http://example.com/archive.tar.zst",
+                    }]
+                })
+                .to_string(),
+            )
+            .create()
+    }
+
+    fn submit_path() -> String {
+        format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/submit")
+    }
+
+    fn upload_expired_body() -> String {
+        serde_json::json!({
+            "errors": [],
+            "message": "the upload expired",
+            "message_key": UPLOAD_EXPIRED_MESSAGE_KEY,
+            "metadata": null,
+            "type": "validation_error",
+        })
+        .to_string()
+    }
+
+    fn submit_test_archive(client: &MoocClient) -> MoocClientResult<ExerciseTaskSubmissionResult> {
+        client.submit(
+            Uuid::parse_str(EXERCISE_ID).unwrap(),
+            Uuid::parse_str(SLIDE_ID).unwrap(),
+            Uuid::parse_str(TASK_ID).unwrap(),
+            Path::new("./tests/data/file"),
+        )
+    }
+
+    #[test]
+    fn submits_uploaded_file_ids_as_json() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let task_submission_id = Uuid::new_v4();
+        let slide_submission_id = Uuid::new_v4();
+        let upload = mock_upload(&mut server);
+        // The body must name the host's file id, not the field name the client chose.
+        let submit = server
+            .mock("POST", submit_path().as_str())
+            .match_header("content-type", "application/json")
+            .match_body(Matcher::Json(serde_json::json!({
+                "exercise_slide_id": SLIDE_ID,
+                "exercise_task_id": TASK_ID,
+                "uploaded_file_ids": [FILE_UPLOAD_ID],
+            })))
+            .with_body(
+                serde_json::json!({
+                    "task_submission_id": task_submission_id,
+                    "slide_submission_id": slide_submission_id,
                 })
                 .to_string(),
             )
             .create();
-        let _submission_result = client
-            .submit(
-                Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap(),
-                Uuid::parse_str("e7bd5a07-1b83-4c97-91f2-e48cccf66b2a").unwrap(),
-                Uuid::parse_str("816ac03a-a713-4804-9ea6-3eb5e278ec2b").unwrap(),
-                Path::new("./tests/data/file"),
+
+        let result = submit_test_archive(&client).unwrap();
+
+        upload.assert();
+        submit.assert();
+        assert_eq!(result.task_submission_id, task_submission_id);
+        assert_eq!(result.slide_submission_id, slide_submission_id);
+    }
+
+    #[test]
+    fn submit_retries_the_upload_once_on_upload_expired() {
+        // The host can reap an upload between the two calls, and only this client
+        // can recover: it still holds the archive.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let upload = mock_upload(&mut server).expect(2);
+        let expired = server
+            .mock("POST", submit_path().as_str())
+            .with_status(422)
+            .with_body(upload_expired_body())
+            .expect(1)
+            .create();
+        let accepted = server
+            .mock("POST", submit_path().as_str())
+            .with_body(
+                serde_json::json!({
+                    "task_submission_id": Uuid::new_v4(),
+                    "slide_submission_id": Uuid::new_v4(),
+                })
+                .to_string(),
+            )
+            .expect(1)
+            .create();
+
+        submit_test_archive(&client).unwrap();
+
+        upload.assert();
+        expired.assert();
+        accepted.assert();
+    }
+
+    #[test]
+    fn submit_surfaces_upload_expired_when_the_retry_fails_too() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let upload = mock_upload(&mut server).expect(2);
+        // Both submits expire, so there is nothing left to recover from.
+        let expired = server
+            .mock("POST", submit_path().as_str())
+            .with_status(422)
+            .with_body(upload_expired_body())
+            .expect(2)
+            .create();
+
+        let err = submit_test_archive(&client).unwrap_err();
+
+        upload.assert();
+        expired.assert();
+        assert!(is_upload_expired(&err), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn submit_surfaces_unknown_upload_without_retrying() {
+        // An unknown upload is a client bug or tampering, never a race, so
+        // re-uploading could only mask it.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let upload = mock_upload(&mut server).expect(1);
+        let unknown = server
+            .mock("POST", submit_path().as_str())
+            .with_status(422)
+            .with_body(
+                serde_json::json!({
+                    "errors": [],
+                    "message": "unknown upload",
+                    "message_key": UNKNOWN_UPLOAD_MESSAGE_KEY,
+                    "metadata": null,
+                    "type": "validation_error",
+                })
+                .to_string(),
+            )
+            .expect(1)
+            .create();
+
+        let err = submit_test_archive(&client).unwrap_err();
+
+        upload.assert();
+        unknown.assert();
+        assert!(matches!(
+            *err,
+            MoocClientError::HttpError {
+                ref message_key,
+                ..
+            } if message_key.as_deref() == Some(UNKNOWN_UPLOAD_MESSAGE_KEY)
+        ));
+    }
+
+    #[test]
+    fn upload_files_keys_each_part_by_a_distinct_uuid() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let ids = std::sync::Arc::new(Mutex::new(Vec::new()));
+        let captured = ids.clone();
+        let upload = server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .match_request(move |request| {
+                let body =
+                    String::from_utf8_lossy(request.body().map_or(&[][..], |b| &b[..])).to_string();
+                // `; name="` and not `name="`, which `filename="` also ends with.
+                let names = body
+                    .split("; name=\"")
+                    .skip(1)
+                    .filter_map(|rest| rest.split('"').next().map(str::to_string))
+                    .collect::<Vec<_>>();
+                captured
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner())
+                    .extend(names);
+                true
+            })
+            .with_body(serde_json::json!({ "files": [] }).to_string())
+            .create();
+
+        client
+            .upload_files(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                &[
+                    ("a.tar.zst", Path::new("./tests/data/file")),
+                    ("b.tar.zst", Path::new("./tests/data/file")),
+                ],
             )
             .unwrap();
+
+        upload.assert();
+        let names = ids.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        assert_eq!(names.len(), 2, "one part per file: {names:?}");
+        assert_ne!(names[0], names[1], "field names must be distinct");
+        for name in &names {
+            Uuid::parse_str(name).expect("every field name must be a UUID");
+        }
+    }
+
+    #[test]
+    fn upload_files_sends_no_request_for_an_empty_list() {
+        // The host rejects an empty multipart body, so an empty list must not
+        // become a doomed request.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let never = server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .expect(0)
+            .create();
+
+        let uploaded = client
+            .upload_files(Uuid::parse_str(EXERCISE_ID).unwrap(), &[])
+            .unwrap();
+
+        assert!(uploaded.is_empty());
+        never.assert();
     }
 
     #[test]
@@ -1266,13 +1598,35 @@ mod test {
         server
             .mock(
                 "POST",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}/files").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "files": [{
+                        "id": FILE_UPLOAD_ID,
+                        "name": "submission.tar.zst",
+                        "download_url": "http://example.com/archive.tar.zst",
+                    }]
+                })
+                .to_string(),
+            )
+            .create();
+        server
+            .mock(
+                "POST",
                 format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
             )
             .match_body(Matcher::AllOf(vec![
                 Matcher::Regex(format!(r#""exercise_slide_id":"{slide_id}""#)),
                 Matcher::Regex(format!(r#""exercise_task_id":"{task_id}""#)),
             ]))
-            .with_body(serde_json::json!({ "submission_id": Uuid::new_v4() }).to_string())
+            .with_body(
+                serde_json::json!({
+                    "task_submission_id": Uuid::new_v4(),
+                    "slide_submission_id": Uuid::new_v4(),
+                })
+                .to_string(),
+            )
             .create();
         client
             .submit_exercise(
@@ -1413,29 +1767,113 @@ mod test {
         ));
     }
 
-    #[test]
-    fn downloads_submission_archive_url() {
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    /// Mocks `GET submissions/{id}/download` with the given file list.
+    fn mock_submission_download(
+        server: &mut Server,
+        submission_id: &str,
+        files: serde_json::Value,
+    ) -> mockito::Mock {
         server
             .mock(
                 "GET",
                 format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                     .as_str(),
             )
-            .with_body(
-                serde_json::json!({
-                    "archive_download_url": "http://example.com/archive.tar.zst"
-                })
-                .to_string(),
-            )
-            .create();
+            .with_body(serde_json::json!({ "files": files }).to_string())
+            .create()
+    }
+
+    fn submission_file(name: &str, download_url: &str) -> serde_json::Value {
+        serde_json::json!({
+            "id": Uuid::new_v4(),
+            "name": name,
+            "download_url": download_url,
+        })
+    }
+
+    #[test]
+    fn downloads_submission_archive_url() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        mock_submission_download(
+            &mut server,
+            submission_id,
+            serde_json::json!([submission_file(
+                "submission.tar.zst",
+                "http://example.com/archive.tar.zst"
+            )]),
+        );
         let url = client
             .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
             .unwrap();
         assert_eq!(url, "http://example.com/archive.tar.zst");
+    }
+
+    #[test]
+    fn download_submission_archive_url_rejects_a_multi_file_submission() {
+        // Restoring an editor submission overlays exactly one archive. Picking one
+        // of several would silently restore the wrong project, so it must fail.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        mock_submission_download(
+            &mut server,
+            submission_id,
+            serde_json::json!([
+                submission_file("a.tar.zst", "http://example.com/a.tar.zst"),
+                submission_file("b.tar.zst", "http://example.com/b.tar.zst"),
+            ]),
+        );
+        let err = client
+            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
+            .unwrap_err();
+        assert!(matches!(
+            *err,
+            MoocClientError::UnexpectedSubmissionFileCount { count: 2, .. }
+        ));
+    }
+
+    #[test]
+    fn download_submission_archive_url_rejects_a_submission_with_no_files() {
+        // An empty list is a valid response now (no 404), so it must be rejected
+        // here rather than indexing off the end of the list.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        mock_submission_download(&mut server, submission_id, serde_json::json!([]));
+        let err = client
+            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
+            .unwrap_err();
+        assert!(matches!(
+            *err,
+            MoocClientError::UnexpectedSubmissionFileCount { count: 0, .. }
+        ));
+    }
+
+    #[test]
+    fn download_submission_files_returns_the_whole_list() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        mock_submission_download(
+            &mut server,
+            submission_id,
+            serde_json::json!([
+                submission_file("a.txt", "http://example.com/a.txt"),
+                submission_file("b.txt", "http://example.com/b.txt"),
+            ]),
+        );
+        let files = client
+            .download_submission_files(Uuid::parse_str(submission_id).unwrap())
+            .unwrap();
+        assert_eq!(files.len(), 2);
+        assert_eq!(files[0].name, "a.txt");
+        assert_eq!(files[1].download_url, "http://example.com/b.txt");
     }
 
     #[test]

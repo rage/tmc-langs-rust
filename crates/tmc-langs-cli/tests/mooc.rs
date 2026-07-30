@@ -455,6 +455,106 @@ fn mooc_422_not_enrolled_maps_to_not_enrolled_kind() {
 }
 
 #[test]
+fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
+    // A submit naming a file that was never uploaded for this exercise by this
+    // user is a client bug or tampering: it surfaces directly, with no retry.
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let upload = mock_upload_for_submit(&mut server);
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submit")
+                .as_str(),
+        )
+        .with_status(422)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "unknown upload",
+                "message_key": "unknown_upload",
+                "metadata": null,
+                "type": "validation_error",
+            })
+            .to_string(),
+        )
+        .expect(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    upload.assert();
+    submit.assert();
+    assert_error_kind(error, "unknown-upload");
+}
+
+#[test]
+fn mooc_422_upload_expired_surfaces_only_after_the_retry_fails() {
+    // The upload is retried once, so the kind reaches the client only when the
+    // second attempt expires too -- by then it is a genuine failure, not a race.
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let upload = mock_upload_for_submit(&mut server).expect(2);
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submit")
+                .as_str(),
+        )
+        .with_status(422)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "the upload expired",
+                "message_key": "upload_expired",
+                "metadata": null,
+                "type": "validation_error",
+            })
+            .to_string(),
+        )
+        .expect(2)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    upload.assert();
+    submit.assert();
+    assert_error_kind(error, "upload-expired");
+}
+
+#[test]
 fn course_updates_subcommand_is_removed() {
     // Regression: `CourseUpdates` was redundant with `check-exercise-updates` and
     // only ever `todo!()`-panicked, so it was removed. clap must now reject it.
@@ -1472,16 +1572,85 @@ fn mock_exercise_for_submit(server: &mut mockito::Server) -> mockito::Mock {
         .create()
 }
 
-/// Mounts a submit endpoint returning `submission_id`.
-fn mock_submit(server: &mut mockito::Server, submission_id: &str) -> mockito::Mock {
+/// The host file id the mocked upload endpoint hands out.
+const SUBMIT_FILE_UPLOAD_ID: &str = "cccccccc-2222-2222-2222-222222222222";
+
+/// Mounts the upload endpoint a submit posts its archive to before naming it.
+/// Returned so the caller keeps it alive for the duration of the test.
+fn mock_upload_for(server: &mut mockito::Server, exercise_id: &str) -> mockito::Mock {
     server
         .mock(
             "POST",
-            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submit")
-                .as_str(),
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/files").as_str(),
         )
-        .with_body(serde_json::json!({ "submission_id": submission_id }).to_string())
+        .with_body(
+            serde_json::json!({
+                "files": [{
+                    "id": SUBMIT_FILE_UPLOAD_ID,
+                    "name": "submission.tar.zst",
+                    "download_url": "http://example.com/archive.tar.zst",
+                }]
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
         .create()
+}
+
+fn mock_upload_for_submit(server: &mut mockito::Server) -> mockito::Mock {
+    mock_upload_for(server, SUBMIT_EXERCISE_ID)
+}
+
+/// Mounts the upload and submit endpoints of the two-step submit, the submit
+/// returning `task_submission_id` and `slide_submission_id`. Both mocks are
+/// returned; dropping either unmounts it.
+fn mock_submit_steps_for(
+    server: &mut mockito::Server,
+    exercise_id: &str,
+    task_submission_id: &str,
+    slide_submission_id: &str,
+) -> (mockito::Mock, mockito::Mock) {
+    let upload = mock_upload_for(server, exercise_id);
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
+        )
+        // The submit must name the id the upload returned, never the multipart field name.
+        .match_body(mockito::Matcher::PartialJson(serde_json::json!({
+            "uploaded_file_ids": [SUBMIT_FILE_UPLOAD_ID],
+        })))
+        .with_body(
+            serde_json::json!({
+                "task_submission_id": task_submission_id,
+                "slide_submission_id": slide_submission_id,
+            })
+            .to_string(),
+        )
+        .create();
+    (upload, submit)
+}
+
+fn mock_submit_steps(
+    server: &mut mockito::Server,
+    task_submission_id: &str,
+    slide_submission_id: &str,
+) -> (mockito::Mock, mockito::Mock) {
+    mock_submit_steps_for(
+        server,
+        SUBMIT_EXERCISE_ID,
+        task_submission_id,
+        slide_submission_id,
+    )
+}
+
+/// [`mock_submit_steps`] for a test that only cares about the task submission id
+/// (the one grading is polled for).
+fn mock_submit(
+    server: &mut mockito::Server,
+    task_submission_id: &str,
+) -> (mockito::Mock, mockito::Mock) {
+    mock_submit_steps(server, task_submission_id, &Uuid::new_v4().to_string())
 }
 
 fn grading_path(submission_id: &str) -> String {
@@ -1495,7 +1664,7 @@ fn blocking_submit_polls_until_fully_graded() {
     let mut server = mockito::Server::new();
     let submission_id = "11111111-1111-1111-1111-111111111111";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let _submit = mock_submit(&mut server, submission_id);
+    let (_upload, _submit) = mock_submit(&mut server, submission_id);
     // First poll: not graded yet (bounded so the next mock takes over).
     let _pending = server
         .mock("GET", grading_path(submission_id).as_str())
@@ -1547,7 +1716,7 @@ fn blocking_submit_tolerates_transient_grading_errors() {
     let mut server = mockito::Server::new();
     let submission_id = "44444444-4444-4444-4444-444444444444";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let _submit = mock_submit(&mut server, submission_id);
+    let (_upload, _submit) = mock_submit(&mut server, submission_id);
     // First two polls fail (bounded so the next mock takes over).
     let _errors = server
         .mock("GET", grading_path(submission_id).as_str())
@@ -1597,7 +1766,7 @@ fn blocking_submit_errors_when_grading_fails_until_timeout() {
     let mut server = mockito::Server::new();
     let submission_id = "55555555-5555-5555-5555-555555555555";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let _submit = mock_submit(&mut server, submission_id);
+    let (_upload, _submit) = mock_submit(&mut server, submission_id);
     let _errors = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_status(500)
@@ -1665,7 +1834,7 @@ fn blocking_submit_transient_401_during_grading_poll_does_not_resubmit() {
     let mut server = mockito::Server::new();
     let submission_id = "66666666-6666-6666-6666-666666666666";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let submit = mock_submit(&mut server, submission_id);
+    let (_upload, submit) = mock_submit(&mut server, submission_id);
 
     // First poll: rejected.
     let _rejected = server
@@ -1741,7 +1910,7 @@ fn blocking_submit_permanent_refresh_rejection_during_grading_poll_fails_fast() 
     let mut server = mockito::Server::new();
     let submission_id = "77777777-7777-7777-7777-777777777777";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let submit = mock_submit(&mut server, submission_id);
+    let (_upload, submit) = mock_submit(&mut server, submission_id);
 
     let _rejected = server
         .mock("GET", grading_path(submission_id).as_str())
@@ -1796,13 +1965,16 @@ fn blocking_submit_permanent_refresh_rejection_during_grading_poll_fails_fast() 
 }
 
 #[test]
-fn submit_dont_block_returns_submission_id_without_polling() {
-    // `--dont-block` returns the submission id without polling: no grading mock is
-    // mounted, so any poll would hit an unmocked route and fail.
+fn submit_dont_block_returns_both_submission_ids_without_polling() {
+    // `--dont-block` returns the submission ids without polling: no grading mock is
+    // mounted, so any poll would hit an unmocked route and fail. Both ids are
+    // reported so a client never has to derive one from the other.
     let mut server = mockito::Server::new();
-    let submission_id = "22222222-2222-2222-2222-222222222222";
+    let task_submission_id = "22222222-2222-2222-2222-222222222222";
+    let slide_submission_id = "33333333-4444-4444-4444-444444444444";
     let _exercise = mock_exercise_for_submit(&mut server);
-    let _submit = mock_submit(&mut server, submission_id);
+    let (_upload, _submit) =
+        mock_submit_steps(&mut server, task_submission_id, slide_submission_id);
 
     let project = submittable_project();
     let output = run_mooc(
@@ -1820,7 +1992,8 @@ fn submit_dont_block_returns_submission_id_without_polling() {
 
     match data_of(output) {
         DataKind::MoocSubmissionFinished(result) => {
-            assert_eq!(result.submission_id.to_string(), submission_id);
+            assert_eq!(result.task_submission_id.to_string(), task_submission_id);
+            assert_eq!(result.slide_submission_id.to_string(), slide_submission_id);
         }
         other => panic!("expected MoocSubmissionFinished, got {other:?}"),
     }
@@ -2060,7 +2233,16 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
             format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                 .as_str(),
         )
-        .with_body(serde_json::json!({ "archive_download_url": old_url }).to_string())
+        .with_body(
+            serde_json::json!({
+                "files": [{
+                    "id": Uuid::new_v4(),
+                    "name": "submission.tar.zst",
+                    "download_url": old_url,
+                }]
+            })
+            .to_string(),
+        )
         .create();
     // Old submission: student solution + a tampered test file that must NOT win.
     server
@@ -2140,14 +2322,12 @@ fn download_old_submission_save_old_state_submits_first() {
         .expect_at_least(1)
         .create();
     // The save-old-state submit must POST to the submit endpoint.
-    let submit = server
-        .mock(
-            "POST",
-            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
-        )
-        .with_body(serde_json::json!({ "submission_id": Uuid::new_v4() }).to_string())
-        .expect_at_least(1)
-        .create();
+    let (_upload, submit) = mock_submit_steps_for(
+        &mut server,
+        exercise_id,
+        &Uuid::new_v4().to_string(),
+        &Uuid::new_v4().to_string(),
+    );
     server
         .mock("GET", "/files/stub.tar.zst")
         .with_body(make_tar_zst(&[
@@ -2161,7 +2341,16 @@ fn download_old_submission_save_old_state_submits_first() {
             format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                 .as_str(),
         )
-        .with_body(serde_json::json!({ "archive_download_url": old_url }).to_string())
+        .with_body(
+            serde_json::json!({
+                "files": [{
+                    "id": Uuid::new_v4(),
+                    "name": "submission.tar.zst",
+                    "download_url": old_url,
+                }]
+            })
+            .to_string(),
+        )
         .create();
     server
         .mock("GET", "/files/old.tar.zst")
@@ -2236,13 +2425,12 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
         .expect_at_least(1)
         .create();
     // The save-old-state submit: must happen exactly once.
-    let submit = server
-        .mock(
-            "POST",
-            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
-        )
-        .with_body(serde_json::json!({ "submission_id": Uuid::new_v4() }).to_string())
-        .create();
+    let (_upload, submit) = mock_submit_steps_for(
+        &mut server,
+        exercise_id,
+        &Uuid::new_v4().to_string(),
+        &Uuid::new_v4().to_string(),
+    );
     // The first download attempt (after the submit) is rejected...
     let _rejected = server
         .mock("GET", "/files/stub.tar.zst")
@@ -2307,33 +2495,25 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
 
 #[test]
 fn paste_submits_then_shares_the_slide_submission() {
-    // `mooc paste` submits (non-blocking) then shares the submission. The submit
-    // returns a TASK-submission id, but share takes a SLIDE-submission id, so paste
-    // resolves the slide id from the submissions list (newest first). The share
-    // endpoint is mounted ONLY at the slide id, so sharing the task id would fail.
+    // `mooc paste` submits (non-blocking) then shares the submission. Share takes a
+    // SLIDE-submission id, which the submit response carries directly, so paste must
+    // not consult the submissions list: that lookup was racy by construction. The
+    // list endpoint is mounted expecting zero calls, and the share endpoint is
+    // mounted ONLY at the slide id, so sharing the task id would fail.
     let mut server = mockito::Server::new();
     let task_submission_id = "aaaaaaaa-0000-0000-0000-000000000000";
     let slide_submission_id = "bbbbbbbb-1111-1111-1111-111111111111";
 
     let _exercise = mock_exercise_for_submit(&mut server);
-    let _submit = mock_submit(&mut server, task_submission_id);
-    // Submissions list, newest first: the newest item's id is the slide-submission id.
-    let _submissions = server
+    let (_upload, _submit) =
+        mock_submit_steps(&mut server, task_submission_id, slide_submission_id);
+    let submissions = server
         .mock(
             "GET",
             format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submissions")
                 .as_str(),
         )
-        .with_body(
-            serde_json::json!([
-                {
-                    "id": slide_submission_id, "exercise_id": SUBMIT_EXERCISE_ID,
-                    "created_at": "2026-07-22T12:00:00Z",
-                    "score_given": null, "grading_progress": null
-                }
-            ])
-            .to_string(),
-        )
+        .expect(0)
         .create();
     // Share endpoint mounted ONLY at the slide-submission id.
     let share = server
@@ -2363,6 +2543,7 @@ fn paste_submits_then_shares_the_slide_submission() {
     .unwrap();
 
     share.assert();
+    submissions.assert();
     match data_of(output) {
         DataKind::MoocPaste(paste) => {
             assert_eq!(

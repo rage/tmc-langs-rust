@@ -76,4 +76,9 @@ pub enum MoocClientError {
          are solved in-browser and cannot be submitted from a native client"
     )]
     NoSubmittableExerciseTask { exercise_id: Uuid },
+    #[error(
+        "Submission {submission_id} consists of {count} files, not the single project \
+         archive an editor submission is made of, so it cannot be restored"
+    )]
+    UnexpectedSubmissionFileCount { submission_id: Uuid, count: usize },
 }
