@@ -13,7 +13,10 @@ pub use self::{
         poll_device_token, refresh_token,
     },
     error::{MoocClientError, MoocClientResult},
-    exercise::{ExerciseType, ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask},
+    exercise::{
+        BrowserTestRuntime, BrowserTestSpec, ExerciseType, ModelSolutionSpec, PublicSpec,
+        TmcExerciseSlide, TmcExerciseTask,
+    },
 };
 use bytes::Bytes;
 use chrono::{DateTime, Utc};

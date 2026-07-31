@@ -1341,7 +1341,6 @@ mod test {
     }
 
     /// Path to the committed TypeScript bindings artifact.
-    #[cfg(feature = "ts-rs")]
     fn dts_path() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.d.ts")
     }
@@ -1390,6 +1389,89 @@ mod test {
     #[cfg(feature = "ts-rs")]
     fn generate_cli_bindings() {
         std::fs::write(dts_path(), generate_cli_bindings_dts()).unwrap();
+    }
+
+    /// `bindings.d.ts` is vendored into other repos as a standalone file
+    /// (sp331's `services/tmc/src/tmc/cli.d.ts`), so a type it references but
+    /// never declares makes it invalid TypeScript there. The byte-equality
+    /// gates compare bytes only and cannot see that; a type reachable from an
+    /// exported type but missing from `generate_cli_bindings_dts`'s
+    /// `export_to!` list is the way it happens.
+    #[test]
+    fn bindings_dts_declares_every_type_it_references() {
+        /// Types TypeScript provides; everything else must be declared in-file.
+        const TS_BUILTINS: [&str; 2] = ["Array", "Record"];
+
+        let src = strip_comments_and_strings(
+            &std::fs::read_to_string(dts_path()).expect("bindings.d.ts should exist"),
+        );
+
+        let mut declared = std::collections::HashSet::new();
+        for line in src.lines() {
+            let Some(rest) = line.strip_prefix("export type ") else {
+                continue;
+            };
+            let name_end = rest
+                .find(|c: char| !c.is_alphanumeric() && c != '_')
+                .unwrap_or(rest.len());
+            declared.insert(&rest[..name_end]);
+            // A generic alias declares its own parameters.
+            if let Some(params) = rest[name_end..]
+                .strip_prefix('<')
+                .and_then(|r| r.split_once('>'))
+                .map(|(params, _)| params)
+            {
+                declared.extend(params.split(',').map(str::trim));
+            }
+        }
+
+        let mut missing = src
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .filter(|word| word.starts_with(|c: char| c.is_ascii_uppercase()))
+            .filter(|word| !TS_BUILTINS.contains(word) && !declared.contains(word))
+            .collect::<Vec<_>>();
+        missing.sort_unstable();
+        missing.dedup();
+
+        assert!(
+            missing.is_empty(),
+            "bindings.d.ts references types it does not declare: {missing:?}; \
+             add them to generate_cli_bindings_dts's export_to! list and regenerate"
+        );
+    }
+
+    /// Blanks out doc comments and string literals so type references can be
+    /// picked out by identifier casing without prose or literal unions
+    /// (`"tar" | "zip"`) being mistaken for them.
+    fn strip_comments_and_strings(src: &str) -> String {
+        let mut out = String::with_capacity(src.len());
+        let mut chars = src.chars().peekable();
+        while let Some(c) = chars.next() {
+            match c {
+                '/' if chars.peek() == Some(&'*') => {
+                    let mut prev = ' ';
+                    for c in chars.by_ref() {
+                        if prev == '*' && c == '/' {
+                            break;
+                        }
+                        prev = c;
+                    }
+                }
+                '"' => {
+                    while let Some(c) = chars.next() {
+                        match c {
+                            '\\' => {
+                                chars.next();
+                            }
+                            '"' => break,
+                            _ => {}
+                        }
+                    }
+                }
+                _ => out.push(c),
+            }
+        }
+        out
     }
 
     /// Produces the TypeScript bindings as a string from the current types.
@@ -1492,11 +1574,15 @@ mod test {
             tmc_langs::mooc::TmcExerciseSlide,
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,
+            tmc_langs::mooc::ExerciseType,
+            tmc_langs::mooc::BrowserTestSpec,
+            tmc_langs::mooc::BrowserTestRuntime,
             tmc_langs::mooc::ModelSolutionSpec,
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
             tmc_langs::mooc::ExerciseTaskSubmissionStatus,
             tmc_langs::mooc::GradingProgress,
             tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::PasteResult,
             tmc_langs::mooc::CourseProgress,
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::MoocClientUpdateData,

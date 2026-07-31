@@ -358,6 +358,12 @@ export type PublicSpec = { type: ExerciseType, archive_name: string, stub_downlo
  */
 browser_test: BrowserTestSpec | null, }
 
+export type ExerciseType = "browser" | "editor";
+
+export type BrowserTestSpec = { runtime: BrowserTestRuntime, script: string, error: string | null, }
+
+export type BrowserTestRuntime = "python";
+
 export type ModelSolutionSpec = { type: ExerciseType, solution_download_url: string, }
 
 export type ExerciseTaskSubmissionResult = { 
@@ -375,6 +381,8 @@ export type ExerciseTaskSubmissionStatus = "NoGradingYet" | { "Grading": { gradi
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
 
 export type ExerciseSlideSubmissionListItem = { id: string, exercise_id: string, created_at: string, score_given: number | null, grading_progress: GradingProgress | null, }
+
+export type PasteResult = { paste_url: string, }
 
 export type CourseProgress = { course_id: string, exercises: Array<ExerciseProgress>, }
 
