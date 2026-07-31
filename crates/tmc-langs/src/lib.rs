@@ -2739,7 +2739,7 @@ checksum = 'new checksum'
         // corrupt archive: extraction must fail
         let _archive = server
             .mock("GET", "/files/stub.tar.zst")
-            .with_body(b"not a valid tar.zst archive".to_vec())
+            .with_body(b"not a valid tar.zst archive")
             .create();
 
         let client = mock_mooc_client(&server);

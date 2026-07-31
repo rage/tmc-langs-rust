@@ -63,6 +63,7 @@ fn test_policies_on_course_exercises() {
                         .create(true)
                         .read(true)
                         .write(true)
+                        .truncate(true)
                         .open(&template_zip_path)
                         .unwrap();
                     client
@@ -112,6 +113,7 @@ fn test_policies_on_course_exercises() {
                         .create(true)
                         .read(true)
                         .write(true)
+                        .truncate(true)
                         .open(&solution_zip_path)
                         .unwrap();
                     client
