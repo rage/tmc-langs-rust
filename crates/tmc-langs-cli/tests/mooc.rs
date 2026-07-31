@@ -2401,10 +2401,11 @@ fn download_old_submission_save_old_state_submits_first() {
 
 #[test]
 fn download_old_submission_reports_a_submission_with_no_files() {
-    // An exercise's submission list includes answers made in the browser, which
-    // have no uploads: the download is `{"files": []}` by contract. That is a
-    // reported outcome, not an error, and must leave the local exercise alone --
-    // and skip the save-old-state submit, since nothing is being overwritten.
+    // The host serves `{"files": []}` for a submission it has no files for -- an
+    // exercise type with none, or a service that cannot enumerate its answers'
+    // files. That is a reported outcome, not an error, and must leave the local
+    // exercise alone -- and skip the save-old-state submit, since nothing is
+    // being overwritten.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";

@@ -1022,8 +1022,8 @@ fn download_and_extract_mooc_archive(
 /// files dropped). If `save_old_state` is set, the current state is submitted
 /// first (non-blocking) so nothing the student wrote is lost.
 ///
-/// A submission with no downloadable files (an answer made in the browser) is
-/// reported as [`MoocOldSubmissionRestore::NothingToDownload`]; the archive is
+/// A submission the host has no files for is reported as
+/// [`MoocOldSubmissionRestore::NothingToDownload`]; the archive is
 /// resolved before anything else so that case leaves the local exercise — and the
 /// server — untouched.
 pub fn download_mooc_old_submission(

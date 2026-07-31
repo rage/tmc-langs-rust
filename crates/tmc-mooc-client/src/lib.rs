@@ -453,9 +453,9 @@ impl MoocClient {
     /// single project archive it was made from, so an old submission can be
     /// re-downloaded.
     ///
-    /// `Ok(None)` for a submission with no downloadable files: the exercise's
-    /// submission list includes browser-iframe answers, which have no uploads at
-    /// all, and the wire contract blesses `{"files": []}` for them.
+    /// `Ok(None)` for a submission the host has no files for: an exercise type
+    /// with none, or a service that declares no way to enumerate its answers'
+    /// files. Answers made in the service's IFrame do have files.
     ///
     /// More than one file means the submission came from elsewhere, and restoring
     /// it would silently produce the wrong project — so that is an error rather
