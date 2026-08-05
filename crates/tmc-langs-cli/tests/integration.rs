@@ -104,6 +104,9 @@ fn test(f: impl Fn(&Path)) {
             (r"/tmp/\S*", "[PATH]"),
             (r"/var/\S*", "[PATH]"),
             (r"C:/\S*/Temp/\S*", "[PATH]"),
+
+            // the hash of a compressed project isn't reproducible across platforms or runs
+            (r"output-data: [0-9a-f]{64}", "output-data: [HASH]"),
         ],
     }, {
         insta::glob!("../../../", "sample_exercises/*/*", |exercise| {
