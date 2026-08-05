@@ -1,6 +1,12 @@
 //! File locking utilities on Windows.
 //!
 //! file-lock doesn't support Windows, so a different solution is needed.
+//!
+//! `Lock::dir` locks a file in a central locks directory (see `lock_path`) and never
+//! deletes it. Deleting it (e.g. via FILE_FLAG_DELETE_ON_CLOSE) makes it
+//! delete-pending as soon as the first of several concurrent processes closes its
+//! handle, and every other process's CreateFile then fails with ERROR_ACCESS_DENIED
+//! until the last handle closes. The OS releases the lock itself on process exit.
 
 use crate::{error::FileError, file_util::*};
 use fd_lock::{RwLock, RwLockReadGuard, RwLockWriteGuard};
@@ -8,14 +14,21 @@ use std::{
     borrow::Cow,
     fs::OpenOptions,
     io::ErrorKind,
-    os::windows::fs::OpenOptionsExt,
     path::PathBuf,
     time::{Duration, Instant},
 };
-use winapi::um::{
-    winbase::FILE_FLAG_DELETE_ON_CLOSE,
-    winnt::{FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_TEMPORARY},
-};
+
+const RETRY_TIMEOUT: Duration = Duration::from_secs(2);
+const RETRY_INTERVAL: Duration = Duration::from_millis(100);
+
+// 5 = ERROR_ACCESS_DENIED, 32 = ERROR_SHARING_VIOLATION; both can be a transient handle
+// held by e.g. an antivirus or indexer
+fn is_transient_open_error(err: &std::io::Error) -> bool {
+    matches!(
+        err.kind(),
+        ErrorKind::PermissionDenied | ErrorKind::ResourceBusy
+    ) || matches!(err.raw_os_error(), Some(5) | Some(32))
+}
 
 /// Blocks until the lock can be acquired.
 #[derive(Debug)]
@@ -40,68 +53,30 @@ impl Lock {
     }
 
     pub fn dir(path: impl AsRef<Path>, options: LockOptions) -> Result<Self, FileError> {
-        // for directories, we'll create/open a .tmc.lock file
-        let lock_path = path.as_ref().join(LOCK_FILE_NAME);
+        let path = path.as_ref().to_path_buf();
+        let lock_path = central_lock_path(&path, options)?;
 
         let start_time = Instant::now();
-        let mut warning_timer = Instant::now();
         loop {
-            // try to create a new lock file
-            match OpenOptions::new()
-                // needed for create_new
-                .write(true)
-                // only creates file if it exists, check and creation are atomic
-                .create(true)
-                // hidden, so it won't be a problem when going through the directory
-                .attributes(FILE_ATTRIBUTE_HIDDEN)
-                // just tells windows there's probably no point in writing this to disk;
-                // this might further reduce the risk of leftover lock files
-                .attributes(FILE_ATTRIBUTE_TEMPORARY)
-                // windows deletes the lock file when the handle is closed = when the lock is dropped
-                .custom_flags(FILE_FLAG_DELETE_ON_CLOSE)
-                .open(&lock_path)
-            {
+            match OpenOptions::new().write(true).create(true).open(&lock_path) {
                 Ok(file) => {
-                    // was able to create/open the lock file
                     let lock = RwLock::new(file);
                     return Ok(Self {
-                        path: path.as_ref().to_path_buf(),
+                        path,
                         options,
                         lock,
                     });
                 }
-                Err(err) => {
-                    if err.kind() == ErrorKind::AlreadyExists {
-                        // lock file already exists, let's wait a little and try again
-                        // after 30 seconds, print a warning in the logs every 10 seconds
-                        // after 120 seconds, print an error in the logs every 10 seconds
-                        if start_time.elapsed() > Duration::from_secs(30)
-                            && warning_timer.elapsed() > Duration::from_secs(10)
-                        {
-                            warning_timer = Instant::now();
-                            log::warn!(
-                                    "The program has been waiting for lock file {} to be deleted for {} seconds,
-                                    the lock file might have been left over from a previous run due to an error.",
-                                    lock_path.display(),
-                                    start_time.elapsed().as_secs()
-                                );
-                        } else if start_time.elapsed() > Duration::from_secs(120)
-                            && warning_timer.elapsed() > Duration::from_secs(10)
-                        {
-                            warning_timer = Instant::now();
-                            log::error!(
-                                    "The program has been waiting for lock file {} to be deleted for {} seconds,
-                                    the lock file might have been left over from a previous run due to an error.",
-                                    lock_path.display(),
-                                    start_time.elapsed().as_secs()
-                                );
-                        }
-                        std::thread::sleep(Duration::from_millis(500));
-                    } else {
-                        // something else went wrong, propagate error
-                        return Err(FileError::FileCreate(lock_path, err));
-                    }
+                Err(err)
+                    if is_transient_open_error(&err) && start_time.elapsed() < RETRY_TIMEOUT =>
+                {
+                    log::warn!(
+                        "failed to open lock file {} ({err}), retrying",
+                        lock_path.display(),
+                    );
+                    std::thread::sleep(RETRY_INTERVAL);
                 }
+                Err(err) => return Err(FileError::FileCreate(lock_path, err)),
             }
         }
     }
@@ -109,22 +84,27 @@ impl Lock {
     pub fn lock(&mut self) -> Result<Guard<'_>, FileError> {
         log::trace!("locking {}", self.path.display());
         let guard = match self.options {
-            LockOptions::Read | LockOptions::ReadCreate | LockOptions::ReadTruncate => {
+            LockOptions::Read | LockOptions::ReadCreate => {
                 GuardInner::FdLockRead(self.lock.read().expect("cannot fail on Windows"))
             }
             LockOptions::Write | LockOptions::WriteCreate | LockOptions::WriteTruncate => {
                 GuardInner::FdLockWrite(self.lock.write().expect("cannot fail on Windows"))
             }
         };
+        if self.options.requests_truncate() {
+            // truncating at open time would let two racing writers each wipe the file
+            // before either holds the lock
+            let file: &File = match &guard {
+                GuardInner::FdLockRead(g) => g,
+                GuardInner::FdLockWrite(g) => g,
+            };
+            file.set_len(0)
+                .map_err(|e| FileError::FileWrite(self.path.clone(), e))?;
+        }
         Ok(Guard {
             guard,
             path: Cow::Borrowed(&self.path),
         })
-    }
-
-    pub fn forget(self) {
-        let _self = self;
-        // no-op on windows
     }
 }
 
@@ -161,9 +141,10 @@ enum GuardInner<'a> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use crate::file_util::LOCK_FILE_NAME;
+    use std::io::Write;
     use std::sync::{Arc, Mutex};
     use tempfile::NamedTempFile;
 
@@ -246,17 +227,37 @@ mod test {
     }
 
     #[test]
-    fn lock_file_is_created_and_is_deleted() {
+    fn lock_file_lives_outside_the_locked_dir_and_persists() {
         init();
 
         let temp = tempfile::tempdir().unwrap();
         let mut lock = Lock::dir(temp.path().to_path_buf(), LockOptions::Read).unwrap();
-        let lock_path = temp.path().join(LOCK_FILE_NAME);
+        let lock_path = central_lock_path(temp.path(), LockOptions::Read).unwrap();
+        assert!(!lock_path.starts_with(temp.path()));
         assert!(lock_path.exists());
         let guard = lock.lock().unwrap();
         assert!(lock_path.exists());
         drop(guard);
         drop(lock);
-        assert!(!lock_path.exists());
+        // deleting it here would race concurrent processes into ERROR_ACCESS_DENIED
+        assert!(lock_path.exists());
+    }
+
+    #[test]
+    fn write_truncate_does_not_truncate_before_lock_is_acquired() {
+        init();
+
+        let mut temp = NamedTempFile::new().unwrap();
+        temp.write_all(b"existing content").unwrap();
+        let path = temp.path().to_path_buf();
+
+        let mut lock = Lock::file(&path, LockOptions::WriteTruncate).unwrap();
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "existing content");
+
+        let guard = lock.lock().unwrap();
+        // through the guard's handle: Windows locks are mandatory, so reading the path
+        // from outside while it's held fails with error 33
+        assert_eq!(guard.get_file().metadata().unwrap().len(), 0);
+        drop(guard);
     }
 }

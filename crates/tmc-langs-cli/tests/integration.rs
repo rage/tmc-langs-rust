@@ -75,8 +75,20 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
     files
 }
 
+// the commands under test would otherwise lock directories in the real user data dir
+fn ensure_isolated_locks_dir() {
+    static LOCKS_DIR: std::sync::LazyLock<TempDir> = std::sync::LazyLock::new(|| {
+        let dir = tempdir().expect("failed to create tempdir for test locks dir");
+        // SAFETY: LazyLock only runs this once, before any test reads the env var
+        unsafe { std::env::set_var("TMC_LANGS_LOCKS_DIR", dir.path()) };
+        dir
+    });
+    std::sync::LazyLock::force(&LOCKS_DIR);
+}
+
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
     insta::with_settings!({
         filters => vec![
@@ -397,6 +409,7 @@ fn prepare_submission_zstd() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_fails_tests() {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
     println!("set up user submission");
@@ -518,6 +531,7 @@ fn prepare_submission_fails_tests() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_passes_tests() {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
     println!("set up user submission");

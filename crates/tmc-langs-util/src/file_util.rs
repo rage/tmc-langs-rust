@@ -1,11 +1,14 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
+mod lock_path;
 #[cfg(unix)]
 mod lock_unix;
 #[cfg(windows)]
 mod lock_windows;
 
 use crate::error::FileError;
+pub use lock_path::LOCKS_DIR_ENV;
+use lock_path::central_lock_path;
 #[cfg(unix)]
 pub use lock_unix::*;
 #[cfg(windows)]
@@ -26,8 +29,6 @@ pub enum LockOptions {
     Read,
     /// Shared read lock, create file if it doesn't exist instead of erroring (including intermediate directories)
     ReadCreate,
-    /// Shared write lock, create file if it doesn't exist, truncate if it does
-    ReadTruncate,
     /// Exclusive write lock
     Write,
     /// Exclusive write lock, create file if it doesn't exist instead of erroring (including intermediate directories)
@@ -37,19 +38,23 @@ pub enum LockOptions {
 }
 
 impl LockOptions {
+    // no truncate: O_TRUNC would wipe the file before the lock is held, letting two
+    // racing writers each truncate. `Lock::lock` truncates once it holds the lock.
     fn into_open_options(self) -> OpenOptions {
         let mut opts = OpenOptions::new();
         match self {
             Self::Read => opts.read(true),
             // create requires write
             Self::ReadCreate => opts.read(true).write(true).create(true),
-            // truncate requires write
-            Self::ReadTruncate => opts.write(true).create(true).truncate(true),
             Self::Write => opts.write(true),
             Self::WriteCreate => opts.write(true).create(true),
-            Self::WriteTruncate => opts.write(true).create(true).truncate(true),
+            Self::WriteTruncate => opts.write(true).create(true),
         };
         opts
+    }
+
+    fn requests_truncate(self) -> bool {
+        matches!(self, Self::WriteTruncate)
     }
 }
 
