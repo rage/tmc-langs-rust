@@ -1,4 +1,10 @@
 //! Contains the Credentials struct for authenticating with tmc-server.
+//!
+//! Read-only: tmc-server tokens are no longer issued (the password grant is
+//! gone), so this only loads a token an older version stored, and deletes it once
+//! tmc-server rejects it. Reading it must keep working — a user with a valid
+//! stored token keeps that session rather than being pushed onto the
+//! courses.mooc.fi token mid-session.
 
 use crate::{LangsError, tmc::Token};
 use serde::{Deserialize, Serialize};
@@ -47,23 +53,6 @@ impl Credentials {
                 Err(LangsError::DeserializeCredentials(credentials_path, e))
             }
         }
-    }
-
-    pub fn save(client_name: &str, token: Token) -> Result<(), LangsError> {
-        let credentials_path = Self::get_credentials_path(client_name)?;
-
-        if let Some(p) = credentials_path.parent() {
-            file_util::create_dir_all(p)?;
-        }
-        let mut credentials_lock = Lock::file(&credentials_path, LockOptions::WriteTruncate)?;
-        let mut credentials_guard = credentials_lock.lock()?;
-        // write token
-        if let Err(e) = serde_json::to_writer(credentials_guard.get_file_mut(), &token) {
-            // failed to write token, removing credentials file
-            file_util::remove_file(&credentials_path)?;
-            return Err(LangsError::Json(e));
-        }
-        Ok(())
     }
 
     pub fn remove(self) -> Result<(), LangsError> {

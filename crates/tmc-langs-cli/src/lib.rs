@@ -7,7 +7,7 @@ pub mod error;
 pub mod output;
 
 use self::{
-    error::{DownloadsFailedError, InvalidTokenError, SandboxTestError},
+    error::{InvalidTokenError, SandboxTestError},
     output::{CliOutput, DataKind, Kind, OutputData, OutputResult, Status},
 };
 use crate::app::{Cli, Locale};
@@ -15,23 +15,26 @@ use anyhow::{Context, Result};
 use app::{Command, Mooc, MoocCommand, Settings, SettingsCommand, TestMyCode, TestMyCodeCommand};
 use base64::Engine;
 use clap::{CommandFactory, error::ErrorKind};
-use rpassword::ConfigBuilder;
 use serde::Serialize;
 use serde_json::Value;
 use std::{
     collections::HashMap,
     env,
-    io::{self, BufReader, Cursor, Read},
+    io::{self, Cursor, Read},
     path::{Path, PathBuf},
+    thread,
+    time::{Duration, Instant},
 };
 use tmc_langs::{
-    CommandError, Compression, Credentials, DownloadOrUpdateTmcCourseExercisesResult,
-    DownloadResult, Language, StyleValidationResult, TmcConfig, TmcProjectYml, UpdatedExercise,
+    CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult, LangsError, Language,
+    StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
-    mooc::{MoocClient, MoocClientError},
+    mooc::{self, MoocClient, MoocClientError},
+    progress_reporter,
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
 };
 use tmc_langs_util::deserialize;
+use uuid::Uuid;
 
 pub enum ParsingResult {
     Ok(Cli),
@@ -130,49 +133,104 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             _ => {}
         }
 
-        // check for tmc client errors
-        match cause.downcast_ref::<MoocClientError>() {
-            Some(MoocClientError::HttpError {
-                url: _,
-                status,
-                error: _,
-                obsolete_client,
-            }) => {
-                if *obsolete_client {
-                    return Kind::ObsoleteClient;
-                }
-                if status.as_u16() == 403 {
-                    return Kind::Forbidden;
-                }
-                if status.as_u16() == 401 {
-                    return Kind::NotLoggedIn;
-                }
-            }
-            Some(MoocClientError::NotAuthenticated) => {
-                return Kind::NotLoggedIn;
-            }
-            Some(MoocClientError::ConnectionError { .. }) => {
-                return Kind::ConnectionError;
-            }
-            _ => {}
+        // NB: mooc errors travel the chain as `Box<MoocClientError>`, so a bare
+        // downcast never matches; the boxed form must be checked too (same as the
+        // 401 handler in `run_mooc`).
+        if let Some(kind) = cause
+            .downcast_ref::<MoocClientError>()
+            .or_else(|| {
+                cause
+                    .downcast_ref::<Box<MoocClientError>>()
+                    .map(Box::as_ref)
+            })
+            .and_then(mooc_error_kind)
+        {
+            return kind;
         }
 
-        // check for download failed error
-        if let Some(DownloadsFailedError {
-            downloaded: completed,
-            skipped,
-            failed,
-        }) = cause.downcast_ref::<DownloadsFailedError>()
-        {
-            return Kind::FailedExerciseDownload {
-                completed: completed.clone(),
-                skipped: skipped.clone(),
-                failed: failed.clone(),
+        // A refresh failure surfaces wrapped in `LangsError::MoocClient`, a
+        // `#[error(transparent)]` variant whose `source()` delegates *past* the
+        // `MoocClientError` (to the inner reqwest error, or to nothing for an
+        // HTTP status error), so the downcasts above never see it. Unwrap that
+        // case explicitly so a transient refresh (5xx / connection error) still
+        // maps to `connection-error` rather than the opaque `generic`.
+        if let Some(LangsError::MoocClient(mooc_err)) = cause.downcast_ref::<LangsError>() {
+            if let Some(kind) = mooc_error_kind(mooc_err) {
+                return kind;
+            }
+        }
+
+        // Every individual mooc network call now goes through
+        // `MoocAuth::call`, which surfaces a failed call as `MoocAuthFailure`
+        // (see `mooc_credentials.rs`). Unwrap it explicitly rather than
+        // relying on exactly how its `#[source]` link shapes the chain.
+        if let Some(mooc_auth_err) = cause.downcast_ref::<tmc_langs::MoocAuthFailure>() {
+            let inner = match mooc_auth_err {
+                tmc_langs::MoocAuthFailure::Permanent(e) | tmc_langs::MoocAuthFailure::Other(e) => {
+                    e.as_ref()
+                }
             };
+            if let Some(kind) = mooc_error_kind(inner) {
+                return kind;
+            }
         }
     }
 
     Kind::Generic
+}
+
+/// Maps a [`MoocClientError`] to the CLI error [`Kind`] it should surface, if
+/// any. Shared so the same classification applies whether the error reaches the
+/// anyhow chain bare, boxed, or wrapped in `LangsError::MoocClient` (as a
+/// proactive or on-401 token-refresh failure does).
+fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
+    match err {
+        MoocClientError::HttpError {
+            status,
+            obsolete_client,
+            message_key,
+            ..
+        } => {
+            // `message_key` is the backend's stable identifier for a controlled
+            // error; prefer it over the raw status where present.
+            if *obsolete_client || message_key.as_deref() == Some("obsolete_client") {
+                Some(Kind::ObsoleteClient)
+            } else if message_key.as_deref() == Some("not_enrolled") {
+                Some(Kind::NotEnrolled)
+            } else if message_key.as_deref() == Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) {
+                Some(Kind::UploadExpired)
+            } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
+                Some(Kind::UnknownUpload)
+            // `duplicate_upload` is deliberately left unmapped: unlike the two
+            // above it is reachable only by a client that names one upload twice,
+            // which no retry or user action can fix, so `generic` is the honest
+            // kind. Mapping it would add a `Kind` variant the client must mirror
+            // in bindings.schema.json and langsSchema.ts for no user-visible gain.
+            } else if status.as_u16() == 403 {
+                Some(Kind::Forbidden)
+            } else if status.as_u16() == 401 {
+                Some(Kind::NotLoggedIn)
+            } else if status.is_server_error() {
+                // A 5xx is a transient server-side failure (e.g. a refresh that
+                // hit a flaky backend); surface it as a retryable connection
+                // error rather than deleting credentials or reporting `generic`.
+                Some(Kind::ConnectionError)
+            } else {
+                None
+            }
+        }
+        MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
+        // A denied or expired device authorization is a failed login, not a hard
+        // error: surface it as "not logged in".
+        MoocClientError::DeviceAccessDenied | MoocClientError::DeviceCodeExpired => {
+            Some(Kind::NotLoggedIn)
+        }
+        // The refresh token was permanently rejected (invalid/revoked/expired):
+        // the stored credentials are gone, so the user must log in again.
+        MoocClientError::RefreshTokenRejected { .. } => Some(Kind::NotLoggedIn),
+        MoocClientError::ConnectionError { .. } => Some(Kind::ConnectionError),
+        _ => None,
+    }
 }
 
 /// Goes through the error chain and returns the specialized error message, if any.
@@ -570,6 +628,15 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
                 DataKind::ExerciseDesc(scan_result),
             )
         }
+
+        // `main.rs` intercepts `Command::Schema` before the library runs, since
+        // printing the raw schema needs stdout the library must not assume.
+        // Reaching this arm means a library caller dispatched it directly.
+        Command::Schema => {
+            anyhow::bail!(
+                "the `schema` subcommand is handled by the CLI binary, not the library `run()`"
+            )
+        }
     };
     Ok(output)
 }
@@ -581,10 +648,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
         .unwrap_or_else(|_| "https://tmc.mooc.fi/".to_string())
         .parse()
         .context("Invalid TMC root url")?;
-    let (mut client, mut credentials) =
-        tmc_langs::init_testmycode_client_with_credentials(root_url, client_name, client_version)?;
+    let mooc_root_url = mooc_root_url()?;
+    let mooc_client_id = mooc_client_id();
+    let (mut client, mut auth) = tmc_langs::init_testmycode_client_with_credentials(
+        root_url,
+        client_name,
+        client_version,
+        &mooc_root_url,
+        &mooc_client_id,
+    )?;
 
-    match run_tmc_inner(tmc, &mut client, &mut credentials) {
+    match run_tmc_inner(tmc, &mut client, &mut auth) {
         Err(error) => {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
@@ -592,11 +666,17 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
                     cause.downcast_ref::<TestMyCodeClientError>()
                 {
                     if status.as_u16() == 401 {
-                        log::error!("Received HTTP 401 error, deleting credentials");
-                        if let Some(credentials) = credentials {
+                        // Only a stored TMC token is deleted here. A rejected
+                        // mooc token stays put: tmc-server may simply not be
+                        // accepting mooc tokens, which says nothing about the
+                        // token's validity at courses.mooc.fi. That case falls
+                        // through to the plain 401 mapping (`not-logged-in`)
+                        // instead of claiming credentials were deleted.
+                        if let Some(credentials) = auth.take_stored_tmc() {
+                            log::error!("Received HTTP 401 error, deleting TMC credentials");
                             credentials.remove()?;
+                            return Err(InvalidTokenError { source: error }.into());
                         }
-                        return Err(InvalidTokenError { source: error }.into());
                     }
                 }
             }
@@ -609,13 +689,13 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
 fn run_tmc_inner(
     tmc: TestMyCode,
     client: &mut TestMyCodeClient,
-    credentials: &mut Option<Credentials>,
+    auth: &mut tmc_langs::TestMyCodeAuth,
 ) -> Result<CliOutput> {
     let client_name = &tmc.client_name;
     let output = match tmc.command {
         TestMyCodeCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises = tmc_langs::check_exercise_updates(client, &projects_dir)
+            let updated_exercises = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
                 .context("Failed to check exercise updates")?
                 .into_iter()
                 .map(|id| UpdatedExercise { id })
@@ -672,7 +752,7 @@ fn run_tmc_inner(
                 &exercise_ids,
                 download_template,
             )? {
-                DownloadResult::Success {
+                TmcDownloadResult::Success {
                     downloaded,
                     skipped,
                 } => DownloadOrUpdateTmcCourseExercisesResult {
@@ -680,7 +760,7 @@ fn run_tmc_inner(
                     skipped,
                     failed: None,
                 },
-                DownloadResult::Failure {
+                TmcDownloadResult::Failure {
                     downloaded,
                     skipped,
                     failed,
@@ -807,12 +887,12 @@ fn run_tmc_inner(
         }
 
         TestMyCodeCommand::LoggedIn => {
-            if let Some(credentials) = credentials {
+            if let Some(token) = auth.token() {
                 CliOutput::OutputData(Box::new(OutputData {
                     status: Status::Finished,
                     message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
-                    data: Some(DataKind::Token(credentials.token())),
+                    data: Some(DataKind::Token(token)),
                 }))
             } else {
                 CliOutput::OutputData(Box::new(OutputData {
@@ -824,50 +904,11 @@ fn run_tmc_inner(
             }
         }
 
-        TestMyCodeCommand::Login {
-            base64,
-            email,
-            set_access_token,
-            stdin,
-        } => {
-            // get token from argument or server
-            let token = if let Some(token) = set_access_token {
-                tmc_langs::login_with_token(token)
-            } else if let Some(email) = email {
-                // TODO: print "Please enter password" and add "quiet"  flag
-                let password = if stdin {
-                    let stdin = BufReader::new(std::io::stdin());
-                    rpassword::read_password_with_config(
-                        ConfigBuilder::new().input_reader(stdin).build(),
-                    )
-                    .context("Failed to read password")?
-                } else {
-                    rpassword::read_password().context("Failed to read password")?
-                };
-                let decoded = if base64 {
-                    let bytes = base64::engine::general_purpose::STANDARD.decode(password)?;
-                    String::from_utf8(bytes).context("Failed to decode password with base64")?
-                } else {
-                    password
-                };
-                tmc_langs::login_with_password(client, email, decoded)?
-            } else {
-                unreachable!("validation error");
-            };
-
-            // create token file
-            Credentials::save(client_name, token)?;
-
-            CliOutput::OutputData(Box::new(OutputData {
-                status: Status::Finished,
-                message: "logged in".to_string(),
-                result: OutputResult::LoggedIn,
-                data: None,
-            }))
-        }
-
         TestMyCodeCommand::Logout => {
-            if let Some(credentials) = credentials.take() {
+            // Only the legacy TMC token, never the mooc credentials: `mooc
+            // logout` owns those, and dropping them here would log the user out
+            // of the backend that issued them.
+            if let Some(credentials) = auth.take_stored_tmc() {
                 credentials.remove()?;
             }
             CliOutput::OutputData(Box::new(OutputData {
@@ -1055,70 +1096,236 @@ fn run_tmc_inner(
     Ok(output)
 }
 
-fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
-    let root_url = env::var("TMC_LANGS_MOOC_ROOT_URL")
+/// The OAuth2 client id the mooc device/refresh flows authenticate as. Hardcoded
+/// per the shared auth contract, overridable via `TMC_LANGS_MOOC_CLIENT_ID` for
+/// tests and local development.
+fn mooc_client_id() -> String {
+    env::var("TMC_LANGS_MOOC_CLIENT_ID").unwrap_or_else(|_| mooc::DEFAULT_CLIENT_ID.to_string())
+}
+
+fn mooc_root_url() -> Result<url::Url> {
+    env::var("TMC_LANGS_MOOC_ROOT_URL")
         .unwrap_or_else(|_| "https://courses.mooc.fi/".to_string())
         .parse()
-        .context("Invalid TMC root url")?;
+        .context("Invalid Courses MOOC root url")
+}
 
-    let (mut client, credentials) =
-        tmc_langs::init_mooc_client_with_credentials(root_url, &mooc.client_name)?;
-    match run_mooc_inner(mooc, &mut client) {
+fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
+    let root_url = mooc_root_url()?;
+    let client_id = mooc_client_id();
+    let client_name = mooc.client_name.clone();
+
+    // Auth commands are handled before initializing the client: there is no
+    // token yet, so the auth-failure handling below must not apply to them.
+    match &mooc.command {
+        MoocCommand::Login => return run_mooc_login(&client_name, &root_url, &client_id),
+        MoocCommand::LoggedIn => return mooc_logged_in(&client_name),
+        MoocCommand::Logout => return mooc_logout(&client_name),
+        _ => {}
+    }
+
+    let (client, credentials) =
+        tmc_langs::init_mooc_client_with_credentials(root_url.clone(), &client_name, &client_id)?;
+    let had_credentials = credentials.is_some();
+    let auth = tmc_langs::MoocAuth::new(client_name.clone(), root_url.clone(), client_id.clone());
+
+    match run_mooc_inner(mooc, &client, &auth) {
+        Ok(output) => Ok(output),
         Err(error) => {
-            for cause in error.chain() {
-                // check if the token was rejected and delete it if so
-                if let Some(TestMyCodeClientError::HttpError { status, .. }) =
-                    cause.downcast_ref::<TestMyCodeClientError>()
-                {
-                    if status.as_u16() == 401 {
-                        log::error!("Received HTTP 401 error, deleting credentials");
-                        if let Some(credentials) = credentials {
-                            credentials.remove()?;
-                        }
-                        return Err(InvalidTokenError { source: error }.into());
-                    } else {
-                        log::warn!("401 without credentials");
-                    }
-                }
+            // Each network call retries itself on a 401 (see
+            // `MoocCredentials::call_with_refresh`), so credentials are only deleted mid-call
+            // on a permanent rejection. Check that durable fact instead of the error's shape,
+            // which can get rewrapped on its way here.
+            if had_credentials && tmc_langs::MoocCredentials::load(&client_name)?.is_none() {
+                log::error!(
+                    "mooc credentials were deleted during the call, reporting invalid token"
+                );
+                return Err(InvalidTokenError { source: error }.into());
             }
             Err(error)
         }
-        output => output,
     }
 }
 
-fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
+/// Logs in to the mooc backend via the OAuth2 device authorization grant.
+///
+/// Requests a device + user code, emits a `mooc-device-login` status update so
+/// the client can show the user the verification URL *before* blocking, then
+/// polls the token endpoint until the login is approved. On success the token
+/// pair is saved. Cancellation is by the parent process killing this one;
+/// nothing is persisted until success, so no cleanup is needed.
+fn run_mooc_login(client_name: &str, root_url: &url::Url, client_id: &str) -> Result<CliOutput> {
+    let device = mooc::device_authorization(root_url, client_id)?;
+
+    // Emit the verification info before blocking on the poll loop.
+    progress_reporter::start_stage::<output::MoocDeviceLogin>(
+        1,
+        "Waiting for device authorization".to_string(),
+        Some(output::MoocDeviceLogin {
+            verification_uri: device.verification_uri.clone(),
+            verification_uri_complete: device.verification_uri_complete.clone(),
+            user_code: device.user_code.clone(),
+            expires_in: device.expires_in,
+            interval: device.interval,
+        }),
+    );
+
+    let token = poll_mooc_device_login(root_url, client_id, &device)?;
+    tmc_langs::MoocCredentials::save(client_name, token)?;
+
+    Ok(CliOutput::OutputData(Box::new(OutputData {
+        status: Status::Finished,
+        message: "logged in".to_string(),
+        result: OutputResult::LoggedIn,
+        data: None,
+    })))
+}
+
+/// The env var overriding the device-login poll period. See
+/// [`device_poll_delay`].
+const MOOC_DEVICE_POLL_INTERVAL_VAR: &str = "TMC_LANGS_MOOC_DEVICE_POLL_INTERVAL_MS";
+
+/// Decides how long to wait before the next device-login poll.
+///
+/// In production the base is the server-provided interval grown by 5s for every
+/// `slow_down` seen so far (RFC 8628 §3.5). `TMC_LANGS_MOOC_DEVICE_POLL_INTERVAL_MS`,
+/// when set, overrides the whole computation and wins regardless of the backoff:
+/// it is a **test knob** that intentionally bypasses the real multi-second
+/// interval (and the backoff) so tests need not sleep. It is unset in
+/// production, where the server interval and slow_down backoff apply.
+fn device_poll_delay(
+    server_interval_secs: u64,
+    slow_down_count: u64,
+    env_override: Option<String>,
+) -> Duration {
+    let base_secs = server_interval_secs.saturating_add(5u64.saturating_mul(slow_down_count));
+    let base_ms = base_secs.saturating_mul(1000);
+    let ms = parse_poll_millis(MOOC_DEVICE_POLL_INTERVAL_VAR, env_override, base_ms, 10);
+    Duration::from_millis(ms)
+}
+
+/// Polls the token endpoint until the device login is approved, honoring the
+/// server's interval and increasing it by 5s on `slow_down` (RFC 8628 §3.5).
+/// The poll period is env-tunable (`TMC_LANGS_MOOC_DEVICE_POLL_INTERVAL_MS`) so
+/// tests need not sleep the real multi-second interval; the backoff decision
+/// itself lives in the pure [`device_poll_delay`].
+fn poll_mooc_device_login(
+    root_url: &url::Url,
+    client_id: &str,
+    device: &mooc::DeviceAuthorizationResponse,
+) -> Result<mooc::api::Token> {
+    let server_interval_secs = device.interval as u64;
+    // Number of `slow_down` responses so far; grows the base interval by 5s each.
+    let mut slow_down_count: u64 = 0;
+    let deadline = Instant::now() + Duration::from_secs(device.expires_in as u64);
+
+    loop {
+        let delay = device_poll_delay(
+            server_interval_secs,
+            slow_down_count,
+            env::var(MOOC_DEVICE_POLL_INTERVAL_VAR).ok(),
+        );
+        thread::sleep(delay);
+
+        if Instant::now() >= deadline {
+            // Locally bound the wait; the CLI maps this to `not-logged-in`.
+            return Err(Box::new(mooc::MoocClientError::DeviceCodeExpired).into());
+        }
+
+        match mooc::poll_device_token(root_url, client_id, &device.device_code)? {
+            mooc::DeviceTokenPoll::Pending => {}
+            mooc::DeviceTokenPoll::SlowDown => {
+                slow_down_count = slow_down_count.saturating_add(1);
+            }
+            mooc::DeviceTokenPoll::Authorized(token) => return Ok(*token),
+        }
+    }
+}
+
+/// Reports whether mooc credentials are stored, printing the token if so —
+/// mirrors the tmc `logged-in` command.
+fn mooc_logged_in(client_name: &str) -> Result<CliOutput> {
+    if let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? {
+        Ok(CliOutput::OutputData(Box::new(OutputData {
+            status: Status::Finished,
+            message: "currently logged in".to_string(),
+            result: OutputResult::LoggedIn,
+            data: Some(DataKind::Token(credentials.token())),
+        })))
+    } else {
+        Ok(CliOutput::OutputData(Box::new(OutputData {
+            status: Status::Finished,
+            message: "currently not logged in".to_string(),
+            result: OutputResult::NotLoggedIn,
+            data: None,
+        })))
+    }
+}
+
+/// Removes the stored mooc credentials — mirrors the tmc `logout` command.
+fn mooc_logout(client_name: &str) -> Result<CliOutput> {
+    if let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? {
+        credentials.remove()?;
+    }
+    Ok(CliOutput::OutputData(Box::new(OutputData {
+        status: Status::Finished,
+        message: "logged out".to_string(),
+        result: OutputResult::LoggedOut,
+        data: None,
+    })))
+}
+
+fn run_mooc_inner(
+    mooc: Mooc,
+    client: &MoocClient,
+    auth: &tmc_langs::MoocAuth,
+) -> Result<CliOutput> {
     let client_name = &mooc.client_name;
 
     let output = match mooc.command {
-        MoocCommand::CourseInstance {
-            course_instance_id: _,
-        } => {
-            todo!()
+        // Handled in `run_mooc` before the client is initialized.
+        MoocCommand::Login | MoocCommand::LoggedIn | MoocCommand::Logout => {
+            unreachable!("auth commands are dispatched before client initialization")
         }
-        MoocCommand::CourseInstances => {
-            let course_instances = client.course_instances()?;
+        MoocCommand::CheckExerciseUpdates => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let course = tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?;
             CliOutput::finished_with_data(
-                "fetched course instances",
-                DataKind::MoocCourseInstances(course_instances),
+                "checked exercise updates",
+                DataKind::MoocUpdatedExercises(course),
             )
         }
-        MoocCommand::CourseInstanceExercises { course_instance_id } => {
-            let course_instance_exercises = client.course_instance_exercises(course_instance_id)?;
+        MoocCommand::Course { course_id } => {
+            let course = auth.call(client, |c| c.course(course_id))?;
+            CliOutput::finished_with_data("fetched course", DataKind::MoocCourse(course))
+        }
+        MoocCommand::Courses => {
+            let course = auth.call(client, |c| c.courses())?;
+            CliOutput::finished_with_data("fetched course", DataKind::MoocCourses(course))
+        }
+        MoocCommand::CourseExercises { course_id } => {
+            let course_exercises = auth.call(client, |c| c.course_exercises(course_id))?;
             CliOutput::finished_with_data(
-                "fetched course instance exercises",
-                DataKind::MoocExerciseSlides(course_instance_exercises),
+                "fetched course exercises",
+                DataKind::MoocExerciseSlides(course_exercises),
+            )
+        }
+        MoocCommand::CourseProgress { course_id } => {
+            let progress = auth.call(client, |c| c.course_progress(course_id))?;
+            CliOutput::finished_with_data(
+                "fetched course progress",
+                DataKind::MoocCourseProgress(progress),
             )
         }
         MoocCommand::Exercise { exercise_id } => {
-            let exercise = client.exercise(exercise_id)?;
+            let exercise = auth.call(client, |c| c.exercise(exercise_id))?;
             CliOutput::finished_with_data("fetched exercise", DataKind::MoocExerciseSlide(exercise))
         }
         MoocCommand::DownloadExercise {
             exercise_id,
             target,
         } => {
-            let exercise = client.download_exercise(exercise_id)?;
+            let exercise = auth.call(client, |c| c.download_exercise(exercise_id))?;
             tmc_langs::extract_project(
                 Cursor::new(exercise),
                 &target,
@@ -1128,15 +1335,71 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
             )?;
             CliOutput::finished("downloaded exercise")
         }
-        MoocCommand::UpdateExercises => {
+        MoocCommand::DownloadOrUpdateCourseExercises {
+            exercise_id: exercise_ids,
+            course_id,
+        } => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let res = tmc_langs::update_mooc_exercises(client, &projects_dir)?;
-            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
+            let data = tmc_langs::download_or_update_mooc_course_exercises(
+                client,
+                auth,
+                &projects_dir,
+                &exercise_ids,
+                course_id,
+            )?;
+            CliOutput::finished_with_data(
+                "downloaded or updated exercises",
+                DataKind::MoocExerciseDownload(data),
+            )
+        }
+        MoocCommand::ListLocalCourseExercises { course_id } => {
+            let local_exercises =
+                tmc_langs::list_local_mooc_course_exercises(client_name, course_id)?;
+            CliOutput::finished_with_data(
+                format!("listed local exercises for {course_id}"),
+                DataKind::LocalMoocExercises(local_exercises),
+            )
         }
         MoocCommand::Submit {
             exercise_id,
-            slide_id,
-            task_id,
+            submission_path,
+            dont_block,
+        } => {
+            let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
+            let _guard = lock.lock()?;
+
+            let temp = file_util::named_temp_file()?;
+            tmc_langs::compress_project_to(
+                &submission_path,
+                temp.path(),
+                Compression::TarZstd,
+                false,
+                false,
+            )?;
+
+            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
+            if dont_block {
+                CliOutput::finished_with_data(
+                    "submitted exercise",
+                    DataKind::MoocSubmissionFinished(result),
+                )
+            } else {
+                let status = wait_for_mooc_grading(client, auth, result.task_submission_id)?;
+                CliOutput::finished_with_data(
+                    "submitted exercise",
+                    DataKind::MoocSubmissionStatus(status),
+                )
+            }
+        }
+        MoocCommand::WaitForGrading { submission_id } => {
+            let status = wait_for_mooc_grading(client, auth, submission_id)?;
+            CliOutput::finished_with_data(
+                "waited for grading",
+                DataKind::MoocSubmissionStatus(status),
+            )
+        }
+        MoocCommand::Paste {
+            exercise_id,
             submission_path,
         } => {
             let mut lock = Lock::dir(&submission_path, LockOptions::Read)?;
@@ -1151,14 +1414,206 @@ fn run_mooc_inner(mooc: Mooc, client: &mut MoocClient) -> Result<CliOutput> {
                 false,
             )?;
 
-            let result = client.submit(exercise_id, slide_id, task_id, temp.path())?;
+            // Submit non-blocking, then share. Sharing takes a slide-submission
+            // id, which the submit response carries. Each request is
+            // refreshed-and-retried independently, so a 401 on the (idempotent)
+            // share step never re-runs the (non-idempotent) submit above.
+            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
+            let paste = auth.call(client, |c| c.share_submission(result.slide_submission_id))?;
+            CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
+        }
+        MoocCommand::GetExerciseSubmissions { exercise_id } => {
+            let submissions = auth.call(client, |c| c.get_exercise_submissions(exercise_id))?;
             CliOutput::finished_with_data(
-                "submitted exercise",
-                DataKind::MoocSubmissionFinished(result),
+                "fetched exercise submissions",
+                DataKind::MoocSubmissions(submissions),
             )
+        }
+        MoocCommand::DownloadOldSubmission {
+            submission_id,
+            exercise_id,
+            output_path,
+            save_old_state,
+        } => {
+            let mut output_lock = Lock::dir(&output_path, LockOptions::Write)?;
+            let output_guard = output_lock.lock()?;
+
+            let restore = tmc_langs::download_mooc_old_submission(
+                client,
+                auth,
+                exercise_id,
+                &output_path,
+                submission_id,
+                save_old_state,
+            )?;
+            drop(output_guard);
+            output_lock.forget();
+            let message = match restore {
+                tmc_langs::MoocOldSubmissionRestore::Restored => "extracted project",
+                tmc_langs::MoocOldSubmissionRestore::NothingToDownload => {
+                    "submission has no downloadable files"
+                }
+            };
+            CliOutput::finished_with_data(message, DataKind::MoocOldSubmissionRestore(restore))
+        }
+        MoocCommand::ResetExercise {
+            save_old_state,
+            exercise_id,
+            exercise_path,
+        } => {
+            let mut lock = Lock::dir(&exercise_path, LockOptions::Write)?;
+            let _guard = lock.lock()?;
+
+            tmc_langs::reset_mooc_exercise(
+                client,
+                auth,
+                exercise_id,
+                &exercise_path,
+                save_old_state,
+            )?;
+            CliOutput::finished("reset exercise")
+        }
+        MoocCommand::UpdateExercises => {
+            let projects_dir = tmc_langs::get_projects_dir(client_name)?;
+            let res = tmc_langs::update_mooc_exercises(client, auth, &projects_dir)?;
+            CliOutput::finished_with_data("updated exercises", DataKind::MoocExerciseDownload(res))
         }
     };
     Ok(output)
+}
+
+/// Default grading-poll interval and the overall wait bound, both overridable via
+/// env vars so tests can poll fast without sleeping real seconds. The backend
+/// grades asynchronously, so a blocking submit must poll, bounded so the caller
+/// is never wedged forever.
+fn mooc_poll_config() -> (Duration, Duration) {
+    fn millis(var: &str, default: u64, min: u64) -> Duration {
+        Duration::from_millis(parse_poll_millis(var, env::var(var).ok(), default, min))
+    }
+    (
+        // Floor the interval at a sane minimum so a bogus `0` can't busy-loop.
+        millis("TMC_LANGS_MOOC_POLL_INTERVAL_MS", 2000, 10),
+        millis("TMC_LANGS_MOOC_POLL_TIMEOUT_MS", 180_000, 0),
+    )
+}
+
+/// Parses a poll-knob millisecond value. `None` yields `default`; a valid value
+/// yields `value.max(min)` (so it can be floored); an invalid one logs a warning
+/// and falls back to `default`.
+fn parse_poll_millis(var: &str, raw: Option<String>, default: u64, min: u64) -> u64 {
+    match raw {
+        None => default,
+        Some(s) => match s.parse::<u64>() {
+            Ok(value) => value.max(min),
+            Err(_) => {
+                log::warn!("ignoring unparseable {var}={s:?}, falling back to default {default}ms");
+                default
+            }
+        },
+    }
+}
+
+/// Whether a grading status is terminal from the student's point of view.
+///
+/// `FullyGraded`/`Failed` are final; `PendingManual` is terminal-for-student
+/// (the automated part is done, results won't change synchronously — the student
+/// sees "awaiting manual grading"). `Pending`/`NotReady` and `NoGradingYet` keep
+/// the loop polling.
+fn mooc_grading_is_terminal(status: &mooc::ExerciseTaskSubmissionStatus) -> bool {
+    use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
+    match status {
+        Status::NoGradingYet => false,
+        Status::Grading {
+            grading_progress, ..
+        } => matches!(
+            grading_progress,
+            Progress::FullyGraded | Progress::Failed | Progress::PendingManual
+        ),
+    }
+}
+
+/// A human-readable progress message for the current grading status.
+fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
+    use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
+    match status {
+        Status::NoGradingYet => "Grading has not started yet".to_string(),
+        Status::Grading {
+            grading_progress, ..
+        } => match grading_progress {
+            Progress::NotReady => "Grading not ready".to_string(),
+            Progress::Pending => "Grading in progress".to_string(),
+            Progress::PendingManual => "Awaiting manual grading".to_string(),
+            Progress::FullyGraded => "Fully graded".to_string(),
+            Progress::Failed => "Grading failed".to_string(),
+        },
+    }
+}
+
+/// Polls a submission's grading until it reaches a terminal state (see
+/// [`mooc_grading_is_terminal`]) or the timeout elapses, emitting stdout progress
+/// updates as the TMC submit loop does. On timeout the latest non-terminal status
+/// is returned as data (not an error), so the caller can show "still grading"
+/// rather than treat the wait as a failure.
+///
+/// Each poll goes through [`tmc_langs::MoocAuth::call`], so a 401 is
+/// refreshed-and-retried transparently without resubmitting anything. Only a
+/// *permanent* auth failure aborts the wait immediately; anything else is
+/// treated as a transient poll error and retried until the deadline.
+fn wait_for_mooc_grading(
+    client: &MoocClient,
+    auth: &tmc_langs::MoocAuth,
+    submission_id: Uuid,
+) -> Result<mooc::ExerciseTaskSubmissionStatus> {
+    let (interval, timeout) = mooc_poll_config();
+    progress_reporter::start_stage::<()>(1, "Waiting for grading".to_string(), None);
+    let deadline = Instant::now() + timeout;
+    loop {
+        match auth.call(client, |c| c.get_submission_grading(submission_id)) {
+            Ok(status) => {
+                if mooc_grading_is_terminal(&status) {
+                    progress_reporter::finish_stage::<()>(mooc_grading_message(&status), None);
+                    return Ok(status);
+                }
+                if Instant::now() >= deadline {
+                    progress_reporter::finish_stage::<()>(
+                        "Grading still in progress, stopped waiting".to_string(),
+                        None,
+                    );
+                    return Ok(status);
+                }
+                progress_reporter::progress_stage::<()>(mooc_grading_message(&status), None);
+            }
+            // The token was permanently rejected: waiting any longer cannot
+            // help (there is no session left to poll with), so fail fast
+            // instead of burning the rest of the poll timeout.
+            Err(e) if e.is_permanent() => {
+                progress_reporter::finish_stage::<()>(
+                    "Grading status unavailable, stopped waiting".to_string(),
+                    None,
+                );
+                return Err(e.into());
+            }
+            // A transient poll error (network blip, 5xx, or a refresh that
+            // itself failed transiently) must not abort a submit that the
+            // backend has already recorded: keep polling until the deadline
+            // and only surface a persistent failure then.
+            Err(e) => {
+                if Instant::now() >= deadline {
+                    progress_reporter::finish_stage::<()>(
+                        "Grading status unavailable, stopped waiting".to_string(),
+                        None,
+                    );
+                    return Err(e.into());
+                }
+                log::warn!("transient error while polling grading, retrying: {e}");
+                progress_reporter::progress_stage::<()>(
+                    "Grading status temporarily unavailable, retrying".to_string(),
+                    None,
+                );
+            }
+        }
+        thread::sleep(interval);
+    }
 }
 
 fn run_settings(settings: Settings) -> Result<CliOutput> {
@@ -1316,5 +1771,65 @@ mod test {
         } else {
             panic!()
         }
+    }
+
+    #[test]
+    fn parse_poll_millis_uses_default_when_unset() {
+        assert_eq!(parse_poll_millis("VAR", None, 2000, 10), 2000);
+    }
+
+    #[test]
+    fn parse_poll_millis_floors_to_min() {
+        // A bogus `0` interval would busy-loop, so it is floored to `min`.
+        assert_eq!(
+            parse_poll_millis("VAR", Some("0".to_string()), 2000, 10),
+            10
+        );
+    }
+
+    #[test]
+    fn parse_poll_millis_passes_through_valid_value() {
+        assert_eq!(
+            parse_poll_millis("VAR", Some("500".to_string()), 2000, 10),
+            500
+        );
+    }
+
+    #[test]
+    fn parse_poll_millis_falls_back_on_unparseable() {
+        assert_eq!(
+            parse_poll_millis("VAR", Some("abc".to_string()), 2000, 10),
+            2000
+        );
+    }
+
+    #[test]
+    fn device_poll_backoff_grows_by_5s_per_slow_down() {
+        // No env override (the production case): base is the server interval, and
+        // each observed `slow_down` grows the wait by 5s (RFC 8628 §3.5).
+        assert_eq!(device_poll_delay(5, 0, None), Duration::from_secs(5));
+        assert_eq!(device_poll_delay(5, 1, None), Duration::from_secs(10));
+        assert_eq!(device_poll_delay(5, 2, None), Duration::from_secs(15));
+        // A different server interval backs off from that base.
+        assert_eq!(device_poll_delay(3, 2, None), Duration::from_secs(13));
+    }
+
+    #[test]
+    fn device_poll_env_override_bypasses_backoff() {
+        // The test knob wins regardless of the slow_down count, so the backoff is
+        // intentionally bypassed when the override is set.
+        assert_eq!(
+            device_poll_delay(5, 0, Some("50".to_string())),
+            Duration::from_millis(50)
+        );
+        assert_eq!(
+            device_poll_delay(5, 3, Some("50".to_string())),
+            Duration::from_millis(50)
+        );
+        // Still floored to the 10ms minimum so a bogus `0` can't busy-loop.
+        assert_eq!(
+            device_poll_delay(5, 3, Some("0".to_string())),
+            Duration::from_millis(10)
+        );
     }
 }

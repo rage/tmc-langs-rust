@@ -33,6 +33,10 @@ pub struct LocalTmcExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalMoocExercise {
+    /// The exercise's on-disk directory name, used as its slug when building a
+    /// workspace entry (mirrors the TMC slug); stable since names are unique per
+    /// course.
+    pub exercise_slug: String,
     pub exercise_id: Uuid,
     pub exercise_path: PathBuf,
 }
@@ -167,7 +171,7 @@ impl Display for ShellString {
 }
 
 #[derive(Debug)]
-pub enum DownloadResult {
+pub enum TmcDownloadResult {
     Success {
         downloaded: Vec<TmcExerciseDownload>,
         skipped: Vec<TmcExerciseDownload>,
@@ -204,7 +208,10 @@ pub struct TmcExerciseDownload {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct MoocExerciseDownload {
-    pub id: Uuid,
+    /// The requested exercise's id; results are keyed by it so callers can
+    /// correlate each download/skip/failure back to the exercise (not the internal
+    /// editor task id).
+    pub exercise_id: Uuid,
     pub path: PathBuf,
 }
 
@@ -226,11 +233,13 @@ pub struct DownloadOrUpdateTmcCourseExercisesResult {
 }
 
 /// A setting in a TmcConfig file.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(untagged)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ConfigValue {
-    Value(Option<toml::Value>),
+    // `toml::Value` does not implement `JsonSchema`; represent it as an
+    // arbitrary JSON value, matching the `unknown` ts-rs renders it as.
+    Value(#[schemars(with = "Option<serde_json::Value>")] Option<toml::Value>),
     Path(PathBuf),
 }
 
@@ -241,4 +250,25 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     pub skipped: Vec<MoocExerciseDownload>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>)>>,
+    /// Exercises never attempted because the batch stopped early on a permanent auth
+    /// failure (see `stopped_for_auth`). Empty unless that happened.
+    #[serde(default)]
+    pub not_attempted: Vec<MoocExerciseDownload>,
+    /// True if a mooc token refresh permanently failed partway through the batch,
+    /// leaving `not_attempted` non-empty.
+    #[serde(default)]
+    pub stopped_for_auth: bool,
+}
+
+/// Outcome of restoring a past mooc submission.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum MoocOldSubmissionRestore {
+    /// The submission's archive was overlaid on a fresh stub.
+    Restored,
+    /// The host has no files for the submission, so nothing on disk was touched:
+    /// an exercise type with no files, or a service that declares no way to
+    /// enumerate its answers' files.
+    NothingToDownload,
 }

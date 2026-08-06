@@ -91,6 +91,13 @@ jobs:
       - name: Run tests
         run: cargo test --no-fail-fast --target ${{ matrix.rust-target }}
 
+      # Drift gate for bindings.schema.json / bindings.d.ts; regenerate with the
+      # #[ignore]d generate_cli_bindings{,_schema} tests. The schema half also
+      # runs in "Run tests" above; this adds the ts-rs (bindings.d.ts) half.
+      - name: Check langs contract bindings are up to date
+        if: matrix.os == 'ubuntu-latest'
+        run: cargo test -p tmc-langs-cli --features ts-rs --target ${{ matrix.rust-target }} -- bindings_
+
       - name: Check number of dynamic libraries hasn't changed
         if: matrix.os == 'ubuntu-latest'
         run: |

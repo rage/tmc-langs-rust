@@ -14,6 +14,7 @@ log = "0.4.14"
 nom = "8.0.0"
 nom-language = "0.1.0"
 once_cell = "1.9.0"
+schemars = "1.0.4"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = "1.0.79"
 serde_path_to_error = "0.1.7"
@@ -26,7 +27,11 @@ walkdir = "2.3.2"
 
 [target.'cfg(windows)'.dependencies]
 fd-lock = "4.0.0"
-winapi = "0.3.9"
+# `winapi`'s modules are feature-gated; declare the ones `file_util::lock_windows`
+# imports rather than relying on some other crate in the dependency graph enabling
+# them, which only happens to work because Cargo unifies features workspace-wide
+# and breaks the moment this crate is checked on its own.
+winapi = { version = "0.3.9", features = ["winbase", "winnt"] }
 
 [target.'cfg(unix)'.dependencies]
 file-lock = "2.1.11"

@@ -5,14 +5,14 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc,
-    ExercisePackagingConfiguration, Language, LocalExercise, RunResult, StyleValidationResult,
-    UpdatedExercise,
-    mooc::CourseInstance,
+    CombinedCourseData, Compression, DownloadOrUpdateMoocCourseExercisesResult,
+    DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
+    Language, LocalExercise, LocalMoocExercise, RunResult, StyleValidationResult, UpdatedExercise,
+    mooc,
     tmc::{
-        UpdateResult,
+        self, UpdateResult,
         response::{
-            Course, CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
+            CourseData, CourseDetails, CourseExercise, ExerciseDetails, NewSubmission,
             Organization, Review, Submission, SubmissionFeedbackResponse, SubmissionFinished,
         },
     },
@@ -255,6 +255,13 @@ pub enum Command {
         #[clap(long)]
         output_path: Option<PathBuf>,
     },
+
+    /// Prints the JSON Schema of the CLI's stdout output types to stdout.
+    ///
+    /// Prints the raw schema rather than a `CliOutput` envelope, matching the
+    /// committed `bindings.schema.json` byte for byte so clients can check the
+    /// binary against the schema they were built against.
+    Schema,
 }
 
 /// Various commands that communicate with the TestMyCode server.
@@ -349,7 +356,7 @@ pub enum TestMyCodeCommand {
     },
 
     /// Lists courses
-    #[clap(long_about = schema_leaked::<Vec<Course>>())]
+    #[clap(long_about = schema_leaked::<Vec<tmc::response::Course>>())]
     GetCourses {
         /// Organization slug (e.g. mooc, hy).
         #[clap(long)]
@@ -403,29 +410,14 @@ pub enum TestMyCodeCommand {
         course_id: u32,
     },
 
-    /// Checks if the CLI is authenticated. Prints the access token if so
+    /// Checks whether the CLI can authenticate with the TMC server, either with a
+    /// stored TMC token or with the Courses MOOC access token. Prints the access
+    /// token if so
     #[clap(long_about = SCHEMA_TOKEN)]
     LoggedIn,
 
-    /// Authenticates with the TMC server and stores the OAuth2 token in config. You can log in either by email and password or an access token
-    #[clap(long_about = SCHEMA_NULL)]
-    Login {
-        /// If set, the password is expected to be a base64 encoded string. This can be useful if the password contains special characters.
-        #[clap(long)]
-        base64: bool,
-        /// The email address of your TMC account. The password will be read through stdin.
-        #[clap(long, required_unless_present = "set_access_token")]
-        email: Option<String>,
-        /// The OAUTH2 access token that should be used for authentication.
-        #[clap(long, required_unless_present = "email")]
-        set_access_token: Option<String>,
-        /// If set, the password will be read from stdin instead of TTY like usual.
-        /// The keyboard input is not hidden in this case, so this should only be used when running the CLI programmatically.
-        #[clap(long)]
-        stdin: bool,
-    },
-
-    /// Logs out and removes the OAuth2 token from config
+    /// Removes a stored TMC OAuth2 token from config. Does not affect the Courses
+    /// MOOC credentials; use `mooc logout` for those
     #[clap(long_about = SCHEMA_NULL)]
     Logout,
 
@@ -532,7 +524,7 @@ pub enum TestMyCodeCommand {
     },
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct Mooc {
     /// Name used to differentiate between different frontends (e.g. the VSCode extension).
     #[clap(long, short)]
@@ -541,20 +533,42 @@ pub struct Mooc {
     pub command: MoocCommand,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub enum MoocCommand {
-    /// Fetches information about a course instance.
-    CourseInstance {
+    /// Logs in to the Courses MOOC backend using the OAuth2 device
+    /// authorization grant (RFC 8628). Emits a `mooc-device-login` status
+    /// update carrying the verification URL and user code, then blocks polling
+    /// until the login is approved (or the parent process cancels by killing
+    /// this one).
+    #[clap(long_about = SCHEMA_NULL)]
+    Login,
+    /// Checks whether the CLI holds mooc credentials. Prints the access token if so.
+    #[clap(long_about = SCHEMA_TOKEN)]
+    LoggedIn,
+    /// Logs out of the Courses MOOC backend, removing the stored credentials.
+    #[clap(long_about = SCHEMA_NULL)]
+    Logout,
+    #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
+    CheckExerciseUpdates,
+    /// Fetches information about a course.
+    #[clap(long_about = schema_leaked::<mooc::Course>())]
+    Course {
         #[clap(long)]
-        course_instance_id: Uuid,
+        course_id: Uuid,
     },
     /// Fetches the user's enrolled courses.
-    #[clap(long_about = schema_leaked::<Vec<CourseInstance>>())]
-    CourseInstances,
-    /// Fetches the available exercises for a course instance.
-    CourseInstanceExercises {
+    #[clap(long_about = schema_leaked::<Vec<mooc::Course>>())]
+    Courses,
+    /// Fetches the available exercises for a course.
+    CourseExercises {
         #[clap(long)]
-        course_instance_id: Uuid,
+        course_id: Uuid,
+    },
+    /// Fetches the current user's per-exercise progress for a course.
+    #[clap(long_about = schema_leaked::<mooc::CourseProgress>())]
+    CourseProgress {
+        #[clap(long)]
+        course_id: Uuid,
     },
     /// Fetches information about an exercise.
     Exercise {
@@ -568,20 +582,93 @@ pub enum MoocCommand {
         #[clap(long)]
         target: PathBuf,
     },
-    /// Updates all local exercises that have been updated on the server
-    #[clap(long_about = SCHEMA_NULL)]
-    UpdateExercises,
-    /// Submits an exercise.
+    /// Downloads or updates the given course exercises into the projects directory.
+    #[clap(long_about = schema_leaked::<DownloadOrUpdateMoocCourseExercisesResult>())]
+    DownloadOrUpdateCourseExercises {
+        /// Exercise id of an exercise that should be downloaded. Multiple ids can be given.
+        #[clap(long, num_args = 1..)]
+        exercise_id: Vec<Uuid>,
+        /// The course the exercises belong to. When given, only that course's
+        /// slides are fetched to resolve the exercises instead of scanning every
+        /// enrolled course.
+        #[clap(long)]
+        course_id: Option<Uuid>,
+    },
+    /// Lists the local exercises of a mooc course, looked up by course id.
+    #[clap(long_about = schema_leaked::<Vec<LocalMoocExercise>>())]
+    ListLocalCourseExercises {
+        #[clap(long)]
+        course_id: Uuid,
+    },
+    /// Submits an exercise, resolving the slide and editor task ids from the
+    /// exercise id. By default blocks until grading reaches a terminal state,
+    /// emitting progress updates.
     Submit {
         #[clap(long)]
         exercise_id: Uuid,
         #[clap(long)]
-        slide_id: Uuid,
+        submission_path: PathBuf,
+        /// Return immediately with just the submission id instead of waiting for
+        /// the grading to finish.
         #[clap(long)]
-        task_id: Uuid,
+        dont_block: bool,
+    },
+    /// Waits for a submission's grading to reach a terminal state, polling the
+    /// backend and emitting progress updates.
+    WaitForGrading {
+        #[clap(long)]
+        submission_id: Uuid,
+    },
+    /// Submits an exercise (non-blocking) and shares the resulting submission,
+    /// returning a public paste URL — the "share a submission" equivalent of TMC
+    /// paste.
+    #[clap(long_about = schema_leaked::<mooc::PasteResult>())]
+    Paste {
+        #[clap(long)]
+        exercise_id: Uuid,
         #[clap(long)]
         submission_path: PathBuf,
     },
+    /// Fetches the current user's past submissions to an exercise, newest first.
+    #[clap(long_about = schema_leaked::<Vec<mooc::ExerciseSlideSubmissionListItem>>())]
+    GetExerciseSubmissions {
+        #[clap(long)]
+        exercise_id: Uuid,
+    },
+    /// Downloads a past submission of an exercise, restoring its student files on
+    /// top of a fresh exercise stub at `output_path`.
+    DownloadOldSubmission {
+        /// The id of the submission to download (an exercise-slide-submission id
+        /// from `get-exercise-submissions`).
+        #[clap(long)]
+        submission_id: Uuid,
+        /// The id of the exercise the submission belongs to.
+        #[clap(long)]
+        exercise_id: Uuid,
+        /// Path to the directory where the project resides / should be restored.
+        #[clap(long)]
+        output_path: PathBuf,
+        /// Submit the current state of `output_path` before overwriting it.
+        #[clap(long)]
+        save_old_state: bool,
+    },
+    /// Resets an exercise. Removes the contents of the exercise directory and
+    /// re-downloads and re-extracts the exercise's stub archive from the server.
+    #[clap(long_about = SCHEMA_NULL)]
+    ResetExercise {
+        /// If set, the exercise's current state is submitted to the server before resetting it.
+        #[clap(long)]
+        save_old_state: bool,
+        /// The id of the exercise.
+        #[clap(long)]
+        exercise_id: Uuid,
+        /// Path to the directory where the project resides.
+        #[clap(long)]
+        exercise_path: PathBuf,
+    },
+    /// Updates all local exercises that have been updated on the server
+    #[clap(long_about = SCHEMA_NULL)]
+    UpdateExercises,
 }
 
 /// Configure the CLI
@@ -793,7 +880,9 @@ mod base_test {
     }
 
     #[test]
-    fn list_local_course_exercises() {
+    fn list_local_tmc_course_exercises() {
+        // The released spelling. Renaming a legacy command breaks every client
+        // pinned to an older CLI, so this name is fixed.
         get_matches(&[
             "list-local-tmc-course-exercises",
             "--client-name",
@@ -1029,15 +1118,20 @@ mod core_test {
     }
 
     #[test]
-    fn login() {
-        get_matches_tmc(&[
+    fn no_login_command() {
+        // A new tmc username/password login no longer exists; a client
+        // authenticates with a stored tmc token or the Courses MOOC one.
+        Cli::try_parse_from([
+            "tmc-langs-cli",
+            "tmc",
+            "--client-name",
+            "client",
+            "--client-version",
+            "version",
             "login",
-            "--base64",
-            "--email",
-            "email",
-            "--set-access-token",
-            "access token",
-        ]);
+        ])
+        .err()
+        .expect("`tmc login` must not be accepted");
     }
 
     #[test]
@@ -1199,14 +1293,193 @@ mod settings_test {
 }
 
 #[cfg(test)]
-mod test {
+mod mooc_test {
+    use super::*;
+
+    fn get_matches_mooc(args: &[&str]) {
+        Cli::try_parse_from(
+            ["tmc-langs-cli", "mooc", "--client-name", "client"]
+                .iter()
+                .chain(args)
+                .collect::<Vec<_>>(),
+        )
+        .map_err(|e| e.to_string())
+        .unwrap();
+    }
+
     #[test]
-    #[ignore]
+    fn reset_exercise() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--save-old-state",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+
+    #[test]
+    fn reset_exercise_without_save_old_state() {
+        get_matches_mooc(&[
+            "reset-exercise",
+            "--exercise-id",
+            "df5ee6c1-57d1-43b6-b39e-5d72119edb5f",
+            "--exercise-path",
+            "path",
+        ]);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::path::{Path, PathBuf};
+
+    /// Path to the committed JSON Schema artifact.
+    fn schema_path() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.schema.json")
+    }
+
+    /// Path to the committed TypeScript bindings artifact.
+    fn dts_path() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.d.ts")
+    }
+
+    #[test]
+    #[ignore = "run manually to regenerate the committed bindings.schema.json"]
+    fn generate_cli_bindings_schema() {
+        std::fs::write(schema_path(), crate::output::cli_output_json_schema()).unwrap();
+    }
+
+    /// Drift gate: fails if `bindings.schema.json` no longer matches the
+    /// current types.
+    #[test]
+    fn bindings_schema_up_to_date() {
+        let committed = std::fs::read_to_string(schema_path()).expect(
+            "bindings.schema.json should exist; regenerate it with \
+             `cargo test -p tmc-langs-cli generate_cli_bindings_schema -- --ignored`",
+        );
+        let generated = crate::output::cli_output_json_schema();
+        assert_eq!(
+            committed, generated,
+            "bindings.schema.json is out of date; regenerate it with \
+             `cargo test -p tmc-langs-cli generate_cli_bindings_schema -- --ignored`"
+        );
+    }
+
+    /// Drift gate: fails if `bindings.d.ts` no longer matches the current
+    /// types. Requires `--features ts-rs`.
+    #[test]
+    #[cfg(feature = "ts-rs")]
+    fn bindings_dts_up_to_date() {
+        let committed = std::fs::read_to_string(dts_path()).expect(
+            "bindings.d.ts should exist; regenerate it with \
+             `cargo test -p tmc-langs-cli --features ts-rs generate_cli_bindings -- --ignored`",
+        );
+        let generated = generate_cli_bindings_dts();
+        assert_eq!(
+            committed, generated,
+            "bindings.d.ts is out of date; regenerate it with \
+             `cargo test -p tmc-langs-cli --features ts-rs generate_cli_bindings -- --ignored`"
+        );
+    }
+
+    #[test]
+    #[ignore = "run manually to regenerate the committed bindings.d.ts"]
     #[cfg(feature = "ts-rs")]
     fn generate_cli_bindings() {
-        let mut f = std::fs::File::create("./bindings.d.ts").unwrap();
+        std::fs::write(dts_path(), generate_cli_bindings_dts()).unwrap();
+    }
+
+    /// `bindings.d.ts` is vendored into other repos as a standalone file
+    /// (sp331's `services/tmc/src/tmc/cli.d.ts`), so a type it references but
+    /// never declares makes it invalid TypeScript there. The byte-equality
+    /// gates compare bytes only and cannot see that; a type reachable from an
+    /// exported type but missing from `generate_cli_bindings_dts`'s
+    /// `export_to!` list is the way it happens.
+    #[test]
+    fn bindings_dts_declares_every_type_it_references() {
+        /// Types TypeScript provides; everything else must be declared in-file.
+        const TS_BUILTINS: &[&str] = &["Array", "Record"];
+
+        let src = strip_comments_and_strings(
+            &std::fs::read_to_string(dts_path()).expect("bindings.d.ts should exist"),
+        );
+
+        let mut declared = std::collections::HashSet::new();
+        for line in src.lines() {
+            let Some(rest) = line.strip_prefix("export type ") else {
+                continue;
+            };
+            let name_end = rest
+                .find(|c: char| !c.is_alphanumeric() && c != '_')
+                .unwrap_or(rest.len());
+            declared.insert(&rest[..name_end]);
+            // A generic alias declares its own parameters.
+            if let Some(params) = rest[name_end..]
+                .strip_prefix('<')
+                .and_then(|r| r.split_once('>'))
+                .map(|(params, _)| params)
+            {
+                declared.extend(params.split(',').map(str::trim));
+            }
+        }
+
+        let mut missing = src
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .filter(|word| word.starts_with(|c: char| c.is_ascii_uppercase()))
+            .filter(|word| !TS_BUILTINS.contains(word) && !declared.contains(word))
+            .collect::<Vec<_>>();
+        missing.sort_unstable();
+        missing.dedup();
+
+        assert!(
+            missing.is_empty(),
+            "bindings.d.ts references types it does not declare: {missing:?}; \
+             add them to generate_cli_bindings_dts's export_to! list and regenerate"
+        );
+    }
+
+    /// Blanks out doc comments and string literals so type references can be
+    /// picked out by identifier casing without prose or literal unions
+    /// (`"tar" | "zip"`) being mistaken for them.
+    fn strip_comments_and_strings(src: &str) -> String {
+        let mut out = String::with_capacity(src.len());
+        let mut chars = src.chars().peekable();
+        while let Some(c) = chars.next() {
+            match c {
+                '/' if chars.peek() == Some(&'*') => {
+                    let mut prev = ' ';
+                    for c in chars.by_ref() {
+                        if prev == '*' && c == '/' {
+                            break;
+                        }
+                        prev = c;
+                    }
+                }
+                '"' => {
+                    while let Some(c) = chars.next() {
+                        match c {
+                            '\\' => {
+                                chars.next();
+                            }
+                            '"' => break,
+                            _ => {}
+                        }
+                    }
+                }
+                _ => out.push(c),
+            }
+        }
+        out
+    }
+
+    /// Produces the TypeScript bindings as a string from the current types.
+    #[cfg(feature = "ts-rs")]
+    fn generate_cli_bindings_dts() -> String {
+        let mut buf = Vec::new();
         ts_rs::export_to!(
-            &mut f,
+            &mut buf,
             // input
             crate::app::Locale,
             // output
@@ -1217,6 +1490,7 @@ mod test {
             crate::output::OutputResult,
             crate::output::Status,
             crate::output::StatusUpdateData,
+            crate::output::MoocDeviceLogin,
             tmc_langs::notification_reporter::Notification,
             tmc_langs::notification_reporter::NotificationKind,
             tmc_langs::progress_reporter::StatusUpdate<()>,
@@ -1296,14 +1570,25 @@ mod test {
             // settings list
             tmc_langs::TmcConfig,
             // mooc
-            tmc_langs::mooc::CourseInstance,
+            tmc_langs::mooc::Course,
             tmc_langs::mooc::TmcExerciseSlide,
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,
+            tmc_langs::mooc::ExerciseType,
+            tmc_langs::mooc::BrowserTestSpec,
+            tmc_langs::mooc::BrowserTestRuntime,
             tmc_langs::mooc::ModelSolutionSpec,
-            tmc_langs::mooc::ExerciseFile,
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
+            tmc_langs::mooc::ExerciseTaskSubmissionStatus,
+            tmc_langs::mooc::GradingProgress,
+            tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::PasteResult,
+            tmc_langs::mooc::CourseProgress,
+            tmc_langs::mooc::ExerciseProgress,
+            tmc_langs::mooc::MoocClientUpdateData,
+            tmc_langs::MoocOldSubmissionRestore,
         )
         .unwrap();
+        String::from_utf8(buf).unwrap()
     }
 }

@@ -6,16 +6,8 @@ use self::api_v8::{PasteData, ReviewData};
 use crate::{
     TestMyCodeClientResult, error::TestMyCodeClientError, request::FeedbackAnswer, response::*,
 };
-use oauth2::{
-    AuthUrl, ClientId, ClientSecret, ResourceOwnerPassword, ResourceOwnerUsername, TokenUrl,
-    basic::BasicClient,
-};
-use oauth2_reqwest::ReqwestBlockingClient;
-use reqwest::{
-    Url,
-    blocking::{Client, ClientBuilder},
-    redirect::Policy,
-};
+use oauth2::TokenResponse;
+use reqwest::{Url, blocking::Client};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -33,6 +25,62 @@ use tmc_langs_util::progress_reporter;
 pub type Token =
     oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, oauth2::basic::BasicTokenType>;
 
+/// Where the bearer token the client authenticates with was issued.
+///
+/// tmc-server accepts both, but they are not worth the same: a courses.mooc.fi
+/// access token also authenticates against courses.mooc.fi itself, so it is held
+/// to stricter rules about where it may be sent. See [`token_target_is_allowed`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TokenSource {
+    /// Issued by tmc-server's own OAuth2 provider.
+    Tmc,
+    /// Issued by courses.mooc.fi, which tmc-server accepts by introspecting it.
+    Mooc,
+}
+
+struct AuthToken {
+    token: Token,
+    source: TokenSource,
+}
+
+/// Whether a request to `url` may carry a bearer token from `source`.
+///
+/// Nearly every URL the API builds is derived from `root_url`, but two entry
+/// points take a URL straight from a tmc-server response
+/// ([`TestMyCodeClient::send_feedback_to_url`] and
+/// [`TestMyCodeClient::wait_for_submission_at`]). Requiring the configured origin
+/// keeps a response that points elsewhere from turning the next request into a
+/// credential handover.
+fn token_target_is_allowed(root_url: &Url, url: &Url, source: TokenSource) -> bool {
+    if !same_origin(root_url, url) {
+        return false;
+    }
+    match source {
+        TokenSource::Tmc => true,
+        // A courses.mooc.fi token is a credential for a second backend, so it
+        // additionally never travels in plaintext off the loopback interface.
+        TokenSource::Mooc => url.scheme() == "https" || is_loopback_host(url),
+    }
+}
+
+/// Scheme, host and effective port all equal. Compared component-wise rather
+/// than via `Url::origin`, whose opaque origins are never equal to each other and
+/// would make the comparison depend on the URL scheme.
+fn same_origin(a: &Url, b: &Url) -> bool {
+    match (a.host_str(), b.host_str()) {
+        (Some(a_host), Some(b_host)) => {
+            a.scheme() == b.scheme()
+                && a_host == b_host
+                && a.port_or_known_default() == b.port_or_known_default()
+        }
+        _ => false,
+    }
+}
+
+fn is_loopback_host(url: &Url) -> bool {
+    matches!(url.host_str(), Some("localhost" | "127.0.0.1" | "[::1]"))
+}
+
 /// Updated exercises.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -47,9 +95,8 @@ pub struct TestMyCodeClient(Arc<TmcCore>);
 
 struct TmcCore {
     client: Client,
-    oauth_client: ReqwestBlockingClient,
     root_url: Url,
-    token: Option<Token>,
+    token: Option<AuthToken>,
     client_name: String,
     client_version: String,
 }
@@ -88,15 +135,8 @@ impl TestMyCodeClient {
             format!("{root_url}/").parse().expect("invalid root url")
         };
 
-        let oauth_client = ClientBuilder::new()
-            .redirect(Policy::none())
-            .build()
-            .map_err(TestMyCodeClientError::HttpClientBuilder)?;
-        let oauth_client = ReqwestBlockingClient::from(oauth_client);
-
         let client = TestMyCodeClient(Arc::new(TmcCore {
             client: Client::new(),
-            oauth_client,
             root_url,
             token: None,
             client_name,
@@ -105,67 +145,35 @@ impl TestMyCodeClient {
         Ok(client)
     }
 
-    /// Sets the authentication token, which may for example have been read from a file.
+    /// Sets the authentication token read from a credentials file.
+    ///
+    /// There is no way to obtain a *new* tmc-server token through this client:
+    /// the password grant is gone, and a client authenticates either with a
+    /// previously stored tmc token or with the courses.mooc.fi access token.
     ///
     /// # Panics
     /// If called when multiple clones of the client exist. Call this function before cloning.
-    pub fn set_token(&mut self, token: Token) {
+    pub fn set_token(&mut self, token: Token, source: TokenSource) {
         Arc::get_mut(&mut self.0)
             .expect("called when multiple clones exist")
-            .token = Some(token);
+            .token = Some(AuthToken { token, source });
     }
 
-    /// Attempts to log in with the given credentials, returns an error if an authentication token is already present.
-    /// Username can be the user's username or email.
-    ///
-    /// # Errors
-    /// This function will return an error if the client has already been authenticated,
-    /// if the client_name is malformed and leads to a malformed URL,
-    /// or if there is some error during the token exchange (see oauth2::Client::excange_password).
-    ///
-    /// # Panics
-    /// If called when multiple clones exist. Call this function before cloning.
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use tmc_testmycode_client::TestMyCodeClient;
-    ///
-    /// let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
-    /// client.authenticate("user".to_string(), "pass".to_string()).unwrap();
-    /// ```
-    pub fn authenticate(
-        &mut self,
-        email: String,
-        password: String,
-    ) -> TestMyCodeClientResult<Token> {
-        if self.0.token.is_some() {
-            return Err(Box::new(TestMyCodeClientError::AlreadyAuthenticated));
+    /// The bearer token to attach to a request to `url`, or `None` if there is no
+    /// token or the target is not one the token may be sent to.
+    pub(crate) fn bearer_for(&self, url: &Url) -> Option<&str> {
+        let auth = self.0.token.as_ref()?;
+        if token_target_is_allowed(&self.0.root_url, url, auth.source) {
+            Some(auth.token.access_token().secret())
+        } else {
+            log::warn!(
+                "not attaching the {:?} bearer token to {url}: it is not an allowed destination \
+                 for a client rooted at {}",
+                auth.source,
+                self.0.root_url
+            );
+            None
         }
-
-        let auth_url = self.0.root_url.join("/oauth/token").map_err(|e| {
-            TestMyCodeClientError::UrlParse(self.0.root_url.to_string() + "/oauth/token", e)
-        })?;
-
-        let credentials = api_v8::get_credentials(self)?;
-
-        log::debug!("authenticating at {auth_url}");
-        let client = BasicClient::new(ClientId::new(credentials.application_id))
-            .set_client_secret(ClientSecret::new(credentials.secret))
-            .set_auth_uri(AuthUrl::from_url(auth_url.clone()))
-            .set_token_uri(TokenUrl::from_url(auth_url));
-
-        let token = client
-            .exchange_password(
-                &ResourceOwnerUsername::new(email),
-                &ResourceOwnerPassword::new(password),
-            )
-            .request(&self.0.oauth_client)
-            .map_err(TestMyCodeClientError::Token)?;
-        Arc::get_mut(&mut self.0)
-            .expect("called when multiple clones exist")
-            .token = Some(token.clone());
-        log::debug!("authenticated");
-        Ok(token)
     }
 
     /// Fetches the course's information. Does not require authentication.
@@ -698,7 +706,7 @@ fn finish_stage(message: impl Into<String>, data: impl Into<Option<ClientUpdateD
 }
 
 /// The update data type for the progress reporter.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "client-update-data-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -744,7 +752,7 @@ mod test {
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        client.set_token(token);
+        client.set_token(token, TokenSource::Tmc);
         client
     }
 
@@ -912,6 +920,119 @@ mod test {
         m.assert();
     }
 
+    fn url(s: &str) -> Url {
+        s.parse().unwrap()
+    }
+
     #[test]
-    fn asd() {}
+    fn token_is_only_sent_to_the_configured_origin() {
+        let root = url("https://tmc.mooc.fi/");
+
+        for source in [TokenSource::Tmc, TokenSource::Mooc] {
+            assert!(token_target_is_allowed(
+                &root,
+                &url("https://tmc.mooc.fi/api/v8/core/submissions/1"),
+                source
+            ));
+            // A URL taken from a tmc-server response can point anywhere; none of
+            // these may receive the token.
+            for target in [
+                "https://attacker.example/api/v8/core/submissions/1",
+                // A subdomain is a different host, and so is a suffix match.
+                "https://evil.tmc.mooc.fi/",
+                "https://tmc.mooc.fi.attacker.example/",
+                // Same host, different scheme or port.
+                "http://tmc.mooc.fi/",
+                "https://tmc.mooc.fi:8443/",
+            ] {
+                assert!(
+                    !token_target_is_allowed(&root, &url(target), source),
+                    "{source:?} token must not be sent to {target}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn mooc_token_never_travels_in_plaintext_off_loopback() {
+        // Same origin, but plaintext: a tmc-server token is the caller's own
+        // configuration to make, a courses.mooc.fi token is a second backend's
+        // credential and is refused.
+        let root = url("http://tmc-mirror.example/");
+        let target = url("http://tmc-mirror.example/api/v8/core/submissions/1");
+        assert!(token_target_is_allowed(&root, &target, TokenSource::Tmc));
+        assert!(!token_target_is_allowed(&root, &target, TokenSource::Mooc));
+
+        // Loopback is exempt: a local mock has no plaintext network to expose it on.
+        for host in ["localhost", "127.0.0.1", "[::1]"] {
+            let root = url(&format!("http://{host}:4001/"));
+            let target = url(&format!("http://{host}:4001/api/v8/core/submissions/1"));
+            assert!(
+                token_target_is_allowed(&root, &target, TokenSource::Mooc),
+                "a local mock at {host} should be usable"
+            );
+        }
+    }
+
+    #[test]
+    fn a_url_without_a_host_never_receives_the_token() {
+        let root = url("https://tmc.mooc.fi/");
+        for source in [TokenSource::Tmc, TokenSource::Mooc] {
+            assert!(!token_target_is_allowed(
+                &root,
+                &url("file:///etc/passwd"),
+                source
+            ));
+            assert!(!token_target_is_allowed(
+                &url("file:///etc/passwd"),
+                &url("file:///etc/passwd"),
+                source
+            ));
+        }
+    }
+
+    #[test]
+    fn bearer_is_withheld_from_a_server_supplied_off_origin_url() {
+        init();
+        // `wait_for_submission_at` takes the URL straight out of a submit
+        // response, so a tmc-server that returns someone else's URL must not get
+        // the client to hand over its bearer token.
+        let server = Server::new();
+        let mut client = TestMyCodeClient::new(
+            server.url().parse().unwrap(),
+            "some_client".to_string(),
+            "some_ver".to_string(),
+        )
+        .unwrap();
+        client.set_token(
+            Token::new(
+                AccessToken::new("secret-token".to_string()),
+                BasicTokenType::Bearer,
+                EmptyExtraTokenFields {},
+            ),
+            TokenSource::Mooc,
+        );
+        assert_eq!(
+            client.bearer_for(&server.url().parse::<Url>().unwrap()),
+            Some("secret-token")
+        );
+
+        let mut elsewhere = Server::new();
+        let unauthenticated = elsewhere
+            .mock("GET", "/steal")
+            .match_query(Matcher::Any)
+            .match_header("authorization", Matcher::Missing)
+            .with_body(r#"{"status":"processing","sandbox_status":"created"}"#)
+            .expect(1)
+            .create();
+
+        let target = format!("{}/steal", elsewhere.url()).parse::<Url>().unwrap();
+        assert!(
+            client.bearer_for(&target).is_none(),
+            "the token must not be offered to another origin"
+        );
+        // Drive a real request to prove the header is absent on the wire too.
+        let _ = api_v8::get_json::<serde_json::Value>(&client, target, &[]);
+        unauthenticated.assert();
+    }
 }

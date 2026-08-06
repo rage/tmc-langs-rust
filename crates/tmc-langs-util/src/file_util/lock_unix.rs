@@ -8,6 +8,7 @@ use crate::{
 use file_lock::{FileLock, FileOptions};
 use std::{
     fs::File,
+    io,
     path::{Path, PathBuf},
 };
 
@@ -76,7 +77,7 @@ impl Lock {
             Err(err) => {
                 // the file locking is mostly a safeguard rather than something absolutely necessary
                 // so rather than preventing the program from runningg here we'll just continue and things will probably work out
-                log::error!("Failed to lock {}: {err}", path.display());
+                file_util::report_locking_unavailable(path, &err);
                 let file = self
                     .options
                     .into_open_options()
@@ -86,6 +87,53 @@ impl Lock {
             }
         };
         Ok(Guard { lock, path })
+    }
+
+    /// A single non-blocking lock attempt. `Ok(None)` means the lock is currently
+    /// held elsewhere and the caller may retry; see [`file_util::with_file_lock_timeout`]
+    /// for the bounded-wait loop built on this.
+    ///
+    /// Note that the underlying `fcntl` lock is per-process: two `Lock`s on the
+    /// same file within one process never contend with each other.
+    pub fn try_lock(&mut self) -> Result<Option<Guard<'_>>, FileError> {
+        log::trace!("try-locking {}", self.path.display());
+        let path = match &self.lock_file_path {
+            Some(lock_file) => lock_file,
+            None => &self.path,
+        };
+        match FileLock::lock(path, false, self.options.into_file_options()) {
+            Ok(lock) => {
+                log::trace!("locked {}", path.display());
+                Ok(Some(Guard {
+                    lock: FileOrLock::Lock(lock),
+                    path,
+                }))
+            }
+            // `fcntl(F_SETLK)` reports an already-held lock with EAGAIN on the
+            // platforms we target. POSIX also permits EACCES, but that is not
+            // distinguishable from a genuine permission failure on the open, so it
+            // falls through to the unsupported-locking branch below rather than
+            // being retried.
+            Err(err) if err.kind() == io::ErrorKind::WouldBlock => Ok(None),
+            Err(err) => {
+                // Locking is a safeguard rather than a hard requirement, and some
+                // filesystems don't support it at all (NFS without a lock daemon
+                // fails with ENOLCK), so mirror `lock` and carry on unlocked
+                // instead of failing the operation. The degradation is recorded so
+                // that callers relying on the lock for correctness can say so, and
+                // warned about once so it is visible in the logs.
+                file_util::report_locking_unavailable(path, &err);
+                let file = self
+                    .options
+                    .into_open_options()
+                    .open(&self.path)
+                    .map_err(|e| FileError::FileOpen(path.to_path_buf(), e))?;
+                Ok(Some(Guard {
+                    lock: FileOrLock::File(file),
+                    path,
+                }))
+            }
+        }
     }
 
     pub fn forget(mut self) {
@@ -112,10 +160,14 @@ impl Drop for Lock {
                     let _ = file_util::remove_file(&lock_file_path);
                 }
                 Err(err) => {
-                    log::warn!(
-                        "Failed to remove lock file {}: {err}",
-                        lock_file_path.display()
-                    );
+                    // no need to report cases where the lockfile no longer exists
+                    // (for example due to the dir being moved)
+                    if !matches!(err.kind(), io::ErrorKind::NotFound) {
+                        log::warn!(
+                            "Failed to remove lock file {}: {err}",
+                            lock_file_path.display()
+                        );
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@ use std::{path::PathBuf, string::FromUtf8Error};
 use thiserror::Error;
 use tmc_langs_plugins::compression::ZipError;
 use tmc_langs_util::{JsonError, TomlError, YamlError};
+use uuid::Uuid;
 
 /// Main error type of the library.
 #[derive(Error, Debug)]
@@ -90,7 +91,9 @@ pub enum LangsError {
     InvalidDirectory(PathBuf),
 
     #[error("Server did not return details for local exercise with id {0}")]
-    ExerciseMissingOnServer(u32),
+    TmcExerciseMissingOnServer(u32),
+    #[error("Server did not return details for local exercise with id {0}")]
+    MoocExerciseMissingOnServer(Uuid),
 
     #[cfg(unix)]
     #[error("Error changing permissions of {0}")]

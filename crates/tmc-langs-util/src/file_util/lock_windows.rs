@@ -122,6 +122,33 @@ impl Lock {
         })
     }
 
+    /// A single non-blocking lock attempt. `Ok(None)` means the lock is currently
+    /// held elsewhere and the caller may retry; see [`with_file_lock_timeout`] for
+    /// the bounded-wait loop built on this.
+    pub fn try_lock(&mut self) -> Result<Option<Guard<'_>>, FileError> {
+        log::trace!("try-locking {}", self.path.display());
+        let guard = match self.options {
+            LockOptions::Read | LockOptions::ReadCreate | LockOptions::ReadTruncate => {
+                match self.lock.try_read() {
+                    Ok(guard) => GuardInner::FdLockRead(guard),
+                    Err(err) if err.kind() == ErrorKind::WouldBlock => return Ok(None),
+                    Err(err) => return Err(FileError::FileOpen(self.path.clone(), err)),
+                }
+            }
+            LockOptions::Write | LockOptions::WriteCreate | LockOptions::WriteTruncate => {
+                match self.lock.try_write() {
+                    Ok(guard) => GuardInner::FdLockWrite(guard),
+                    Err(err) if err.kind() == ErrorKind::WouldBlock => return Ok(None),
+                    Err(err) => return Err(FileError::FileOpen(self.path.clone(), err)),
+                }
+            }
+        };
+        Ok(Some(Guard {
+            guard,
+            path: Cow::Owned(self.path.clone()),
+        }))
+    }
+
     pub fn forget(self) {
         let _self = self;
         // no-op on windows

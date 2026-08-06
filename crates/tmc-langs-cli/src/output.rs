@@ -1,12 +1,15 @@
 //! Contains the type definition for the output format of the CLI.
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+#[cfg(test)]
+use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult, TmcConfig,
-    TmcExerciseDownload, UpdatedExercise, mooc,
+    LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore, RunResult,
+    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -17,9 +20,10 @@ use tmc_langs::{
     },
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
+use uuid::Uuid;
 
 /// The format for all messages written to stdout by the CLI
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -52,7 +56,7 @@ impl CliOutput {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct OutputData {
@@ -62,7 +66,7 @@ pub struct OutputData {
     pub data: Option<DataKind>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "output-data-kind", content = "output-data")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
@@ -77,13 +81,10 @@ pub enum DataKind {
     AvailablePoints(Vec<String>),
     Exercises(Vec<PathBuf>),
     ExercisePackagingConfiguration(ExercisePackagingConfiguration),
-    LocalTmcExercises(Vec<LocalTmcExercise>),
-    LocalMoocExercises(Vec<LocalMoocExercise>),
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
     UpdatedExercises(Vec<UpdatedExercise>),
-    TmcExerciseDownload(DownloadOrUpdateTmcCourseExercisesResult),
     MoocExerciseDownload(DownloadOrUpdateMoocCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
@@ -96,30 +97,72 @@ pub enum DataKind {
     Organization(Organization),
     Organizations(Vec<Organization>),
     Reviews(Vec<Review>),
-    Token(#[cfg_attr(feature = "ts-rs", ts(type = "unknown"))] Token),
+    Token(
+        #[cfg_attr(feature = "ts-rs", ts(type = "unknown"))]
+        #[schemars(with = "serde_json::Value")]
+        Token,
+    ),
     NewSubmission(NewSubmission),
     SubmissionFeedbackResponse(SubmissionFeedbackResponse),
     SubmissionFinished(SubmissionFinished),
     ConfigValue(ConfigValue),
-    TmcConfig(TmcConfig),
     CompressedProjectHash(String),
     SubmissionSandbox(String),
-    MoocCourseInstances(Vec<mooc::CourseInstance>),
+
+    // tmc
+    LocalTmcExercises(Vec<LocalTmcExercise>),
+    TmcExerciseDownload(DownloadOrUpdateTmcCourseExercisesResult),
+    TmcConfig(TmcConfig),
+
+    // mooc
+    MoocUpdatedExercises(Vec<Uuid>),
+    LocalMoocExercises(Vec<LocalMoocExercise>),
+    MoocCourse(mooc::Course),
+    MoocCourses(Vec<mooc::Course>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
     MoocExerciseSlide(mooc::TmcExerciseSlide),
     MoocSubmissionFinished(mooc::ExerciseTaskSubmissionResult),
+    MoocSubmissionStatus(mooc::ExerciseTaskSubmissionStatus),
+    MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
+    MoocPaste(mooc::PasteResult),
+    MoocCourseProgress(mooc::CourseProgress),
+    MoocOldSubmissionRestore(MoocOldSubmissionRestore),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "update-data-kind")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
+    /// Mooc's per-exercise download progress, mirroring `ClientUpdateData` for
+    /// mooc's UUID-keyed exercises.
+    MoocClientUpdateData(StatusUpdate<mooc::MoocClientUpdateData>),
+    /// Emitted once at the start of `mooc login`, before the CLI blocks polling:
+    /// carries the verification URL and user code the client shows the user to
+    /// complete the OAuth2 device authorization login.
+    MoocDeviceLogin(StatusUpdate<MoocDeviceLogin>),
     None(StatusUpdate<()>),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+/// The data attached to a `mooc-device-login` status update. Mirrors the
+/// relevant fields of the RFC 8628 device authorization response.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocDeviceLogin {
+    /// URL the user opens to enter the `user_code`.
+    pub verification_uri: String,
+    /// URL that already includes the `user_code`, if the server provided one.
+    pub verification_uri_complete: Option<String>,
+    /// The code the user enters (or confirms) on the verification page.
+    pub user_code: String,
+    /// Seconds until the device/user codes expire.
+    pub expires_in: u32,
+    /// Minimum seconds between token-endpoint polls.
+    pub interval: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Status {
@@ -129,7 +172,7 @@ pub enum Status {
     Crashed,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum OutputResult {
@@ -140,7 +183,7 @@ pub enum OutputResult {
     ExecutedCommand,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum Kind {
@@ -156,12 +199,17 @@ pub enum Kind {
     ObsoleteClient,
     /// Invalid token
     InvalidToken,
-    /// Failed to download some or all exercises
-    FailedExerciseDownload {
-        completed: Vec<TmcExerciseDownload>,
-        skipped: Vec<TmcExerciseDownload>,
-        failed: Vec<(TmcExerciseDownload, Vec<String>)>,
-    },
+    /// The user is not enrolled on the course this exercise belongs to
+    /// (backend `message_key: "not_enrolled"`, HTTP 422)
+    NotEnrolled,
+    /// A submitted file's retention window elapsed before the submission naming
+    /// it was accepted (backend `message_key: "upload_expired"`, HTTP 422). The
+    /// upload is retried once first, so this means the retry failed too.
+    UploadExpired,
+    /// A submission named a file that was never uploaded for that exercise by
+    /// that user (backend `message_key: "unknown_upload"`, HTTP 422). Indicates
+    /// a client bug or tampering, never a race.
+    UnknownUpload,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -170,6 +218,27 @@ pub use tmc_langs::ProjectsDirTmcExercise;
 pub struct DownloadTarget {
     pub id: u32,
     pub path: PathBuf,
+}
+
+/// JSON Schema for everything the CLI writes to stdout, rooted at [`CliOutput`].
+/// The single source of truth clients (e.g. tmc-vscode) validate against.
+pub fn cli_output_schema() -> schemars::Schema {
+    // Serialize contract, not deserialize: `#[serde(from = ...)]` types (e.g.
+    // `CourseDetails`) deserialize through a wrapper but serialize flattened,
+    // and `Option` omitted-vs-null differs between the two. `for_serialize()`
+    // picks the wire format clients actually see.
+    let settings = schemars::generate::SchemaSettings::draft2020_12().for_serialize();
+    schemars::SchemaGenerator::new(settings).into_root_schema_for::<CliOutput>()
+}
+
+/// Returns [`cli_output_schema`] as pretty-printed JSON, terminated by a
+/// newline — the exact bytes of the committed `bindings.schema.json` and of
+/// the `tmc-langs-cli schema` subcommand's stdout.
+pub fn cli_output_json_schema() -> String {
+    let mut json = serde_json::to_string_pretty(&cli_output_schema())
+        .expect("serializing a JSON schema should never fail");
+    json.push('\n');
+    json
 }
 
 #[cfg(test)]
@@ -271,5 +340,33 @@ mod test {
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn mooc_client_update_data_status_update_shape() {
+        // Locks the wire shape the VSCode side parses for mooc download progress:
+        // outer `update-data-kind` = `mooc-client-update-data`, inner
+        // `client-update-data-kind` = `exercise-download` with a UUID `id`.
+        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let status_update =
+            CliOutput::StatusUpdate(StatusUpdateData::MoocClientUpdateData(StatusUpdate {
+                data: Some(mooc::MoocClientUpdateData::ExerciseDownload {
+                    id,
+                    path: PathBuf::from("some/path"),
+                }),
+                finished: false,
+                message: "downloading...".to_string(),
+                percent_done: 50.0,
+                time: 1000,
+            }));
+        let actual = serde_json::to_value(&status_update).unwrap();
+        assert_eq!(actual["output-kind"], "status-update");
+        assert_eq!(actual["update-data-kind"], "mooc-client-update-data");
+        assert_eq!(
+            actual["data"]["client-update-data-kind"],
+            "exercise-download"
+        );
+        assert_eq!(actual["data"]["id"], "df5ee6c1-57d1-43b6-b39e-5d72119edb5f");
+        assert_eq!(actual["data"]["path"], "some/path");
     }
 }
