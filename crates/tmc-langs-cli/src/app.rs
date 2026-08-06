@@ -1400,7 +1400,7 @@ mod test {
     #[test]
     fn bindings_dts_declares_every_type_it_references() {
         /// Types TypeScript provides; everything else must be declared in-file.
-        const TS_BUILTINS: [&str; 2] = ["Array", "Record"];
+        const TS_BUILTINS: &[&str] = &["Array", "Record"];
 
         let src = strip_comments_and_strings(
             &std::fs::read_to_string(dts_path()).expect("bindings.d.ts should exist"),
