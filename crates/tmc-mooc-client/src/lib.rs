@@ -1845,9 +1845,9 @@ mod test {
 
     #[test]
     fn download_submission_archive_url_reports_a_submission_with_no_files() {
-        // The exercise's submission list includes browser answers, which have no
-        // uploads: `{"files": []}` is the contract's blessed response for them,
-        // not an error.
+        // `{"files": []}` is the contract's blessed response for an exercise type with no
+        // files, or a service that declares no way to enumerate its answers' files — not an
+        // error.
         init();
         let mut server = Server::new();
         let client = make_client(&server);
