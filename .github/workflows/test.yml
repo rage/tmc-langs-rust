@@ -72,6 +72,11 @@ jobs:
           java-version: "11"
           architecture: ${{ matrix.java-arch }}
 
+      # the windows image doesn't ship ant, which the ant plugin shells out to
+      - name: Install Ant
+        if: matrix.os == 'windows-latest'
+        run: choco install ant --no-progress -y
+
       - name: Install C#
         uses: actions/setup-dotnet@v4
         with:
@@ -95,7 +100,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           DYLIBS=$(ldd ./target/x86_64-unknown-linux-gnu/debug/tmc-langs-cli)
-          EXPECTED=5
+          EXPECTED=6
           ACTUAL=$(echo "$DYLIBS" | wc -l)
           if [ $ACTUAL -ne $EXPECTED ]; then
             echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL ($DYLIBS)"
@@ -106,7 +111,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           DYLIBS=$(otool -L ./target/aarch64-apple-darwin/debug/tmc-langs-cli)
-          EXPECTED=4
+          EXPECTED=6
           ACTUAL=$(echo "$DYLIBS" | wc -l)
           if [ $ACTUAL -ne $EXPECTED ]; then
             echo "::error title=unexpected-dynamic-libraries::Expected $EXPECTED dynamic libraries, found $ACTUAL ($DYLIBS)"
