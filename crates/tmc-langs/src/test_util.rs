@@ -2,15 +2,13 @@
 
 use std::sync::LazyLock;
 use tempfile::TempDir;
-use tmc_langs_util::file_util::LOCKS_DIR_ENV;
+use tmc_langs_util::file_util::set_test_locks_dir_override;
 
-// directory locks would otherwise go to the real user data dir. The env var is
-// process-global, so this has to happen once before any test locks a directory.
+// directory locks would otherwise go to the real user data dir.
 pub(crate) fn ensure_isolated_locks_dir() {
     static LOCKS_DIR: LazyLock<TempDir> = LazyLock::new(|| {
         let dir = tempfile::tempdir().expect("failed to create tempdir for test locks dir");
-        // SAFETY: LazyLock runs this at most once, before any test reads the env var
-        unsafe { std::env::set_var(LOCKS_DIR_ENV, dir.path()) };
+        set_test_locks_dir_override(dir.path().to_path_buf());
         dir
     });
     LazyLock::force(&LOCKS_DIR);

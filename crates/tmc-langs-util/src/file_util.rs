@@ -7,8 +7,8 @@ mod lock_unix;
 mod lock_windows;
 
 use crate::error::FileError;
-pub use lock_path::LOCKS_DIR_ENV;
 use lock_path::central_lock_path;
+pub use lock_path::{LOCKS_DIR_ENV, set_test_locks_dir_override};
 #[cfg(unix)]
 pub use lock_unix::*;
 #[cfg(windows)]
@@ -56,6 +56,23 @@ impl LockOptions {
     fn requests_truncate(self) -> bool {
         matches!(self, Self::WriteTruncate)
     }
+}
+
+/// Truncates `file` if `options` requests it. The caller must already hold the lock: truncating at
+/// open time would let two racing writers each wipe the file before either holds it.
+///
+/// `report_path` must name the file actually truncated — for `Lock::dir` the central lock file, not
+/// the locked directory.
+pub(crate) fn truncate_locked_file(
+    options: LockOptions,
+    file: &File,
+    report_path: &Path,
+) -> Result<(), FileError> {
+    if options.requests_truncate() {
+        file.set_len(0)
+            .map_err(|e| FileError::FileWrite(report_path.to_path_buf(), e))?;
+    }
+    Ok(())
 }
 
 pub fn temp_file() -> Result<File, FileError> {

@@ -15,19 +15,92 @@ use std::{
     fs::OpenOptions,
     io::ErrorKind,
     path::PathBuf,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU64, Ordering},
+    },
     time::{Duration, Instant},
 };
 
 const RETRY_TIMEOUT: Duration = Duration::from_secs(2);
 const RETRY_INTERVAL: Duration = Duration::from_millis(100);
 
-// 5 = ERROR_ACCESS_DENIED, 32 = ERROR_SHARING_VIOLATION; both can be a transient handle
-// held by e.g. an antivirus or indexer
+// 5 = ERROR_ACCESS_DENIED, 32 = ERROR_SHARING_VIOLATION; both can be a transient handle held by
+// e.g. an antivirus, and 5 is what a delete-pending lock file returns, the failure this module
+// exists to survive. When 5 is permanent instead, RETRY_BUDGET_LEFT_MS bounds the cost.
 fn is_transient_open_error(err: &std::io::Error) -> bool {
     matches!(
         err.kind(),
         ErrorKind::PermissionDenied | ErrorKind::ResourceBusy
     ) || matches!(err.raw_os_error(), Some(5) | Some(32))
+}
+
+// An unwritable locks dir returns ERROR_ACCESS_DENIED for every lock, and one command locks several
+// directories, so a per-lock timeout alone still lets a doomed command stall for seconds.
+static RETRY_BUDGET_LEFT_MS: AtomicU64 = AtomicU64::new(4_000);
+
+fn take_retry_budget() -> bool {
+    let cost = RETRY_INTERVAL.as_millis() as u64;
+    RETRY_BUDGET_LEFT_MS
+        .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |left| {
+            left.checked_sub(cost)
+        })
+        .is_ok()
+}
+
+/// Retries `open` on a transient error (see `is_transient_open_error`) for up to
+/// `RETRY_TIMEOUT`, so a file briefly held open by e.g. an antivirus or indexer
+/// doesn't turn into a hard failure.
+fn open_with_retry(
+    path: &Path,
+    mut open: impl FnMut() -> std::io::Result<File>,
+) -> std::io::Result<File> {
+    let start_time = Instant::now();
+    loop {
+        match open() {
+            Ok(file) => return Ok(file),
+            Err(err)
+                if is_transient_open_error(&err)
+                    && start_time.elapsed() < RETRY_TIMEOUT
+                    && take_retry_budget() =>
+            {
+                log::warn!("failed to open {} ({err}), retrying", path.display());
+                std::thread::sleep(RETRY_INTERVAL);
+            }
+            Err(err) => return Err(err),
+        }
+    }
+}
+
+/// Logs an escalating warning naming `path` until the caller sets the returned flag, so a wait
+/// behind a wedged process shows up in the log instead of hanging silently. Observes only: the
+/// caller's blocking acquire does the locking.
+fn spawn_wait_watchdog(path: PathBuf) -> Arc<AtomicBool> {
+    let done = Arc::new(AtomicBool::new(false));
+    let done_clone = Arc::clone(&done);
+    std::thread::spawn(move || {
+        let start = Instant::now();
+        let mut last_logged = Duration::ZERO;
+        while !done_clone.load(Ordering::Relaxed) {
+            std::thread::sleep(Duration::from_millis(500));
+            if done_clone.load(Ordering::Relaxed) {
+                break;
+            }
+            let elapsed = start.elapsed();
+            if elapsed < Duration::from_secs(30) || elapsed - last_logged < Duration::from_secs(10)
+            {
+                continue;
+            }
+            last_logged = elapsed;
+            let secs = elapsed.as_secs();
+            if elapsed >= Duration::from_secs(120) {
+                log::error!("still waiting to lock {} after {secs}s", path.display());
+            } else {
+                log::warn!("still waiting to lock {} after {secs}s", path.display());
+            }
+        }
+    });
+    done
 }
 
 /// Blocks until the lock can be acquired.
@@ -36,19 +109,23 @@ pub struct Lock {
     pub path: PathBuf,
     options: LockOptions,
     lock: RwLock<File>,
+    /// The actual file backing the lock, for `Lock::dir`, where it differs from `path`
+    /// (the directory). `None` for `Lock::file`, where `path` already is that file.
+    lock_file_path: Option<PathBuf>,
 }
 
 impl Lock {
     pub fn file(path: impl AsRef<Path>, options: LockOptions) -> Result<Self, FileError> {
+        let path = path.as_ref().to_path_buf();
         let open_options = options.into_open_options();
-        let file = open_options
-            .open(&path)
-            .map_err(|e| FileError::FileOpen(path.as_ref().to_path_buf(), e))?;
+        let file = open_with_retry(&path, || open_options.open(&path))
+            .map_err(|e| FileError::FileOpen(path.clone(), e))?;
         let lock = RwLock::new(file);
         Ok(Self {
-            path: path.as_ref().to_path_buf(),
+            path,
             options,
             lock,
+            lock_file_path: None,
         })
     }
 
@@ -56,51 +133,44 @@ impl Lock {
         let path = path.as_ref().to_path_buf();
         let lock_path = central_lock_path(&path, options)?;
 
-        let start_time = Instant::now();
-        loop {
-            match OpenOptions::new().write(true).create(true).open(&lock_path) {
-                Ok(file) => {
-                    let lock = RwLock::new(file);
-                    return Ok(Self {
-                        path,
-                        options,
-                        lock,
-                    });
-                }
-                Err(err)
-                    if is_transient_open_error(&err) && start_time.elapsed() < RETRY_TIMEOUT =>
-                {
-                    log::warn!(
-                        "failed to open lock file {} ({err}), retrying",
-                        lock_path.display(),
-                    );
-                    std::thread::sleep(RETRY_INTERVAL);
-                }
-                Err(err) => return Err(FileError::FileCreate(lock_path, err)),
-            }
-        }
+        let file = open_with_retry(&lock_path, || {
+            OpenOptions::new().write(true).create(true).open(&lock_path)
+        })
+        .map_err(|e| FileError::FileCreate(lock_path.clone(), e))?;
+        let lock = RwLock::new(file);
+        Ok(Self {
+            path,
+            options,
+            lock,
+            lock_file_path: Some(lock_path),
+        })
     }
 
     pub fn lock(&mut self) -> Result<Guard<'_>, FileError> {
         log::trace!("locking {}", self.path.display());
-        let guard = match self.options {
-            LockOptions::Read | LockOptions::ReadCreate => {
-                GuardInner::FdLockRead(self.lock.read().expect("cannot fail on Windows"))
-            }
-            LockOptions::Write | LockOptions::WriteCreate | LockOptions::WriteTruncate => {
-                GuardInner::FdLockWrite(self.lock.write().expect("cannot fail on Windows"))
-            }
+        let report_path: &Path = self.lock_file_path.as_deref().unwrap_or(&self.path);
+        // the try_* guard drops immediately, so the blocking acquire below still does the locking;
+        // this only avoids a watchdog thread per lock in the uncontended case
+        let shared = matches!(self.options, LockOptions::Read | LockOptions::ReadCreate);
+        let contended = if shared {
+            self.lock.try_read().is_err()
+        } else {
+            self.lock.try_write().is_err()
         };
-        if self.options.requests_truncate() {
-            // truncating at open time would let two racing writers each wipe the file
-            // before either holds the lock
-            let file: &File = match &guard {
-                GuardInner::FdLockRead(g) => g,
-                GuardInner::FdLockWrite(g) => g,
-            };
-            file.set_len(0)
-                .map_err(|e| FileError::FileWrite(self.path.clone(), e))?;
+        let done = contended.then(|| spawn_wait_watchdog(report_path.to_path_buf()));
+        let guard = if shared {
+            GuardInner::FdLockRead(self.lock.read().expect("cannot fail on Windows"))
+        } else {
+            GuardInner::FdLockWrite(self.lock.write().expect("cannot fail on Windows"))
+        };
+        if let Some(done) = done {
+            done.store(true, Ordering::Relaxed);
         }
+        let file: &File = match &guard {
+            GuardInner::FdLockRead(g) => g,
+            GuardInner::FdLockWrite(g) => g,
+        };
+        truncate_locked_file(self.options, file, report_path)?;
         Ok(Guard {
             guard,
             path: Cow::Borrowed(&self.path),

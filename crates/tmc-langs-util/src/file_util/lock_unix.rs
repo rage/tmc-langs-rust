@@ -41,13 +41,6 @@ impl Lock {
         let path = path.as_ref().to_path_buf();
         let lock_path = file_util::central_lock_path(&path, options)?;
 
-        // `lock()` may open this without `create(true)` (e.g. plain Read/Write)
-        let _ = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(&lock_path);
-
         Ok(Self {
             path,
             options,
@@ -62,7 +55,16 @@ impl Lock {
             Some(lock_file) => lock_file,
             None => &self.path,
         };
-        let mut lock = match FileLock::lock(path, true, self.options.into_file_options()) {
+        if self.lock_file_path.is_some() {
+            // not via `FileOptions::create`, which needs write access and would turn even a
+            // Read dir lock into an exclusive fcntl lock below
+            OpenOptions::new()
+                .write(true)
+                .create(true)
+                .open(path)
+                .map_err(|e| FileError::FileCreate(path.to_path_buf(), e))?;
+        }
+        let lock = match FileLock::lock(path, true, self.options.into_file_options()) {
             Ok(lock) => {
                 log::trace!("locked {}", path.display());
                 FileOrLock::Lock(lock)
@@ -79,16 +81,11 @@ impl Lock {
                 FileOrLock::File(file)
             }
         };
-        if self.options.requests_truncate() {
-            // truncating at open time would let two racing writers each wipe the file
-            // before either holds the lock
-            let file = match &mut lock {
-                FileOrLock::File(f) => f,
-                FileOrLock::Lock(l) => &mut l.file,
-            };
-            file.set_len(0)
-                .map_err(|e| FileError::FileWrite(path.to_path_buf(), e))?;
-        }
+        let file = match &lock {
+            FileOrLock::File(f) => f,
+            FileOrLock::Lock(l) => &l.file,
+        };
+        file_util::truncate_locked_file(self.options, file, path)?;
         Ok(Guard { lock, path })
     }
 }

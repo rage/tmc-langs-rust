@@ -38,22 +38,10 @@ impl MavenPlugin {
         Ok(Self { jvm })
     }
 
-    // check if mvn is in PATH, if yes return mvn
-    // if not, check if the bundled maven has been extracted already,
-    // if not, extract
-    // finally, return the path to the extracted executable
-    // the executable used from within the extracted maven differs per platform
+    /// Returns the path to the bundled Maven, extracting it first if needed. Deliberately ignores
+    /// any `mvn` on PATH: the bundled one is the only version reproducible across machines and
+    /// known to work with the exercises' plugins.
     fn get_mvn_command() -> Result<OsString, JavaError> {
-        // check if mvn is in PATH
-        if let Ok(status) = TmcCommand::piped("mvn")
-            .with(|e| e.arg("--batch-mode").arg("--version"))
-            .status()
-        {
-            if status.success() {
-                return Ok(OsString::from("mvn"));
-            }
-        }
-        log::debug!("could not execute mvn, using bundled maven");
         let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
 
         #[cfg(windows)]
