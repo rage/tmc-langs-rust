@@ -8,6 +8,8 @@ mod data;
 mod error;
 mod submission_packaging;
 mod submission_processing;
+#[cfg(test)]
+mod test_util;
 
 use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{

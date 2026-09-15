@@ -23,9 +23,6 @@ use tmc_langs_util::file_util;
 const MVN_ARCHIVE: &[u8] = include_bytes!("../deps/apache-maven-3.8.1-bin.tar.gz");
 const MVN_PATH_IN_ARCHIVE: &str = "apache-maven-3.8.1"; // the name of the base directory in the maven archive
 const MVN_VERSION: &str = "3.8.1";
-/// Budget for waiting on another process that is extracting the bundled Maven.
-/// Generous because the loser of the race waits out the winner's full extraction.
-const MVN_EXTRACT_LOCK_TIMEOUT: Duration = Duration::from_secs(60);
 /// Serializes the bundled-Maven extraction between threads. The cache lock file
 /// cannot do this on its own: the unix backend is `fcntl`, whose locks are
 /// per-process, so two threads never contend for it.
@@ -41,22 +38,10 @@ impl MavenPlugin {
         Ok(Self { jvm })
     }
 
-    // check if mvn is in PATH, if yes return mvn
-    // if not, check if the bundled maven has been extracted already,
-    // if not, extract
-    // finally, return the path to the extracted executable
-    // the executable used from within the extracted maven differs per platform
+    /// Returns the path to the bundled Maven, extracting it first if needed. Deliberately ignores
+    /// any `mvn` on PATH: the bundled one is the only version reproducible across machines and
+    /// known to work with the exercises' plugins.
     fn get_mvn_command() -> Result<OsString, JavaError> {
-        // check if mvn is in PATH
-        if let Ok(status) = TmcCommand::piped("mvn")
-            .with(|e| e.arg("--batch-mode").arg("--version"))
-            .status()
-        {
-            if status.success() {
-                return Ok(OsString::from("mvn"));
-            }
-        }
-        log::debug!("could not execute mvn, using bundled maven");
         let tmc_path = dirs::cache_dir().ok_or(JavaError::CacheDir)?.join("tmc");
 
         #[cfg(windows)]
@@ -79,12 +64,12 @@ impl MavenPlugin {
         let _thread_guard = MVN_EXTRACT_MUTEX
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
-        file_util::with_file_lock_timeout(
+        let mut cache_lock = file_util::Lock::file(
             tmc_path.join("apache-maven.lock"),
             file_util::LockOptions::WriteCreate,
-            MVN_EXTRACT_LOCK_TIMEOUT,
-            |_| Self::extract_bundled_mvn(&tmc_path, &mvn_path),
-        )??;
+        )?;
+        let _cache_guard = cache_lock.lock()?;
+        Self::extract_bundled_mvn(&tmc_path, &mvn_path)?;
 
         let mvn_exec_path = mvn_path.join("bin").join(mvn_exec);
         Ok(mvn_exec_path.as_os_str().to_os_string())

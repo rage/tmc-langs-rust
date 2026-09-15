@@ -217,6 +217,7 @@ mod test {
     #[test]
     fn migrates() {
         init();
+        crate::test_util::ensure_isolated_locks_dir();
 
         let projects_dir = tempfile::tempdir().unwrap();
         let exercise_path = tempfile::tempdir().unwrap();
@@ -259,6 +260,7 @@ mod test {
     #[test]
     fn moves_projects_dir() {
         init();
+        crate::test_util::ensure_isolated_locks_dir();
 
         // can't use a tempfile for the config location directly
         // because windows won't let us replace a tempfile while it's "open"
