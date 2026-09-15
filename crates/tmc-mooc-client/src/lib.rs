@@ -6,6 +6,7 @@ mod auth;
 mod error;
 mod exercise;
 
+use self::error::redact_query;
 pub use self::{
     auth::{
         AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
@@ -83,6 +84,14 @@ pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
 /// upload's `name`; nothing depends on the extension.
 const SUBMISSION_ARCHIVE_FILE_NAME: &str = "submission.tar.zst";
 
+/// Content type sent for every uploaded part. Stated because reqwest guesses from the
+/// path extension (the archive is an extensionless temp file, and `mime_guess` has no
+/// `zst` entry), which would reach the host as `application/octet-stream`. Must equal what the tmc exercise service writes for the
+/// same archive made in its IFrame (`services/tmc/src/util/answerArchive.ts`): the host
+/// echoes it into `AnswerFile::mime`, from which the teacher-facing answer-file zip
+/// derives entry extensions.
+const ANSWER_ARCHIVE_MIME: &str = "application/x-zstd-compressed-tar";
+
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
 #[derive(Clone)]
@@ -132,7 +141,7 @@ impl MoocClient {
     }
 
     fn request(&self, method: Method, url: Url) -> MoocRequest {
-        log::debug!("building a request to {url}");
+        log::debug!("building a request to {}", redact_query(url.as_str()));
 
         // The bearer token is only attached to hosts we trust, so it is never
         // leaked to an arbitrary host a (possibly attacker-controlled) URL points
@@ -312,13 +321,16 @@ impl MoocClient {
     ///
     /// Each part is keyed by a fresh client-chosen UUID, as the host's upload
     /// handler requires. That UUID is *not* the file's identity: only
-    /// [`api::UploadedFile::id`], the host's own file id, may be named in a
+    /// [`api::AnswerFile::id`], the host's own file id, may be named in a
     /// submit.
+    ///
+    /// Every part is typed as a tmc project archive, which is the only thing this
+    /// client uploads.
     pub fn upload_files(
         &self,
         exercise_id: Uuid,
         files: &[(&str, &Path)],
-    ) -> MoocClientResult<Vec<api::UploadedFile>> {
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         if files.is_empty() {
             // The host rejects an empty multipart body, and there is nothing to record.
             return Ok(Vec::new());
@@ -329,7 +341,9 @@ impl MoocClient {
             // The host requires a file name on every part.
             let part = Part::file(path)
                 .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?
-                .file_name((*name).to_string());
+                .file_name((*name).to_string())
+                .mime_str(ANSWER_ARCHIVE_MIME)
+                .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
             form = form.part(Uuid::new_v4().to_string(), part);
         }
 
@@ -340,7 +354,7 @@ impl MoocClient {
             // Uploads can be large: use the more generous transfer timeout.
             .transfer_timeout()
             .send_expect_json::<api::UploadedFiles>()?;
-        Ok(res.files)
+        Ok(res.data_files)
     }
 
     /// Submits an archive as the answer to an exercise task: uploads it, then
@@ -379,12 +393,16 @@ impl MoocClient {
         exercise_id: Uuid,
         slide_id: Uuid,
         task_id: Uuid,
-        uploaded: &[api::UploadedFile],
+        uploaded: &[api::AnswerFile],
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
         let submission = api::ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
             exercise_task_id: task_id,
-            uploaded_file_ids: uploaded.iter().map(|file| file.id).collect(),
+            // The host reads an absent `answer_kind` as `json`, then rejects a json answer
+            // that names files, so omitting it would 422 every submission.
+            answer_kind: Some(api::AnswerKind::File),
+            data_json: None,
+            data_files: Some(uploaded.iter().map(|file| file.id).collect()),
         };
         let submission = serialize::to_json_vec(&submission)
             .map_err(Into::into)
@@ -422,7 +440,7 @@ impl MoocClient {
 
     /// Returns the current user's past submissions to an exercise, newest first.
     /// Each item's `id` is an exercise-slide-submission id, the value passed to
-    /// [`MoocClient::download_submission_archive_url`] and
+    /// [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
     pub fn get_exercise_submissions(
         &self,
@@ -435,44 +453,23 @@ impl MoocClient {
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    /// Returns the files that were uploaded for an exercise-slide submission (an
-    /// id from [`MoocClient::get_exercise_submissions`]), in submit order. Empty
-    /// for a submission whose answer needed no files.
+    /// Returns the files an exercise-slide submission's answer is made of (the id
+    /// comes from [`MoocClient::get_exercise_submissions`]), in the order the host
+    /// grades and displays them.
+    ///
+    /// Empty when the host has no files for the submission — an exercise type with
+    /// none. The host records a file answer the same way whether it was made from a
+    /// native client or in the exercise service's IFrame, so where it came from does
+    /// not change what comes back.
     pub fn download_submission_files(
         &self,
         submission_id: Uuid,
-    ) -> MoocClientResult<Vec<api::UploadedFile>> {
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         let url = make_client_api_url(self, format!("submissions/{submission_id}/download"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::SubmissionFiles>()?;
-        Ok(res.files)
-    }
-
-    /// Resolves an exercise-slide-submission id to the file-store URL of the
-    /// single project archive it was made from, so an old submission can be
-    /// re-downloaded.
-    ///
-    /// `Ok(None)` for a submission the host has no files for: an exercise type
-    /// with none, or a service that declares no way to enumerate its answers'
-    /// files. Answers made in the service's IFrame do have files.
-    ///
-    /// More than one file means the submission came from elsewhere, and restoring
-    /// it would silently produce the wrong project — so that is an error rather
-    /// than a guess at which file to take.
-    pub fn download_submission_archive_url(
-        &self,
-        submission_id: Uuid,
-    ) -> MoocClientResult<Option<String>> {
-        let mut files = self.download_submission_files(submission_id)?;
-        match files.len() {
-            0 => Ok(None),
-            1 => Ok(Some(files.remove(0).download_url)),
-            count => Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
-                submission_id,
-                count,
-            })),
-        }
+        Ok(res.data_files)
     }
 
     /// Mints a shareable link to an existing submission of the current user and
@@ -533,7 +530,7 @@ impl MoocRequest {
                                 .map_err(|err| MoocClientError::ReadingResponseBody {
                                     method: self.method,
                                     url: self.url.clone(),
-                                    error: Box::new(err),
+                                    error: Box::new(err.without_url()),
                                 })?;
                         // The backend returns controlled errors as an
                         // `ApiErrorResponse` carrying a `message_key` (e.g.
@@ -555,7 +552,7 @@ impl MoocRequest {
             Err(error) => Err(Box::new(MoocClientError::ConnectionError(
                 self.method,
                 self.url,
-                error,
+                error.without_url(),
             ))),
         }
     }
@@ -569,7 +566,7 @@ impl MoocRequest {
             .map_err(|err| MoocClientError::ReadingResponseBody {
                 method,
                 url,
-                error: Box::new(err),
+                error: Box::new(err.without_url()),
             })?;
         Ok(body)
     }
@@ -929,6 +926,47 @@ mod test {
         unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
         res.unwrap();
         with_auth.assert();
+    }
+
+    #[test]
+    fn a_redirect_to_another_origin_drops_the_bearer_token() {
+        // `MoocClient::new` sets no redirect policy, so reqwest's default
+        // `remove_sensitive_headers` alone drops `Authorization` when the scheme, host
+        // or port changes. A file URL answers 302 to the object store, so a change of
+        // that default would hand the store the token.
+        init();
+        let _env = env_lock();
+        // SAFETY: all reads/writes of this var in tests are serialized by ENV_LOCK.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+
+        let mut origin = Server::new();
+        let mut elsewhere = Server::new();
+        // Same host, different port: a different origin as far as reqwest is concerned.
+        assert_ne!(origin.url(), elsewhere.url());
+
+        let redirect = origin
+            .mock("GET", "/api/v0/files/claimed/an-id")
+            .match_header("authorization", "Bearer test-token")
+            .with_status(302)
+            .with_header("location", &format!("{}/objects/an-id", elsewhere.url()))
+            .expect(1)
+            .create();
+        let followed = elsewhere
+            .mock("GET", "/objects/an-id")
+            .match_header("authorization", Matcher::Missing)
+            .with_body("archive bytes")
+            .expect(1)
+            .create();
+
+        let client = make_client_with_token(&origin, "test-token");
+        let url = format!("{}/api/v0/files/claimed/an-id", origin.url());
+        let downloaded = client.download(url.parse().unwrap());
+        // Clear the var before any assertion that could panic and leak it.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+
+        assert_eq!(&downloaded.unwrap()[..], b"archive bytes");
+        redirect.assert();
+        followed.assert();
     }
 
     #[test]
@@ -1332,10 +1370,11 @@ mod test {
             ))
             .with_body(
                 serde_json::json!({
-                    "files": [{
+                    "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "download_url": "http://example.com/archive.tar.zst",
+                        "mime": ANSWER_ARCHIVE_MIME,
+                        "url": "http://example.com/archive.tar.zst",
                     }]
                 })
                 .to_string(),
@@ -1368,7 +1407,7 @@ mod test {
     }
 
     #[test]
-    fn submits_uploaded_file_ids_as_json() {
+    fn submits_a_file_answer_naming_the_stored_file_ids() {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
@@ -1382,7 +1421,8 @@ mod test {
             .match_body(Matcher::Json(serde_json::json!({
                 "exercise_slide_id": SLIDE_ID,
                 "exercise_task_id": TASK_ID,
-                "uploaded_file_ids": [FILE_UPLOAD_ID],
+                "answer_kind": "file",
+                "data_files": [FILE_UPLOAD_ID],
             })))
             .with_body(
                 serde_json::json!({
@@ -1519,7 +1559,7 @@ mod test {
                     .extend(names);
                 true
             })
-            .with_body(serde_json::json!({ "files": [] }).to_string())
+            .with_body(serde_json::json!({ "data_files": [] }).to_string())
             .create();
 
         client
@@ -1539,6 +1579,49 @@ mod test {
         for name in &names {
             Uuid::parse_str(name).expect("every field name must be a UUID");
         }
+    }
+
+    #[test]
+    fn upload_files_types_each_part_as_an_answer_archive() {
+        // reqwest guesses from the path extension, and the archive `submit` uploads is
+        // an extensionless temp file, so an untyped part would arrive as
+        // `application/octet-stream`.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let body = std::sync::Arc::new(Mutex::new(String::new()));
+        let captured = body.clone();
+        let upload = server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .match_request(move |request| {
+                *captured.lock().unwrap_or_else(|e| e.into_inner()) =
+                    String::from_utf8_lossy(request.body().map_or(&[][..], |b| &b[..])).to_string();
+                true
+            })
+            .with_body(serde_json::json!({ "data_files": [] }).to_string())
+            .create();
+
+        client
+            .upload_files(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                &[(SUBMISSION_ARCHIVE_FILE_NAME, Path::new("./tests/data/file"))],
+            )
+            .unwrap();
+
+        upload.assert();
+        let body = body.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        let lowercased = body.to_ascii_lowercase();
+        assert!(
+            lowercased.contains(&format!("content-type: {ANSWER_ARCHIVE_MIME}")),
+            "part must declare the answer archive type: {body:?}"
+        );
+        assert!(
+            !lowercased.contains("application/octet-stream"),
+            "no part may fall back to an unknown type: {body:?}"
+        );
     }
 
     #[test]
@@ -1609,10 +1692,11 @@ mod test {
             )
             .with_body(
                 serde_json::json!({
-                    "files": [{
+                    "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "download_url": "http://example.com/archive.tar.zst",
+                        "mime": ANSWER_ARCHIVE_MIME,
+                        "url": "http://example.com/archive.tar.zst",
                     }]
                 })
                 .to_string(),
@@ -1786,77 +1870,17 @@ mod test {
                 format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                     .as_str(),
             )
-            .with_body(serde_json::json!({ "files": files }).to_string())
+            .with_body(serde_json::json!({ "data_files": files }).to_string())
             .create()
     }
 
-    fn submission_file(name: &str, download_url: &str) -> serde_json::Value {
+    fn submission_file(name: &str, url: &str) -> serde_json::Value {
         serde_json::json!({
             "id": Uuid::new_v4(),
             "name": name,
-            "download_url": download_url,
+            "mime": ANSWER_ARCHIVE_MIME,
+            "url": url,
         })
-    }
-
-    #[test]
-    fn downloads_submission_archive_url() {
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(
-            &mut server,
-            submission_id,
-            serde_json::json!([submission_file(
-                "submission.tar.zst",
-                "http://example.com/archive.tar.zst"
-            )]),
-        );
-        let url = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap();
-        assert_eq!(url.as_deref(), Some("http://example.com/archive.tar.zst"));
-    }
-
-    #[test]
-    fn download_submission_archive_url_rejects_a_multi_file_submission() {
-        // Restoring an editor submission overlays exactly one archive. Picking one
-        // of several would silently restore the wrong project, so it must fail.
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(
-            &mut server,
-            submission_id,
-            serde_json::json!([
-                submission_file("a.tar.zst", "http://example.com/a.tar.zst"),
-                submission_file("b.tar.zst", "http://example.com/b.tar.zst"),
-            ]),
-        );
-        let err = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap_err();
-        assert!(matches!(
-            *err,
-            MoocClientError::UnexpectedSubmissionFileCount { count: 2, .. }
-        ));
-    }
-
-    #[test]
-    fn download_submission_archive_url_reports_a_submission_with_no_files() {
-        // `{"files": []}` is the contract's blessed response for an exercise type with no
-        // files, or a service that declares no way to enumerate its answers' files — not an
-        // error.
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(&mut server, submission_id, serde_json::json!([]));
-        let url = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap();
-        assert_eq!(url, None);
     }
 
     #[test]
@@ -1878,7 +1902,7 @@ mod test {
             .unwrap();
         assert_eq!(files.len(), 2);
         assert_eq!(files[0].name, "a.txt");
-        assert_eq!(files[1].download_url, "http://example.com/b.txt");
+        assert_eq!(files[1].url, "http://example.com/b.txt");
     }
 
     #[test]

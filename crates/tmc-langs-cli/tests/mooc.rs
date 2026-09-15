@@ -505,6 +505,58 @@ fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
 }
 
 #[test]
+fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
+    // `duplicate_upload` stays unmapped on purpose: it means a submit named one upload
+    // id twice, which no retry or user action can fix, so there is no answer a dedicated
+    // kind could give the user. It must also not trip the upload retry, which keys on
+    // `upload_expired` alone -- re-uploading would just produce the same duplicate.
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let upload = mock_upload_for_submit(&mut server).expect(1);
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submit")
+                .as_str(),
+        )
+        .with_status(422)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "the same upload was named more than once",
+                "message_key": "duplicate_upload",
+                "metadata": null,
+                "type": "validation_error",
+            })
+            .to_string(),
+        )
+        .expect(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    upload.assert();
+    submit.assert();
+    assert_error_kind(error, "generic");
+}
+
+#[test]
 fn mooc_422_upload_expired_surfaces_only_after_the_retry_fails() {
     // The upload is retried once, so the kind reaches the client only when the
     // second attempt expires too -- by then it is a genuine failure, not a race.
@@ -1585,10 +1637,11 @@ fn mock_upload_for(server: &mut mockito::Server, exercise_id: &str) -> mockito::
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": SUBMIT_FILE_UPLOAD_ID,
                     "name": "submission.tar.zst",
-                    "download_url": "http://example.com/archive.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": "http://example.com/archive.tar.zst",
                 }]
             })
             .to_string(),
@@ -1616,9 +1669,12 @@ fn mock_submit_steps_for(
             "POST",
             format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
         )
-        // The submit must name the id the upload returned, never the multipart field name.
+        // The submit must name the id the upload returned, never the multipart field name,
+        // and must declare a file answer: the host reads an absent `answer_kind` as `json`
+        // and rejects a json answer that names files.
         .match_body(mockito::Matcher::PartialJson(serde_json::json!({
-            "uploaded_file_ids": [SUBMIT_FILE_UPLOAD_ID],
+            "answer_kind": "file",
+            "data_files": [SUBMIT_FILE_UPLOAD_ID],
         })))
         .with_body(
             serde_json::json!({
@@ -2235,10 +2291,11 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": Uuid::new_v4(),
                     "name": "submission.tar.zst",
-                    "download_url": old_url,
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": old_url,
                 }]
             })
             .to_string(),
@@ -2343,10 +2400,11 @@ fn download_old_submission_save_old_state_submits_first() {
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": Uuid::new_v4(),
                     "name": "submission.tar.zst",
-                    "download_url": old_url,
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": old_url,
                 }]
             })
             .to_string(),
@@ -2400,12 +2458,11 @@ fn download_old_submission_save_old_state_submits_first() {
 }
 
 #[test]
-fn download_old_submission_reports_a_submission_with_no_files() {
-    // The host serves `{"files": []}` for a submission it has no files for -- an
-    // exercise type with none, or a service that cannot enumerate its answers'
-    // files. That is a reported outcome, not an error, and must leave the local
-    // exercise alone -- and skip the save-old-state submit, since nothing is
-    // being overwritten.
+fn download_old_submission_refuses_a_submission_of_several_files() {
+    // A tmc answer is one project archive. Several files means the answer came from
+    // something else, and picking one would silently restore the wrong project — so it
+    // fails, and fails before the save-old-state submit, leaving both disk and server
+    // untouched.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
@@ -2432,7 +2489,198 @@ fn download_old_submission_reports_a_submission_with_no_files() {
             format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                 .as_str(),
         )
-        .with_body(serde_json::json!({ "files": [] }).to_string())
+        .with_body(
+            serde_json::json!({
+                "data_files": [
+                    {
+                        "id": Uuid::new_v4(),
+                        "name": "a.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/a.tar.zst",
+                    },
+                    {
+                        "id": Uuid::new_v4(),
+                        "name": "b.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/b.tar.zst",
+                    },
+                ]
+            })
+            .to_string(),
+        )
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(output_dir.path().join("src")).unwrap();
+    std::fs::write(
+        output_dir.path().join("src/main.py"),
+        b"print('current work')",
+    )
+    .unwrap();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "download-old-submission",
+            "--submission-id",
+            submission_id,
+            "--exercise-id",
+            exercise_id,
+            "--output-path",
+            output_dir.path().to_str().unwrap(),
+            "--save-old-state",
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    // Neither the stub download nor the save-old-state submit was reached: both go
+    // through the slide endpoint.
+    slide.assert();
+    assert_eq!(
+        std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
+        "print('current work')"
+    );
+    let printed = serde_json::to_string(&*error.output).unwrap();
+    assert!(
+        printed.contains("is made of 2 files"),
+        "expected the several-files refusal, got: {printed}"
+    );
+    assert_error_kind(error, "generic");
+}
+
+/// Binds and releases an ephemeral port, so a request to it is refused rather than
+/// answered or left to time out.
+fn unused_port() -> u16 {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.local_addr().unwrap().port()
+}
+
+#[test]
+fn download_old_submission_keeps_the_download_claim_out_of_its_error_output() {
+    // A file URL's query string is a one-hour bearer-equivalent capability for that file,
+    // and the CLI prints every link of the anyhow chain. Redacting `MoocClientError`'s own
+    // format strings is not enough: reqwest's `Display` appends the URL it was handed, and
+    // reaches the output through the `#[source]` link.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let submission_id = "99999999-9999-9999-9999-999999999999";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+    let claim = "eyJhbGciOiJIUzI1NiJ9.CLAIM-THAT-MUST-NOT-BE-PRINTED.sig";
+    // Unreachable, so the download fails at the transport layer with the claim in hand.
+    let archive_url = format!(
+        "http://127.0.0.1:{}/api/v0/files/claimed/{}?download-claim={claim}",
+        unused_port(),
+        Uuid::new_v4()
+    );
+
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect_at_least(1)
+        .create();
+    server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_body(make_tar_zst(&[
+            ("requirements.txt", b""),
+            ("src/main.py", b"# TODO: implement"),
+        ]))
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                .as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "data_files": [{
+                    "id": Uuid::new_v4(),
+                    "name": "submission.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": archive_url,
+                }]
+            })
+            .to_string(),
+        )
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "download-old-submission",
+            "--submission-id",
+            submission_id,
+            "--exercise-id",
+            exercise_id,
+            "--output-path",
+            output_dir.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    let printed = serde_json::to_string(&*error.output).unwrap();
+    assert!(
+        !printed.contains(claim),
+        "the download claim reached the CLI's output: {printed}"
+    );
+    // The redaction has to leave something recognizable, or a passing assertion above
+    // could just mean the URL never got near the error at all.
+    assert!(
+        printed.contains("download-claim=<redacted>"),
+        "expected a redacted claim parameter in: {printed}"
+    );
+}
+
+#[test]
+fn download_old_submission_reports_a_submission_with_no_files() {
+    // The host serves `{"data_files": []}` for a submission it has no files for, which
+    // only an exercise type with no files can be. That is a reported outcome, not an
+    // error, and must leave the local exercise alone -- and skip the save-old-state
+    // submit, since nothing is being overwritten.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let submission_id = "99999999-9999-9999-9999-999999999999";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+    let slide = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect(0)
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                .as_str(),
+        )
+        .with_body(serde_json::json!({ "data_files": [] }).to_string())
         .create();
 
     let output_dir = tempfile::tempdir().unwrap();
