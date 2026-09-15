@@ -87,6 +87,17 @@ jobs:
           export CARGO_TARGET_$(echo $suffix | tr a-z A-Z)_LINKER='${{ matrix.cc }}'
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
 
+      - name: Check the glibc requirement
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          # raising this drops users, so it belongs in the changelog as a minimum OS version change
+          MAX_GLIBC=2.30
+          NEEDED_GLIBC=$(objdump -T ./target/${{ matrix.target }}/release/tmc-langs-cli | sed -n 's/.*GLIBC_\([0-9.]*\).*/\1/p' | sort -V | tail -1)
+          if [ "$(printf '%s\n%s\n' "$MAX_GLIBC" "$NEEDED_GLIBC" | sort -V | tail -1)" != "$MAX_GLIBC" ]; then
+            echo "::error title=glibc-requirement-raised::the binary needs glibc $NEEDED_GLIBC, up from $MAX_GLIBC"
+            exit 1
+          fi
+
       - name: Generate checksums
         run: |
           # canonical "<lowercase-hash>  <deployed-filename>" (sha256sum already lowercases)
