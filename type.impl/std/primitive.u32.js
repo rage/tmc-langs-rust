@@ -1,9 +1,9 @@
 (function() {
-    var type_impls = Object.fromEntries([["flate2",[]],["libz_rs_sys",[]],["nix",[]],["rustix",[["<section id=\"impl-Integer-for-u32\" class=\"impl\"><a class=\"src rightside\" href=\"src/rustix/path/dec_int.rs.html#145\">Source</a><a href=\"#impl-Integer-for-u32\" class=\"anchor\">§</a><h3 class=\"code-header\">impl <a class=\"trait\" href=\"rustix/path/trait.Integer.html\" title=\"trait rustix::path::Integer\">Integer</a> for <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.90.0/std/primitive.u32.html\">u32</a></h3></section>","Integer","rustix::ffi::c_uint"]]],["serde",[]],["serde_core",[]],["tokio",[]]]);
+    var type_impls = Object.fromEntries([["aws_lc_sys",[]],["boring_sys",[]],["nix",[]],["rustix",[["<section id=\"impl-Integer-for-u32\" class=\"impl\"><a class=\"src rightside\" href=\"src/rustix/path/dec_int.rs.html#145\">Source</a><a href=\"#impl-Integer-for-u32\" class=\"anchor\">§</a><h3 class=\"code-header\">impl <a class=\"trait\" href=\"rustix/path/trait.Integer.html\" title=\"trait rustix::path::Integer\">Integer</a> for <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u32.html\">u32</a></h3></section>","Integer","rustix::ffi::c_uint"]]],["serde",[]],["serde_core",[]],["tokio",[]]]);
     if (window.register_type_impls) {
         window.register_type_impls(type_impls);
     } else {
         window.pending_type_impls = type_impls;
     }
 })()
-//{"start":55,"fragment_lengths":[13,19,11,495,13,18,13]}
+//{"start":55,"fragment_lengths":[17,18,11,495,13,18,13]}

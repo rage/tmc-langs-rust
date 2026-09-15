@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ExitStatus","PopenError","Redirection"],"fn":["make_pipe"],"mod":["unix"],"struct":["CaptureData","CommunicateError","Communicator","Exec","NullFile","Pipeline","Popen","PopenConfig"],"type":["Result"]};
+window.SIDEBAR_ITEMS = {"enum":["Redirection"],"mod":["unix"],"struct":["Capture","Communicator","Exec","ExitStatus","InputData","Job","Pipeline","Process"],"trait":["ExecExt","FromSink","FromSource","JobExt","PipelineExt"]};

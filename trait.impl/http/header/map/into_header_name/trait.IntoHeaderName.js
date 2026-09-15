@@ -1,9 +1,9 @@
 (function() {
-    var implementors = Object.fromEntries([["http",[]],["reqwest",[]]]);
+    const implementors = Object.fromEntries([["http",[]],["reqwest",[]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":57,"fragment_lengths":[11,15]}
+//{"start":59,"fragment_lengths":[11,15]}

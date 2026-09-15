@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["absolute_iri","fragment","iri","iri_reference","path","query","relative_ref"],"struct":["Error"]};

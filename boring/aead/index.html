@@ -1,0 +1,49 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Authenticated encryption with detached authentication tags."><title>boring::aead - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="boring" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module aead</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../boring/index.html">boring</a><span class="version">5.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module aead</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#overview" title="Overview">Overview</a></li><li><a href="#when-to-use-cratesymm-instead" title="When to use `crate::symm` instead">When to use <code>crate::symm</code> instead</a></li><li><a href="#nonce-guidance" title="Nonce guidance">Nonce guidance</a></li><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate boring</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">boring</a></div><h1>Module <span>aead</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/boring/aead.rs.html#1-549">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Authenticated encryption with detached authentication tags.</p>
+<p>This module wraps BoringSSL’s <code>EVP_AEAD</code> interface and is intended for
+protocols that keep ciphertext and authentication tag in separate buffers.</p>
+<h2 id="overview"><a class="doc-anchor" href="#overview">§</a>Overview</h2>
+<p><a href="struct.AeadCtx.html" title="struct boring::aead::AeadCtx"><code>AeadCtx</code></a> is the main type. Create one with an <a href="struct.Algorithm.html" title="struct boring::aead::Algorithm"><code>Algorithm</code></a> and a key,
+then use it to encrypt and decrypt:</p>
+<ul>
+<li>
+<p><a href="struct.AeadCtxRef.html#method.seal_in_place" title="method boring::aead::AeadCtxRef::seal_in_place"><code>AeadCtxRef::seal_in_place</code></a> / <a href="struct.AeadCtxRef.html#method.open_in_place" title="method boring::aead::AeadCtxRef::open_in_place"><code>AeadCtxRef::open_in_place</code></a> — encrypt
+or decrypt a buffer in place with a detached tag. These cover the common
+case (TLS record framing, packet formats with explicit tag fields, etc.).</p>
+</li>
+<li>
+<p><a href="struct.AeadCtxRef.html#method.seal_scatter" title="method boring::aead::AeadCtxRef::seal_scatter"><code>AeadCtxRef::seal_scatter</code></a> / <a href="struct.AeadCtxRef.html#method.open_gather" title="method boring::aead::AeadCtxRef::open_gather"><code>AeadCtxRef::open_gather</code></a> — lower-level
+scatter/gather operations for protocols that split ciphertext output across
+multiple buffers.</p>
+</li>
+</ul>
+<h2 id="when-to-use-cratesymm-instead"><a class="doc-anchor" href="#when-to-use-cratesymm-instead">§</a>When to use <a href="../symm/index.html" title="mod boring::symm"><code>crate::symm</code></a> instead</h2>
+<p>If you want one-shot helpers that allocate output buffers or APIs centered
+on <code>EVP_CIPHER</code>, prefer <a href="../symm/index.html" title="mod boring::symm"><code>crate::symm</code></a>, including
+<a href="../symm/fn.encrypt_aead.html" title="fn boring::symm::encrypt_aead"><code>crate::symm::encrypt_aead</code></a> and <a href="../symm/fn.decrypt_aead.html" title="fn boring::symm::decrypt_aead"><code>crate::symm::decrypt_aead</code></a>.</p>
+<h2 id="nonce-guidance"><a class="doc-anchor" href="#nonce-guidance">§</a>Nonce guidance</h2>
+<p>Never reuse a nonce with the same key. Nonce reuse can completely undermine
+AEAD security.</p>
+<p>Nonces are usually public (not secret). They must either be transmitted with
+the message or derived by both sides (for example from a shared sequence
+number).</p>
+<p>Different algorithms can have different nonce-length requirements and safety
+considerations around nonce generation. The caller is responsible for
+following safe nonce practices for the selected algorithm.
+<a href="struct.Algorithm.html#method.nonce_len" title="method boring::aead::Algorithm::nonce_len"><code>Algorithm::nonce_len</code></a> returns the required nonce size in bytes.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boring::aead::{AeadCtx, Algorithm};
+
+<span class="kw">let </span>algorithm = Algorithm::aes_128_gcm();
+<span class="kw">let </span>ctx = AeadCtx::new_default_tag(<span class="kw-2">&amp;</span>algorithm, <span class="kw-2">&amp;</span>[<span class="number">0u8</span>; <span class="number">16</span>]).unwrap();
+<span class="kw">let </span>nonce = [<span class="number">0u8</span>; <span class="number">12</span>];
+<span class="kw">let </span>aad = <span class="string">b"record-header"</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>payload = <span class="string">b"hello world"</span>.to_vec();
+<span class="kw">let </span><span class="kw-2">mut </span>tag = <span class="macro">vec!</span>[<span class="number">0u8</span>; algorithm.max_overhead()];
+
+ctx.seal_in_place(<span class="kw-2">&amp;</span>nonce, payload.as_mut_slice(), <span class="kw-2">&amp;mut </span>tag, aad)
+    .unwrap();
+
+ctx.open_in_place(<span class="kw-2">&amp;</span>nonce, payload.as_mut_slice(), <span class="kw-2">&amp;</span>tag, aad)
+    .unwrap();
+
+<span class="macro">assert_eq!</span>(payload.as_slice(), <span class="string">b"hello world"</span>);</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.AeadCtx.html" title="struct boring::aead::AeadCtx">AeadCtx</a></dt><dd>An AEAD encryption/decryption context wrapping BoringSSL’s <code>EVP_AEAD_CTX</code>.</dd><dt><a class="struct" href="struct.AeadCtxRef.html" title="struct boring::aead::AeadCtxRef">Aead<wbr>CtxRef</a></dt><dd>A borrowed reference to a <a href="struct.AeadCtx.html"><code>AeadCtx</code></a>.</dd><dt><a class="struct" href="struct.Algorithm.html" title="struct boring::aead::Algorithm">Algorithm</a></dt><dd>Represents a specific AEAD algorithm.</dd></dl></section></div></main></body></html>

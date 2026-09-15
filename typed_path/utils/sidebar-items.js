@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["current_dir","current_exe","temp_dir","utf8_current_dir","utf8_current_exe","utf8_temp_dir"]};

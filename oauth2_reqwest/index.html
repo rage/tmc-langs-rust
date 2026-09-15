@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A `reqwest` client for `oauth2`."><title>oauth2_reqwest - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="oauth2_reqwest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate oauth2_reqwest</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../oauth2_reqwest/index.html">oauth2_<wbr>reqwest</a><span class="version">0.1.0-alpha.3</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#motivation" title="Motivation">Motivation</a></li><li><a href="#usage" title="Usage">Usage</a><ul><li><a href="#asynchronous-client" title="Asynchronous Client">Asynchronous Client</a></li><li><a href="#synchronous-client" title="Synchronous Client">Synchronous Client</a></li></ul></li></ul><h3><a href="#structs">Crate Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>oauth2_<wbr>reqwest</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/oauth2_reqwest/lib.rs.html#1-196">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A <a href="../reqwest/index.html" title="mod reqwest"><code>reqwest</code></a> client for <a href="../oauth2/index.html" title="mod oauth2"><code>oauth2</code></a>.</p>
+<h2 id="motivation"><a class="doc-anchor" href="#motivation">§</a>Motivation</h2>
+<p>The <code>reqwest</code> client <a href="https://docs.rs/oauth2/latest/oauth2/#http-clients">bundled</a> with <code>oauth2</code>
+supports <code>reqwest</code> version 0.12. This separate crate supports <code>reqwest</code> version 0.13 and is
+intended to support future versions of <code>reqwest</code> without needing a new SemVer major version
+number for <code>oauth2</code> (which would otherwise be required due to breaking changes to that crate’s
+public API).</p>
+<h2 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h2>
+<p>To get started, add the following dependencies to your crate’s <code>Cargo.toml</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code># Disables oauth2&#39;s default reqwest 0.12 client.
+oauth2 = { version = &quot;5&quot;, default-features = false }
+
+# Imports reqwest without any feature flags enabled.
+oauth2-reqwest = &quot;0.1.0-alpha.3&quot;
+
+# Enables reqwest&#39;s default features.
+reqwest = &quot;0.13&quot;
+# Alternatively, specify the desired set of features:
+# reqwest = { version = &quot;0.13&quot;, default-features = false, features = [&quot;native-tls&quot;] }</code></pre></div>
+<p>For flexibility, this crate disables all of <code>reqwest</code>’s Cargo feature flags by default. To
+enable specific <code>reqwest</code> features (including its default <code>rustls</code> feature), separately import
+<code>reqwest</code> in your crate’s <code>Cargo.toml</code> and specify the
+<a href="https://docs.rs/crate/reqwest/latest/features">desired features</a>. This approach leverages Cargo
+<a href="https://doc.rust-lang.org/cargo/reference/features.html#feature-unification">feature unification</a>.
+While this approach requires a separate import, it provides maximum flexibility and reduces the
+need for future breaking changes to this crate.</p>
+<h3 id="asynchronous-client"><a class="doc-anchor" href="#asynchronous-client">§</a>Asynchronous Client</h3>
+<p>To use the async <code>reqwest</code> client, simply wrap the <code>reqwest</code> <a href="../reqwest/async_impl/client/struct.Client.html" title="struct reqwest::async_impl::client::Client"><code>Client</code></a> with
+this crate’s <a href="struct.ReqwestClient.html" title="struct oauth2_reqwest::ReqwestClient"><code>ReqwestClient</code></a> and pass the <code>ReqwestClient</code> to the desired <code>request_async</code>
+method:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>oauth2_reqwest::ReqwestClient;
+
+<span class="kw">let </span>reqwest_client = reqwest::ClientBuilder::new()
+    <span class="comment">// Following redirects opens the client up to SSRF vulnerabilities.
+    </span>.redirect(reqwest::redirect::Policy::none())
+    .build()
+    .expect(<span class="string">"Client should build"</span>);
+<span class="kw">let </span>http_client = ReqwestClient::from(reqwest_client);
+
+<span class="comment">// This code assumes `client` is a previously constructed `oauth2::Client` and `code` is an
+// `oauth2::AuthorizationCode`.
+</span><span class="kw">let </span>token_result = client
+    .exchange_code(code)
+    .request_async(<span class="kw-2">&amp;</span>http_client)
+    .<span class="kw">await</span><span class="question-mark">?</span>;
+</code></pre></div><h3 id="synchronous-client"><a class="doc-anchor" href="#synchronous-client">§</a>Synchronous Client</h3>
+<p>To use the blocking <code>reqwest</code> client, first enable the <code>blocking</code> feature in <code>Cargo.toml</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>oauth2-reqwest = { version = &quot;0.1.0-alpha.3&quot;, features = [&quot;blocking&quot;] }</code></pre></div>
+<p>Then, simply wrap the <code>reqwest</code> blocking <a href="../reqwest/blocking/client/struct.Client.html" title="struct reqwest::blocking::client::Client"><code>Client</code></a> with
+this crate’s <a href="struct.ReqwestBlockingClient.html" title="struct oauth2_reqwest::ReqwestBlockingClient"><code>ReqwestBlockingClient</code></a> and pass the <code>ReqwestBlockingClient</code> to the desired
+<code>request</code> method:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>oauth2_reqwest::ReqwestBlockingClient;
+
+<span class="kw">let </span>reqwest_client = reqwest::blocking::ClientBuilder::new()
+    <span class="comment">// Following redirects opens the client up to SSRF vulnerabilities.
+    </span>.redirect(reqwest::redirect::Policy::none())
+    .build()
+    .expect(<span class="string">"Client should build"</span>);
+<span class="kw">let </span>http_client = ReqwestBlockingClient::from(reqwest_client);
+
+<span class="comment">// This code assumes `client` is a previously constructed `oauth2::Client` and `code` is an
+// `oauth2::AuthorizationCode`.
+</span><span class="kw">let </span>token_result = client
+    .exchange_code(code)
+    .request(<span class="kw-2">&amp;</span>http_client)<span class="question-mark">?</span>;
+</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.ReqwestBlockingClient.html" title="struct oauth2_reqwest::ReqwestBlockingClient">Reqwest<wbr>Blocking<wbr>Client</a></dt><dd>Synchronous <code>reqwest</code> blocking <a href="../reqwest/blocking/client/struct.Client.html" title="struct reqwest::blocking::client::Client"><code>Client</code></a> wrapper.</dd><dt><a class="struct" href="struct.ReqwestClient.html" title="struct oauth2_reqwest::ReqwestClient">Reqwest<wbr>Client</a></dt><dd>Asynchronous <code>reqwest</code> <a href="../reqwest/async_impl/client/struct.Client.html" title="struct reqwest::async_impl::client::Client"><code>Client</code></a> wrapper.</dd></dl></section></div></main></body></html>

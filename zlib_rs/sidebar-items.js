@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["MAX_WBITS","MIN_WBITS"],"enum":["DeflateFlush","InflateFlush","ReturnCode"],"fn":["adler32","adler32_combine"],"macro":["flush_block","trace"],"mod":["allocate","c_api","crc32","deflate","inflate"]};
+window.SIDEBAR_ITEMS = {"enum":["DeflateError","DeflateFlush","InflateError","InflateFlush","Method","ReturnCode","Status","Strategy"],"fn":["compress_bound","compress_slice","decompress_slice"],"mod":["adler32","crc32"],"struct":["Deflate","DeflateConfig","Inflate","InflateConfig"]};

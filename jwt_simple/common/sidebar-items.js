@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_MAX_TOKEN_LENGTH"],"enum":["Salt"],"struct":["HeaderOptions","KeyMetadata","VerificationOptions"]};

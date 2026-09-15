@@ -1,0 +1,9 @@
+(function() {
+    var type_impls = Object.fromEntries([["typed_path",[["<details class=\"toggle implementors-toggle\" open><summary><section id=\"impl-Utf8Path%3CUtf8UnixEncoding%3E\" class=\"impl\"><a class=\"src rightside\" href=\"src/typed_path/unix/utf8.rs.html#99-107\">Source</a><a href=\"#impl-Utf8Path%3CUtf8UnixEncoding%3E\" class=\"anchor\">§</a><h3 class=\"code-header\">impl <a class=\"type\" href=\"typed_path/type.Utf8UnixPath.html\" title=\"type typed_path::Utf8UnixPath\">Utf8UnixPath</a></h3></section></summary><div class=\"impl-items\"><section id=\"method.to_typed_path\" class=\"method\"><a class=\"src rightside\" href=\"src/typed_path/unix/utf8.rs.html#100-102\">Source</a><h4 class=\"code-header\">pub fn <a href=\"#method.to_typed_path\" class=\"fn\">to_typed_path</a>(&amp;self) -&gt; <a class=\"enum\" href=\"typed_path/enum.Utf8TypedPath.html\" title=\"enum typed_path::Utf8TypedPath\">Utf8TypedPath</a>&lt;'_&gt;</h4></section><section id=\"method.to_typed_path_buf\" class=\"method\"><a class=\"src rightside\" href=\"src/typed_path/unix/utf8.rs.html#104-106\">Source</a><h4 class=\"code-header\">pub fn <a href=\"#method.to_typed_path_buf\" class=\"fn\">to_typed_path_buf</a>(&amp;self) -&gt; <a class=\"enum\" href=\"typed_path/enum.Utf8TypedPathBuf.html\" title=\"enum typed_path::Utf8TypedPathBuf\">Utf8TypedPathBuf</a></h4></section></div></details>",0,"typed_path::native::utf8::Utf8NativePath"]]]]);
+    if (window.register_type_impls) {
+        window.register_type_impls(type_impls);
+    } else {
+        window.pending_type_impls = type_impls;
+    }
+})()
+//{"start":55,"fragment_lengths":[1379]}

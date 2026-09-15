@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustls-0.23.33/src/quic.rs`."><title>quic.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">rustls/</div>quic.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::boxed::Box;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rustls-0.23.40/src/quic.rs`."><title>quic.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="rustls" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">rustls/</div>quic.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>alloc::boxed::Box;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>alloc::collections::VecDeque;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>alloc::vec::Vec;
 <a href=#4 id=4 data-nosnippet>4</a><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
@@ -976,86 +976,82 @@
 <a href=#976 id=976 data-nosnippet>976</a>///
 <a href=#977 id=977 data-nosnippet>977</a>/// Governs version-specific behavior in the TLS layer
 <a href=#978 id=978 data-nosnippet>978</a></span><span class="attr">#[non_exhaustive]
-<a href=#979 id=979 data-nosnippet>979</a>#[derive(Clone, Copy, Debug)]
+<a href=#979 id=979 data-nosnippet>979</a>#[derive(Clone, Copy, Debug, Default)]
 <a href=#980 id=980 data-nosnippet>980</a></span><span class="kw">pub enum </span>Version {
 <a href=#981 id=981 data-nosnippet>981</a>    <span class="doccomment">/// Draft versions 29, 30, 31 and 32
 <a href=#982 id=982 data-nosnippet>982</a>    </span>V1Draft,
 <a href=#983 id=983 data-nosnippet>983</a>    <span class="doccomment">/// First stable RFC
-<a href=#984 id=984 data-nosnippet>984</a>    </span>V1,
-<a href=#985 id=985 data-nosnippet>985</a>    <span class="doccomment">/// Anti-ossification variant of V1
-<a href=#986 id=986 data-nosnippet>986</a>    </span>V2,
-<a href=#987 id=987 data-nosnippet>987</a>}
-<a href=#988 id=988 data-nosnippet>988</a>
-<a href=#989 id=989 data-nosnippet>989</a><span class="kw">impl </span>Version {
-<a href=#990 id=990 data-nosnippet>990</a>    <span class="kw">fn </span>initial_salt(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8; <span class="number">20</span>] {
-<a href=#991 id=991 data-nosnippet>991</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#992 id=992 data-nosnippet>992</a>            <span class="self">Self</span>::V1Draft =&gt; <span class="kw-2">&amp;</span>[
-<a href=#993 id=993 data-nosnippet>993</a>                <span class="comment">// https://datatracker.ietf.org/doc/html/draft-ietf-quic-tls-32#section-5.2
-<a href=#994 id=994 data-nosnippet>994</a>                </span><span class="number">0xaf</span>, <span class="number">0xbf</span>, <span class="number">0xec</span>, <span class="number">0x28</span>, <span class="number">0x99</span>, <span class="number">0x93</span>, <span class="number">0xd2</span>, <span class="number">0x4c</span>, <span class="number">0x9e</span>, <span class="number">0x97</span>, <span class="number">0x86</span>, <span class="number">0xf1</span>, <span class="number">0x9c</span>, <span class="number">0x61</span>,
-<a href=#995 id=995 data-nosnippet>995</a>                <span class="number">0x11</span>, <span class="number">0xe0</span>, <span class="number">0x43</span>, <span class="number">0x90</span>, <span class="number">0xa8</span>, <span class="number">0x99</span>,
-<a href=#996 id=996 data-nosnippet>996</a>            ],
-<a href=#997 id=997 data-nosnippet>997</a>            <span class="self">Self</span>::V1 =&gt; <span class="kw-2">&amp;</span>[
-<a href=#998 id=998 data-nosnippet>998</a>                <span class="comment">// https://www.rfc-editor.org/rfc/rfc9001.html#name-initial-secrets
-<a href=#999 id=999 data-nosnippet>999</a>                </span><span class="number">0x38</span>, <span class="number">0x76</span>, <span class="number">0x2c</span>, <span class="number">0xf7</span>, <span class="number">0xf5</span>, <span class="number">0x59</span>, <span class="number">0x34</span>, <span class="number">0xb3</span>, <span class="number">0x4d</span>, <span class="number">0x17</span>, <span class="number">0x9a</span>, <span class="number">0xe6</span>, <span class="number">0xa4</span>, <span class="number">0xc8</span>,
-<a href=#1000 id=1000 data-nosnippet>1000</a>                <span class="number">0x0c</span>, <span class="number">0xad</span>, <span class="number">0xcc</span>, <span class="number">0xbb</span>, <span class="number">0x7f</span>, <span class="number">0x0a</span>,
-<a href=#1001 id=1001 data-nosnippet>1001</a>            ],
-<a href=#1002 id=1002 data-nosnippet>1002</a>            <span class="self">Self</span>::V2 =&gt; <span class="kw-2">&amp;</span>[
-<a href=#1003 id=1003 data-nosnippet>1003</a>                <span class="comment">// https://www.ietf.org/archive/id/draft-ietf-quic-v2-10.html#name-initial-salt-2
-<a href=#1004 id=1004 data-nosnippet>1004</a>                </span><span class="number">0x0d</span>, <span class="number">0xed</span>, <span class="number">0xe3</span>, <span class="number">0xde</span>, <span class="number">0xf7</span>, <span class="number">0x00</span>, <span class="number">0xa6</span>, <span class="number">0xdb</span>, <span class="number">0x81</span>, <span class="number">0x93</span>, <span class="number">0x81</span>, <span class="number">0xbe</span>, <span class="number">0x6e</span>, <span class="number">0x26</span>,
-<a href=#1005 id=1005 data-nosnippet>1005</a>                <span class="number">0x9d</span>, <span class="number">0xcb</span>, <span class="number">0xf9</span>, <span class="number">0xbd</span>, <span class="number">0x2e</span>, <span class="number">0xd9</span>,
-<a href=#1006 id=1006 data-nosnippet>1006</a>            ],
-<a href=#1007 id=1007 data-nosnippet>1007</a>        }
-<a href=#1008 id=1008 data-nosnippet>1008</a>    }
-<a href=#1009 id=1009 data-nosnippet>1009</a>
-<a href=#1010 id=1010 data-nosnippet>1010</a>    <span class="doccomment">/// Key derivation label for packet keys.
-<a href=#1011 id=1011 data-nosnippet>1011</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>packet_key_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
-<a href=#1012 id=1012 data-nosnippet>1012</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#1013 id=1013 data-nosnippet>1013</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic key"</span>,
-<a href=#1014 id=1014 data-nosnippet>1014</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 key"</span>,
-<a href=#1015 id=1015 data-nosnippet>1015</a>        }
-<a href=#1016 id=1016 data-nosnippet>1016</a>    }
-<a href=#1017 id=1017 data-nosnippet>1017</a>
-<a href=#1018 id=1018 data-nosnippet>1018</a>    <span class="doccomment">/// Key derivation label for packet "IV"s.
-<a href=#1019 id=1019 data-nosnippet>1019</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>packet_iv_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
-<a href=#1020 id=1020 data-nosnippet>1020</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#1021 id=1021 data-nosnippet>1021</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic iv"</span>,
-<a href=#1022 id=1022 data-nosnippet>1022</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 iv"</span>,
-<a href=#1023 id=1023 data-nosnippet>1023</a>        }
-<a href=#1024 id=1024 data-nosnippet>1024</a>    }
-<a href=#1025 id=1025 data-nosnippet>1025</a>
-<a href=#1026 id=1026 data-nosnippet>1026</a>    <span class="doccomment">/// Key derivation for header keys.
-<a href=#1027 id=1027 data-nosnippet>1027</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>header_key_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
-<a href=#1028 id=1028 data-nosnippet>1028</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#1029 id=1029 data-nosnippet>1029</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic hp"</span>,
-<a href=#1030 id=1030 data-nosnippet>1030</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 hp"</span>,
-<a href=#1031 id=1031 data-nosnippet>1031</a>        }
-<a href=#1032 id=1032 data-nosnippet>1032</a>    }
-<a href=#1033 id=1033 data-nosnippet>1033</a>
-<a href=#1034 id=1034 data-nosnippet>1034</a>    <span class="kw">fn </span>key_update_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
-<a href=#1035 id=1035 data-nosnippet>1035</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#1036 id=1036 data-nosnippet>1036</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic ku"</span>,
-<a href=#1037 id=1037 data-nosnippet>1037</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 ku"</span>,
-<a href=#1038 id=1038 data-nosnippet>1038</a>        }
-<a href=#1039 id=1039 data-nosnippet>1039</a>    }
-<a href=#1040 id=1040 data-nosnippet>1040</a>}
-<a href=#1041 id=1041 data-nosnippet>1041</a>
-<a href=#1042 id=1042 data-nosnippet>1042</a><span class="kw">impl </span>Default <span class="kw">for </span>Version {
-<a href=#1043 id=1043 data-nosnippet>1043</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-<a href=#1044 id=1044 data-nosnippet>1044</a>        <span class="self">Self</span>::V1
-<a href=#1045 id=1045 data-nosnippet>1045</a>    }
-<a href=#1046 id=1046 data-nosnippet>1046</a>}
-<a href=#1047 id=1047 data-nosnippet>1047</a>
-<a href=#1048 id=1048 data-nosnippet>1048</a><span class="attr">#[cfg(test)]
-<a href=#1049 id=1049 data-nosnippet>1049</a></span><span class="kw">mod </span>tests {
-<a href=#1050 id=1050 data-nosnippet>1050</a>    <span class="kw">use </span>std::prelude::v1::<span class="kw-2">*</span>;
-<a href=#1051 id=1051 data-nosnippet>1051</a>
-<a href=#1052 id=1052 data-nosnippet>1052</a>    <span class="kw">use </span><span class="kw">super</span>::PacketKey;
-<a href=#1053 id=1053 data-nosnippet>1053</a>    <span class="kw">use </span><span class="kw">crate</span>::quic::HeaderProtectionKey;
-<a href=#1054 id=1054 data-nosnippet>1054</a>
-<a href=#1055 id=1055 data-nosnippet>1055</a>    <span class="attr">#[test]
-<a href=#1056 id=1056 data-nosnippet>1056</a>    </span><span class="kw">fn </span>auto_traits() {
-<a href=#1057 id=1057 data-nosnippet>1057</a>        <span class="kw">fn </span>assert_auto&lt;T: Send + Sync&gt;() {}
-<a href=#1058 id=1058 data-nosnippet>1058</a>        assert_auto::&lt;Box&lt;<span class="kw">dyn </span>PacketKey&gt;&gt;();
-<a href=#1059 id=1059 data-nosnippet>1059</a>        assert_auto::&lt;Box&lt;<span class="kw">dyn </span>HeaderProtectionKey&gt;&gt;();
-<a href=#1060 id=1060 data-nosnippet>1060</a>    }
-<a href=#1061 id=1061 data-nosnippet>1061</a>}</code></pre></div></section></main></body></html>
+<a href=#984 id=984 data-nosnippet>984</a>    </span><span class="attr">#[default]
+<a href=#985 id=985 data-nosnippet>985</a>    </span>V1,
+<a href=#986 id=986 data-nosnippet>986</a>    <span class="doccomment">/// Anti-ossification variant of V1
+<a href=#987 id=987 data-nosnippet>987</a>    </span>V2,
+<a href=#988 id=988 data-nosnippet>988</a>}
+<a href=#989 id=989 data-nosnippet>989</a>
+<a href=#990 id=990 data-nosnippet>990</a><span class="kw">impl </span>Version {
+<a href=#991 id=991 data-nosnippet>991</a>    <span class="kw">fn </span>initial_salt(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8; <span class="number">20</span>] {
+<a href=#992 id=992 data-nosnippet>992</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#993 id=993 data-nosnippet>993</a>            <span class="self">Self</span>::V1Draft =&gt; <span class="kw-2">&amp;</span>[
+<a href=#994 id=994 data-nosnippet>994</a>                <span class="comment">// https://datatracker.ietf.org/doc/html/draft-ietf-quic-tls-32#section-5.2
+<a href=#995 id=995 data-nosnippet>995</a>                </span><span class="number">0xaf</span>, <span class="number">0xbf</span>, <span class="number">0xec</span>, <span class="number">0x28</span>, <span class="number">0x99</span>, <span class="number">0x93</span>, <span class="number">0xd2</span>, <span class="number">0x4c</span>, <span class="number">0x9e</span>, <span class="number">0x97</span>, <span class="number">0x86</span>, <span class="number">0xf1</span>, <span class="number">0x9c</span>, <span class="number">0x61</span>,
+<a href=#996 id=996 data-nosnippet>996</a>                <span class="number">0x11</span>, <span class="number">0xe0</span>, <span class="number">0x43</span>, <span class="number">0x90</span>, <span class="number">0xa8</span>, <span class="number">0x99</span>,
+<a href=#997 id=997 data-nosnippet>997</a>            ],
+<a href=#998 id=998 data-nosnippet>998</a>            <span class="self">Self</span>::V1 =&gt; <span class="kw-2">&amp;</span>[
+<a href=#999 id=999 data-nosnippet>999</a>                <span class="comment">// https://www.rfc-editor.org/rfc/rfc9001.html#name-initial-secrets
+<a href=#1000 id=1000 data-nosnippet>1000</a>                </span><span class="number">0x38</span>, <span class="number">0x76</span>, <span class="number">0x2c</span>, <span class="number">0xf7</span>, <span class="number">0xf5</span>, <span class="number">0x59</span>, <span class="number">0x34</span>, <span class="number">0xb3</span>, <span class="number">0x4d</span>, <span class="number">0x17</span>, <span class="number">0x9a</span>, <span class="number">0xe6</span>, <span class="number">0xa4</span>, <span class="number">0xc8</span>,
+<a href=#1001 id=1001 data-nosnippet>1001</a>                <span class="number">0x0c</span>, <span class="number">0xad</span>, <span class="number">0xcc</span>, <span class="number">0xbb</span>, <span class="number">0x7f</span>, <span class="number">0x0a</span>,
+<a href=#1002 id=1002 data-nosnippet>1002</a>            ],
+<a href=#1003 id=1003 data-nosnippet>1003</a>            <span class="self">Self</span>::V2 =&gt; <span class="kw-2">&amp;</span>[
+<a href=#1004 id=1004 data-nosnippet>1004</a>                <span class="comment">// https://www.ietf.org/archive/id/draft-ietf-quic-v2-10.html#name-initial-salt-2
+<a href=#1005 id=1005 data-nosnippet>1005</a>                </span><span class="number">0x0d</span>, <span class="number">0xed</span>, <span class="number">0xe3</span>, <span class="number">0xde</span>, <span class="number">0xf7</span>, <span class="number">0x00</span>, <span class="number">0xa6</span>, <span class="number">0xdb</span>, <span class="number">0x81</span>, <span class="number">0x93</span>, <span class="number">0x81</span>, <span class="number">0xbe</span>, <span class="number">0x6e</span>, <span class="number">0x26</span>,
+<a href=#1006 id=1006 data-nosnippet>1006</a>                <span class="number">0x9d</span>, <span class="number">0xcb</span>, <span class="number">0xf9</span>, <span class="number">0xbd</span>, <span class="number">0x2e</span>, <span class="number">0xd9</span>,
+<a href=#1007 id=1007 data-nosnippet>1007</a>            ],
+<a href=#1008 id=1008 data-nosnippet>1008</a>        }
+<a href=#1009 id=1009 data-nosnippet>1009</a>    }
+<a href=#1010 id=1010 data-nosnippet>1010</a>
+<a href=#1011 id=1011 data-nosnippet>1011</a>    <span class="doccomment">/// Key derivation label for packet keys.
+<a href=#1012 id=1012 data-nosnippet>1012</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>packet_key_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
+<a href=#1013 id=1013 data-nosnippet>1013</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#1014 id=1014 data-nosnippet>1014</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic key"</span>,
+<a href=#1015 id=1015 data-nosnippet>1015</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 key"</span>,
+<a href=#1016 id=1016 data-nosnippet>1016</a>        }
+<a href=#1017 id=1017 data-nosnippet>1017</a>    }
+<a href=#1018 id=1018 data-nosnippet>1018</a>
+<a href=#1019 id=1019 data-nosnippet>1019</a>    <span class="doccomment">/// Key derivation label for packet "IV"s.
+<a href=#1020 id=1020 data-nosnippet>1020</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>packet_iv_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
+<a href=#1021 id=1021 data-nosnippet>1021</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#1022 id=1022 data-nosnippet>1022</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic iv"</span>,
+<a href=#1023 id=1023 data-nosnippet>1023</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 iv"</span>,
+<a href=#1024 id=1024 data-nosnippet>1024</a>        }
+<a href=#1025 id=1025 data-nosnippet>1025</a>    }
+<a href=#1026 id=1026 data-nosnippet>1026</a>
+<a href=#1027 id=1027 data-nosnippet>1027</a>    <span class="doccomment">/// Key derivation for header keys.
+<a href=#1028 id=1028 data-nosnippet>1028</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>header_key_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
+<a href=#1029 id=1029 data-nosnippet>1029</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#1030 id=1030 data-nosnippet>1030</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic hp"</span>,
+<a href=#1031 id=1031 data-nosnippet>1031</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 hp"</span>,
+<a href=#1032 id=1032 data-nosnippet>1032</a>        }
+<a href=#1033 id=1033 data-nosnippet>1033</a>    }
+<a href=#1034 id=1034 data-nosnippet>1034</a>
+<a href=#1035 id=1035 data-nosnippet>1035</a>    <span class="kw">fn </span>key_update_label(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8] {
+<a href=#1036 id=1036 data-nosnippet>1036</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#1037 id=1037 data-nosnippet>1037</a>            <span class="self">Self</span>::V1Draft | <span class="self">Self</span>::V1 =&gt; <span class="string">b"quic ku"</span>,
+<a href=#1038 id=1038 data-nosnippet>1038</a>            <span class="self">Self</span>::V2 =&gt; <span class="string">b"quicv2 ku"</span>,
+<a href=#1039 id=1039 data-nosnippet>1039</a>        }
+<a href=#1040 id=1040 data-nosnippet>1040</a>    }
+<a href=#1041 id=1041 data-nosnippet>1041</a>}
+<a href=#1042 id=1042 data-nosnippet>1042</a>
+<a href=#1043 id=1043 data-nosnippet>1043</a><span class="attr">#[cfg(test)]
+<a href=#1044 id=1044 data-nosnippet>1044</a></span><span class="kw">mod </span>tests {
+<a href=#1045 id=1045 data-nosnippet>1045</a>    <span class="kw">use </span>std::prelude::v1::<span class="kw-2">*</span>;
+<a href=#1046 id=1046 data-nosnippet>1046</a>
+<a href=#1047 id=1047 data-nosnippet>1047</a>    <span class="kw">use </span><span class="kw">super</span>::PacketKey;
+<a href=#1048 id=1048 data-nosnippet>1048</a>    <span class="kw">use </span><span class="kw">crate</span>::quic::HeaderProtectionKey;
+<a href=#1049 id=1049 data-nosnippet>1049</a>
+<a href=#1050 id=1050 data-nosnippet>1050</a>    <span class="attr">#[test]
+<a href=#1051 id=1051 data-nosnippet>1051</a>    </span><span class="kw">fn </span>auto_traits() {
+<a href=#1052 id=1052 data-nosnippet>1052</a>        <span class="kw">fn </span>assert_auto&lt;T: Send + Sync&gt;() {}
+<a href=#1053 id=1053 data-nosnippet>1053</a>        assert_auto::&lt;Box&lt;<span class="kw">dyn </span>PacketKey&gt;&gt;();
+<a href=#1054 id=1054 data-nosnippet>1054</a>        assert_auto::&lt;Box&lt;<span class="kw">dyn </span>HeaderProtectionKey&gt;&gt;();
+<a href=#1055 id=1055 data-nosnippet>1055</a>    }
+<a href=#1056 id=1056 data-nosnippet>1056</a>}
+</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="XML is a flexible markup language that is still used for sharing data between applications or for writing configuration files."><title>serde_xml_rs - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="serde_xml_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../serde_xml_rs/index.html">serde_<wbr>xml_<wbr>rs</a><span class="version">0.8.1</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#caveats" title="Caveats">Caveats</a></li><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#correspondence-between-xml-and-rust" title="Correspondence between XML and Rust">Correspondence between XML and Rust</a><ul><li><a href="#document-root" title="Document root">Document root</a></li><li><a href="#strings-and-byte-arrays" title="Strings and byte arrays">Strings and byte arrays</a></li><li><a href="#primitive-types" title="Primitive types">Primitive types</a></li><li><a href="#child-elements" title="Child elements">Child elements</a></li><li><a href="#attributes" title="Attributes">Attributes</a></li><li><a href="#elements-with-attributes-and-text-content" title="Elements with attributes and text content">Elements with attributes and text content</a></li><li><a href="#repeated-tags-and-sequences" title="Repeated tags and sequences">Repeated tags and sequences</a></li><li><a href="#choices-and-enums" title="Choices and enums">Choices and enums</a></li><li><a href="#enums-in-attribute-values" title="Enums in attribute values">Enums in attribute values</a></li><li><a href="#sequences-of-choices-and-content" title="Sequences of choices and `#content`">Sequences of choices and <code>#content</code></a></li><li><a href="#xml-namespaces" title="XML Namespaces">XML Namespaces</a></li></ul></li><li><a href="#custom-eventreader" title="Custom EventReader">Custom EventReader</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1>Crate <span>serde_xml_rs</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/serde_xml_rs/lib.rs.html#1-17">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>XML is a flexible markup language that is still used for sharing data between applications or
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="XML is a flexible markup language that is still used for sharing data between applications or for writing configuration files."><title>serde_xml_rs - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="serde_xml_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate serde_xml_rs</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../serde_xml_rs/index.html">serde_<wbr>xml_<wbr>rs</a><span class="version">0.8.2</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#caveats" title="Caveats">Caveats</a></li><li><a href="#basic-example" title="Basic example">Basic example</a></li><li><a href="#correspondence-between-xml-and-rust" title="Correspondence between XML and Rust">Correspondence between XML and Rust</a><ul><li><a href="#document-root" title="Document root">Document root</a></li><li><a href="#strings-and-byte-arrays" title="Strings and byte arrays">Strings and byte arrays</a></li><li><a href="#primitive-types" title="Primitive types">Primitive types</a></li><li><a href="#child-elements" title="Child elements">Child elements</a></li><li><a href="#attributes" title="Attributes">Attributes</a></li><li><a href="#elements-with-attributes-and-text-content" title="Elements with attributes and text content">Elements with attributes and text content</a></li><li><a href="#repeated-tags-and-sequences" title="Repeated tags and sequences">Repeated tags and sequences</a></li><li><a href="#choices-and-enums" title="Choices and enums">Choices and enums</a></li><li><a href="#enums-in-attribute-values" title="Enums in attribute values">Enums in attribute values</a></li><li><a href="#sequences-of-choices-and-content" title="Sequences of choices and `#content`">Sequences of choices and <code>#content</code></a></li><li><a href="#xml-namespaces" title="XML Namespaces">XML Namespaces</a></li></ul></li><li><a href="#custom-eventreader" title="Custom EventReader">Custom EventReader</a></li><li><a href="#supported-encodings" title="Supported Encodings">Supported Encodings</a></li></ul><h3><a href="#reexports">Crate Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>serde_<wbr>xml_<wbr>rs</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/serde_xml_rs/lib.rs.html#1-17">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>XML is a flexible markup language that is still used for sharing data between applications or
 for writing configuration files.</p>
 <p>Serde XML provides a way to convert between text and strongly-typed Rust data structures.</p>
 <h2 id="caveats"><a class="doc-anchor" href="#caveats">§</a>Caveats</h2>
@@ -53,8 +53,7 @@ and disallows repeating the same tag multiple times in the same object.</p>
 <span class="macro">assert_eq!</span>(item, should_be);
 
 <span class="kw">let </span>reserialized_item = to_string(<span class="kw-2">&amp;</span>item).unwrap();
-<span class="macro">assert_eq!</span>(src, reserialized_item);</code></pre></div>
-<h2 id="correspondence-between-xml-and-rust"><a class="doc-anchor" href="#correspondence-between-xml-and-rust">§</a>Correspondence between XML and Rust</h2><h3 id="document-root"><a class="doc-anchor" href="#document-root">§</a>Document root</h3>
+<span class="macro">assert_eq!</span>(src, reserialized_item);</code></pre></div><h2 id="correspondence-between-xml-and-rust"><a class="doc-anchor" href="#correspondence-between-xml-and-rust">§</a>Correspondence between XML and Rust</h2><h3 id="document-root"><a class="doc-anchor" href="#document-root">§</a>Document root</h3>
 <p>As stated above, XML documents must have one and only one root element.
 This puts a constraint on the range of types that can be supported at the root,
 especially during serialization when a name has to be given to the root element.</p>
@@ -78,11 +77,8 @@ especially during serialization when a name has to be given to the root element.
 <td>
 
 <div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Document { ... }</code></pre></div>
-
 <div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>Document(...);</code></pre></div>
-
-<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">enum </span>Document { ... }</code></pre></div>
-</td>
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">enum </span>Document { ... }</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -115,13 +111,11 @@ especially during serialization when a name has to be given to the root element.
 
 <span class="kw">let </span>value = Document(<span class="string">"Some text"</span>.to_string());
 </code></pre></div>
-
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Serialize, Deserialize)]
 </span><span class="kw">struct </span>Document(<span class="attr">#[serde(with = <span class="string">"serde_bytes"</span>)] </span>Vec&lt;u8&gt;);
 
 <span class="kw">let </span>value = Document(<span class="string">"Some text"</span>.as_bytes().to_vec());
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -141,8 +135,7 @@ especially during serialization when a name has to be given to the root element.
 </span><span class="kw">struct </span>Document(());
 
 <span class="kw">let </span>value = Document(());
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">boolean</th></tr>
 <tr>
@@ -154,8 +147,7 @@ especially during serialization when a name has to be given to the root element.
 </span><span class="kw">struct </span>Document(bool);
 
 <span class="kw">let </span>value = Document(<span class="bool-val">true</span>);
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">char</th></tr>
 <tr>
@@ -167,8 +159,7 @@ especially during serialization when a name has to be given to the root element.
 </span><span class="kw">struct </span>Document(char);
 
 <span class="kw">let </span>value = Document(<span class="string">'a'</span>);
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr>
 <td>
@@ -178,8 +169,7 @@ especially during serialization when a name has to be given to the root element.
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[derive(Serialize, Deserialize)]
 
 </span><span class="kw">let </span>value = Document(<span class="bool-val">false</span>);
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">integers</th></tr>
 <tr>
@@ -191,8 +181,7 @@ especially during serialization when a name has to be given to the root element.
 </span><span class="kw">struct </span>Document(i32);
 
 <span class="kw">let </span>value = Document(<span class="number">123</span>);
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">floats</th></tr>
 <tr>
@@ -204,8 +193,7 @@ especially during serialization when a name has to be given to the root element.
 </span><span class="kw">struct </span>Document(f32);
 
 <span class="kw">let </span>value = Document(<span class="number">123.0</span>);
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -243,8 +231,7 @@ The name of the struct field must match the name of the corresponding child elem
     b: <span class="number">123</span>,
     c: (),
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -275,8 +262,7 @@ The name of the struct field must match the name of the corresponding child elem
     b: <span class="number">123</span>,
     c: (),
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -298,8 +284,7 @@ The name of the struct field must match the name of the corresponding child elem
     c: (),
 };
 
-<span class="macro">assert!</span>(serde_xml_rs::to_string(<span class="kw-2">&amp;</span>value).is_err()); <span class="comment">// ERROR !</span></code></pre></div>
-<h3 id="elements-with-attributes-and-text-content"><a class="doc-anchor" href="#elements-with-attributes-and-text-content">§</a>Elements with attributes and text content</h3>
+<span class="macro">assert!</span>(serde_xml_rs::to_string(<span class="kw-2">&amp;</span>value).is_err()); <span class="comment">// ERROR !</span></code></pre></div><h3 id="elements-with-attributes-and-text-content"><a class="doc-anchor" href="#elements-with-attributes-and-text-content">§</a>Elements with attributes and text content</h3>
 <p>When an element (root or child) that contains both attributes and text content,
 the struct type must have a field named <code>#text</code>.</p>
 <p>Currently, mixed content with child elements and text is not supported.</p>
@@ -325,8 +310,7 @@ the struct type must have a field named <code>#text</code>.</p>
     id: <span class="number">123</span>,
     content: <span class="string">"abc"</span>.to_string(),
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -361,8 +345,7 @@ All of the repeated tags must be consecutive, unless the <a href="config/struct.
         <span class="string">"item3"</span>.to_string(),
     ],
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -413,8 +396,7 @@ Variants are handled much like their struct counterparts (unit, newtype, struct)
 <span class="kw">let </span>value = Document {
     message: Message::Move { x: <span class="number">1</span>, y: <span class="number">2 </span>},
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -460,8 +442,7 @@ Variants are handled much like their struct counterparts (unit, newtype, struct)
 <span class="kw">let </span>value = Document {
     card: Card { suit: Suit::Clubs, rank: Rank::K },
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -506,8 +487,7 @@ Variants are handled much like their struct counterparts (unit, newtype, struct)
 <span class="kw">let </span>value = Document {
     messages: <span class="macro">vec!</span>[Message::Quit, Message::ChangeColor { rgb: (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>) }],
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">
 <p>Using <code>#content</code></p>
@@ -529,8 +509,7 @@ Variants are handled much like their struct counterparts (unit, newtype, struct)
 <span class="kw">let </span>value = Document {
     messages: <span class="macro">vec!</span>[Message::Quit, Message::ChangeColor { rgb: (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>) }],
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 <tr><th colspan="2">Container element</th></tr>
 <tr>
@@ -562,8 +541,7 @@ Variants are handled much like their struct counterparts (unit, newtype, struct)
         ],
     },
 };
-</code></pre></div>
-</td>
+</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -614,8 +592,7 @@ The prefix must also appear in the names of the corresponding Rust fields.</p>
 <span class="kw">let </span>config = serde_xml_rs::SerdeXml::new()
     .default_namespace(<span class="string">"urn:example:default"</span>)
     .namespace(<span class="string">"a"</span>, <span class="string">"urn:example:a"</span>);
-<span class="macro">assert_eq!</span>(config.to_string(<span class="kw-2">&amp;</span>value).unwrap(), text);</code></pre></div>
-</td>
+<span class="macro">assert_eq!</span>(config.to_string(<span class="kw-2">&amp;</span>value).unwrap(), text);</code></pre></div></td>
 </tr>
 </tbody>
 </table>
@@ -642,5 +619,16 @@ The prefix must also appear in the names of the corresponding Rust fields.</p>
 <span class="kw">let </span>event_reader = EventReader::new_with_config(src.as_bytes(), config);
 <span class="kw">let </span>item = Item::deserialize(<span class="kw-2">&amp;mut </span>Deserializer::new(event_reader)).unwrap();
 <span class="macro">assert_eq!</span>(item, should_be);
-</code></pre></div>
+</code></pre></div><h2 id="supported-encodings"><a class="doc-anchor" href="#supported-encodings">§</a>Supported Encodings</h2>
+<p>This crate relies on the <code>xml</code> crate for parsing XML.
+It therefore supports the same encodings, namely:</p>
+<ul>
+<li>UTF-8 and UTF-16 (minimum requirement for the XML standard)
+<ul>
+<li>The UTF-16 file must contain a byte-order mark</li>
+</ul>
+</li>
+<li>ISO-8859-1</li>
+<li>ASCII</li>
+</ul>
 </div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.SerdeXml"><code>pub use crate::config::<a class="struct" href="config/struct.SerdeXml.html" title="struct serde_xml_rs::config::SerdeXml">SerdeXml</a>;</code></dt><dt id="reexport.from_reader"><code>pub use crate::de::<a class="fn" href="de/fn.from_reader.html" title="fn serde_xml_rs::de::from_reader">from_reader</a>;</code></dt><dt id="reexport.from_str"><code>pub use crate::de::<a class="fn" href="de/fn.from_str.html" title="fn serde_xml_rs::de::from_str">from_str</a>;</code></dt><dt id="reexport.Deserializer"><code>pub use crate::de::<a class="struct" href="de/struct.Deserializer.html" title="struct serde_xml_rs::de::Deserializer">Deserializer</a>;</code></dt><dt id="reexport.to_string"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_string.html" title="fn serde_xml_rs::ser::to_string">to_string</a>;</code></dt><dt id="reexport.to_writer"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_writer.html" title="fn serde_xml_rs::ser::to_writer">to_writer</a>;</code></dt><dt id="reexport.Serializer"><code>pub use crate::ser::<a class="struct" href="ser/struct.Serializer.html" title="struct serde_xml_rs::ser::Serializer">Serializer</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="config/index.html" title="mod serde_xml_rs::config">config</a></dt><dt><a class="mod" href="de/index.html" title="mod serde_xml_rs::de">de</a></dt><dt><a class="mod" href="ser/index.html" title="mod serde_xml_rs::ser">ser</a></dt></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Error.html" title="enum serde_xml_rs::Error">Error</a></dt></dl></section></div></main></body></html>

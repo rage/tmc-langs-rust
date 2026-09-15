@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zlib-rs-0.5.2/src/deflate/longest_match.rs`."><title>longest_match.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="zlib_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">zlib_rs/deflate/</div>longest_match.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::deflate::{Pos, State, MIN_LOOKAHEAD, STD_MAX_MATCH, STD_MIN_MATCH};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zlib-rs-0.6.3/src/deflate/longest_match.rs`."><title>longest_match.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="zlib_rs" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">zlib_rs/deflate/</div>longest_match.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::deflate::{Pos, State, MIN_LOOKAHEAD, STD_MAX_MATCH, STD_MIN_MATCH};
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">const </span>EARLY_EXIT_TRIGGER_LEVEL: i8 = <span class="number">5</span>;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -254,93 +254,95 @@
 <a href=#254 id=254 data-nosnippet>254</a>        <span class="kw">if </span>len &gt; best_len {
 <a href=#255 id=255 data-nosnippet>255</a>            match_start = cur_match - match_offset;
 <a href=#256 id=256 data-nosnippet>256</a>
-<a href=#257 id=257 data-nosnippet>257</a>            <span class="comment">/* Do not look for matches beyond the end of the input. */
-<a href=#258 id=258 data-nosnippet>258</a>            </span><span class="kw">if </span>len &gt; lookahead {
-<a href=#259 id=259 data-nosnippet>259</a>                <span class="kw">return </span>(lookahead, match_start);
-<a href=#260 id=260 data-nosnippet>260</a>            }
-<a href=#261 id=261 data-nosnippet>261</a>            best_len = len;
-<a href=#262 id=262 data-nosnippet>262</a>            <span class="kw">if </span>best_len &gt;= nice_match <span class="kw">as </span>usize {
-<a href=#263 id=263 data-nosnippet>263</a>                <span class="kw">return </span>(best_len, match_start);
-<a href=#264 id=264 data-nosnippet>264</a>            }
-<a href=#265 id=265 data-nosnippet>265</a>
-<a href=#266 id=266 data-nosnippet>266</a>            offset = best_len - <span class="number">1</span>;
-<a href=#267 id=267 data-nosnippet>267</a>            <span class="kw">if </span>best_len &gt;= core::mem::size_of::&lt;u32&gt;() {
-<a href=#268 id=268 data-nosnippet>268</a>                offset -= <span class="number">2</span>;
-<a href=#269 id=269 data-nosnippet>269</a>                <span class="kw">if </span>best_len &gt;= core::mem::size_of::&lt;u64&gt;() {
-<a href=#270 id=270 data-nosnippet>270</a>                    offset -= <span class="number">4</span>;
-<a href=#271 id=271 data-nosnippet>271</a>                }
-<a href=#272 id=272 data-nosnippet>272</a>            }
-<a href=#273 id=273 data-nosnippet>273</a>
-<a href=#274 id=274 data-nosnippet>274</a>            scan_end = window[strstart + offset..].as_ptr();
-<a href=#275 id=275 data-nosnippet>275</a>
-<a href=#276 id=276 data-nosnippet>276</a>            <span class="comment">// Look for a better string offset
-<a href=#277 id=277 data-nosnippet>277</a>            </span><span class="kw">if </span>SLOW &amp;&amp; len &gt; STD_MIN_MATCH &amp;&amp; match_start <span class="kw">as </span>usize + len &lt; strstart {
-<a href=#278 id=278 data-nosnippet>278</a>                <span class="kw">let </span><span class="kw-2">mut </span>pos: Pos;
-<a href=#279 id=279 data-nosnippet>279</a>                <span class="comment">// uint32_t i, hash;
-<a href=#280 id=280 data-nosnippet>280</a>                // unsigned char *scan_endstr;
-<a href=#281 id=281 data-nosnippet>281</a>
-<a href=#282 id=282 data-nosnippet>282</a>                /* Go back to offset 0 */
-<a href=#283 id=283 data-nosnippet>283</a>                </span>cur_match -= match_offset;
-<a href=#284 id=284 data-nosnippet>284</a>                match_offset = <span class="number">0</span>;
-<a href=#285 id=285 data-nosnippet>285</a>                <span class="kw">let </span><span class="kw-2">mut </span>next_pos = cur_match;
-<a href=#286 id=286 data-nosnippet>286</a>
-<a href=#287 id=287 data-nosnippet>287</a>                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..=len - STD_MIN_MATCH {
-<a href=#288 id=288 data-nosnippet>288</a>                    pos = state.prev.as_slice()[(cur_match <span class="kw">as </span>usize + i) &amp; wmask];
-<a href=#289 id=289 data-nosnippet>289</a>                    <span class="kw">if </span>pos &lt; next_pos {
-<a href=#290 id=290 data-nosnippet>290</a>                        <span class="comment">/* Hash chain is more distant, use it */
-<a href=#291 id=291 data-nosnippet>291</a>                        </span><span class="kw">if </span>pos &lt;= limit_base + i <span class="kw">as </span>Pos {
-<a href=#292 id=292 data-nosnippet>292</a>                            <span class="kw">return </span>break_matching(state, best_len, match_start);
-<a href=#293 id=293 data-nosnippet>293</a>                        }
-<a href=#294 id=294 data-nosnippet>294</a>                        next_pos = pos;
-<a href=#295 id=295 data-nosnippet>295</a>                        match_offset = i <span class="kw">as </span>Pos;
-<a href=#296 id=296 data-nosnippet>296</a>                    }
-<a href=#297 id=297 data-nosnippet>297</a>                }
-<a href=#298 id=298 data-nosnippet>298</a>                <span class="comment">/* Switch cur_match to next_pos chain */
-<a href=#299 id=299 data-nosnippet>299</a>                </span>cur_match = next_pos;
-<a href=#300 id=300 data-nosnippet>300</a>
-<a href=#301 id=301 data-nosnippet>301</a>                <span class="comment">/* Try hash head at len-(STD_MIN_MATCH-1) position to see if we could get
-<a href=#302 id=302 data-nosnippet>302</a>                 * a better cur_match at the end of string. Using (STD_MIN_MATCH-1) lets
-<a href=#303 id=303 data-nosnippet>303</a>                 * us include one more byte into hash - the byte which will be checked
-<a href=#304 id=304 data-nosnippet>304</a>                 * in main loop now, and which allows to grow match by 1.
-<a href=#305 id=305 data-nosnippet>305</a>                 */
-<a href=#306 id=306 data-nosnippet>306</a>                </span><span class="kw">let </span>[scan0, scan1, scan2, ..] = scan[len - (STD_MIN_MATCH + <span class="number">1</span>)..] <span class="kw">else </span>{
-<a href=#307 id=307 data-nosnippet>307</a>                    <span class="macro">panic!</span>(<span class="string">"index out of bounds"</span>);
-<a href=#308 id=308 data-nosnippet>308</a>                };
-<a href=#309 id=309 data-nosnippet>309</a>
-<a href=#310 id=310 data-nosnippet>310</a>                <span class="kw">let </span><span class="kw-2">mut </span>hash = <span class="number">0</span>;
-<a href=#311 id=311 data-nosnippet>311</a>                hash = state.update_hash(hash, scan0 <span class="kw">as </span>u32);
-<a href=#312 id=312 data-nosnippet>312</a>                hash = state.update_hash(hash, scan1 <span class="kw">as </span>u32);
-<a href=#313 id=313 data-nosnippet>313</a>                hash = state.update_hash(hash, scan2 <span class="kw">as </span>u32);
-<a href=#314 id=314 data-nosnippet>314</a>
-<a href=#315 id=315 data-nosnippet>315</a>                pos = state.head.as_slice()[hash <span class="kw">as </span>usize];
-<a href=#316 id=316 data-nosnippet>316</a>                <span class="kw">if </span>pos &lt; cur_match {
-<a href=#317 id=317 data-nosnippet>317</a>                    match_offset = (len - (STD_MIN_MATCH + <span class="number">1</span>)) <span class="kw">as </span>Pos;
-<a href=#318 id=318 data-nosnippet>318</a>                    <span class="kw">if </span>pos &lt;= limit_base + match_offset {
-<a href=#319 id=319 data-nosnippet>319</a>                        <span class="kw">return </span>break_matching(state, best_len, match_start);
-<a href=#320 id=320 data-nosnippet>320</a>                    }
-<a href=#321 id=321 data-nosnippet>321</a>                    cur_match = pos;
-<a href=#322 id=322 data-nosnippet>322</a>                }
-<a href=#323 id=323 data-nosnippet>323</a>
-<a href=#324 id=324 data-nosnippet>324</a>                <span class="comment">/* Update offset-dependent variables */
-<a href=#325 id=325 data-nosnippet>325</a>                </span>limit = limit_base + match_offset;
-<a href=#326 id=326 data-nosnippet>326</a>                mbase_start = window.as_ptr().wrapping_sub(match_offset <span class="kw">as </span>usize);
-<a href=#327 id=327 data-nosnippet>327</a>                mbase_end = mbase_start.wrapping_add(offset);
-<a href=#328 id=328 data-nosnippet>328</a>                <span class="kw">continue</span>;
-<a href=#329 id=329 data-nosnippet>329</a>            }
-<a href=#330 id=330 data-nosnippet>330</a>
-<a href=#331 id=331 data-nosnippet>331</a>            mbase_end = mbase_start.wrapping_add(offset);
-<a href=#332 id=332 data-nosnippet>332</a>        } <span class="kw">else if </span>!SLOW &amp;&amp; early_exit {
-<a href=#333 id=333 data-nosnippet>333</a>            <span class="comment">// The probability of finding a match later if we here is pretty low, so for
-<a href=#334 id=334 data-nosnippet>334</a>            // performance it's best to outright stop here for the lower compression levels
-<a href=#335 id=335 data-nosnippet>335</a>            </span><span class="kw">break</span>;
-<a href=#336 id=336 data-nosnippet>336</a>        }
-<a href=#337 id=337 data-nosnippet>337</a>
-<a href=#338 id=338 data-nosnippet>338</a>        <span class="macro">goto_next_in_chain!</span>();
-<a href=#339 id=339 data-nosnippet>339</a>    }
-<a href=#340 id=340 data-nosnippet>340</a>
-<a href=#341 id=341 data-nosnippet>341</a>    (best_len, match_start)
-<a href=#342 id=342 data-nosnippet>342</a>}
-<a href=#343 id=343 data-nosnippet>343</a>
-<a href=#344 id=344 data-nosnippet>344</a><span class="kw">fn </span>break_matching(state: <span class="kw-2">&amp;</span>State, best_len: usize, match_start: u16) -&gt; (usize, u16) {
-<a href=#345 id=345 data-nosnippet>345</a>    (Ord::min(best_len, state.lookahead), match_start)
-<a href=#346 id=346 data-nosnippet>346</a>}</code></pre></div></section></main></body></html>
+<a href=#257 id=257 data-nosnippet>257</a>            <span class="comment">// Do not look for better matches if the current match reaches
+<a href=#258 id=258 data-nosnippet>258</a>            // or exceeds the end of the input. See also #459.
+<a href=#259 id=259 data-nosnippet>259</a>            </span><span class="kw">if </span>len &gt;= lookahead {
+<a href=#260 id=260 data-nosnippet>260</a>                <span class="kw">return </span>(lookahead, match_start);
+<a href=#261 id=261 data-nosnippet>261</a>            }
+<a href=#262 id=262 data-nosnippet>262</a>            best_len = len;
+<a href=#263 id=263 data-nosnippet>263</a>            <span class="kw">if </span>best_len &gt;= nice_match <span class="kw">as </span>usize {
+<a href=#264 id=264 data-nosnippet>264</a>                <span class="kw">return </span>(best_len, match_start);
+<a href=#265 id=265 data-nosnippet>265</a>            }
+<a href=#266 id=266 data-nosnippet>266</a>
+<a href=#267 id=267 data-nosnippet>267</a>            offset = best_len - <span class="number">1</span>;
+<a href=#268 id=268 data-nosnippet>268</a>            <span class="kw">if </span>best_len &gt;= core::mem::size_of::&lt;u32&gt;() {
+<a href=#269 id=269 data-nosnippet>269</a>                offset -= <span class="number">2</span>;
+<a href=#270 id=270 data-nosnippet>270</a>                <span class="kw">if </span>best_len &gt;= core::mem::size_of::&lt;u64&gt;() {
+<a href=#271 id=271 data-nosnippet>271</a>                    offset -= <span class="number">4</span>;
+<a href=#272 id=272 data-nosnippet>272</a>                }
+<a href=#273 id=273 data-nosnippet>273</a>            }
+<a href=#274 id=274 data-nosnippet>274</a>
+<a href=#275 id=275 data-nosnippet>275</a>            scan_end = window[strstart + offset..].as_ptr();
+<a href=#276 id=276 data-nosnippet>276</a>
+<a href=#277 id=277 data-nosnippet>277</a>            <span class="comment">// Look for a better string offset
+<a href=#278 id=278 data-nosnippet>278</a>            </span><span class="kw">if </span>SLOW &amp;&amp; len &gt; STD_MIN_MATCH &amp;&amp; match_start <span class="kw">as </span>usize + len &lt; strstart {
+<a href=#279 id=279 data-nosnippet>279</a>                <span class="kw">let </span><span class="kw-2">mut </span>pos: Pos;
+<a href=#280 id=280 data-nosnippet>280</a>                <span class="comment">// uint32_t i, hash;
+<a href=#281 id=281 data-nosnippet>281</a>                // unsigned char *scan_endstr;
+<a href=#282 id=282 data-nosnippet>282</a>
+<a href=#283 id=283 data-nosnippet>283</a>                /* Go back to offset 0 */
+<a href=#284 id=284 data-nosnippet>284</a>                </span>cur_match -= match_offset;
+<a href=#285 id=285 data-nosnippet>285</a>                match_offset = <span class="number">0</span>;
+<a href=#286 id=286 data-nosnippet>286</a>                <span class="kw">let </span><span class="kw-2">mut </span>next_pos = cur_match;
+<a href=#287 id=287 data-nosnippet>287</a>
+<a href=#288 id=288 data-nosnippet>288</a>                <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..=len - STD_MIN_MATCH {
+<a href=#289 id=289 data-nosnippet>289</a>                    pos = state.prev.as_slice()[(cur_match <span class="kw">as </span>usize + i) &amp; wmask];
+<a href=#290 id=290 data-nosnippet>290</a>                    <span class="kw">if </span>pos &lt; next_pos {
+<a href=#291 id=291 data-nosnippet>291</a>                        <span class="comment">/* Hash chain is more distant, use it */
+<a href=#292 id=292 data-nosnippet>292</a>                        </span><span class="kw">if </span>pos &lt;= limit_base + i <span class="kw">as </span>Pos {
+<a href=#293 id=293 data-nosnippet>293</a>                            <span class="kw">return </span>break_matching(state, best_len, match_start);
+<a href=#294 id=294 data-nosnippet>294</a>                        }
+<a href=#295 id=295 data-nosnippet>295</a>                        next_pos = pos;
+<a href=#296 id=296 data-nosnippet>296</a>                        match_offset = i <span class="kw">as </span>Pos;
+<a href=#297 id=297 data-nosnippet>297</a>                    }
+<a href=#298 id=298 data-nosnippet>298</a>                }
+<a href=#299 id=299 data-nosnippet>299</a>                <span class="comment">/* Switch cur_match to next_pos chain */
+<a href=#300 id=300 data-nosnippet>300</a>                </span>cur_match = next_pos;
+<a href=#301 id=301 data-nosnippet>301</a>
+<a href=#302 id=302 data-nosnippet>302</a>                <span class="comment">/* Try hash head at len-(STD_MIN_MATCH-1) position to see if we could get
+<a href=#303 id=303 data-nosnippet>303</a>                 * a better cur_match at the end of string. Using (STD_MIN_MATCH-1) lets
+<a href=#304 id=304 data-nosnippet>304</a>                 * us include one more byte into hash - the byte which will be checked
+<a href=#305 id=305 data-nosnippet>305</a>                 * in main loop now, and which allows to grow match by 1.
+<a href=#306 id=306 data-nosnippet>306</a>                 */
+<a href=#307 id=307 data-nosnippet>307</a>                </span><span class="kw">let </span>[scan0, scan1, scan2, ..] = scan[len - (STD_MIN_MATCH + <span class="number">1</span>)..] <span class="kw">else </span>{
+<a href=#308 id=308 data-nosnippet>308</a>                    <span class="macro">panic!</span>(<span class="string">"index out of bounds"</span>);
+<a href=#309 id=309 data-nosnippet>309</a>                };
+<a href=#310 id=310 data-nosnippet>310</a>
+<a href=#311 id=311 data-nosnippet>311</a>                <span class="kw">let </span><span class="kw-2">mut </span>hash = <span class="number">0</span>;
+<a href=#312 id=312 data-nosnippet>312</a>                hash = state.update_hash(hash, scan0 <span class="kw">as </span>u32);
+<a href=#313 id=313 data-nosnippet>313</a>                hash = state.update_hash(hash, scan1 <span class="kw">as </span>u32);
+<a href=#314 id=314 data-nosnippet>314</a>                hash = state.update_hash(hash, scan2 <span class="kw">as </span>u32);
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a>                pos = state.head.as_slice()[hash <span class="kw">as </span>usize];
+<a href=#317 id=317 data-nosnippet>317</a>                <span class="kw">if </span>pos &lt; cur_match {
+<a href=#318 id=318 data-nosnippet>318</a>                    match_offset = (len - (STD_MIN_MATCH + <span class="number">1</span>)) <span class="kw">as </span>Pos;
+<a href=#319 id=319 data-nosnippet>319</a>                    <span class="kw">if </span>pos &lt;= limit_base + match_offset {
+<a href=#320 id=320 data-nosnippet>320</a>                        <span class="kw">return </span>break_matching(state, best_len, match_start);
+<a href=#321 id=321 data-nosnippet>321</a>                    }
+<a href=#322 id=322 data-nosnippet>322</a>                    cur_match = pos;
+<a href=#323 id=323 data-nosnippet>323</a>                }
+<a href=#324 id=324 data-nosnippet>324</a>
+<a href=#325 id=325 data-nosnippet>325</a>                <span class="comment">/* Update offset-dependent variables */
+<a href=#326 id=326 data-nosnippet>326</a>                </span>limit = limit_base + match_offset;
+<a href=#327 id=327 data-nosnippet>327</a>                mbase_start = window.as_ptr().wrapping_sub(match_offset <span class="kw">as </span>usize);
+<a href=#328 id=328 data-nosnippet>328</a>                mbase_end = mbase_start.wrapping_add(offset);
+<a href=#329 id=329 data-nosnippet>329</a>                <span class="kw">continue</span>;
+<a href=#330 id=330 data-nosnippet>330</a>            }
+<a href=#331 id=331 data-nosnippet>331</a>
+<a href=#332 id=332 data-nosnippet>332</a>            mbase_end = mbase_start.wrapping_add(offset);
+<a href=#333 id=333 data-nosnippet>333</a>        } <span class="kw">else if </span>!SLOW &amp;&amp; early_exit {
+<a href=#334 id=334 data-nosnippet>334</a>            <span class="comment">// The probability of finding a match later if we here is pretty low, so for
+<a href=#335 id=335 data-nosnippet>335</a>            // performance it's best to outright stop here for the lower compression levels
+<a href=#336 id=336 data-nosnippet>336</a>            </span><span class="kw">break</span>;
+<a href=#337 id=337 data-nosnippet>337</a>        }
+<a href=#338 id=338 data-nosnippet>338</a>
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="macro">goto_next_in_chain!</span>();
+<a href=#340 id=340 data-nosnippet>340</a>    }
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a>    (best_len, match_start)
+<a href=#343 id=343 data-nosnippet>343</a>}
+<a href=#344 id=344 data-nosnippet>344</a>
+<a href=#345 id=345 data-nosnippet>345</a><span class="kw">fn </span>break_matching(state: <span class="kw-2">&amp;</span>State, best_len: usize, match_start: u16) -&gt; (usize, u16) {
+<a href=#346 id=346 data-nosnippet>346</a>    (Ord::min(best_len, state.lookahead), match_start)
+<a href=#347 id=347 data-nosnippet>347</a>}
+</code></pre></div></section></main></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":[["foreign_type",1]],"struct":["Opaque"],"trait":["ForeignType","ForeignTypeRef"]};

@@ -1,0 +1,274 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Typed Path"><title>typed_path - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="typed_path" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../static.files/storage-41dd4d93.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc mod crate"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Crate typed_path</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../typed_path/index.html">typed_<wbr>path</a><span class="version">0.12.3</span></h2></div><div class="sidebar-elems"><ul class="block"><li><a id="all-types" href="all.html">All Items</a></li></ul><section id="rustdoc-toc"><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#typed-path" title="Typed Path">Typed Path</a><ul><li><a href="#install" title="Install">Install</a></li><li><a href="#why" title="Why?">Why?</a></li><li><a href="#usage" title="Usage">Usage</a></li><li><a href="#license" title="License">License</a></li></ul></li></ul><h3><a href="#modules">Crate Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#types" title="Type Aliases">Type Aliases</a></li></ul></section><div id="rustdoc-modnav"></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Crate <span>typed_<wbr>path</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/typed_path/lib.rs.html#1-61">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="typed-path"><a class="doc-anchor" href="#typed-path">§</a>Typed Path</h2>
+<p><a href="https://crates.io/crates/typed-path"><img src="https://img.shields.io/crates/v/typed-path.svg" alt="Crates.io" /></a> <a href="https://docs.rs/typed-path"><img src="https://docs.rs/typed-path/badge.svg" alt="Docs.rs" /></a> <a href="https://github.com/chipsenkbeil/typed-path/actions/workflows/ci.yml"><img src="https://github.com/chipsenkbeil/typed-path/actions/workflows/ci.yml/badge.svg" alt="CI" /></a> <a href="https://blog.rust-lang.org/2022/11/03/Rust-1.65.0/"><img src="https://img.shields.io/badge/rustc_1.65.0+-lightgray.svg" alt="RustC 1.58.1+" /></a></p>
+<p>Provides typed variants of <a href="https://doc.rust-lang.org/std/path/struct.Path.html"><code>Path</code></a> and <a href="https://doc.rust-lang.org/std/path/struct.PathBuf.html"><code>PathBuf</code></a> for
+Unix and Windows.</p>
+<h3 id="install"><a class="doc-anchor" href="#install">§</a>Install</h3><div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+typed-path = &quot;0.12&quot;</code></pre></div>
+<p>As of version <code>0.7</code>, this library also supports <code>no_std</code> environments that
+depend on <code>alloc</code>. To build in this manner, remove the default <code>std</code> feature:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+typed-path = { version = &quot;...&quot;, default-features = false }</code></pre></div><h3 id="why"><a class="doc-anchor" href="#why">§</a>Why?</h3>
+<blockquote>
+<p>Some applications need to manipulate Windows or UNIX paths on different
+platforms, for a variety of reasons: constructing portable file formats,
+parsing files from other platforms, handling archive formats, working with
+certain network protocols, and so on.</p>
+<p>– Josh Triplett</p>
+</blockquote>
+<p><a href="https://github.com/rust-lang/rust/issues/66621">Check out this issue</a> of a
+discussion for this. The functionality actually exists within the standard
+library, but is not exposed!</p>
+<p>This means that parsing a path like <code>C:\path\to\file.txt</code> will be parsed
+differently by <a href="https://doc.rust-lang.org/std/path/struct.Path.html"><code>std::path::Path</code></a> depending on which platform you are
+on!</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::path::Path;
+
+<span class="comment">// On Windows, this prints out:
+//
+// * Prefix(PrefixComponent { raw: "C:", parsed: Disk(67) })
+// * RootDir
+// * Normal("path")
+// * Normal("to")
+// * Normal("file.txt")]
+//
+// But on Unix, this prints out:
+//
+// * Normal("C:\\path\\to\\file.txt")
+</span><span class="kw">let </span>path = Path::new(<span class="string">r"C:\path\to\file.txt"</span>);
+<span class="kw">for </span>component <span class="kw">in </span>path.components() {
+    <span class="macro">println!</span>(<span class="string">"* {:?}"</span>, component);
+}</code></pre></div><h3 id="usage"><a class="doc-anchor" href="#usage">§</a>Usage</h3><h4 id="byte-paths"><a class="doc-anchor" href="#byte-paths">§</a>Byte paths</h4>
+<p>The library provides a generic <a href="https://docs.rs/typed-path/latest/typed_path/struct.Path.html"><code>Path&lt;T&gt;</code></a> and <a href="https://docs.rs/typed-path/latest/typed_path/struct.PathBuf.html"><code>PathBuf&lt;T&gt;</code></a>
+that use <code>[u8]</code> and <code>Vec&lt;u8&gt;</code> underneath instead of <code>OsStr</code> and <code>OsString</code>. An
+encoding generic type is provided to dictate how the underlying bytes are
+parsed in order to support consistent path functionality no matter what
+operating system you are compiling against!</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::WindowsPath;
+
+<span class="comment">// On all platforms, this prints out:
+//
+// * Prefix(PrefixComponent { raw: "C:", parsed: Disk(67) })
+// * RootDir
+// * Normal("path")
+// * Normal("to")
+// * Normal("file.txt")]
+//
+</span><span class="kw">let </span>path = WindowsPath::new(<span class="string">r"C:\path\to\file.txt"</span>);
+<span class="kw">for </span>component <span class="kw">in </span>path.components() {
+    <span class="macro">println!</span>(<span class="string">"* {:?}"</span>, component);
+}</code></pre></div><h4 id="utf8-enforced-paths"><a class="doc-anchor" href="#utf8-enforced-paths">§</a>UTF8-enforced paths</h4>
+<p>Alongside the byte paths, this library also supports UTF8-enforced paths
+through <a href="https://docs.rs/typed-path/latest/typed_path/struct.Utf8Path.html"><code>Utf8Path&lt;T&gt;</code></a> and <a href="https://docs.rs/typed-path/latest/typed_path/struct.Utf8PathBuf.html"><code>Utf8PathBuf&lt;T&gt;</code></a>, which
+internally use <code>str</code> and <code>String</code>. An encoding generic type is provided to
+dictate how the underlying characters are parsed in order to support consistent
+path functionality no matter what operating system you are compiling against!</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::Utf8WindowsPath;
+
+<span class="comment">// On all platforms, this prints out:
+//
+// * Prefix(Utf8WindowsPrefixComponent { raw: "C:", parsed: Disk(67) })
+// * RootDir
+// * Normal("path")
+// * Normal("to")
+// * Normal("file.txt")]
+//
+</span><span class="kw">let </span>path = Utf8WindowsPath::new(<span class="string">r"C:\path\to\file.txt"</span>);
+<span class="kw">for </span>component <span class="kw">in </span>path.components() {
+    <span class="macro">println!</span>(<span class="string">"* {:?}"</span>, component);
+}</code></pre></div><h4 id="checking-paths"><a class="doc-anchor" href="#checking-paths">§</a>Checking paths</h4>
+<p>When working with user-defined paths, there is an additional layer of defense needed to prevent abuse to avoid <a href="https://owasp.org/www-community/attacks/Path_Traversal">path traversal attacks</a> and other risks.</p>
+<p>To that end, you can use <code>PathBuf::push_checked</code> and <code>Path::join_checked</code> (and equivalents) to ensure that the paths being created do not alter pre-existing paths in unexpected ways.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::{CheckedPathError, UnixPath, UnixPathBuf};
+
+<span class="kw">let </span>path = UnixPath::new(<span class="string">"/etc"</span>);
+
+<span class="comment">// A valid path can be joined onto the existing one
+</span><span class="macro">assert_eq!</span>(path.join_checked(<span class="string">"passwd"</span>), <span class="prelude-val">Ok</span>(UnixPathBuf::from(<span class="string">"/etc/passwd"</span>)));
+
+<span class="comment">// An invalid path will result in an error
+</span><span class="macro">assert_eq!</span>(
+    path.join_checked(<span class="string">"/sneaky/replacement"</span>), 
+    <span class="prelude-val">Err</span>(CheckedPathError::UnexpectedRoot)
+);
+
+<span class="kw">let </span><span class="kw-2">mut </span>path = UnixPathBuf::from(<span class="string">"/etc"</span>);
+
+<span class="comment">// Pushing a relative path that contains parent directory references that cannot be
+// resolved within the path is considered an error as this is considered a path
+// traversal attack!
+</span><span class="macro">assert_eq!</span>(
+    path.push_checked(<span class="string">".."</span>), 
+    <span class="prelude-val">Err</span>(CheckedPathError::PathTraversalAttack)
+);
+<span class="macro">assert_eq!</span>(path, UnixPathBuf::from(<span class="string">"/etc"</span>));
+
+<span class="comment">// Pushing an absolute path will fail with an error
+</span><span class="macro">assert_eq!</span>(
+    path.push_checked(<span class="string">"/sneaky/replacement"</span>), 
+    <span class="prelude-val">Err</span>(CheckedPathError::UnexpectedRoot)
+);
+<span class="macro">assert_eq!</span>(path, UnixPathBuf::from(<span class="string">"/etc"</span>));
+
+<span class="comment">// Pushing a relative path that is safe will succeed
+</span><span class="macro">assert!</span>(path.push_checked(<span class="string">"abc/../def"</span>).is_ok());
+<span class="macro">assert_eq!</span>(path, UnixPathBuf::from(<span class="string">"/etc/abc/../def"</span>));</code></pre></div><h4 id="converting-between-encodings"><a class="doc-anchor" href="#converting-between-encodings">§</a>Converting between encodings</h4>
+<p>There may be times in which you need to convert between encodings such as when
+you want to load a native path and convert it into another format. In that
+case, you can use the <code>with_encoding</code> method (or specific variants like
+<code>with_unix_encoding</code> and <code>with_windows_encoding</code>) to convert a <a href="https://docs.rs/typed-path/latest/typed_path/struct.Path.html"><code>Path</code></a>
+or <a href="https://docs.rs/typed-path/latest/typed_path/struct.Utf8Path.html"><code>Utf8Path</code></a> into their respective <a href="https://docs.rs/typed-path/latest/typed_path/struct.PathBuf.html"><code>PathBuf</code></a> and
+<a href="https://docs.rs/typed-path/latest/typed_path/struct.Utf8PathBuf.html"><code>Utf8PathBuf</code></a> with an explicit encoding:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::{Utf8WindowsPath, Utf8UnixPath};
+
+<span class="comment">// Convert from Unix to Windows
+</span><span class="kw">let </span>unix_path = Utf8UnixPath::new(<span class="string">"/tmp/foo.txt"</span>);
+<span class="kw">let </span>windows_path = unix_path.with_windows_encoding();
+<span class="macro">assert_eq!</span>(windows_path, Utf8WindowsPath::new(<span class="string">r"\tmp\foo.txt"</span>));
+
+<span class="comment">// Converting from Windows to Unix will drop any prefix
+</span><span class="kw">let </span>windows_path = Utf8WindowsPath::new(<span class="string">r"C:\tmp\foo.txt"</span>);
+<span class="kw">let </span>unix_path = windows_path.with_unix_encoding();
+<span class="macro">assert_eq!</span>(unix_path, Utf8UnixPath::new(<span class="string">r"/tmp/foo.txt"</span>));
+
+<span class="comment">// Converting to itself should retain everything
+</span><span class="kw">let </span>path = Utf8WindowsPath::new(<span class="string">r"C:\tmp\foo.txt"</span>);
+<span class="macro">assert_eq!</span>(
+    path.with_windows_encoding(),
+    Utf8WindowsPath::new(<span class="string">r"C:\tmp\foo.txt"</span>),
+);</code></pre></div>
+<p>Like with pushing and joining paths using <em>checked</em> variants, we can also ensure that paths created from changing encodings are still valid:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::{CheckedPathError, Utf8UnixPath, Utf8WindowsPath};
+
+<span class="comment">// Convert from Unix to Windows
+</span><span class="kw">let </span>unix_path = Utf8UnixPath::new(<span class="string">"/tmp/foo.txt"</span>);
+<span class="kw">let </span>windows_path = unix_path.with_windows_encoding_checked().unwrap();
+<span class="macro">assert_eq!</span>(windows_path, Utf8WindowsPath::new(<span class="string">r"\tmp\foo.txt"</span>));
+
+<span class="comment">// Convert from Unix to Windows will fail if there are characters that are valid in Unix but not in Windows
+</span><span class="kw">let </span>unix_path = Utf8UnixPath::new(<span class="string">"/tmp/|invalid|/foo.txt"</span>);
+<span class="macro">assert_eq!</span>(
+    unix_path.with_windows_encoding_checked(),
+    <span class="prelude-val">Err</span>(CheckedPathError::InvalidFilename),
+);</code></pre></div><h4 id="typed-paths"><a class="doc-anchor" href="#typed-paths">§</a>Typed Paths</h4>
+<p>In the above examples, we were using paths where the encoding (Unix or Windows)
+was known at compile time. There may be situations where we need runtime
+support to decide and switch between encodings. For that, this crate provides
+the <a href="https://docs.rs/typed-path/latest/typed_path/enum.TypedPath.html"><code>TypedPath</code></a> and <a href="https://docs.rs/typed-path/latest/typed_path/enum.TypedPathBuf.html"><code>TypedPathBuf</code></a> enumerations
+(and their <a href="https://docs.rs/typed-path/latest/typed_path/enum.Utf8TypedPath.html"><code>Utf8TypedPath</code></a> and
+<a href="https://docs.rs/typed-path/latest/typed_path/enum.Utf8TypedPathBuf.html"><code>Utf8TypedPathBuf</code></a> variations):</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::Utf8TypedPath;
+
+<span class="comment">// Derive the path by determining if it is Unix or Windows
+</span><span class="kw">let </span>path = Utf8TypedPath::derive(<span class="string">r"C:\path\to\file.txt"</span>);
+<span class="macro">assert!</span>(path.is_windows());
+
+<span class="comment">// Change the encoding to Unix
+</span><span class="kw">let </span>path = path.with_unix_encoding();
+<span class="macro">assert_eq!</span>(path, <span class="string">"/path/to/file.txt"</span>);</code></pre></div><h4 id="normalization"><a class="doc-anchor" href="#normalization">§</a>Normalization</h4>
+<p>Alongside implementing the standard methods associated with <a href="https://doc.rust-lang.org/std/path/struct.Path.html"><code>Path</code></a>
+and <a href="https://doc.rust-lang.org/std/path/struct.PathBuf.html"><code>PathBuf</code></a> from the standard library, this crate also
+implements several additional methods including the ability to normalize a path
+by resolving <code>.</code> and <code>..</code> without the need to have the path exist.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::Utf8UnixPath;
+
+<span class="macro">assert_eq!</span>(
+    Utf8UnixPath::new(<span class="string">"foo/bar//baz/./asdf/quux/.."</span>).normalize(),
+    Utf8UnixPath::new(<span class="string">"foo/bar/baz/asdf"</span>),
+);</code></pre></div>
+<p>In addition, you can leverage <code>absolutize</code> to convert a path to an absolute
+form by prepending the current working directory if the path is relative and
+then normalizing it (requires <code>std</code> feature):</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>typed_path::{utils, Utf8UnixPath};
+
+<span class="comment">// With an absolute path, it is just normalized
+// NOTE: This requires `std` feature, otherwise `absolutize` is missing!
+</span><span class="kw">let </span>path = Utf8UnixPath::new(<span class="string">"/a/b/../c/./d"</span>);
+<span class="macro">assert_eq!</span>(path.absolutize().unwrap(), Utf8UnixPath::new(<span class="string">"/a/c/d"</span>));
+
+<span class="comment">// With a relative path, it is first joined with the current working directory
+// and then normalized
+// NOTE: This requires `std` feature, otherwise `utf8_current_dir` and
+//       `absolutize` are missing!
+</span><span class="kw">let </span>cwd = utils::utf8_current_dir().unwrap().with_unix_encoding();
+<span class="kw">let </span>path = cwd.join(Utf8UnixPath::new(<span class="string">"a/b/../c/./d"</span>));
+<span class="macro">assert_eq!</span>(path.absolutize().unwrap(), cwd.join(Utf8UnixPath::new(<span class="string">"a/c/d"</span>)));</code></pre></div><h4 id="utility-functions"><a class="doc-anchor" href="#utility-functions">§</a>Utility Functions</h4>
+<p>Helper functions are available in the <a href="https://docs.rs/typed-path/latest/typed_path/utils/index.html"><code>utils</code></a> module (requires <code>std</code>
+feature).</p>
+<p>Today, there are three mirrored methods to those found in
+<a href="https://doc.rust-lang.org/std/env/index.html"><code>std::env</code></a>:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/env/fn.current_dir.html"><code>std::env::current_dir</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/env/fn.current_exe.html"><code>std::env::current_exe</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/env/fn.temp_dir.html"><code>std::env::temp_dir</code></a></li>
+</ul>
+<p>Each has an implementation to produce a <a href="https://docs.rs/typed-path/latest/typed_path/type.NativePathBuf.html"><code>NativePathBuf</code></a> and a
+<a href="https://docs.rs/typed-path/latest/typed_path/type.Utf8NativePathBuf.html"><code>Utf8NativePathBuf</code></a>.</p>
+<h5 id="current-directory"><a class="doc-anchor" href="#current-directory">§</a>Current directory</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Retrieves the current directory as a NativePathBuf:
+//
+// * For Unix family, this would be UnixPathBuf
+// * For Windows family, this would be WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `current_dir` is missing!
+</span><span class="kw">let </span>_cwd = typed_path::utils::current_dir().unwrap();
+
+<span class="comment">// Retrieves the current directory as a Utf8NativePathBuf:
+//
+// * For Unix family, this would be Utf8UnixPathBuf
+// * For Windows family, this would be Utf8WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `utf8_current_dir` is missing!
+</span><span class="kw">let </span>_utf8_cwd = typed_path::utils::utf8_current_dir().unwrap();</code></pre></div><h5 id="current-exe"><a class="doc-anchor" href="#current-exe">§</a>Current exe</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Returns the full filesystem path of the current running executable as a NativePathBuf:
+//
+// * For Unix family, this would be UnixPathBuf
+// * For Windows family, this would be WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `current_exe` is missing!
+</span><span class="kw">let </span>_exe = typed_path::utils::current_exe().unwrap();
+
+<span class="comment">// Returns the full filesystem path of the current running executable as a Utf8NativePathBuf:
+//
+// * For Unix family, this would be Utf8UnixPathBuf
+// * For Windows family, this would be Utf8WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `utf8_current_exe` is missing!
+</span><span class="kw">let </span>_utf8_exe = typed_path::utils::utf8_current_exe().unwrap();</code></pre></div><h5 id="temporary-directory"><a class="doc-anchor" href="#temporary-directory">§</a>Temporary directory</h5>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Returns the path of a temporary directory as a NativePathBuf:
+//
+// * For Unix family, this would be UnixPathBuf
+// * For Windows family, this would be WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `temp_dir` is missing!
+</span><span class="kw">let </span>_temp_dir = typed_path::utils::temp_dir().unwrap();
+
+<span class="comment">// Returns the path of a temporary directory as a Utf8NativePathBuf:
+//
+// * For Unix family, this would be Utf8UnixPathBuf
+// * For Windows family, this would be Utf8WindowsPathBuf
+//
+// NOTE: This requires `std` feature, otherwise `utf8_temp_dir` is missing!
+</span><span class="kw">let </span>_utf8_temp_dir = typed_path::utils::utf8_temp_dir().unwrap();</code></pre></div><h3 id="license"><a class="doc-anchor" href="#license">§</a>License</h3>
+<p>This project is licensed under either of</p>
+<p>Apache License, Version 2.0, (LICENSE-APACHE or
+<a href="http://www.apache.org/licenses/LICENSE-2.0">apache-license</a>) MIT license (LICENSE-MIT or
+<a href="http://opensource.org/licenses/MIT">mit-license</a>) at your option.</p>
+</div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="constants/index.html" title="mod typed_path::constants">constants</a></dt><dd>Contains constants associated with different path formats.</dd><dt><a class="mod" href="utils/index.html" title="mod typed_path::utils">utils</a></dt></dl><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Ancestors.html" title="struct typed_path::Ancestors">Ancestors</a></dt><dd>An iterator over <a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a> and its ancestors.</dd><dt><a class="struct" href="struct.Display.html" title="struct typed_path::Display">Display</a></dt><dd>Helper struct for safely printing paths with <a href="https://doc.rust-lang.org/1.98.1/alloc/macro.format.html" title="macro alloc::format"><code>format!</code></a> and <code>{}</code>.</dd><dt><a class="struct" href="struct.Iter.html" title="struct typed_path::Iter">Iter</a></dt><dd>An iterator over the <a href="trait.Component.html" title="trait typed_path::Component"><code>Component</code></a>s of a <a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a>, as [<code>[u8]</code>] slices.</dd><dt><a class="struct" href="struct.Path.html" title="struct typed_path::Path">Path</a></dt><dd>A slice of a path (akin to <a href="https://doc.rust-lang.org/1.98.1/std/primitive.str.html" title="primitive str"><code>str</code></a>).</dd><dt><a class="struct" href="struct.PathBuf.html" title="struct typed_path::PathBuf">PathBuf</a></dt><dd>An owned, mutable path that mirrors <a href="https://doc.rust-lang.org/1.98.1/std/path/struct.PathBuf.html" title="struct std::path::PathBuf"><code>std::path::PathBuf</code></a>, but operatings using an
+<a href="trait.Encoding.html" title="trait typed_path::Encoding"><code>Encoding</code></a> to determine how to parse the underlying bytes.</dd><dt><a class="struct" href="struct.PlatformEncoding.html" title="struct typed_path::PlatformEncoding">Platform<wbr>Encoding</a></dt><dd>Represents an abstraction of <a href="trait.Encoding.html" title="trait typed_path::Encoding"><code>Encoding</code></a> that represents the current platform encoding.</dd><dt><a class="struct" href="struct.StripPrefixError.html" title="struct typed_path::StripPrefixError">Strip<wbr>Prefix<wbr>Error</a></dt><dd>An error returned if the prefix was not found.</dd><dt><a class="struct" href="struct.UnixComponents.html" title="struct typed_path::UnixComponents">Unix<wbr>Components</a></dt><dt><a class="struct" href="struct.UnixEncoding.html" title="struct typed_path::UnixEncoding">Unix<wbr>Encoding</a></dt><dd>Represents a Unix-specific <a href="trait.Encoding.html" title="trait typed_path::Encoding"><code>Encoding</code></a></dd><dt><a class="struct" href="struct.Utf8Ancestors.html" title="struct typed_path::Utf8Ancestors">Utf8<wbr>Ancestors</a></dt><dd>An iterator over <a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a> and its ancestors.</dd><dt><a class="struct" href="struct.Utf8Iter.html" title="struct typed_path::Utf8Iter">Utf8<wbr>Iter</a></dt><dd>An iterator over the <a href="trait.Utf8Component.html" title="trait typed_path::Utf8Component"><code>Utf8Component</code></a>s of a <a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a>, as <a href="https://doc.rust-lang.org/1.98.1/std/primitive.str.html" title="primitive str"><code>str</code></a> slices.</dd><dt><a class="struct" href="struct.Utf8Path.html" title="struct typed_path::Utf8Path">Utf8<wbr>Path</a></dt><dd>A slice of a path (akin to <a href="https://doc.rust-lang.org/1.98.1/std/primitive.str.html" title="primitive str"><code>str</code></a>).</dd><dt><a class="struct" href="struct.Utf8PathBuf.html" title="struct typed_path::Utf8PathBuf">Utf8<wbr>Path<wbr>Buf</a></dt><dd>An owned, mutable path that mirrors <a href="https://doc.rust-lang.org/1.98.1/std/path/struct.PathBuf.html" title="struct std::path::PathBuf"><code>std::path::PathBuf</code></a>, but operatings using a
+<a href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding"><code>Utf8Encoding</code></a> to determine how to parse the underlying str.</dd><dt><a class="struct" href="struct.Utf8PlatformEncoding.html" title="struct typed_path::Utf8PlatformEncoding">Utf8<wbr>Platform<wbr>Encoding</a></dt><dd>Represents an abstraction of <a href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding"><code>Utf8Encoding</code></a> that represents the current platform
+encoding.</dd><dt><a class="struct" href="struct.Utf8UnixComponents.html" title="struct typed_path::Utf8UnixComponents">Utf8<wbr>Unix<wbr>Components</a></dt><dt><a class="struct" href="struct.Utf8UnixEncoding.html" title="struct typed_path::Utf8UnixEncoding">Utf8<wbr>Unix<wbr>Encoding</a></dt><dd>Represents a Unix-specific <a href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding"><code>Utf8Encoding</code></a></dd><dt><a class="struct" href="struct.Utf8WindowsComponents.html" title="struct typed_path::Utf8WindowsComponents">Utf8<wbr>Windows<wbr>Components</a></dt><dd>Represents a Windows-specific <a href="trait.Components.html" title="trait typed_path::Components"><code>Components</code></a></dd><dt><a class="struct" href="struct.Utf8WindowsEncoding.html" title="struct typed_path::Utf8WindowsEncoding">Utf8<wbr>Windows<wbr>Encoding</a></dt><dd>Represents a Windows-specific <a href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding"><code>Utf8Encoding</code></a></dd><dt><a class="struct" href="struct.Utf8WindowsPrefixComponent.html" title="struct typed_path::Utf8WindowsPrefixComponent">Utf8<wbr>Windows<wbr>Prefix<wbr>Component</a></dt><dd>A structure wrapping a Windows path prefix as well as its unparsed string
+representation. <a href="https://doc.rust-lang.org/1.98.1/std/primitive.str.html" title="primitive str"><code>str</code></a> version of <a href="https://doc.rust-lang.org/1.98.1/std/path/struct.PrefixComponent.html" title="struct std::path::PrefixComponent"><code>std::path::PrefixComponent</code></a>.</dd><dt><a class="struct" href="struct.WindowsComponents.html" title="struct typed_path::WindowsComponents">Windows<wbr>Components</a></dt><dd>Represents a Windows-specific <a href="trait.Components.html" title="trait typed_path::Components"><code>Components</code></a></dd><dt><a class="struct" href="struct.WindowsEncoding.html" title="struct typed_path::WindowsEncoding">Windows<wbr>Encoding</a></dt><dd>Represents a Windows-specific <a href="trait.Encoding.html" title="trait typed_path::Encoding"><code>Encoding</code></a></dd><dt><a class="struct" href="struct.WindowsPrefixComponent.html" title="struct typed_path::WindowsPrefixComponent">Windows<wbr>Prefix<wbr>Component</a></dt><dd>A structure wrapping a Windows path prefix as well as its unparsed string
+representation. Byte slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/struct.PrefixComponent.html" title="struct std::path::PrefixComponent"><code>std::path::PrefixComponent</code></a>.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.CheckedPathError.html" title="enum typed_path::CheckedPathError">Checked<wbr>Path<wbr>Error</a></dt><dd>An error returned when a path violates checked criteria.</dd><dt><a class="enum" href="enum.PathType.html" title="enum typed_path::PathType">Path<wbr>Type</a></dt><dd>Represents the type of the path.</dd><dt><a class="enum" href="enum.TypedAncestors.html" title="enum typed_path::TypedAncestors">Typed<wbr>Ancestors</a></dt><dd>An iterator over <a href="enum.TypedPath.html" title="enum typed_path::TypedPath"><code>TypedPath</code></a> and its ancestors.</dd><dt><a class="enum" href="enum.TypedComponent.html" title="enum typed_path::TypedComponent">Typed<wbr>Component</a></dt><dd>Byte slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents either a Unix or Windows path
+component.</dd><dt><a class="enum" href="enum.TypedComponents.html" title="enum typed_path::TypedComponents">Typed<wbr>Components</a></dt><dt><a class="enum" href="enum.TypedIter.html" title="enum typed_path::TypedIter">Typed<wbr>Iter</a></dt><dd>An iterator over the <a href="enum.TypedComponent.html" title="enum typed_path::TypedComponent"><code>TypedComponent</code></a>s of a <a href="enum.TypedPath.html" title="enum typed_path::TypedPath"><code>TypedPath</code></a>, as [<code>[u8]</code>] slices.</dd><dt><a class="enum" href="enum.TypedPath.html" title="enum typed_path::TypedPath">Typed<wbr>Path</a></dt><dd>Represents a path with a known type that can be one of:</dd><dt><a class="enum" href="enum.TypedPathBuf.html" title="enum typed_path::TypedPathBuf">Typed<wbr>Path<wbr>Buf</a></dt><dd>Represents a pathbuf with a known type that can be one of:</dd><dt><a class="enum" href="enum.UnixComponent.html" title="enum typed_path::UnixComponent">Unix<wbr>Component</a></dt><dd>Byte slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents a Unix-specific component</dd><dt><a class="enum" href="enum.Utf8TypedAncestors.html" title="enum typed_path::Utf8TypedAncestors">Utf8<wbr>Typed<wbr>Ancestors</a></dt><dd>An iterator over <a href="enum.Utf8TypedPath.html" title="enum typed_path::Utf8TypedPath"><code>Utf8TypedPath</code></a> and its ancestors.</dd><dt><a class="enum" href="enum.Utf8TypedComponent.html" title="enum typed_path::Utf8TypedComponent">Utf8<wbr>Typed<wbr>Component</a></dt><dd>Str slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents either a Unix or Windows path
+component.</dd><dt><a class="enum" href="enum.Utf8TypedComponents.html" title="enum typed_path::Utf8TypedComponents">Utf8<wbr>Typed<wbr>Components</a></dt><dt><a class="enum" href="enum.Utf8TypedIter.html" title="enum typed_path::Utf8TypedIter">Utf8<wbr>Typed<wbr>Iter</a></dt><dd>An iterator over the <a href="enum.Utf8TypedComponent.html" title="enum typed_path::Utf8TypedComponent"><code>Utf8TypedComponent</code></a>s of a <a href="enum.Utf8TypedPath.html" title="enum typed_path::Utf8TypedPath"><code>Utf8TypedPath</code></a>, as <a href="https://doc.rust-lang.org/1.98.1/std/primitive.str.html" title="primitive str"><code>str</code></a> slices.</dd><dt><a class="enum" href="enum.Utf8TypedPath.html" title="enum typed_path::Utf8TypedPath">Utf8<wbr>Typed<wbr>Path</a></dt><dd>Represents a path with a known type that can be one of:</dd><dt><a class="enum" href="enum.Utf8TypedPathBuf.html" title="enum typed_path::Utf8TypedPathBuf">Utf8<wbr>Typed<wbr>Path<wbr>Buf</a></dt><dd>Represents a pathbuf with a known type that can be one of:</dd><dt><a class="enum" href="enum.Utf8UnixComponent.html" title="enum typed_path::Utf8UnixComponent">Utf8<wbr>Unix<wbr>Component</a></dt><dd><code>str</code> slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents a Unix-specific component</dd><dt><a class="enum" href="enum.Utf8WindowsComponent.html" title="enum typed_path::Utf8WindowsComponent">Utf8<wbr>Windows<wbr>Component</a></dt><dd><code>str</code> slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents a Windows-specific component</dd><dt><a class="enum" href="enum.Utf8WindowsPrefix.html" title="enum typed_path::Utf8WindowsPrefix">Utf8<wbr>Windows<wbr>Prefix</a></dt><dd>Windows path prefixes, e.g., <code>C:</code> or <code>\\server\share</code>. This is a byte slice version of
+<a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Prefix.html" title="enum std::path::Prefix"><code>std::path::Prefix</code></a>.</dd><dt><a class="enum" href="enum.WindowsComponent.html" title="enum typed_path::WindowsComponent">Windows<wbr>Component</a></dt><dd>Byte slice version of <a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Component.html" title="enum std::path::Component"><code>std::path::Component</code></a> that represents a Windows-specific component</dd><dt><a class="enum" href="enum.WindowsPrefix.html" title="enum typed_path::WindowsPrefix">Windows<wbr>Prefix</a></dt><dd>Windows path prefixes, e.g., <code>C:</code> or <code>\\server\share</code>. This is a byte slice version of
+<a href="https://doc.rust-lang.org/1.98.1/std/path/enum.Prefix.html" title="enum std::path::Prefix"><code>std::path::Prefix</code></a>.</dd></dl><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.Component.html" title="trait typed_path::Component">Component</a></dt><dd>Interface representing a component in a <a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a></dd><dt><a class="trait" href="trait.Components.html" title="trait typed_path::Components">Components</a></dt><dd>Interface of an iterator over a collection of <a href="trait.Component.html" title="trait typed_path::Component"><code>Component</code></a>s</dd><dt><a class="trait" href="trait.Encoding.html" title="trait typed_path::Encoding">Encoding</a></dt><dd>Interface to provide meaning to a byte slice such that paths can be derived</dd><dt><a class="trait" href="trait.TryAsRef.html" title="trait typed_path::TryAsRef">TryAs<wbr>Ref</a></dt><dd>Interface to try to perform a cheap reference-to-reference conversion.</dd><dt><a class="trait" href="trait.Utf8Component.html" title="trait typed_path::Utf8Component">Utf8<wbr>Component</a></dt><dd>Interface representing a component in a <a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a></dd><dt><a class="trait" href="trait.Utf8Components.html" title="trait typed_path::Utf8Components">Utf8<wbr>Components</a></dt><dd>Interface of an iterator over a collection of <a href="trait.Utf8Component.html" title="trait typed_path::Utf8Component"><code>Utf8Component</code></a>s</dd><dt><a class="trait" href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding">Utf8<wbr>Encoding</a></dt><dd>Interface to provide meaning to a byte slice such that paths can be derived</dd></dl><h2 id="types" class="section-header">Type Aliases<a href="#types" class="anchor">§</a></h2><dl class="item-table"><dt><a class="type" href="type.NativeComponent.html" title="type typed_path::NativeComponent">Native<wbr>Component</a></dt><dd><a href="trait.Component.html" title="trait typed_path::Component"><code>Component</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.NativeEncoding.html" title="type typed_path::NativeEncoding">Native<wbr>Encoding</a></dt><dd><a href="trait.Encoding.html" title="trait typed_path::Encoding"><code>Encoding</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.NativePath.html" title="type typed_path::NativePath">Native<wbr>Path</a></dt><dd><a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.NativePathBuf.html" title="type typed_path::NativePathBuf">Native<wbr>Path<wbr>Buf</a></dt><dd><a href="struct.PathBuf.html" title="struct typed_path::PathBuf"><code>PathBuf</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.ParseError.html" title="type typed_path::ParseError">Parse<wbr>Error</a></dt><dt><a class="type" href="type.PlatformPath.html" title="type typed_path::PlatformPath">Platform<wbr>Path</a></dt><dd><a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a> that has the platform’s encoding during compilation.</dd><dt><a class="type" href="type.PlatformPathBuf.html" title="type typed_path::PlatformPathBuf">Platform<wbr>Path<wbr>Buf</a></dt><dd><a href="struct.PathBuf.html" title="struct typed_path::PathBuf"><code>PathBuf</code></a> that has the platform’s encoding during compilation.</dd><dt><a class="type" href="type.UnixPath.html" title="type typed_path::UnixPath">Unix<wbr>Path</a></dt><dd>Represents a Unix-specific <a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a></dd><dt><a class="type" href="type.UnixPathBuf.html" title="type typed_path::UnixPathBuf">Unix<wbr>Path<wbr>Buf</a></dt><dd>Represents a Unix-specific <a href="struct.PathBuf.html" title="struct typed_path::PathBuf"><code>PathBuf</code></a></dd><dt><a class="type" href="type.Utf8NativeComponent.html" title="type typed_path::Utf8NativeComponent">Utf8<wbr>Native<wbr>Component</a></dt><dd><a href="trait.Utf8Component.html" title="trait typed_path::Utf8Component"><code>Utf8Component</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.Utf8NativeEncoding.html" title="type typed_path::Utf8NativeEncoding">Utf8<wbr>Native<wbr>Encoding</a></dt><dd><a href="trait.Utf8Encoding.html" title="trait typed_path::Utf8Encoding"><code>Utf8Path</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.Utf8NativePath.html" title="type typed_path::Utf8NativePath">Utf8<wbr>Native<wbr>Path</a></dt><dd><a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.Utf8NativePathBuf.html" title="type typed_path::Utf8NativePathBuf">Utf8<wbr>Native<wbr>Path<wbr>Buf</a></dt><dd><a href="struct.Utf8PathBuf.html" title="struct typed_path::Utf8PathBuf"><code>Utf8PathBuf</code></a> that is native to the platform during compilation</dd><dt><a class="type" href="type.Utf8PlatformPath.html" title="type typed_path::Utf8PlatformPath">Utf8<wbr>Platform<wbr>Path</a></dt><dd><a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a> that has the platform’s encoding during compilation.</dd><dt><a class="type" href="type.Utf8PlatformPathBuf.html" title="type typed_path::Utf8PlatformPathBuf">Utf8<wbr>Platform<wbr>Path<wbr>Buf</a></dt><dd><a href="struct.Utf8PathBuf.html" title="struct typed_path::Utf8PathBuf"><code>Utf8PathBuf</code></a> that has the platform’s encoding during compilation.</dd><dt><a class="type" href="type.Utf8UnixPath.html" title="type typed_path::Utf8UnixPath">Utf8<wbr>Unix<wbr>Path</a></dt><dd>Represents a Unix-specific <a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a></dd><dt><a class="type" href="type.Utf8UnixPathBuf.html" title="type typed_path::Utf8UnixPathBuf">Utf8<wbr>Unix<wbr>Path<wbr>Buf</a></dt><dd>Represents a Unix-specific <a href="struct.Utf8PathBuf.html" title="struct typed_path::Utf8PathBuf"><code>Utf8PathBuf</code></a></dd><dt><a class="type" href="type.Utf8WindowsPath.html" title="type typed_path::Utf8WindowsPath">Utf8<wbr>Windows<wbr>Path</a></dt><dd>Represents a Windows-specific <a href="struct.Utf8Path.html" title="struct typed_path::Utf8Path"><code>Utf8Path</code></a></dd><dt><a class="type" href="type.Utf8WindowsPathBuf.html" title="type typed_path::Utf8WindowsPathBuf">Utf8<wbr>Windows<wbr>Path<wbr>Buf</a></dt><dd>Represents a Windows-specific <a href="struct.Utf8PathBuf.html" title="struct typed_path::Utf8PathBuf"><code>Utf8PathBuf</code></a></dd><dt><a class="type" href="type.WindowsPath.html" title="type typed_path::WindowsPath">Windows<wbr>Path</a></dt><dd>Represents a Windows-specific <a href="struct.Path.html" title="struct typed_path::Path"><code>Path</code></a></dd><dt><a class="type" href="type.WindowsPathBuf.html" title="type typed_path::WindowsPathBuf">Windows<wbr>Path<wbr>Buf</a></dt><dd>Represents a Windows-specific <a href="struct.PathBuf.html" title="struct typed_path::PathBuf"><code>PathBuf</code></a></dd></dl><script type="text/json" id="notable-traits-data">{"&'a [u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>]</div>","&[u8]":"<h3>Notable traits for <code>&amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>]</code></h3><pre><code><div class=\"where\">impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for &amp;[<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>]</div>","Ancestors<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.Ancestors.html\" title=\"struct typed_path::Ancestors\">Ancestors</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.Ancestors.html\" title=\"struct typed_path::Ancestors\">Ancestors</a>&lt;'a, T&gt;<div class=\"where\">where\n    T: for&lt;'enc&gt; <a class=\"trait\" href=\"trait.Encoding.html\" title=\"trait typed_path::Encoding\">Encoding</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = &amp;'a <a class=\"struct\" href=\"struct.Path.html\" title=\"struct typed_path::Path\">Path</a>&lt;T&gt;;</div>","Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.Iter.html\" title=\"struct typed_path::Iter\">Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.Iter.html\" title=\"struct typed_path::Iter\">Iter</a>&lt;'a, T&gt;<div class=\"where\">where\n    T: for&lt;'enc&gt; <a class=\"trait\" href=\"trait.Encoding.html\" title=\"trait typed_path::Encoding\">Encoding</a> + 'a,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = &amp;'a [<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>];</div>","Utf8Ancestors<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.Utf8Ancestors.html\" title=\"struct typed_path::Utf8Ancestors\">Utf8Ancestors</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.Utf8Ancestors.html\" title=\"struct typed_path::Utf8Ancestors\">Utf8Ancestors</a>&lt;'a, T&gt;<div class=\"where\">where\n    T: <a class=\"trait\" href=\"trait.Utf8Encoding.html\" title=\"trait typed_path::Utf8Encoding\">Utf8Encoding</a>,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = &amp;'a <a class=\"struct\" href=\"struct.Utf8Path.html\" title=\"struct typed_path::Utf8Path\">Utf8Path</a>&lt;T&gt;;</div>","Utf8Iter<'_, T>":"<h3>Notable traits for <code><a class=\"struct\" href=\"struct.Utf8Iter.html\" title=\"struct typed_path::Utf8Iter\">Utf8Iter</a>&lt;'a, T&gt;</code></h3><pre><code><div class=\"where\">impl&lt;'a, T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"struct.Utf8Iter.html\" title=\"struct typed_path::Utf8Iter\">Utf8Iter</a>&lt;'a, T&gt;<div class=\"where\">where\n    T: <a class=\"trait\" href=\"trait.Utf8Encoding.html\" title=\"trait typed_path::Utf8Encoding\">Utf8Encoding</a> + 'a,</div></div><div class=\"where\">    type <a href=\"https://doc.rust-lang.org/1.98.1/core/iter/traits/iterator/trait.Iterator.html#associatedtype.Item\" class=\"associatedtype\">Item</a> = &amp;'a <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.str.html\">str</a>;</div>","Vec<u8>":"<h3>Notable traits for <code><a class=\"struct\" href=\"https://doc.rust-lang.org/1.98.1/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>, A&gt;</code></h3><pre><code><div class=\"where\">impl&lt;A&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/std/io/trait.Write.html\" title=\"trait std::io::Write\">Write</a> for <a class=\"struct\" href=\"https://doc.rust-lang.org/1.98.1/alloc/vec/struct.Vec.html\" title=\"struct alloc::vec::Vec\">Vec</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/1.98.1/std/primitive.u8.html\">u8</a>, A&gt;<div class=\"where\">where\n    A: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.98.1/core/alloc/trait.Allocator.html\" title=\"trait core::alloc::Allocator\">Allocator</a>,</div></div>"}</script></section></div></main></body></html>

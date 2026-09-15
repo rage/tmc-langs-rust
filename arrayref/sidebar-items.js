@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"macro":["array_mut_ref","array_ref","array_refs","mut_array_refs"]};
+window.SIDEBAR_ITEMS = {"macro":[["array_mut_ref",1],["array_ref",1],["array_refs",1],["mut_array_refs",1]]};

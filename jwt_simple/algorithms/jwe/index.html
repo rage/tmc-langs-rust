@@ -1,0 +1,62 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="JWE (JSON Web Encryption) key management algorithms."><title>jwt_simple::algorithms::jwe - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="jwt_simple" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module jwe</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../jwt_simple/index.html">jwt_<wbr>simple</a><span class="version">0.12.16</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module jwe</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#supported-algorithms" title="Supported Algorithms">Supported Algorithms</a><ul><li><a href="#rsa-key-management" title="RSA Key Management">RSA Key Management</a></li><li><a href="#symmetric-key-wrap" title="Symmetric Key Wrap">Symmetric Key Wrap</a></li><li><a href="#ecdh-key-agreement" title="ECDH Key Agreement">ECDH Key Agreement</a></li></ul></li><li><a href="#content-encryption" title="Content Encryption">Content Encryption</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#rsa-oaep" title="RSA-OAEP">RSA-OAEP</a></li><li><a href="#aes-key-wrap" title="AES Key Wrap">AES Key Wrap</a></li><li><a href="#ecdh-esa256kw" title="ECDH-ES+A256KW">ECDH-ES+A256KW</a></li></ul></li></ul><h3><a href="#reexports">Module Items</a></h3><ul class="block"><li><a href="#reexports" title="Re-exports">Re-exports</a></li><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In jwt_<wbr>simple::<wbr>algorithms</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">jwt_simple</a>::<wbr><a href="../index.html">algorithms</a></div><h1>Module <span>jwe</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/jwt_simple/algorithms/jwe/mod.rs.html#1-92">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>JWE (JSON Web Encryption) key management algorithms.</p>
+<p>This module provides implementations of various JWE key management algorithms
+as specified in RFC 7518. Each key type is strongly typed to prevent misuse.</p>
+<h2 id="supported-algorithms"><a class="doc-anchor" href="#supported-algorithms">§</a>Supported Algorithms</h2><h3 id="rsa-key-management"><a class="doc-anchor" href="#rsa-key-management">§</a>RSA Key Management</h3>
+<ul>
+<li><code>RSA-OAEP</code> - RSA with OAEP using SHA-1</li>
+</ul>
+<p>Note: RSA-OAEP-256 (with SHA-256) is not currently supported because the underlying
+boring/superboring crates do not expose the API to specify the OAEP hash function.</p>
+<h3 id="symmetric-key-wrap"><a class="doc-anchor" href="#symmetric-key-wrap">§</a>Symmetric Key Wrap</h3>
+<ul>
+<li><code>A256KW</code> - AES-256 Key Wrap (recommended)</li>
+<li><code>A128KW</code> - AES-128 Key Wrap</li>
+</ul>
+<h3 id="ecdh-key-agreement"><a class="doc-anchor" href="#ecdh-key-agreement">§</a>ECDH Key Agreement</h3>
+<ul>
+<li><code>ECDH-ES+A256KW</code> - ECDH with AES-256 Key Wrap (recommended)</li>
+<li><code>ECDH-ES+A128KW</code> - ECDH with AES-128 Key Wrap</li>
+</ul>
+<h2 id="content-encryption"><a class="doc-anchor" href="#content-encryption">§</a>Content Encryption</h2>
+<p>All key management algorithms support these content encryption algorithms:</p>
+<ul>
+<li><code>A256GCM</code> - AES-256-GCM (default, recommended)</li>
+<li><code>A128GCM</code> - AES-128-GCM</li>
+</ul>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2><h3 id="rsa-oaep"><a class="doc-anchor" href="#rsa-oaep">§</a>RSA-OAEP</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jwt_simple::prelude::<span class="kw-2">*</span>;
+
+<span class="comment">// Generate a key pair
+</span><span class="kw">let </span>decryption_key = RsaOaepDecryptionKey::generate(<span class="number">2048</span>).unwrap();
+<span class="kw">let </span>encryption_key = decryption_key.encryption_key();
+
+<span class="comment">// Encrypt
+</span><span class="kw">let </span>claims = Claims::create(Duration::from_hours(<span class="number">1</span>))
+    .with_subject(<span class="string">"user@example.com"</span>);
+<span class="kw">let </span>token = encryption_key.encrypt(claims).unwrap();
+
+<span class="comment">// Decrypt
+</span><span class="kw">let </span>claims = decryption_key.decrypt_token::&lt;NoCustomClaims&gt;(<span class="kw-2">&amp;</span>token, <span class="prelude-val">None</span>).unwrap();</code></pre></div><h3 id="aes-key-wrap"><a class="doc-anchor" href="#aes-key-wrap">§</a>AES Key Wrap</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jwt_simple::prelude::<span class="kw-2">*</span>;
+
+<span class="comment">// Generate a symmetric key
+</span><span class="kw">let </span>key = A256KWKey::generate();
+
+<span class="comment">// Encrypt
+</span><span class="kw">let </span>claims = Claims::create(Duration::from_hours(<span class="number">1</span>));
+<span class="kw">let </span>token = key.encrypt(claims).unwrap();
+
+<span class="comment">// Decrypt
+</span><span class="kw">let </span>claims = key.decrypt_token::&lt;NoCustomClaims&gt;(<span class="kw-2">&amp;</span>token, <span class="prelude-val">None</span>).unwrap();</code></pre></div><h3 id="ecdh-esa256kw"><a class="doc-anchor" href="#ecdh-esa256kw">§</a>ECDH-ES+A256KW</h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>jwt_simple::prelude::<span class="kw-2">*</span>;
+
+<span class="comment">// Generate a key pair
+</span><span class="kw">let </span>decryption_key = EcdhEsA256KWDecryptionKey::generate();
+<span class="kw">let </span>encryption_key = decryption_key.encryption_key();
+
+<span class="comment">// Encrypt
+</span><span class="kw">let </span>claims = Claims::create(Duration::from_hours(<span class="number">1</span>));
+<span class="kw">let </span>token = encryption_key.encrypt(claims).unwrap();
+
+<span class="comment">// Decrypt
+</span><span class="kw">let </span>claims = decryption_key.decrypt_token::&lt;NoCustomClaims&gt;(<span class="kw-2">&amp;</span>token, <span class="prelude-val">None</span>).unwrap();</code></pre></div></div></details><h2 id="reexports" class="section-header">Re-exports<a href="#reexports" class="anchor">§</a></h2><dl class="item-table reexports"><dt id="reexport.A128KWKey"><code>pub use aes_kw::<a class="struct" href="aes_kw/struct.A128KWKey.html" title="struct jwt_simple::algorithms::jwe::aes_kw::A128KWKey">A128KWKey</a>;</code></dt><dt id="reexport.A256KWKey"><code>pub use aes_kw::<a class="struct" href="aes_kw/struct.A256KWKey.html" title="struct jwt_simple::algorithms::jwe::aes_kw::A256KWKey">A256KWKey</a>;</code></dt><dt id="reexport.ContentEncryption"><code>pub use content::<a class="enum" href="content/enum.ContentEncryption.html" title="enum jwt_simple::algorithms::jwe::content::ContentEncryption">ContentEncryption</a>;</code></dt><dt id="reexport.EcdhEsA128KWDecryptionKey"><code>pub use ecdh_es::<a class="struct" href="ecdh_es/struct.EcdhEsA128KWDecryptionKey.html" title="struct jwt_simple::algorithms::jwe::ecdh_es::EcdhEsA128KWDecryptionKey">EcdhEsA128KWDecryptionKey</a>;</code></dt><dt id="reexport.EcdhEsA128KWEncryptionKey"><code>pub use ecdh_es::<a class="struct" href="ecdh_es/struct.EcdhEsA128KWEncryptionKey.html" title="struct jwt_simple::algorithms::jwe::ecdh_es::EcdhEsA128KWEncryptionKey">EcdhEsA128KWEncryptionKey</a>;</code></dt><dt id="reexport.EcdhEsA256KWDecryptionKey"><code>pub use ecdh_es::<a class="struct" href="ecdh_es/struct.EcdhEsA256KWDecryptionKey.html" title="struct jwt_simple::algorithms::jwe::ecdh_es::EcdhEsA256KWDecryptionKey">EcdhEsA256KWDecryptionKey</a>;</code></dt><dt id="reexport.EcdhEsA256KWEncryptionKey"><code>pub use ecdh_es::<a class="struct" href="ecdh_es/struct.EcdhEsA256KWEncryptionKey.html" title="struct jwt_simple::algorithms::jwe::ecdh_es::EcdhEsA256KWEncryptionKey">EcdhEsA256KWEncryptionKey</a>;</code></dt><dt id="reexport.RsaOaepDecryptionKey"><code>pub use rsa_oaep::<a class="struct" href="rsa_oaep/struct.RsaOaepDecryptionKey.html" title="struct jwt_simple::algorithms::jwe::rsa_oaep::RsaOaepDecryptionKey">RsaOaepDecryptionKey</a>;</code></dt><dt id="reexport.RsaOaepEncryptionKey"><code>pub use rsa_oaep::<a class="struct" href="rsa_oaep/struct.RsaOaepEncryptionKey.html" title="struct jwt_simple::algorithms::jwe::rsa_oaep::RsaOaepEncryptionKey">RsaOaepEncryptionKey</a>;</code></dt></dl><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="aes_kw/index.html" title="mod jwt_simple::algorithms::jwe::aes_kw">aes_kw</a></dt><dd>AES Key Wrap algorithms for JWE.</dd><dt><a class="mod" href="content/index.html" title="mod jwt_simple::algorithms::jwe::content">content</a></dt><dd>Content encryption algorithms for JWE.</dd><dt><a class="mod" href="ecdh_es/index.html" title="mod jwt_simple::algorithms::jwe::ecdh_es">ecdh_es</a></dt><dd>ECDH-ES key agreement algorithms for JWE.</dd><dt><a class="mod" href="rsa_oaep/index.html" title="mod jwt_simple::algorithms::jwe::rsa_oaep">rsa_<wbr>oaep</a></dt><dd>RSA-OAEP key management algorithm for JWE.</dd></dl></section></div></main></body></html>

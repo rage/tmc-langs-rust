@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Describe a context in which to verify an `X509` certificate."><title>boring::x509::store - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-1ed95124.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="boring" data-themes="" data-resource-suffix="" data-rustdoc-version="1.98.1 (48a229cea 2026-09-01)" data-channel="1.98.1" data-search-js="search-9944d736.js" data-stringdex-js="stringdex-2da4960a.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-417ebf0a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module store</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../boring/index.html">boring</a><span class="version">5.1.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module store</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In boring::<wbr>x509</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">boring</a>::<wbr><a href="../index.html">x509</a></div><h1>Module <span>store</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/boring/x509/store.rs.html#1-190">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Describe a context in which to verify an <code>X509</code> certificate.</p>
+<p>The <code>X509</code> certificate store holds trusted CA certificates used to verify
+peer certificates.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>boring::x509::store::{X509StoreBuilder, X509Store};
+<span class="kw">use </span>boring::x509::{X509, X509Name};
+<span class="kw">use </span>boring::asn1::Asn1Time;
+<span class="kw">use </span>boring::pkey::PKey;
+<span class="kw">use </span>boring::hash::MessageDigest;
+<span class="kw">use </span>boring::rsa::Rsa;
+<span class="kw">use </span>boring::nid::Nid;
+
+<span class="kw">let </span>rsa = Rsa::generate(<span class="number">2048</span>).unwrap();
+<span class="kw">let </span>pkey = PKey::from_rsa(rsa).unwrap();
+<span class="kw">let </span><span class="kw-2">mut </span>name = X509Name::builder().unwrap();
+
+name.append_entry_by_nid(Nid::COMMONNAME, <span class="string">"foobar.com"</span>).unwrap();
+
+<span class="kw">let </span>name = name.build();
+<span class="kw">let </span><span class="kw-2">mut </span>builder = X509::builder().unwrap();
+
+<span class="comment">// Sep 27th, 2016
+</span><span class="kw">let </span>sample_time = Asn1Time::from_unix(<span class="number">1474934400</span>).unwrap();
+
+builder.set_version(<span class="number">2</span>).unwrap();
+builder.set_subject_name(<span class="kw-2">&amp;</span>name).unwrap();
+builder.set_issuer_name(<span class="kw-2">&amp;</span>name).unwrap();
+builder.set_pubkey(<span class="kw-2">&amp;</span>pkey).unwrap();
+builder.set_not_before(<span class="kw-2">&amp;</span>sample_time);
+builder.set_not_after(<span class="kw-2">&amp;</span>sample_time);
+builder.sign(<span class="kw-2">&amp;</span>pkey, MessageDigest::sha256()).unwrap();
+
+<span class="kw">let </span>certificate: X509 = builder.build();
+<span class="kw">let </span><span class="kw-2">mut </span>builder = X509StoreBuilder::new().unwrap();
+<span class="kw">let _ </span>= builder.add_cert(<span class="kw-2">&amp;</span>certificate);
+<span class="kw">let </span>store: X509Store = builder.build();</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.X509Store.html" title="struct boring::x509::store::X509Store">X509<wbr>Store</a></dt><dd>A certificate store to hold trusted <code>X509</code> certificates.</dd><dt><a class="struct" href="struct.X509StoreBuilder.html" title="struct boring::x509::store::X509StoreBuilder">X509<wbr>Store<wbr>Builder</a></dt><dd>A builder type used to construct an <code>X509Store</code>.</dd><dt><a class="struct" href="struct.X509StoreBuilderRef.html" title="struct boring::x509::store::X509StoreBuilderRef">X509<wbr>Store<wbr>Builder<wbr>Ref</a></dt><dd>A borrowed reference to a <a href="struct.X509StoreBuilder.html"><code>X509StoreBuilder</code></a>.</dd><dt><a class="struct" href="struct.X509StoreRef.html" title="struct boring::x509::store::X509StoreRef">X509<wbr>Store<wbr>Ref</a></dt><dd>A borrowed reference to a <a href="struct.X509Store.html"><code>X509Store</code></a>.</dd></dl></section></div></main></body></html>

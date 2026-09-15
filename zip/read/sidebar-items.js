@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ArchiveOffset"],"fn":["read_zipfile_from_stream","root_dir_common_filter"],"struct":["Config","ZipArchive","ZipFile","ZipFileSeek","ZipReadOptions"],"trait":["HasZipMetadata","RootDirFilter"]};
+window.SIDEBAR_ITEMS = {"enum":["ArchiveOffset"],"fn":["read_zipfile_from_stream","read_zipfile_from_stream_with_compressed_size","root_dir_common_filter"],"struct":["Config","ZipArchive","ZipArchiveMetadata","ZipFile","ZipFileSeek","ZipReadOptions"],"trait":["HasZipMetadata","RootDirFilter"]};

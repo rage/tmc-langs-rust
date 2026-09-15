@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":[["const_residue",1],["impl_modulus",1]],"struct":["Residue"],"trait":["ResidueParams"]};

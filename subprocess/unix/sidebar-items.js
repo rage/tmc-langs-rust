@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["PopenExt"]};
+window.SIDEBAR_ITEMS = {"trait":["ExitStatusExt","JobExt","PipelineExt","ProcessExt"]};

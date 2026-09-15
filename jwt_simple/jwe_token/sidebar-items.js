@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MAX_JWE_HEADER_LENGTH"],"struct":["DecryptionOptions","EncryptionOptions","JWEToken","JWETokenMetadata"]};
