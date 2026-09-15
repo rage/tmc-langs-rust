@@ -83,6 +83,15 @@ pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
 /// upload's `name`; nothing depends on the extension.
 const SUBMISSION_ARCHIVE_FILE_NAME: &str = "submission.tar.zst";
 
+/// Content type sent for every uploaded part, and stated rather than left to reqwest:
+/// it guesses from the path extension, the archive is an extensionless temp file, and
+/// `mime_guess` has no `zst` entry either way, so an unstated type reaches the host as
+/// `application/octet-stream`. Must equal what the tmc exercise service writes for the
+/// same archive made in its IFrame (`services/tmc/src/util/answerArchive.ts`): the host
+/// echoes it into `AnswerFile::mime`, from which the teacher-facing answer-file zip
+/// derives entry extensions.
+const ANSWER_ARCHIVE_MIME: &str = "application/x-zstd-compressed-tar";
+
 /// Client for accessing the Courses MOOC API.
 /// Uses an `Arc` internally so it is cheap to clone.
 #[derive(Clone)]
@@ -314,6 +323,9 @@ impl MoocClient {
     /// handler requires. That UUID is *not* the file's identity: only
     /// [`api::AnswerFile::id`], the host's own file id, may be named in a
     /// submit.
+    ///
+    /// Every part is typed as a tmc project archive, which is the only thing this
+    /// client uploads.
     pub fn upload_files(
         &self,
         exercise_id: Uuid,
@@ -329,7 +341,9 @@ impl MoocClient {
             // The host requires a file name on every part.
             let part = Part::file(path)
                 .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?
-                .file_name((*name).to_string());
+                .file_name((*name).to_string())
+                .mime_str(ANSWER_ARCHIVE_MIME)
+                .map_err(|err| MoocClientError::AttachFileToForm { error: err.into() })?;
             form = form.part(Uuid::new_v4().to_string(), part);
         }
 
@@ -1339,7 +1353,7 @@ mod test {
                     "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "mime": "application/x-zstd-compressed-tar",
+                        "mime": ANSWER_ARCHIVE_MIME,
                         "url": "http://example.com/archive.tar.zst",
                     }]
                 })
@@ -1548,6 +1562,50 @@ mod test {
     }
 
     #[test]
+    fn upload_files_types_each_part_as_an_answer_archive() {
+        // reqwest guesses a part's type from the path extension, and the archive `submit`
+        // uploads is an extensionless temp file, so an untyped part reaches the host as
+        // `application/octet-stream` — indistinguishable there from a file whose type is
+        // genuinely unknown.
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let body = std::sync::Arc::new(Mutex::new(String::new()));
+        let captured = body.clone();
+        let upload = server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .match_request(move |request| {
+                *captured.lock().unwrap_or_else(|e| e.into_inner()) =
+                    String::from_utf8_lossy(request.body().map_or(&[][..], |b| &b[..])).to_string();
+                true
+            })
+            .with_body(serde_json::json!({ "data_files": [] }).to_string())
+            .create();
+
+        client
+            .upload_files(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                &[(SUBMISSION_ARCHIVE_FILE_NAME, Path::new("./tests/data/file"))],
+            )
+            .unwrap();
+
+        upload.assert();
+        let body = body.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        let lowercased = body.to_ascii_lowercase();
+        assert!(
+            lowercased.contains(&format!("content-type: {ANSWER_ARCHIVE_MIME}")),
+            "part must declare the answer archive type: {body:?}"
+        );
+        assert!(
+            !lowercased.contains("application/octet-stream"),
+            "no part may fall back to an unknown type: {body:?}"
+        );
+    }
+
+    #[test]
     fn upload_files_sends_no_request_for_an_empty_list() {
         // The host rejects an empty multipart body, so an empty list must not
         // become a doomed request.
@@ -1618,7 +1676,7 @@ mod test {
                     "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "mime": "application/x-zstd-compressed-tar",
+                        "mime": ANSWER_ARCHIVE_MIME,
                         "url": "http://example.com/archive.tar.zst",
                     }]
                 })
@@ -1801,7 +1859,7 @@ mod test {
         serde_json::json!({
             "id": Uuid::new_v4(),
             "name": name,
-            "mime": "application/x-zstd-compressed-tar",
+            "mime": ANSWER_ARCHIVE_MIME,
             "url": url,
         })
     }
