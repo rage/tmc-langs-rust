@@ -930,6 +930,49 @@ mod test {
     }
 
     #[test]
+    fn a_redirect_to_another_origin_drops_the_bearer_token() {
+        // The bearer is attached per-host, but reqwest follows redirects on its own:
+        // `MoocClient::new` sets no redirect policy, so two library defaults decide
+        // whether the token travels -- a budget of 10 hops, and `remove_sensitive_headers`,
+        // which drops `Authorization` when the scheme, host or port changes. Nothing in
+        // this repo pins either, and a file URL answers 302 to the object store, so a
+        // change of default would hand that store the token.
+        init();
+        let _env = env_lock();
+        // SAFETY: all reads/writes of this var in tests are serialized by ENV_LOCK.
+        unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
+
+        let mut origin = Server::new();
+        let mut elsewhere = Server::new();
+        // Same host, different port: a different origin as far as reqwest is concerned.
+        assert_ne!(origin.url(), elsewhere.url());
+
+        let redirect = origin
+            .mock("GET", "/api/v0/files/claimed/an-id")
+            .match_header("authorization", "Bearer test-token")
+            .with_status(302)
+            .with_header("location", &format!("{}/objects/an-id", elsewhere.url()))
+            .expect(1)
+            .create();
+        let followed = elsewhere
+            .mock("GET", "/objects/an-id")
+            .match_header("authorization", Matcher::Missing)
+            .with_body("archive bytes")
+            .expect(1)
+            .create();
+
+        let client = make_client_with_token(&origin, "test-token");
+        let url = format!("{}/api/v0/files/claimed/an-id", origin.url());
+        let downloaded = client.download(url.parse().unwrap());
+        // Clear the var before any assertion that could panic and leak it.
+        unsafe { std::env::remove_var(TRUST_LOCALHOST_VAR) };
+
+        assert_eq!(&downloaded.unwrap()[..], b"archive bytes");
+        redirect.assert();
+        followed.assert();
+    }
+
+    #[test]
     fn gets_courses() {
         init();
         let mut server = Server::new();
