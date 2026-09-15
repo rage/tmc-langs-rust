@@ -84,7 +84,7 @@ jobs:
           export CC_$suffix='${{ matrix.cc }}' CXX_$suffix='${{ matrix.cxx }}'
           export CFLAGS_$suffix='${{ matrix.cflags }}' CXXFLAGS_$suffix='${{ matrix.cflags }}'
           # boringssl pulls in libstdc++, which only resolves through its own compiler's driver
-          export CARGO_TARGET_${suffix^^}_LINKER='${{ matrix.cc }}'
+          export CARGO_TARGET_$(echo $suffix | tr a-z A-Z)_LINKER='${{ matrix.cc }}'
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
 
       - name: Generate checksums
