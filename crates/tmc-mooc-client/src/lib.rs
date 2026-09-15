@@ -6,6 +6,7 @@ mod auth;
 mod error;
 mod exercise;
 
+use self::error::redact_query;
 pub use self::{
     auth::{
         AUTH_REQUEST_TIMEOUT, DEFAULT_CLIENT_ID, DEFAULT_POLL_INTERVAL_SECS, DEVICE_GRANT_TYPE,
@@ -141,7 +142,7 @@ impl MoocClient {
     }
 
     fn request(&self, method: Method, url: Url) -> MoocRequest {
-        log::debug!("building a request to {url}");
+        log::debug!("building a request to {}", redact_query(url.as_str()));
 
         // The bearer token is only attached to hosts we trust, so it is never
         // leaked to an arbitrary host a (possibly attacker-controlled) URL points
@@ -551,7 +552,7 @@ impl MoocRequest {
                                 .map_err(|err| MoocClientError::ReadingResponseBody {
                                     method: self.method,
                                     url: self.url.clone(),
-                                    error: Box::new(err),
+                                    error: Box::new(err.without_url()),
                                 })?;
                         // The backend returns controlled errors as an
                         // `ApiErrorResponse` carrying a `message_key` (e.g.
@@ -573,7 +574,7 @@ impl MoocRequest {
             Err(error) => Err(Box::new(MoocClientError::ConnectionError(
                 self.method,
                 self.url,
-                error,
+                error.without_url(),
             ))),
         }
     }
@@ -587,7 +588,7 @@ impl MoocRequest {
             .map_err(|err| MoocClientError::ReadingResponseBody {
                 method,
                 url,
-                error: Box::new(err),
+                error: Box::new(err.without_url()),
             })?;
         Ok(body)
     }

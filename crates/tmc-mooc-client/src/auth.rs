@@ -127,7 +127,7 @@ pub fn device_authorization(
             Box::new(MoocClientError::ConnectionError(
                 Method::POST,
                 url.clone(),
-                e,
+                e.without_url(),
             ))
         })?;
 
@@ -175,7 +175,7 @@ pub fn poll_device_token(
             Box::new(MoocClientError::ConnectionError(
                 Method::POST,
                 url.clone(),
-                e,
+                e.without_url(),
             ))
         })?;
 
@@ -231,7 +231,7 @@ pub fn refresh_token(
             Box::new(MoocClientError::ConnectionError(
                 Method::POST,
                 url.clone(),
-                e,
+                e.without_url(),
             ))
         })?;
 

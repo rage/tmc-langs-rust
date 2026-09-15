@@ -2405,6 +2405,103 @@ fn download_old_submission_save_old_state_submits_first() {
     );
 }
 
+/// Binds and releases an ephemeral port, so a request to it is refused rather than
+/// answered or left to time out.
+fn unused_port() -> u16 {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    listener.local_addr().unwrap().port()
+}
+
+#[test]
+fn download_old_submission_keeps_the_download_claim_out_of_its_error_output() {
+    // A file URL's query string is a one-hour bearer-equivalent capability for that file,
+    // and the CLI prints every link of the anyhow chain. Redacting `MoocClientError`'s own
+    // format strings is not enough: reqwest's `Display` appends the URL it was handed, and
+    // reaches the output through the `#[source]` link.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let submission_id = "99999999-9999-9999-9999-999999999999";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+    let claim = "eyJhbGciOiJIUzI1NiJ9.CLAIM-THAT-MUST-NOT-BE-PRINTED.sig";
+    // Unreachable, so the download fails at the transport layer with the claim in hand.
+    let archive_url = format!(
+        "http://127.0.0.1:{}/api/v0/files/claimed/{}?download-claim={claim}",
+        unused_port(),
+        Uuid::new_v4()
+    );
+
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect_at_least(1)
+        .create();
+    server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_body(make_tar_zst(&[
+            ("requirements.txt", b""),
+            ("src/main.py", b"# TODO: implement"),
+        ]))
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                .as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "data_files": [{
+                    "id": Uuid::new_v4(),
+                    "name": "submission.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": archive_url,
+                }]
+            })
+            .to_string(),
+        )
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "download-old-submission",
+            "--submission-id",
+            submission_id,
+            "--exercise-id",
+            exercise_id,
+            "--output-path",
+            output_dir.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    let printed = serde_json::to_string(&*error.output).unwrap();
+    assert!(
+        !printed.contains(claim),
+        "the download claim reached the CLI's output: {printed}"
+    );
+    // The redaction has to leave something recognizable, or a passing assertion above
+    // could just mean the URL never got near the error at all.
+    assert!(
+        printed.contains("download-claim=<redacted>"),
+        "expected a redacted claim parameter in: {printed}"
+    );
+}
+
 #[test]
 fn download_old_submission_reports_a_submission_with_no_files() {
     // The host serves `{"data_files": []}` for a submission it has no files for -- an
