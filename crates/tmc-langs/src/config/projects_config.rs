@@ -369,6 +369,7 @@ checksum = "bcde2345"
     #[test]
     fn loads() {
         init_logging();
+        crate::test_util::ensure_isolated_locks_dir();
 
         let temp = tempfile::TempDir::new().unwrap();
         file_to(
