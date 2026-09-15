@@ -4,9 +4,14 @@ on:
   release:
     types:
       - created
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the release to build the binaries from
+        required: true
 
 env:
-  TAG: ${{ github.event.release.tag_name }} # had some issue using this directly on windows
+  TAG: ${{ github.event.release.tag_name || github.event.inputs.tag }} # had some issue using this directly on windows
 
 jobs:
   linux:
@@ -20,22 +25,42 @@ jobs:
     strategy:
       fail-fast: false # we don't want to cancel building binaries for other targets just because one fails
       matrix:
-        target:
-          [
-            x86_64-unknown-linux-gnu,
-            i686-unknown-linux-gnu,
-            aarch64-unknown-linux-gnu,
-            armv7-unknown-linux-gnueabihf,
-            x86_64-unknown-linux-musl,
-          ]
+        include:
+          - target: x86_64-unknown-linux-gnu
+            # aws-lc-sys refuses to build with focal's default gcc 9,
+            # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95189
+            cc: gcc-10
+            cxx: g++-10
+            packages: gcc-10 g++-10
+          - target: i686-unknown-linux-gnu
+            cc: gcc-10
+            cxx: g++-10
+            packages: gcc-10 g++-10 gcc-10-multilib g++-10-multilib
+            cflags: -msse2 # boringssl's x86 assembly requires SSE2
+          - target: aarch64-unknown-linux-gnu
+            cc: aarch64-linux-gnu-gcc
+            cxx: aarch64-linux-gnu-g++
+            packages: g++-aarch64-linux-gnu
+            # without the target's headers clang reads the host's and gets the type sizes wrong
+            clang_args: --sysroot=/usr/aarch64-linux-gnu
+          - target: armv7-unknown-linux-gnueabihf
+            cc: arm-linux-gnueabihf-gcc
+            cxx: arm-linux-gnueabihf-g++
+            packages: g++-arm-linux-gnueabihf
+            clang_args: --sysroot=/usr/arm-linux-gnueabihf
     steps:
       - name: Install dependencies
         run: |
           apt update
-          apt install -y gcc-multilib  # required to build for 32-bit arch
-          apt install -y curl          # required for Rust installation
+          apt install -y curl                   # required for Rust installation
+          apt install -y git make libclang-dev  # boring-sys patches, builds and binds boringssl
+          apt install -y ${{ matrix.packages }}
+          # boringssl requires cmake 3.22, focal ships 3.16
+          curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz | tar xz --strip-components=1 -C /usr/local
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache
@@ -48,19 +73,15 @@ jobs:
       - name: "Set up Cloud SDK"
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Install aarch64-unknown-linux-gnu linker
-        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        run: apt install -y gcc-aarch64-linux-gnu
-      - name: Install armv7-unknown-linux-gnueabihf linker
-        if: ${{ matrix.target == 'armv7-unknown-linux-gnueabihf' }}
-        run: apt install -y gcc-arm-linux-gnueabihf
-      - name: Install musl gcc
-        if: ${{ matrix.target == 'x86_64-unknown-linux-musl' }}
-        run: apt install -y musl-tools
-
       - name: Build
+        env:
+          BINDGEN_EXTRA_CLANG_ARGS: ${{ matrix.clang_args }}
         run: |
           rustup target add ${{ matrix.target }}
+          # boring-sys reads the compiler from the target suffixed variables only
+          suffix=$(echo ${{ matrix.target }} | tr - _)
+          export CC_$suffix='${{ matrix.cc }}' CXX_$suffix='${{ matrix.cxx }}'
+          export CFLAGS_$suffix='${{ matrix.cflags }}' CXXFLAGS_$suffix='${{ matrix.cflags }}'
           cargo build -p tmc-langs-cli --release --target ${{ matrix.target }}
 
       - name: Generate checksums
@@ -75,6 +96,54 @@ jobs:
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$TAG.sha256
 
+  musl:
+    # statically linked, so this one needs no old glibc container,
+    # and focal is too old to run the musl cross toolchain anyway
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libclang-dev # required to build boringssl (boring-sys)
+          # part of boringssl is C++ and Ubuntu packages no musl C++ compiler
+          curl -fsSL https://github.com/cross-tools/musl-cross/releases/download/20260823/x86_64-unknown-linux-musl.tar.xz | sudo tar xJ --strip-components=1 -C /usr/local
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+      - id: "auth"
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: "Set up Cloud SDK"
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build
+        env:
+          CC_x86_64_unknown_linux_musl: x86_64-unknown-linux-musl-gcc
+          CXX_x86_64_unknown_linux_musl: x86_64-unknown-linux-musl-g++
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER: x86_64-unknown-linux-musl-gcc
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+          cargo build -p tmc-langs-cli --release --target x86_64-unknown-linux-musl
+
+      - name: Generate checksums
+        run: |
+          # canonical "<lowercase-hash>  <deployed-filename>" (sha256sum already lowercases)
+          NAME=tmc-langs-cli-x86_64-unknown-linux-musl-$TAG
+          DIR=./target/x86_64-unknown-linux-musl/release
+          echo "$(sha256sum "$DIR/tmc-langs-cli" | cut -d' ' -f1)  $NAME" > "$DIR/$NAME.sha256"
+
+      - name: Deploy
+        run: |
+          gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG
+          gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256
+
   windows:
     runs-on: windows-2022
     strategy:
@@ -84,8 +153,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Install NASM
+        uses: ilammy/setup-nasm@v1 # boringssl assembles its x86 asm with nasm
       - name: Cache
         uses: Swatinem/rust-cache@v2
       - id: "auth"
@@ -121,14 +194,20 @@ jobs:
           gsutil cp ./target/${{ matrix.target }}/release/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-${{ matrix.target }}-$Env:TAG.exe.sha256
 
   macos:
-    runs-on: macos-13
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false # we don't want to cancel building binaries for other targets just because one fails
       matrix:
-        target: [x86_64-apple-darwin, aarch64-apple-darwin]
+        include:
+          - target: x86_64-apple-darwin
+            runner: macos-15-intel # the last x86_64 image, retired in fall 2027
+          - target: aarch64-apple-darwin
+            runner: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache
