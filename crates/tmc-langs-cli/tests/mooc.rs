@@ -505,6 +505,58 @@ fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
 }
 
 #[test]
+fn mooc_422_duplicate_upload_maps_to_generic_without_a_retry() {
+    // `duplicate_upload` stays unmapped on purpose: it means a submit named one upload
+    // id twice, which no retry or user action can fix, so there is no answer a dedicated
+    // kind could give the user. It must also not trip the upload retry, which keys on
+    // `upload_expired` alone -- re-uploading would just produce the same duplicate.
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let upload = mock_upload_for_submit(&mut server).expect(1);
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/submit")
+                .as_str(),
+        )
+        .with_status(422)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "the same upload was named more than once",
+                "message_key": "duplicate_upload",
+                "metadata": null,
+                "type": "validation_error",
+            })
+            .to_string(),
+        )
+        .expect(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    upload.assert();
+    submit.assert();
+    assert_error_kind(error, "generic");
+}
+
+#[test]
 fn mooc_422_upload_expired_surfaces_only_after_the_retry_fails() {
     // The upload is retried once, so the kind reaches the client only when the
     // second attempt expires too -- by then it is a genuine failure, not a race.
