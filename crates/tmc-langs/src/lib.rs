@@ -1025,9 +1025,9 @@ fn download_and_extract_mooc_archive(
 /// first (non-blocking) so nothing the student wrote is lost.
 ///
 /// A submission the host has no files for is reported as
-/// [`MoocOldSubmissionRestore::NothingToDownload`]; the archive is
-/// resolved before anything else so that case leaves the local exercise — and the
-/// server — untouched.
+/// [`MoocOldSubmissionRestore::NothingToDownload`], and one of several files as
+/// [`LangsError::NotATmcAnswer`]. Both are decided before anything else, so neither
+/// touches the local exercise or the server.
 pub fn download_mooc_old_submission(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1041,10 +1041,22 @@ pub fn download_mooc_old_submission(
         output_path.display()
     );
 
-    let archive_url = auth.call(client, |c| c.download_submission_archive_url(submission_id))?;
-    let Some(archive_url) = archive_url else {
-        log::debug!("submission {submission_id} has no downloadable files");
-        return Ok(MoocOldSubmissionRestore::NothingToDownload);
+    // A tmc answer is one `Compression::TarZstd` archive, the shape the rest of this
+    // function extracts. Any other count came from something that is not this plugin, and
+    // picking one of several files would silently restore the wrong project.
+    let mut files = auth.call(client, |c| c.download_submission_files(submission_id))?;
+    let archive_url = match files.len() {
+        0 => {
+            log::debug!("submission {submission_id} has no downloadable files");
+            return Ok(MoocOldSubmissionRestore::NothingToDownload);
+        }
+        1 => files.remove(0).url,
+        file_count => {
+            return Err(LangsError::NotATmcAnswer {
+                submission_id,
+                file_count,
+            });
+        }
     };
 
     if save_old_state {

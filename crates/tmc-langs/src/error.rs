@@ -131,6 +131,16 @@ pub enum LangsError {
     TestMyCodeClient(#[from] Box<tmc_testmycode_client::TestMyCodeClientError>),
     #[error(transparent)]
     MoocClient(#[from] Box<tmc_mooc_client::MoocClientError>),
+    /// Raised only for more than one file. No files at all is a legitimate outcome,
+    /// reported as [`crate::data::MoocOldSubmissionRestore::NothingToDownload`].
+    #[error(
+        "Submission {submission_id} is made of {file_count} files, not the single project \
+         archive a tmc answer is, so it cannot be restored"
+    )]
+    NotATmcAnswer {
+        submission_id: Uuid,
+        file_count: usize,
+    },
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
     #[error(transparent)]

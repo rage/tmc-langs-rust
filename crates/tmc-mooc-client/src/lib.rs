@@ -441,7 +441,7 @@ impl MoocClient {
 
     /// Returns the current user's past submissions to an exercise, newest first.
     /// Each item's `id` is an exercise-slide-submission id, the value passed to
-    /// [`MoocClient::download_submission_archive_url`] and
+    /// [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
     pub fn get_exercise_submissions(
         &self,
@@ -454,9 +454,14 @@ impl MoocClient {
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    /// Returns the files that were uploaded for an exercise-slide submission (an
-    /// id from [`MoocClient::get_exercise_submissions`]), in submit order. Empty
-    /// for a submission whose answer needed no files.
+    /// Returns the files an exercise-slide submission's answer is made of (the id
+    /// comes from [`MoocClient::get_exercise_submissions`]), in the order the host
+    /// grades and displays them.
+    ///
+    /// Empty when the host has no files for the submission — an exercise type with
+    /// none. The host records a file answer the same way whether it was made from a
+    /// native client or in the exercise service's IFrame, so where it came from does
+    /// not change what comes back.
     pub fn download_submission_files(
         &self,
         submission_id: Uuid,
@@ -466,32 +471,6 @@ impl MoocClient {
             .request(Method::GET, url)
             .send_expect_json::<api::SubmissionFiles>()?;
         Ok(res.data_files)
-    }
-
-    /// Resolves an exercise-slide-submission id to the file-store URL of the
-    /// single project archive it was made from, so an old submission can be
-    /// re-downloaded.
-    ///
-    /// `Ok(None)` for a submission the host has no files for: an exercise type
-    /// with none, or a service that declares no way to enumerate its answers'
-    /// files. Answers made in the service's IFrame do have files.
-    ///
-    /// More than one file means the submission came from elsewhere, and restoring
-    /// it would silently produce the wrong project — so that is an error rather
-    /// than a guess at which file to take.
-    pub fn download_submission_archive_url(
-        &self,
-        submission_id: Uuid,
-    ) -> MoocClientResult<Option<String>> {
-        let mut files = self.download_submission_files(submission_id)?;
-        match files.len() {
-            0 => Ok(None),
-            1 => Ok(Some(files.remove(0).url)),
-            count => Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
-                submission_id,
-                count,
-            })),
-        }
     }
 
     /// Mints a shareable link to an existing submission of the current user and
@@ -1863,67 +1842,6 @@ mod test {
             "mime": ANSWER_ARCHIVE_MIME,
             "url": url,
         })
-    }
-
-    #[test]
-    fn downloads_submission_archive_url() {
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(
-            &mut server,
-            submission_id,
-            serde_json::json!([submission_file(
-                "submission.tar.zst",
-                "http://example.com/archive.tar.zst"
-            )]),
-        );
-        let url = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap();
-        assert_eq!(url.as_deref(), Some("http://example.com/archive.tar.zst"));
-    }
-
-    #[test]
-    fn download_submission_archive_url_rejects_a_multi_file_submission() {
-        // Restoring an editor submission overlays exactly one archive. Picking one
-        // of several would silently restore the wrong project, so it must fail.
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(
-            &mut server,
-            submission_id,
-            serde_json::json!([
-                submission_file("a.tar.zst", "http://example.com/a.tar.zst"),
-                submission_file("b.tar.zst", "http://example.com/b.tar.zst"),
-            ]),
-        );
-        let err = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap_err();
-        assert!(matches!(
-            *err,
-            MoocClientError::UnexpectedSubmissionFileCount { count: 2, .. }
-        ));
-    }
-
-    #[test]
-    fn download_submission_archive_url_reports_a_submission_with_no_files() {
-        // `{"data_files": []}` is the contract's blessed response for an exercise type with no
-        // files, or a service that declares no way to enumerate its answers' files — not an
-        // error.
-        init();
-        let mut server = Server::new();
-        let client = make_client(&server);
-        let submission_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
-        mock_submission_download(&mut server, submission_id, serde_json::json!([]));
-        let url = client
-            .download_submission_archive_url(Uuid::parse_str(submission_id).unwrap())
-            .unwrap();
-        assert_eq!(url, None);
     }
 
     #[test]

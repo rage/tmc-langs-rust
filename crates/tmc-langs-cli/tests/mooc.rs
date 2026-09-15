@@ -2405,6 +2405,100 @@ fn download_old_submission_save_old_state_submits_first() {
     );
 }
 
+#[test]
+fn download_old_submission_refuses_a_submission_of_several_files() {
+    // A tmc answer is one project archive. Several files means the answer came from
+    // something else, and picking one would silently restore the wrong project — so it
+    // fails, and fails before the save-old-state submit, leaving both disk and server
+    // untouched.
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
+    let task_id = "816ac03a-a713-4804-9ea6-3eb5e278ec2b";
+    let submission_id = "99999999-9999-9999-9999-999999999999";
+    let stub_url = format!("{}/files/stub.tar.zst", server.url());
+
+    let slide = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+        )
+        .with_body(editor_slide_with_stub(
+            exercise_id,
+            slide_id,
+            task_id,
+            &stub_url,
+        ))
+        .expect(0)
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
+                .as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "data_files": [
+                    {
+                        "id": Uuid::new_v4(),
+                        "name": "a.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/a.tar.zst",
+                    },
+                    {
+                        "id": Uuid::new_v4(),
+                        "name": "b.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/b.tar.zst",
+                    },
+                ]
+            })
+            .to_string(),
+        )
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let output_dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(output_dir.path().join("src")).unwrap();
+    std::fs::write(
+        output_dir.path().join("src/main.py"),
+        b"print('current work')",
+    )
+    .unwrap();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "download-old-submission",
+            "--submission-id",
+            submission_id,
+            "--exercise-id",
+            exercise_id,
+            "--output-path",
+            output_dir.path().to_str().unwrap(),
+            "--save-old-state",
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    // Neither the stub download nor the save-old-state submit was reached: both go
+    // through the slide endpoint.
+    slide.assert();
+    assert_eq!(
+        std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
+        "print('current work')"
+    );
+    let printed = serde_json::to_string(&*error.output).unwrap();
+    assert!(
+        printed.contains("is made of 2 files"),
+        "expected the several-files refusal, got: {printed}"
+    );
+    assert_error_kind(error, "generic");
+}
+
 /// Binds and releases an ephemeral port, so a request to it is refused rather than
 /// answered or left to time out.
 fn unused_port() -> u16 {
