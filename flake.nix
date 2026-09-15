@@ -32,13 +32,9 @@
         # purpose: a checked-in rust-toolchain.toml would force-pin rustup for
         # every non-nix contributor too, which we don't want.
         #
-        # Note: the workspace Cargo.toml still declares rust-version = "1.85.0",
-        # but that MSRV is stale — the current dependency graph cannot be built
-        # with it. In particular `exercise-services-api` (pulled in via the
-        # active local [patch] to ../secret-project-331) requires rustc 1.96.0,
-        # and several transitive deps (time, zip, icu_*, cookie_store) require
-        # 1.86–1.88. 1.96 matches secret-project-331's own rust-toolchain.toml
-        # pin, so we pin the same here to actually build/test the tree.
+        # Must stay equal to the workspace Cargo.toml's rust-version, which
+        # `exercise-services-api` sets the floor for; it matches
+        # secret-project-331's own rust-toolchain.toml pin.
         rustToolchain = pkgs.rust-bin.stable."1.96.0".default;
 
         # The R test runner used by the R plugin is not in nixpkgs, so build it

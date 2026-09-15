@@ -312,13 +312,13 @@ impl MoocClient {
     ///
     /// Each part is keyed by a fresh client-chosen UUID, as the host's upload
     /// handler requires. That UUID is *not* the file's identity: only
-    /// [`api::UploadedFile::id`], the host's own file id, may be named in a
+    /// [`api::AnswerFile::id`], the host's own file id, may be named in a
     /// submit.
     pub fn upload_files(
         &self,
         exercise_id: Uuid,
         files: &[(&str, &Path)],
-    ) -> MoocClientResult<Vec<api::UploadedFile>> {
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         if files.is_empty() {
             // The host rejects an empty multipart body, and there is nothing to record.
             return Ok(Vec::new());
@@ -340,7 +340,7 @@ impl MoocClient {
             // Uploads can be large: use the more generous transfer timeout.
             .transfer_timeout()
             .send_expect_json::<api::UploadedFiles>()?;
-        Ok(res.files)
+        Ok(res.data_files)
     }
 
     /// Submits an archive as the answer to an exercise task: uploads it, then
@@ -379,12 +379,16 @@ impl MoocClient {
         exercise_id: Uuid,
         slide_id: Uuid,
         task_id: Uuid,
-        uploaded: &[api::UploadedFile],
+        uploaded: &[api::AnswerFile],
     ) -> MoocClientResult<ExerciseTaskSubmissionResult> {
         let submission = api::ExerciseSlideSubmission {
             exercise_slide_id: slide_id,
             exercise_task_id: task_id,
-            uploaded_file_ids: uploaded.iter().map(|file| file.id).collect(),
+            // The host reads an absent `answer_kind` as `json`, then rejects a json answer
+            // that names files, so omitting it would 422 every submission.
+            answer_kind: Some(api::AnswerKind::File),
+            data_json: None,
+            data_files: Some(uploaded.iter().map(|file| file.id).collect()),
         };
         let submission = serialize::to_json_vec(&submission)
             .map_err(Into::into)
@@ -441,12 +445,12 @@ impl MoocClient {
     pub fn download_submission_files(
         &self,
         submission_id: Uuid,
-    ) -> MoocClientResult<Vec<api::UploadedFile>> {
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         let url = make_client_api_url(self, format!("submissions/{submission_id}/download"))?;
         let res = self
             .request(Method::GET, url)
             .send_expect_json::<api::SubmissionFiles>()?;
-        Ok(res.files)
+        Ok(res.data_files)
     }
 
     /// Resolves an exercise-slide-submission id to the file-store URL of the
@@ -467,7 +471,7 @@ impl MoocClient {
         let mut files = self.download_submission_files(submission_id)?;
         match files.len() {
             0 => Ok(None),
-            1 => Ok(Some(files.remove(0).download_url)),
+            1 => Ok(Some(files.remove(0).url)),
             count => Err(Box::new(MoocClientError::UnexpectedSubmissionFileCount {
                 submission_id,
                 count,
@@ -1332,10 +1336,11 @@ mod test {
             ))
             .with_body(
                 serde_json::json!({
-                    "files": [{
+                    "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "download_url": "http://example.com/archive.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/archive.tar.zst",
                     }]
                 })
                 .to_string(),
@@ -1368,7 +1373,7 @@ mod test {
     }
 
     #[test]
-    fn submits_uploaded_file_ids_as_json() {
+    fn submits_a_file_answer_naming_the_stored_file_ids() {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
@@ -1382,7 +1387,8 @@ mod test {
             .match_body(Matcher::Json(serde_json::json!({
                 "exercise_slide_id": SLIDE_ID,
                 "exercise_task_id": TASK_ID,
-                "uploaded_file_ids": [FILE_UPLOAD_ID],
+                "answer_kind": "file",
+                "data_files": [FILE_UPLOAD_ID],
             })))
             .with_body(
                 serde_json::json!({
@@ -1519,7 +1525,7 @@ mod test {
                     .extend(names);
                 true
             })
-            .with_body(serde_json::json!({ "files": [] }).to_string())
+            .with_body(serde_json::json!({ "data_files": [] }).to_string())
             .create();
 
         client
@@ -1609,10 +1615,11 @@ mod test {
             )
             .with_body(
                 serde_json::json!({
-                    "files": [{
+                    "data_files": [{
                         "id": FILE_UPLOAD_ID,
                         "name": "submission.tar.zst",
-                        "download_url": "http://example.com/archive.tar.zst",
+                        "mime": "application/x-zstd-compressed-tar",
+                        "url": "http://example.com/archive.tar.zst",
                     }]
                 })
                 .to_string(),
@@ -1786,15 +1793,16 @@ mod test {
                 format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                     .as_str(),
             )
-            .with_body(serde_json::json!({ "files": files }).to_string())
+            .with_body(serde_json::json!({ "data_files": files }).to_string())
             .create()
     }
 
-    fn submission_file(name: &str, download_url: &str) -> serde_json::Value {
+    fn submission_file(name: &str, url: &str) -> serde_json::Value {
         serde_json::json!({
             "id": Uuid::new_v4(),
             "name": name,
-            "download_url": download_url,
+            "mime": "application/x-zstd-compressed-tar",
+            "url": url,
         })
     }
 
@@ -1845,7 +1853,7 @@ mod test {
 
     #[test]
     fn download_submission_archive_url_reports_a_submission_with_no_files() {
-        // `{"files": []}` is the contract's blessed response for an exercise type with no
+        // `{"data_files": []}` is the contract's blessed response for an exercise type with no
         // files, or a service that declares no way to enumerate its answers' files — not an
         // error.
         init();
@@ -1878,7 +1886,7 @@ mod test {
             .unwrap();
         assert_eq!(files.len(), 2);
         assert_eq!(files[0].name, "a.txt");
-        assert_eq!(files[1].download_url, "http://example.com/b.txt");
+        assert_eq!(files[1].url, "http://example.com/b.txt");
     }
 
     #[test]

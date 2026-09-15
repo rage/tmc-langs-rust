@@ -1585,10 +1585,11 @@ fn mock_upload_for(server: &mut mockito::Server, exercise_id: &str) -> mockito::
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": SUBMIT_FILE_UPLOAD_ID,
                     "name": "submission.tar.zst",
-                    "download_url": "http://example.com/archive.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": "http://example.com/archive.tar.zst",
                 }]
             })
             .to_string(),
@@ -1616,9 +1617,12 @@ fn mock_submit_steps_for(
             "POST",
             format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
         )
-        // The submit must name the id the upload returned, never the multipart field name.
+        // The submit must name the id the upload returned, never the multipart field name,
+        // and must declare a file answer: the host reads an absent `answer_kind` as `json`
+        // and rejects a json answer that names files.
         .match_body(mockito::Matcher::PartialJson(serde_json::json!({
-            "uploaded_file_ids": [SUBMIT_FILE_UPLOAD_ID],
+            "answer_kind": "file",
+            "data_files": [SUBMIT_FILE_UPLOAD_ID],
         })))
         .with_body(
             serde_json::json!({
@@ -2235,10 +2239,11 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": Uuid::new_v4(),
                     "name": "submission.tar.zst",
-                    "download_url": old_url,
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": old_url,
                 }]
             })
             .to_string(),
@@ -2343,10 +2348,11 @@ fn download_old_submission_save_old_state_submits_first() {
         )
         .with_body(
             serde_json::json!({
-                "files": [{
+                "data_files": [{
                     "id": Uuid::new_v4(),
                     "name": "submission.tar.zst",
-                    "download_url": old_url,
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": old_url,
                 }]
             })
             .to_string(),
@@ -2401,7 +2407,7 @@ fn download_old_submission_save_old_state_submits_first() {
 
 #[test]
 fn download_old_submission_reports_a_submission_with_no_files() {
-    // The host serves `{"files": []}` for a submission it has no files for -- an
+    // The host serves `{"data_files": []}` for a submission it has no files for -- an
     // exercise type with none, or a service that cannot enumerate its answers'
     // files. That is a reported outcome, not an error, and must leave the local
     // exercise alone -- and skip the save-old-state submit, since nothing is
@@ -2432,7 +2438,7 @@ fn download_old_submission_reports_a_submission_with_no_files() {
             format!("/api/v0/exercise-services/client/submissions/{submission_id}/download")
                 .as_str(),
         )
-        .with_body(serde_json::json!({ "files": [] }).to_string())
+        .with_body(serde_json::json!({ "data_files": [] }).to_string())
         .create();
 
     let output_dir = tempfile::tempdir().unwrap();
