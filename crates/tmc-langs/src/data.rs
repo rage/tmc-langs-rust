@@ -267,8 +267,8 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
 pub enum MoocOldSubmissionRestore {
     /// The submission's archive was overlaid on a fresh stub.
     Restored,
-    /// The host has no files for the submission, so nothing on disk was touched:
-    /// an exercise type with no files, or a service that declares no way to
-    /// enumerate its answers' files.
+    /// The host has no files for the submission, so nothing on disk was touched.
+    /// Only an exercise type with no files at all reaches this; a tmc submission
+    /// always has its archive, wherever it was made.
     NothingToDownload,
 }
