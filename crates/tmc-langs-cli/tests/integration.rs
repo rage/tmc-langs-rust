@@ -75,8 +75,19 @@ fn sorted_list_of_files(path: &impl AsRef<Path>) -> Vec<String> {
     files
 }
 
+// the commands under test would otherwise lock directories in the real user data dir
+fn ensure_isolated_locks_dir() {
+    static LOCKS_DIR: std::sync::LazyLock<TempDir> = std::sync::LazyLock::new(|| {
+        let dir = tempdir().expect("failed to create tempdir for test locks dir");
+        file_util::set_test_locks_dir_override(dir.path().to_path_buf());
+        dir
+    });
+    std::sync::LazyLock::force(&LOCKS_DIR);
+}
+
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
     insta::with_settings!({
         filters => vec![
@@ -92,6 +103,13 @@ fn test(f: impl Fn(&Path)) {
             (r"/tmp/\S*", "[PATH]"),
             (r"/var/\S*", "[PATH]"),
             (r"C:/\S*/Temp/\S*", "[PATH]"),
+
+            // the compressed-project hash isn't reproducible across platforms or runs; keyed on
+            // that field alone so it can't mask future output of the same shape
+            (
+                r"(output-data-kind: compressed-project-hash\n\s*output-data: )[0-9a-f]{64}",
+                "$1[HASH]",
+            ),
         ],
     }, {
         insta::glob!("../../../", "sample_exercises/*/*", |exercise| {
@@ -219,6 +237,41 @@ fn compress_project_zstd() {
         extract_naive(&target, &extracted, Compression::TarZstd);
         let files = sorted_list_of_files(&extracted);
         insta::assert_yaml_snapshot!(files);
+    })
+}
+
+fn compressed_project_hash(output: &CliOutput) -> String {
+    match output {
+        CliOutput::OutputData(data) => match &data.data {
+            Some(DataKind::CompressedProjectHash(hash)) => hash.clone(),
+            other => panic!("expected CompressedProjectHash, got {other:?}"),
+        },
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+}
+
+// the snapshots mask the hash, so this is the only check that `--deterministic` really is
+// deterministic rather than e.g. embedding a timestamp
+#[test]
+fn compress_project_deterministic_is_stable_across_runs() {
+    test(|exercise| {
+        let hash_of_a_run = || {
+            let target = NamedTempFile::new().unwrap();
+            let cli = Cli::parse_from([
+                "tmc-langs-cli",
+                "--pretty",
+                "compress-project",
+                "--exercise-path",
+                path_str(&exercise),
+                "--output-path",
+                path_str(&target),
+                "--compression",
+                "tar",
+                "--deterministic",
+            ]);
+            compressed_project_hash(&tmc_langs_cli::run(cli).unwrap())
+        };
+        assert_eq!(hash_of_a_run(), hash_of_a_run());
     })
 }
 
@@ -397,6 +450,7 @@ fn prepare_submission_zstd() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_fails_tests() {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
     println!("set up user submission");
@@ -518,6 +572,7 @@ fn prepare_submission_fails_tests() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_passes_tests() {
+    ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
     println!("set up user submission");

@@ -323,6 +323,9 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             let mut data = vec![];
             archive_guard.get_file_mut().read_to_end(&mut data)?;
 
+            let mut output_lock = Lock::dir(&output_path, LockOptions::WriteCreate)?;
+            let _output_guard = output_lock.lock()?;
+
             tmc_langs::extract_project(Cursor::new(data), &output_path, compression, true, naive)?;
 
             CliOutput::finished(format!(
@@ -727,7 +730,7 @@ fn run_tmc_inner(
             output_path,
         } => {
             let mut output_lock = Lock::dir(&output_path, file_util::LockOptions::Write)?;
-            let output_guard = output_lock.lock()?;
+            let _output_guard = output_lock.lock()?;
 
             tmc_langs::download_old_submission(
                 client,
@@ -736,8 +739,6 @@ fn run_tmc_inner(
                 submission_id,
                 save_old_state,
             )?;
-            drop(output_guard);
-            output_lock.forget();
             CliOutput::finished("extracted project")
         }
 
@@ -1447,7 +1448,6 @@ fn run_mooc_inner(
                 save_old_state,
             )?;
             drop(output_guard);
-            output_lock.forget();
             let message = match restore {
                 tmc_langs::MoocOldSubmissionRestore::Restored => "extracted project",
                 tmc_langs::MoocOldSubmissionRestore::NothingToDownload => {

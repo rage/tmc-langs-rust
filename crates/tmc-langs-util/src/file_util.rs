@@ -1,11 +1,14 @@
 //! Various utility functions, primarily wrapping the standard library's IO and filesystem functions
 
+mod lock_path;
 #[cfg(unix)]
 mod lock_unix;
 #[cfg(windows)]
 mod lock_windows;
 
 use crate::error::FileError;
+use lock_path::central_lock_path;
+pub use lock_path::{LOCKS_DIR_ENV, set_test_locks_dir_override};
 #[cfg(unix)]
 pub use lock_unix::*;
 #[cfg(windows)]
@@ -29,8 +32,6 @@ pub enum LockOptions {
     Read,
     /// Shared read lock, create file if it doesn't exist instead of erroring (including intermediate directories)
     ReadCreate,
-    /// Shared write lock, create file if it doesn't exist, truncate if it does
-    ReadTruncate,
     /// Exclusive write lock
     Write,
     /// Exclusive write lock, create file if it doesn't exist instead of erroring (including intermediate directories)
@@ -40,20 +41,41 @@ pub enum LockOptions {
 }
 
 impl LockOptions {
+    // no truncate: O_TRUNC would wipe the file before the lock is held, letting two
+    // racing writers each truncate. `Lock::lock` truncates once it holds the lock.
     fn into_open_options(self) -> OpenOptions {
         let mut opts = OpenOptions::new();
         match self {
             Self::Read => opts.read(true),
             // create requires write
             Self::ReadCreate => opts.read(true).write(true).create(true),
-            // truncate requires write
-            Self::ReadTruncate => opts.write(true).create(true).truncate(true),
             Self::Write => opts.write(true),
             Self::WriteCreate => opts.write(true).create(true),
-            Self::WriteTruncate => opts.write(true).create(true).truncate(true),
+            Self::WriteTruncate => opts.write(true).create(true),
         };
         opts
     }
+
+    fn requests_truncate(self) -> bool {
+        matches!(self, Self::WriteTruncate)
+    }
+}
+
+/// Truncates `file` if `options` requests it. The caller must already hold the lock: truncating at
+/// open time would let two racing writers each wipe the file before either holds it.
+///
+/// `report_path` must name the file actually truncated — for `Lock::dir` the central lock file, not
+/// the locked directory.
+pub(crate) fn truncate_locked_file(
+    options: LockOptions,
+    file: &File,
+    report_path: &Path,
+) -> Result<(), FileError> {
+    if options.requests_truncate() {
+        file.set_len(0)
+            .map_err(|e| FileError::FileWrite(report_path.to_path_buf(), e))?;
+    }
+    Ok(())
 }
 
 /// Set the first time a lock attempt is answered by the OS with "locking is not
@@ -121,9 +143,6 @@ const LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 /// closure form (rather than returning the guard) keeps the platform guard's
 /// borrow of the internal [`Lock`] confined to a single loop iteration, which a
 /// guard-returning signature cannot express.
-///
-/// Do not use with the truncating [`LockOptions`] variants: the file is reopened
-/// on every attempt, so a contended lock would truncate it repeatedly.
 pub fn with_file_lock_timeout<T>(
     path: impl AsRef<Path>,
     options: LockOptions,
