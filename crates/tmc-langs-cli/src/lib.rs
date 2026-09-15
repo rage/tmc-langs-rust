@@ -838,8 +838,13 @@ fn run_tmc_inner(
                 // TODO: print "Please enter password" and add "quiet"  flag
                 let password = if stdin {
                     let stdin = BufReader::new(std::io::stdin());
+                    // without output_discard the default output target is the tty, which
+                    // callers that spawn us headless (the vscode extension) do not have
                     rpassword::read_password_with_config(
-                        ConfigBuilder::new().input_reader(stdin).build(),
+                        ConfigBuilder::new()
+                            .input_reader(stdin)
+                            .output_discard()
+                            .build(),
                     )
                     .context("Failed to read password")?
                 } else {
