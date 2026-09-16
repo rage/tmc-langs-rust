@@ -179,17 +179,7 @@ export type MoocUpdatedExercise = { id: string, }
 
 export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
-export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>,
-/**
- * Exercises never attempted because the batch stopped early on a permanent auth
- * failure (see `stopped_for_auth`). Empty unless that happened.
- */
-not_attempted: Array<MoocExerciseDownload>,
-/**
- * True if a mooc token refresh permanently failed partway through the batch,
- * leaving `not_attempted` non-empty.
- */
-stopped_for_auth: boolean, }
+export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>, }
 
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 

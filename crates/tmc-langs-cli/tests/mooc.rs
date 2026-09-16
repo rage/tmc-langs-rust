@@ -46,7 +46,7 @@ fn run_mooc_in(
     args: &[&str],
     config_dir: &std::path::Path,
     projects_dir: &std::path::Path,
-) -> Result<CliOutput, String> {
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
     run_mooc_in_with_poll(server, args, config_dir, projects_dir, 5, 5000)
 }
 
@@ -60,7 +60,7 @@ fn run_mooc_in_with_poll(
     projects_dir: &std::path::Path,
     poll_interval_ms: u64,
     poll_timeout_ms: u64,
-) -> Result<CliOutput, String> {
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let _guard = env_lock();
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
@@ -79,11 +79,11 @@ fn run_mooc_in_with_poll(
     let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
     full.extend_from_slice(args);
     let cli = Cli::parse_from(full);
-    tmc_langs_cli::run(cli).map_err(|e| format!("{e:?}"))
+    tmc_langs_cli::run(cli)
 }
 
 /// Runs a mooc command with fresh (empty) config/projects directories.
-fn run_mooc(server: &mockito::Server, args: &[&str]) -> Result<CliOutput, String> {
+fn run_mooc(server: &mockito::Server, args: &[&str]) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let config_dir = tempfile::tempdir().unwrap();
     let projects_dir = tempfile::tempdir().unwrap();
     run_mooc_in(server, args, config_dir.path(), projects_dir.path())
@@ -1379,8 +1379,6 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
                 "all five exercises should end up downloaded: {result:?}"
             );
             assert!(result.failed.is_none(), "no failures expected: {result:?}");
-            assert!(result.not_attempted.is_empty());
-            assert!(!result.stopped_for_auth);
         }
         other => panic!("expected MoocExerciseDownload, got {other:?}"),
     }
@@ -1394,9 +1392,10 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
 #[test]
 fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
     // A permanent refresh rejection (the refresh token itself is rejected) on
-    // item 3 of 5 must stop the batch there: items 1-2 stay downloaded, item 3
-    // is reported failed, items 4-5 are reported `not_attempted` (never
-    // tried), `stopped_for_auth` is set, and the credentials are deleted.
+    // item 3 of 5 must abandon the batch there and report the same auth failure
+    // any other mooc command reports -- `invalid-token`, since the rejected
+    // credentials were deleted mid-call. Items 4-5 are never requested and
+    // items 1-2 stay on disk.
     let mut server = mockito::Server::new();
     let course_id = Uuid::new_v4();
     let exercise_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
@@ -1489,37 +1488,24 @@ fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
     args.extend(exercise_ids.iter().map(Uuid::to_string));
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
 
-    let output = run_mooc_in(&server, &args, config_dir.path(), projects_root.path()).unwrap();
+    let error = run_mooc_in(&server, &args, config_dir.path(), projects_root.path())
+        .expect_err("a permanent auth failure must fail the command");
+    assert_error_kind(error, "invalid-token");
 
-    match data_of(output) {
-        DataKind::MoocExerciseDownload(result) => {
-            assert_eq!(result.downloaded.len(), 2, "items 1-2: {result:?}");
-            let downloaded_ids: std::collections::HashSet<_> =
-                result.downloaded.iter().map(|d| d.exercise_id).collect();
-            assert_eq!(
-                downloaded_ids,
-                [exercise_ids[0], exercise_ids[1]].into_iter().collect()
-            );
-
-            let failed = result
-                .failed
-                .as_ref()
-                .expect("item 3 must be reported failed");
-            assert_eq!(failed.len(), 1);
-            assert_eq!(failed[0].0.exercise_id, exercise_ids[2]);
-
-            assert_eq!(result.not_attempted.len(), 2, "items 4-5: {result:?}");
-            let not_attempted_ids: std::collections::HashSet<_> =
-                result.not_attempted.iter().map(|d| d.exercise_id).collect();
-            assert_eq!(
-                not_attempted_ids,
-                [exercise_ids[3], exercise_ids[4]].into_iter().collect()
-            );
-
-            assert!(result.stopped_for_auth);
-        }
-        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    // Items 1-2 were downloaded before the failure and stay on disk, so a retry
+    // after logging in again skips them.
+    for (i, exercise_id) in exercise_ids.iter().take(2).enumerate() {
+        let downloaded = projects_root
+            .path()
+            .join("test/mooc/course")
+            .join(format!("exercise-{i}"))
+            .join("src/main.py");
+        assert!(
+            downloaded.exists(),
+            "exercise {exercise_id} should have been downloaded before the failure"
+        );
     }
+
     refresh_rejected.assert();
     assert!(
         !credentials_path.exists(),
