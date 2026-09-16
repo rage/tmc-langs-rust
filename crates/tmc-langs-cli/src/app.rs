@@ -7,8 +7,8 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     CombinedCourseData, Compression, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    Language, LocalExercise, LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult,
-    UpdatedExercise, mooc,
+    Language, LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocUpdatedExercise, RunResult,
+    StyleValidationResult, UpdatedExercise, mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -555,7 +555,8 @@ pub enum MoocCommand {
     /// Logs out of the Courses MOOC backend, removing the stored credentials.
     #[clap(long_about = SCHEMA_NULL)]
     Logout,
-    #[clap(long_about = schema_leaked::<Vec<Uuid>>())]
+    /// Checks for updates to any exercises that exist locally.
+    #[clap(long_about = schema_leaked::<Vec<MoocUpdatedExercise>>())]
     CheckExerciseUpdates,
     /// Fetches information about a course.
     #[clap(long_about = schema_leaked::<mooc::Course>())]
@@ -1526,6 +1527,7 @@ mod test {
             tmc_langs::TestDesc,
             // checkExerciseUpdates
             tmc_langs::UpdatedExercise,
+            tmc_langs::MoocUpdatedExercise,
             // downloadOrUpdateCourseExercises
             tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,

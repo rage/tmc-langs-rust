@@ -8,8 +8,8 @@ use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore, RunResult,
-    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore,
+    MoocUpdatedExercise, RunResult, StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -20,7 +20,6 @@ use tmc_langs::{
     },
 };
 use tmc_langs_util::progress_reporter::StatusUpdate;
-use uuid::Uuid;
 
 /// The format for all messages written to stdout by the CLI
 #[derive(Debug, Serialize, JsonSchema)]
@@ -116,7 +115,7 @@ pub enum DataKind {
     TmcConfig(TmcConfig),
 
     // mooc
-    MoocUpdatedExercises(Vec<Uuid>),
+    MoocUpdatedExercises(Vec<MoocUpdatedExercise>),
     LocalMoocExercises(Vec<LocalMoocExercise>),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
@@ -246,6 +245,7 @@ pub fn cli_output_json_schema() -> String {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
+    use uuid::Uuid;
 
     fn read_api_file(filename: &str) -> String {
         std::fs::read_to_string(std::path::Path::new("api").join(filename)).unwrap()
@@ -341,6 +341,28 @@ mod test {
         let actual = serde_json::to_string_pretty(&status_update).unwrap();
         let expected = read_api_file("warnings.json");
         assert_eq!(actual, expected);
+    }
+
+    /// Both backends' update checks must report an exercise the same way, so a
+    /// client needs one parser and one code path; only the id type differs.
+    #[test]
+    fn both_backends_report_updated_exercises_as_id_objects() {
+        let tmc = serde_json::to_value(DataKind::UpdatedExercises(vec![
+            tmc_langs::UpdatedExercise { id: 1234 },
+        ]))
+        .unwrap();
+        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let mooc =
+            serde_json::to_value(DataKind::MoocUpdatedExercises(vec![MoocUpdatedExercise {
+                id,
+            }]))
+            .unwrap();
+
+        assert_eq!(tmc["output-data"][0], serde_json::json!({ "id": 1234 }));
+        assert_eq!(
+            mooc["output-data"][0],
+            serde_json::json!({ "id": id.to_string() })
+        );
     }
 
     #[test]

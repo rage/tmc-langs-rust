@@ -69,10 +69,20 @@ use {
 
 const TMC_LANGS_CONFIG_DIR_VAR: &str = "TMC_LANGS_CONFIG_DIR";
 
+/// A local TMC exercise whose server-side version has changed.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct UpdatedExercise {
     pub id: u32,
+}
+
+/// A local mooc exercise whose server-side version has changed. Shaped like
+/// [`UpdatedExercise`] so clients can treat the two backends' update checks
+/// alike; only the id type differs.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct MoocUpdatedExercise {
+    pub id: Uuid,
 }
 
 /// Signs the given serializable value with the given secret using JWT.

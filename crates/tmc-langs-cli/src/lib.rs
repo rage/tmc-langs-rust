@@ -27,7 +27,8 @@ use std::{
 };
 use tmc_langs::{
     CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult, LangsError, Language,
-    StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml, UpdatedExercise,
+    MoocUpdatedExercise, StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml,
+    UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{self, MoocClient, MoocClientError},
     progress_reporter,
@@ -1304,10 +1305,14 @@ fn run_mooc_inner(
         }
         MoocCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let course = tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?;
+            let updated_exercises =
+                tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?
+                    .into_iter()
+                    .map(|id| MoocUpdatedExercise { id })
+                    .collect::<Vec<_>>();
             CliOutput::finished_with_data(
                 "checked exercise updates",
-                DataKind::MoocUpdatedExercises(course),
+                DataKind::MoocUpdatedExercises(updated_exercises),
             )
         }
         MoocCommand::Course { course_id } => {
