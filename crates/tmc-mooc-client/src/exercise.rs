@@ -290,6 +290,13 @@ mod test {
     /// Guards the deserialize (input) side that the serialize-only bindings drift
     /// gate can't catch: parses a mixed editor+browser slide, then re-serializes
     /// and re-parses it.
+    ///
+    /// The conversion has a hand-written mirror in
+    /// `tmc-vscode/src/test/moocMockReconciliation.test.ts` (`toCliStdoutSlide`),
+    /// which is what reconciles the backend's wire shape with the CLI's stdout
+    /// schema. Neither repo's CI can see the other, so a change to the `TryFrom`
+    /// impls above has to land there in the same change, or that file goes on
+    /// reconciling a conversion that no longer exists.
     #[test]
     fn slide_with_mixed_tasks_round_trips() {
         let editor_task_id = Uuid::new_v4();

@@ -99,6 +99,20 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
     }
 }
 
+/// Downcasts one link of an error chain to `E`, looking through a `Box<E>`.
+///
+/// Both backend client crates alias their `Result` with a boxed error, and
+/// `Box<E>`'s `Error::source` forwards past `E` itself, so `E` only ever reaches
+/// the chain as `Box<E>` and a plain `downcast_ref::<E>()` silently never
+/// matches.
+fn downcast_through_box<'a, E: std::error::Error + 'static>(
+    cause: &'a (dyn std::error::Error + 'static),
+) -> Option<&'a E> {
+    cause
+        .downcast_ref::<E>()
+        .or_else(|| cause.downcast_ref::<Box<E>>().map(Box::as_ref))
+}
+
 /// Goes through the error chain and checks for special error types that should be indicated by the Kind.
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
@@ -108,7 +122,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         }
 
         // check for tmc client errors
-        match cause.downcast_ref::<TestMyCodeClientError>() {
+        match downcast_through_box::<TestMyCodeClientError>(cause) {
             Some(TestMyCodeClientError::HttpError {
                 url: _,
                 status,
@@ -134,17 +148,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             _ => {}
         }
 
-        // NB: mooc errors travel the chain as `Box<MoocClientError>`, so a bare
-        // downcast never matches; the boxed form must be checked too (same as the
-        // 401 handler in `run_mooc`).
-        if let Some(kind) = cause
-            .downcast_ref::<MoocClientError>()
-            .or_else(|| {
-                cause
-                    .downcast_ref::<Box<MoocClientError>>()
-                    .map(Box::as_ref)
-            })
-            .and_then(mooc_error_kind)
+        if let Some(kind) = downcast_through_box::<MoocClientError>(cause).and_then(mooc_error_kind)
         {
             return kind;
         }
@@ -676,7 +680,7 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
                 if let Some(TestMyCodeClientError::HttpError { status, .. }) =
-                    cause.downcast_ref::<TestMyCodeClientError>()
+                    downcast_through_box::<TestMyCodeClientError>(cause)
                 {
                     if status.as_u16() == 401 {
                         // Only a stored TMC token is deleted here. A rejected
@@ -1538,10 +1542,8 @@ fn mooc_grading_is_terminal(status: &mooc::ExerciseTaskSubmissionStatus) -> bool
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => false,
-        Status::Grading {
-            grading_progress, ..
-        } => matches!(
-            grading_progress,
+        Status::Grading { grading } => matches!(
+            grading.grading_progress,
             Progress::FullyGraded | Progress::Failed | Progress::PendingManual
         ),
     }
@@ -1552,9 +1554,7 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => "Grading has not started yet".to_string(),
-        Status::Grading {
-            grading_progress, ..
-        } => match grading_progress {
+        Status::Grading { grading } => match grading.grading_progress {
             Progress::NotReady => "Grading not ready".to_string(),
             Progress::Pending => "Grading in progress".to_string(),
             Progress::PendingManual => "Awaiting manual grading".to_string(),
@@ -1562,6 +1562,18 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
             Progress::Failed => "Grading failed".to_string(),
         },
     }
+}
+
+/// Emits a grading progress update unless it repeats `last_message`, which it
+/// updates to the message it emitted.
+///
+/// A grading stuck in one state would otherwise emit a line per poll, ~90 at the default interval.
+fn report_grading_progress(last_message: &mut Option<String>, message: String) {
+    if last_message.as_deref() == Some(message.as_str()) {
+        return;
+    }
+    progress_reporter::progress_stage::<()>(message.clone(), None);
+    *last_message = Some(message);
 }
 
 /// Polls a submission's grading until it reaches a terminal state (see
@@ -1582,6 +1594,7 @@ fn wait_for_mooc_grading(
     let (interval, timeout) = mooc_poll_config();
     progress_reporter::start_stage::<()>(1, "Waiting for grading".to_string(), None);
     let deadline = Instant::now() + timeout;
+    let mut last_message: Option<String> = None;
     loop {
         match auth.call(client, |c| c.get_submission_grading(submission_id)) {
             Ok(status) => {
@@ -1596,7 +1609,7 @@ fn wait_for_mooc_grading(
                     );
                     return Ok(status);
                 }
-                progress_reporter::progress_stage::<()>(mooc_grading_message(&status), None);
+                report_grading_progress(&mut last_message, mooc_grading_message(&status));
             }
             // The token was permanently rejected: waiting any longer cannot
             // help (there is no session left to poll with), so fail fast
@@ -1621,9 +1634,9 @@ fn wait_for_mooc_grading(
                     return Err(e.into());
                 }
                 log::warn!("transient error while polling grading, retrying: {e}");
-                progress_reporter::progress_stage::<()>(
+                report_grading_progress(
+                    &mut last_message,
                     "Grading status temporarily unavailable, retrying".to_string(),
-                    None,
                 );
             }
         }

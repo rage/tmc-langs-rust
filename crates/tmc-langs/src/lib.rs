@@ -963,8 +963,6 @@ pub fn update_mooc_exercises(
         downloaded,
         skipped: vec![],
         failed: None,
-        not_attempted: vec![],
-        stopped_for_auth: false,
     })
 }
 
@@ -1172,9 +1170,6 @@ pub fn download_or_update_mooc_course_exercises(
     let mut downloaded = Vec::new();
     let mut skipped = Vec::new();
     let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
-    // Index the batch stopped at on a permanent auth failure, so the rest can be
-    // reported as `not_attempted` instead of silently dropped.
-    let mut stop_at: Option<usize> = None;
 
     // Report per-exercise download progress, mirroring the TMC download path.
     let total_steps = u32::try_from(exercise_ids.len())
@@ -1186,7 +1181,7 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
-    for (item_index, &exercise_id) in exercise_ids.iter().enumerate() {
+    for &exercise_id in exercise_ids {
         let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
             failed.push((
                 MoocExerciseDownload {
@@ -1281,22 +1276,22 @@ pub fn download_or_update_mooc_course_exercises(
                     path: target,
                 });
             }
-            // Every remaining item would fail identically: record this one as failed,
-            // stop iterating, and report the rest as `not_attempted`.
+            // No session left, so every remaining item would fail the same way:
+            // surface the auth failure instead of a partial result. Exercises
+            // already downloaded stay on disk and are skipped on retry.
             Err(DownloadArchiveError::Auth(auth_err)) if auth_err.is_permanent() => {
-                log::error!(
-                    "mooc auth permanently failed while downloading exercise {exercise_id}, \
-                     stopping the batch: {auth_err}"
+                progress_reporter::finish_stage::<mooc::MoocClientUpdateData>(
+                    "Stopped downloading mooc exercises: not logged in".to_string(),
+                    None,
                 );
-                failed.push((
-                    MoocExerciseDownload {
-                        exercise_id,
-                        path: target,
-                    },
-                    error_chain(&auth_err),
-                ));
-                stop_at = Some(item_index);
-                break;
+                log::error!(
+                    "mooc auth permanently failed while downloading exercise {exercise_id} \
+                     ({} of {} exercises downloaded, {} skipped): {auth_err}",
+                    downloaded.len(),
+                    exercise_ids.len(),
+                    skipped.len(),
+                );
+                return Err(auth_err.into());
             }
             Err(err) => {
                 let err: LangsError = err.into();
@@ -1316,18 +1311,6 @@ pub fn download_or_update_mooc_course_exercises(
         None,
     );
 
-    // Everything after the stop point was never attempted.
-    let not_attempted = match stop_at {
-        Some(stop_at) => exercise_ids[stop_at + 1..]
-            .iter()
-            .map(|&exercise_id| MoocExerciseDownload {
-                exercise_id,
-                path: projects_dir.join("mooc"),
-            })
-            .collect(),
-        None => Vec::new(),
-    };
-
     Ok(DownloadOrUpdateMoocCourseExercisesResult {
         downloaded,
         skipped,
@@ -1336,8 +1319,6 @@ pub fn download_or_update_mooc_course_exercises(
         } else {
             Some(failed)
         },
-        not_attempted,
-        stopped_for_auth: stop_at.is_some(),
     })
 }
 

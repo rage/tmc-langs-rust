@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
-use tmc_langs::MoocCredentials;
+use tmc_langs::{MoocCredentials, progress_reporter};
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -46,7 +46,7 @@ fn run_mooc_in(
     args: &[&str],
     config_dir: &std::path::Path,
     projects_dir: &std::path::Path,
-) -> Result<CliOutput, String> {
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
     run_mooc_in_with_poll(server, args, config_dir, projects_dir, 5, 5000)
 }
 
@@ -60,8 +60,29 @@ fn run_mooc_in_with_poll(
     projects_dir: &std::path::Path,
     poll_interval_ms: u64,
     poll_timeout_ms: u64,
-) -> Result<CliOutput, String> {
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let _guard = env_lock();
+    set_mooc_env(
+        server,
+        config_dir,
+        projects_dir,
+        poll_interval_ms,
+        poll_timeout_ms,
+    );
+    let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
+    full.extend_from_slice(args);
+    let cli = Cli::parse_from(full);
+    tmc_langs_cli::run(cli)
+}
+
+/// Callers must hold [`ENV_LOCK`].
+fn set_mooc_env(
+    server: &mockito::Server,
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+    poll_interval_ms: u64,
+    poll_timeout_ms: u64,
+) {
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
         std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
@@ -76,14 +97,40 @@ fn run_mooc_in_with_poll(
             poll_timeout_ms.to_string(),
         );
     }
+}
+
+static PROGRESS_MESSAGES: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+fn progress_messages() -> MutexGuard<'static, Vec<String>> {
+    PROGRESS_MESSAGES.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// Runs a mooc command with fresh config/projects directories, also returning
+/// every progress message it emitted, in order.
+///
+/// The progress reporter, its subscriber and the capture buffer are all
+/// process-global, so the buffer is reset and drained inside the same
+/// [`ENV_LOCK`] critical section as the run itself.
+fn run_mooc_capturing_progress(
+    server: &mockito::Server,
+    args: &[&str],
+) -> (Result<CliOutput, tmc_langs_cli::CliError>, Vec<String>) {
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let _guard = env_lock();
+    set_mooc_env(server, config_dir.path(), projects_dir.path(), 5, 5000);
+    progress_reporter::subscribe::<(), _>(|update| progress_messages().push(update.message));
+    progress_messages().clear();
     let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
     full.extend_from_slice(args);
     let cli = Cli::parse_from(full);
-    tmc_langs_cli::run(cli).map_err(|e| format!("{e:?}"))
+    let result = tmc_langs_cli::run(cli);
+    let messages = std::mem::take(&mut *progress_messages());
+    (result, messages)
 }
 
 /// Runs a mooc command with fresh (empty) config/projects directories.
-fn run_mooc(server: &mockito::Server, args: &[&str]) -> Result<CliOutput, String> {
+fn run_mooc(server: &mockito::Server, args: &[&str]) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let config_dir = tempfile::tempdir().unwrap();
     let projects_dir = tempfile::tempdir().unwrap();
     run_mooc_in(server, args, config_dir.path(), projects_dir.path())
@@ -1379,8 +1426,6 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
                 "all five exercises should end up downloaded: {result:?}"
             );
             assert!(result.failed.is_none(), "no failures expected: {result:?}");
-            assert!(result.not_attempted.is_empty());
-            assert!(!result.stopped_for_auth);
         }
         other => panic!("expected MoocExerciseDownload, got {other:?}"),
     }
@@ -1394,9 +1439,10 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
 #[test]
 fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
     // A permanent refresh rejection (the refresh token itself is rejected) on
-    // item 3 of 5 must stop the batch there: items 1-2 stay downloaded, item 3
-    // is reported failed, items 4-5 are reported `not_attempted` (never
-    // tried), `stopped_for_auth` is set, and the credentials are deleted.
+    // item 3 of 5 must abandon the batch there and report the same auth failure
+    // any other mooc command reports -- `invalid-token`, since the rejected
+    // credentials were deleted mid-call. Items 4-5 are never requested and
+    // items 1-2 stay on disk.
     let mut server = mockito::Server::new();
     let course_id = Uuid::new_v4();
     let exercise_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
@@ -1489,37 +1535,24 @@ fn download_or_update_course_exercises_permanent_auth_failure_stops_batch() {
     args.extend(exercise_ids.iter().map(Uuid::to_string));
     let args: Vec<&str> = args.iter().map(String::as_str).collect();
 
-    let output = run_mooc_in(&server, &args, config_dir.path(), projects_root.path()).unwrap();
+    let error = run_mooc_in(&server, &args, config_dir.path(), projects_root.path())
+        .expect_err("a permanent auth failure must fail the command");
+    assert_error_kind(error, "invalid-token");
 
-    match data_of(output) {
-        DataKind::MoocExerciseDownload(result) => {
-            assert_eq!(result.downloaded.len(), 2, "items 1-2: {result:?}");
-            let downloaded_ids: std::collections::HashSet<_> =
-                result.downloaded.iter().map(|d| d.exercise_id).collect();
-            assert_eq!(
-                downloaded_ids,
-                [exercise_ids[0], exercise_ids[1]].into_iter().collect()
-            );
-
-            let failed = result
-                .failed
-                .as_ref()
-                .expect("item 3 must be reported failed");
-            assert_eq!(failed.len(), 1);
-            assert_eq!(failed[0].0.exercise_id, exercise_ids[2]);
-
-            assert_eq!(result.not_attempted.len(), 2, "items 4-5: {result:?}");
-            let not_attempted_ids: std::collections::HashSet<_> =
-                result.not_attempted.iter().map(|d| d.exercise_id).collect();
-            assert_eq!(
-                not_attempted_ids,
-                [exercise_ids[3], exercise_ids[4]].into_iter().collect()
-            );
-
-            assert!(result.stopped_for_auth);
-        }
-        other => panic!("expected MoocExerciseDownload, got {other:?}"),
+    // Items 1-2 were downloaded before the failure and stay on disk, so a retry
+    // after logging in again skips them.
+    for (i, exercise_id) in exercise_ids.iter().take(2).enumerate() {
+        let downloaded = projects_root
+            .path()
+            .join("test/mooc/course")
+            .join(format!("exercise-{i}"))
+            .join("src/main.py");
+        assert!(
+            downloaded.exists(),
+            "exercise {exercise_id} should have been downloaded before the failure"
+        );
     }
+
     refresh_rejected.assert();
     assert!(
         !credentials_path.exists(),
@@ -1598,8 +1631,8 @@ fn submittable_project() -> tempfile::TempDir {
 }
 
 /// Serializes a `MoocSubmissionStatus` payload to JSON so tests can assert on the
-/// externally-tagged `"NoGradingYet" | {"Grading":{...}}` wire shape without
-/// depending on the enum types directly.
+/// `{"status":"no-grading-yet"} | {"status":"grading","grading":{...}}` wire
+/// shape without depending on the enum types directly.
 fn submission_status_json(output: CliOutput) -> serde_json::Value {
     match data_of(output) {
         DataKind::MoocSubmissionStatus(status) => serde_json::to_value(&status).unwrap(),
@@ -1784,9 +1817,69 @@ fn blocking_submit_polls_until_fully_graded() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
-    assert_eq!(json["Grading"]["score_given"], 1.0);
-    assert_eq!(json["Grading"]["feedback_text"], "All tests passed");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["score_given"], 1.0);
+    assert_eq!(json["grading"]["feedback_text"], "All tests passed");
+}
+
+#[test]
+fn blocking_submit_reports_an_unchanged_grading_status_once() {
+    let mut server = mockito::Server::new();
+    let submission_id = "55555555-5555-5555-5555-555555555555";
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let (_upload, _submit) = mock_submit(&mut server, submission_id);
+    // Three polls return the same non-terminal status (bounded so the next mock
+    // takes over).
+    let pending = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(serde_json::json!("NoGradingYet").to_string())
+        .expect(3)
+        .create();
+    let _graded = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(
+            serde_json::json!({
+                "Grading": {
+                    "grading_progress": "FullyGraded",
+                    "score_given": 1.0,
+                    "grading_started_at": "2026-07-21T00:00:00Z",
+                    "grading_completed_at": "2026-07-21T00:00:01Z",
+                    "feedback_json": null,
+                    "feedback_text": "All tests passed"
+                }
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+
+    let project = submittable_project();
+    let (output, messages) = run_mooc_capturing_progress(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+    );
+
+    let json = submission_status_json(output.unwrap());
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    pending.assert();
+    assert_eq!(
+        messages
+            .iter()
+            .filter(|m| m.as_str() == "Grading has not started yet")
+            .count(),
+        1,
+        "three identical polls should report once, got {messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m == "Fully graded"),
+        "the terminal status should still be reported, got {messages:?}"
+    );
 }
 
 #[test]
@@ -1836,8 +1929,8 @@ fn blocking_submit_tolerates_transient_grading_errors() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
-    assert_eq!(json["Grading"]["feedback_text"], "All tests passed");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["feedback_text"], "All tests passed");
 }
 
 #[test]
@@ -1971,7 +2064,7 @@ fn blocking_submit_transient_401_during_grading_poll_does_not_resubmit() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
 
     // Exactly one submission was ever created, despite the 401 mid-poll.
     submit.assert();
@@ -2109,8 +2202,8 @@ fn dispatches_wait_for_grading() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "Failed");
-    assert_eq!(json["Grading"]["feedback_text"], "Compilation error");
+    assert_eq!(json["grading"]["grading_progress"], "Failed");
+    assert_eq!(json["grading"]["feedback_text"], "Compilation error");
 }
 
 #[test]
@@ -2144,8 +2237,8 @@ fn wait_for_grading_treats_pending_manual_as_terminal() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "PendingManual");
-    assert_eq!(json["Grading"]["score_given"], 0.5);
+    assert_eq!(json["grading"]["grading_progress"], "PendingManual");
+    assert_eq!(json["grading"]["score_given"], 0.5);
 }
 
 #[test]
@@ -2186,7 +2279,7 @@ fn wait_for_grading_times_out_returning_latest_status() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "Pending");
+    assert_eq!(json["grading"]["grading_progress"], "Pending");
 }
 
 #[test]

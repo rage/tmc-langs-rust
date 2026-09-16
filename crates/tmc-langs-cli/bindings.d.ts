@@ -179,17 +179,7 @@ export type MoocUpdatedExercise = { id: string, }
 
 export type DownloadOrUpdateTmcCourseExercisesResult = { downloaded: Array<TmcExerciseDownload>, skipped: Array<TmcExerciseDownload>, failed?: Array<[TmcExerciseDownload, Array<string>]>, }
 
-export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>,
-/**
- * Exercises never attempted because the batch stopped early on a permanent auth
- * failure (see `stopped_for_auth`). Empty unless that happened.
- */
-not_attempted: Array<MoocExerciseDownload>,
-/**
- * True if a mooc token refresh permanently failed partway through the batch,
- * leaving `not_attempted` non-empty.
- */
-stopped_for_auth: boolean, }
+export type DownloadOrUpdateMoocCourseExercisesResult = { downloaded: Array<MoocExerciseDownload>, skipped: Array<MoocExerciseDownload>, failed?: Array<[MoocExerciseDownload, Array<string>]>, }
 
 export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise-slug": string, path: string, }
 
@@ -387,7 +377,18 @@ task_submission_id: string,
  */
 slide_submission_id: string, }
 
-export type ExerciseTaskSubmissionStatus = "NoGradingYet" | { "Grading": { grading_progress: GradingProgress, score_given: number | null, grading_started_at: string | null, grading_completed_at: string | null, feedback_json: unknown | null, feedback_text: string | null, } };
+export type ExerciseTaskSubmissionStatus = { "status": "no-grading-yet" } | { "status": "grading", grading: Grading, };
+
+export type Grading = { grading_progress: GradingProgress,
+/**
+ * Absent until grading has produced a value; a partial value while
+ * `grading_progress` is still pending.
+ */
+score_given: number | null, grading_started_at: string | null, grading_completed_at: string | null,
+/**
+ * Human-readable feedback, for a client to display as-is.
+ */
+feedback_text: string | null, }
 
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
 
