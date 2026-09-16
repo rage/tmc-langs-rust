@@ -1836,64 +1836,36 @@
       ]
     },
     "ExerciseTaskSubmissionStatus": {
+      "description": "The grading status of a task submission, as polled after `submit`.",
       "oneOf": [
         {
-          "type": "string",
-          "enum": [
-            "NoGradingYet"
+          "description": "The submission has no grading record yet.",
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "const": "no-grading-yet"
+            }
+          },
+          "required": [
+            "status"
           ]
         },
         {
+          "description": "A grading record exists. It may still be in progress; `grading_progress`\nsays how far it has got.",
           "type": "object",
           "properties": {
-            "Grading": {
-              "type": "object",
-              "properties": {
-                "feedback_json": true,
-                "feedback_text": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
-                },
-                "grading_completed_at": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "grading_progress": {
-                  "$ref": "#/$defs/GradingProgress"
-                },
-                "grading_started_at": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "format": "date-time"
-                },
-                "score_given": {
-                  "type": [
-                    "number",
-                    "null"
-                  ],
-                  "format": "float"
-                }
-              },
-              "required": [
-                "grading_progress",
-                "score_given",
-                "grading_started_at",
-                "grading_completed_at",
-                "feedback_json",
-                "feedback_text"
-              ]
+            "grading": {
+              "$ref": "#/$defs/Grading"
+            },
+            "status": {
+              "type": "string",
+              "const": "grading"
             }
           },
-          "additionalProperties": false,
           "required": [
-            "Grading"
+            "status",
+            "grading"
           ]
         }
       ]
@@ -1903,6 +1875,51 @@
       "enum": [
         "browser",
         "editor"
+      ]
+    },
+    "Grading": {
+      "description": "A task submission's grading record.",
+      "type": "object",
+      "properties": {
+        "feedback_text": {
+          "description": "Human-readable feedback, for a client to display as-is.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "grading_completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "grading_progress": {
+          "$ref": "#/$defs/GradingProgress"
+        },
+        "grading_started_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "score_given": {
+          "description": "Absent until grading has produced a value; a partial value while\n`grading_progress` is still pending.",
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "float"
+        }
+      },
+      "required": [
+        "grading_progress",
+        "score_given",
+        "grading_started_at",
+        "grading_completed_at",
+        "feedback_text"
       ]
     },
     "GradingProgress": {

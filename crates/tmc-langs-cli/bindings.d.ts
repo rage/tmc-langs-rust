@@ -387,7 +387,18 @@ task_submission_id: string,
  */
 slide_submission_id: string, }
 
-export type ExerciseTaskSubmissionStatus = "NoGradingYet" | { "Grading": { grading_progress: GradingProgress, score_given: number | null, grading_started_at: string | null, grading_completed_at: string | null, feedback_json: unknown | null, feedback_text: string | null, } };
+export type ExerciseTaskSubmissionStatus = { "status": "no-grading-yet" } | { "status": "grading", grading: Grading, };
+
+export type Grading = { grading_progress: GradingProgress,
+/**
+ * Absent until grading has produced a value; a partial value while
+ * `grading_progress` is still pending.
+ */
+score_given: number | null, grading_started_at: string | null, grading_completed_at: string | null,
+/**
+ * Human-readable feedback, for a client to display as-is.
+ */
+feedback_text: string | null, }
 
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
 

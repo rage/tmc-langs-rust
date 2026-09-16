@@ -1542,10 +1542,8 @@ fn mooc_grading_is_terminal(status: &mooc::ExerciseTaskSubmissionStatus) -> bool
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => false,
-        Status::Grading {
-            grading_progress, ..
-        } => matches!(
-            grading_progress,
+        Status::Grading { grading } => matches!(
+            grading.grading_progress,
             Progress::FullyGraded | Progress::Failed | Progress::PendingManual
         ),
     }
@@ -1556,9 +1554,7 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
     use mooc::{ExerciseTaskSubmissionStatus as Status, GradingProgress as Progress};
     match status {
         Status::NoGradingYet => "Grading has not started yet".to_string(),
-        Status::Grading {
-            grading_progress, ..
-        } => match grading_progress {
+        Status::Grading { grading } => match grading.grading_progress {
             Progress::NotReady => "Grading not ready".to_string(),
             Progress::Pending => "Grading in progress".to_string(),
             Progress::PendingManual => "Awaiting manual grading".to_string(),

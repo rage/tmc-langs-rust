@@ -1598,8 +1598,8 @@ fn submittable_project() -> tempfile::TempDir {
 }
 
 /// Serializes a `MoocSubmissionStatus` payload to JSON so tests can assert on the
-/// externally-tagged `"NoGradingYet" | {"Grading":{...}}` wire shape without
-/// depending on the enum types directly.
+/// `{"status":"no-grading-yet"} | {"status":"grading","grading":{...}}` wire
+/// shape without depending on the enum types directly.
 fn submission_status_json(output: CliOutput) -> serde_json::Value {
     match data_of(output) {
         DataKind::MoocSubmissionStatus(status) => serde_json::to_value(&status).unwrap(),
@@ -1784,9 +1784,9 @@ fn blocking_submit_polls_until_fully_graded() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
-    assert_eq!(json["Grading"]["score_given"], 1.0);
-    assert_eq!(json["Grading"]["feedback_text"], "All tests passed");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["score_given"], 1.0);
+    assert_eq!(json["grading"]["feedback_text"], "All tests passed");
 }
 
 #[test]
@@ -1836,8 +1836,8 @@ fn blocking_submit_tolerates_transient_grading_errors() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
-    assert_eq!(json["Grading"]["feedback_text"], "All tests passed");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["feedback_text"], "All tests passed");
 }
 
 #[test]
@@ -1971,7 +1971,7 @@ fn blocking_submit_transient_401_during_grading_poll_does_not_resubmit() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "FullyGraded");
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
 
     // Exactly one submission was ever created, despite the 401 mid-poll.
     submit.assert();
@@ -2109,8 +2109,8 @@ fn dispatches_wait_for_grading() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "Failed");
-    assert_eq!(json["Grading"]["feedback_text"], "Compilation error");
+    assert_eq!(json["grading"]["grading_progress"], "Failed");
+    assert_eq!(json["grading"]["feedback_text"], "Compilation error");
 }
 
 #[test]
@@ -2144,8 +2144,8 @@ fn wait_for_grading_treats_pending_manual_as_terminal() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "PendingManual");
-    assert_eq!(json["Grading"]["score_given"], 0.5);
+    assert_eq!(json["grading"]["grading_progress"], "PendingManual");
+    assert_eq!(json["grading"]["score_given"], 0.5);
 }
 
 #[test]
@@ -2186,7 +2186,7 @@ fn wait_for_grading_times_out_returning_latest_status() {
     .unwrap();
 
     let json = submission_status_json(output);
-    assert_eq!(json["Grading"]["grading_progress"], "Pending");
+    assert_eq!(json["grading"]["grading_progress"], "Pending");
 }
 
 #[test]

@@ -723,18 +723,30 @@ impl From<api::ExerciseTaskSubmissionResult> for ExerciseTaskSubmissionResult {
     }
 }
 
+/// The grading status of a task submission, as polled after `submit`.
 #[derive(Debug, Serialize, JsonSchema)]
+#[serde(tag = "status", rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub enum ExerciseTaskSubmissionStatus {
+    /// The submission has no grading record yet.
     NoGradingYet,
-    Grading {
-        grading_progress: GradingProgress,
-        score_given: Option<f32>,
-        grading_started_at: Option<DateTime<Utc>>,
-        grading_completed_at: Option<DateTime<Utc>>,
-        feedback_json: Option<serde_json::Value>,
-        feedback_text: Option<String>,
-    },
+    /// A grading record exists. It may still be in progress; `grading_progress`
+    /// says how far it has got.
+    Grading { grading: Grading },
+}
+
+/// A task submission's grading record.
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct Grading {
+    pub grading_progress: GradingProgress,
+    /// Absent until grading has produced a value; a partial value while
+    /// `grading_progress` is still pending.
+    pub score_given: Option<f32>,
+    pub grading_started_at: Option<DateTime<Utc>>,
+    pub grading_completed_at: Option<DateTime<Utc>>,
+    /// Human-readable feedback, for a client to display as-is.
+    pub feedback_text: Option<String>,
 }
 
 impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
@@ -746,15 +758,18 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                 score_given,
                 grading_started_at,
                 grading_completed_at,
-                feedback_json,
+                // The exercise service that produced it is the only thing that
+                // can interpret its shape, so a native client has no use for it.
+                feedback_json: _,
                 feedback_text,
             } => Self::Grading {
-                grading_progress: grading_progress.into(),
-                score_given,
-                grading_started_at,
-                grading_completed_at,
-                feedback_json,
-                feedback_text,
+                grading: Grading {
+                    grading_progress: grading_progress.into(),
+                    score_given,
+                    grading_started_at,
+                    grading_completed_at,
+                    feedback_text,
+                },
             },
         }
     }
@@ -851,6 +866,38 @@ mod test {
 
     fn env_lock() -> MutexGuard<'static, ()> {
         ENV_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Pins the client-facing grading shape: internally tagged and kebab-cased
+    /// like every other output kind, and without `feedback_json`, which only the
+    /// exercise service that produced it can interpret.
+    #[test]
+    fn submission_status_is_internally_tagged_without_plugin_feedback() {
+        let no_grading = serde_json::to_value(ExerciseTaskSubmissionStatus::NoGradingYet).unwrap();
+        assert_eq!(
+            no_grading,
+            serde_json::json!({ "status": "no-grading-yet" })
+        );
+
+        let grading =
+            ExerciseTaskSubmissionStatus::from(api::ExerciseTaskSubmissionStatus::Grading {
+                grading_progress: api::GradingProgress::FullyGraded,
+                score_given: Some(1.0),
+                grading_started_at: None,
+                grading_completed_at: None,
+                feedback_json: Some(serde_json::json!({ "plugin_private": "sentinel" })),
+                feedback_text: Some("All tests passed".to_string()),
+            });
+        let grading = serde_json::to_value(&grading).unwrap();
+
+        assert_eq!(grading["status"], "grading");
+        assert_eq!(grading["grading"]["grading_progress"], "FullyGraded");
+        assert_eq!(grading["grading"]["score_given"], 1.0);
+        assert_eq!(grading["grading"]["feedback_text"], "All tests passed");
+        assert!(
+            !grading.to_string().contains("sentinel"),
+            "plugin-private feedback must not be relayed: {grading}"
+        );
     }
 
     fn init() {

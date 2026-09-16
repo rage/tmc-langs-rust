@@ -1587,6 +1587,7 @@ mod test {
             tmc_langs::mooc::ModelSolutionSpec,
             tmc_langs::mooc::ExerciseTaskSubmissionResult,
             tmc_langs::mooc::ExerciseTaskSubmissionStatus,
+            tmc_langs::mooc::Grading,
             tmc_langs::mooc::GradingProgress,
             tmc_langs::mooc::ExerciseSlideSubmissionListItem,
             tmc_langs::mooc::PasteResult,
