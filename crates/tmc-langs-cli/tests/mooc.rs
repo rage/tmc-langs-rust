@@ -137,6 +137,30 @@ fn write_test_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     path
 }
 
+/// Writes an unexpired credentials file carrying both an access and a refresh
+/// token, so output that leaks either is detectable by its sentinel value.
+fn write_credentials_with_refresh_token(config_dir: &std::path::Path) -> std::path::PathBuf {
+    let dir = config_dir.join("tmc-test");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join(MoocCredentials::credentials_file_name());
+    std::fs::write(
+        &path,
+        serde_json::json!({
+            "token": {
+                "access_token": "sentinel-access",
+                "refresh_token": "sentinel-refresh",
+                "token_type": "bearer",
+                "expires_in": 3600,
+                "scope": "exercise-services"
+            },
+            "obtained_at": "2400-01-01T00:00:00Z"
+        })
+        .to_string(),
+    )
+    .unwrap();
+    path
+}
+
 /// Writes an *expired* credentials file that still carries a refresh
 /// token, so loading it triggers the proactive refresh path.
 fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
@@ -3027,7 +3051,25 @@ fn mooc_logged_in_reports_stored_credentials() {
     let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
     let data = output_data(output);
     assert!(matches!(data.result, OutputResult::LoggedIn));
-    assert!(matches!(data.data, Some(DataKind::Token(_))));
+    assert!(data.data.is_none());
+}
+
+/// `logged-in` answers a boolean question, so the credential must not ride
+/// along in the payload: it would reach the client's heap and its logs, and the
+/// refresh token there is the long-lived one.
+#[test]
+fn mooc_logged_in_never_emits_the_token() {
+    let server = mockito::Server::new();
+    let config_dir = tempfile::tempdir().unwrap();
+    write_credentials_with_refresh_token(config_dir.path());
+
+    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+    let serialized = serde_json::to_string(&output).unwrap();
+    assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
+    assert!(
+        !serialized.contains("sentinel-access") && !serialized.contains("sentinel-refresh"),
+        "logged-in output leaked a token: {serialized}"
+    );
 }
 
 #[test]
