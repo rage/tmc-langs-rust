@@ -1016,6 +1016,25 @@
             "output-data": {
               "type": "array",
               "items": {
+                "$ref": "#/$defs/LocalExercise"
+              }
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "local-exercises"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "type": "array",
+              "items": {
                 "$ref": "#/$defs/LocalTmcExercise"
               }
             },
@@ -1067,8 +1086,7 @@
             "output-data": {
               "type": "array",
               "items": {
-                "type": "string",
-                "format": "uuid"
+                "$ref": "#/$defs/MoocUpdatedExercise"
               }
             },
             "output-data-kind": {
@@ -1965,10 +1983,49 @@
         }
       ]
     },
+    "LocalExercise": {
+      "description": "An exercise in the projects directory, tagged with the backend it came from.\nBoth arms carry the ids needed to identify the exercise and its course, so a\nclient can key off them without a second lookup.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "backend": {
+              "type": "string",
+              "const": "tmc"
+            }
+          },
+          "$ref": "#/$defs/LocalTmcExercise",
+          "required": [
+            "backend"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "backend": {
+              "type": "string",
+              "const": "mooc"
+            }
+          },
+          "$ref": "#/$defs/LocalMoocExercise",
+          "required": [
+            "backend"
+          ]
+        }
+      ]
+    },
     "LocalMoocExercise": {
       "description": "MOOC exercise inside the projects directory.",
       "type": "object",
       "properties": {
+        "course-id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "course-slug": {
+          "description": "The course's on-disk directory name. Mooc courses have no server-side\nslug; this is the kebab-cased course name, deduplicated locally.",
+          "type": "string"
+        },
         "exercise-id": {
           "type": "string",
           "format": "uuid"
@@ -1982,15 +2039,26 @@
         }
       },
       "required": [
+        "course-slug",
+        "course-id",
         "exercise-slug",
         "exercise-id",
         "exercise-path"
       ]
     },
     "LocalTmcExercise": {
-      "description": "TMC eercise inside the projects directory.",
+      "description": "TMC exercise inside the projects directory.",
       "type": "object",
       "properties": {
+        "course-slug": {
+          "description": "The course's on-disk directory name, which is also its TMC slug.",
+          "type": "string"
+        },
+        "exercise-id": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
         "exercise-path": {
           "type": "string"
         },
@@ -1999,7 +2067,9 @@
         }
       },
       "required": [
+        "course-slug",
         "exercise-slug",
+        "exercise-id",
         "exercise-path"
       ]
     },
@@ -2146,6 +2216,19 @@
           "type": "string",
           "const": "nothing-to-download"
         }
+      ]
+    },
+    "MoocUpdatedExercise": {
+      "description": "A local mooc exercise whose server-side version has changed. Shaped like\n[`UpdatedExercise`] so clients can treat the two backends' update checks\nalike; only the id type differs.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "id"
       ]
     },
     "NewSubmission": {
@@ -3583,6 +3666,7 @@
       ]
     },
     "UpdatedExercise": {
+      "description": "A local TMC exercise whose server-side version has changed.",
       "type": "object",
       "properties": {
         "id": {
