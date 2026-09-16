@@ -888,12 +888,13 @@ fn run_tmc_inner(
         }
 
         TestMyCodeCommand::LoggedIn => {
-            if let Some(token) = auth.token() {
+            // The token is deliberately kept out of the output so it never reaches client logs.
+            if auth.token().is_some() {
                 CliOutput::OutputData(Box::new(OutputData {
                     status: Status::Finished,
                     message: "currently logged in".to_string(),
                     result: OutputResult::LoggedIn,
-                    data: Some(DataKind::Token(token)),
+                    data: None,
                 }))
             } else {
                 CliOutput::OutputData(Box::new(OutputData {
@@ -1243,15 +1244,15 @@ fn poll_mooc_device_login(
     }
 }
 
-/// Reports whether mooc credentials are stored, printing the token if so —
-/// mirrors the tmc `logged-in` command.
+/// Reports whether mooc credentials are stored, like the tmc `logged-in`. The
+/// token itself is kept out of the output so it never reaches client logs.
 fn mooc_logged_in(client_name: &str) -> Result<CliOutput> {
-    if let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? {
+    if tmc_langs::MoocCredentials::load(client_name)?.is_some() {
         Ok(CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "currently logged in".to_string(),
             result: OutputResult::LoggedIn,
-            data: Some(DataKind::Token(credentials.token())),
+            data: None,
         })))
     } else {
         Ok(CliOutput::OutputData(Box::new(OutputData {

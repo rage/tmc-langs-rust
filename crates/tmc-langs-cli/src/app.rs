@@ -411,9 +411,8 @@ pub enum TestMyCodeCommand {
     },
 
     /// Checks whether the CLI can authenticate with the TMC server, either with a
-    /// stored TMC token or with the Courses MOOC access token. Prints the access
-    /// token if so
-    #[clap(long_about = SCHEMA_TOKEN)]
+    /// stored TMC token or with the Courses MOOC access token
+    #[clap(long_about = SCHEMA_NULL)]
     LoggedIn,
 
     /// Removes a stored TMC OAuth2 token from config. Does not affect the Courses
@@ -542,8 +541,8 @@ pub enum MoocCommand {
     /// this one).
     #[clap(long_about = SCHEMA_NULL)]
     Login,
-    /// Checks whether the CLI holds mooc credentials. Prints the access token if so.
-    #[clap(long_about = SCHEMA_TOKEN)]
+    /// Checks whether the CLI holds mooc credentials.
+    #[clap(long_about = SCHEMA_NULL)]
     LoggedIn,
     /// Logs out of the Courses MOOC backend, removing the stored credentials.
     #[clap(long_about = SCHEMA_NULL)]
@@ -770,13 +769,6 @@ impl FromStr for CourseType {
 
 // == utilities for printing the JSON schema of the objects printed to stdout by the CLI ==
 const SCHEMA_NULL: &str = "Result data JSON format: null";
-const SCHEMA_TOKEN: &str = r#"Result data JSON format:
-{
-    "access_token": String,
-    "token_type": String,
-    "scope": String,
-}"#;
-
 // clap's long_about only accepts string slices, so
 // this function is used to leak a constant amount of
 // memory to dynamically create static slices
