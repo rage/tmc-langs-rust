@@ -15,8 +15,9 @@ use crate::data::{DownloadTarget, DownloadTargetKind};
 pub use crate::{
     config::{
         Credentials, MoocAuth, MoocAuthFailure, MoocCredentials, ProjectsConfig,
-        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_mooc_course_exercises,
-        list_local_tmc_course_exercises, migrate_exercise, move_projects_dir,
+        ProjectsDirTmcExercise, TmcConfig, TmcCourseConfig, list_local_exercises,
+        list_local_mooc_course_exercises, list_local_tmc_course_exercises, migrate_exercise,
+        move_projects_dir,
     },
     course_refresher::{RefreshData, RefreshExercise, refresh_course},
     data::{

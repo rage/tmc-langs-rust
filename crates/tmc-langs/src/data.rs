@@ -11,8 +11,11 @@ use std::{
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 use uuid::Uuid;
 
+/// An exercise in the projects directory, tagged with the backend it came from.
+/// Both arms carry the ids needed to identify the exercise and its course, so a
+/// client can key off them without a second lookup.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "backend", rename_all = "snake_case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum LocalExercise {
     Tmc(LocalTmcExercise),
@@ -24,6 +27,8 @@ pub enum LocalExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalTmcExercise {
+    /// The course's on-disk directory name, which is also its TMC slug.
+    pub course_slug: String,
     pub exercise_slug: String,
     pub exercise_id: u32,
     pub exercise_path: PathBuf,
@@ -34,6 +39,10 @@ pub struct LocalTmcExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalMoocExercise {
+    /// The course's on-disk directory name. Mooc courses have no server-side
+    /// slug; this is the kebab-cased course name, deduplicated locally.
+    pub course_slug: String,
+    pub course_id: Uuid,
     /// The exercise's on-disk directory name, used as its slug when building a
     /// workspace entry (mirrors the TMC slug); stable since names are unique per
     /// course.

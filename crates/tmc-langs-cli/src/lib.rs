@@ -395,6 +395,15 @@ fn run_app(cli: Cli) -> Result<CliOutput> {
             )
         }
 
+        Command::ListLocalExercises { client_name } => {
+            let local_exercises = tmc_langs::list_local_exercises(&client_name)?;
+
+            CliOutput::finished_with_data(
+                "listed local exercises",
+                DataKind::LocalExercises(local_exercises),
+            )
+        }
+
         Command::ListLocalTmcCourseExercises {
             client_name,
             course_slug,

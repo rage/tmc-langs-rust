@@ -1016,6 +1016,25 @@
             "output-data": {
               "type": "array",
               "items": {
+                "$ref": "#/$defs/LocalExercise"
+              }
+            },
+            "output-data-kind": {
+              "type": "string",
+              "const": "local-exercises"
+            }
+          },
+          "required": [
+            "output-data-kind",
+            "output-data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "output-data": {
+              "type": "array",
+              "items": {
                 "$ref": "#/$defs/LocalTmcExercise"
               }
             },
@@ -1965,10 +1984,49 @@
         }
       ]
     },
+    "LocalExercise": {
+      "description": "An exercise in the projects directory, tagged with the backend it came from.\nBoth arms carry the ids needed to identify the exercise and its course, so a\nclient can key off them without a second lookup.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "backend": {
+              "type": "string",
+              "const": "tmc"
+            }
+          },
+          "$ref": "#/$defs/LocalTmcExercise",
+          "required": [
+            "backend"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "backend": {
+              "type": "string",
+              "const": "mooc"
+            }
+          },
+          "$ref": "#/$defs/LocalMoocExercise",
+          "required": [
+            "backend"
+          ]
+        }
+      ]
+    },
     "LocalMoocExercise": {
       "description": "MOOC exercise inside the projects directory.",
       "type": "object",
       "properties": {
+        "course-id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "course-slug": {
+          "description": "The course's on-disk directory name. Mooc courses have no server-side\nslug; this is the kebab-cased course name, deduplicated locally.",
+          "type": "string"
+        },
         "exercise-id": {
           "type": "string",
           "format": "uuid"
@@ -1982,6 +2040,8 @@
         }
       },
       "required": [
+        "course-slug",
+        "course-id",
         "exercise-slug",
         "exercise-id",
         "exercise-path"
@@ -1991,6 +2051,10 @@
       "description": "TMC exercise inside the projects directory.",
       "type": "object",
       "properties": {
+        "course-slug": {
+          "description": "The course's on-disk directory name, which is also its TMC slug.",
+          "type": "string"
+        },
         "exercise-id": {
           "type": "integer",
           "format": "uint32",
@@ -2004,6 +2068,7 @@
         }
       },
       "required": [
+        "course-slug",
         "exercise-slug",
         "exercise-id",
         "exercise-path"

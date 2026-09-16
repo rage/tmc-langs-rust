@@ -8,7 +8,7 @@ use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore, RunResult,
+    LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore, RunResult,
     StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
@@ -108,6 +108,7 @@ pub enum DataKind {
     ConfigValue(ConfigValue),
     CompressedProjectHash(String),
     SubmissionSandbox(String),
+    LocalExercises(Vec<LocalExercise>),
 
     // tmc
     LocalTmcExercises(Vec<LocalTmcExercise>),

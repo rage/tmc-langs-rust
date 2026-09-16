@@ -7,8 +7,8 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     CombinedCourseData, Compression, DownloadOrUpdateMoocCourseExercisesResult,
     DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    Language, LocalExercise, LocalMoocExercise, RunResult, StyleValidationResult, UpdatedExercise,
-    mooc,
+    Language, LocalExercise, LocalMoocExercise, LocalTmcExercise, RunResult, StyleValidationResult,
+    UpdatedExercise, mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -133,8 +133,16 @@ pub enum Command {
         output_path: Option<PathBuf>,
     },
 
-    /// Returns a list of local exercises for the given course
+    /// Returns every exercise in the projects directory, from both backends
     #[clap(long_about = schema_leaked::<Vec<LocalExercise>>())]
+    ListLocalExercises {
+        /// The client name of which the exercises should be listed.
+        #[clap(long)]
+        client_name: String,
+    },
+
+    /// Returns a list of local exercises for the given course
+    #[clap(long_about = schema_leaked::<Vec<LocalTmcExercise>>())]
     ListLocalTmcCourseExercises {
         /// The client name of which the exercises should be listed.
         #[clap(long)]
@@ -869,6 +877,11 @@ mod base_test {
             "--output-path",
             "path",
         ]);
+    }
+
+    #[test]
+    fn list_local_exercises() {
+        get_matches(&["list-local-exercises", "--client-name", "client"]);
     }
 
     #[test]
