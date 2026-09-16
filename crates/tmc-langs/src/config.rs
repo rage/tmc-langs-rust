@@ -62,7 +62,7 @@ pub fn list_local_tmc_course_exercises(
         .map(|cc| cc.exercises)
         .unwrap_or_default();
     let mut local_exercises: Vec<LocalTmcExercise> = vec![];
-    for (exercise_slug, _) in exercises {
+    for (exercise_slug, exercise) in exercises {
         local_exercises.push(LocalTmcExercise {
             exercise_path: ProjectsConfig::get_tmc_exercise_download_target(
                 &projects_dir,
@@ -70,6 +70,7 @@ pub fn list_local_tmc_course_exercises(
                 &exercise_slug,
             ),
             exercise_slug,
+            exercise_id: exercise.id,
         })
     }
     Ok(local_exercises)
@@ -212,6 +213,58 @@ mod test {
         }
         std::fs::write(&target, contents.as_ref()).unwrap();
         target
+    }
+
+    /// Points `TMC_LANGS_CONFIG_DIR` at `config_dir` and writes a config for
+    /// client `test` whose projects dir is `projects_dir`. Callers must hold
+    /// [`env_lock`].
+    fn set_up_projects_dir(config_dir: &Path, projects_dir: &Path) {
+        // SAFETY: all env access in these tests is serialized by `env_lock`.
+        unsafe {
+            env::set_var(TMC_LANGS_CONFIG_DIR_VAR, config_dir);
+        }
+        file_to(
+            config_dir.join("tmc-test"),
+            "config.toml",
+            format!(
+                "projects-dir = '{}'\n",
+                projects_dir.display().to_string().replace('\\', "\\\\")
+            ),
+        );
+    }
+
+    #[test]
+    fn lists_local_tmc_course_exercises_with_ids() {
+        init();
+        crate::test_util::ensure_isolated_locks_dir();
+        let _guard = env_lock();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let projects_dir = tempfile::tempdir().unwrap();
+        set_up_projects_dir(config_dir.path(), projects_dir.path());
+        file_to(
+            projects_dir.path().join("tmc/some-course"),
+            "course_config.toml",
+            "course = 'some-course'\n\
+             [exercises.'some-exercise']\n\
+             id = 1234\n\
+             checksum = 'abc'\n",
+        );
+        file_to(
+            projects_dir.path().join("tmc/some-course/some-exercise"),
+            "src/main.py",
+            "",
+        );
+
+        let exercises = list_local_tmc_course_exercises("test", "some-course").unwrap();
+
+        assert_eq!(exercises.len(), 1);
+        assert_eq!(exercises[0].exercise_slug, "some-exercise");
+        assert_eq!(exercises[0].exercise_id, 1234);
+        assert_eq!(
+            exercises[0].exercise_path,
+            projects_dir.path().join("tmc/some-course/some-exercise")
+        );
     }
 
     #[test]

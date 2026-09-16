@@ -19,12 +19,13 @@ pub enum LocalExercise {
     Mooc(LocalMoocExercise),
 }
 
-/// TMC eercise inside the projects directory.
+/// TMC exercise inside the projects directory.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalTmcExercise {
     pub exercise_slug: String,
+    pub exercise_id: u32,
     pub exercise_path: PathBuf,
 }
 

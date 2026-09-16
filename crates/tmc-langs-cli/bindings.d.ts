@@ -62,7 +62,7 @@ exercise_file_paths: Array<string>, }
 
 export type LocalExercise = { "tmc": LocalTmcExercise } | { "mooc": LocalMoocExercise };
 
-export type LocalTmcExercise = { "exercise-slug": string, "exercise-path": string, }
+export type LocalTmcExercise = { "exercise-slug": string, "exercise-id": number, "exercise-path": string, }
 
 export type LocalMoocExercise = { 
 /**
