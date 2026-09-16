@@ -728,8 +728,7 @@ mod test {
         archive.unpack(&output_extracted).unwrap();
 
         for file in WalkDir::new(&output_extracted) {
-            let file = file.unwrap();
-            println!("{}", file.path().display());
+            log::debug!("{}", file.unwrap().path().display());
         }
 
         // Verify .tmcproject.yml content is from stub, not student
