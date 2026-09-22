@@ -18,17 +18,13 @@ A "frontend" for tmc-langs. A binary CLI client for TMC-langs for IDEs. Intended
 
 The "backend". A library that provides a convenient API for implementing different frontends. A frontend (such as a CLI) should only depend on this library. The other libraries are considered internal.
 
-### tmc-client
-
-A library that abstracts over different TMC backends.
-
 ### tmc-testmycode-client
 
-A library for communicating with the TestMyCode TMC server.
+A library for communicating with the legacy TestMyCode TMC server (`tmc.mooc.fi`, API v8, integer ids).
 
 ### tmc-mooc-client
 
-A library for communicating with the mooc.fi TMC server.
+A library for communicating with the Courses MOOC backend (`courses.mooc.fi`, UUID ids, OAuth2 device flow).
 
 ### tmc-langs-framework
 

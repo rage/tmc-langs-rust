@@ -1,6 +1,7 @@
 //! Contains a struct that models the .tmcproject.yml file.
 
 use crate::TmcError;
+use schemars::JsonSchema;
 use serde::{
     Deserialize, Deserializer, Serialize,
     de::{Error, Visitor},
@@ -17,7 +18,7 @@ use tmc_langs_util::{
 const DEFAULT_SUBMISSION_SIZE_LIMIT_MB: u32 = 1;
 
 /// Extra data from a `.tmcproject.yml` file.
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TmcProjectYml {
     /// A list of files or directories that will always be considered student files.
@@ -44,6 +45,7 @@ pub struct TmcProjectYml {
     /// Marks the exercise as not containing any tests.
     #[serde(rename = "no-tests")]
     #[cfg_attr(feature = "ts-rs", ts(skip))]
+    #[schemars(skip)]
     #[serde(default)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub no_tests: Option<NoTests>,
@@ -151,7 +153,7 @@ impl TmcProjectYml {
 }
 
 /// Python version from TmcProjectYml.
-#[derive(Debug, Default, Clone, Copy, Serialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, Serialize, PartialEq, Eq, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct PythonVer {
     major: u32,

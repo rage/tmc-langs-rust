@@ -176,6 +176,37 @@ impl Lock {
             path: Cow::Borrowed(&self.path),
         })
     }
+
+    /// A single non-blocking lock attempt. `Ok(None)` means the lock is currently
+    /// held elsewhere and the caller may retry; see [`with_file_lock_timeout`] for
+    /// the bounded-wait loop built on this.
+    pub fn try_lock(&mut self) -> Result<Option<Guard<'_>>, FileError> {
+        log::trace!("try-locking {}", self.path.display());
+        let report_path: &Path = self.lock_file_path.as_deref().unwrap_or(&self.path);
+        let shared = matches!(self.options, LockOptions::Read | LockOptions::ReadCreate);
+        let guard = if shared {
+            match self.lock.try_read() {
+                Ok(guard) => GuardInner::FdLockRead(guard),
+                Err(err) if err.kind() == ErrorKind::WouldBlock => return Ok(None),
+                Err(err) => return Err(FileError::FileOpen(report_path.to_path_buf(), err)),
+            }
+        } else {
+            match self.lock.try_write() {
+                Ok(guard) => GuardInner::FdLockWrite(guard),
+                Err(err) if err.kind() == ErrorKind::WouldBlock => return Ok(None),
+                Err(err) => return Err(FileError::FileOpen(report_path.to_path_buf(), err)),
+            }
+        };
+        let file: &File = match &guard {
+            GuardInner::FdLockRead(g) => g,
+            GuardInner::FdLockWrite(g) => g,
+        };
+        truncate_locked_file(self.options, file, report_path)?;
+        Ok(Some(Guard {
+            guard,
+            path: Cow::Owned(self.path.clone()),
+        }))
+    }
 }
 
 pub struct Guard<'a> {

@@ -8,23 +8,30 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     path::PathBuf,
 };
+use tmc_mooc_client as mooc;
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 use uuid::Uuid;
 
+/// An exercise in the projects directory, tagged with the backend it came from.
+/// Both arms carry the ids needed to identify the exercise and its course, so a
+/// client can key off them without a second lookup.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "backend", rename_all = "snake_case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum LocalExercise {
     Tmc(LocalTmcExercise),
     Mooc(LocalMoocExercise),
 }
 
-/// TMC eercise inside the projects directory.
+/// TMC exercise inside the projects directory.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalTmcExercise {
+    /// The course's on-disk directory name, which is also its TMC slug.
+    pub course_slug: String,
     pub exercise_slug: String,
+    pub exercise_id: u32,
     pub exercise_path: PathBuf,
 }
 
@@ -33,6 +40,14 @@ pub struct LocalTmcExercise {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct LocalMoocExercise {
+    /// The course's on-disk directory name. Mooc courses have no server-side
+    /// slug; this is the kebab-cased course name, deduplicated locally.
+    pub course_slug: String,
+    pub course_id: Uuid,
+    /// The exercise's on-disk directory name, used as its slug when building a
+    /// workspace entry (mirrors the TMC slug); stable since names are unique per
+    /// course.
+    pub exercise_slug: String,
     pub exercise_id: Uuid,
     pub exercise_path: PathBuf,
 }
@@ -167,7 +182,7 @@ impl Display for ShellString {
 }
 
 #[derive(Debug)]
-pub enum DownloadResult {
+pub enum TmcDownloadResult {
     Success {
         downloaded: Vec<TmcExerciseDownload>,
         skipped: Vec<TmcExerciseDownload>,
@@ -204,7 +219,10 @@ pub struct TmcExerciseDownload {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct MoocExerciseDownload {
-    pub id: Uuid,
+    /// The requested exercise's id; results are keyed by it so callers can
+    /// correlate each download/skip/failure back to the exercise (not the internal
+    /// editor task id).
+    pub exercise_id: Uuid,
     pub path: PathBuf,
 }
 
@@ -214,6 +232,16 @@ pub struct CombinedCourseData {
     pub details: CourseDetails,
     pub exercises: Vec<CourseExercise>,
     pub settings: CourseData,
+}
+
+/// A mooc course, its exercise slides and the current user's progress in it,
+/// fetched together. The mooc counterpart of [`CombinedCourseData`].
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct CombinedMoocCourseData {
+    pub course: mooc::Course,
+    pub slides: Vec<mooc::TmcExerciseSlide>,
+    pub progress: mooc::CourseProgress,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
@@ -226,11 +254,13 @@ pub struct DownloadOrUpdateTmcCourseExercisesResult {
 }
 
 /// A setting in a TmcConfig file.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
 #[serde(untagged)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum ConfigValue {
-    Value(Option<toml::Value>),
+    // `toml::Value` does not implement `JsonSchema`; represent it as an
+    // arbitrary JSON value, matching the `unknown` ts-rs renders it as.
+    Value(#[schemars(with = "Option<serde_json::Value>")] Option<toml::Value>),
     Path(PathBuf),
 }
 
@@ -241,4 +271,72 @@ pub struct DownloadOrUpdateMoocCourseExercisesResult {
     pub skipped: Vec<MoocExerciseDownload>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub failed: Option<Vec<(MoocExerciseDownload, Vec<String>)>>,
+}
+
+/// Outcome of restoring a past mooc submission.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub enum MoocOldSubmissionRestore {
+    /// The submission's archive was overlaid on a fresh stub.
+    Restored,
+    /// The host has no files for the submission, so nothing on disk was touched.
+    /// Only an exercise type with no files at all reaches this; a tmc submission
+    /// always has its archive, wherever it was made.
+    NothingToDownload,
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn combined_mooc_course_data_round_trips() {
+        let json = serde_json::json!({
+            "course": {
+                "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "slug": "intro",
+                "name": "Intro",
+                "description": null,
+                "organization_name": "mooc.fi",
+            },
+            "slides": [{
+                "slide_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d01",
+                "exercise_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d02",
+                "course_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "exercise_name": "part01-01",
+                "exercise_order_number": 1,
+                "deadline": "2026-10-01T12:00:00Z",
+                "tasks": [{
+                    "task_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d03",
+                    "order_number": 0,
+                    "assignment": [],
+                    "public_spec": {
+                        "type": "editor",
+                        "archive_name": "part01-01",
+                        "stub_download_url": "https://courses.mooc.fi/stub.tar.zst",
+                        "student_file_paths": ["src/main.py"],
+                        "checksum": "abc",
+                        "browser_test": null,
+                    },
+                    "model_solution_spec": null,
+                    "checksum": "abc",
+                }],
+            }],
+            "progress": {
+                "course_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "exercises": [{
+                    "exercise_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d02",
+                    "score_given": 0.5,
+                    "score_maximum": 1,
+                    "completed": false,
+                    "attempted": true,
+                }],
+            },
+        });
+
+        let data: CombinedMoocCourseData = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(serde_json::to_value(&data).unwrap(), json);
+    }
 }
