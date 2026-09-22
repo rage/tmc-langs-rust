@@ -1564,6 +1564,20 @@ fn mooc_grading_message(status: &mooc::ExerciseTaskSubmissionStatus) -> String {
     }
 }
 
+/// Emits a grading progress update unless it repeats `last_message`, which it
+/// updates to the message it emitted.
+///
+/// A grading that stays in one state polls for as long as the wait bound allows
+/// — around 90 times at the default interval — and every `progress_stage` is a
+/// line the client has to render.
+fn report_grading_progress(last_message: &mut Option<String>, message: String) {
+    if last_message.as_deref() == Some(message.as_str()) {
+        return;
+    }
+    progress_reporter::progress_stage::<()>(message.clone(), None);
+    *last_message = Some(message);
+}
+
 /// Polls a submission's grading until it reaches a terminal state (see
 /// [`mooc_grading_is_terminal`]) or the timeout elapses, emitting stdout progress
 /// updates as the TMC submit loop does. On timeout the latest non-terminal status
@@ -1582,6 +1596,7 @@ fn wait_for_mooc_grading(
     let (interval, timeout) = mooc_poll_config();
     progress_reporter::start_stage::<()>(1, "Waiting for grading".to_string(), None);
     let deadline = Instant::now() + timeout;
+    let mut last_message: Option<String> = None;
     loop {
         match auth.call(client, |c| c.get_submission_grading(submission_id)) {
             Ok(status) => {
@@ -1596,7 +1611,7 @@ fn wait_for_mooc_grading(
                     );
                     return Ok(status);
                 }
-                progress_reporter::progress_stage::<()>(mooc_grading_message(&status), None);
+                report_grading_progress(&mut last_message, mooc_grading_message(&status));
             }
             // The token was permanently rejected: waiting any longer cannot
             // help (there is no session left to poll with), so fail fast
@@ -1621,9 +1636,9 @@ fn wait_for_mooc_grading(
                     return Err(e.into());
                 }
                 log::warn!("transient error while polling grading, retrying: {e}");
-                progress_reporter::progress_stage::<()>(
+                report_grading_progress(
+                    &mut last_message,
                     "Grading status temporarily unavailable, retrying".to_string(),
-                    None,
                 );
             }
         }

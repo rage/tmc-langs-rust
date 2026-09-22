@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
-use tmc_langs::MoocCredentials;
+use tmc_langs::{MoocCredentials, progress_reporter};
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -62,6 +62,27 @@ fn run_mooc_in_with_poll(
     poll_timeout_ms: u64,
 ) -> Result<CliOutput, tmc_langs_cli::CliError> {
     let _guard = env_lock();
+    set_mooc_env(
+        server,
+        config_dir,
+        projects_dir,
+        poll_interval_ms,
+        poll_timeout_ms,
+    );
+    let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
+    full.extend_from_slice(args);
+    let cli = Cli::parse_from(full);
+    tmc_langs_cli::run(cli)
+}
+
+/// Callers must hold [`ENV_LOCK`].
+fn set_mooc_env(
+    server: &mockito::Server,
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+    poll_interval_ms: u64,
+    poll_timeout_ms: u64,
+) {
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
         std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
@@ -76,10 +97,36 @@ fn run_mooc_in_with_poll(
             poll_timeout_ms.to_string(),
         );
     }
+}
+
+static PROGRESS_MESSAGES: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+fn progress_messages() -> MutexGuard<'static, Vec<String>> {
+    PROGRESS_MESSAGES.lock().unwrap_or_else(|e| e.into_inner())
+}
+
+/// Runs a mooc command with fresh config/projects directories, also returning
+/// every progress message it emitted, in order.
+///
+/// The progress reporter, its subscriber and the capture buffer are all
+/// process-global, so the buffer is reset and drained inside the same
+/// [`ENV_LOCK`] critical section as the run itself.
+fn run_mooc_capturing_progress(
+    server: &mockito::Server,
+    args: &[&str],
+) -> (Result<CliOutput, tmc_langs_cli::CliError>, Vec<String>) {
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    let _guard = env_lock();
+    set_mooc_env(server, config_dir.path(), projects_dir.path(), 5, 5000);
+    progress_reporter::subscribe::<(), _>(|update| progress_messages().push(update.message));
+    progress_messages().clear();
     let mut full = vec!["tmc-langs-cli", "mooc", "--client-name", "test"];
     full.extend_from_slice(args);
     let cli = Cli::parse_from(full);
-    tmc_langs_cli::run(cli)
+    let result = tmc_langs_cli::run(cli);
+    let messages = std::mem::take(&mut *progress_messages());
+    (result, messages)
 }
 
 /// Runs a mooc command with fresh (empty) config/projects directories.
@@ -1773,6 +1820,66 @@ fn blocking_submit_polls_until_fully_graded() {
     assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
     assert_eq!(json["grading"]["score_given"], 1.0);
     assert_eq!(json["grading"]["feedback_text"], "All tests passed");
+}
+
+#[test]
+fn blocking_submit_reports_an_unchanged_grading_status_once() {
+    let mut server = mockito::Server::new();
+    let submission_id = "55555555-5555-5555-5555-555555555555";
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let (_upload, _submit) = mock_submit(&mut server, submission_id);
+    // Three polls return the same non-terminal status (bounded so the next mock
+    // takes over).
+    let pending = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(serde_json::json!("NoGradingYet").to_string())
+        .expect(3)
+        .create();
+    let _graded = server
+        .mock("GET", grading_path(submission_id).as_str())
+        .with_body(
+            serde_json::json!({
+                "Grading": {
+                    "grading_progress": "FullyGraded",
+                    "score_given": 1.0,
+                    "grading_started_at": "2026-07-21T00:00:00Z",
+                    "grading_completed_at": "2026-07-21T00:00:01Z",
+                    "feedback_json": null,
+                    "feedback_text": "All tests passed"
+                }
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create();
+
+    let project = submittable_project();
+    let (output, messages) = run_mooc_capturing_progress(
+        &server,
+        &[
+            "submit",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+    );
+
+    let json = submission_status_json(output.unwrap());
+    assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
+    pending.assert();
+    assert_eq!(
+        messages
+            .iter()
+            .filter(|m| m.as_str() == "Grading has not started yet")
+            .count(),
+        1,
+        "three identical polls should report once, got {messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m == "Fully graded"),
+        "the terminal status should still be reported, got {messages:?}"
+    );
 }
 
 #[test]
