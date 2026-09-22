@@ -99,6 +99,20 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
     }
 }
 
+/// Downcasts one link of an error chain to `E`, looking through a `Box<E>`.
+///
+/// Both backend client crates alias their `Result` with a boxed error, and
+/// `Box<E>`'s `Error::source` forwards past `E` itself, so `E` only ever reaches
+/// the chain as `Box<E>` and a plain `downcast_ref::<E>()` silently never
+/// matches.
+fn downcast_through_box<'a, E: std::error::Error + 'static>(
+    cause: &'a (dyn std::error::Error + 'static),
+) -> Option<&'a E> {
+    cause
+        .downcast_ref::<E>()
+        .or_else(|| cause.downcast_ref::<Box<E>>().map(Box::as_ref))
+}
+
 /// Goes through the error chain and checks for special error types that should be indicated by the Kind.
 fn solve_error_kind(e: &anyhow::Error) -> Kind {
     for cause in e.chain() {
@@ -108,7 +122,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         }
 
         // check for tmc client errors
-        match cause.downcast_ref::<TestMyCodeClientError>() {
+        match downcast_through_box::<TestMyCodeClientError>(cause) {
             Some(TestMyCodeClientError::HttpError {
                 url: _,
                 status,
@@ -134,17 +148,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             _ => {}
         }
 
-        // NB: mooc errors travel the chain as `Box<MoocClientError>`, so a bare
-        // downcast never matches; the boxed form must be checked too (same as the
-        // 401 handler in `run_mooc`).
-        if let Some(kind) = cause
-            .downcast_ref::<MoocClientError>()
-            .or_else(|| {
-                cause
-                    .downcast_ref::<Box<MoocClientError>>()
-                    .map(Box::as_ref)
-            })
-            .and_then(mooc_error_kind)
+        if let Some(kind) = downcast_through_box::<MoocClientError>(cause).and_then(mooc_error_kind)
         {
             return kind;
         }
@@ -676,7 +680,7 @@ fn run_tmc(tmc: TestMyCode) -> Result<CliOutput> {
             for cause in error.chain() {
                 // check if the token was rejected and delete it if so
                 if let Some(TestMyCodeClientError::HttpError { status, .. }) =
-                    cause.downcast_ref::<TestMyCodeClientError>()
+                    downcast_through_box::<TestMyCodeClientError>(cause)
                 {
                     if status.as_u16() == 401 {
                         // Only a stored TMC token is deleted here. A rejected
