@@ -8,6 +8,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     path::PathBuf,
 };
+use tmc_mooc_client as mooc;
 use tmc_testmycode_client::response::{CourseData, CourseDetails, CourseExercise};
 use uuid::Uuid;
 
@@ -231,6 +232,18 @@ pub struct CombinedCourseData {
     pub details: CourseDetails,
     pub exercises: Vec<CourseExercise>,
     pub settings: CourseData,
+}
+
+/// A mooc course, its exercise slides and the current user's progress in it,
+/// fetched together. The mooc counterpart of [`CombinedCourseData`].
+// Serialize-only, unlike its tmc sibling: the mooc client's response types have
+// no `Deserialize`, and nothing reads this back — it is CLI stdout.
+#[derive(Debug, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
+pub struct CombinedMoocCourseData {
+    pub course: mooc::Course,
+    pub slides: Vec<mooc::TmcExerciseSlide>,
+    pub progress: mooc::CourseProgress,
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

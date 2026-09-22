@@ -26,9 +26,9 @@ use std::{
     time::{Duration, Instant},
 };
 use tmc_langs::{
-    CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult, LangsError, Language,
-    MoocUpdatedExercise, StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml,
-    UpdatedExercise,
+    CombinedMoocCourseData, CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult,
+    LangsError, Language, MoocUpdatedExercise, StyleValidationResult, TmcConfig, TmcDownloadResult,
+    TmcProjectYml, UpdatedExercise,
     file_util::{self, Lock, LockOptions},
     mooc::{self, MoocClient, MoocClientError},
     progress_reporter,
@@ -1322,6 +1322,19 @@ fn run_mooc_inner(
         MoocCommand::Course { course_id } => {
             let course = auth.call(client, |c| c.course(course_id))?;
             CliOutput::finished_with_data("fetched course", DataKind::MoocCourse(course))
+        }
+        MoocCommand::CourseData { course_id } => {
+            let course = auth.call(client, |c| c.course(course_id))?;
+            let slides = auth.call(client, |c| c.course_exercises(course_id))?;
+            let progress = auth.call(client, |c| c.course_progress(course_id))?;
+            CliOutput::finished_with_data(
+                "fetched course data",
+                DataKind::MoocCombinedCourseData(Box::new(CombinedMoocCourseData {
+                    course,
+                    slides,
+                    progress,
+                })),
+            )
         }
         MoocCommand::Courses => {
             let course = auth.call(client, |c| c.courses())?;
