@@ -758,6 +758,77 @@ fn dispatches_course() {
 }
 
 #[test]
+fn dispatches_course_data() {
+    let mut server = mockito::Server::new();
+    let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let exercise_id = "a1b2c3d4-0000-4000-8000-000000000001";
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "id": course_id,
+                "slug": "mockslug",
+                "name": "mockname",
+                "description": null,
+                "organization_name": "mockorg",
+            })
+            .to_string(),
+        )
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+        )
+        .with_body(
+            serde_json::json!([{
+                "slide_id": Uuid::new_v4(),
+                "exercise_id": exercise_id,
+                "course_id": course_id,
+                "exercise_name": "mockexercise",
+                "exercise_order_number": 0,
+                "tasks": [],
+            }])
+            .to_string(),
+        )
+        .create();
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/progress").as_str(),
+        )
+        .with_body(
+            serde_json::json!({
+                "course_id": course_id,
+                "exercises": [{
+                    "exercise_id": exercise_id,
+                    "score_given": 1.0,
+                    "score_maximum": 1,
+                    "completed": true,
+                    "attempted": true
+                }]
+            })
+            .to_string(),
+        )
+        .create();
+
+    let output = run_mooc(&server, &["course-data", "--course-id", course_id]).unwrap();
+    match data_of(output) {
+        DataKind::MoocCombinedCourseData(data) => {
+            assert_eq!(data.course.name, "mockname");
+            assert_eq!(data.slides.len(), 1);
+            assert_eq!(data.slides[0].exercise_name, "mockexercise");
+            assert_eq!(data.progress.exercises.len(), 1);
+            assert!(data.progress.exercises[0].completed);
+        }
+        other => panic!("expected MoocCombinedCourseData, got {other:?}"),
+    }
+}
+
+#[test]
 fn dispatches_course_exercises() {
     let mut server = mockito::Server::new();
     let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";

@@ -5,10 +5,10 @@ use clap::Parser;
 use schemars::JsonSchema;
 use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
-    CombinedCourseData, Compression, DownloadOrUpdateMoocCourseExercisesResult,
-    DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    Language, LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocUpdatedExercise, RunResult,
-    StyleValidationResult, UpdatedExercise, mooc,
+    CombinedCourseData, CombinedMoocCourseData, Compression,
+    DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
+    ExerciseDesc, ExercisePackagingConfiguration, Language, LocalExercise, LocalMoocExercise,
+    LocalTmcExercise, MoocUpdatedExercise, RunResult, StyleValidationResult, UpdatedExercise, mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -561,6 +561,13 @@ pub enum MoocCommand {
     /// Fetches information about a course.
     #[clap(long_about = schema_leaked::<mooc::Course>())]
     Course {
+        #[clap(long)]
+        course_id: Uuid,
+    },
+    /// Fetches course data. Combines the course, its exercise slides and the
+    /// user's progress in it.
+    #[clap(long_about = schema_leaked::<CombinedMoocCourseData>())]
+    CourseData {
         #[clap(long)]
         course_id: Uuid,
     },
@@ -1595,6 +1602,7 @@ mod test {
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
+            tmc_langs::CombinedMoocCourseData,
         )
         .unwrap();
         String::from_utf8(buf).unwrap()

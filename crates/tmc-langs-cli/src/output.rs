@@ -6,10 +6,11 @@ use std::path::PathBuf;
 #[cfg(test)]
 use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
-    CombinedCourseData, ConfigValue, DownloadOrUpdateMoocCourseExercisesResult,
-    DownloadOrUpdateTmcCourseExercisesResult, ExerciseDesc, ExercisePackagingConfiguration,
-    LocalExercise, LocalMoocExercise, LocalTmcExercise, MoocOldSubmissionRestore,
-    MoocUpdatedExercise, RunResult, StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    CombinedCourseData, CombinedMoocCourseData, ConfigValue,
+    DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
+    ExerciseDesc, ExercisePackagingConfiguration, LocalExercise, LocalMoocExercise,
+    LocalTmcExercise, MoocOldSubmissionRestore, MoocUpdatedExercise, RunResult,
+    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -126,6 +127,7 @@ pub enum DataKind {
     MoocSubmissions(Vec<mooc::ExerciseSlideSubmissionListItem>),
     MoocPaste(mooc::PasteResult),
     MoocCourseProgress(mooc::CourseProgress),
+    MoocCombinedCourseData(Box<CombinedMoocCourseData>),
     MoocOldSubmissionRestore(MoocOldSubmissionRestore),
 }
 
