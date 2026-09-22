@@ -619,7 +619,7 @@ fn make_client_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClient
         .map_err(Box::new)
 }
 
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 // Renamed to avoid colliding with the TMC `Course` type: a duplicate
 // `export type Course` would make `bindings.d.ts` uncompilable, and schemars
@@ -650,7 +650,7 @@ impl From<api::Course> for Course {
 /// Course-level totals (awarded/available points, passed count, percentage) are
 /// not sent separately; derive them by summing over `exercises`, guarding the
 /// percentage against a zero total.
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct CourseProgress {
     pub course_id: Uuid,
@@ -669,7 +669,7 @@ impl From<api::CourseProgress> for CourseProgress {
 /// The current user's progress on a single exercise. The authoritative "passed"
 /// signal is `completed`; `attempted` distinguishes "not started" from "started
 /// but not passed".
-#[derive(Debug, Serialize, JsonSchema)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseProgress {
     pub exercise_id: Uuid,
