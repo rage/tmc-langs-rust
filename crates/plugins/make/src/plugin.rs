@@ -265,7 +265,7 @@ impl LanguagePlugin for MakePlugin {
             if valgrind_log.errors {
                 // valgrind failed
                 run_result.status = RunStatus::TestsFailed;
-                // TODO: tests and valgrind results are not guaranteed to be in the same order
+                // check forks one child per test in run order, so the log's child pids are in test order
                 for (test_result, valgrind_result) in
                     run_result.test_results.iter_mut().zip(valgrind_log.results)
                 {
@@ -569,7 +569,6 @@ test [invalid] point6
         assert_eq!(points[0], "1.1");
     }
 
-    // if this test causes problems just disable it, valgrind might be writing the results in a random order
     #[test]
     fn runs_tests_failing_valgrind() {
         init();
@@ -586,12 +585,25 @@ test [invalid] point6
         assert!(test_one.successful);
         assert_eq!(test_one.points.len(), 1);
         assert_eq!(test_one.points[0], "1.1");
+        assert_eq!(test_one.message, "Passed");
+        assert!(test_one.exception.is_empty());
 
         let test_two = &test_results[1];
         assert_eq!(test_two.name, "test_two");
         assert!(test_two.successful);
         assert_eq!(test_two.points.len(), 1);
         assert_eq!(test_two.points[0], "1.2");
+        assert!(
+            test_two
+                .message
+                .contains("Failed due to errors in valgrind log")
+        );
+        assert!(
+            test_two
+                .exception
+                .iter()
+                .any(|line| line.contains("definitely lost in loss record"))
+        );
     }
 
     #[test]
