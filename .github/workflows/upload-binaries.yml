@@ -114,6 +114,8 @@ jobs:
     # statically linked, so this one needs no old glibc container,
     # and focal is too old to run the musl cross toolchain anyway
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # attaching the JSON schema below to the release
     steps:
       - name: Install dependencies
         run: |
@@ -157,6 +159,20 @@ jobs:
         run: |
           gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG
           gsutil cp ./target/x86_64-unknown-linux-musl/release/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256 gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/tmc-langs-cli-x86_64-unknown-linux-musl-$TAG.sha256
+
+      - name: Deploy the CLI output schema
+        # Platform-independent, so exactly one leg publishes it; it lets a client
+        # pin the schema to the release it pins the binary to, with no checkout.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          cp crates/tmc-langs-cli/bindings.schema.json "bindings.schema-$TAG.json"
+          gsutil cp "bindings.schema-$TAG.json" gs://${{ secrets.GCP_BUCKET }}/tmc-langs-rust/bindings.schema-$TAG.json
+          # a workflow_dispatch run names a tag that need not have a release
+          if [ "$EVENT_NAME" = release ]; then
+            gh release upload "$TAG" "bindings.schema-$TAG.json" --clobber
+          fi
 
   windows:
     runs-on: windows-2022
