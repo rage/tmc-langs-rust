@@ -49,10 +49,8 @@ pub enum MoocClientError {
         status: StatusCode,
         error: String,
         obsolete_client: bool,
-        /// `message_key` parsed off the backend's `ApiErrorResponse` body, if the
-        /// body was that shape. Lets the CLI map controlled errors (e.g.
-        /// `not_enrolled`) to a typed `Kind` while `error` keeps the raw body for
-        /// human-readable messages.
+        /// `message_key` of the backend's `ApiErrorResponse` body, if it had that shape;
+        /// lets the CLI map controlled errors (e.g. `not_enrolled`) to a typed `Kind`.
         message_key: Option<String>,
     },
     #[error("Connection error trying to {} {}", .0, redact_query(.1.as_str()))]
@@ -71,13 +69,10 @@ pub enum MoocClientError {
     DeviceCodeExpired,
     #[error("The device authorization request was denied")]
     DeviceAccessDenied,
-    /// The token endpoint rejected a refresh grant with an OAuth error (a 400
-    /// with an `error` code, e.g. `invalid_grant`), meaning the refresh token is
-    /// no longer valid — revoked or expired. This is a *permanent* failure:
-    /// retrying will not help, so stored credentials should be discarded. It is
-    /// deliberately distinct from [`Self::HttpError`] / [`Self::ConnectionError`],
-    /// which are transient (5xx, timeouts, dropped connections) and must NOT
-    /// cause credentials to be deleted.
+    /// The token endpoint rejected a refresh grant with an OAuth error (a 400 with an
+    /// `error` code, e.g. `invalid_grant`): the refresh token is revoked or expired.
+    /// Permanent, so stored credentials should be discarded, unlike the transient
+    /// [`Self::HttpError`] / [`Self::ConnectionError`], which must not delete them.
     #[error("The authorization server rejected the refresh token: {error}")]
     RefreshTokenRejected { error: String },
     #[error("Failed to attach file to submission form: {error}")]

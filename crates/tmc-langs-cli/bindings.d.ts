@@ -75,9 +75,8 @@ export type LocalMoocExercise = {
  */
 "course-slug": string, "course-id": string,
 /**
- * The exercise's on-disk directory name, used as its slug when building a
- * workspace entry (mirrors the TMC slug); stable since names are unique per
- * course.
+ * The exercise's on-disk directory name, used as its slug (mirrors the TMC
+ * slug); stable since names are unique per course.
  */
 "exercise-slug": string, "exercise-id": string, "exercise-path": string, }
 
@@ -185,9 +184,8 @@ export type TmcExerciseDownload = { id: number, "course-slug": string, "exercise
 
 export type MoocExerciseDownload = { 
 /**
- * The requested exercise's id; results are keyed by it so callers can
- * correlate each download/skip/failure back to the exercise (not the internal
- * editor task id).
+ * The requested exercise's id (not the internal editor task id), so callers
+ * can match each download/skip/failure to the exercise.
  */
 "exercise-id": string, path: string, }
 
@@ -345,8 +343,7 @@ export type MoocCourse = { id: string, slug: string, name: string, description: 
 
 export type TmcExerciseSlide = { slide_id: string, exercise_id: string,
 /**
- * The course the exercise belongs to, so a client can locate it without a
- * separate lookup or an enrolled-course scan.
+ * Lets a client locate the exercise's course without a separate lookup.
  */
 course_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>, }
 

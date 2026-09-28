@@ -48,10 +48,8 @@ use uuid::Uuid;
 const CLIENT_VERSION_HEADER: &str = "X-Client-Version";
 
 /// Env knob (`=1`) that also trusts `localhost`/`127.0.0.1` as bearer-token
-/// destinations. Off by default so the token is never silently sent to a local
-/// host in production; tests and local development set it to exercise the
-/// authenticated request path against a mock or a locally-served backend. Gating
-/// it on an explicit opt-in keeps production behavior byte-identical.
+/// destinations. Off by default so production never sends the token to a local
+/// host; tests and local development opt in.
 pub const TRUST_LOCALHOST_VAR: &str = "TMC_LANGS_MOOC_TRUST_LOCALHOST";
 
 /// Public because the same access token is also accepted by tmc-server, so the
@@ -61,9 +59,8 @@ pub fn trust_localhost() -> bool {
 }
 
 /// Timeout for ordinary metadata requests, and the connect timeout for every
-/// request. Mirrors the 30s bound in `auth.rs`: without it a wedged host or
-/// dropped connection hangs the CLI forever instead of surfacing a retryable
-/// `ConnectionError`.
+/// request. Mirrors `auth.rs`: without it a wedged host hangs the CLI forever
+/// instead of surfacing a retryable `ConnectionError`.
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Timeout for large-payload transfers (archive download/upload), which can
@@ -109,10 +106,8 @@ struct MoocClientInner {
 impl MoocClient {
     /// Creates a new client.
     ///
-    /// Fails with [`MoocClientError::InsecureScheme`] if the root URL points at
-    /// the production host `courses.mooc.fi` over anything but `https`; the
-    /// local-dev host `project-331.local` (and other hosts, e.g. test mocks) may
-    /// use `http`.
+    /// Fails with [`MoocClientError::InsecureScheme`] if the root URL is the
+    /// production host `courses.mooc.fi` over anything but `https`.
     pub fn new(root_url: Url) -> MoocClientResult<Self> {
         // guarantee a trailing slash, otherwise join will drop the last component
         let root_url = if root_url.as_str().ends_with('/') {
@@ -121,8 +116,7 @@ impl MoocClient {
             format!("{root_url}/").parse().expect("invalid root url")
         };
 
-        // Bearer token must never go over plaintext to production; mirrors the
-        // trusted-domain split used below when attaching the token.
+        // The bearer token must never go over plaintext to production.
         if root_url.host_str() == Some("courses.mooc.fi") && root_url.scheme() != "https" {
             return Err(Box::new(MoocClientError::InsecureScheme { url: root_url }));
         }
@@ -143,11 +137,8 @@ impl MoocClient {
     fn request(&self, method: Method, url: Url) -> MoocRequest {
         log::debug!("building a request to {}", redact_query(url.as_str()));
 
-        // The bearer token is only attached to hosts we trust, so it is never
-        // leaked to an arbitrary host a (possibly attacker-controlled) URL points
-        // at. `host_str` rather than `domain` so IP literals (e.g. `127.0.0.1`)
-        // are considered too; for real domains the two agree, so production
-        // behavior is unchanged.
+        // Attach the bearer only to trusted hosts, so a (possibly attacker-controlled)
+        // URL never receives it. `host_str` rather than `domain` so IP literals count.
         let trusted_domains = &["courses.mooc.fi", "project-331.local"];
         let is_trusted_domain = url
             .host_str()
@@ -160,8 +151,7 @@ impl MoocClient {
             .0
             .client
             .request(method.clone(), url.clone())
-            // The crate version is the langs version this client ships as,
-            // mirroring the TMC client's `client_version`.
+            // The crate version is the langs version; mirrors the TMC client's `client_version`.
             .header(CLIENT_VERSION_HEADER, env!("CARGO_PKG_VERSION"));
         // A poisoned lock still yields the last-written token, which is fine:
         // it's plain data, never left half-updated.
@@ -245,11 +235,9 @@ impl MoocClient {
         Ok(res)
     }
 
-    /// Fetches the current user's per-exercise progress for a whole course in a
-    /// single round-trip. Returns one entry per exercise the user can see in the
-    /// course (open chapters); untouched exercises come back with zeroed
-    /// progress. Course-level totals are not sent; the caller derives them by
-    /// summing over the entries.
+    /// Fetches the current user's per-exercise progress for a whole course in one
+    /// round-trip: one entry per exercise they can see (open chapters), untouched
+    /// ones zeroed. Course-level totals are not sent; sum over the entries.
     pub fn course_progress(&self, course: Uuid) -> MoocClientResult<CourseProgress> {
         let url = make_client_api_url(self, format!("courses/{course}/progress"))?;
         let res = self
@@ -272,7 +260,6 @@ impl MoocClient {
     }
 
     pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
-        // Archive downloads can be large: use the more generous transfer timeout.
         let res = self
             .request(Method::GET, url)
             .transfer_timeout()
@@ -351,7 +338,6 @@ impl MoocClient {
         let res = self
             .request(Method::POST, url)
             .multipart(form)
-            // Uploads can be large: use the more generous transfer timeout.
             .transfer_timeout()
             .send_expect_json::<api::UploadedFiles>()?;
         Ok(res.data_files)
@@ -506,8 +492,7 @@ impl MoocRequest {
         self
     }
 
-    /// Overrides the timeout with the more generous [`TRANSFER_TIMEOUT`], for
-    /// large-payload transfers that can outlast a metadata round-trip.
+    /// Uses [`TRANSFER_TIMEOUT`] instead of the metadata timeout, for large payloads.
     fn transfer_timeout(mut self) -> Self {
         self.builder = self.builder.timeout(TRANSFER_TIMEOUT);
         self
@@ -532,10 +517,9 @@ impl MoocRequest {
                                     url: self.url.clone(),
                                     error: Box::new(err.without_url()),
                                 })?;
-                        // The backend returns controlled errors as an
-                        // `ApiErrorResponse` carrying a `message_key` (e.g.
-                        // `not_enrolled`). Try to lift that key so the CLI can map
-                        // it to a typed error kind; keep the raw body for messages.
+                        // Controlled errors carry an `ApiErrorResponse` `message_key`
+                        // (e.g. `not_enrolled`); lift it so the CLI can map it to a typed
+                        // error kind.
                         let message_key = serde_json::from_str::<ApiErrorBody>(&body)
                             .ok()
                             .and_then(|parsed| parsed.message_key);
@@ -587,10 +571,9 @@ impl MoocRequest {
     }
 }
 
-/// The single field of the backend's `ApiErrorResponse` the client needs: the
-/// stable `message_key` identifying a controlled error. Deserialized leniently
-/// (missing/null key = `None`) so a non-conforming error body yields no key
-/// rather than failing.
+/// The one field of the backend's `ApiErrorResponse` the client needs: the stable
+/// `message_key` of a controlled error. Lenient (missing/null = `None`) so a
+/// non-conforming body yields no key rather than failing.
 #[derive(Deserialize)]
 struct ApiErrorBody {
     #[serde(default)]
@@ -938,10 +921,8 @@ mod test {
 
     #[test]
     fn bearer_attached_to_localhost_only_with_trust_knob() {
-        // mockito serves on 127.0.0.1, an untrusted host, so by default the bearer
-        // token is NOT sent. `TMC_LANGS_MOOC_TRUST_LOCALHOST=1` opts localhost in,
-        // which is what lets tests (and the cross-repo auth coverage) exercise the
-        // authenticated request path against a local mock.
+        // mockito serves on 127.0.0.1, an untrusted host, so by default no bearer
+        // is sent; the knob opts localhost in.
         init();
         let _env = env_lock();
         // SAFETY: all reads/writes of this var in tests are serialized by ENV_LOCK.
@@ -950,7 +931,6 @@ mod test {
         let mut server = Server::new();
         let client = make_client_with_token(&server, "test-token");
 
-        // Without the knob: no Authorization header reaches the mock.
         let no_auth = server
             .mock("GET", "/api/v0/exercise-services/client/courses")
             .match_header("authorization", Matcher::Missing)
@@ -960,7 +940,6 @@ mod test {
         client.courses().unwrap();
         no_auth.assert();
 
-        // With the knob: localhost is trusted, so the bearer is attached.
         unsafe { std::env::set_var(TRUST_LOCALHOST_VAR, "1") };
         let with_auth = server
             .mock("GET", "/api/v0/exercise-services/client/courses")
@@ -1332,10 +1311,8 @@ mod test {
         assert_eq!(progress.exercises[0].score_maximum, 1);
         assert!(progress.exercises[0].completed);
         assert!(progress.exercises[0].attempted);
-        // partial credit stays fractional
         assert_eq!(progress.exercises[1].score_given, 0.5);
         assert!(!progress.exercises[1].completed);
-        // untouched exercise: zeroed, not attempted
         assert_eq!(progress.exercises[2].score_given, 0.0);
         assert!(!progress.exercises[2].attempted);
     }
@@ -2069,10 +2046,8 @@ mod test {
 
     #[test]
     fn malformed_json_on_success_status_yields_deserializing_response_error() {
-        // `send_expect_bytes` only errors on a read failure, not on status, so a
-        // 2xx response with a non-JSON body reaches `serde_json::from_slice` in
-        // `send_expect_json` and must surface as `DeserializingResponse`, not
-        // silently succeed or panic.
+        // A 2xx with a non-JSON body passes `send_expect_bytes` (it only errors on
+        // read failure) and must surface as `DeserializingResponse`.
         init();
         let mut server = Server::new();
         let client = make_client(&server);
@@ -2097,7 +2072,6 @@ mod test {
         init();
         let server = Server::new();
         let mut client = MoocClient::new(server.url().parse().unwrap()).unwrap();
-        // Keep several clones alive so `Arc::get_mut` would fail.
         let _clone_a = client.clone();
         let _clone_b = client.clone();
         let token = Token::new(
@@ -2105,14 +2079,12 @@ mod test {
             BasicTokenType::Bearer,
             EmptyExtraTokenFields {},
         );
-        // Must not panic.
         client.set_token(token);
     }
 
     #[test]
     fn set_token_on_clone_is_visible_to_that_clone() {
-        // A token set on one handle is stored behind the shared `Arc`, so a clone
-        // observes it too (the interior mutability is shared, not per-handle).
+        // The token lives behind the shared `Arc`, so every clone observes it.
         init();
         let _env = env_lock();
         // SAFETY: serialized by ENV_LOCK.
@@ -2142,15 +2114,13 @@ mod test {
 
     #[test]
     fn rejects_insecure_scheme_for_production_host() {
-        // courses.mooc.fi over http is refused so the bearer token can never be
-        // sent in plaintext; https is accepted.
+        // http to production is refused so the bearer can't go out in plaintext.
         init();
         match MoocClient::new("http://courses.mooc.fi/".parse().unwrap()) {
             Err(err) => assert!(matches!(*err, MoocClientError::InsecureScheme { .. })),
             Ok(_) => panic!("http://courses.mooc.fi should be rejected"),
         }
         assert!(MoocClient::new("https://courses.mooc.fi/".parse().unwrap()).is_ok());
-        // The local-dev host may use http.
         assert!(MoocClient::new("http://project-331.local/".parse().unwrap()).is_ok());
     }
 

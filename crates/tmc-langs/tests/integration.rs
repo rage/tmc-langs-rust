@@ -29,7 +29,7 @@ fn test_policies_on_course_exercises() {
     )
     .unwrap();
 
-    // No password grant any more; paste an access token tmc-server accepts.
+    // Paste an access token tmc-server accepts.
     let access_token = rpassword::prompt_password("access token").unwrap();
     client.set_token(
         Token::new(

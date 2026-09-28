@@ -42,9 +42,8 @@ pub struct LocalMoocExercise {
     /// slug; this is the kebab-cased course name, deduplicated locally.
     pub course_slug: String,
     pub course_id: Uuid,
-    /// The exercise's on-disk directory name, used as its slug when building a
-    /// workspace entry (mirrors the TMC slug); stable since names are unique per
-    /// course.
+    /// The exercise's on-disk directory name, used as its slug (mirrors the TMC
+    /// slug); stable since names are unique per course.
     pub exercise_slug: String,
     pub exercise_id: Uuid,
     pub exercise_path: PathBuf,
@@ -217,9 +216,8 @@ pub struct TmcExerciseDownload {
 #[serde(rename_all = "kebab-case")]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct MoocExerciseDownload {
-    /// The requested exercise's id; results are keyed by it so callers can
-    /// correlate each download/skip/failure back to the exercise (not the internal
-    /// editor task id).
+    /// The requested exercise's id (not the internal editor task id), so callers
+    /// can match each download/skip/failure to the exercise.
     pub exercise_id: Uuid,
     pub path: PathBuf,
 }

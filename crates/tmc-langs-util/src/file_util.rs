@@ -78,38 +78,29 @@ pub(crate) fn truncate_locked_file(
     Ok(())
 }
 
-/// Set the first time a lock attempt is answered by the OS with "locking is not
-/// supported here" and the caller carries on unlocked. See
-/// [`report_locking_unavailable`].
+/// Set when the OS reports locking as unsupported and the caller proceeds
+/// unlocked. See [`report_locking_unavailable`].
 static LOCKING_UNAVAILABLE: AtomicBool = AtomicBool::new(false);
 
-/// Whether locking has degraded to running *unlocked* at any point in this
-/// process because the operating system refused to lock a file.
+/// Whether any lock in this process has fallen back to running *unlocked* because
+/// the OS refused it.
 ///
-/// Callers that rely on a lock for correctness rather than tidiness (the mooc
-/// credentials refresh is the one that matters: two unserialized refreshes redeem
-/// the same OAuth refresh token and the backend revokes the session as suspected
-/// theft) can use this to warn about the weaker guarantee they are now running
-/// under. Sticky and process-wide on purpose: the condition is a property of the
-/// filesystem, not of one attempt, and every lock taken afterwards is suspect too.
+/// For callers that need the lock for correctness (the mooc credentials refresh:
+/// unserialized refreshes redeem one refresh token twice and the backend revokes
+/// the session). Sticky and process-wide, since the cause is the filesystem.
 pub fn locking_unavailable() -> bool {
     LOCKING_UNAVAILABLE.load(Ordering::Relaxed)
 }
 
-/// Records that a lock could not be taken and that the caller is proceeding
-/// *without* it, warning about it once per process. Returns whether this was the
-/// first such report, which is also what decides whether the warning was emitted.
+/// Records that the caller is proceeding *without* a lock, warning once per
+/// process. Returns whether this was the first report (and so emitted the warning).
 ///
-/// The fail-open behaviour is deliberate and long-standing — some filesystems do
-/// not support locking at all, and refusing to work on them would be worse — but
-/// it silently changes the safety properties of everything built on the lock, so
-/// it must not go unmentioned in the logs. The usual cause is a home or config
-/// directory on NFS with no `rpc.lockd`/NLM lock daemon reachable, where `fcntl`
-/// fails with `ENOLCK`.
+/// Failing open is deliberate, since some filesystems cannot lock at all. The usual
+/// cause is a home or config directory on NFS with no reachable `rpc.lockd`, where
+/// `fcntl` fails with `ENOLCK`.
 pub fn report_locking_unavailable(path: &Path, err: &dyn Display) -> bool {
     if LOCKING_UNAVAILABLE.swap(true, Ordering::Relaxed) {
-        // Already warned. Still record the individual occurrence, at a level that
-        // cannot drown out the rest of the log if every lock in a run fails.
+        // Debug level so a run where every lock fails doesn't flood the log.
         log::debug!("Failed to lock {} again: {err}", path.display());
         return false;
     }
@@ -126,23 +117,17 @@ pub fn report_locking_unavailable(path: &Path, err: &dyn Display) -> bool {
     true
 }
 
-/// How long [`with_file_lock_timeout`] sleeps between acquisition attempts. Short
-/// enough that an uncontended-again lock is picked up promptly, long enough that
-/// polling for the full timeout costs a negligible number of wakeups.
+/// Sleep between acquisition attempts in [`with_file_lock_timeout`].
 const LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 /// Runs `f` while holding a lock on the file at `path`, giving up with
 /// [`FileError::LockTimeout`] if the lock cannot be taken within `timeout`.
 ///
-/// [`Lock::lock`] blocks indefinitely, so a process that wedges while holding an
-/// exclusive lock stalls every other process for as long as it stays wedged. This
-/// variant polls a non-blocking acquisition against a deadline instead, turning
-/// that into a failed command the caller can retry rather than a hung one.
+/// Unlike [`Lock::lock`], which blocks forever behind a wedged holder, this polls
+/// a non-blocking acquisition so the caller gets a retryable error instead of a hang.
 ///
-/// `f` runs with the lock held and its return value is passed through. The
-/// closure form (rather than returning the guard) keeps the platform guard's
-/// borrow of the internal [`Lock`] confined to a single loop iteration, which a
-/// guard-returning signature cannot express.
+/// `f` runs with the lock held and its value is returned. A closure is taken
+/// because the guard borrows the internal [`Lock`] created per loop iteration.
 pub fn with_file_lock_timeout<T>(
     path: impl AsRef<Path>,
     options: LockOptions,
@@ -156,8 +141,7 @@ pub fn with_file_lock_timeout<T>(
         if let Some(mut guard) = lock.try_lock()? {
             return Ok(f(&mut guard));
         }
-        // Held by someone else. One attempt always happens before the deadline is
-        // checked, so a zero timeout still degrades to a plain try-lock.
+        // The deadline is checked after an attempt, so a zero timeout is a plain try-lock.
         if Instant::now() >= deadline {
             log::warn!(
                 "Gave up after {timeout:?} waiting for a lock on {}",
@@ -412,14 +396,11 @@ mod test {
     fn a_refused_lock_is_warned_about_once_and_recorded() {
         init();
 
-        // ENOLCK (37 on Linux) is what `fcntl(F_SETLK)` answers with on an NFS
-        // mount whose lock daemon is unreachable -- the case that makes locking
-        // fail open, and the reason `locking_unavailable` exists.
+        // ENOLCK (37 on Linux): `fcntl(F_SETLK)` on NFS with no reachable lock daemon.
         let enolck = std::io::Error::from_raw_os_error(37);
         let path = Path::new("/nfs/home/user/.config/tmc-test/credentials_mooc_lab.json");
 
-        // The flag is process-wide and sticky by design; nothing else in this test
-        // binary observes it, so setting it here is safe regardless of test order.
+        // The flag is process-wide and sticky; no other test here reads it.
         assert!(
             report_locking_unavailable(path, &enolck),
             "the first degradation must be reported"
@@ -434,19 +415,25 @@ mod test {
         );
     }
 
-    /// Set on the child process spawned by
-    /// [`with_file_lock_timeout_gives_up_when_another_process_holds_the_lock`] to
-    /// tell it which file to lock.
+    /// Tells the child spawned by
+    /// [`with_file_lock_timeout_gives_up_when_another_process_holds_the_lock`]
+    /// which file to lock.
     const HOLD_LOCK_VAR: &str = "TMC_TEST_HOLD_LOCK_PATH";
 
-    /// Not a test in its own right: this is the entry point of the child process
-    /// the contention test spawns, and it does nothing in an ordinary test run.
-    ///
-    /// A separate process is unavoidable — the unix locks are `fcntl` locks, which
-    /// are per-process, so a second `Lock` on the same file inside the test process
-    /// would never contend. The child takes the lock, signals that it holds it, and
-    /// then parks until the parent kills it, so the parent's assertion doesn't race
-    /// with the child's lifetime.
+    #[test]
+    fn a_creating_file_lock_creates_missing_parent_dirs() {
+        init();
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nested").join("lock");
+        with_file_lock_timeout(&path, LockOptions::WriteCreate, Duration::ZERO, |_guard| ())
+            .unwrap();
+        assert!(path.exists());
+    }
+
+    /// Entry point of the child process the contention test spawns; a no-op in an
+    /// ordinary run. A separate process is needed because `fcntl` locks are
+    /// per-process, so a second `Lock` in the test process would never contend.
     #[test]
     fn child_process_holds_a_lock() {
         let Ok(path) = std::env::var(HOLD_LOCK_VAR) else {
@@ -473,9 +460,7 @@ mod test {
             .spawn()
             .unwrap();
 
-        // Wait for the child to actually hold the lock before asserting anything.
-        // The bound here only guards against a child that never starts; it is not
-        // part of what the test asserts.
+        // The bound only guards against a child that never starts.
         let waiting_since = Instant::now();
         while !held_marker.exists() {
             assert!(
@@ -485,8 +470,7 @@ mod test {
             std::thread::sleep(Duration::from_millis(20));
         }
 
-        // The child holds the lock until we kill it, so this must time out rather
-        // than block forever.
+        // The child holds the lock until killed, so this must time out.
         let result = with_file_lock_timeout(
             &path,
             LockOptions::WriteCreate,
@@ -501,8 +485,7 @@ mod test {
             "expected a lock timeout, got {result:?}"
         );
 
-        // With the holder gone the same call succeeds, so the timeout above was
-        // contention and not a broken code path.
+        // Succeeding once the holder is gone shows the timeout was contention.
         with_file_lock_timeout(
             &path,
             LockOptions::WriteCreate,
@@ -517,18 +500,13 @@ mod test {
         init();
 
         let dir = tempfile::tempdir().unwrap();
-        // A direct child of an existing directory: only the unix `Lock::file`
-        // creates missing parents, so a nested path wouldn't behave the same on
-        // every platform.
+        // Not nested: only the unix `Lock::file` creates missing parents.
         let path = dir.path().join("file");
         let value = with_file_lock_timeout(
             &path,
             LockOptions::WriteCreate,
             Duration::from_secs(1),
-            |guard| {
-                // The guard exposes the locked file itself.
-                guard.get_file().metadata().unwrap().is_file()
-            },
+            |guard| guard.get_file().metadata().unwrap().is_file(),
         )
         .unwrap();
         assert!(value);

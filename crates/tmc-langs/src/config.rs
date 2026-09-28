@@ -28,9 +28,8 @@ use tmc_langs_util::{
 };
 use uuid::Uuid;
 
-/// A process-wide lock for tests that set `TMC_LANGS_CONFIG_DIR` or the
-/// bearer-token trust knob. Shared across the crate's test modules because the
-/// env vars are process-wide: a per-module lock would not serialize them.
+/// Serializes tests that set `TMC_LANGS_CONFIG_DIR` or the bearer-token trust knob.
+/// Crate-wide because a per-module lock would not serialize process-wide env vars.
 #[cfg(test)]
 pub(crate) fn env_lock() -> std::sync::MutexGuard<'static, ()> {
     static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());

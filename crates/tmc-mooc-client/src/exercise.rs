@@ -12,8 +12,7 @@ use uuid::Uuid;
 pub struct TmcExerciseSlide {
     pub slide_id: Uuid,
     pub exercise_id: Uuid,
-    /// The course the exercise belongs to, so a client can locate it without a
-    /// separate lookup or an enrolled-course scan.
+    /// Lets a client locate the exercise's course without a separate lookup.
     pub course_id: Uuid,
     pub exercise_name: String,
     pub exercise_order_number: i32,
@@ -31,20 +30,18 @@ impl TmcExerciseSlide {
             .find_map(|spec| spec.editor_stub_download_url())
     }
 
-    /// Task id of this slide's first editor task (the one a native client submits
-    /// to), if any. `None` for browser exercises, which have no editor task.
+    /// Task id of this slide's first editor task (the submit target), if any.
     pub fn editor_task_id(&self) -> Option<Uuid> {
         self.editor_task().map(|task| task.task_id)
     }
 
-    /// Checksum of this slide's first editor task, if any. Compared against the
-    /// stored one to detect whether the local exercise is out of date.
+    /// Checksum of this slide's first editor task, if any; compared with the
+    /// stored one to detect an out-of-date local exercise.
     pub fn editor_checksum(&self) -> Option<&str> {
         self.editor_task().and_then(|task| task.checksum.as_deref())
     }
 
-    /// This slide's first editor task: the one a native client downloads, works
-    /// on, and submits. Browser tasks do not count.
+    /// This slide's first editor task, the one a native client works on. Browser tasks do not count.
     fn editor_task(&self) -> Option<&TmcExerciseTask> {
         self.tasks.iter().find(|task| {
             task.public_spec
@@ -139,8 +136,7 @@ impl PublicSpec {
         &self.stub_download_url
     }
 
-    /// Returns the stub archive download URL for editor exercises. Returns `None`
-    /// for browser exercises, which have no downloadable project archive.
+    /// Stub archive download URL; `None` for browser exercises, which have no project archive.
     pub fn editor_stub_download_url(&self) -> Option<&str> {
         match self.exercise_type {
             ExerciseType::Editor => Some(&self.stub_download_url),
@@ -156,7 +152,7 @@ pub enum BrowserTestRuntime {
     Python,
 }
 
-/// In-browser test spec produced by the `tmc` exercise service: the script to
+/// In-browser test spec from the `tmc` exercise service: the script to
 /// run in the client plus an optional error set when the build failed.
 #[derive(Debug, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
@@ -266,10 +262,9 @@ mod test {
         assert!(spec.browser_test.is_none());
     }
 
-    /// The exact bytes `services/tmc`'s model-solution endpoint emits (pinned on
-    /// that side by `modelSolution.test.ts`). A task the student has solved
-    /// carries this, so a mismatch breaks every later `mooc exercise`,
-    /// `download-exercise` and `submit` for that exercise.
+    /// The exact bytes `services/tmc`'s model-solution endpoint emits (pinned there
+    /// by `modelSolution.test.ts`). A mismatch breaks `mooc exercise`,
+    /// `download-exercise` and `submit` for any exercise the student has solved.
     #[test]
     fn deserializes_the_emitted_model_solution_spec() {
         let editor =
@@ -287,9 +282,8 @@ mod test {
         assert_eq!(spec.exercise_type(), &ExerciseType::Browser);
     }
 
-    /// Guards the deserialize (input) side that the serialize-only bindings drift
-    /// gate can't catch: parses a mixed editor+browser slide, then re-serializes
-    /// and re-parses it.
+    /// Guards the deserialize side, which the serialize-only bindings drift gate
+    /// can't catch: parses a mixed editor+browser slide, then round-trips it.
     ///
     /// The conversion has a hand-written mirror in
     /// `tmc-vscode/src/test/moocMockReconciliation.test.ts` (`toCliStdoutSlide`),

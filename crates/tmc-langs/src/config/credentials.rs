@@ -1,10 +1,8 @@
 //! Contains the Credentials struct for authenticating with tmc-server.
 //!
-//! Read-only: tmc-server tokens are no longer issued (the password grant is
-//! gone), so this only loads a token an older version stored, and deletes it once
-//! tmc-server rejects it. Reading it must keep working — a user with a valid
-//! stored token keeps that session rather than being pushed onto the
-//! courses.mooc.fi token mid-session.
+//! Read-only: tmc-server tokens are no longer issued, so this only loads a token
+//! an older version stored, and deletes it once tmc-server rejects it. Loading must
+//! keep working so a user with a valid stored token keeps that session.
 
 use crate::{LangsError, tmc::Token};
 use serde::{Deserialize, Serialize};

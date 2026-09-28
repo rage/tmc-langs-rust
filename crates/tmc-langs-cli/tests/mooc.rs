@@ -158,12 +158,9 @@ fn run_mooc_in_expect_error(
     tmc_langs_cli::run(cli).expect_err("expected the command to fail")
 }
 
-/// Writes this machine's mooc credentials file for `--client-name test` into
-/// `config_dir`,
-/// as a successful mooc login would, so a rejected-token path has a file to
-/// delete. The wrapper mirrors the stored `{token, obtained_at}` shape; the
-/// token carries no refresh token, so a 401 falls straight through to deletion
-/// instead of attempting a refresh.
+/// Writes the mooc credentials file for `--client-name test` into `config_dir`,
+/// so a rejected-token path has a file to delete. The token has no refresh
+/// token, so a 401 goes straight to deletion instead of a refresh.
 fn write_test_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
@@ -208,8 +205,8 @@ fn write_credentials_with_refresh_token(config_dir: &std::path::Path) -> std::pa
     path
 }
 
-/// Writes an *expired* credentials file that still carries a refresh
-/// token, so loading it triggers the proactive refresh path.
+/// Writes an *expired* credentials file that still carries a refresh token, so
+/// loading it triggers the proactive refresh.
 fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
@@ -224,7 +221,7 @@ fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::p
                 "expires_in": 3600,
                 "scope": "exercise-services"
             },
-            // Obtained well over an hour ago with a one-hour lifetime -> expired.
+            // Far past the one-hour lifetime.
             "obtained_at": "2000-01-01T00:00:00Z"
         })
         .to_string(),
@@ -233,9 +230,8 @@ fn write_expired_refreshable_credentials(config_dir: &std::path::Path) -> std::p
     path
 }
 
-/// Writes a *valid* (not expired) credentials file, so the first request
-/// uses the stored token (no proactive refresh) and a 401 on it triggers the
-/// on-401 refresh-then-retry path.
+/// Writes a *valid* (not expired) credentials file, so the first request uses
+/// the stored token and a 401 on it triggers refresh-then-retry.
 fn write_valid_refreshable_credentials(config_dir: &std::path::Path) -> std::path::PathBuf {
     let dir = config_dir.join("tmc-test");
     std::fs::create_dir_all(&dir).unwrap();
@@ -294,7 +290,6 @@ fn mooc_non_auth_retry_after_successful_refresh_keeps_credentials() {
     // 503. That must NOT be treated as invalid-token: keep the refreshed
     // credentials and surface the 503 as-is. Regression for the retry-error gate.
     let mut server = mockito::Server::new();
-    // Pre-refresh request: the stored access token is rejected.
     let _rejected = server
         .mock("GET", "/api/v0/exercise-services/client/courses")
         .match_header("authorization", "Bearer valid-access")
@@ -316,7 +311,6 @@ fn mooc_non_auth_retry_after_successful_refresh_keeps_credentials() {
         )
         .expect_at_least(1)
         .create();
-    // Post-refresh retry carries the rotated token and hits a transient 5xx.
     let _retry = server
         .mock("GET", "/api/v0/exercise-services/client/courses")
         .match_header("authorization", "Bearer refreshed-access")
@@ -380,8 +374,7 @@ fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error
 #[test]
 fn mooc_401_deletes_credentials_and_reports_invalid_token() {
     // A rejected mooc token must delete credentials.json and surface the
-    // `invalid-token` kind, mirroring the tmc path. Regression: the 401 handler
-    // only downcast `TestMyCodeClientError`, missing `MoocClientError::NotAuthenticated`.
+    // `invalid-token` kind, mirroring the tmc path.
     let mut server = mockito::Server::new();
     let _unauthorized = server
         .mock("GET", "/api/v0/exercise-services/client/courses")
@@ -438,9 +431,8 @@ fn assert_error_kind(error: tmc_langs_cli::CliError, expected: &str) {
 
 #[test]
 fn mooc_403_maps_to_forbidden_kind() {
-    // `solve_error_kind` downcast the bare `MoocClientError`, but mooc errors
-    // travel the anyhow chain as `Box<MoocClientError>`, so every mooc HTTP error
-    // collapsed to `generic`. Pins the 403 -> `forbidden` mapping.
+    // Mooc errors travel the anyhow chain as `Box<MoocClientError>`; a bare-type
+    // downcast misses them and collapses every HTTP error to `generic`.
     let mut server = mockito::Server::new();
     let _forbidden = server
         .mock("GET", "/api/v0/exercise-services/client/courses")
@@ -679,8 +671,7 @@ fn mooc_422_upload_expired_surfaces_only_after_the_retry_fails() {
 
 #[test]
 fn course_updates_subcommand_is_removed() {
-    // Regression: `CourseUpdates` was redundant with `check-exercise-updates` and
-    // only ever `todo!()`-panicked, so it was removed. clap must now reject it.
+    // `CourseUpdates` duplicated `check-exercise-updates` and only panicked; clap must reject it.
     let result = Cli::try_parse_from([
         "tmc-langs-cli",
         "mooc",
@@ -693,7 +684,6 @@ fn course_updates_subcommand_is_removed() {
         "`mooc course-updates` should no longer be a valid subcommand"
     );
 
-    // the surviving update-check subcommand still parses
     Cli::try_parse_from([
         "tmc-langs-cli",
         "mooc",
@@ -1170,8 +1160,7 @@ directory = "skip-me"
 #[test]
 fn dispatches_update_exercises() {
     // `update-exercises` takes no exercise ids: it scans the locally tracked
-    // mooc exercises' course configs and refreshes any whose server checksum
-    // changed, downloading the new stub archive in the process.
+    // course configs and re-downloads any exercise whose server checksum changed.
     let mut server = mockito::Server::new();
     let course_id = Uuid::new_v4();
     let ex_stale = Uuid::new_v4();
@@ -1381,12 +1370,10 @@ fn mock_oauth_refresh(
 
 #[test]
 fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
-    // A 401 on one item's archive download whose refresh attempt itself fails
-    // transiently (a network blip talking to the token endpoint, not a
-    // rejection of the refresh token) must not abort the batch or the item:
-    // the refresh is retried once more by `call_with_refresh`, succeeds, and
-    // the failed item's download is retried in place. All five items must
-    // end up downloaded and the credentials must survive untouched.
+    // A 401 on one item's download whose refresh fails transiently (not a
+    // refresh-token rejection) must not abort the batch: `call_with_refresh`
+    // retries the refresh, then the download. All five items end up downloaded
+    // and the credentials survive.
     let mut server = mockito::Server::new();
     let course_id = Uuid::new_v4();
     let exercise_ids: Vec<Uuid> = (0..5).map(|_| Uuid::new_v4()).collect();
@@ -1436,7 +1423,7 @@ fn download_or_update_course_exercises_transient_refresh_failure_recovers() {
 
     for (i, url) in stub_urls.iter().enumerate() {
         if i == 2 {
-            continue; // item 3 (index 2) gets the special 401-then-success sequencing below
+            continue; // item 3 is mocked separately below
         }
         let path = url.strip_prefix(&server.url()).unwrap();
         server
@@ -1843,19 +1830,16 @@ fn grading_path(submission_id: &str) -> String {
 
 #[test]
 fn blocking_submit_polls_until_fully_graded() {
-    // A blocking submit polls grading until terminal: first `NoGradingYet`, then
-    // `FullyGraded`.
     let mut server = mockito::Server::new();
     let submission_id = "11111111-1111-1111-1111-111111111111";
     let _exercise = mock_exercise_for_submit(&mut server);
     let (_upload, _submit) = mock_submit(&mut server, submission_id);
-    // First poll: not graded yet (bounded so the next mock takes over).
+    // Bounded so the next mock takes over.
     let _pending = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_body(serde_json::json!("NoGradingYet").to_string())
         .expect(1)
         .create();
-    // Subsequent polls: fully graded.
     let _graded = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_body(
@@ -1961,13 +1945,12 @@ fn blocking_submit_tolerates_transient_grading_errors() {
     let submission_id = "44444444-4444-4444-4444-444444444444";
     let _exercise = mock_exercise_for_submit(&mut server);
     let (_upload, _submit) = mock_submit(&mut server, submission_id);
-    // First two polls fail (bounded so the next mock takes over).
+    // Bounded so the next mock takes over.
     let _errors = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_status(500)
         .expect(2)
         .create();
-    // Subsequent polls: fully graded.
     let _graded = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_body(
@@ -2006,7 +1989,6 @@ fn blocking_submit_tolerates_transient_grading_errors() {
 
 #[test]
 fn blocking_submit_errors_when_grading_fails_until_timeout() {
-    // Grading failing for the entire poll window surfaces as `Err` at the deadline.
     let mut server = mockito::Server::new();
     let submission_id = "55555555-5555-5555-5555-555555555555";
     let _exercise = mock_exercise_for_submit(&mut server);
@@ -2080,23 +2062,19 @@ fn blocking_submit_transient_401_during_grading_poll_does_not_resubmit() {
     let _exercise = mock_exercise_for_submit(&mut server);
     let (_upload, submit) = mock_submit(&mut server, submission_id);
 
-    // First poll: rejected.
     let _rejected = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_status(401)
         .with_body(r#"{"message":"invalid token"}"#)
         .expect(1)
         .create();
-    // The refresh the 401 triggers succeeds.
     let refresh = mock_oauth_refresh(&mut server, "refreshed-access", "refreshed-refresh");
-    // The retried poll (still inside the same `call_with_refresh` call):
-    // not graded yet.
+    // The retry inside the same `call_with_refresh` call: not graded yet.
     let _pending = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_body(serde_json::json!("NoGradingYet").to_string())
         .expect(1)
         .create();
-    // A later, ordinary poll: fully graded.
     let _graded = server
         .mock("GET", grading_path(submission_id).as_str())
         .with_body(
@@ -2187,9 +2165,8 @@ fn blocking_submit_permanent_refresh_rejection_during_grading_poll_fails_fast() 
         config_dir.path(),
         projects_dir.path(),
         50,
-        // A poll timeout long enough that a regression to "wait it out"
-        // would make this test very obviously slow (and eventually fail
-        // outright with a plain timeout error, not an invalid-token one).
+        // Long enough that a regression to waiting it out is visibly slow and
+        // ends in a plain timeout error instead of invalid-token.
         60_000,
     );
     let elapsed = start.elapsed();
@@ -2338,7 +2315,6 @@ fn wait_for_grading_times_out_returning_latest_status() {
 
     let config_dir = tempfile::tempdir().unwrap();
     let projects_dir = tempfile::tempdir().unwrap();
-    // Short timeout (40 ms) with a 5 ms interval so the loop gives up quickly.
     let output = run_mooc_in_with_poll(
         &server,
         &["wait-for-grading", "--submission-id", submission_id],
@@ -2404,8 +2380,7 @@ fn dispatches_get_exercise_submissions() {
 }
 
 /// An exercise slide fixture with a single editor task whose stub archive lives
-/// at `stub_url`, used by the old-submission download tests (which resolve the
-/// stub via `download_exercise`, and the slide/task ids via `submit_exercise`).
+/// at `stub_url`.
 fn editor_slide_with_stub(
     exercise_id: &str,
     slide_id: &str,
@@ -2527,7 +2502,6 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
         OutputResult::ExecutedCommand
     ));
 
-    // student file restored from the old submission
     assert_eq!(
         std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
         "print('my old solution')"
@@ -2566,7 +2540,6 @@ fn download_old_submission_save_old_state_submits_first() {
         ))
         .expect_at_least(1)
         .create();
-    // The save-old-state submit must POST to the submit endpoint.
     let (_upload, submit) = mock_submit_steps_for(
         &mut server,
         exercise_id,
@@ -2638,7 +2611,6 @@ fn download_old_submission_save_old_state_submits_first() {
 
     // the current state was submitted before overwriting
     submit.assert();
-    // and the old submission was restored
     assert_eq!(
         std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
         "print('restored')"
@@ -3023,7 +2995,6 @@ fn paste_submits_then_shares_the_slide_submission() {
         )
         .expect(0)
         .create();
-    // Share endpoint mounted ONLY at the slide-submission id.
     let share = server
         .mock(
             "POST",
@@ -3062,8 +3033,6 @@ fn paste_submits_then_shares_the_slide_submission() {
         other => panic!("expected MoocPaste, got {other:?}"),
     }
 }
-
-// --- device-flow login / logged-in / logout ---------------------------------
 
 /// Runs a `mooc login`-family command in-process, returning the raw result so
 /// tests can assert on either the success output or the error `Kind`. Sets a
@@ -3117,7 +3086,6 @@ fn mooc_login_pending_slow_down_then_success() {
     // the grant is approved, then saves the issued token.
     let mut server = mockito::Server::new();
     let _device = mock_device_authorization(&mut server);
-    // Ordered token responses: pending, then slow_down, then success.
     let _pending = server
         .mock("POST", token_endpoint())
         .with_status(400)
@@ -3148,7 +3116,6 @@ fn mooc_login_pending_slow_down_then_success() {
     let output = run_mooc_auth(&server, &["login"], config_dir.path()).unwrap();
     assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
 
-    // The issued token pair was persisted in the wrapper shape.
     let creds_path = config_dir
         .path()
         .join("tmc-test")

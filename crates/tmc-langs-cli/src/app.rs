@@ -542,11 +542,9 @@ pub struct Mooc {
 
 #[derive(Parser, Clone)]
 pub enum MoocCommand {
-    /// Logs in to the Courses MOOC backend using the OAuth2 device
-    /// authorization grant (RFC 8628). Emits a `mooc-device-login` status
-    /// update carrying the verification URL and user code, then blocks polling
-    /// until the login is approved (or the parent process cancels by killing
-    /// this one).
+    /// Logs in to the Courses MOOC backend with the OAuth2 device authorization
+    /// grant (RFC 8628). Emits a `mooc-device-login` status update with the
+    /// verification URL and user code, then polls until approved or killed.
     #[clap(long_about = SCHEMA_NULL)]
     Login,
     /// Checks whether the CLI holds mooc credentials.
@@ -894,8 +892,7 @@ mod base_test {
 
     #[test]
     fn list_local_tmc_course_exercises() {
-        // The released spelling. Renaming a legacy command breaks every client
-        // pinned to an older CLI, so this name is fixed.
+        // Renaming breaks clients pinned to older CLIs.
         get_matches(&[
             "list-local-tmc-course-exercises",
             "--client-name",
@@ -1132,8 +1129,7 @@ mod core_test {
 
     #[test]
     fn no_login_command() {
-        // A new tmc username/password login no longer exists; a client
-        // authenticates with a stored tmc token or the Courses MOOC one.
+        // Clients authenticate with a stored tmc token or the Courses MOOC one.
         Cli::try_parse_from([
             "tmc-langs-cli",
             "tmc",
@@ -1348,12 +1344,10 @@ mod mooc_test {
 mod test {
     use std::path::{Path, PathBuf};
 
-    /// Path to the committed JSON Schema artifact.
     fn schema_path() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.schema.json")
     }
 
-    /// Path to the committed TypeScript bindings artifact.
     fn dts_path() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR")).join("bindings.d.ts")
     }
@@ -1404,12 +1398,9 @@ mod test {
         std::fs::write(dts_path(), generate_cli_bindings_dts()).unwrap();
     }
 
-    /// `bindings.d.ts` is vendored into other repos as a standalone file
-    /// (sp331's `services/tmc/src/tmc/cli.d.ts`), so a type it references but
-    /// never declares makes it invalid TypeScript there. The byte-equality
-    /// gates compare bytes only and cannot see that; a type reachable from an
-    /// exported type but missing from `generate_cli_bindings_dts`'s
-    /// `export_to!` list is the way it happens.
+    /// `bindings.d.ts` is vendored standalone (sp331's `services/tmc/src/tmc/cli.d.ts`),
+    /// so a referenced type missing from `generate_cli_bindings_dts`'s `export_to!`
+    /// list makes it invalid TypeScript; the byte-equality gates can't see that.
     #[test]
     fn bindings_dts_declares_every_type_it_references() {
         /// Types TypeScript provides; everything else must be declared in-file.
@@ -1487,7 +1478,6 @@ mod test {
         out
     }
 
-    /// Produces the TypeScript bindings as a string from the current types.
     #[cfg(feature = "ts-rs")]
     fn generate_cli_bindings_dts() -> String {
         let mut buf = Vec::new();

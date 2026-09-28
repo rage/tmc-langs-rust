@@ -169,9 +169,8 @@ pub fn check_mooc_exercise_updates(
 
     let config = ProjectsConfig::load(projects_dir)?;
 
-    // One `course_exercises` request per course, not one per exercise; correlate
-    // by exercise id (the config map key and the extension's identity) — the
-    // stored `task_id` is the editor task's id, not a valid exercise key.
+    // One `course_exercises` request per course. Key by exercise id: the stored
+    // `task_id` is the editor task's id, not an exercise key.
     let mut server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = HashMap::new();
     for course_config in config.mooc_courses.values() {
         if course_config.exercises.is_empty() {
@@ -620,15 +619,12 @@ pub fn get_course_data(
 
 /// tmc-server hosts that may be handed a courses.mooc.fi access token.
 ///
-/// The tmc root URL is taken from the environment, so it is not by itself
-/// evidence that the host really is tmc-server. Restricting the reuse of the mooc
-/// access token to this list means a redirected root URL cannot turn a tmc
-/// command into a token handover.
+/// The tmc root URL comes from the environment and so does not prove the host is
+/// tmc-server; this list stops a redirected URL from harvesting the token.
 const TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN: &[&str] = &["tmc.mooc.fi"];
 
-/// See [`TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN`]. Loopback is allowed only under the
-/// same opt-in the mooc client uses, so a mock or a locally served backend can
-/// exercise the path without production ever trusting a local host implicitly.
+/// See [`TMC_HOSTS_TRUSTED_WITH_MOOC_TOKEN`]. Loopback needs the same opt-in as
+/// the mooc client, so production never trusts a local host implicitly.
 fn tmc_host_may_receive_mooc_token(root_url: &Url) -> bool {
     let Some(host) = root_url.host_str() else {
         return false;
@@ -667,11 +663,9 @@ impl TestMyCodeAuth {
 
     /// Takes the stored tmc credentials out, leaving the value unauthenticated.
     ///
-    /// Used by the 401 handling, which may delete a rejected *tmc* token but must
-    /// never touch the mooc credentials: tmc-server rejecting a mooc token says
-    /// nothing about that token's validity at courses.mooc.fi (it may simply not
-    /// be accepting them), so deleting it would log the user out of the backend
-    /// that actually issued it.
+    /// For the 401 handling, which may delete a rejected *tmc* token but must never
+    /// touch the mooc credentials: tmc-server rejecting a mooc token says nothing
+    /// about its validity at courses.mooc.fi.
     pub fn take_stored_tmc(&mut self) -> Option<Credentials> {
         match std::mem::replace(self, Self::Unauthenticated) {
             Self::StoredTmc(credentials) => Some(credentials),
@@ -685,15 +679,13 @@ impl TestMyCodeAuth {
 
 /// Initializes a TestMyCodeClient with whichever credential authenticates it.
 ///
-/// Precedence is deliberate: a stored tmc `credentials.json` wins while it
-/// exists, so a user who logged in with a password before that flow was removed
-/// keeps working until tmc-server rejects the token. The 401 handling then
-/// deletes the file, and the next invocation falls through to the mooc access
-/// token. The mooc token is only used when there is no stored tmc token at all,
-/// so this never changes the credential under a session that still works.
+/// A stored tmc `credentials.json` wins while it exists, so password-era logins
+/// keep working until tmc-server rejects the token; the 401 handling then deletes
+/// the file and the next invocation falls through to the mooc token. The
+/// credential never changes under a session that still works.
 ///
-/// `mooc_root_url` and `mooc_client_id` are needed to refresh the mooc token, the
-/// same way [`init_mooc_client_with_credentials`] does.
+/// `mooc_root_url` and `mooc_client_id` are used to refresh the mooc token, as in
+/// [`init_mooc_client_with_credentials`].
 pub fn init_testmycode_client_with_credentials(
     root_url: Url,
     client_name: &str,
@@ -732,9 +724,8 @@ pub fn init_testmycode_client_with_credentials(
 
 /// Initializes a MoocClient, using and returning the stored credentials, if any.
 ///
-/// The stored token is refreshed first if it is expired (see
-/// [`MoocCredentials::load_valid`]), so the returned client carries a token that
-/// is valid at call time when possible. `client_id` is the OAuth2 client id the
+/// The stored token is refreshed first if expired (see
+/// [`MoocCredentials::load_valid`]). `client_id` is the OAuth2 client id the
 /// refresh grant is made with.
 pub fn init_mooc_client_with_credentials(
     root_url: Url,
@@ -744,7 +735,6 @@ pub fn init_mooc_client_with_credentials(
     // create client
     let mut client = mooc::MoocClient::new(root_url.clone())?;
 
-    // set token from the credentials file if one exists, refreshing if expired
     let credentials = MoocCredentials::load_valid(client_name, &root_url, client_id)?;
     if let Some(credentials) = &credentials {
         client.set_token(credentials.token());
@@ -859,9 +849,8 @@ pub fn update_mooc_exercises(
     projects_dir: &Path,
 ) -> Result<DownloadOrUpdateMoocCourseExercisesResult, LangsError> {
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
-    // Snapshot the locals as OWNED data keyed by EXERCISE id (not the editor task
-    // id), so `projects_config` can be mutated below to persist refreshed
-    // checksums.
+    // Owned snapshot keyed by exercise id (not the editor task id), so
+    // `projects_config` can be mutated below.
     struct LocalMoocExerciseInfo {
         instance_id: Uuid,
         course_directory: String,
@@ -903,7 +892,7 @@ pub fn update_mooc_exercises(
         }
         for slide in server_exercises {
             let Some(local) = locals.get(&slide.exercise_id) else {
-                // Not tracked locally (e.g. deleted). Nothing to update.
+                // Not tracked locally (e.g. deleted).
                 continue;
             };
             // Browser exercises have no editor checksum; skip them.
@@ -918,8 +907,7 @@ pub fn update_mooc_exercises(
                 &local.course_directory,
                 &local.exercise_directory,
             );
-            // Download directly from the editor task's `stub_download_url`
-            // (`.tar.zst`); we already have the slide.
+            // The slide already carries the stub URL; no extra fetch.
             let Some(download_url) = slide.editor_stub_download_url() else {
                 log::warn!(
                     "Skipping exercise {}: no downloadable editor task in public spec",
@@ -929,9 +917,8 @@ pub fn update_mooc_exercises(
             };
             download_and_extract_mooc_archive(client, auth, download_url, &target)?;
 
-            // Persist the refreshed checksum, or the same update is re-reported on
-            // every subsequent check. Use the slide's editor task id (the id the
-            // checksum belongs to), falling back to the stored task id.
+            // Persist the new checksum, or every later check re-reports the update.
+            // Prefer the editor task id (the checksum's owner) over the stored one.
             let task_id = slide
                 .editor_task_id()
                 .or_else(|| {
@@ -966,8 +953,8 @@ pub fn update_mooc_exercises(
     })
 }
 
-/// Flattens an error's `source()` chain into human-readable strings, most
-/// specific first, for the CLI's `failed` list entries.
+/// Flattens an error's `source()` chain into strings, outermost first, for the
+/// CLI's `failed` list entries.
 fn error_chain(err: &dyn std::error::Error) -> Vec<String> {
     let mut chain = vec![err.to_string()];
     let mut error = err;
@@ -994,9 +981,8 @@ impl From<DownloadArchiveError> for LangsError {
     }
 }
 
-/// Downloads a mooc exercise stub archive from `download_url` (an editor task's
-/// public spec `stub_download_url`) and extracts it into `target`. The backend's
-/// file-store archives are `.tar.zst`.
+/// Downloads the `.tar.zst` stub archive at `download_url` (an editor task's
+/// `stub_download_url`) and extracts it into `target`.
 fn download_and_extract_mooc_archive(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1022,20 +1008,16 @@ fn download_and_extract_mooc_archive(
     Ok(())
 }
 
-/// Downloads a past mooc submission and restores it at `output_path`, overlaying
-/// the submission's student files on top of a fresh exercise stub.
+/// Restores a past mooc submission at `output_path`: the submission's student
+/// files overlaid on a fresh exercise stub, fully replacing the directory.
 ///
-/// Mirrors the TMC [`download_old_submission`] flow minus the server-reset step
-/// (mooc has no reset): a fresh stub provides the non-student template files, and
-/// only the submission's student files are extracted over it. The exercise is
-/// rebuilt in a temp dir and moved into `output_path`, fully replacing it (stale
-/// files dropped). If `save_old_state` is set, the current state is submitted
-/// first (non-blocking) so nothing the student wrote is lost.
+/// Mirrors [`download_old_submission`] minus the server reset (mooc has none). If
+/// `save_old_state` is set, the current state is submitted first (non-blocking)
+/// so nothing the student wrote is lost.
 ///
-/// A submission the host has no files for is reported as
-/// [`MoocOldSubmissionRestore::NothingToDownload`], and one of several files as
-/// [`LangsError::NotATmcAnswer`]. Both are decided before anything else, so neither
-/// touches the local exercise or the server.
+/// A submission with no files yields [`MoocOldSubmissionRestore::NothingToDownload`];
+/// one with several yields [`LangsError::NotATmcAnswer`]. Both are decided before
+/// the local exercise or the server is touched.
 pub fn download_mooc_old_submission(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1096,26 +1078,16 @@ pub fn download_mooc_old_submission(
 
 /// Downloads or updates the given mooc exercises in the local projects directory.
 ///
-/// The course context (needed for the on-disk directory and the projects config
-/// key) is resolved one of two ways:
-/// - if `course_id` is given (the extension always knows it from the course
-///   details), only that course's exercise slides are fetched;
-/// - otherwise the user's enrolled courses are scanned to locate each exercise
-///   (O(courses x exercises)), since the langs API exposes no exercise -> course
-///   lookup for that case.
+/// With `course_id` (which the extension always knows) only that course's slides
+/// are fetched; otherwise the enrolled courses are scanned (O(courses x
+/// exercises)), since the langs API has no exercise -> course lookup. The course
+/// name determines the on-disk directory, and the course id doubles as the
+/// projects config instance key (the API does not expose course instance ids).
 ///
-/// A course's name determines its on-disk directory, and the course id doubles as
-/// the projects config instance key (the langs API does not expose course
-/// instance ids).
-///
-/// For each requested exercise:
-/// - not found -> reported as failed,
-/// - no editor task (e.g. a browser-only exercise) -> reported as failed,
-/// - stored checksum already matches the server -> skipped,
-/// - otherwise the editor task's stub archive is downloaded, extracted as
-///   `.tar.zst`, and the course config is updated.
-///
-/// Results are keyed by the requested `exercise_id`.
+/// Per exercise: not found or no editor task (e.g. browser-only) -> failed;
+/// stored checksum matches -> skipped; otherwise the stub archive is downloaded,
+/// extracted and the course config updated. Results are keyed by the requested
+/// `exercise_id`.
 pub fn download_or_update_mooc_course_exercises(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1131,14 +1103,11 @@ pub fn download_or_update_mooc_course_exercises(
 
     let mut projects_config = ProjectsConfig::load(projects_dir)?;
 
-    // Resolve course context for each requested exercise.
     // exercise_id -> (course_id, course_name, slide)
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();
     let mut resolved: HashMap<Uuid, (Uuid, String, mooc::TmcExerciseSlide)> = HashMap::new();
     if !requested.is_empty() {
         match course_id {
-            // The caller knows the course: fetch just that course's slides instead
-            // of scanning every enrolled course.
             Some(course_id) => {
                 let course = auth.call(client, |c| c.course(course_id))?;
                 for slide in auth.call(client, |c| c.course_exercises(course_id))? {
@@ -1147,8 +1116,6 @@ pub fn download_or_update_mooc_course_exercises(
                     }
                 }
             }
-            // No course context: resolve each exercise's course by scanning the
-            // enrolled courses' exercise slides.
             None => {
                 'courses: for course in auth.call(client, |c| c.courses())? {
                     for slide in auth.call(client, |c| c.course_exercises(course.id))? {
@@ -1171,7 +1138,6 @@ pub fn download_or_update_mooc_course_exercises(
     let mut skipped = Vec::new();
     let mut failed: Vec<(MoocExerciseDownload, Vec<String>)> = Vec::new();
 
-    // Report per-exercise download progress, mirroring the TMC download path.
     let total_steps = u32::try_from(exercise_ids.len())
         .unwrap_or(u32::MAX)
         .saturating_add(1);
@@ -1232,7 +1198,7 @@ pub fn download_or_update_mooc_course_exercises(
             course_name.clone(),
         );
 
-        // resolve the target directory (reuse the existing one if already downloaded)
+        // Reuse the directory of an already-downloaded exercise.
         let exercise_directory = course_config
             .exercises
             .get(&exercise_id)
@@ -1244,7 +1210,6 @@ pub fn download_or_update_mooc_course_exercises(
             &exercise_directory,
         );
 
-        // skip if the stored checksum already matches
         if let Some(existing) = course_config.exercises.get(&exercise_id) {
             if existing.checksum == checksum {
                 log::info!("Skipping exercise {exercise_id} due to identical checksum");
@@ -1495,15 +1460,12 @@ pub fn reset(
     Ok(())
 }
 
-/// Resets a mooc exercise: mirrors TMC's [`reset`], optionally submitting the
-/// current state first, then replacing the directory with a freshly extracted
-/// stub.
+/// Resets a mooc exercise to a fresh stub, optionally submitting the current
+/// state first. Mirrors [`reset`].
 ///
-/// Never leaves `exercise_path` half-written: the stub is fetched and extracted
-/// into a staging sibling *before* the original is touched, so a download or
-/// extraction failure leaves it intact. Only once extraction fully succeeds is
-/// the old directory moved aside and the staged one swapped in (a same-filesystem
-/// rename); the old copy is restored if that swap fails.
+/// Never leaves `exercise_path` half-written: the stub is extracted into a
+/// staging sibling before the original is touched, and the old copy is restored
+/// if the final swap fails.
 pub fn reset_mooc_exercise(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1517,7 +1479,6 @@ pub fn reset_mooc_exercise(
     );
 
     if save_old_state {
-        // submit the current state before resetting
         let temp = file_util::named_temp_file()?;
         compress_project_to(
             exercise_path,
@@ -1534,10 +1495,8 @@ pub fn reset_mooc_exercise(
     // existing work.
     let stub = auth.call(client, |c| c.download_exercise(exercise_id))?;
 
-    // Staging dir is a sibling of `exercise_path` (same filesystem, so the
-    // swap-in below is a rename, not a cross-device copy). A failed/partial
-    // extraction never touches the original; on early return the `TempDir`
-    // guard removes the staging dir.
+    // Sibling of `exercise_path` so the swap-in is a same-filesystem rename; the
+    // `TempDir` guard removes it on early return.
     let parent = match exercise_path.parent() {
         Some(parent) if !parent.as_os_str().is_empty() => parent,
         _ => Path::new("."),
@@ -1555,15 +1514,13 @@ pub fn reset_mooc_exercise(
         false,
     )?;
 
-    // Extraction succeeded; only rename/remove ops remain, so the swap can't
-    // leave a half-written directory. Disarm the `TempDir` guard: it's about to
-    // be moved into place, not dropped.
+    // Only renames/removes remain. Disarm the `TempDir` guard: the dir is about
+    // to be moved into place, not dropped.
     let staging_path = staging.keep();
 
     if exercise_path.exists() {
-        // Move the old dir aside instead of deleting, so it can be restored if the
-        // rename-in fails. Reserve a unique name via tempdir, then free it so the
-        // rename target doesn't exist (required on Windows).
+        // Move the old dir aside so it can be restored if the rename-in fails. The
+        // tempdir is removed first so the rename target doesn't exist (Windows).
         let backup_path = tempfile::Builder::new()
             .prefix(".tmc-reset-old-")
             .tempdir_in(parent)
@@ -1574,12 +1531,10 @@ pub fn reset_mooc_exercise(
 
         match file_util::rename(&staging_path, exercise_path) {
             Ok(()) => {
-                // The fresh copy is in place; drop the old one.
                 file_util::remove_dir_all(&backup_path)?;
             }
             Err(err) => {
-                // Roll back: restore the original and clean up the stage, so the
-                // failure is a no-op.
+                // Roll back so the failure is a no-op.
                 let _ = file_util::rename(&backup_path, exercise_path);
                 let _ = file_util::remove_dir_all(&staging_path);
                 return Err(err.into());
@@ -1909,8 +1864,8 @@ mod test {
         client
     }
 
-    /// A `MoocAuth` pointed at the mock server. None of these tests exercise
-    /// a 401/refresh, so the client id and name are arbitrary.
+    /// A `MoocAuth` pointed at the mock server; the client id and name are
+    /// arbitrary since no test here exercises a 401/refresh.
     fn mock_mooc_auth(server: &Server) -> MoocAuth {
         MoocAuth::new("test", server.url().parse().unwrap(), "test-client")
     }
@@ -1932,9 +1887,8 @@ mod test {
         zstd::encode_all(std::io::Cursor::new(tar_buf), 0).unwrap()
     }
 
-    /// Writes a mooc course config with a single exercise and creates the exercise
-    /// directory so the load-time maintenance pass doesn't prune it. Returns
-    /// (instance_id, exercise_id, task_id).
+    /// Writes a mooc course config with one exercise and creates its directory so
+    /// the loader doesn't prune it. Returns (instance_id, exercise_id, task_id).
     fn write_mooc_course_config(
         projects_dir: &std::path::Path,
         local_checksum: &str,
@@ -2520,8 +2474,8 @@ checksum = 'new checksum'
         let (_instance_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
 
-        // Update check batches via the COURSE-exercises route, not one request per
-        // exercise. Only that route is mocked, so a per-exercise regression fails.
+        // The check must batch via the course-exercises route; only it is mocked,
+        // so a per-exercise regression fails.
         let _m = server
             .mock(
                 "GET",
@@ -2582,9 +2536,9 @@ checksum = 'new checksum'
 
     #[test]
     fn updates_mooc_exercises_extracts_tar_zst() {
-        // Regression test: the archive comes from the public spec's
-        // `stub_download_url` (no `exercises/{id}/download` route ever existed),
-        // and it is `.tar.zst`, so extraction must use `TarZstd`, not `Zip`.
+        // Regression: the archive comes from the public spec's `stub_download_url`
+        // (no `exercises/{id}/download` route exists) and is `.tar.zst`, so
+        // extraction must use `TarZstd`, not `Zip`.
         init();
         let mut server = Server::new();
 
@@ -2625,9 +2579,8 @@ checksum = 'new checksum'
 
     #[test]
     fn update_mooc_exercises_persists_refreshed_checksum() {
-        // A re-downloaded exercise's new checksum must be persisted, or the same
-        // update is re-reported on every subsequent check. A second check must
-        // see none.
+        // The new checksum must be persisted, or every later check re-reports the
+        // update.
         init();
         let mut server = Server::new();
 
@@ -2670,15 +2623,14 @@ checksum = 'new checksum'
 
     #[test]
     fn resets_mooc_exercise_over_local_dir() {
-        // Reset replaces the whole directory, not just overlays the archive:
-        // leftover.txt (absent from the fresh stub) must be gone too.
+        // Reset replaces the directory rather than overlaying: leftover.txt
+        // (absent from the stub) must be gone.
         init();
         let mut server = Server::new();
         let exercise_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
 
         let exercise_dir = tempfile::tempdir().unwrap();
-        // seed stale files the reset must clear
         file_to(&exercise_dir, "src/main.py", b"stale student code");
         file_to(&exercise_dir, "leftover.txt", b"should be gone");
 
@@ -2775,10 +2727,9 @@ checksum = 'new checksum'
 
     #[test]
     fn downloads_or_updates_mooc_course_exercises() {
-        // Bulk download-or-update: a changed exercise is downloaded, an unchanged
-        // one skipped, and a browser-only and an unknown exercise reported failed.
-        // Course context is resolved by scanning enrolled courses (no exercise ->
-        // course endpoint).
+        // A changed exercise is downloaded, an unchanged one skipped, a browser-only
+        // and an unknown one reported failed. Course context comes from scanning
+        // enrolled courses (no exercise -> course endpoint).
         init();
         let mut server = Server::new();
 
@@ -2928,7 +2879,6 @@ directory = "skip-me"
         assert_eq!(result.skipped[0].exercise_id, ex_skip);
         let failed = result.failed.expect("two failures");
         assert_eq!(failed.len(), 2, "browser + missing exercises fail");
-        // the failure entries are keyed by the requested exercise ids
         let failed_ids = failed
             .iter()
             .map(|(d, _)| d.exercise_id)
@@ -2936,7 +2886,6 @@ directory = "skip-me"
         assert!(failed_ids.contains(&ex_browser));
         assert!(failed_ids.contains(&ex_missing));
 
-        // the new exercise was extracted under the resolved course directory
         let extracted = projects_dir
             .path()
             .join("mooc/course/new-exercise/src/main.py");
@@ -2945,7 +2894,6 @@ directory = "skip-me"
             "print('new')"
         );
 
-        // and it was persisted to the course config
         let reloaded = ProjectsConfig::load(projects_dir.path()).unwrap();
         assert!(reloaded.get_mooc_exercise(course_id, ex_new).is_some());
     }
@@ -3140,7 +3088,6 @@ directory = "skip-me"
                 "the mooc token must not be used against {root}, got {auth:?}"
             );
         }
-        // And the credentials themselves are untouched.
         assert!(MoocCredentials::load("prec-untrusted").unwrap().is_some());
     }
 
@@ -3184,9 +3131,8 @@ directory = "skip-me"
 
     #[test]
     fn the_401_handler_can_only_delete_a_stored_tmc_credential() {
-        // tmc-server rejecting a mooc token says nothing about that token's
-        // validity at courses.mooc.fi, so the 401 path must find nothing to
-        // delete.
+        // tmc-server rejecting a mooc token says nothing about its validity at
+        // courses.mooc.fi, so the 401 path must find nothing to delete.
         let mut auth = TestMyCodeAuth::Mooc(token("mooc-token"));
         assert!(auth.take_stored_tmc().is_none());
         assert!(

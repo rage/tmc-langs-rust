@@ -117,6 +117,11 @@ pub struct Lock {
 impl Lock {
     pub fn file(path: impl AsRef<Path>, options: LockOptions) -> Result<Self, FileError> {
         let path = path.as_ref().to_path_buf();
+        if matches!(options, LockOptions::ReadCreate | LockOptions::WriteCreate) {
+            if let Some(parent) = path.parent() {
+                create_dir_all(parent)?;
+            }
+        }
         let open_options = options.into_open_options();
         let file = open_with_retry(&path, || open_options.open(&path))
             .map_err(|e| FileError::FileOpen(path.clone(), e))?;
@@ -177,9 +182,8 @@ impl Lock {
         })
     }
 
-    /// A single non-blocking lock attempt. `Ok(None)` means the lock is currently
-    /// held elsewhere and the caller may retry; see [`with_file_lock_timeout`] for
-    /// the bounded-wait loop built on this.
+    /// A single non-blocking lock attempt. `Ok(None)` means the lock is held elsewhere;
+    /// see [`with_file_lock_timeout`] for the bounded-wait loop built on this.
     pub fn try_lock(&mut self) -> Result<Option<Guard<'_>>, FileError> {
         log::trace!("try-locking {}", self.path.display());
         let report_path: &Path = self.lock_file_path.as_deref().unwrap_or(&self.path);

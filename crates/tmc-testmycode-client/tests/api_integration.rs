@@ -18,8 +18,7 @@ fn init_client() -> TestMyCodeClient {
     let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
 
     dotenvy::dotenv().ok();
-    // There is no password grant any more; supply an access token tmc-server
-    // accepts (its own, or a courses.mooc.fi one).
+    // Any token tmc-server accepts: its own or a courses.mooc.fi one.
     let access_token = env::var("TMC_ACCESS_TOKEN").unwrap();
 
     let mut client = TestMyCodeClient::new(

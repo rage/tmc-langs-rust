@@ -1,18 +1,13 @@
 //! Credentials for authenticating with the Courses MOOC backend.
 //!
-//! Stored separately from the legacy tmc `credentials.json` in a
-//! `credentials_mooc_<host>.json` file in the same config directory. The legacy
-//! file holds a tmc-server password-grant token that is worthless to the mooc
-//! OAuth2 device-flow model, so it is deliberately left untouched and NOT
-//! migrated.
-//!
-//! The file name is keyed by hostname because the config directory is very often
-//! a shared network home directory; see
+//! Stored in `credentials_mooc_<host>.json`, separate from the legacy tmc
+//! `credentials.json`, whose password-grant token is useless to the OAuth2
+//! device flow and is deliberately not migrated. The name is keyed by hostname
+//! because the config directory is often a shared network home; see
 //! [`MoocCredentials::credentials_file_name`].
 //!
-//! The token is wrapped with the time it was obtained so its expiry survives a
-//! reload: the stored `oauth2` token carries only a relative `expires_in`, and
-//! `obtained_at` turns that into an absolute deadline the loader can check.
+//! `obtained_at` is stored beside the token because the `oauth2` token carries
+//! only a relative `expires_in`.
 
 use crate::error::LangsError;
 use chrono::{DateTime, Utc};
@@ -30,50 +25,36 @@ use tmc_langs_util::{
 use tmc_mooc_client::{self as mooc, api};
 use url::Url;
 
-/// Refresh proactively once the access token has less than this many seconds of
-/// life left, so a token that is about to expire is renewed before it is used.
+/// Refresh proactively once the access token has less than this many seconds left.
 const EXPIRY_MARGIN_SECS: i64 = 60;
 
-/// Serializes refreshes between threads of this process. The on-disk file lock
-/// serializes across processes, but the underlying POSIX lock is process-scoped
-/// and does not serialize threads within one process; this mutex closes that gap
-/// so N concurrent in-process loaders still collapse to a single refresh.
+/// Serializes refreshes between threads of this process; the file lock is
+/// process-scoped and does not.
 static REFRESH_LOCK: Mutex<()> = Mutex::new(());
 
 /// Total budget for *acquiring* the credentials lock, shared by the in-process
-/// refresh mutex and the cross-process file lock.
+/// mutex and the file lock.
 ///
-/// The backend no longer grants a reuse window for a refresh token that has
-/// already been redeemed, so this lock is the only thing stopping two concurrent
-/// refreshes from redeeming the same token and having the whole token family
-/// revoked as a suspected theft. That makes waiting for the lock mandatory rather
-/// than best-effort — but a waiter must still not wait forever.
-///
-/// A holder keeps the lock only for the duration of its refresh, and the refresh
-/// HTTP request is itself bounded by [`mooc::AUTH_REQUEST_TIMEOUT`], so a holder
-/// that is merely slow releases within that. 60s leaves double that headroom, so a
-/// slow-but-succeeding refresh by another process is always waited out, while a
-/// holder wedged in a way the HTTP timeout cannot catch (a stopped process, a
-/// thrashing machine, a lock stranded by a filesystem that reports locks it does
-/// not honour) degrades to a failed, retryable command inside a minute instead of
-/// hanging the editor indefinitely.
+/// The backend revokes the token family if a refresh token is redeemed twice, so
+/// this lock is what makes concurrent refreshes safe and waiting is mandatory.
+/// It must still be bounded: a holder wedged beyond what the HTTP timeout
+/// ([`mooc::AUTH_REQUEST_TIMEOUT`]) can catch fails the command, retryably,
+/// instead of hanging the editor.
 const LOCK_TIMEOUT: Duration = Duration::from_secs(60);
 
-/// The lock-wait budget is only meaningful if it outlasts the network call made
-/// under the lock; otherwise waiters would give up on a refresh that is still
-/// legitimately in flight.
+/// Waiters must outlast the refresh request made under the lock, or they abandon
+/// a refresh that is still legitimately in flight.
 const _: () = assert!(
     LOCK_TIMEOUT.as_secs() > mooc::AUTH_REQUEST_TIMEOUT.as_secs(),
     "the credentials lock-wait budget must exceed the refresh request timeout"
 );
 
-/// How long [`lock_in_process_until`] sleeps between attempts on [`REFRESH_LOCK`].
+/// Sleep between [`lock_in_process_until`] attempts.
 const IN_PROCESS_POLL_INTERVAL: Duration = Duration::from_millis(50);
 
-/// Bounded acquisition of [`REFRESH_LOCK`]. `std::sync::Mutex` has no timed lock,
-/// so poll `try_lock` until `deadline` and then report the same
-/// [`FileError::LockTimeout`] the cross-process wait uses, so a caller (and the
-/// user) sees one failure mode regardless of which of the two locks was stuck.
+/// Acquires [`REFRESH_LOCK`] by polling until `deadline`, since `std::sync::Mutex`
+/// has no timed lock. Times out with the same [`FileError::LockTimeout`] as the
+/// file lock.
 fn lock_in_process_until(
     deadline: Instant,
     path: &Path,
@@ -81,8 +62,7 @@ fn lock_in_process_until(
     loop {
         match REFRESH_LOCK.try_lock() {
             Ok(guard) => return Ok(guard),
-            // A previous holder panicked mid-refresh. The mutex guards `()`, so
-            // there is no poisoned state to protect: take it over.
+            // Holder panicked; the mutex guards `()`, so nothing is poisoned.
             Err(TryLockError::Poisoned(e)) => return Ok(e.into_inner()),
             Err(TryLockError::WouldBlock) => {}
         }
@@ -100,15 +80,11 @@ fn lock_in_process_until(
     }
 }
 
-/// The name the credentials were stored under before they were keyed by host, and
-/// the name still used when this machine's hostname cannot be determined.
+/// The pre-host-keying file name, still used when the hostname is unknown.
 const SHARED_CREDENTIALS_FILE_NAME: &str = "credentials_mooc.json";
 
-/// Cap on the hostname component of the file name, so a long FQDN can't push the
-/// path past a filesystem's name limit. Two hostnames that agree on their first
-/// [`HOST_NAME_MAX_LEN`] usable characters would share a file again, which is
-/// only the pre-existing behaviour and needs the two machines to be named nearly
-/// identically.
+/// Cap on the hostname component of the file name, so a long FQDN can't exceed a
+/// filesystem's name limit. Hostnames sharing this prefix share a file.
 const HOST_NAME_MAX_LEN: usize = 64;
 
 /// This machine's hostname, reduced to characters that are safe in a file name:
@@ -122,7 +98,6 @@ fn host_key() -> Option<String> {
 fn raw_host_name() -> Option<String> {
     #[cfg(unix)]
     {
-        // `nix` is already a dependency here; this is `gethostname(2)`.
         match nix::unistd::gethostname() {
             Ok(host) => Some(host.to_string_lossy().into_owned()),
             Err(e) => {
@@ -133,8 +108,7 @@ fn raw_host_name() -> Option<String> {
     }
     #[cfg(not(unix))]
     {
-        // Windows sets this for every process; there is no libc `gethostname` to
-        // fall back on without pulling in a Windows API crate.
+        // Avoids pulling in a Windows API crate for `GetComputerName`.
         std::env::var("COMPUTERNAME").ok()
     }
 }
@@ -151,8 +125,7 @@ fn sanitize_host(host: &str) -> Option<String> {
             _ => '_',
         })
         .collect();
-    // All-separator leftovers ("...", "___") name nothing recognizable and would
-    // collide across machines, so treat them as no hostname at all.
+    // All-separator names ("...", "___") would collide across machines.
     if sanitized.contains(|c: char| c.is_ascii_alphanumeric()) {
         Some(sanitized)
     } else {
@@ -169,26 +142,19 @@ fn credentials_file_name_for(host_key: Option<&str>) -> String {
     }
 }
 
-/// Moves a pre-existing shared `credentials_mooc.json` to this host's name, so a
-/// user who logged in before credentials were keyed by host is not logged out by
-/// the upgrade. Returns whether it was adopted.
+/// Moves a pre-existing shared `credentials_mooc.json` to this host's name, so the
+/// upgrade doesn't log the user out. Returns whether it was adopted.
 ///
-/// The move is a rename rather than a copy, and that is the point: exactly one
-/// machine inherits the existing session. Copying it to every host's file would
-/// hand the same rotating refresh token to several machines, and the first refresh
-/// would then revoke the token family for all of them — the failure this keying is
-/// meant to prevent, triggered by the migration itself. The machines that lose the
-/// race simply find no credentials and log in again.
-///
-/// Failures are logged and otherwise ignored: the worst case is that the user logs
-/// in again, which is also what happens if the file was never there.
+/// Renames rather than copies so exactly one machine inherits the session:
+/// copies would share one rotating refresh token, and the first refresh would
+/// revoke the family for all of them. Losers of the race log in again, which is
+/// also the worst case of a failure, so failures are only logged.
 fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
     if !shared.exists() {
         return false;
     }
     if per_host.exists() {
-        // This host already has its own credentials, so the shared file is not
-        // ours to consume; leave it for whichever machine gets there first.
+        // Not ours to consume; leave it for a machine that has no credentials.
         log::debug!(
             "leaving the shared {} alone, {} already exists",
             shared.display(),
@@ -196,8 +162,7 @@ fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
         );
         return false;
     }
-    // Same directory, so the rename is atomic: a machine racing us either moves
-    // the file or finds it already gone.
+    // Same directory, so the rename is atomic: a racing machine finds it gone.
     match file_util::rename(shared, per_host) {
         Ok(()) => {
             log::info!(
@@ -215,6 +180,17 @@ fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
             false
         }
     }
+}
+
+/// The file that serializes access to the credentials at `path`.
+///
+/// The credentials file can't be the lock: it is replaced by rename, so a lock on
+/// it would cover an unlinked inode, and on Windows the locking handle would
+/// block both the rename and reads.
+fn lock_file_path(path: &Path) -> PathBuf {
+    let mut name = path.file_name().unwrap_or_default().to_os_string();
+    name.push(".lock");
+    path.with_file_name(name)
 }
 
 /// The on-disk wrapper: the oauth2 token plus when it was obtained.
@@ -259,37 +235,20 @@ impl MoocCredentials {
     /// The name of the file this machine stores its mooc credentials in, e.g.
     /// `credentials_mooc_lab-042.json`.
     ///
-    /// Keyed by hostname because the config directory frequently lives in a
-    /// network home directory shared by many machines — the university lab
-    /// environments this runs in are exactly that — and one credentials file
-    /// shared between machines is not safe:
-    ///
-    /// * The backend rotates refresh tokens and no longer tolerates a refresh
-    ///   token being redeemed twice; the second redemption is treated as token
-    ///   theft and revokes the whole token family. Two machines refreshing the
-    ///   same stored token therefore log the user out of both.
-    /// * The only thing standing between them is the file lock, and on NFS
-    ///   without a reachable lock daemon `fcntl` fails with `ENOLCK` and
-    ///   `file_util` deliberately proceeds *unlocked* (see
-    ///   [`file_util::report_locking_unavailable`]) — so on precisely the setups
-    ///   where the file ends up shared, the protection against sharing it is
-    ///   missing too.
-    ///
-    /// One file per machine removes the sharing instead of trying to arbitrate
-    /// it. The cost is one device-flow login per machine, which is also the more
-    /// defensible behaviour: a device-flow login is a per-device grant.
-    ///
-    /// Public so that tests and anything else looking for the file on disk do
-    /// not have to reconstruct the name.
+    /// Keyed by hostname because the config directory is often a shared network
+    /// home, and one credentials file shared between machines is unsafe: the
+    /// backend treats a refresh token redeemed twice as theft and revokes the
+    /// family, and on NFS without a lock daemon `fcntl` fails with `ENOLCK` and
+    /// `file_util` proceeds *unlocked* (see
+    /// [`file_util::report_locking_unavailable`]). One file per machine avoids the
+    /// sharing at the cost of one device-flow login per machine.
     pub fn credentials_file_name() -> String {
         credentials_file_name_for(host_key().as_deref())
     }
 
     /// This machine's credentials file, adopting a pre-existing shared one on the
-    /// way if this is the first run since the file became per-host.
-    ///
-    /// The adoption lives here, in the one place every entry point already goes
-    /// through, so no path can miss it.
+    /// first run since the file became per-host. Every entry point goes through
+    /// here, so none can miss the adoption.
     fn get_credentials_path(client_name: &str) -> Result<PathBuf, LangsError> {
         let dir = super::get_tmc_dir(client_name)?;
         let path = dir.join(Self::credentials_file_name());
@@ -314,8 +273,8 @@ impl MoocCredentials {
     /// Deletes the credentials file.
     pub fn remove(self) -> Result<(), LangsError> {
         file_util::with_file_lock_timeout(
-            &self.path,
-            LockOptions::Write,
+            lock_file_path(&self.path),
+            LockOptions::WriteCreate,
             LOCK_TIMEOUT,
             |_guard| file_util::remove_file(&self.path),
         )??;
@@ -324,19 +283,17 @@ impl MoocCredentials {
 
     /// Persists a freshly obtained token, stamping it with the current time.
     ///
-    /// Writes under the exclusive file lock (mirroring [`Self::refresh_locked`])
-    /// so a concurrent locked reader can never observe a torn/empty file, and the
-    /// write itself is atomic (temp file + rename, see [`write_stored`]).
+    /// Writes under the exclusive file lock, like [`Self::refresh_locked`]; see
+    /// [`write_stored`] for atomicity.
     pub fn save(client_name: &str, token: api::Token) -> Result<(), LangsError> {
         let path = Self::get_credentials_path(client_name)?;
         let stored = StoredCredentials {
             token,
             obtained_at: Utc::now(),
         };
-        // Exclusive file lock; created if missing. Serializes this write against
-        // a concurrent refresh or a second `save`.
+        // Serializes against a concurrent refresh or `save`.
         file_util::with_file_lock_timeout(
-            &path,
+            lock_file_path(&path),
             LockOptions::WriteCreate,
             LOCK_TIMEOUT,
             |_guard| write_stored(&path, &stored),
@@ -366,19 +323,15 @@ impl MoocCredentials {
     /// Loads the credentials, refreshing the token first if it is expired (or
     /// within [`EXPIRY_MARGIN_SECS`] of expiring).
     ///
-    /// The common case — a still-valid token — takes a shared read lock only.
-    /// When a refresh is needed, an exclusive lock is taken and the file is
-    /// re-read under it (double-checked): a concurrent process may have already
-    /// refreshed, in which case its result is used and no second refresh is
-    /// issued. This collapses N racing refreshers to a single network refresh.
+    /// A still-valid token takes a shared read lock only. Otherwise the file is
+    /// re-read under an exclusive lock, so N racing refreshers collapse to one
+    /// network refresh.
     ///
-    /// A *permanent* refresh failure — the refresh token was rejected as
-    /// invalid/revoked/expired — deletes the credentials and returns `Ok(None)`,
-    /// so the caller proceeds unauthenticated and hits the usual "not logged in"
-    /// path. A *transient* failure (connection error, timeout, 5xx, unparseable
-    /// response) leaves the file untouched and returns `Err`, so the command
-    /// fails with a connection-error kind and the user can retry without being
-    /// logged out.
+    /// A *permanent* failure (refresh token rejected as invalid/revoked/expired)
+    /// deletes the credentials and returns `Ok(None)`, the "not logged in" path.
+    /// A *transient* one (connection error, timeout, 5xx, unparseable response)
+    /// leaves the file untouched and returns `Err`, so the user can retry without
+    /// being logged out.
     pub fn load_valid(
         client_name: &str,
         root_url: &Url,
@@ -389,7 +342,6 @@ impl MoocCredentials {
             return Ok(None);
         }
 
-        // Hot path: shared lock, read, use directly if still valid.
         match read_stored_shared(&path)? {
             Ok(stored) => {
                 if stored.is_valid_with_margin(EXPIRY_MARGIN_SECS) {
@@ -403,19 +355,14 @@ impl MoocCredentials {
             }
         }
 
-        // Cold path: expired token, refresh under an exclusive lock.
         Self::refresh_locked(&path, root_url, client_id, None)
     }
 
-    /// After an API call was rejected with 401, refreshes the token once under
-    /// an exclusive lock and returns the renewed credentials, so the caller can
-    /// retry the call. If the stored token has already been rotated away from
-    /// the rejected one (another process refreshed), that newer token is
-    /// returned without a fresh refresh. Returns `Ok(None)` — leaving the file
-    /// deleted — when there is nothing to refresh with or the refresh token was
-    /// permanently rejected. A transient refresh failure instead returns `Err`
-    /// with the file left intact, so the caller surfaces a connection-error kind
-    /// and the user keeps their session to retry.
+    /// After a 401, refreshes the token once under an exclusive lock so the caller
+    /// can retry. If another process already rotated the stored token, that one is
+    /// returned without a refresh. `Ok(None)` (file deleted) means there was
+    /// nothing to refresh with or the refresh token was permanently rejected; a
+    /// transient failure returns `Err` and keeps the file.
     pub fn refresh_after_401(
         client_name: &str,
         root_url: &Url,
@@ -431,10 +378,8 @@ impl MoocCredentials {
 
     /// Exclusive-lock refresh shared by the proactive and on-401 paths.
     ///
-    /// Both locks are acquired against one shared [`LOCK_TIMEOUT`] deadline, so a
-    /// caller's total wait is bounded by that regardless of how the wait splits
-    /// between the in-process mutex and the cross-process file lock. See
-    /// [`Self::refresh_holding_lock`] for the work done under them.
+    /// Both locks share one [`LOCK_TIMEOUT`] deadline, so the total wait is bounded
+    /// however it splits between them. See [`Self::refresh_holding_lock`].
     fn refresh_locked(
         path: &Path,
         root_url: &Url,
@@ -442,22 +387,19 @@ impl MoocCredentials {
         rejected_access_token: Option<&str>,
     ) -> Result<Option<Self>, LangsError> {
         let deadline = Instant::now() + LOCK_TIMEOUT;
-        // Serialize in-process threads first (the file lock below only serializes
-        // across processes).
+        // The file lock below doesn't serialize threads.
         let _in_process = lock_in_process_until(deadline, path)?;
-        // Exclusive file lock; created if missing so the lock still serializes
-        // even if a racing process deleted the file after a failed refresh. Both
-        // the guard and `_in_process` are RAII, so a panic or any early return
-        // inside the closure releases them.
+        // Both locks are RAII: panics and early returns release them.
         let remaining = deadline.saturating_duration_since(Instant::now());
-        file_util::with_file_lock_timeout(path, LockOptions::WriteCreate, remaining, |_guard| {
-            Self::refresh_holding_lock(path, root_url, client_id, rejected_access_token)
-        })?
+        file_util::with_file_lock_timeout(
+            lock_file_path(path),
+            LockOptions::WriteCreate,
+            remaining,
+            |_guard| Self::refresh_holding_lock(path, root_url, client_id, rejected_access_token),
+        )?
     }
 
     /// The body of [`Self::refresh_locked`], run with the exclusive lock held.
-    /// Re-reads the file under the lock (double-checked) before deciding to
-    /// refresh.
     fn refresh_holding_lock(
         path: &Path,
         root_url: &Url,
@@ -465,12 +407,9 @@ impl MoocCredentials {
         rejected_access_token: Option<&str>,
     ) -> Result<Option<Self>, LangsError> {
         if file_util::locking_unavailable() {
-            // The "exclusive" lock above may not have locked anything: this
-            // filesystem refused a lock at least once in this run, and
-            // `file_util` fails open. The refresh below is then unprotected, and
-            // the backend revokes the token family if a refresh token is redeemed
-            // twice. The credentials file is per-host, so what remains at risk is
-            // two commands running concurrently on this machine.
+            // `file_util` fails open, so the lock above may not have locked
+            // anything; only concurrent commands on this machine remain at risk
+            // (the file is per-host).
             log::warn!(
                 "refreshing the mooc token without a working file lock on {} -- \
                  another command refreshing at the same time would invalidate \
@@ -479,8 +418,7 @@ impl MoocCredentials {
             );
         }
 
-        // Double-checked re-read under the lock (a separate handle is fine: we
-        // hold the advisory lock and other processes are blocked on it).
+        // Double-checked re-read under the lock.
         if !path.exists() {
             return Ok(None);
         }
@@ -494,8 +432,7 @@ impl MoocCredentials {
         };
 
         match rejected_access_token {
-            // On-401: if the stored token differs from the rejected one, a
-            // concurrent refresh already rotated it; use it without refreshing.
+            // On-401: a differing stored token was already rotated by another refresh.
             Some(rejected) => {
                 if stored.token.access_token().secret() != rejected {
                     return Ok(Some(Self {
@@ -504,8 +441,7 @@ impl MoocCredentials {
                     }));
                 }
             }
-            // Proactive: another process may have refreshed while we waited for
-            // the lock; if so, the re-read token is now valid — use it.
+            // Proactive: another process may have refreshed while we waited.
             None => {
                 if stored.is_valid_with_margin(EXPIRY_MARGIN_SECS) {
                     return Ok(Some(Self {
@@ -534,18 +470,14 @@ impl MoocCredentials {
                     stored,
                 }))
             }
-            // Permanent rejection: the refresh token is no longer valid (revoked
-            // or expired). Delete the credentials and report "not logged in" so
-            // the user is sent through the login flow again.
+            // Permanent: revoked or expired; send the user through login again.
             Err(e) if matches!(*e, mooc::MoocClientError::RefreshTokenRejected { .. }) => {
                 log::warn!("mooc refresh token rejected ({e}); deleting credentials");
                 file_util::remove_file(path)?;
                 Ok(None)
             }
-            // Transient failure (connection error, timeout, 5xx, unparseable
-            // response). Keep the credentials untouched so a later retry can
-            // succeed, and propagate the error so the command fails with a
-            // connection-error kind rather than logging the user out.
+            // Transient (connection error, timeout, 5xx, unparseable response):
+            // keep the credentials so a retry can succeed.
             Err(e) => {
                 log::warn!("mooc token refresh failed transiently ({e}); keeping credentials");
                 Err(LangsError::MoocClient(e))
@@ -557,10 +489,9 @@ impl MoocCredentials {
     /// [`mooc::MoocClientError::NotAuthenticated`]), refreshes the stored
     /// credentials and retries `op` exactly once against the refreshed token.
     ///
-    /// Applied at the point of each network call rather than around a whole
-    /// multi-call subcommand, so a 401 on request N never causes requests
-    /// `1..N-1` to be repeated -- wrong for a non-idempotent request like
-    /// submitting an exercise. See [`MoocAuthFailure`] for the failure modes.
+    /// Apply per network call, not around a multi-call subcommand: a 401 on
+    /// request N must not repeat requests `1..N-1`, which is wrong for
+    /// non-idempotent ones like submitting. See [`MoocAuthFailure`].
     pub fn call_with_refresh<T>(
         client_name: &str,
         root_url: &Url,
@@ -576,15 +507,12 @@ impl MoocCredentials {
             return Err(MoocAuthFailure::Other(err));
         }
 
-        // Nothing to refresh with (no token was ever set on this client) --
-        // there is no path to recovery.
+        // No token was ever set on this client: nothing to refresh with.
         let Some(rejected_access_token) = client.access_token() else {
             return Err(MoocAuthFailure::Permanent(err));
         };
 
-        // Refresh, retrying once more if the refresh call itself fails
-        // transiently (a network blip talking to the token endpoint, not a
-        // rejection of the refresh token itself).
+        // Retry once if the refresh call itself fails transiently.
         let mut refresh_result =
             Self::refresh_after_401(client_name, root_url, client_id, &rejected_access_token);
         if refresh_result.is_err() {
@@ -608,13 +536,9 @@ impl MoocCredentials {
                     Err(retry_err) => Err(MoocAuthFailure::Other(retry_err)),
                 }
             }
-            // Refresh permanently failed (the refresh token was rejected) or
-            // there was nothing to refresh with; `refresh_after_401` already
-            // deleted the credentials in that case.
+            // `refresh_after_401` already deleted the credentials.
             Ok(None) => Err(MoocAuthFailure::Permanent(err)),
-            // The refresh call itself failed transiently, twice in a row.
-            // Credentials are untouched; surface the original rejection as a
-            // non-permanent failure so a later call can retry.
+            // Transient twice in a row; credentials untouched, so a later call can retry.
             Err(_transient) => Err(MoocAuthFailure::Other(err)),
         }
     }
@@ -627,9 +551,8 @@ fn is_auth_rejection(err: &mooc::MoocClientError) -> bool {
         || matches!(err, mooc::MoocClientError::HttpError { status, .. } if status.as_u16() == 401)
 }
 
-/// Bundles the parameters [`MoocCredentials::call_with_refresh`] needs, so
-/// functions that make several mooc API calls can thread one value through
-/// instead of three loose ones.
+/// The parameters [`MoocCredentials::call_with_refresh`] needs, bundled so
+/// multi-call functions can thread one value.
 #[derive(Debug, Clone)]
 pub struct MoocAuth {
     client_name: String,
@@ -704,17 +627,27 @@ impl From<MoocAuthFailure> for LangsError {
 fn read_stored_shared(
     path: &Path,
 ) -> Result<Result<StoredCredentials, tmc_langs_util::JsonError>, LangsError> {
-    // Bounded wait: an exclusive holder wedged mid-refresh must not stall the hot
-    // read path (and with it the whole CLI invocation) indefinitely.
-    let parsed =
-        file_util::with_file_lock_timeout(path, LockOptions::Read, LOCK_TIMEOUT, |guard| {
-            deserialize::json_from_reader(guard.get_file())
-        })?;
-    Ok(parsed)
+    // Bounded: a holder wedged mid-refresh must not stall the whole CLI invocation.
+    let lock_path = lock_file_path(path);
+    // `ReadCreate` can't stand in for this: on unix it opens without write
+    // access, which fails and leaves the read unlocked.
+    std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(&lock_path)
+        .map_err(|e| FileError::FileCreate(lock_path.clone(), e))?;
+    let bytes = file_util::with_file_lock_timeout(
+        &lock_path,
+        LockOptions::Read,
+        LOCK_TIMEOUT,
+        |_guard| file_util::read_file(path),
+    )??;
+    Ok(deserialize::json_from_slice(&bytes))
 }
 
-/// Reads and parses the credentials file via a plain handle. Used only while an
-/// exclusive lock is already held on the file by the caller.
+/// Reads and parses the credentials file. Used only while the caller holds the
+/// exclusive lock on [`lock_file_path`].
 fn read_stored(path: &Path) -> Result<StoredCredentials, LangsError> {
     let bytes = file_util::read_file(path)?;
     let stored = deserialize::json_from_slice(&bytes)
@@ -724,13 +657,10 @@ fn read_stored(path: &Path) -> Result<StoredCredentials, LangsError> {
 
 /// Atomic write of the wrapper JSON, creating the config directory if needed.
 ///
-/// The bytes are written to a temp file in the same directory and then renamed
-/// over the target, so a reader never observes a torn or empty file even if it
-/// were to read without blocking on the lock (and, unlike a truncate-in-place
-/// write, a crash mid-write can't leave the credentials empty). On unix the file
-/// is restricted to `0600`: it holds an OAuth refresh token, so no other user
-/// should be able to read it. Callers already holding an exclusive lock on
-/// `path` use a separate handle here (advisory locking makes that safe).
+/// Writes a temp file and renames it over the target, so readers never see a
+/// torn file and a crash can't leave it empty. On unix the file is `0600` since it
+/// holds a refresh token. The caller must hold the exclusive lock on
+/// [`lock_file_path`].
 fn write_stored(path: &Path, stored: &StoredCredentials) -> Result<(), LangsError> {
     use std::io::Write;
 
@@ -738,8 +668,7 @@ fn write_stored(path: &Path, stored: &StoredCredentials) -> Result<(), LangsErro
     file_util::create_dir_all(parent)?;
     let bytes = serde_json::to_vec(stored)?;
 
-    // Temp file in the same directory so the final rename stays within one
-    // filesystem and is therefore atomic.
+    // Same directory, so the rename stays on one filesystem and is atomic.
     let mut temp = file_util::named_temp_file_in(parent)?;
     #[cfg(unix)]
     {
@@ -769,9 +698,8 @@ mod test {
     use oauth2::{AccessToken, EmptyExtraTokenFields, RefreshToken, basic::BasicTokenType};
     use std::time::Duration;
 
-    // The credentials path is derived from `TMC_LANGS_CONFIG_DIR`, a process-wide
-    // env var, so tests that set it run under a lock shared with the crate's
-    // other env-dependent tests.
+    // `TMC_LANGS_CONFIG_DIR` is process-wide, so tests setting it share a lock
+    // with the crate's other env-dependent tests.
     use crate::config::env_lock;
 
     fn set_config_dir(dir: &Path) {
@@ -866,7 +794,6 @@ mod test {
         assert_eq!(sanitize_host(""), None);
         assert_eq!(sanitize_host("   "), None);
         assert_eq!(sanitize_host("///"), None);
-        // Long names are capped so the path can't exceed a filesystem's limit.
         let long = "a".repeat(HOST_NAME_MAX_LEN + 10);
         assert_eq!(sanitize_host(&long).unwrap().len(), HOST_NAME_MAX_LEN);
     }
@@ -1068,7 +995,6 @@ mod test {
 
         let config_dir = tempfile::tempdir().unwrap();
         set_config_dir(config_dir.path());
-        // Seed an expired token with a refresh token.
         let expired = StoredCredentials {
             token: make_token("old-access", Some("old-refresh"), Some(3600)),
             obtained_at: Utc::now() - chrono::Duration::seconds(7200),
@@ -1116,9 +1042,7 @@ mod test {
 
     #[test]
     fn load_valid_deletes_on_permanent_refresh_failure() {
-        // A 400 + `invalid_grant` means the refresh token is permanently invalid
-        // (revoked/expired): the credentials are deleted and `Ok(None)` returned
-        // so the caller is sent through the login flow again.
+        // 400 `invalid_grant` is permanent: credentials deleted, `Ok(None)` returned.
         let _guard = env_lock();
         let mut server = Server::new();
         let _refresh = server
@@ -1150,9 +1074,8 @@ mod test {
 
     #[test]
     fn load_valid_keeps_credentials_on_transient_refresh_failure() {
-        // A transient failure (here a 503) must NOT delete the credentials or log
-        // the user out: it surfaces a retryable error, and a later refresh
-        // against a healthy backend reuses the retained token.
+        // A transient failure (503) must keep the credentials; a later refresh
+        // reuses the retained token.
         let _guard = env_lock();
         let config_dir = tempfile::tempdir().unwrap();
         set_config_dir(config_dir.path());
@@ -1254,24 +1177,18 @@ mod test {
                 "all threads end with the refreshed token"
             );
         }
-        // Exactly one network refresh despite 8 concurrent loaders.
         refresh.assert();
     }
 
     #[test]
     fn in_process_refresh_lock_wait_is_bounded() {
-        // Holds ENV_LOCK for the same reason the refresh tests do: while
-        // REFRESH_LOCK is held here, any concurrent refresh in this test binary
-        // would (correctly) time out.
+        // ENV_LOCK keeps other tests' refreshes from timing out on the held REFRESH_LOCK.
         let _guard = env_lock();
 
-        // `std::sync::Mutex` is not reentrant, so `try_lock` from the holding
-        // thread reports contention -- the same state a waiter sees when another
-        // thread is mid-refresh, without needing a second thread or any timing.
+        // Not reentrant: `try_lock` from the holder sees contention, as a waiter would.
         let _held = REFRESH_LOCK.lock().unwrap_or_else(|e| e.into_inner());
 
-        // An already-expired deadline: one attempt, then give up. No sleeping, so
-        // the assertion cannot race the wall clock.
+        // Expired deadline: one attempt, no sleeping, so no wall-clock race.
         let err = lock_in_process_until(Instant::now(), Path::new("credentials_mooc.json"))
             .expect_err("a held in-process refresh lock must not be waited on forever");
         assert!(
@@ -1286,11 +1203,7 @@ mod test {
 
     #[test]
     fn lock_wait_outlasts_the_refresh_request_timeout() {
-        // The const assertion at the top of the module enforces this at compile
-        // time; restate it as a test so the intent is visible where the rest of
-        // the refresh behaviour is covered. A waiter that gave up before the
-        // holder's HTTP request could finish would abandon a refresh that was
-        // still legitimately in flight.
+        // Also enforced by the module's const assertion.
         assert!(
             LOCK_TIMEOUT > mooc::AUTH_REQUEST_TIMEOUT,
             "lock wait {LOCK_TIMEOUT:?} must outlast the refresh request timeout {:?}",
@@ -1300,10 +1213,8 @@ mod test {
 
     #[test]
     fn in_process_refresh_lock_survives_a_panicking_holder() {
-        // A refresh that panics must not strand the in-process lock. The guard is
-        // released by unwinding, but `std::sync::Mutex` then reports the mutex as
-        // poisoned; the waiter has to take it over rather than fail, since the
-        // mutex guards `()` and there is no state to protect.
+        // A panicking refresh poisons the mutex; waiters must take it over since it
+        // guards `()`.
         let _guard = env_lock();
 
         let hook = std::panic::take_hook();
@@ -1316,8 +1227,7 @@ mod test {
         std::panic::set_hook(hook);
         assert!(panicked.is_err(), "the holder should have panicked");
 
-        // Deterministic: the holder thread has already been joined, so the lock is
-        // free (if poisoned) and no waiting is involved.
+        // The holder is joined, so no waiting is involved.
         let recovered = lock_in_process_until(Instant::now(), Path::new("credentials_mooc.json"))
             .expect("a panicking holder must not strand the in-process refresh lock");
         drop(recovered);

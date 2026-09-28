@@ -115,19 +115,12 @@ impl Lock {
                 log::trace!("locked {}", path.display());
                 FileOrLock::Lock(lock)
             }
-            // `fcntl(F_SETLK)` reports an already-held lock with EAGAIN on the
-            // platforms we target. POSIX also permits EACCES, but that is not
-            // distinguishable from a genuine permission failure on the open, so it
-            // falls through to the unsupported-locking branch below rather than
-            // being retried.
+            // POSIX also permits EACCES for a held lock, but it is indistinguishable
+            // from a real permission failure, so it takes the branch below.
             Err(err) if err.kind() == io::ErrorKind::WouldBlock => return Ok(None),
             Err(err) => {
-                // Locking is a safeguard rather than a hard requirement, and some
-                // filesystems don't support it at all (NFS without a lock daemon
-                // fails with ENOLCK), so mirror `lock` and carry on unlocked
-                // instead of failing the operation. The degradation is recorded so
-                // that callers relying on the lock for correctness can say so, and
-                // warned about once so it is visible in the logs.
+                // Some filesystems can't lock (NFS without a lock daemon gives
+                // ENOLCK); mirror `lock` and proceed unlocked, reporting it.
                 file_util::report_locking_unavailable(path, &err);
                 let file = self
                     .options

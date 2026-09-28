@@ -1,18 +1,13 @@
 //! OAuth2 Device Authorization Grant (RFC 8628) and refresh-token flows for the
 //! Courses MOOC backend.
 //!
-//! These are hand-rolled on top of `reqwest` rather than using the `oauth2`
-//! crate's device-flow helper: that helper blocks internally until the grant is
-//! approved, so it can't hand the caller the verification URL to show the user
-//! *before* polling starts, and it doesn't expose the per-poll `slow_down` /
-//! `authorization_pending` states we need to drive a cancellable poll loop. We
-//! reuse only the crate's [`api::Token`] type (an
-//! `oauth2::StandardTokenResponse`) so the rest of the client is unchanged.
+//! Hand-rolled on `reqwest` instead of the `oauth2` crate's device-flow helper,
+//! which blocks until approval: it cannot hand the caller the verification URL
+//! before polling, nor expose per-poll `slow_down` / `authorization_pending`
+//! for a cancellable loop. Only the crate's [`api::Token`] type is reused.
 //!
-//! The endpoints live on the backend's main-frontend OAuth controller, mounted
-//! at `/api/v0/main-frontend/oauth` (see the sp331
-//! `controllers/mod.rs` + `controllers/main_frontend/oauth/mod.rs` route
-//! registration): `POST .../device_authorization` and `POST .../token`.
+//! Endpoints (`POST .../device_authorization`, `POST .../token`) are mounted at
+//! `/api/v0/main-frontend/oauth` in the backend.
 
 use crate::{CLIENT_VERSION_HEADER, error::MoocClientError, error::MoocClientResult};
 use exercise_services_api as api;
@@ -29,19 +24,16 @@ use url::Url;
 const FORM_CONTENT_TYPE: HeaderValue =
     HeaderValue::from_static("application/x-www-form-urlencoded");
 
-/// Overall timeout for auth-flow HTTP requests. The refresh path holds both the
-/// in-process refresh mutex and the cross-process credentials file lock across
-/// the network call (see `tmc-langs` `mooc_credentials::refresh_locked`), so a
-/// hung connection here would block every other CLI process until the OS gives
-/// up. A bounded timeout turns that into a transient `ConnectionError` the caller
-/// classifies as retryable, releasing the locks promptly.
-/// Public so the caller that holds the locks across the refresh can assert its own
-/// lock-wait budget is larger than this (see `tmc-langs` `mooc_credentials`).
+/// Overall timeout for auth-flow HTTP requests.
+///
+/// The refresh path holds the refresh mutex and the credentials file lock across
+/// the call (`tmc-langs` `mooc_credentials::refresh_locked`), so a hung connection
+/// would block every CLI process. Public so that caller can assert its lock-wait
+/// budget exceeds this.
 pub const AUTH_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Builds the blocking HTTP client used by the auth flows, with an overall
-/// [`AUTH_REQUEST_TIMEOUT`]. Panics on a client build failure, mirroring
-/// `reqwest::blocking::Client::new()` (which itself panics on init failure).
+/// Blocking HTTP client for the auth flows, with [`AUTH_REQUEST_TIMEOUT`].
+/// Panics if the client cannot be built, like `reqwest::blocking::Client::new()`.
 fn auth_client() -> Client {
     Client::builder()
         .timeout(AUTH_REQUEST_TIMEOUT)
@@ -49,9 +41,8 @@ fn auth_client() -> Client {
         .expect("failed to build auth HTTP client")
 }
 
-/// Encodes `application/x-www-form-urlencoded` request bodies. `reqwest` here is
-/// built without the feature that provides `RequestBuilder::form`, so the body
-/// is encoded via the `url` crate instead.
+/// Encodes `application/x-www-form-urlencoded` bodies; `reqwest` is built
+/// without `RequestBuilder::form`.
 fn urlencode(pairs: &[(&str, &str)]) -> String {
     let mut serializer = url::form_urlencoded::Serializer::new(String::new());
     for (k, v) in pairs {
@@ -148,11 +139,9 @@ pub fn device_authorization(
 
 /// Polls the token endpoint once with the device-code grant (RFC 8628 §3.4).
 ///
-/// Returns [`DeviceTokenPoll::Pending`] / [`DeviceTokenPoll::SlowDown`] for the
-/// two non-terminal RFC 8628 error codes, [`DeviceTokenPoll::Authorized`] on
-/// success, and an `Err` for terminal states (`expired_token` ->
-/// [`MoocClientError::DeviceCodeExpired`], `access_denied` ->
-/// [`MoocClientError::DeviceAccessDenied`]) or any other HTTP/transport error.
+/// `authorization_pending` and `slow_down` map to [`DeviceTokenPoll`] variants;
+/// `expired_token` and `access_denied` map to [`MoocClientError::DeviceCodeExpired`]
+/// and [`MoocClientError::DeviceAccessDenied`]. Other failures are plain errors.
 pub fn poll_device_token(
     root_url: &Url,
     client_id: &str,
@@ -185,8 +174,7 @@ pub fn poll_device_token(
         return Ok(DeviceTokenPoll::Authorized(Box::new(token)));
     }
 
-    // RFC 8628 §3.5: the non-terminal and terminal states are all conveyed as a
-    // 400 response with an OAuth error code in the JSON body.
+    // RFC 8628 §3.5: every non-success state is a 400 with an OAuth error code.
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
     let body = read_text(response, &url)?;
     match parse_oauth_error_code(&body).as_deref() {
@@ -243,14 +231,9 @@ pub fn refresh_token(
         return Ok(token);
     }
 
-    // Classify the failure so the caller can tell a permanent rejection apart
-    // from a transient blip. RFC 6749 §5.2: the token endpoint reports an
-    // invalid/expired/revoked refresh token as a `400 Bad Request` carrying an
-    // OAuth `error` code (`invalid_grant`). That is permanent — deleting the
-    // stored credentials and forcing a re-login is the right recovery. Anything
-    // else (5xx, other statuses, or a body we can't parse an OAuth error out of)
-    // is a transient failure the caller should surface-and-retry, never delete
-    // on.
+    // RFC 6749 §5.2: a 400 with an OAuth `error` code (`invalid_grant`) means the
+    // refresh token is permanently dead. Anything else is transient and must
+    // never lead the caller to delete credentials.
     let status = response.status();
     let obsolete_client = status == StatusCode::UPGRADE_REQUIRED;
     let body = read_text(response, &url)?;
@@ -525,8 +508,7 @@ mod test {
 
     #[test]
     fn refresh_invalid_grant_is_permanent_rejection() {
-        // A 400 with an OAuth `error` code means the refresh token itself is no
-        // longer valid: it must surface as the distinct `RefreshTokenRejected`
+        // A 400 with an OAuth `error` code must surface as `RefreshTokenRejected`
         // so the caller deletes credentials rather than retrying.
         let mut server = Server::new();
         server
@@ -543,8 +525,7 @@ mod test {
 
     #[test]
     fn refresh_5xx_is_transient_http_error() {
-        // A 5xx is a transient backend failure, not a token rejection: it must
-        // stay a plain `HttpError` so the caller keeps the credentials.
+        // A 5xx must stay a plain `HttpError` so the caller keeps the credentials.
         let mut server = Server::new();
         server
             .mock("POST", "/api/v0/main-frontend/oauth/token")
@@ -560,8 +541,7 @@ mod test {
 
     #[test]
     fn refresh_400_without_oauth_error_is_transient() {
-        // A 400 whose body is not a parseable OAuth error is treated as transient
-        // (unparseable response), not a permanent token rejection.
+        // An unparseable 400 body is transient, not a token rejection.
         let mut server = Server::new();
         server
             .mock("POST", "/api/v0/main-frontend/oauth/token")
@@ -577,10 +557,8 @@ mod test {
 
     #[test]
     fn refresh_transport_failure_is_connection_error() {
-        // A timeout or other transport failure surfaces as `ConnectionError`
-        // (never `RefreshTokenRejected`), so the caller classifies it as TRANSIENT
-        // and keeps the credentials. Proven cheaply with a refused connection (an
-        // unbound port) rather than by waiting out the real timeout.
+        // Transport failures must be `ConnectionError`, never `RefreshTokenRejected`,
+        // so credentials are kept. A refused connection stands in for a timeout.
         let root: Url = "http://127.0.0.1:1/".parse().unwrap();
         match *refresh_token(&root, "cid", "old").unwrap_err() {
             MoocClientError::ConnectionError(..) => {}
@@ -604,7 +582,6 @@ mod test {
             .create();
         let root: Url = server.url().parse().unwrap();
         let token = refresh_token(&root, "cid", "old-rt").unwrap();
-        // server omitted a refresh token, so the old one is retained
         assert_eq!(token.refresh_token().unwrap().secret(), "old-rt");
     }
 }

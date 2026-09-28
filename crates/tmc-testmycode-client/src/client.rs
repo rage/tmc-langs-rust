@@ -27,9 +27,8 @@ pub type Token =
 
 /// Where the bearer token the client authenticates with was issued.
 ///
-/// tmc-server accepts both, but they are not worth the same: a courses.mooc.fi
-/// access token also authenticates against courses.mooc.fi itself, so it is held
-/// to stricter rules about where it may be sent. See [`token_target_is_allowed`].
+/// A courses.mooc.fi token also authenticates against courses.mooc.fi itself, so
+/// it is held to stricter destination rules. See [`token_target_is_allowed`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TokenSource {
     /// Issued by tmc-server's own OAuth2 provider.
@@ -45,12 +44,10 @@ struct AuthToken {
 
 /// Whether a request to `url` may carry a bearer token from `source`.
 ///
-/// Nearly every URL the API builds is derived from `root_url`, but two entry
-/// points take a URL straight from a tmc-server response
-/// ([`TestMyCodeClient::send_feedback_to_url`] and
-/// [`TestMyCodeClient::wait_for_submission_at`]). Requiring the configured origin
-/// keeps a response that points elsewhere from turning the next request into a
-/// credential handover.
+/// [`TestMyCodeClient::send_feedback_to_url`] and
+/// [`TestMyCodeClient::wait_for_submission_at`] take URLs from tmc-server
+/// responses; requiring the configured origin stops a response from redirecting
+/// the token elsewhere.
 fn token_target_is_allowed(root_url: &Url, url: &Url, source: TokenSource) -> bool {
     if !same_origin(root_url, url) {
         return false;
@@ -63,9 +60,8 @@ fn token_target_is_allowed(root_url: &Url, url: &Url, source: TokenSource) -> bo
     }
 }
 
-/// Scheme, host and effective port all equal. Compared component-wise rather
-/// than via `Url::origin`, whose opaque origins are never equal to each other and
-/// would make the comparison depend on the URL scheme.
+/// Scheme, host and effective port all equal. Not `Url::origin`, whose opaque
+/// origins never compare equal.
 fn same_origin(a: &Url, b: &Url) -> bool {
     match (a.host_str(), b.host_str()) {
         (Some(a_host), Some(b_host)) => {
@@ -147,9 +143,8 @@ impl TestMyCodeClient {
 
     /// Sets the authentication token read from a credentials file.
     ///
-    /// There is no way to obtain a *new* tmc-server token through this client:
-    /// the password grant is gone, and a client authenticates either with a
-    /// previously stored tmc token or with the courses.mooc.fi access token.
+    /// This client cannot obtain a new tmc-server token; it only reuses a stored
+    /// tmc token or a courses.mooc.fi access token.
     ///
     /// # Panics
     /// If called when multiple clones of the client exist. Call this function before cloning.
@@ -955,9 +950,8 @@ mod test {
 
     #[test]
     fn mooc_token_never_travels_in_plaintext_off_loopback() {
-        // Same origin, but plaintext: a tmc-server token is the caller's own
-        // configuration to make, a courses.mooc.fi token is a second backend's
-        // credential and is refused.
+        // Plaintext is the caller's call for a tmc-server token; a courses.mooc.fi
+        // token is refused.
         let root = url("http://tmc-mirror.example/");
         let target = url("http://tmc-mirror.example/api/v8/core/submissions/1");
         assert!(token_target_is_allowed(&root, &target, TokenSource::Tmc));
@@ -994,9 +988,8 @@ mod test {
     #[test]
     fn bearer_is_withheld_from_a_server_supplied_off_origin_url() {
         init();
-        // `wait_for_submission_at` takes the URL straight out of a submit
-        // response, so a tmc-server that returns someone else's URL must not get
-        // the client to hand over its bearer token.
+        // `wait_for_submission_at` takes its URL from a submit response, which
+        // must not be able to redirect the bearer token elsewhere.
         let server = Server::new();
         let mut client = TestMyCodeClient::new(
             server.url().parse().unwrap(),

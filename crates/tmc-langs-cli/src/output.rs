@@ -137,18 +137,16 @@ pub enum DataKind {
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub enum StatusUpdateData {
     ClientUpdateData(StatusUpdate<ClientUpdateData>),
-    /// Mooc's per-exercise download progress, mirroring `ClientUpdateData` for
-    /// mooc's UUID-keyed exercises.
+    /// Per-exercise download progress for mooc's UUID-keyed exercises.
     MoocClientUpdateData(StatusUpdate<mooc::MoocClientUpdateData>),
-    /// Emitted once at the start of `mooc login`, before the CLI blocks polling:
-    /// carries the verification URL and user code the client shows the user to
-    /// complete the OAuth2 device authorization login.
+    /// Emitted once at the start of `mooc login`, before the CLI blocks polling;
+    /// carries the URL and code the client shows the user.
     MoocDeviceLogin(StatusUpdate<MoocDeviceLogin>),
     None(StatusUpdate<()>),
 }
 
-/// The data attached to a `mooc-device-login` status update. Mirrors the
-/// relevant fields of the RFC 8628 device authorization response.
+/// Payload of a `mooc-device-login` status update; a subset of the RFC 8628
+/// device authorization response.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct MoocDeviceLogin {
@@ -204,13 +202,11 @@ pub enum Kind {
     /// The user is not enrolled on the course this exercise belongs to
     /// (backend `message_key: "not_enrolled"`, HTTP 422)
     NotEnrolled,
-    /// A submitted file's retention window elapsed before the submission naming
-    /// it was accepted (backend `message_key: "upload_expired"`, HTTP 422). The
-    /// upload is retried once first, so this means the retry failed too.
+    /// A submitted file expired before the submission naming it was accepted
+    /// (backend `message_key: "upload_expired"`, HTTP 422), even after one retry.
     UploadExpired,
-    /// A submission named a file that was never uploaded for that exercise by
-    /// that user (backend `message_key: "unknown_upload"`, HTTP 422). Indicates
-    /// a client bug or tampering, never a race.
+    /// A submission named a file this user never uploaded for the exercise
+    /// (backend `message_key: "unknown_upload"`, HTTP 422). A client bug or tampering.
     UnknownUpload,
 }
 
@@ -225,17 +221,15 @@ pub struct DownloadTarget {
 /// JSON Schema for everything the CLI writes to stdout, rooted at [`CliOutput`].
 /// The single source of truth clients (e.g. tmc-vscode) validate against.
 pub fn cli_output_schema() -> schemars::Schema {
-    // Serialize contract, not deserialize: `#[serde(from = ...)]` types (e.g.
-    // `CourseDetails`) deserialize through a wrapper but serialize flattened,
-    // and `Option` omitted-vs-null differs between the two. `for_serialize()`
-    // picks the wire format clients actually see.
+    // Serialize side, not deserialize: `#[serde(from = ...)]` types (e.g.
+    // `CourseDetails`) and `Option` omitted-vs-null differ between the two,
+    // and clients see the serialized form.
     let settings = schemars::generate::SchemaSettings::draft2020_12().for_serialize();
     schemars::SchemaGenerator::new(settings).into_root_schema_for::<CliOutput>()
 }
 
-/// Returns [`cli_output_schema`] as pretty-printed JSON, terminated by a
-/// newline — the exact bytes of the committed `bindings.schema.json` and of
-/// the `tmc-langs-cli schema` subcommand's stdout.
+/// [`cli_output_schema`] as pretty-printed, newline-terminated JSON: the exact bytes
+/// of the committed `bindings.schema.json` and of `tmc-langs-cli schema` stdout.
 pub fn cli_output_json_schema() -> String {
     let mut json = serde_json::to_string_pretty(&cli_output_schema())
         .expect("serializing a JSON schema should never fail");

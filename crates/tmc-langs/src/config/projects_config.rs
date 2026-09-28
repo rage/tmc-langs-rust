@@ -351,10 +351,8 @@ impl MoocCourseConfig {
     }
 
     pub fn save_to_projects_dir(&self, projects_dir: &Path) -> Result<(), LangsError> {
-        // MOOC configs must live under `projects_dir/mooc/<directory>/`: the
-        // loader and `get_mooc_exercise_download_target` both key off the
-        // sanitized `directory`, not the raw course name. Writing anywhere else
-        // orphans the config.
+        // The loader and `get_mooc_exercise_download_target` key off the sanitized
+        // `directory`, not the raw course name; other paths orphan the config.
         let course_dir = projects_dir.join("mooc").join(&self.directory);
         if !course_dir.exists() {
             file_util::create_dir_all(&course_dir)?;
@@ -527,9 +525,7 @@ checksum = "defg4567"
 
     #[test]
     fn mooc_config_save_load_round_trip() {
-        // Regression test: `save_to_projects_dir` once wrote to the raw course
-        // name while the loader reads only `projects_dir/mooc/<directory>/`,
-        // orphaning every saved config. Both must agree on that canonical layout.
+        // Save and load must agree on the `mooc/<directory>/` layout.
         init_logging();
 
         let temp = tempfile::TempDir::new().unwrap();
@@ -558,7 +554,6 @@ checksum = "defg4567"
         };
         course_config.save_to_projects_dir(temp.path()).unwrap();
 
-        // the config must land where the loader looks: mooc/<directory>/course_config.toml
         let expected_config_path = temp
             .path()
             .join("mooc")
