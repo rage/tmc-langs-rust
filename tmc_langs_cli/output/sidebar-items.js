@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CliOutput","DataKind","Kind","OutputResult","Status","StatusUpdateData"],"struct":["DownloadTarget","OutputData","ProjectsDirTmcExercise"]};
+window.SIDEBAR_ITEMS = {"enum":["CliOutput","DataKind","Kind","OutputResult","Status","StatusUpdateData"],"fn":["cli_output_json_schema","cli_output_schema"],"struct":["DownloadTarget","MoocDeviceLogin","OutputData","ProjectsDirTmcExercise"]};

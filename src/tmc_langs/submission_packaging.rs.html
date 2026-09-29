@@ -728,151 +728,150 @@
 <a href=#728 id=728 data-nosnippet>728</a>        archive.unpack(<span class="kw-2">&amp;</span>output_extracted).unwrap();
 <a href=#729 id=729 data-nosnippet>729</a>
 <a href=#730 id=730 data-nosnippet>730</a>        <span class="kw">for </span>file <span class="kw">in </span>WalkDir::new(<span class="kw-2">&amp;</span>output_extracted) {
-<a href=#731 id=731 data-nosnippet>731</a>            <span class="kw">let </span>file = file.unwrap();
-<a href=#732 id=732 data-nosnippet>732</a>            <span class="macro">println!</span>(<span class="string">"{}"</span>, file.path().display());
-<a href=#733 id=733 data-nosnippet>733</a>        }
-<a href=#734 id=734 data-nosnippet>734</a>
-<a href=#735 id=735 data-nosnippet>735</a>        <span class="comment">// Verify .tmcproject.yml content is from stub, not student
-<a href=#736 id=736 data-nosnippet>736</a>        </span><span class="kw">let </span>yml =
-<a href=#737 id=737 data-nosnippet>737</a>            fs::read_to_string(output_extracted.join(<span class="string">"some_course/PythonExercise/.tmcproject.yml"</span>))
-<a href=#738 id=738 data-nosnippet>738</a>                .unwrap();
-<a href=#739 id=739 data-nosnippet>739</a>        <span class="macro">assert!</span>(yml.contains(<span class="string">"key: stub"</span>));
-<a href=#740 id=740 data-nosnippet>740</a>        <span class="macro">assert!</span>(!yml.contains(<span class="string">"key: student"</span>));
-<a href=#741 id=741 data-nosnippet>741</a>
-<a href=#742 id=742 data-nosnippet>742</a>        <span class="comment">// Verify other expected files are present
-<a href=#743 id=743 data-nosnippet>743</a>        </span><span class="macro">assert!</span>(
-<a href=#744 id=744 data-nosnippet>744</a>            output_extracted
-<a href=#745 id=745 data-nosnippet>745</a>                .join(<span class="string">"some_course/PythonExercise/src/__main__.py"</span>)
-<a href=#746 id=746 data-nosnippet>746</a>                .exists()
-<a href=#747 id=747 data-nosnippet>747</a>        );
-<a href=#748 id=748 data-nosnippet>748</a>        <span class="macro">assert!</span>(
-<a href=#749 id=749 data-nosnippet>749</a>            output_extracted
-<a href=#750 id=750 data-nosnippet>750</a>                .join(<span class="string">"some_course/PythonExercise/test/test_greeter.py"</span>)
-<a href=#751 id=751 data-nosnippet>751</a>                .exists()
-<a href=#752 id=752 data-nosnippet>752</a>        );
-<a href=#753 id=753 data-nosnippet>753</a>        <span class="macro">assert!</span>(
-<a href=#754 id=754 data-nosnippet>754</a>            output_extracted
-<a href=#755 id=755 data-nosnippet>755</a>                .join(<span class="string">"some_course/PythonExercise/__init__.py"</span>)
-<a href=#756 id=756 data-nosnippet>756</a>                .exists()
-<a href=#757 id=757 data-nosnippet>757</a>        );
-<a href=#758 id=758 data-nosnippet>758</a>    }
-<a href=#759 id=759 data-nosnippet>759</a>
-<a href=#760 id=760 data-nosnippet>760</a>    <span class="attr">#[test]
-<a href=#761 id=761 data-nosnippet>761</a>    </span><span class="kw">fn </span>prepare_make_submission() {
-<a href=#762 id=762 data-nosnippet>762</a>        init();
-<a href=#763 id=763 data-nosnippet>763</a>        <span class="kw">let </span>(_temp, output) = generic_submission(MAKE_CLONE, MAKE_ZIP);
-<a href=#764 id=764 data-nosnippet>764</a>
-<a href=#765 id=765 data-nosnippet>765</a>        <span class="comment">// expected files
-<a href=#766 id=766 data-nosnippet>766</a>        </span><span class="macro">assert!</span>(output.join(<span class="string">"some_course/MakeExercise/src/main.c"</span>).exists());
-<a href=#767 id=767 data-nosnippet>767</a>        <span class="macro">assert!</span>(
-<a href=#768 id=768 data-nosnippet>768</a>            output
-<a href=#769 id=769 data-nosnippet>769</a>                .join(<span class="string">"some_course/MakeExercise/test/test_source.c"</span>)
-<a href=#770 id=770 data-nosnippet>770</a>                .exists()
-<a href=#771 id=771 data-nosnippet>771</a>        );
-<a href=#772 id=772 data-nosnippet>772</a>        <span class="macro">assert!</span>(output.join(<span class="string">"some_course/MakeExercise/Makefile"</span>).exists());
-<a href=#773 id=773 data-nosnippet>773</a>    }
-<a href=#774 id=774 data-nosnippet>774</a>
-<a href=#775 id=775 data-nosnippet>775</a>    <span class="attr">#[test]
-<a href=#776 id=776 data-nosnippet>776</a>    </span><span class="kw">fn </span>prepare_langs_submission() {
-<a href=#777 id=777 data-nosnippet>777</a>        init();
-<a href=#778 id=778 data-nosnippet>778</a>        <span class="kw">let </span>(_temp, output) = generic_submission(PYTHON_CLONE, PYTHON_ZIP);
-<a href=#779 id=779 data-nosnippet>779</a>
-<a href=#780 id=780 data-nosnippet>780</a>        <span class="comment">// expected files
-<a href=#781 id=781 data-nosnippet>781</a>        </span><span class="macro">assert!</span>(
-<a href=#782 id=782 data-nosnippet>782</a>            output
-<a href=#783 id=783 data-nosnippet>783</a>                .join(<span class="string">"some_course/PythonExercise/src/__main__.py"</span>)
-<a href=#784 id=784 data-nosnippet>784</a>                .exists()
-<a href=#785 id=785 data-nosnippet>785</a>        );
-<a href=#786 id=786 data-nosnippet>786</a>        <span class="macro">assert!</span>(
-<a href=#787 id=787 data-nosnippet>787</a>            output
-<a href=#788 id=788 data-nosnippet>788</a>                .join(<span class="string">"some_course/PythonExercise/test/test_greeter.py"</span>)
-<a href=#789 id=789 data-nosnippet>789</a>                .exists()
-<a href=#790 id=790 data-nosnippet>790</a>        );
-<a href=#791 id=791 data-nosnippet>791</a>        <span class="comment">// assert!(output.join("tmc/points.py").exists()); // not included?
-<a href=#792 id=792 data-nosnippet>792</a>        </span><span class="macro">assert!</span>(
-<a href=#793 id=793 data-nosnippet>793</a>            output
-<a href=#794 id=794 data-nosnippet>794</a>                .join(<span class="string">"some_course/PythonExercise/__init__.py"</span>)
-<a href=#795 id=795 data-nosnippet>795</a>                .exists()
-<a href=#796 id=796 data-nosnippet>796</a>        );
-<a href=#797 id=797 data-nosnippet>797</a>    }
-<a href=#798 id=798 data-nosnippet>798</a>
-<a href=#799 id=799 data-nosnippet>799</a>    <span class="attr">#[test]
-<a href=#800 id=800 data-nosnippet>800</a>    </span><span class="kw">fn </span>includes_files_in_root_dir_from_exercise() {
-<a href=#801 id=801 data-nosnippet>801</a>        init();
-<a href=#802 id=802 data-nosnippet>802</a>
-<a href=#803 id=803 data-nosnippet>803</a>        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
-<a href=#804 id=804 data-nosnippet>804</a>        <span class="kw">let </span>clone_root = temp.path().join(<span class="string">"some_course"</span>);
-<a href=#805 id=805 data-nosnippet>805</a>        file_util::create_dir_all(<span class="kw-2">&amp;</span>clone_root).unwrap();
-<a href=#806 id=806 data-nosnippet>806</a>
-<a href=#807 id=807 data-nosnippet>807</a>        <span class="comment">// Copy the Maven exercise to our temp directory
-<a href=#808 id=808 data-nosnippet>808</a>        </span><span class="kw">let </span>src_clone = Path::new(MAVEN_CLONE);
-<a href=#809 id=809 data-nosnippet>809</a>        file_util::copy(src_clone, <span class="kw-2">&amp;</span>clone_root).unwrap();
-<a href=#810 id=810 data-nosnippet>810</a>
-<a href=#811 id=811 data-nosnippet>811</a>        <span class="kw">let </span>exercise_dir = clone_root.join(<span class="string">"MavenExercise"</span>);
-<a href=#812 id=812 data-nosnippet>812</a>
-<a href=#813 id=813 data-nosnippet>813</a>        <span class="comment">// Create a file in the root directory of the exercise (simulating repo file)
-<a href=#814 id=814 data-nosnippet>814</a>        </span><span class="kw">let </span>repo_file_path = exercise_dir.join(<span class="string">"foo.txt"</span>);
-<a href=#815 id=815 data-nosnippet>815</a>        file_util::write_to_file(<span class="string">b"repohello"</span>, <span class="kw-2">&amp;</span>repo_file_path).unwrap();
-<a href=#816 id=816 data-nosnippet>816</a>
-<a href=#817 id=817 data-nosnippet>817</a>        <span class="comment">// Create a submission zip that also has foo.txt but with different content
-<a href=#818 id=818 data-nosnippet>818</a>        // We need to create a proper Maven project structure that the plugin can understand
-<a href=#819 id=819 data-nosnippet>819</a>        </span><span class="kw">let </span>sub_zip_path = temp.path().join(<span class="string">"submission.zip"</span>);
-<a href=#820 id=820 data-nosnippet>820</a>        <span class="kw">let </span>sub_zip_file = file_util::create_file(<span class="kw-2">&amp;</span>sub_zip_path).unwrap();
-<a href=#821 id=821 data-nosnippet>821</a>        <span class="kw">let </span><span class="kw-2">mut </span>zw = zip::ZipWriter::new(sub_zip_file);
-<a href=#822 id=822 data-nosnippet>822</a>        <span class="kw">let </span>opts = SimpleFileOptions::default();
-<a href=#823 id=823 data-nosnippet>823</a>
-<a href=#824 id=824 data-nosnippet>824</a>        <span class="comment">// Create the Maven project structure
-<a href=#825 id=825 data-nosnippet>825</a>        </span>zw.add_directory(<span class="string">"MavenExercise"</span>, opts).unwrap();
-<a href=#826 id=826 data-nosnippet>826</a>        zw.add_directory(<span class="string">"MavenExercise/src"</span>, opts).unwrap();
-<a href=#827 id=827 data-nosnippet>827</a>        zw.add_directory(<span class="string">"MavenExercise/src/main"</span>, opts).unwrap();
-<a href=#828 id=828 data-nosnippet>828</a>        zw.add_directory(<span class="string">"MavenExercise/src/main/java"</span>, opts)
-<a href=#829 id=829 data-nosnippet>829</a>            .unwrap();
-<a href=#830 id=830 data-nosnippet>830</a>
-<a href=#831 id=831 data-nosnippet>831</a>        <span class="comment">// Add the student's modified file
-<a href=#832 id=832 data-nosnippet>832</a>        </span>zw.start_file(<span class="string">"MavenExercise/foo.txt"</span>, opts).unwrap();
-<a href=#833 id=833 data-nosnippet>833</a>        std::io::Write::write_all(<span class="kw-2">&amp;mut </span>zw, <span class="string">b"submissionhello"</span>).unwrap();
-<a href=#834 id=834 data-nosnippet>834</a>
-<a href=#835 id=835 data-nosnippet>835</a>        <span class="comment">// Add a source file
-<a href=#836 id=836 data-nosnippet>836</a>        </span>zw.start_file(<span class="string">"MavenExercise/src/main/java/SimpleStuff.java"</span>, opts)
-<a href=#837 id=837 data-nosnippet>837</a>            .unwrap();
-<a href=#838 id=838 data-nosnippet>838</a>        std::io::Write::write_all(<span class="kw-2">&amp;mut </span>zw, <span class="string">b"public class SimpleStuff { }"</span>).unwrap();
-<a href=#839 id=839 data-nosnippet>839</a>
-<a href=#840 id=840 data-nosnippet>840</a>        zw.finish().unwrap();
-<a href=#841 id=841 data-nosnippet>841</a>
-<a href=#842 id=842 data-nosnippet>842</a>        <span class="kw">let </span>output_arch = temp.path().join(<span class="string">"out.tar"</span>);
-<a href=#843 id=843 data-nosnippet>843</a>        prepare_submission(
-<a href=#844 id=844 data-nosnippet>844</a>            PrepareSubmission {
-<a href=#845 id=845 data-nosnippet>845</a>                archive: <span class="kw-2">&amp;</span>sub_zip_path,
-<a href=#846 id=846 data-nosnippet>846</a>                compression: Compression::Zip,
-<a href=#847 id=847 data-nosnippet>847</a>                extract_naively: <span class="bool-val">false</span>,
-<a href=#848 id=848 data-nosnippet>848</a>            },
-<a href=#849 id=849 data-nosnippet>849</a>            <span class="kw-2">&amp;</span>output_arch,
-<a href=#850 id=850 data-nosnippet>850</a>            <span class="bool-val">false</span>,
-<a href=#851 id=851 data-nosnippet>851</a>            TmcParams::new(),
-<a href=#852 id=852 data-nosnippet>852</a>            <span class="kw-2">&amp;</span>exercise_dir,
-<a href=#853 id=853 data-nosnippet>853</a>            <span class="prelude-val">None</span>,
-<a href=#854 id=854 data-nosnippet>854</a>            Compression::Tar,
-<a href=#855 id=855 data-nosnippet>855</a>        )
-<a href=#856 id=856 data-nosnippet>856</a>        .unwrap();
-<a href=#857 id=857 data-nosnippet>857</a>        <span class="macro">assert!</span>(output_arch.exists());
-<a href=#858 id=858 data-nosnippet>858</a>
-<a href=#859 id=859 data-nosnippet>859</a>        <span class="comment">// Unpack and verify that foo.txt content is from the repo, not submission
-<a href=#860 id=860 data-nosnippet>860</a>        </span><span class="kw">let </span>output_file = file_util::open_file(<span class="kw-2">&amp;</span>output_arch).unwrap();
-<a href=#861 id=861 data-nosnippet>861</a>        <span class="kw">let </span><span class="kw-2">mut </span>archive = tar::Archive::new(output_file);
-<a href=#862 id=862 data-nosnippet>862</a>        <span class="kw">let </span>output_extracted = temp.path().join(<span class="string">"output"</span>);
-<a href=#863 id=863 data-nosnippet>863</a>        archive.unpack(<span class="kw-2">&amp;</span>output_extracted).unwrap();
-<a href=#864 id=864 data-nosnippet>864</a>
-<a href=#865 id=865 data-nosnippet>865</a>        <span class="comment">// Verify foo.txt exists and has content from repo, not submission
-<a href=#866 id=866 data-nosnippet>866</a>        </span><span class="kw">let </span>foo_file = output_extracted.join(<span class="string">"some_course/MavenExercise/foo.txt"</span>);
-<a href=#867 id=867 data-nosnippet>867</a>        <span class="macro">assert!</span>(
-<a href=#868 id=868 data-nosnippet>868</a>            foo_file.exists(),
-<a href=#869 id=869 data-nosnippet>869</a>            <span class="string">"foo.txt should be included in the archive"
-<a href=#870 id=870 data-nosnippet>870</a>        </span>);
-<a href=#871 id=871 data-nosnippet>871</a>        <span class="kw">let </span>content = fs::read_to_string(foo_file).unwrap();
-<a href=#872 id=872 data-nosnippet>872</a>        <span class="macro">assert_eq!</span>(
-<a href=#873 id=873 data-nosnippet>873</a>            content, <span class="string">"repohello"</span>,
-<a href=#874 id=874 data-nosnippet>874</a>            <span class="string">"Should use repo content, not submission content"
-<a href=#875 id=875 data-nosnippet>875</a>        </span>);
-<a href=#876 id=876 data-nosnippet>876</a>    }
-<a href=#877 id=877 data-nosnippet>877</a>}
+<a href=#731 id=731 data-nosnippet>731</a>            <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, file.unwrap().path().display());
+<a href=#732 id=732 data-nosnippet>732</a>        }
+<a href=#733 id=733 data-nosnippet>733</a>
+<a href=#734 id=734 data-nosnippet>734</a>        <span class="comment">// Verify .tmcproject.yml content is from stub, not student
+<a href=#735 id=735 data-nosnippet>735</a>        </span><span class="kw">let </span>yml =
+<a href=#736 id=736 data-nosnippet>736</a>            fs::read_to_string(output_extracted.join(<span class="string">"some_course/PythonExercise/.tmcproject.yml"</span>))
+<a href=#737 id=737 data-nosnippet>737</a>                .unwrap();
+<a href=#738 id=738 data-nosnippet>738</a>        <span class="macro">assert!</span>(yml.contains(<span class="string">"key: stub"</span>));
+<a href=#739 id=739 data-nosnippet>739</a>        <span class="macro">assert!</span>(!yml.contains(<span class="string">"key: student"</span>));
+<a href=#740 id=740 data-nosnippet>740</a>
+<a href=#741 id=741 data-nosnippet>741</a>        <span class="comment">// Verify other expected files are present
+<a href=#742 id=742 data-nosnippet>742</a>        </span><span class="macro">assert!</span>(
+<a href=#743 id=743 data-nosnippet>743</a>            output_extracted
+<a href=#744 id=744 data-nosnippet>744</a>                .join(<span class="string">"some_course/PythonExercise/src/__main__.py"</span>)
+<a href=#745 id=745 data-nosnippet>745</a>                .exists()
+<a href=#746 id=746 data-nosnippet>746</a>        );
+<a href=#747 id=747 data-nosnippet>747</a>        <span class="macro">assert!</span>(
+<a href=#748 id=748 data-nosnippet>748</a>            output_extracted
+<a href=#749 id=749 data-nosnippet>749</a>                .join(<span class="string">"some_course/PythonExercise/test/test_greeter.py"</span>)
+<a href=#750 id=750 data-nosnippet>750</a>                .exists()
+<a href=#751 id=751 data-nosnippet>751</a>        );
+<a href=#752 id=752 data-nosnippet>752</a>        <span class="macro">assert!</span>(
+<a href=#753 id=753 data-nosnippet>753</a>            output_extracted
+<a href=#754 id=754 data-nosnippet>754</a>                .join(<span class="string">"some_course/PythonExercise/__init__.py"</span>)
+<a href=#755 id=755 data-nosnippet>755</a>                .exists()
+<a href=#756 id=756 data-nosnippet>756</a>        );
+<a href=#757 id=757 data-nosnippet>757</a>    }
+<a href=#758 id=758 data-nosnippet>758</a>
+<a href=#759 id=759 data-nosnippet>759</a>    <span class="attr">#[test]
+<a href=#760 id=760 data-nosnippet>760</a>    </span><span class="kw">fn </span>prepare_make_submission() {
+<a href=#761 id=761 data-nosnippet>761</a>        init();
+<a href=#762 id=762 data-nosnippet>762</a>        <span class="kw">let </span>(_temp, output) = generic_submission(MAKE_CLONE, MAKE_ZIP);
+<a href=#763 id=763 data-nosnippet>763</a>
+<a href=#764 id=764 data-nosnippet>764</a>        <span class="comment">// expected files
+<a href=#765 id=765 data-nosnippet>765</a>        </span><span class="macro">assert!</span>(output.join(<span class="string">"some_course/MakeExercise/src/main.c"</span>).exists());
+<a href=#766 id=766 data-nosnippet>766</a>        <span class="macro">assert!</span>(
+<a href=#767 id=767 data-nosnippet>767</a>            output
+<a href=#768 id=768 data-nosnippet>768</a>                .join(<span class="string">"some_course/MakeExercise/test/test_source.c"</span>)
+<a href=#769 id=769 data-nosnippet>769</a>                .exists()
+<a href=#770 id=770 data-nosnippet>770</a>        );
+<a href=#771 id=771 data-nosnippet>771</a>        <span class="macro">assert!</span>(output.join(<span class="string">"some_course/MakeExercise/Makefile"</span>).exists());
+<a href=#772 id=772 data-nosnippet>772</a>    }
+<a href=#773 id=773 data-nosnippet>773</a>
+<a href=#774 id=774 data-nosnippet>774</a>    <span class="attr">#[test]
+<a href=#775 id=775 data-nosnippet>775</a>    </span><span class="kw">fn </span>prepare_langs_submission() {
+<a href=#776 id=776 data-nosnippet>776</a>        init();
+<a href=#777 id=777 data-nosnippet>777</a>        <span class="kw">let </span>(_temp, output) = generic_submission(PYTHON_CLONE, PYTHON_ZIP);
+<a href=#778 id=778 data-nosnippet>778</a>
+<a href=#779 id=779 data-nosnippet>779</a>        <span class="comment">// expected files
+<a href=#780 id=780 data-nosnippet>780</a>        </span><span class="macro">assert!</span>(
+<a href=#781 id=781 data-nosnippet>781</a>            output
+<a href=#782 id=782 data-nosnippet>782</a>                .join(<span class="string">"some_course/PythonExercise/src/__main__.py"</span>)
+<a href=#783 id=783 data-nosnippet>783</a>                .exists()
+<a href=#784 id=784 data-nosnippet>784</a>        );
+<a href=#785 id=785 data-nosnippet>785</a>        <span class="macro">assert!</span>(
+<a href=#786 id=786 data-nosnippet>786</a>            output
+<a href=#787 id=787 data-nosnippet>787</a>                .join(<span class="string">"some_course/PythonExercise/test/test_greeter.py"</span>)
+<a href=#788 id=788 data-nosnippet>788</a>                .exists()
+<a href=#789 id=789 data-nosnippet>789</a>        );
+<a href=#790 id=790 data-nosnippet>790</a>        <span class="comment">// assert!(output.join("tmc/points.py").exists()); // not included?
+<a href=#791 id=791 data-nosnippet>791</a>        </span><span class="macro">assert!</span>(
+<a href=#792 id=792 data-nosnippet>792</a>            output
+<a href=#793 id=793 data-nosnippet>793</a>                .join(<span class="string">"some_course/PythonExercise/__init__.py"</span>)
+<a href=#794 id=794 data-nosnippet>794</a>                .exists()
+<a href=#795 id=795 data-nosnippet>795</a>        );
+<a href=#796 id=796 data-nosnippet>796</a>    }
+<a href=#797 id=797 data-nosnippet>797</a>
+<a href=#798 id=798 data-nosnippet>798</a>    <span class="attr">#[test]
+<a href=#799 id=799 data-nosnippet>799</a>    </span><span class="kw">fn </span>includes_files_in_root_dir_from_exercise() {
+<a href=#800 id=800 data-nosnippet>800</a>        init();
+<a href=#801 id=801 data-nosnippet>801</a>
+<a href=#802 id=802 data-nosnippet>802</a>        <span class="kw">let </span>temp = tempfile::tempdir().unwrap();
+<a href=#803 id=803 data-nosnippet>803</a>        <span class="kw">let </span>clone_root = temp.path().join(<span class="string">"some_course"</span>);
+<a href=#804 id=804 data-nosnippet>804</a>        file_util::create_dir_all(<span class="kw-2">&amp;</span>clone_root).unwrap();
+<a href=#805 id=805 data-nosnippet>805</a>
+<a href=#806 id=806 data-nosnippet>806</a>        <span class="comment">// Copy the Maven exercise to our temp directory
+<a href=#807 id=807 data-nosnippet>807</a>        </span><span class="kw">let </span>src_clone = Path::new(MAVEN_CLONE);
+<a href=#808 id=808 data-nosnippet>808</a>        file_util::copy(src_clone, <span class="kw-2">&amp;</span>clone_root).unwrap();
+<a href=#809 id=809 data-nosnippet>809</a>
+<a href=#810 id=810 data-nosnippet>810</a>        <span class="kw">let </span>exercise_dir = clone_root.join(<span class="string">"MavenExercise"</span>);
+<a href=#811 id=811 data-nosnippet>811</a>
+<a href=#812 id=812 data-nosnippet>812</a>        <span class="comment">// Create a file in the root directory of the exercise (simulating repo file)
+<a href=#813 id=813 data-nosnippet>813</a>        </span><span class="kw">let </span>repo_file_path = exercise_dir.join(<span class="string">"foo.txt"</span>);
+<a href=#814 id=814 data-nosnippet>814</a>        file_util::write_to_file(<span class="string">b"repohello"</span>, <span class="kw-2">&amp;</span>repo_file_path).unwrap();
+<a href=#815 id=815 data-nosnippet>815</a>
+<a href=#816 id=816 data-nosnippet>816</a>        <span class="comment">// Create a submission zip that also has foo.txt but with different content
+<a href=#817 id=817 data-nosnippet>817</a>        // We need to create a proper Maven project structure that the plugin can understand
+<a href=#818 id=818 data-nosnippet>818</a>        </span><span class="kw">let </span>sub_zip_path = temp.path().join(<span class="string">"submission.zip"</span>);
+<a href=#819 id=819 data-nosnippet>819</a>        <span class="kw">let </span>sub_zip_file = file_util::create_file(<span class="kw-2">&amp;</span>sub_zip_path).unwrap();
+<a href=#820 id=820 data-nosnippet>820</a>        <span class="kw">let </span><span class="kw-2">mut </span>zw = zip::ZipWriter::new(sub_zip_file);
+<a href=#821 id=821 data-nosnippet>821</a>        <span class="kw">let </span>opts = SimpleFileOptions::default();
+<a href=#822 id=822 data-nosnippet>822</a>
+<a href=#823 id=823 data-nosnippet>823</a>        <span class="comment">// Create the Maven project structure
+<a href=#824 id=824 data-nosnippet>824</a>        </span>zw.add_directory(<span class="string">"MavenExercise"</span>, opts).unwrap();
+<a href=#825 id=825 data-nosnippet>825</a>        zw.add_directory(<span class="string">"MavenExercise/src"</span>, opts).unwrap();
+<a href=#826 id=826 data-nosnippet>826</a>        zw.add_directory(<span class="string">"MavenExercise/src/main"</span>, opts).unwrap();
+<a href=#827 id=827 data-nosnippet>827</a>        zw.add_directory(<span class="string">"MavenExercise/src/main/java"</span>, opts)
+<a href=#828 id=828 data-nosnippet>828</a>            .unwrap();
+<a href=#829 id=829 data-nosnippet>829</a>
+<a href=#830 id=830 data-nosnippet>830</a>        <span class="comment">// Add the student's modified file
+<a href=#831 id=831 data-nosnippet>831</a>        </span>zw.start_file(<span class="string">"MavenExercise/foo.txt"</span>, opts).unwrap();
+<a href=#832 id=832 data-nosnippet>832</a>        std::io::Write::write_all(<span class="kw-2">&amp;mut </span>zw, <span class="string">b"submissionhello"</span>).unwrap();
+<a href=#833 id=833 data-nosnippet>833</a>
+<a href=#834 id=834 data-nosnippet>834</a>        <span class="comment">// Add a source file
+<a href=#835 id=835 data-nosnippet>835</a>        </span>zw.start_file(<span class="string">"MavenExercise/src/main/java/SimpleStuff.java"</span>, opts)
+<a href=#836 id=836 data-nosnippet>836</a>            .unwrap();
+<a href=#837 id=837 data-nosnippet>837</a>        std::io::Write::write_all(<span class="kw-2">&amp;mut </span>zw, <span class="string">b"public class SimpleStuff { }"</span>).unwrap();
+<a href=#838 id=838 data-nosnippet>838</a>
+<a href=#839 id=839 data-nosnippet>839</a>        zw.finish().unwrap();
+<a href=#840 id=840 data-nosnippet>840</a>
+<a href=#841 id=841 data-nosnippet>841</a>        <span class="kw">let </span>output_arch = temp.path().join(<span class="string">"out.tar"</span>);
+<a href=#842 id=842 data-nosnippet>842</a>        prepare_submission(
+<a href=#843 id=843 data-nosnippet>843</a>            PrepareSubmission {
+<a href=#844 id=844 data-nosnippet>844</a>                archive: <span class="kw-2">&amp;</span>sub_zip_path,
+<a href=#845 id=845 data-nosnippet>845</a>                compression: Compression::Zip,
+<a href=#846 id=846 data-nosnippet>846</a>                extract_naively: <span class="bool-val">false</span>,
+<a href=#847 id=847 data-nosnippet>847</a>            },
+<a href=#848 id=848 data-nosnippet>848</a>            <span class="kw-2">&amp;</span>output_arch,
+<a href=#849 id=849 data-nosnippet>849</a>            <span class="bool-val">false</span>,
+<a href=#850 id=850 data-nosnippet>850</a>            TmcParams::new(),
+<a href=#851 id=851 data-nosnippet>851</a>            <span class="kw-2">&amp;</span>exercise_dir,
+<a href=#852 id=852 data-nosnippet>852</a>            <span class="prelude-val">None</span>,
+<a href=#853 id=853 data-nosnippet>853</a>            Compression::Tar,
+<a href=#854 id=854 data-nosnippet>854</a>        )
+<a href=#855 id=855 data-nosnippet>855</a>        .unwrap();
+<a href=#856 id=856 data-nosnippet>856</a>        <span class="macro">assert!</span>(output_arch.exists());
+<a href=#857 id=857 data-nosnippet>857</a>
+<a href=#858 id=858 data-nosnippet>858</a>        <span class="comment">// Unpack and verify that foo.txt content is from the repo, not submission
+<a href=#859 id=859 data-nosnippet>859</a>        </span><span class="kw">let </span>output_file = file_util::open_file(<span class="kw-2">&amp;</span>output_arch).unwrap();
+<a href=#860 id=860 data-nosnippet>860</a>        <span class="kw">let </span><span class="kw-2">mut </span>archive = tar::Archive::new(output_file);
+<a href=#861 id=861 data-nosnippet>861</a>        <span class="kw">let </span>output_extracted = temp.path().join(<span class="string">"output"</span>);
+<a href=#862 id=862 data-nosnippet>862</a>        archive.unpack(<span class="kw-2">&amp;</span>output_extracted).unwrap();
+<a href=#863 id=863 data-nosnippet>863</a>
+<a href=#864 id=864 data-nosnippet>864</a>        <span class="comment">// Verify foo.txt exists and has content from repo, not submission
+<a href=#865 id=865 data-nosnippet>865</a>        </span><span class="kw">let </span>foo_file = output_extracted.join(<span class="string">"some_course/MavenExercise/foo.txt"</span>);
+<a href=#866 id=866 data-nosnippet>866</a>        <span class="macro">assert!</span>(
+<a href=#867 id=867 data-nosnippet>867</a>            foo_file.exists(),
+<a href=#868 id=868 data-nosnippet>868</a>            <span class="string">"foo.txt should be included in the archive"
+<a href=#869 id=869 data-nosnippet>869</a>        </span>);
+<a href=#870 id=870 data-nosnippet>870</a>        <span class="kw">let </span>content = fs::read_to_string(foo_file).unwrap();
+<a href=#871 id=871 data-nosnippet>871</a>        <span class="macro">assert_eq!</span>(
+<a href=#872 id=872 data-nosnippet>872</a>            content, <span class="string">"repohello"</span>,
+<a href=#873 id=873 data-nosnippet>873</a>            <span class="string">"Should use repo content, not submission content"
+<a href=#874 id=874 data-nosnippet>874</a>        </span>);
+<a href=#875 id=875 data-nosnippet>875</a>    }
+<a href=#876 id=876 data-nosnippet>876</a>}
 </code></pre></div></section></main></body></html>
