@@ -229,9 +229,7 @@ impl ExitStatus {
 
 impl From<subprocess::ExitStatus> for ExitStatus {
     fn from(value: subprocess::ExitStatus) -> Self {
-        // `code()` is `Some` only on a normal exit, `None` if killed by a signal
-        // or undetermined. Don't use `signal()` as the success check: it's
-        // `None` on a normal exit, which would flag every success as a failure.
+        // Not `signal()`: it is `None` on a normal exit, so every success would read as failure.
         Self {
             code: value.code().map(|c| c as i32),
         }
@@ -262,11 +260,7 @@ mod test {
 
     #[test]
     fn success_reflects_exit_code() {
-        // Deriving this from `subprocess::ExitStatus::signal()` instead of `code()`
-        // reports every normally-exited command as a failure, because `signal()` is
-        // `None` unless the process was killed by a signal (and always `None` on
-        // Windows). Callers that branch on an unchecked command's status then see
-        // successful builds and installed tools as broken.
+        // Guards against deriving success from `signal()`, which is `None` on normal exit.
         assert!(shell_exit(0).success());
         assert!(!shell_exit(3).success());
     }

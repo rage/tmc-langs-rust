@@ -51,6 +51,11 @@ pub enum FileError {
     // lock errors
     #[error("Failed to lock {0}: not a file or directory")]
     InvalidLockPath(PathBuf),
+    #[error("Timed out after {timeout:?} waiting for a lock on {path}")]
+    LockTimeout {
+        path: PathBuf,
+        timeout: std::time::Duration,
+    },
 
     #[error("Directory walk error")]
     Walkdir(#[from] walkdir::Error),

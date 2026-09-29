@@ -10,6 +10,7 @@ use crate::{error::FileError, file_util};
 use file_lock::{FileLock, FileOptions};
 use std::{
     fs::{File, OpenOptions},
+    io,
     path::{Path, PathBuf},
 };
 
@@ -48,9 +49,11 @@ impl Lock {
         })
     }
 
-    pub fn lock(&mut self) -> Result<Guard<'_>, FileError> {
-        log::trace!("locking {}", self.path.display());
-        // dir locks use the central lock file; opening the directory itself gives EISDIR
+    /// The file `fcntl` is applied to, creating it first for a dir lock.
+    ///
+    /// Opening the locked directory itself would give `EISDIR`, so dir locks go through the
+    /// central lock file instead.
+    fn ensure_lock_target(&self) -> Result<&PathBuf, FileError> {
         let path = match &self.lock_file_path {
             Some(lock_file) => lock_file,
             None => &self.path,
@@ -61,9 +64,18 @@ impl Lock {
             OpenOptions::new()
                 .write(true)
                 .create(true)
+                // the lock file's contents are irrelevant, but truncating it would
+                // race a peer that already holds the lock
+                .truncate(false)
                 .open(path)
                 .map_err(|e| FileError::FileCreate(path.to_path_buf(), e))?;
         }
+        Ok(path)
+    }
+
+    pub fn lock(&mut self) -> Result<Guard<'_>, FileError> {
+        log::trace!("locking {}", self.path.display());
+        let path = self.ensure_lock_target()?;
         let lock = match FileLock::lock(path, true, self.options.into_file_options()) {
             Ok(lock) => {
                 log::trace!("locked {}", path.display());
@@ -72,7 +84,7 @@ impl Lock {
             Err(err) => {
                 // the file locking is mostly a safeguard rather than something absolutely necessary
                 // so rather than preventing the program from running here we'll just continue and things will probably work out
-                log::error!("Failed to lock {}: {err}", path.display());
+                file_util::report_locking_unavailable(path, &err);
                 let file = self
                     .options
                     .into_open_options()
@@ -87,6 +99,43 @@ impl Lock {
         };
         file_util::truncate_locked_file(self.options, file, path)?;
         Ok(Guard { lock, path })
+    }
+
+    /// A single non-blocking lock attempt. `Ok(None)` means the lock is currently
+    /// held elsewhere and the caller may retry; see [`file_util::with_file_lock_timeout`]
+    /// for the bounded-wait loop built on this.
+    ///
+    /// Note that the underlying `fcntl` lock is per-process: two `Lock`s on the
+    /// same file within one process never contend with each other.
+    pub fn try_lock(&mut self) -> Result<Option<Guard<'_>>, FileError> {
+        log::trace!("try-locking {}", self.path.display());
+        let path = self.ensure_lock_target()?;
+        let lock = match FileLock::lock(path, false, self.options.into_file_options()) {
+            Ok(lock) => {
+                log::trace!("locked {}", path.display());
+                FileOrLock::Lock(lock)
+            }
+            // POSIX also permits EACCES for a held lock, but it is indistinguishable
+            // from a real permission failure, so it takes the branch below.
+            Err(err) if err.kind() == io::ErrorKind::WouldBlock => return Ok(None),
+            Err(err) => {
+                // Some filesystems can't lock (NFS without a lock daemon gives
+                // ENOLCK); mirror `lock` and proceed unlocked, reporting it.
+                file_util::report_locking_unavailable(path, &err);
+                let file = self
+                    .options
+                    .into_open_options()
+                    .open(path)
+                    .map_err(|e| FileError::FileOpen(path.to_path_buf(), e))?;
+                FileOrLock::File(file)
+            }
+        };
+        let file = match &lock {
+            FileOrLock::File(f) => f,
+            FileOrLock::Lock(l) => &l.file,
+        };
+        file_util::truncate_locked_file(self.options, file, path)?;
+        Ok(Some(Guard { lock, path }))
     }
 }
 

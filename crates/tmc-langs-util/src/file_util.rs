@@ -14,9 +14,12 @@ pub use lock_unix::*;
 #[cfg(windows)]
 pub use lock_windows::*;
 use std::{
+    fmt::Display,
     fs::{self, File, OpenOptions, ReadDir},
     io::{Read, Write},
     path::{Path, PathBuf},
+    sync::atomic::{AtomicBool, Ordering},
+    time::{Duration, Instant},
 };
 use tempfile::NamedTempFile;
 use walkdir::WalkDir;
@@ -73,6 +76,84 @@ pub(crate) fn truncate_locked_file(
             .map_err(|e| FileError::FileWrite(report_path.to_path_buf(), e))?;
     }
     Ok(())
+}
+
+/// Set when the OS reports locking as unsupported and the caller proceeds
+/// unlocked. See [`report_locking_unavailable`].
+static LOCKING_UNAVAILABLE: AtomicBool = AtomicBool::new(false);
+
+/// Whether any lock in this process has fallen back to running *unlocked* because
+/// the OS refused it.
+///
+/// For callers that need the lock for correctness (the mooc credentials refresh:
+/// unserialized refreshes redeem one refresh token twice and the backend revokes
+/// the session). Sticky and process-wide, since the cause is the filesystem.
+pub fn locking_unavailable() -> bool {
+    LOCKING_UNAVAILABLE.load(Ordering::Relaxed)
+}
+
+/// Records that the caller is proceeding *without* a lock, warning once per
+/// process. Returns whether this was the first report (and so emitted the warning).
+///
+/// Failing open is deliberate, since some filesystems cannot lock at all. The usual
+/// cause is a home or config directory on NFS with no reachable `rpc.lockd`, where
+/// `fcntl` fails with `ENOLCK`.
+pub fn report_locking_unavailable(path: &Path, err: &dyn Display) -> bool {
+    if LOCKING_UNAVAILABLE.swap(true, Ordering::Relaxed) {
+        // Debug level so a run where every lock fails doesn't flood the log.
+        log::debug!("Failed to lock {} again: {err}", path.display());
+        return false;
+    }
+    log::warn!(
+        "Failed to lock {}: {err}. Continuing WITHOUT the lock, so operations \
+         that rely on it are no longer serialized between processes. This \
+         usually means the filesystem does not support file locking -- most \
+         often a home or config directory on NFS with no lock daemon \
+         (rpc.lockd/NLM) reachable. Concurrent commands can then corrupt each \
+         other's writes, and two of them refreshing the login token at once \
+         will invalidate it.",
+        path.display()
+    );
+    true
+}
+
+/// Sleep between acquisition attempts in [`with_file_lock_timeout`].
+const LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
+
+/// Runs `f` while holding a lock on the file at `path`, giving up with
+/// [`FileError::LockTimeout`] if the lock cannot be taken within `timeout`.
+///
+/// Unlike [`Lock::lock`], which blocks forever behind a wedged holder, this polls
+/// a non-blocking acquisition so the caller gets a retryable error instead of a hang.
+///
+/// `f` runs with the lock held and its value is returned. A closure is taken
+/// because the guard borrows the internal [`Lock`] created per loop iteration.
+pub fn with_file_lock_timeout<T>(
+    path: impl AsRef<Path>,
+    options: LockOptions,
+    timeout: Duration,
+    f: impl FnOnce(&mut Guard<'_>) -> T,
+) -> Result<T, FileError> {
+    let path = path.as_ref();
+    let deadline = Instant::now() + timeout;
+    loop {
+        let mut lock = Lock::file(path, options)?;
+        if let Some(mut guard) = lock.try_lock()? {
+            return Ok(f(&mut guard));
+        }
+        // The deadline is checked after an attempt, so a zero timeout is a plain try-lock.
+        if Instant::now() >= deadline {
+            log::warn!(
+                "Gave up after {timeout:?} waiting for a lock on {}",
+                path.display()
+            );
+            return Err(FileError::LockTimeout {
+                path: path.to_path_buf(),
+                timeout,
+            });
+        }
+        std::thread::sleep(LOCK_POLL_INTERVAL);
+    }
 }
 
 pub fn temp_file() -> Result<File, FileError> {
@@ -309,6 +390,127 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    #[test]
+    fn a_refused_lock_is_warned_about_once_and_recorded() {
+        init();
+
+        // ENOLCK (37 on Linux): `fcntl(F_SETLK)` on NFS with no reachable lock daemon.
+        let enolck = std::io::Error::from_raw_os_error(37);
+        let path = Path::new("/nfs/home/user/.config/tmc-test/credentials_mooc_lab.json");
+
+        // The flag is process-wide and sticky; no other test here reads it.
+        assert!(
+            report_locking_unavailable(path, &enolck),
+            "the first degradation must be reported"
+        );
+        assert!(
+            !report_locking_unavailable(path, &enolck),
+            "later degradations must not repeat the warning"
+        );
+        assert!(
+            locking_unavailable(),
+            "the degradation must stay visible to callers that need a real lock"
+        );
+    }
+
+    /// Tells the child spawned by
+    /// [`with_file_lock_timeout_gives_up_when_another_process_holds_the_lock`]
+    /// which file to lock.
+    const HOLD_LOCK_VAR: &str = "TMC_TEST_HOLD_LOCK_PATH";
+
+    #[test]
+    fn a_creating_file_lock_creates_missing_parent_dirs() {
+        init();
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("nested").join("lock");
+        with_file_lock_timeout(&path, LockOptions::WriteCreate, Duration::ZERO, |_guard| ())
+            .unwrap();
+        assert!(path.exists());
+    }
+
+    /// Entry point of the child process the contention test spawns; a no-op in an
+    /// ordinary run. A separate process is needed because `fcntl` locks are
+    /// per-process, so a second `Lock` in the test process would never contend.
+    #[test]
+    fn child_process_holds_a_lock() {
+        let Ok(path) = std::env::var(HOLD_LOCK_VAR) else {
+            return;
+        };
+        let path = PathBuf::from(path);
+        let mut lock = Lock::file(&path, LockOptions::WriteCreate).unwrap();
+        let _guard = lock.lock().unwrap();
+        std::fs::write(path.with_extension("held"), b"1").unwrap();
+        std::thread::sleep(Duration::from_secs(120));
+    }
+
+    #[test]
+    fn with_file_lock_timeout_gives_up_when_another_process_holds_the_lock() {
+        init();
+
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("locked");
+        let held_marker = path.with_extension("held");
+
+        let mut child = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["file_util::test::child_process_holds_a_lock", "--exact"])
+            .env(HOLD_LOCK_VAR, &path)
+            .spawn()
+            .unwrap();
+
+        // The bound only guards against a child that never starts.
+        let waiting_since = Instant::now();
+        while !held_marker.exists() {
+            assert!(
+                waiting_since.elapsed() < Duration::from_secs(60),
+                "the child process never took the lock"
+            );
+            std::thread::sleep(Duration::from_millis(20));
+        }
+
+        // The child holds the lock until killed, so this must time out.
+        let result = with_file_lock_timeout(
+            &path,
+            LockOptions::WriteCreate,
+            Duration::from_millis(200),
+            |_guard| (),
+        );
+        let _ = child.kill();
+        let _ = child.wait();
+
+        assert!(
+            matches!(result, Err(FileError::LockTimeout { .. })),
+            "expected a lock timeout, got {result:?}"
+        );
+
+        // Succeeding once the holder is gone shows the timeout was contention.
+        with_file_lock_timeout(
+            &path,
+            LockOptions::WriteCreate,
+            Duration::from_millis(200),
+            |_guard| (),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn with_file_lock_timeout_runs_the_closure_and_returns_its_value() {
+        init();
+
+        let dir = tempfile::tempdir().unwrap();
+        // Not nested: only the unix `Lock::file` creates missing parents.
+        let path = dir.path().join("file");
+        let value = with_file_lock_timeout(
+            &path,
+            LockOptions::WriteCreate,
+            Duration::from_secs(1),
+            |guard| guard.get_file().metadata().unwrap().is_file(),
+        )
+        .unwrap();
+        assert!(value);
+        assert!(path.exists(), "WriteCreate should have created the file");
     }
 
     fn file_to(

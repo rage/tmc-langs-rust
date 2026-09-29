@@ -23,14 +23,6 @@ pub struct ErrorResponse {
     pub obsolete_client: bool,
 }
 
-/// OAuth2 credentials.
-/// get /api/v8/application/{client_name}/credentials
-#[derive(Debug, Deserialize)]
-pub struct Credentials {
-    pub application_id: String,
-    pub secret: String,
-}
-
 /// get /api/v8/users/{user_id}
 /// get /api/v8/users/current
 /// post /api/v8/users/basic_info_by_usernames

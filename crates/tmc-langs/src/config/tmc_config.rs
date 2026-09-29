@@ -1,6 +1,7 @@
 //! Handles the CLI's configuration file.
 
 use crate::error::LangsError;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{
     env,
@@ -14,7 +15,7 @@ use tmc_langs_util::{
 use toml::{Value, value::Table};
 
 /// The main configuration file. A separate one is used for each client.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(ts_rs::TS))]
 pub struct TmcConfig {
     // this is not serialized or deserialized, but set while loading
@@ -24,6 +25,7 @@ pub struct TmcConfig {
     pub projects_dir: PathBuf,
     #[serde(flatten)]
     #[cfg_attr(feature = "ts-rs", ts(skip))]
+    #[schemars(skip)]
     pub table: Table,
 }
 

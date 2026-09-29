@@ -5,8 +5,7 @@
 //! ```rust,no_run
 //! use tmc_testmycode_client::TestMyCodeClient;
 //!
-//! let mut client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
-//! client.authenticate("email".to_string(), "password".to_string());
+//! let client = TestMyCodeClient::new("https://tmc.mooc.fi".parse().unwrap(), "some_client".to_string(), "some_version".to_string()).unwrap();
 //! let organizations = client.get_organizations();
 //! ```
 //!
@@ -17,7 +16,7 @@ pub mod request;
 pub mod response;
 
 pub use self::{
-    client::{ClientUpdateData, TestMyCodeClient, Token, UpdateResult, api_v8},
+    client::{ClientUpdateData, TestMyCodeClient, Token, TokenSource, UpdateResult, api_v8},
     error::{TestMyCodeClientError, TestMyCodeClientResult},
 };
 // these types are part of tmc-testmycode-client's API and thus re-exported

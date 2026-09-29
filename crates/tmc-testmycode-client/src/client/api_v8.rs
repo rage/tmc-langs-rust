@@ -4,7 +4,6 @@
 
 use crate::{TestMyCodeClient, TestMyCodeClientError, request::*, response::*};
 use http::Method;
-use oauth2::TokenResponse;
 use reqwest::blocking::{
     RequestBuilder, Response,
     multipart::{Form, Part},
@@ -48,14 +47,14 @@ fn percent_encode(target: &str) -> String {
 // creates a request with the required TMC and authentication headers
 fn prepare_tmc_request(client: &TestMyCodeClient, method: Method, url: Url) -> RequestBuilder {
     log::info!("{method} {url}");
+    let req_url = url.clone();
     let req = client.0.client.request(method, url).query(&[
         ("client", &client.0.client_name),
         ("client_version", &client.0.client_version),
     ]);
-    if let Some(token) = &client.0.token {
-        req.bearer_auth(token.access_token().secret())
-    } else {
-        req
+    match client.bearer_for(&req_url) {
+        Some(bearer) => req.bearer_auth(bearer),
+        None => req,
     }
 }
 
@@ -159,17 +158,6 @@ pub fn post_form<T: DeserializeOwned>(
 
     let json = assert_success_json(res, &url)?;
     Ok(json)
-}
-
-/// get /api/v8/application/{client_name}/credentials
-/// Fetches oauth2 credentials info.
-pub fn get_credentials(client: &TestMyCodeClient) -> Result<Credentials, TestMyCodeClientError> {
-    let client_name = &client.0.client_name;
-    let url = make_url(
-        client,
-        format!("/api/v8/application/{client_name}/credentials"),
-    )?;
-    get_json(client, url, &[])
 }
 
 /// get /api/v8/core/submissions/{submission_id}
@@ -400,7 +388,6 @@ pub mod point {
                 percent_encode(course_name)
             ),
         )?;
-        todo!()
     }
     */
 
@@ -1051,26 +1038,6 @@ mod test {
             .match_query(client_matcher())
             .with_body(body)
             .create()
-    }
-
-    #[test]
-    fn gets_credentials() {
-        init();
-        let mut server = Server::new();
-
-        let client = make_client(&server);
-        let _m = mock_get(
-            &mut server,
-            "/api/v8/application/client/credentials",
-            r#"
-        {
-            "application_id": "id",
-            "secret": "s"
-        }
-        "#,
-        );
-
-        let _res = get_credentials(&client).unwrap();
     }
 
     #[test]

@@ -16,6 +16,7 @@ pub struct ValgrindLog {
     #[allow(dead_code)]
     pub header: (String, Vec<String>),
     pub errors: bool,
+    /// One per non-header pid, in the order the pids first appear in the log.
     pub results: Vec<ValgrindResult>,
 }
 
@@ -34,9 +35,9 @@ impl ValgrindLog {
         let valgrind_log_file = file_util::open_file(valgrind_log_path)?;
         let valgrind_log = BufReader::new(valgrind_log_file);
 
-        let mut first_pid = None;
-        let mut pid_info = HashMap::new();
-        // parse all lines into a map of pid => ([lines of text], error count)
+        // (pid, lines of text, error count) in order of each pid's first line
+        let mut pid_info: Vec<(String, Vec<String>, u32)> = vec![];
+        let mut pid_indices = HashMap::new();
         for line in valgrind_log.lines() {
             let line = line.map_err(|e| FileError::FileRead(valgrind_log_path.to_path_buf(), e))?;
             let pid = match PID_REGEX.captures(&line) {
@@ -44,26 +45,27 @@ impl ValgrindLog {
                 None => continue, // ignore lines without a PID
             };
 
-            first_pid.get_or_insert(pid.clone());
-            let info = pid_info.entry(pid).or_insert((vec![], 0));
+            let index = *pid_indices.entry(pid.clone()).or_insert_with(|| {
+                pid_info.push((pid, vec![], 0));
+                pid_info.len() - 1
+            });
+            let info = &mut pid_info[index];
             if let Some(captures) = ERR_REGEX.captures(&line) {
                 let errors = captures["error_count"].parse::<u32>()?;
-                info.1 = errors;
+                info.2 = errors;
             }
-            info.0.push(line);
+            info.1.push(line);
         }
 
-        let first_pid = match first_pid {
-            Some(first_pid) => first_pid,
+        let mut pid_info = pid_info.into_iter();
+        let (first_pid, header_log, _header_errors) = match pid_info.next() {
+            Some(first) => first,
             None => return Err(MakeError::NoPidsInValgrindLogs),
         };
-        let (header_log, _header_errors) = pid_info
-            .remove(&first_pid)
-            .expect("pid_info should have info for every pid");
 
         let mut contains_errors = false;
         let mut results = vec![];
-        for (pid, (log, errors)) in pid_info {
+        for (pid, log, errors) in pid_info {
             let errors = errors > 0;
             contains_errors = contains_errors || errors;
             results.push(ValgrindResult { pid, errors, log })
