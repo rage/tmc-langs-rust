@@ -74,6 +74,9 @@ pub enum DataKind {
     Error {
         kind: Kind,
         trace: Vec<String>,
+        /// The HTTP status a server answered with, when the error is one.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        http_status: Option<u16>,
     },
     Validation(Option<StyleValidationResult>),
     /// megabytes
@@ -208,6 +211,14 @@ pub enum Kind {
     /// A submission named a file this user never uploaded for the exercise
     /// (backend `message_key: "unknown_upload"`, HTTP 422). A client bug or tampering.
     UnknownUpload,
+    /// The user denied a device login in the browser.
+    DeviceLoginDenied,
+    /// A device login was not approved before its code expired.
+    DeviceLoginExpired,
+    /// The server answered 404: what was asked for does not exist, or not for this user.
+    NotFound,
+    /// The server answered with a 5xx status. Transient, so stored credentials are kept.
+    ServerError,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;
@@ -269,6 +280,7 @@ mod test {
             data: Some(DataKind::Error {
                 kind: Kind::Generic,
                 trace: vec!["trace 1".to_string(), "trace 2".to_string()],
+                http_status: None,
             }),
         }));
         let actual = serde_json::to_string_pretty(&output_data).unwrap();

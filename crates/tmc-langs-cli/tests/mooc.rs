@@ -145,10 +145,20 @@ fn run_mooc_in_expect_error(
     config_dir: &std::path::Path,
     projects_dir: &std::path::Path,
 ) -> tmc_langs_cli::CliError {
+    run_mooc_at_expect_error(&server.url(), args, config_dir, projects_dir)
+}
+
+/// [`run_mooc_in_expect_error`] against a root URL that need not have a server behind it.
+fn run_mooc_at_expect_error(
+    root_url: &str,
+    args: &[&str],
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+) -> tmc_langs_cli::CliError {
     let _guard = env_lock();
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
-        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", root_url);
         std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
         std::env::set_var("TMC_LANGS_DEFAULT_PROJECTS_DIR", projects_dir);
     }
@@ -336,13 +346,13 @@ fn mooc_non_auth_retry_after_successful_refresh_keeps_credentials() {
         "a non-auth failure on the post-refresh retry must NOT delete the credentials"
     );
     // Propagated as-is, not masked as an invalid-token/auth error.
-    assert_error_kind(error, "connection-error");
+    assert_error_kind(error, "server-error");
 }
 
 #[test]
-fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error() {
+fn mooc_transient_refresh_failure_keeps_credentials_and_reports_server_error() {
     // A 5xx on the proactive refresh is transient: the CLI must keep the
-    // credentials (so a retry can succeed) and report `connection-error`, NOT
+    // credentials (so a retry can succeed) and report `server-error`, NOT
     // delete them and force a re-login.
     let mut server = mockito::Server::new();
     let _refresh = server
@@ -368,6 +378,57 @@ fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error
         credentials_path.exists(),
         "a transient refresh failure must NOT delete the credentials file"
     );
+    assert_http_status(&error, Some(503));
+    assert_error_kind(error, "server-error");
+}
+
+#[test]
+fn mooc_404_reports_not_found_with_its_status() {
+    let mut server = mockito::Server::new();
+    let _missing = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}").as_str(),
+        )
+        .with_status(404)
+        .with_body(r#"{"message":"not found","message_key":"not_found"}"#)
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert_http_status(&error, Some(404));
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
+fn a_connection_failure_carries_no_http_status() {
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    // mockito pools its servers, so a dropped one keeps listening; a released port does not.
+    let port = std::net::TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
+    let unreachable = format!("http://127.0.0.1:{port}");
+    let error = run_mooc_at_expect_error(
+        &unreachable,
+        &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert_http_status(&error, None);
     assert_error_kind(error, "connection-error");
 }
 
@@ -408,6 +469,16 @@ fn mooc_401_deletes_credentials_and_reports_invalid_token() {
                     serde_json::json!("invalid-token")
                 );
             }
+            other => panic!("expected an Error data kind, got {other:?}"),
+        },
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+}
+
+fn assert_http_status(error: &tmc_langs_cli::CliError, expected: Option<u16>) {
+    match &*error.output {
+        CliOutput::OutputData(data) => match &data.data {
+            Some(DataKind::Error { http_status, .. }) => assert_eq!(*http_status, expected),
             other => panic!("expected an Error data kind, got {other:?}"),
         },
         other => panic!("expected OutputData, got {other:?}"),
@@ -3178,7 +3249,7 @@ fn mooc_login_pending_slow_down_then_success() {
 }
 
 #[test]
-fn mooc_login_denied_maps_to_not_logged_in() {
+fn mooc_login_denied_has_its_own_kind() {
     let mut server = mockito::Server::new();
     let _device = mock_device_authorization(&mut server);
     let _denied = server
@@ -3191,7 +3262,7 @@ fn mooc_login_denied_maps_to_not_logged_in() {
     let config_dir = tempfile::tempdir().unwrap();
     let error = run_mooc_auth(&server, &["login"], config_dir.path())
         .expect_err("a denied device login should fail");
-    assert_error_kind(error, "not-logged-in");
+    assert_error_kind(error, "device-login-denied");
     assert!(
         !config_dir
             .path()
@@ -3203,7 +3274,7 @@ fn mooc_login_denied_maps_to_not_logged_in() {
 }
 
 #[test]
-fn mooc_login_expired_maps_to_not_logged_in() {
+fn mooc_login_expired_has_its_own_kind() {
     let mut server = mockito::Server::new();
     let _device = mock_device_authorization(&mut server);
     let _expired = server
@@ -3216,7 +3287,7 @@ fn mooc_login_expired_maps_to_not_logged_in() {
     let config_dir = tempfile::tempdir().unwrap();
     let error = run_mooc_auth(&server, &["login"], config_dir.path())
         .expect_err("an expired device code should fail");
-    assert_error_kind(error, "not-logged-in");
+    assert_error_kind(error, "device-login-expired");
 }
 
 #[test]

@@ -60,6 +60,7 @@ pub fn map_parsing_result(result: Result<Cli, clap::Error>) -> ParsingResult {
                 data: Some(DataKind::Error {
                     kind: Kind::Generic,
                     trace: causes,
+                    http_status: None,
                 }),
             }));
             ParsingResult::Err(output)
@@ -81,6 +82,7 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
             let causes: Vec<String> = e.chain().map(|e| format!("Caused by: {e}")).collect();
             let message = error_message_special_casing(&e);
             let kind = solve_error_kind(&e);
+            let http_status = find_http_status(&e);
             let sandbox_path = check_sandbox_err(&e);
             let output = CliOutput::OutputData(Box::new(OutputData {
                 status: Status::Finished,
@@ -89,6 +91,7 @@ pub fn run(cli: Cli) -> Result<CliOutput, CliError> {
                 data: Some(DataKind::Error {
                     kind,
                     trace: causes,
+                    http_status,
                 }),
             }));
             Err(CliError {
@@ -138,6 +141,9 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 if status.as_u16() == 401 {
                     return Kind::NotLoggedIn;
                 }
+                if let Some(kind) = http_status_kind(status.as_u16()) {
+                    return kind;
+                }
             }
             Some(TestMyCodeClientError::NotAuthenticated) => {
                 return Kind::NotLoggedIn;
@@ -148,35 +154,59 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
             _ => {}
         }
 
-        if let Some(kind) = downcast_through_box::<MoocClientError>(cause).and_then(mooc_error_kind)
-        {
+        if let Some(kind) = as_mooc_client_error(cause).and_then(mooc_error_kind) {
             return kind;
-        }
-
-        // `LangsError::MoocClient` is `#[error(transparent)]`, so its `source()` skips
-        // the `MoocClientError` and the downcasts above miss it; unwrap it here so a
-        // transient refresh failure still maps to `connection-error`.
-        if let Some(LangsError::MoocClient(mooc_err)) = cause.downcast_ref::<LangsError>() {
-            if let Some(kind) = mooc_error_kind(mooc_err) {
-                return kind;
-            }
-        }
-
-        // `MoocAuth::call` surfaces failures as `MoocAuthFailure`; unwrap it explicitly
-        // rather than depend on how its `#[source]` shapes the chain.
-        if let Some(mooc_auth_err) = cause.downcast_ref::<tmc_langs::MoocAuthFailure>() {
-            let inner = match mooc_auth_err {
-                tmc_langs::MoocAuthFailure::Permanent(e) | tmc_langs::MoocAuthFailure::Other(e) => {
-                    e.as_ref()
-                }
-            };
-            if let Some(kind) = mooc_error_kind(inner) {
-                return kind;
-            }
         }
     }
 
     Kind::Generic
+}
+
+/// The `MoocClientError` one link of an error chain carries, however it is wrapped.
+fn as_mooc_client_error<'a>(
+    cause: &'a (dyn std::error::Error + 'static),
+) -> Option<&'a MoocClientError> {
+    if let Some(mooc_err) = downcast_through_box::<MoocClientError>(cause) {
+        return Some(mooc_err);
+    }
+    // `LangsError::MoocClient` is `#[error(transparent)]`, so its `source()` skips
+    // the `MoocClientError` and the downcast above misses it.
+    if let Some(LangsError::MoocClient(mooc_err)) = cause.downcast_ref::<LangsError>() {
+        return Some(mooc_err);
+    }
+    // `MoocAuth::call` surfaces failures as `MoocAuthFailure`; unwrap it explicitly
+    // rather than depend on how its `#[source]` shapes the chain.
+    match cause.downcast_ref::<tmc_langs::MoocAuthFailure>() {
+        Some(
+            tmc_langs::MoocAuthFailure::Permanent(mooc_err)
+            | tmc_langs::MoocAuthFailure::Other(mooc_err),
+        ) => Some(mooc_err),
+        None => None,
+    }
+}
+
+/// The HTTP status a backend answered with, for an error that is one.
+fn find_http_status(e: &anyhow::Error) -> Option<u16> {
+    e.chain().find_map(|cause| {
+        if let Some(TestMyCodeClientError::HttpError { status, .. }) =
+            downcast_through_box::<TestMyCodeClientError>(cause)
+        {
+            return Some(status.as_u16());
+        }
+        match as_mooc_client_error(cause) {
+            Some(MoocClientError::HttpError { status, .. }) => Some(status.as_u16()),
+            _ => None,
+        }
+    })
+}
+
+/// The kind of a status no more specific rule claimed.
+fn http_status_kind(status: u16) -> Option<Kind> {
+    match status {
+        404 => Some(Kind::NotFound),
+        500..=599 => Some(Kind::ServerError),
+        _ => None,
+    }
 }
 
 /// Maps a [`MoocClientError`] to the CLI error [`Kind`] it should surface, if any.
@@ -205,19 +235,13 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(Kind::Forbidden)
             } else if status.as_u16() == 401 {
                 Some(Kind::NotLoggedIn)
-            } else if status.is_server_error() {
-                // Transient (e.g. a refresh hitting a flaky backend): retryable, so no
-                // credential deletion and not `generic`.
-                Some(Kind::ConnectionError)
             } else {
-                None
+                http_status_kind(status.as_u16())
             }
         }
         MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
-        // A failed device login, not a hard error.
-        MoocClientError::DeviceAccessDenied | MoocClientError::DeviceCodeExpired => {
-            Some(Kind::NotLoggedIn)
-        }
+        MoocClientError::DeviceAccessDenied => Some(Kind::DeviceLoginDenied),
+        MoocClientError::DeviceCodeExpired => Some(Kind::DeviceLoginExpired),
         // Stored credentials are gone; the user must log in again.
         MoocClientError::RefreshTokenRejected { .. } => Some(Kind::NotLoggedIn),
         MoocClientError::ConnectionError { .. } => Some(Kind::ConnectionError),
@@ -1212,7 +1236,7 @@ fn poll_mooc_device_login(
         thread::sleep(delay);
 
         if Instant::now() >= deadline {
-            // Locally bound the wait; the CLI maps this to `not-logged-in`.
+            // Locally bound the wait; the CLI maps this to `device-login-expired`.
             return Err(Box::new(mooc::MoocClientError::DeviceCodeExpired).into());
         }
 
