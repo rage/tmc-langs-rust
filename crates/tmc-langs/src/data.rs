@@ -319,6 +319,12 @@ mod test {
                     "model_solution_spec": null,
                     "checksum": "abc",
                 }],
+                "page_url": "https://courses.mooc.fi/org/uh-cs/courses/python/chapter-1/page-1",
+                "chapter": {
+                    "id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d04",
+                    "name": "Getting started",
+                    "chapter_number": 1,
+                },
             }],
             "progress": {
                 "course_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",

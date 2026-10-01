@@ -917,6 +917,22 @@ fn dispatches_course_progress() {
 }
 
 #[test]
+fn exercise_carries_its_page_and_chapter() {
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let output = run_mooc(&server, &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID]).unwrap();
+    match data_of(output) {
+        DataKind::MoocExerciseSlide(slide) => {
+            assert_eq!(slide.page_url.as_deref(), Some(SUBMIT_EXERCISE_PAGE_URL));
+            let chapter = slide.chapter.expect("the mock exercise is in a chapter");
+            assert_eq!(chapter.name, "Getting started");
+            assert_eq!(chapter.chapter_number, 1);
+        }
+        other => panic!("expected MoocExerciseSlide, got {other:?}"),
+    }
+}
+
+#[test]
 fn dispatches_exercise() {
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
@@ -939,7 +955,12 @@ fn dispatches_exercise() {
         .create();
     let output = run_mooc(&server, &["exercise", "--exercise-id", exercise_id]).unwrap();
     match data_of(output) {
-        DataKind::MoocExerciseSlide(slide) => assert_eq!(slide.exercise_name, "mockname"),
+        DataKind::MoocExerciseSlide(slide) => {
+            assert_eq!(slide.exercise_name, "mockname");
+            // This host predates both.
+            assert_eq!(slide.page_url, None);
+            assert!(slide.chapter.is_none());
+        }
         other => panic!("expected MoocExerciseSlide, got {other:?}"),
     }
 }
@@ -1732,12 +1753,20 @@ fn mock_exercise_for_submit(server: &mut mockito::Server) -> mockito::Mock {
                     "model_solution_spec": null,
                     "exercise_service_slug": "tmc"
                 }],
+                "page_url": SUBMIT_EXERCISE_PAGE_URL,
+                "chapter": {
+                    "id": "4c0b3a2e-0000-4000-8000-000000000001",
+                    "name": "Getting started",
+                    "chapter_number": 1,
+                },
             })
             .to_string(),
         )
         .expect_at_least(1)
         .create()
 }
+
+const SUBMIT_EXERCISE_PAGE_URL: &str = "http://example.com/org/uh-cs/courses/java/chapter-1/page-1";
 
 /// The host file id the mocked upload endpoint hands out.
 const SUBMIT_FILE_UPLOAD_ID: &str = "cccccccc-2222-2222-2222-222222222222";
@@ -1875,6 +1904,11 @@ fn blocking_submit_polls_until_fully_graded() {
     assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
     assert_eq!(json["grading"]["score_given"], 1.0);
     assert_eq!(json["grading"]["feedback_text"], "All tests passed");
+    // This host predates `exercise_progress`.
+    assert_eq!(
+        json["grading"]["exercise_progress"],
+        serde_json::Value::Null
+    );
 }
 
 #[test]
@@ -2215,6 +2249,10 @@ fn submit_dont_block_returns_both_submission_ids_without_polling() {
         DataKind::MoocSubmissionFinished(result) => {
             assert_eq!(result.task_submission_id.to_string(), task_submission_id);
             assert_eq!(result.slide_submission_id.to_string(), slide_submission_id);
+            assert_eq!(
+                result.exercise_page_url.as_deref(),
+                Some(SUBMIT_EXERCISE_PAGE_URL)
+            );
         }
         other => panic!("expected MoocSubmissionFinished, got {other:?}"),
     }
@@ -2235,7 +2273,14 @@ fn dispatches_wait_for_grading() {
                     "grading_started_at": null,
                     "grading_completed_at": null,
                     "feedback_json": null,
-                    "feedback_text": "Compilation error"
+                    "feedback_text": "Compilation error",
+                    "exercise_progress": {
+                        "exercise_id": SUBMIT_EXERCISE_ID,
+                        "score_given": 0.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true
+                    }
                 }
             })
             .to_string(),
@@ -2252,6 +2297,7 @@ fn dispatches_wait_for_grading() {
     let json = submission_status_json(output);
     assert_eq!(json["grading"]["grading_progress"], "Failed");
     assert_eq!(json["grading"]["feedback_text"], "Compilation error");
+    assert_eq!(json["grading"]["exercise_progress"]["completed"], true);
 }
 
 #[test]

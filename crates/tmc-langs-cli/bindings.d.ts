@@ -345,7 +345,22 @@ export type TmcExerciseSlide = { slide_id: string, exercise_id: string,
 /**
  * Lets a client locate the exercise's course without a separate lookup.
  */
-course_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>, }
+course_id: string, exercise_name: string, exercise_order_number: number, deadline: string | null, tasks: Array<TmcExerciseTask>,
+/**
+ * The course material page the exercise is on, which also shows the student's latest
+ * submission. `None` from a host that does not report it.
+ */
+page_url: string | null,
+/**
+ * `None` for an exercise outside any chapter, or from a host that does not report it.
+ */
+chapter: ExerciseChapter | null, }
+
+export type ExerciseChapter = { id: string, name: string,
+/**
+ * The chapter's position in the course, from 1.
+ */
+chapter_number: number, }
 
 export type TmcExerciseTask = { task_id: string, order_number: number, assignment: unknown, public_spec: PublicSpec | null, model_solution_spec: ModelSolutionSpec | null, checksum: string | null, }
 
@@ -372,7 +387,13 @@ task_submission_id: string,
 /**
  * Identifies the slide submission; what downloading and sharing take.
  */
-slide_submission_id: string, }
+slide_submission_id: string,
+/**
+ * The exercise's course material page, where the submission's grading also shows. Set by
+ * [`MoocClient::submit_exercise`], which has the exercise at hand; `None` otherwise, or when
+ * the host reports no page.
+ */
+exercise_page_url: string | null, }
 
 export type ExerciseTaskSubmissionStatus = { "status": "no-grading-yet" } | { "status": "grading", grading: Grading, };
 
@@ -385,7 +406,13 @@ score_given: number | null, grading_started_at: string | null, grading_completed
 /**
  * Human-readable feedback, for a client to display as-is.
  */
-feedback_text: string | null, }
+feedback_text: string | null,
+/**
+ * The user's progress on the whole exercise as of this poll; its `completed` is the
+ * authoritative "passed" signal. `None` for an exam exercise or from a host that does not
+ * report it.
+ */
+exercise_progress: ExerciseProgress | null, }
 
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
 

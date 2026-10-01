@@ -1576,6 +1576,7 @@ mod test {
             // mooc
             tmc_langs::mooc::Course,
             tmc_langs::mooc::TmcExerciseSlide,
+            tmc_langs::mooc::ExerciseChapter,
             tmc_langs::mooc::TmcExerciseTask,
             tmc_langs::mooc::PublicSpec,
             tmc_langs::mooc::ExerciseType,
