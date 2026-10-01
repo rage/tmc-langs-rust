@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
-use tmc_langs::{MoocCredentials, progress_reporter};
+use tmc_langs::{MoocCredentials, mooc::ExerciseStanding, progress_reporter};
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -145,10 +145,20 @@ fn run_mooc_in_expect_error(
     config_dir: &std::path::Path,
     projects_dir: &std::path::Path,
 ) -> tmc_langs_cli::CliError {
+    run_mooc_at_expect_error(&server.url(), args, config_dir, projects_dir)
+}
+
+/// [`run_mooc_in_expect_error`] against a root URL that need not have a server behind it.
+fn run_mooc_at_expect_error(
+    root_url: &str,
+    args: &[&str],
+    config_dir: &std::path::Path,
+    projects_dir: &std::path::Path,
+) -> tmc_langs_cli::CliError {
     let _guard = env_lock();
     // SAFETY: all env access in these tests is serialized by ENV_LOCK.
     unsafe {
-        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", root_url);
         std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
         std::env::set_var("TMC_LANGS_DEFAULT_PROJECTS_DIR", projects_dir);
     }
@@ -336,13 +346,13 @@ fn mooc_non_auth_retry_after_successful_refresh_keeps_credentials() {
         "a non-auth failure on the post-refresh retry must NOT delete the credentials"
     );
     // Propagated as-is, not masked as an invalid-token/auth error.
-    assert_error_kind(error, "connection-error");
+    assert_error_kind(error, "server-error");
 }
 
 #[test]
-fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error() {
+fn mooc_transient_refresh_failure_keeps_credentials_and_reports_server_error() {
     // A 5xx on the proactive refresh is transient: the CLI must keep the
-    // credentials (so a retry can succeed) and report `connection-error`, NOT
+    // credentials (so a retry can succeed) and report `server-error`, NOT
     // delete them and force a re-login.
     let mut server = mockito::Server::new();
     let _refresh = server
@@ -368,6 +378,57 @@ fn mooc_transient_refresh_failure_keeps_credentials_and_reports_connection_error
         credentials_path.exists(),
         "a transient refresh failure must NOT delete the credentials file"
     );
+    assert_http_status(&error, Some(503));
+    assert_error_kind(error, "server-error");
+}
+
+#[test]
+fn mooc_404_reports_not_found_with_its_status() {
+    let mut server = mockito::Server::new();
+    let _missing = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}").as_str(),
+        )
+        .with_status(404)
+        .with_body(r#"{"message":"not found","message_key":"not_found"}"#)
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert_http_status(&error, Some(404));
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
+fn a_connection_failure_carries_no_http_status() {
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    // mockito pools its servers, so a dropped one keeps listening; a released port does not.
+    let port = std::net::TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap()
+        .port();
+    let unreachable = format!("http://127.0.0.1:{port}");
+    let error = run_mooc_at_expect_error(
+        &unreachable,
+        &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert_http_status(&error, None);
     assert_error_kind(error, "connection-error");
 }
 
@@ -408,6 +469,16 @@ fn mooc_401_deletes_credentials_and_reports_invalid_token() {
                     serde_json::json!("invalid-token")
                 );
             }
+            other => panic!("expected an Error data kind, got {other:?}"),
+        },
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+}
+
+fn assert_http_status(error: &tmc_langs_cli::CliError, expected: Option<u16>) {
+    match &*error.output {
+        CliOutput::OutputData(data) => match &data.data {
+            Some(DataKind::Error { http_status, .. }) => assert_eq!(*http_status, expected),
             other => panic!("expected an Error data kind, got {other:?}"),
         },
         other => panic!("expected OutputData, got {other:?}"),
@@ -881,14 +952,16 @@ fn dispatches_course_progress() {
                         "score_given": 1.0,
                         "score_maximum": 1,
                         "completed": true,
-                        "attempted": true
+                        "attempted": true,
+                        "standing": "Passed"
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000002",
                         "score_given": 0.5,
                         "score_maximum": 2,
-                        "completed": false,
-                        "attempted": true
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "OutOfTries"
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
@@ -909,10 +982,36 @@ fn dispatches_course_progress() {
             assert_eq!(progress.exercises.len(), 3);
             assert_eq!(progress.exercises[0].score_given, 1.0);
             assert!(progress.exercises[0].completed);
+            assert_eq!(
+                progress.exercises[0].standing,
+                Some(ExerciseStanding::Passed)
+            );
             assert_eq!(progress.exercises[1].score_given, 0.5);
+            assert_eq!(
+                progress.exercises[1].standing,
+                Some(ExerciseStanding::OutOfTries)
+            );
             assert!(!progress.exercises[2].attempted);
+            // This entry is from a host that predates `standing`.
+            assert_eq!(progress.exercises[2].standing, None);
         }
         other => panic!("expected MoocCourseProgress, got {other:?}"),
+    }
+}
+
+#[test]
+fn exercise_carries_its_page_and_chapter() {
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let output = run_mooc(&server, &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID]).unwrap();
+    match data_of(output) {
+        DataKind::MoocExerciseSlide(slide) => {
+            assert_eq!(slide.page_url.as_deref(), Some(SUBMIT_EXERCISE_PAGE_URL));
+            let chapter = slide.chapter.expect("the mock exercise is in a chapter");
+            assert_eq!(chapter.name, "Getting started");
+            assert_eq!(chapter.chapter_number, 1);
+        }
+        other => panic!("expected MoocExerciseSlide, got {other:?}"),
     }
 }
 
@@ -939,7 +1038,12 @@ fn dispatches_exercise() {
         .create();
     let output = run_mooc(&server, &["exercise", "--exercise-id", exercise_id]).unwrap();
     match data_of(output) {
-        DataKind::MoocExerciseSlide(slide) => assert_eq!(slide.exercise_name, "mockname"),
+        DataKind::MoocExerciseSlide(slide) => {
+            assert_eq!(slide.exercise_name, "mockname");
+            // This host predates both.
+            assert_eq!(slide.page_url, None);
+            assert!(slide.chapter.is_none());
+        }
         other => panic!("expected MoocExerciseSlide, got {other:?}"),
     }
 }
@@ -1732,12 +1836,20 @@ fn mock_exercise_for_submit(server: &mut mockito::Server) -> mockito::Mock {
                     "model_solution_spec": null,
                     "exercise_service_slug": "tmc"
                 }],
+                "page_url": SUBMIT_EXERCISE_PAGE_URL,
+                "chapter": {
+                    "id": "4c0b3a2e-0000-4000-8000-000000000001",
+                    "name": "Getting started",
+                    "chapter_number": 1,
+                },
             })
             .to_string(),
         )
         .expect_at_least(1)
         .create()
 }
+
+const SUBMIT_EXERCISE_PAGE_URL: &str = "http://example.com/org/uh-cs/courses/java/chapter-1/page-1";
 
 /// The host file id the mocked upload endpoint hands out.
 const SUBMIT_FILE_UPLOAD_ID: &str = "cccccccc-2222-2222-2222-222222222222";
@@ -1875,6 +1987,11 @@ fn blocking_submit_polls_until_fully_graded() {
     assert_eq!(json["grading"]["grading_progress"], "FullyGraded");
     assert_eq!(json["grading"]["score_given"], 1.0);
     assert_eq!(json["grading"]["feedback_text"], "All tests passed");
+    // This host predates `exercise_progress`.
+    assert_eq!(
+        json["grading"]["exercise_progress"],
+        serde_json::Value::Null
+    );
 }
 
 #[test]
@@ -2215,6 +2332,10 @@ fn submit_dont_block_returns_both_submission_ids_without_polling() {
         DataKind::MoocSubmissionFinished(result) => {
             assert_eq!(result.task_submission_id.to_string(), task_submission_id);
             assert_eq!(result.slide_submission_id.to_string(), slide_submission_id);
+            assert_eq!(
+                result.exercise_page_url.as_deref(),
+                Some(SUBMIT_EXERCISE_PAGE_URL)
+            );
         }
         other => panic!("expected MoocSubmissionFinished, got {other:?}"),
     }
@@ -2235,7 +2356,14 @@ fn dispatches_wait_for_grading() {
                     "grading_started_at": null,
                     "grading_completed_at": null,
                     "feedback_json": null,
-                    "feedback_text": "Compilation error"
+                    "feedback_text": "Compilation error",
+                    "exercise_progress": {
+                        "exercise_id": SUBMIT_EXERCISE_ID,
+                        "score_given": 0.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true
+                    }
                 }
             })
             .to_string(),
@@ -2252,6 +2380,7 @@ fn dispatches_wait_for_grading() {
     let json = submission_status_json(output);
     assert_eq!(json["grading"]["grading_progress"], "Failed");
     assert_eq!(json["grading"]["feedback_text"], "Compilation error");
+    assert_eq!(json["grading"]["exercise_progress"]["completed"], true);
 }
 
 #[test]
@@ -3132,7 +3261,7 @@ fn mooc_login_pending_slow_down_then_success() {
 }
 
 #[test]
-fn mooc_login_denied_maps_to_not_logged_in() {
+fn mooc_login_denied_has_its_own_kind() {
     let mut server = mockito::Server::new();
     let _device = mock_device_authorization(&mut server);
     let _denied = server
@@ -3145,7 +3274,7 @@ fn mooc_login_denied_maps_to_not_logged_in() {
     let config_dir = tempfile::tempdir().unwrap();
     let error = run_mooc_auth(&server, &["login"], config_dir.path())
         .expect_err("a denied device login should fail");
-    assert_error_kind(error, "not-logged-in");
+    assert_error_kind(error, "device-login-denied");
     assert!(
         !config_dir
             .path()
@@ -3157,7 +3286,7 @@ fn mooc_login_denied_maps_to_not_logged_in() {
 }
 
 #[test]
-fn mooc_login_expired_maps_to_not_logged_in() {
+fn mooc_login_expired_has_its_own_kind() {
     let mut server = mockito::Server::new();
     let _device = mock_device_authorization(&mut server);
     let _expired = server
@@ -3170,7 +3299,7 @@ fn mooc_login_expired_maps_to_not_logged_in() {
     let config_dir = tempfile::tempdir().unwrap();
     let error = run_mooc_auth(&server, &["login"], config_dir.path())
         .expect_err("an expired device code should fail");
-    assert_error_kind(error, "not-logged-in");
+    assert_error_kind(error, "device-login-expired");
 }
 
 #[test]
