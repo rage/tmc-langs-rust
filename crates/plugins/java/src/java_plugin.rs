@@ -131,7 +131,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
 
     /// Tries to find the java.home property.
     fn get_java_home() -> Result<PathBuf, JavaError> {
-        let output = TmcCommand::piped("java")
+        let output = TmcCommand::piped(crate::java_executable())
             .with(|e| e.arg("-XshowSettings:properties").arg("-version"))
             .output()?;
 
