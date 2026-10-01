@@ -650,9 +650,8 @@ impl From<api::CourseProgress> for CourseProgress {
     }
 }
 
-/// The current user's progress on a single exercise. The authoritative "passed"
-/// signal is `completed`; `attempted` distinguishes "not started" from "started
-/// but not passed".
+/// The current user's progress on a single exercise. `standing` is the "passed" signal;
+/// `completed` is only the activity stage, which any graded submission can reach.
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseProgress {
@@ -666,6 +665,33 @@ pub struct ExerciseProgress {
     pub completed: bool,
     /// `true` once the user has started or submitted the exercise.
     pub attempted: bool,
+    /// `None` from a host that predates the field.
+    pub standing: Option<ExerciseStanding>,
+}
+
+/// Where the user stands on an exercise, as the host decides it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum ExerciseStanding {
+    /// No graded submission and no try used.
+    NotAttempted,
+    /// Below full points with tries left, or still being graded.
+    Attempted,
+    /// A grading awarded full points.
+    Passed,
+    /// Below full points (0 included) with the try limit used up, so the score is final.
+    OutOfTries,
+}
+
+impl From<api::ExerciseStanding> for ExerciseStanding {
+    fn from(value: api::ExerciseStanding) -> Self {
+        match value {
+            api::ExerciseStanding::NotAttempted => Self::NotAttempted,
+            api::ExerciseStanding::Attempted => Self::Attempted,
+            api::ExerciseStanding::Passed => Self::Passed,
+            api::ExerciseStanding::OutOfTries => Self::OutOfTries,
+        }
+    }
 }
 
 impl From<api::ExerciseProgress> for ExerciseProgress {
@@ -676,6 +702,7 @@ impl From<api::ExerciseProgress> for ExerciseProgress {
             score_maximum: value.score_maximum,
             completed: value.completed,
             attempted: value.attempted,
+            standing: value.standing.map(Into::into),
         }
     }
 }
@@ -888,6 +915,7 @@ mod test {
                     score_maximum: 1,
                     completed: true,
                     attempted: true,
+                    standing: Some(api::ExerciseStanding::Passed),
                 }),
             });
         let grading = serde_json::to_value(&grading).unwrap();
@@ -897,6 +925,10 @@ mod test {
         assert_eq!(grading["grading"]["score_given"], 1.0);
         assert_eq!(grading["grading"]["feedback_text"], "All tests passed");
         assert_eq!(grading["grading"]["exercise_progress"]["completed"], true);
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["standing"],
+            "Passed"
+        );
         assert!(
             !grading.to_string().contains("sentinel"),
             "plugin-private feedback must not be relayed: {grading}"

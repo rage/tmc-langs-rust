@@ -443,7 +443,13 @@ completed: boolean,
 /**
  * `true` once the user has started or submitted the exercise.
  */
-attempted: boolean, }
+attempted: boolean,
+/**
+ * `None` from a host that predates the field.
+ */
+standing: ExerciseStanding | null, }
+
+export type ExerciseStanding = "NotAttempted" | "Attempted" | "Passed" | "OutOfTries";
 
 export type MoocClientUpdateData = { "client-update-data-kind": "exercise-download", id: string, path: string, };
 

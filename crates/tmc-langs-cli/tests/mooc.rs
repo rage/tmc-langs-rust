@@ -7,7 +7,7 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
-use tmc_langs::{MoocCredentials, progress_reporter};
+use tmc_langs::{MoocCredentials, mooc::ExerciseStanding, progress_reporter};
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -952,14 +952,16 @@ fn dispatches_course_progress() {
                         "score_given": 1.0,
                         "score_maximum": 1,
                         "completed": true,
-                        "attempted": true
+                        "attempted": true,
+                        "standing": "Passed"
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000002",
                         "score_given": 0.5,
                         "score_maximum": 2,
-                        "completed": false,
-                        "attempted": true
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "OutOfTries"
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
@@ -980,8 +982,18 @@ fn dispatches_course_progress() {
             assert_eq!(progress.exercises.len(), 3);
             assert_eq!(progress.exercises[0].score_given, 1.0);
             assert!(progress.exercises[0].completed);
+            assert_eq!(
+                progress.exercises[0].standing,
+                Some(ExerciseStanding::Passed)
+            );
             assert_eq!(progress.exercises[1].score_given, 0.5);
+            assert_eq!(
+                progress.exercises[1].standing,
+                Some(ExerciseStanding::OutOfTries)
+            );
             assert!(!progress.exercises[2].attempted);
+            // This entry is from a host that predates `standing`.
+            assert_eq!(progress.exercises[2].standing, None);
         }
         other => panic!("expected MoocCourseProgress, got {other:?}"),
     }

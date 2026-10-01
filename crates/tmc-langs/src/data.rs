@@ -334,6 +334,7 @@ mod test {
                     "score_maximum": 1,
                     "completed": false,
                     "attempted": true,
+                    "standing": "Attempted",
                 }],
             },
         });
