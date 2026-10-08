@@ -1,5 +1,8 @@
 use clap::Parser;
-use std::path::Path;
+use std::{
+    path::Path,
+    sync::{Mutex, MutexGuard},
+};
 use tempfile::{NamedTempFile, TempDir, tempdir};
 use tmc_langs::{Compression, RunStatus, file_util};
 use tmc_langs_cli::{
@@ -85,6 +88,13 @@ fn ensure_isolated_locks_dir() {
     std::sync::LazyLock::force(&LOCKS_DIR);
 }
 
+// Maven's local repository is not safe for concurrent writers
+static MAVEN_LOCK: Mutex<()> = Mutex::new(());
+
+fn maven_lock() -> MutexGuard<'static, ()> {
+    MAVEN_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 // wrapper for all sample exercise tests
 fn test(f: impl Fn(&Path)) {
     ensure_isolated_locks_dir();
@@ -143,6 +153,7 @@ fn checkstyle() {
 
 #[test]
 fn clean() {
+    let _maven = maven_lock();
     test(|exercise| {
         let cli = Cli::parse_from([
             "tmc-langs-cli",
@@ -450,6 +461,7 @@ fn prepare_submission_zstd() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_fails_tests() {
+    let _maven = maven_lock();
     ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
@@ -572,6 +584,7 @@ fn prepare_submission_fails_tests() {
 // todo: use python exercise as base instead
 #[cfg(not(target_os = "windows"))]
 fn prepare_submission_passes_tests() {
+    let _maven = maven_lock();
     ensure_isolated_locks_dir();
     let _ = env_logger::try_init();
 
