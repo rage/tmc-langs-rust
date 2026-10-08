@@ -18,6 +18,32 @@ pub struct TmcExerciseSlide {
     pub exercise_order_number: i32,
     pub deadline: Option<DateTime<Utc>>,
     pub tasks: Vec<TmcExerciseTask>,
+    /// The course material page the exercise is on, which also shows the student's latest
+    /// submission. `None` from a host that does not report it.
+    pub page_url: Option<String>,
+    /// `None` for an exercise outside any chapter, or from a host that does not report it.
+    pub chapter: Option<ExerciseChapter>,
+}
+
+/// The chapter an exercise belongs to, for grouping a course's exercises the way its material
+/// does.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ExerciseChapter {
+    pub id: Uuid,
+    pub name: String,
+    /// The chapter's position in the course, from 1.
+    pub chapter_number: i32,
+}
+
+impl From<api::ExerciseChapter> for ExerciseChapter {
+    fn from(value: api::ExerciseChapter) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            chapter_number: value.chapter_number,
+        }
+    }
 }
 
 impl TmcExerciseSlide {
@@ -67,6 +93,8 @@ impl TryFrom<api::ExerciseSlide> for TmcExerciseSlide {
                 .into_iter()
                 .map(TryFrom::try_from)
                 .collect::<Result<_, _>>()?,
+            page_url: value.page_url,
+            chapter: value.chapter.map(Into::into),
         };
         Ok(slide)
     }

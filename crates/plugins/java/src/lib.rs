@@ -18,7 +18,11 @@ pub use self::{
 };
 use j4rs::{ClasspathEntry, Instance, InvocationArg, Jvm, JvmBuilder, errors::J4RsError};
 use serde::Deserialize;
-use std::{fmt::Display, path::PathBuf};
+use std::{
+    ffi::OsString,
+    fmt::Display,
+    path::{Path, PathBuf},
+};
 use tempfile::TempPath;
 use tmc_langs_framework::ExitStatus;
 use tmc_langs_util::file_util;
@@ -33,6 +37,25 @@ const TMC_JUNIT_RUNNER_BYTES: &[u8] = include_bytes!("../deps/tmc-junit-runner-0
 const TMC_CHECKSTYLE_RUNNER_BYTES: &[u8] =
     include_bytes!("../deps/tmc-checkstyle-runner-3.0.3-20200520.064542-3.jar");
 const J4RS_BYTES: &[u8] = include_bytes!("../deps/j4rs-0.25.2-jar-with-dependencies.jar");
+
+/// The `java` launcher of the JDK whose JVM the plugin itself runs in, which j4rs locates through
+/// `JAVA_HOME`: `$JAVA_HOME/bin/java` when it exists, else whichever `java` is on `PATH`.
+fn java_executable() -> PathBuf {
+    java_executable_in(std::env::var_os("JAVA_HOME"))
+}
+
+fn java_executable_in(java_home: Option<OsString>) -> PathBuf {
+    if let Some(java_home) = java_home.filter(|home| !home.is_empty()) {
+        let launcher =
+            Path::new(&java_home)
+                .join("bin")
+                .join(if cfg!(windows) { "java.exe" } else { "java" });
+        if launcher.is_file() {
+            return launcher;
+        }
+    }
+    PathBuf::from("java")
+}
 
 struct JvmWrapper {
     jvm: Jvm,
@@ -309,5 +332,39 @@ impl Display for StackTrace {
             "{}: {}.{}",
             start, self.declaring_class, self.method_name
         )
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn java_executable_prefers_the_java_home_launcher() {
+        let java_home = tempfile::tempdir().unwrap();
+        let launcher =
+            java_home
+                .path()
+                .join("bin")
+                .join(if cfg!(windows) { "java.exe" } else { "java" });
+        std::fs::create_dir_all(launcher.parent().unwrap()).unwrap();
+        std::fs::write(&launcher, "").unwrap();
+
+        assert_eq!(java_executable_in(Some(java_home.path().into())), launcher);
+    }
+
+    #[test]
+    fn java_executable_falls_back_to_path() {
+        let without_launcher = tempfile::tempdir().unwrap();
+        assert_eq!(
+            java_executable_in(Some(without_launcher.path().into())),
+            PathBuf::from("java")
+        );
+        assert_eq!(
+            java_executable_in(Some(OsString::new())),
+            PathBuf::from("java")
+        );
+        assert_eq!(java_executable_in(None), PathBuf::from("java"));
     }
 }

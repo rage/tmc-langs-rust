@@ -319,7 +319,8 @@ impl JavaPlugin for AntPlugin {
         }
 
         log::debug!("java args '{}' in {}", arguments.join(" "), path.display());
-        let command = TmcCommand::piped("java").with(|e| e.cwd(path).args(&arguments));
+        let command =
+            TmcCommand::piped(crate::java_executable()).with(|e| e.cwd(path).args(&arguments));
         let output = if let Some(timeout) = timeout {
             command.output_with_timeout(timeout)?
         } else {
