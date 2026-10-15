@@ -497,7 +497,7 @@ pub enum TestMyCodeCommand {
         #[clap(long, required_unless_present = "submission_id")]
         feedback_url: Option<String>,
         /// A feedback answer. Takes two values, a feedback answer id and the answer. Multiple feedback arguments can be given.
-        #[clap(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"])]
+        #[clap(long, required = true, number_of_values = 2, value_names = &["feedback-answer-id, answer"], allow_hyphen_values = true)]
         feedback: Vec<String>,
     },
 
@@ -1211,6 +1211,36 @@ mod core_test {
             "--submission-id",
             "0",
         ]);
+    }
+
+    #[test]
+    fn send_feedback_accepts_answers_starting_with_a_hyphen() {
+        let cli = Cli::try_parse_from([
+            "tmc-langs-cli",
+            "tmc",
+            "--client-name",
+            "client",
+            "--client-version",
+            "version",
+            "send-feedback",
+            "--feedback",
+            "1",
+            "-1",
+            "--feedback",
+            "2",
+            "--not-a-flag",
+            "--submission-id",
+            "0",
+        ])
+        .unwrap();
+        let Command::Tmc(TestMyCode {
+            command: TestMyCodeCommand::SendFeedback { feedback, .. },
+            ..
+        }) = cli.command
+        else {
+            panic!("expected send-feedback");
+        };
+        assert_eq!(feedback, ["1", "-1", "2", "--not-a-flag"]);
     }
 
     #[test]
