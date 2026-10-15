@@ -18,6 +18,7 @@ pub use tmc_langs_framework::{
     NothingIsStudentFilePolicy, RunResult, StudentFilePolicy, StyleValidationResult,
     StyleValidationStrategy,
 };
+use tmc_langs_util::file_util;
 // the Java plugin is disabled on musl
 #[cfg(not(target_env = "musl"))]
 pub use tmc_langs_java::{AntPlugin, MavenPlugin};
@@ -26,8 +27,8 @@ pub use tmc_langs_notests::NoTestsPlugin;
 pub use tmc_langs_python3::Python3Plugin;
 pub use tmc_langs_r::RPlugin;
 
-/// Finds the correct language plug-in for the given exercise path and calls `LanguagePlugin::extract_project`,
-/// If no language plugin matches, see `extract_project_overwrite`.
+/// Extracts the compressed project to the target location with the language plugin matching the archive,
+/// see [`PluginType::extract_project`]. If no language plugin matches, extracts the whole archive as is.
 pub fn extract_project(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
@@ -35,9 +36,7 @@ pub fn extract_project(
     clean: bool,
 ) -> Result<(), PluginError> {
     let mut archive = Archive::new(compressed_project, compression)?;
-    if let Ok(plugin) = PluginType::from_exercise(target_location) {
-        plugin.extract_project(&mut archive, target_location, clean)?;
-    } else if let Ok(plugin) = PluginType::from_archive(&mut archive) {
+    if let Ok(plugin) = PluginType::from_archive(&mut archive) {
         plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
         log::debug!("no matching language plugin found",);
@@ -179,7 +178,7 @@ impl Plugin {
 }
 
 /// Allows calling LanguagePlugin functions without constructing the plugin.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PluginType {
     CSharp,
     Make,
@@ -278,12 +277,31 @@ impl PluginType {
         delegate_plugin_type!(self, get_exercise_packaging_configuration(exercise_path))
     }
 
+    /// Extracts `archive`, an exercise of this plugin's type, into `target_location`.
+    ///
+    /// If `target_location` holds an exercise of another type, the extract is always clean and ignores
+    /// the old `.tmcproject.yml`: only files this plugin's student file policy covers are kept, since the
+    /// old exercise's files would otherwise win plugin detection over the new exercise.
     pub fn extract_project<R: Read + Seek>(
         self,
         archive: &mut Archive<R>,
         target_location: &Path,
         clean: bool,
     ) -> Result<(), TmcError> {
+        let mut clean = clean;
+        if let Ok(local_plugin) = Self::from_exercise(target_location)
+            && local_plugin != self
+        {
+            log::info!(
+                "exercise at {} changed from {local_plugin:?} to {self:?}, replacing it",
+                target_location.display()
+            );
+            let tmc_project_yml = target_location.join(".tmcproject.yml");
+            if tmc_project_yml.is_file() {
+                file_util::remove_file(&tmc_project_yml)?;
+            }
+            clean = true;
+        }
         delegate_plugin_type!(self, extract_project(archive, target_location, clean))
     }
 
@@ -346,4 +364,144 @@ pub fn get_student_file_policy(path: &Path) -> Result<Box<dyn StudentFilePolicy>
         PluginType::Ant => Box::new(<AntPlugin as LanguagePlugin>::StudentFilePolicy::new(path)?),
     };
     Ok(policy)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::io::Write;
+
+    fn init() {
+        use log::*;
+        use simple_logger::*;
+        let _ = SimpleLogger::new().with_level(LevelFilter::Debug).init();
+    }
+
+    fn file_to(target_dir: &Path, relative: &str, contents: &str) {
+        let target = target_dir.join(relative);
+        std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+        std::fs::write(target, contents).unwrap();
+    }
+
+    fn zip(files: &[(&str, &str)]) -> Vec<u8> {
+        let mut writer = zip::ZipWriter::new(std::io::Cursor::new(vec![]));
+        for (path, contents) in files {
+            writer
+                .start_file(*path, zip::write::SimpleFileOptions::default())
+                .unwrap();
+            writer.write_all(contents.as_bytes()).unwrap();
+        }
+        writer.finish().unwrap().into_inner()
+    }
+
+    fn ant_exercise(target_dir: &Path) {
+        file_to(target_dir, "build.xml", "<project/>");
+        file_to(target_dir, "nbproject/project.properties", "");
+        file_to(target_dir, "src/Main.java", "class Main {}");
+        file_to(target_dir, "test/MainTest.java", "class MainTest {}");
+        file_to(target_dir, "student-notes.txt", "notes");
+        file_to(target_dir, ".tmcproject.yml", "extra_student_files: [src]");
+    }
+
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
+    #[test]
+    fn extract_replaces_exercise_whose_language_changed() {
+        init();
+        let temp = tempfile::tempdir().unwrap();
+        ant_exercise(temp.path());
+
+        let archive = zip(&[
+            ("ex/R/main.R", "f <- function() 1"),
+            ("ex/tests/testthat/test-main.R", "test_that('f', {})"),
+        ]);
+        extract_project(
+            std::io::Cursor::new(archive),
+            temp.path(),
+            Compression::Zip,
+            false,
+        )
+        .unwrap();
+
+        assert!(temp.path().join("R/main.R").is_file());
+        assert!(temp.path().join("tests/testthat/test-main.R").is_file());
+        for stale in [
+            "build.xml",
+            "nbproject",
+            "src",
+            "test",
+            "student-notes.txt",
+            ".tmcproject.yml",
+        ] {
+            assert!(!temp.path().join(stale).exists(), "{stale} was left behind");
+        }
+        assert_eq!(
+            PluginType::from_exercise(temp.path()).unwrap(),
+            PluginType::R
+        );
+    }
+
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
+    #[test]
+    fn extract_with_changed_language_keeps_files_the_new_policy_covers() {
+        init();
+        let temp = tempfile::tempdir().unwrap();
+        ant_exercise(temp.path());
+
+        let archive = zip(&[
+            ("ex/R/main.R", "f <- function() 1"),
+            ("ex/tests/testthat/test-main.R", "test_that('f', {})"),
+            (
+                "ex/.tmcproject.yml",
+                "extra_student_files: [student-notes.txt]",
+            ),
+        ]);
+        extract_project(
+            std::io::Cursor::new(archive),
+            temp.path(),
+            Compression::Zip,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(
+            std::fs::read_to_string(temp.path().join("student-notes.txt")).unwrap(),
+            "notes"
+        );
+        assert!(!temp.path().join("src").exists());
+    }
+
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
+    #[test]
+    fn extract_with_same_language_keeps_unlisted_files() {
+        init();
+        let temp = tempfile::tempdir().unwrap();
+        ant_exercise(temp.path());
+
+        let archive = zip(&[
+            ("ex/build.xml", "<project name=\"new\"/>"),
+            ("ex/src/Main.java", "class Main { int x; }"),
+            ("ex/test/MainTest.java", "class MainTest {}"),
+        ]);
+        extract_project(
+            std::io::Cursor::new(archive),
+            temp.path(),
+            Compression::Zip,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(
+            std::fs::read_to_string(temp.path().join("build.xml")).unwrap(),
+            "<project name=\"new\"/>"
+        );
+        assert_eq!(
+            std::fs::read_to_string(temp.path().join("src/Main.java")).unwrap(),
+            "class Main {}"
+        );
+        assert!(temp.path().join("student-notes.txt").is_file());
+        assert!(temp.path().join("nbproject/project.properties").is_file());
+    }
 }

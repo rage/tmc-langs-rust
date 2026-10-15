@@ -182,7 +182,10 @@ pub trait LanguagePlugin {
         if clean {
             // delete non-student files that were not in archive
             log::debug!("deleting non-student files not in archive");
+            // contents first, so a directory emptied here is itself removed
             for entry in WalkDir::new(target_location)
+                .min_depth(1)
+                .contents_first(true)
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
@@ -994,7 +997,8 @@ force_update:
                 .path()
                 .join("extracted/test/some existing non-student file")
                 .exists()
-        )
+        );
+        assert!(!temp.path().join("extracted/test").exists());
     }
 
     #[test]

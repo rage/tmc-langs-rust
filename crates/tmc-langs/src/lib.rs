@@ -1604,9 +1604,6 @@ pub fn extract_project(
 
     if naive {
         extract_project_overwrite(compressed_project, target_location, compression)?;
-    } else if let Ok(plugin) = PluginType::from_exercise(target_location) {
-        let mut archive = Archive::new(compressed_project, compression)?;
-        plugin.extract_project(&mut archive, target_location, clean)?;
     } else {
         let mut archive = Archive::new(compressed_project, compression)?;
         if let Ok(plugin) = PluginType::from_archive(&mut archive) {
@@ -2659,6 +2656,67 @@ checksum = 'new checksum'
         let extracted = projects_dir.path().join("mooc/my-course/ex-1/src/main.py");
         let contents = file_util::read_file_to_string(&extracted).unwrap();
         assert_eq!(contents, "print('updated')");
+    }
+
+    // the Java plugin is disabled on musl
+    #[cfg(not(target_env = "musl"))]
+    #[test]
+    fn update_mooc_exercises_replaces_exercise_whose_language_changed() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_instance_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "old checksum");
+        let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
+        file_to(&exercise_dir, "build.xml", "<project/>");
+        file_to(&exercise_dir, "nbproject/project.properties", "");
+        file_to(&exercise_dir, "src/Main.java", "class Main {}");
+        file_to(&exercise_dir, "test/MainTest.java", "class MainTest {}");
+        assert_eq!(
+            PluginType::from_exercise(&exercise_dir).unwrap(),
+            PluginType::Ant
+        );
+
+        let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
+        let _slide = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(exercise_id, task_id, "new checksum", &stub_download_url)
+            ))
+            .create();
+        let archive = make_tar_zst(&[
+            ("R/main.R", b"f <- function() 1"),
+            ("tests/testthat/test-main.R", b"test_that('f', {})"),
+        ]);
+        let _archive_mock = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(archive)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(result.downloaded.len(), 1);
+        assert!(exercise_dir.join("R/main.R").is_file());
+        assert!(exercise_dir.join("tests/testthat/test-main.R").is_file());
+        for stale in ["build.xml", "nbproject", "src", "test"] {
+            assert!(
+                !exercise_dir.join(stale).exists(),
+                "{stale} was left behind"
+            );
+        }
+        assert_eq!(
+            PluginType::from_exercise(&exercise_dir).unwrap(),
+            PluginType::R
+        );
     }
 
     #[test]
