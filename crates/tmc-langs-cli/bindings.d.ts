@@ -430,7 +430,12 @@ exercise_progress: ExerciseProgress | null, }
 
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
 
-export type ExerciseSlideSubmissionListItem = { id: string, exercise_id: string, created_at: string, score_given: number | null, grading_progress: GradingProgress | null, }
+export type ExerciseSlideSubmissionListItem = { id: string, exercise_id: string, created_at: string, score_given: number | null, grading_progress: GradingProgress | null,
+/**
+ * Whether the submission has a live share link, which is what a paste makes. `false` from a
+ * host that predates the field.
+ */
+is_shared: boolean, }
 
 export type PasteResult = { paste_url: string, }
 

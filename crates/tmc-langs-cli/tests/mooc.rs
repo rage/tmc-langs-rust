@@ -2514,7 +2514,8 @@ fn dispatches_get_exercise_submissions() {
                 {
                     "id": newest, "exercise_id": exercise_id,
                     "created_at": "2026-07-21T12:00:00Z",
-                    "score_given": 1.0, "grading_progress": "FullyGraded"
+                    "score_given": 1.0, "grading_progress": "FullyGraded",
+                    "is_shared": true
                 },
                 {
                     "id": oldest, "exercise_id": exercise_id,
@@ -2540,6 +2541,10 @@ fn dispatches_get_exercise_submissions() {
             assert_eq!(subs[0].score_given, Some(1.0));
             assert_eq!(subs[1].id, oldest);
             assert_eq!(subs[1].score_given, Some(0.0));
+            // A server that predates `is_shared` omits it; the CLI still reports it.
+            let json = serde_json::to_value(&subs).unwrap();
+            assert_eq!(json[0]["is_shared"], true);
+            assert_eq!(json[1]["is_shared"], false);
         }
         other => panic!("expected MoocSubmissions, got {other:?}"),
     }

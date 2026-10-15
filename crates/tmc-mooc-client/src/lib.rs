@@ -890,6 +890,9 @@ pub struct ExerciseSlideSubmissionListItem {
     pub created_at: DateTime<Utc>,
     pub score_given: Option<f32>,
     pub grading_progress: Option<GradingProgress>,
+    /// Whether the submission has a live share link, which is what a paste makes. `false` from a
+    /// host that predates the field.
+    pub is_shared: bool,
 }
 
 impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListItem {
@@ -900,6 +903,7 @@ impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListI
             created_at: value.created_at,
             score_given: value.score_given,
             grading_progress: value.grading_progress.map(Into::into),
+            is_shared: value.is_shared,
         }
     }
 }
