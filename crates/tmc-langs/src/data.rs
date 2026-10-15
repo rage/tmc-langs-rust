@@ -296,6 +296,7 @@ mod test {
                 "name": "Intro",
                 "description": null,
                 "organization_name": "mooc.fi",
+                "ai_policy": "full_use",
             },
             "slides": [{
                 "slide_id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d01",

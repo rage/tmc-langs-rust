@@ -226,6 +226,46 @@
         "spyware_urls"
       ]
     },
+    "CourseAiPolicy": {
+      "description": "A course's AI-use policy as chosen by its teacher, uninterpreted: what each value permits\nis the client's decision.",
+      "oneOf": [
+        {
+          "description": "The teacher has not chosen a policy.",
+          "type": "string",
+          "const": "not_set"
+        },
+        {
+          "description": "AI may not be used at any point.",
+          "type": "string",
+          "const": "no_ai"
+        },
+        {
+          "description": "AI may be used for planning, such as brainstorming or outlining, but not in the final work.",
+          "type": "string",
+          "const": "planning_only"
+        },
+        {
+          "description": "AI may be used for specific tasks only, with disclosure.",
+          "type": "string",
+          "const": "limited"
+        },
+        {
+          "description": "AI may be used freely, with disclosure.",
+          "type": "string",
+          "const": "full_use"
+        },
+        {
+          "description": "AI use is expected.",
+          "type": "string",
+          "const": "required"
+        },
+        {
+          "description": "A value newer than this client.",
+          "type": "string",
+          "const": "unrecognized"
+        }
+      ]
+    },
     "CourseData": {
       "description": "get /api/v8/courses/{course_id}\nget /api/v8/org/{organization_slug}/courses/{course_name}",
       "type": "object",
@@ -2269,6 +2309,11 @@
     "MoocCourse": {
       "type": "object",
       "properties": {
+        "ai_policy": {
+          "description": "`not_set` from a host that predates the field.",
+          "$ref": "#/$defs/CourseAiPolicy",
+          "default": "not_set"
+        },
         "description": {
           "type": [
             "string",
@@ -2294,7 +2339,8 @@
         "slug",
         "name",
         "description",
-        "organization_name"
+        "organization_name",
+        "ai_policy"
       ]
     },
     "MoocDeviceLogin": {

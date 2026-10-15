@@ -343,7 +343,13 @@ export type ConfigValue = unknown | null | string;
 
 export type TmcConfig = { projects_dir: string, }
 
-export type MoocCourse = { id: string, slug: string, name: string, description: string | null, organization_name: string, }
+export type MoocCourse = { id: string, slug: string, name: string, description: string | null, organization_name: string,
+/**
+ * `not_set` from a host that predates the field.
+ */
+ai_policy: CourseAiPolicy, }
+
+export type CourseAiPolicy = "not_set" | "no_ai" | "planning_only" | "limited" | "full_use" | "required" | "unrecognized";
 
 export type TmcExerciseSlide = { slide_id: string, exercise_id: string,
 /**

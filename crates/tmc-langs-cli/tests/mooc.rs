@@ -7,7 +7,11 @@
 
 use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
-use tmc_langs::{MoocCredentials, mooc::ExerciseStanding, progress_reporter};
+use tmc_langs::{
+    MoocCredentials,
+    mooc::{CourseAiPolicy, ExerciseStanding},
+    progress_reporter,
+};
 use tmc_langs_cli::{
     app::Cli,
     output::{CliOutput, DataKind, OutputData, OutputResult},
@@ -807,11 +811,14 @@ fn dispatches_course() {
                 "name": "mockname",
                 "description": null,
                 "organization_name": "mockorg",
+                "ai_policy": "no_ai",
             })
             .to_string(),
         )
         .create();
     let output = run_mooc(&server, &["course", "--course-id", course_id]).unwrap();
+    let json = serde_json::to_value(&output).unwrap();
+    assert_eq!(json["data"]["output-data"]["ai_policy"], "no_ai");
     match data_of(output) {
         DataKind::MoocCourse(course) => assert_eq!(course.name, "mockname"),
         other => panic!("expected MoocCourse, got {other:?}"),
@@ -835,6 +842,7 @@ fn dispatches_course_data() {
                 "name": "mockname",
                 "description": null,
                 "organization_name": "mockorg",
+                "ai_policy": "full_use",
             })
             .to_string(),
         )
@@ -880,6 +888,7 @@ fn dispatches_course_data() {
     match data_of(output) {
         DataKind::MoocCombinedCourseData(data) => {
             assert_eq!(data.course.name, "mockname");
+            assert_eq!(data.course.ai_policy, CourseAiPolicy::FullUse);
             assert_eq!(data.slides.len(), 1);
             assert_eq!(data.slides[0].exercise_name, "mockexercise");
             assert_eq!(data.progress.exercises.len(), 1);

@@ -1575,6 +1575,7 @@ mod test {
             tmc_langs::TmcConfig,
             // mooc
             tmc_langs::mooc::Course,
+            tmc_langs::mooc::CourseAiPolicy,
             tmc_langs::mooc::TmcExerciseSlide,
             tmc_langs::mooc::ExerciseChapter,
             tmc_langs::mooc::TmcExerciseTask,
