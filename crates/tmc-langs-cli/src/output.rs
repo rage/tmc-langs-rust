@@ -192,7 +192,7 @@ pub enum OutputResult {
 pub enum Kind {
     /// For all other errors
     Generic,
-    /// 403 from server
+    /// tmc.mooc.fi answered 403: the user may not see what was asked for.
     Forbidden,
     /// Not logged in, detected either by no token or 401 from server
     NotLoggedIn,
@@ -216,9 +216,16 @@ pub enum Kind {
     /// A device login was not approved before its code expired.
     DeviceLoginExpired,
     /// The server answered 404: what was asked for does not exist, or not for this user.
+    /// A 404 for a request addressing one exercise is `ExerciseNotFound` instead.
     NotFound,
     /// The server answered with a 5xx status. Transient, so stored credentials are kept.
     ServerError,
+    /// courses.mooc.fi answered 403, typically because the access token lacks the
+    /// `exercise-services` scope. Unlike tmc.mooc.fi's `Forbidden`, says nothing about the course.
+    InsufficientScope,
+    /// The server answered 404 to a request addressing one exercise: the exercise does not
+    /// exist, or not for this user.
+    ExerciseNotFound,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

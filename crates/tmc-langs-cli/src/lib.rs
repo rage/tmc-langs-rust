@@ -35,6 +35,7 @@ use tmc_langs::{
     tmc::{TestMyCodeClient, TestMyCodeClientError, request::FeedbackAnswer},
 };
 use tmc_langs_util::deserialize;
+use url::Url;
 use uuid::Uuid;
 
 pub enum ParsingResult {
@@ -127,7 +128,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
         // check for tmc client errors
         match downcast_through_box::<TestMyCodeClientError>(cause) {
             Some(TestMyCodeClientError::HttpError {
-                url: _,
+                url,
                 status,
                 error: _,
                 obsolete_client,
@@ -141,7 +142,7 @@ fn solve_error_kind(e: &anyhow::Error) -> Kind {
                 if status.as_u16() == 401 {
                     return Kind::NotLoggedIn;
                 }
-                if let Some(kind) = http_status_kind(status.as_u16()) {
+                if let Some(kind) = http_status_kind(status.as_u16(), url) {
                     return kind;
                 }
             }
@@ -200,13 +201,29 @@ fn find_http_status(e: &anyhow::Error) -> Option<u16> {
     })
 }
 
-/// The kind of a status no more specific rule claimed.
-fn http_status_kind(status: u16) -> Option<Kind> {
+/// The kind of a status no more specific rule claimed, for a request to `url`.
+fn http_status_kind(status: u16, url: &Url) -> Option<Kind> {
     match status {
+        404 if names_one_exercise(url) => Some(Kind::ExerciseNotFound),
         404 => Some(Kind::NotFound),
         500..=599 => Some(Kind::ServerError),
         _ => None,
     }
+}
+
+/// Whether `url` addresses a single exercise by id on either backend: courses.mooc.fi's
+/// `…/client/exercises/{id}…`, tmc.mooc.fi's `/api/v8/core/exercises/{id}…` and
+/// `/api/v8/exercises/{id}…`. Excludes tmc's by-name `courses/{id}/exercises/{name}` paths,
+/// where a 404 may be the course's.
+fn names_one_exercise(url: &Url) -> bool {
+    let Some(segments) = url.path_segments() else {
+        return false;
+    };
+    segments.collect::<Vec<_>>().windows(3).any(|window| {
+        matches!(window[0], "client" | "core" | "v8")
+            && window[1] == "exercises"
+            && !matches!(window[2], "" | "details")
+    })
 }
 
 /// Maps a [`MoocClientError`] to the CLI error [`Kind`] it should surface, if any.
@@ -215,6 +232,7 @@ fn http_status_kind(status: u16) -> Option<Kind> {
 fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
     match err {
         MoocClientError::HttpError {
+            url,
             status,
             obsolete_client,
             message_key,
@@ -232,11 +250,11 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             // `duplicate_upload` is left unmapped: only a buggy client triggers it, and a
             // new `Kind` would have to be mirrored in bindings.schema.json and langsSchema.ts.
             } else if status.as_u16() == 403 {
-                Some(Kind::Forbidden)
+                Some(Kind::InsufficientScope)
             } else if status.as_u16() == 401 {
                 Some(Kind::NotLoggedIn)
             } else {
-                http_status_kind(status.as_u16())
+                http_status_kind(status.as_u16(), url)
             }
         }
         MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
@@ -1790,6 +1808,42 @@ mod test {
             assert!(err.to_string().starts_with("tmc-langs-cli"));
         } else {
             panic!()
+        }
+    }
+
+    #[test]
+    fn names_one_exercise_matches_only_exercise_addressed_urls() {
+        for (url, expected) in [
+            (
+                "https://courses.mooc.fi/api/v0/exercise-services/client/exercises/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/submit",
+                true,
+            ),
+            (
+                "https://tmc.mooc.fi/api/v8/core/exercises/12/download",
+                true,
+            ),
+            (
+                "https://tmc.mooc.fi/api/v8/exercises/12/users/current/submissions",
+                true,
+            ),
+            (
+                "https://tmc.mooc.fi/api/v8/core/exercises/details?ids=1,2",
+                false,
+            ),
+            (
+                "https://tmc.mooc.fi/api/v8/courses/1/exercises/part01-01/points",
+                false,
+            ),
+            (
+                "https://courses.mooc.fi/api/v0/exercise-services/client/courses/df5ee6c1-57d1-43b6-b39e-5d72119edb5f/exercises",
+                false,
+            ),
+            (
+                "https://courses.mooc.fi/api/v0/exercise-services/client/submissions/1/download",
+                false,
+            ),
+        ] {
+            assert_eq!(names_one_exercise(&url.parse().unwrap()), expected, "{url}");
         }
     }
 

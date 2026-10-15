@@ -389,6 +389,34 @@ fn mooc_transient_refresh_failure_keeps_credentials_and_reports_server_error() {
 #[test]
 fn mooc_404_reports_not_found_with_its_status() {
     let mut server = mockito::Server::new();
+    let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let _missing = server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+        )
+        .with_status(404)
+        .with_body(r#"{"message":"not found","message_key":"not_found"}"#)
+        .expect_at_least(1)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["course", "--course-id", course_id],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    assert_http_status(&error, Some(404));
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
+fn mooc_404_for_an_exercise_reports_exercise_not_found() {
+    let mut server = mockito::Server::new();
     let _missing = server
         .mock(
             "GET",
@@ -410,7 +438,7 @@ fn mooc_404_reports_not_found_with_its_status() {
     );
 
     assert_http_status(&error, Some(404));
-    assert_error_kind(error, "not-found");
+    assert_error_kind(error, "exercise-not-found");
 }
 
 #[test]
@@ -505,7 +533,7 @@ fn assert_error_kind(error: tmc_langs_cli::CliError, expected: &str) {
 }
 
 #[test]
-fn mooc_403_maps_to_forbidden_kind() {
+fn mooc_403_maps_to_insufficient_scope_kind() {
     // Mooc errors travel the anyhow chain as `Box<MoocClientError>`; a bare-type
     // downcast misses them and collapses every HTTP error to `generic`.
     let mut server = mockito::Server::new();
@@ -526,7 +554,7 @@ fn mooc_403_maps_to_forbidden_kind() {
         config_dir.path(),
         projects_dir.path(),
     );
-    assert_error_kind(error, "forbidden");
+    assert_error_kind(error, "insufficient-scope");
 }
 
 #[test]
