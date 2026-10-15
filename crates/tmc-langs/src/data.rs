@@ -28,6 +28,8 @@ pub enum LocalExercise {
 pub struct LocalTmcExercise {
     /// The course's on-disk directory name, which is also its TMC slug.
     pub course_slug: String,
+    /// `None` for a course downloaded before course ids were recorded.
+    pub course_id: Option<u32>,
     pub exercise_slug: String,
     pub exercise_id: u32,
     pub exercise_path: PathBuf,

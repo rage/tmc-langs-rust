@@ -70,7 +70,11 @@ export type LocalTmcExercise = {
 /**
  * The course's on-disk directory name, which is also its TMC slug.
  */
-"course-slug": string, "exercise-slug": string, "exercise-id": number, "exercise-path": string, }
+"course-slug": string,
+/**
+ * `None` for a course downloaded before course ids were recorded.
+ */
+"course-id": number | null, "exercise-slug": string, "exercise-id": number, "exercise-path": string, }
 
 export type LocalMoocExercise = { 
 /**

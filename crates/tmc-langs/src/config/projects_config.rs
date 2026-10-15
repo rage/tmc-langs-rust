@@ -234,6 +234,7 @@ impl ProjectsConfig {
             .entry(course_name.clone())
             .or_insert(TmcCourseConfig {
                 course: course_name,
+                course_id: None,
                 exercises: BTreeMap::new(),
             })
     }
@@ -286,6 +287,9 @@ pub(crate) fn simple_kebab_case(s: &str) -> String {
 pub struct TmcCourseConfig {
     /// The course's name.
     pub course: String,
+    /// The course's TMC id. Absent from a config written before ids were recorded.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub course_id: Option<u32>,
     /// The course's exercises in a map with the exercise's name as the key.
     #[serde(default)]
     pub exercises: BTreeMap<String, ProjectsDirTmcExercise>,
@@ -425,6 +429,7 @@ mod test {
         );
         let course_config = TmcCourseConfig {
             course: "course 1".to_string(),
+            course_id: None,
             exercises,
         };
         let s = toml::to_string(&course_config).unwrap();
@@ -456,6 +461,26 @@ checksum = "bcde2345"
 "#;
 
         let _course_config: TmcCourseConfig = deserialize::toml_from_str(s).unwrap();
+    }
+
+    #[test]
+    fn course_id_round_trips() {
+        let course_config = TmcCourseConfig {
+            course: "course 1".to_string(),
+            course_id: Some(17),
+            exercises: BTreeMap::new(),
+        };
+        let s = toml::to_string(&course_config).unwrap();
+        assert_eq!(s, "course = \"course 1\"\ncourse_id = 17\n\n[exercises]\n");
+        let course_config: TmcCourseConfig = deserialize::toml_from_str(&s).unwrap();
+        assert_eq!(course_config.course_id, Some(17));
+    }
+
+    #[test]
+    fn deserializes_a_config_without_course_id() {
+        let course_config: TmcCourseConfig =
+            deserialize::toml_from_str("course = \"python course\"\n").unwrap();
+        assert_eq!(course_config.course_id, None);
     }
 
     #[test]
