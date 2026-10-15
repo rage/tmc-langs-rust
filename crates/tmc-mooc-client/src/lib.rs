@@ -616,6 +616,9 @@ pub struct Course {
     pub name: String,
     pub description: Option<String>,
     pub organization_name: String,
+    /// `not_set` from a host that predates the field.
+    #[serde(default)]
+    pub ai_policy: CourseAiPolicy,
 }
 
 impl From<api::Course> for Course {
@@ -626,6 +629,59 @@ impl From<api::Course> for Course {
             name: value.name,
             description: value.description,
             organization_name: value.organization_name,
+            ai_policy: value.ai_policy.into(),
+        }
+    }
+}
+
+/// A course's AI-use policy as chosen by its teacher, uninterpreted: what each value permits
+/// is the client's decision.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[serde(rename_all = "snake_case")]
+pub enum CourseAiPolicy {
+    /// The teacher has not chosen a policy.
+    #[default]
+    NotSet,
+    /// AI may not be used at any point.
+    NoAi,
+    /// AI may be used for planning, such as brainstorming or outlining, but not in the final work.
+    PlanningOnly,
+    /// AI may be used for specific tasks only, with disclosure.
+    Limited,
+    /// AI may be used freely, with disclosure.
+    FullUse,
+    /// AI use is expected.
+    Required,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for CourseAiPolicy {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "not_set" => Self::NotSet,
+            "no_ai" => Self::NoAi,
+            "planning_only" => Self::PlanningOnly,
+            "limited" => Self::Limited,
+            "full_use" => Self::FullUse,
+            "required" => Self::Required,
+            _ => Self::Unrecognized,
+        })
+    }
+}
+
+impl From<api::CourseAiPolicy> for CourseAiPolicy {
+    fn from(value: api::CourseAiPolicy) -> Self {
+        match value {
+            api::CourseAiPolicy::NotSet => Self::NotSet,
+            api::CourseAiPolicy::NoAi => Self::NoAi,
+            api::CourseAiPolicy::PlanningOnly => Self::PlanningOnly,
+            api::CourseAiPolicy::Limited => Self::Limited,
+            api::CourseAiPolicy::FullUse => Self::FullUse,
+            api::CourseAiPolicy::Required => Self::Required,
+            api::CourseAiPolicy::Unrecognized => Self::Unrecognized,
         }
     }
 }
@@ -1287,31 +1343,69 @@ mod test {
         assert_eq!(String::from_utf8(bytes.into()).unwrap(), "hello!");
     }
 
-    #[test]
-    fn gets_single_course() {
+    /// Fetches a course whose body is the base course plus `extra_fields`.
+    fn course_with(extra_fields: serde_json::Value) -> Course {
         init();
         let mut server = Server::new();
         let client = make_client(&server);
         let course_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+        let mut body = serde_json::json!({
+            "id": course_id,
+            "slug": "mockslug",
+            "name": "mockname",
+            "description": "mockdesc",
+            "organization_name": "mockorg",
+        });
+        body.as_object_mut()
+            .unwrap()
+            .extend(extra_fields.as_object().unwrap().clone());
         server
             .mock(
                 "GET",
                 format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
             )
-            .with_body(
-                serde_json::json!({
-                    "id": course_id,
-                    "slug": "mockslug",
-                    "name": "mockname",
-                    "description": "mockdesc",
-                    "organization_name": "mockorg",
-                })
-                .to_string(),
-            )
+            .with_body(body.to_string())
             .create();
-        let course = client.course(Uuid::parse_str(course_id).unwrap()).unwrap();
+        client.course(Uuid::parse_str(course_id).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn gets_single_course() {
+        let course = course_with(serde_json::json!({ "ai_policy": "full_use" }));
         assert_eq!(course.name, "mockname");
         assert_eq!(course.organization_name, "mockorg");
+        assert_eq!(course.ai_policy, CourseAiPolicy::FullUse);
+    }
+
+    #[test]
+    fn course_without_ai_policy_reads_as_not_set() {
+        let course = course_with(serde_json::json!({}));
+        assert_eq!(course.ai_policy, CourseAiPolicy::NotSet);
+    }
+
+    #[test]
+    fn course_with_unknown_ai_policy_reads_as_unrecognized() {
+        let course = course_with(serde_json::json!({ "ai_policy": "some_future_policy" }));
+        assert_eq!(course.ai_policy, CourseAiPolicy::Unrecognized);
+    }
+
+    #[test]
+    fn course_ai_policy_wire_strings() {
+        for (policy, wire) in [
+            (CourseAiPolicy::NotSet, "not_set"),
+            (CourseAiPolicy::NoAi, "no_ai"),
+            (CourseAiPolicy::PlanningOnly, "planning_only"),
+            (CourseAiPolicy::Limited, "limited"),
+            (CourseAiPolicy::FullUse, "full_use"),
+            (CourseAiPolicy::Required, "required"),
+            (CourseAiPolicy::Unrecognized, "unrecognized"),
+        ] {
+            assert_eq!(serde_json::to_value(policy).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_value::<CourseAiPolicy>(serde_json::json!(wire)).unwrap(),
+                policy
+            );
+        }
     }
 
     #[test]

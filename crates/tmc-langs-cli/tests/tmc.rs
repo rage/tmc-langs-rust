@@ -150,6 +150,43 @@ fn tmc_403_keeps_the_stored_credential_and_reports_forbidden() {
 }
 
 #[test]
+fn tmc_404_for_an_exercise_reports_exercise_not_found() {
+    let mut server = mockito::Server::new();
+    let _exercise = server
+        .mock("GET", "/api/v8/core/exercises/1")
+        .match_query(mockito::Matcher::Any)
+        .with_status(404)
+        .with_body(r#"{"errors":["Couldn't find Exercise"]}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    write_stored_tmc_credentials(config_dir.path());
+
+    let error = run_tmc_in_expect_error(
+        &server,
+        &["get-exercise-details", "--exercise-id", "1"],
+        config_dir.path(),
+    );
+
+    assert_error_kind(error, "exercise-not-found");
+}
+
+#[test]
+fn tmc_404_for_a_course_reports_not_found() {
+    let mut server = mockito::Server::new();
+    let _course = mock_course_status(&mut server, 404);
+    let config_dir = tempfile::tempdir().unwrap();
+    write_stored_tmc_credentials(config_dir.path());
+
+    let error = run_tmc_in_expect_error(
+        &server,
+        &["get-course-settings", "--course-id", "1"],
+        config_dir.path(),
+    );
+
+    assert_error_kind(error, "not-found");
+}
+
+#[test]
 fn tmc_without_any_credential_reports_not_logged_in() {
     let server = mockito::Server::new();
     let config_dir = tempfile::tempdir().unwrap();

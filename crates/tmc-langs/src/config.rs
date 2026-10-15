@@ -64,6 +64,7 @@ pub fn list_local_exercises(client_name: &str) -> Result<Vec<LocalExercise>, Lan
         for (exercise_slug, exercise) in &course_config.exercises {
             local_exercises.push(LocalExercise::Tmc(LocalTmcExercise {
                 course_slug: course_slug.clone(),
+                course_id: course_config.course_id,
                 exercise_slug: exercise_slug.clone(),
                 exercise_id: exercise.id,
                 exercise_path: ProjectsConfig::get_tmc_exercise_download_target(
@@ -153,6 +154,7 @@ pub fn migrate_exercise(
         .entry(course_slug.to_string())
         .or_insert(TmcCourseConfig {
             course: course_slug.to_string(),
+            course_id: None,
             exercises: BTreeMap::new(),
         });
 

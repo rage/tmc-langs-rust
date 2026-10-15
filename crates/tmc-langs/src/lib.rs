@@ -391,6 +391,12 @@ pub fn download_or_update_course_exercises(
         });
     }
 
+    let course_ids = Arc::new(lookup_unrecorded_tmc_course_ids(
+        client,
+        &projects_config,
+        &to_be_downloaded,
+    ));
+
     let exercises_len = to_be_downloaded.len();
     progress_reporter::start_stage::<()>(
         u32::try_from(exercises_len).expect("should never happen") * 2 + 1, // each download progresses at 2 points, plus the final finishing step
@@ -408,6 +414,7 @@ pub fn download_or_update_course_exercises(
         let client = client.clone();
         let exercises = Arc::clone(&exercises);
         let projects_config = Arc::clone(&projects_config);
+        let course_ids = Arc::clone(&course_ids);
         let projects_dir = projects_dir.to_path_buf();
 
         // each thread returns either a list of successful downloads, or a tuple of successful downloads and errors
@@ -496,6 +503,9 @@ pub fn download_or_update_course_exercises(
                         projects_config.lock().map_err(|_| LangsError::MutexError)?; // lock mutex
                     let course_config = projects_config
                         .get_or_init_tmc_course_config(download_target.target.course_slug.clone());
+                    if let Some(course_id) = course_ids.get(&download_target.target.course_slug) {
+                        course_config.course_id = Some(*course_id);
+                    }
                     course_config.add_exercise(
                         download_target.target.exercise_slug.clone(),
                         download_target.target.id,
@@ -743,6 +753,38 @@ pub fn init_mooc_client_with_credentials(
     Ok((client, credentials))
 }
 
+/// Looks up the TMC id of each course in `targets` whose config records none yet, keyed by course
+/// slug. Costs one request per such course; a failed lookup only leaves that id unrecorded.
+fn lookup_unrecorded_tmc_course_ids(
+    client: &tmc::TestMyCodeClient,
+    projects_config: &ProjectsConfig,
+    targets: &[DownloadTarget],
+) -> HashMap<String, u32> {
+    let mut looked_up = HashMap::<String, Option<u32>>::new();
+    for target in targets {
+        let course_slug = &target.target.course_slug;
+        let is_recorded = projects_config
+            .tmc_courses
+            .get(course_slug)
+            .is_some_and(|course| course.course_id.is_some());
+        if is_recorded || looked_up.contains_key(course_slug) {
+            continue;
+        }
+        let course_id = match client.get_exercise_details(target.target.id) {
+            Ok(details) => Some(details.course_id),
+            Err(err) => {
+                log::warn!("Failed to look up the course id of {course_slug}: {err}");
+                None
+            }
+        };
+        looked_up.insert(course_slug.clone(), course_id);
+    }
+    looked_up
+        .into_iter()
+        .filter_map(|(course_slug, course_id)| Some((course_slug, course_id?)))
+        .collect()
+}
+
 /// Updates the tmc exercises in the local projects directory.
 // TODO: parallel downloads
 pub fn update_tmc_exercises(
@@ -827,6 +869,7 @@ pub fn update_tmc_exercises(
                 } else {
                     let course_config = TmcCourseConfig {
                         course: course_name,
+                        course_id: None,
                         exercises,
                     };
                     course_config.save_to_projects_dir(projects_dir)?;
@@ -2331,9 +2374,50 @@ checksum = 'new checksum'
             .with_body(sub_z)
             .create();
 
+        // The first download target of each course; "some course" records no id yet.
+        let mut course_id_lookups = vec![];
+        for (exercise_id, course_id) in [(1, 11), (3, 22)] {
+            course_id_lookups.push(
+                server
+                    .mock(
+                        "GET",
+                        format!("/api/v8/core/exercises/{exercise_id}").as_str(),
+                    )
+                    .match_query(mockito::Matcher::Any)
+                    .with_body(
+                        serde_json::json!({
+                            "course_name": "unused",
+                            "course_id": course_id,
+                            "code_review_requests_enabled": false,
+                            "run_tests_locally_action_enabled": true,
+                            "exercise_name": "unused",
+                            "exercise_id": exercise_id,
+                            "unlocked_at": null,
+                            "deadline": null,
+                            "submissions": [],
+                        })
+                        .to_string(),
+                    )
+                    .expect(1)
+                    .create(),
+            );
+        }
+
         let res =
             download_or_update_course_exercises(&client, projects_dir.path(), &exercises, false)
                 .unwrap();
+        for lookup in course_id_lookups {
+            lookup.assert();
+        }
+        let projects_config = ProjectsConfig::load(projects_dir.path()).unwrap();
+        assert_eq!(
+            projects_config.tmc_courses["some course"].course_id,
+            Some(11)
+        );
+        assert_eq!(
+            projects_config.tmc_courses["another course"].course_id,
+            Some(22)
+        );
         let (downloaded, skipped) = match res {
             TmcDownloadResult::Success {
                 downloaded,
