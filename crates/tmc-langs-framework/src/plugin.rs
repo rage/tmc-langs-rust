@@ -101,6 +101,12 @@ pub trait LanguagePlugin {
     ///
     /// This will overwrite any existing files as long as they are not specified as student files
     /// by the language dependent student file policy.
+    ///
+    /// With `clean`, the target is made to match the archive, as for an update to a new version of
+    /// the exercise: a file the archive lacks is removed unless it is a student file under the old or
+    /// the new `.tmcproject.yml`, or lies in a hidden top-level entry such as `.vscode` or `.venv`,
+    /// which hold the student's editor and environment state rather than exercise files. A
+    /// `force_update` path the archive lacks is removed regardless.
     fn extract_project<R: Read + Seek>(
         archive: &mut Archive<R>,
         target_location: &Path,
@@ -116,20 +122,24 @@ pub trait LanguagePlugin {
         let project_dir = Self::find_project_dir_in_archive(archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
+        let previous_policy = Self::StudentFilePolicy::new(target_location)?;
+
         // extract config file if any
         let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
         let tmc_project_yml_path_s = tmc_project_yml_path
             .to_str()
             .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
+        let target_tmc_project_yml = target_location.join(".tmcproject.yml");
         if let Ok(mut file) = archive.by_path(tmc_project_yml_path_s) {
-            let target_path = target_location.join(".tmcproject.yml");
-            file_util::read_to_file(&mut file, target_path)?;
+            file_util::read_to_file(&mut file, &target_tmc_project_yml)?;
+        } else if clean && target_tmc_project_yml.is_file() {
+            file_util::remove_file(&target_tmc_project_yml)?;
         }
         let policy = Self::StudentFilePolicy::new(target_location)?;
 
         // used to clean non-student files not in the zip later
         let mut files_from_archive = HashSet::new();
-        files_from_archive.insert(target_location.join(".tmcproject.yml")); // prevent cleaning .tmcproject.yml
+        files_from_archive.insert(target_tmc_project_yml);
 
         let mut iter = archive.iter()?;
         loop {
@@ -193,9 +203,11 @@ pub trait LanguagePlugin {
                     .path()
                     .strip_prefix(target_location)
                     .expect("all entries are inside target");
+                let is_kept = previous_policy.is_student_file(relative)
+                    || policy.is_student_file(relative)
+                    || is_in_hidden_top_level_entry(relative);
                 if !files_from_archive.contains(entry.path())
-                    && (policy.is_updating_forced(entry.path())?
-                        || !policy.is_student_file(relative))
+                    && (policy.is_updating_forced(relative)? || !is_kept)
                 {
                     log::debug!(
                         "rm {} {}",
@@ -508,6 +520,14 @@ pub trait LanguagePlugin {
     ///
     /// For example implementations, see the existing language plugins.
     fn points_parser(i: &str) -> IResult<&str, Vec<&str>, VerboseError<&str>>;
+}
+
+fn is_in_hidden_top_level_entry(relative: &Path) -> bool {
+    relative
+        .components()
+        .next()
+        .and_then(|first| first.as_os_str().to_str())
+        .is_some_and(|first| first.starts_with('.'))
 }
 
 #[derive(Debug, Clone)]
@@ -998,6 +1018,64 @@ force_update:
                 .join("extracted/test/some existing non-student file")
                 .exists()
         );
+        assert!(!temp.path().join("extracted/test").exists());
+    }
+
+    #[test]
+    fn extract_project_cleans_forced_update_files_missing_from_archive() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        file_to(&temp, "dir/.tmcproject.yml", "force_update: [src/forced]");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/src/forced/old file", "");
+
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), true).unwrap();
+
+        assert!(!temp.path().join("extracted/src/forced").exists());
+        assert!(temp.path().join("extracted/src/some file").exists());
+    }
+
+    #[test]
+    fn extract_project_clean_drops_stale_config_but_keeps_its_student_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        let zip = dir_to_zip(&temp);
+        file_to(
+            &temp,
+            "extracted/.tmcproject.yml",
+            "extra_student_files: [notes.txt]",
+        );
+        file_to(&temp, "extracted/notes.txt", "student notes");
+
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), true).unwrap();
+
+        assert!(!temp.path().join("extracted/.tmcproject.yml").exists());
+        let s = std::fs::read_to_string(temp.path().join("extracted/notes.txt")).unwrap();
+        assert_eq!(s, "student notes");
+    }
+
+    #[test]
+    fn extract_project_clean_keeps_hidden_top_level_entries() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/.vscode/settings.json", "{}");
+        file_to(&temp, "extracted/.venv/pyvenv.cfg", "");
+        file_to(&temp, "extracted/test/.hidden", "");
+
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), true).unwrap();
+
+        assert!(temp.path().join("extracted/.vscode/settings.json").exists());
+        assert!(temp.path().join("extracted/.venv/pyvenv.cfg").exists());
         assert!(!temp.path().join("extracted/test").exists());
     }
 
