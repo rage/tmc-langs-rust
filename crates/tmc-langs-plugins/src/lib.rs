@@ -280,8 +280,8 @@ impl PluginType {
     /// Extracts `archive`, an exercise of this plugin's type, into `target_location`.
     ///
     /// If `target_location` holds an exercise of another type, the extract is always clean and ignores
-    /// the old `.tmcproject.yml`: only files this plugin's student file policy covers are kept, since the
-    /// old exercise's files would otherwise win plugin detection over the new exercise.
+    /// the old `.tmcproject.yml`, so student files are judged by this plugin's policy alone; the old
+    /// exercise's files would otherwise win plugin detection over the new exercise.
     pub fn extract_project<R: Read + Seek>(
         self,
         archive: &mut Archive<R>,

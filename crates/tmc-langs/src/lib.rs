@@ -461,7 +461,7 @@ pub fn download_or_update_course_exercises(
                                 Cursor::new(buf),
                                 &download_target.target.path,
                                 Compression::Zip,
-                                false,
+                                true,
                                 false,
                             )?;
                         }
@@ -861,7 +861,7 @@ pub fn update_tmc_exercises(
                     Cursor::new(buf),
                     &exercise.path,
                     Compression::Zip,
-                    false,
+                    true,
                     false,
                 )?;
             }
@@ -1033,7 +1033,8 @@ impl From<DownloadArchiveError> for LangsError {
 }
 
 /// Downloads the `.tar.zst` stub archive at `download_url` (an editor task's
-/// `stub_download_url`) and extracts it into `target`.
+/// `stub_download_url`) and extracts it into `target`, cleaning out what an
+/// earlier version of the exercise there left behind.
 fn download_and_extract_mooc_archive(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1048,14 +1049,8 @@ fn download_and_extract_mooc_archive(
     let data = auth
         .call(client, |c| c.download(url.clone()))
         .map_err(DownloadArchiveError::Auth)?;
-    extract_project(
-        Cursor::new(data),
-        target,
-        Compression::TarZstd,
-        false,
-        false,
-    )
-    .map_err(DownloadArchiveError::Local)?;
+    extract_project(Cursor::new(data), target, Compression::TarZstd, true, false)
+        .map_err(DownloadArchiveError::Local)?;
     Ok(())
 }
 
@@ -1598,6 +1593,9 @@ pub fn reset_mooc_exercise(
 }
 
 /// Extracts the compressed project to the target location.
+///
+/// With `clean`, files at the target that the archive lacks are removed unless they are
+/// student files; see [`LanguagePlugin::extract_project`] for exactly what survives.
 pub fn extract_project(
     compressed_project: impl std::io::Read + std::io::Seek,
     target_location: &Path,
@@ -2188,6 +2186,65 @@ checksum = 'old checksum'
         let course = &config.tmc_courses["some course"];
         assert_eq!(course.exercises["kept"].checksum, "new checksum");
         assert_eq!(course.exercises["removed"].checksum, "old checksum");
+    }
+
+    #[test]
+    fn update_tmc_exercises_removes_files_the_new_package_dropped() {
+        init();
+        let mut server = Server::new();
+        let _details = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/details".to_string()),
+            )
+            .with_body(tmc_details_response(vec![ExercisesDetails {
+                id: 1,
+                course_name: "some course".to_string(),
+                exercise_name: "ex".to_string(),
+                checksum: "new checksum".to_string(),
+                hide_submission_results: false,
+            }]))
+            .create();
+        let _download = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exercises/1/download".to_string()),
+            )
+            .with_body(make_zip(&[
+                ("src/new.py", "print('new')"),
+                ("test/__init__.py", ""),
+                ("test/test_new.py", "new test"),
+            ]))
+            .create();
+        let projects_dir = tempfile::tempdir().unwrap();
+        file_to(
+            projects_dir.path(),
+            "tmc/some course/course_config.toml",
+            r#"
+course = 'some course'
+
+[exercises."ex"]
+id = 1
+checksum = 'old checksum'
+"#,
+        );
+        let exercise_dir = projects_dir.path().join("tmc/some course/ex");
+        file_to(&exercise_dir, "src/old.py", "student work");
+        file_to(&exercise_dir, "test/__init__.py", "");
+        file_to(&exercise_dir, "test/test_old.py", "old test");
+        file_to(&exercise_dir, "tmc/__main__.py", "");
+
+        let client = mock_testmycode_client(&server);
+        update_tmc_exercises(&client, projects_dir.path()).unwrap();
+
+        assert_eq!(
+            std::fs::read_to_string(exercise_dir.join("src/old.py")).unwrap(),
+            "student work"
+        );
+        assert!(exercise_dir.join("src/new.py").is_file());
+        assert!(exercise_dir.join("test/test_new.py").is_file());
+        assert!(!exercise_dir.join("test/test_old.py").exists());
+        assert!(!exercise_dir.join("tmc").exists());
     }
 
     #[test]
@@ -2893,6 +2950,60 @@ directory = "ex-2"
             PluginType::from_exercise(&exercise_dir).unwrap(),
             PluginType::R
         );
+    }
+
+    #[test]
+    fn update_mooc_exercises_removes_files_the_new_package_dropped() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_instance_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "old checksum");
+        let exercise_dir = projects_dir.path().join("mooc/my-course/ex-1");
+        file_to(&exercise_dir, "src/old.py", "student work");
+        file_to(&exercise_dir, "test/__init__.py", "");
+        file_to(&exercise_dir, "test/test_old.py", "old test");
+        file_to(&exercise_dir, "tmc/__main__.py", "");
+        file_to(&exercise_dir, ".vscode/settings.json", "{}");
+
+        let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
+        let _slide = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(exercise_id, task_id, "new checksum", &stub_download_url)
+            ))
+            .create();
+        let archive = make_tar_zst(&[
+            ("src/new.py", b"print('new')"),
+            ("test/__init__.py", b""),
+            ("test/test_new.py", b"new test"),
+        ]);
+        let _archive_mock = server
+            .mock("GET", "/files/stub.tar.zst")
+            .with_body(archive)
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(result.downloaded.len(), 1);
+        assert_eq!(
+            std::fs::read_to_string(exercise_dir.join("src/old.py")).unwrap(),
+            "student work"
+        );
+        assert!(exercise_dir.join("src/new.py").is_file());
+        assert!(exercise_dir.join("test/test_new.py").is_file());
+        assert!(exercise_dir.join(".vscode/settings.json").is_file());
+        assert!(!exercise_dir.join("test/test_old.py").exists());
+        assert!(!exercise_dir.join("tmc").exists());
     }
 
     #[test]
