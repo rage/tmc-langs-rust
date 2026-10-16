@@ -8,9 +8,9 @@ use tmc_langs::TmcExerciseDownload;
 use tmc_langs::{
     CombinedCourseData, CombinedMoocCourseData, ConfigValue,
     DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-    ExerciseDesc, ExercisePackagingConfiguration, LocalExercise, LocalMoocExercise,
-    LocalTmcExercise, MoocOldSubmissionRestore, MoocUpdatedExercise, RunResult,
-    StyleValidationResult, TmcConfig, UpdatedExercise, mooc,
+    ExerciseDesc, ExercisePackagingConfiguration, ExerciseUpdates, LocalExercise,
+    LocalMoocExercise, LocalTmcExercise, MoocExerciseUpdates, MoocOldSubmissionRestore, RunResult,
+    StyleValidationResult, TmcConfig, mooc,
     notification_reporter::Notification,
     tmc::{
         ClientUpdateData, Token, UpdateResult,
@@ -87,7 +87,7 @@ pub enum DataKind {
     RefreshResult(tmc_langs::RefreshData),
     TestResult(RunResult),
     ExerciseDesc(ExerciseDesc),
-    UpdatedExercises(Vec<UpdatedExercise>),
+    ExerciseUpdates(ExerciseUpdates),
     MoocExerciseDownload(DownloadOrUpdateMoocCourseExercisesResult),
     CombinedCourseData(Box<CombinedCourseData>),
     CourseDetails(CourseDetails),
@@ -119,7 +119,7 @@ pub enum DataKind {
     TmcConfig(TmcConfig),
 
     // mooc
-    MoocUpdatedExercises(Vec<MoocUpdatedExercise>),
+    MoocExerciseUpdates(MoocExerciseUpdates),
     LocalMoocExercises(Vec<LocalMoocExercise>),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
@@ -360,22 +360,29 @@ mod test {
 
     /// Clients share one parser for both backends' update checks; only the id type differs.
     #[test]
-    fn both_backends_report_updated_exercises_as_id_objects() {
-        let tmc = serde_json::to_value(DataKind::UpdatedExercises(vec![
-            tmc_langs::UpdatedExercise { id: 1234 },
-        ]))
+    fn both_backends_report_exercise_updates_in_one_shape() {
+        let tmc = serde_json::to_value(DataKind::ExerciseUpdates(ExerciseUpdates {
+            updated: vec![1],
+            removed: vec![2],
+        }))
         .unwrap();
-        let id = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
-        let mooc =
-            serde_json::to_value(DataKind::MoocUpdatedExercises(vec![MoocUpdatedExercise {
-                id,
-            }]))
-            .unwrap();
+        let updated = Uuid::parse_str("df5ee6c1-57d1-43b6-b39e-5d72119edb5f").unwrap();
+        let removed = Uuid::parse_str("0b9e2d5c-3f4a-4b8e-9c1d-2e3f4a5b6c7d").unwrap();
+        let mooc = serde_json::to_value(DataKind::MoocExerciseUpdates(MoocExerciseUpdates {
+            updated: vec![updated],
+            removed: vec![removed],
+        }))
+        .unwrap();
 
-        assert_eq!(tmc["output-data"][0], serde_json::json!({ "id": 1234 }));
+        assert_eq!(tmc["output-data-kind"], "exercise-updates");
         assert_eq!(
-            mooc["output-data"][0],
-            serde_json::json!({ "id": id.to_string() })
+            tmc["output-data"],
+            serde_json::json!({ "updated": [1], "removed": [2] })
+        );
+        assert_eq!(mooc["output-data-kind"], "mooc-exercise-updates");
+        assert_eq!(
+            mooc["output-data"],
+            serde_json::json!({ "updated": [updated.to_string()], "removed": [removed.to_string()] })
         );
     }
 

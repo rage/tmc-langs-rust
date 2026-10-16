@@ -1147,12 +1147,14 @@ fn dispatches_download_exercise() {
 #[test]
 fn dispatches_check_exercise_updates_empty() {
     // Empty projects dir: no local exercises, so no server request; returns an
-    // empty `MoocUpdatedExercises`.
+    // empty `MoocExerciseUpdates`.
     let server = mockito::Server::new();
     let output = run_mooc(&server, &["check-exercise-updates"]).unwrap();
     match data_of(output) {
-        DataKind::MoocUpdatedExercises(ids) => assert!(ids.is_empty()),
-        other => panic!("expected MoocUpdatedExercises, got {other:?}"),
+        DataKind::MoocExerciseUpdates(updates) => {
+            assert!(updates.updated.is_empty() && updates.removed.is_empty())
+        }
+        other => panic!("expected MoocExerciseUpdates, got {other:?}"),
     }
 }
 

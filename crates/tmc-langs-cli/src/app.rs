@@ -7,8 +7,9 @@ use std::{path::PathBuf, str::FromStr};
 use tmc_langs::{
     CombinedCourseData, CombinedMoocCourseData, Compression,
     DownloadOrUpdateMoocCourseExercisesResult, DownloadOrUpdateTmcCourseExercisesResult,
-    ExerciseDesc, ExercisePackagingConfiguration, Language, LocalExercise, LocalMoocExercise,
-    LocalTmcExercise, MoocUpdatedExercise, RunResult, StyleValidationResult, UpdatedExercise, mooc,
+    ExerciseDesc, ExercisePackagingConfiguration, ExerciseUpdates, Language, LocalExercise,
+    LocalMoocExercise, LocalTmcExercise, MoocExerciseUpdates, RunResult, StyleValidationResult,
+    mooc,
     tmc::{
         self, UpdateResult,
         response::{
@@ -289,7 +290,7 @@ pub struct TestMyCode {
 #[derive(Parser)]
 pub enum TestMyCodeCommand {
     /// Checks for updates to any exercises that exist locally.
-    #[clap(long_about = schema_leaked::<Vec<UpdatedExercise>>())]
+    #[clap(long_about = schema_leaked::<ExerciseUpdates>())]
     CheckExerciseUpdates,
 
     /// Downloads an exercise's model solution
@@ -554,7 +555,7 @@ pub enum MoocCommand {
     #[clap(long_about = SCHEMA_NULL)]
     Logout,
     /// Checks for updates to any exercises that exist locally.
-    #[clap(long_about = schema_leaked::<Vec<MoocUpdatedExercise>>())]
+    #[clap(long_about = schema_leaked::<MoocExerciseUpdates>())]
     CheckExerciseUpdates,
     /// Fetches information about a course.
     #[clap(long_about = schema_leaked::<mooc::Course>())]
@@ -1553,8 +1554,8 @@ mod test {
             tmc_langs::ExerciseDesc,
             tmc_langs::TestDesc,
             // checkExerciseUpdates
-            tmc_langs::UpdatedExercise,
-            tmc_langs::MoocUpdatedExercise,
+            tmc_langs::ExerciseUpdates,
+            tmc_langs::MoocExerciseUpdates,
             // downloadOrUpdateCourseExercises
             tmc_langs::DownloadOrUpdateTmcCourseExercisesResult,
             tmc_langs::DownloadOrUpdateMoocCourseExercisesResult,

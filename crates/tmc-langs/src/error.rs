@@ -90,11 +90,6 @@ pub enum LangsError {
     #[error("Path {0} contained a dash '-' which is currently not allowed")]
     InvalidDirectory(PathBuf),
 
-    #[error("Server did not return details for local exercise with id {0}")]
-    TmcExerciseMissingOnServer(u32),
-    #[error("Server did not return details for local exercise with id {0}")]
-    MoocExerciseMissingOnServer(Uuid),
-
     #[cfg(unix)]
     #[error("Error changing permissions of {0}")]
     NixPermissionChange(PathBuf, #[source] nix::Error),
