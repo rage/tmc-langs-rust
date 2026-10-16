@@ -27,8 +27,7 @@ use std::{
 };
 use tmc_langs::{
     CombinedMoocCourseData, CommandError, Compression, DownloadOrUpdateTmcCourseExercisesResult,
-    LangsError, Language, MoocUpdatedExercise, StyleValidationResult, TmcConfig, TmcDownloadResult,
-    TmcProjectYml, UpdatedExercise,
+    LangsError, Language, StyleValidationResult, TmcConfig, TmcDownloadResult, TmcProjectYml,
     file_util::{self, Lock, LockOptions},
     mooc::{self, MoocClient, MoocClientError},
     progress_reporter,
@@ -737,16 +736,9 @@ fn run_tmc_inner(
     let output = match tmc.command {
         TestMyCodeCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
-                .context("Failed to check exercise updates")?
-                .into_iter()
-                .map(|id| UpdatedExercise { id })
-                .collect::<Vec<_>>();
-
-            CliOutput::finished_with_data(
-                "updated exercises",
-                DataKind::UpdatedExercises(updated_exercises),
-            )
+            let updates = tmc_langs::check_tmc_exercise_updates(client, &projects_dir)
+                .context("Failed to check exercise updates")?;
+            CliOutput::finished_with_data("updated exercises", DataKind::ExerciseUpdates(updates))
         }
 
         TestMyCodeCommand::DownloadModelSolution {
@@ -1314,14 +1306,10 @@ fn run_mooc_inner(
         }
         MoocCommand::CheckExerciseUpdates => {
             let projects_dir = tmc_langs::get_projects_dir(client_name)?;
-            let updated_exercises =
-                tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?
-                    .into_iter()
-                    .map(|id| MoocUpdatedExercise { id })
-                    .collect::<Vec<_>>();
+            let updates = tmc_langs::check_mooc_exercise_updates(client, auth, &projects_dir)?;
             CliOutput::finished_with_data(
                 "checked exercise updates",
-                DataKind::MoocUpdatedExercises(updated_exercises),
+                DataKind::MoocExerciseUpdates(updates),
             )
         }
         MoocCommand::Course { course_id } => {

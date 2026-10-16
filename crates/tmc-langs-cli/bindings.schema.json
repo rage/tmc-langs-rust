@@ -751,14 +751,11 @@
           "type": "object",
           "properties": {
             "output-data": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/UpdatedExercise"
-              }
+              "$ref": "#/$defs/ExerciseUpdates"
             },
             "output-data-kind": {
               "type": "string",
-              "const": "updated-exercises"
+              "const": "exercise-updates"
             }
           },
           "required": [
@@ -1157,14 +1154,11 @@
           "type": "object",
           "properties": {
             "output-data": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/MoocUpdatedExercise"
-              }
+              "$ref": "#/$defs/MoocExerciseUpdates"
             },
             "output-data-kind": {
               "type": "string",
-              "const": "mooc-updated-exercises"
+              "const": "mooc-exercise-updates"
             }
           },
           "required": [
@@ -2019,6 +2013,34 @@
         "editor"
       ]
     },
+    "ExerciseUpdates": {
+      "description": "What [`check_tmc_exercise_updates`] found among the local TMC exercises.",
+      "type": "object",
+      "properties": {
+        "removed": {
+          "description": "Exercises the server no longer has. Their local copies are left in place and are never updated.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        },
+        "updated": {
+          "description": "Exercises whose server version differs from the local copy.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0
+          }
+        }
+      },
+      "required": [
+        "updated",
+        "removed"
+      ]
+    },
     "Grading": {
       "description": "A task submission's grading record.",
       "type": "object",
@@ -2420,6 +2442,32 @@
         "path"
       ]
     },
+    "MoocExerciseUpdates": {
+      "description": "What [`check_mooc_exercise_updates`] found among the local mooc exercises; like\n[`ExerciseUpdates`] but keyed by exercise id.",
+      "type": "object",
+      "properties": {
+        "removed": {
+          "description": "Exercises their course no longer has. Their local copies are left in place and are never updated.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "updated": {
+          "description": "Exercises whose server version differs from the local copy.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "required": [
+        "updated",
+        "removed"
+      ]
+    },
     "MoocOldSubmissionRestore": {
       "description": "Outcome of restoring a past mooc submission.",
       "oneOf": [
@@ -2433,19 +2481,6 @@
           "type": "string",
           "const": "nothing-to-download"
         }
-      ]
-    },
-    "MoocUpdatedExercise": {
-      "description": "A local mooc exercise whose server-side version has changed; like\n[`UpdatedExercise`] but keyed by UUID.",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uuid"
-        }
-      },
-      "required": [
-        "id"
       ]
     },
     "NewSubmission": {
@@ -3900,20 +3935,6 @@
       "required": [
         "created",
         "updated"
-      ]
-    },
-    "UpdatedExercise": {
-      "description": "A local TMC exercise whose server-side version has changed.",
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        }
-      },
-      "required": [
-        "id"
       ]
     }
   }
