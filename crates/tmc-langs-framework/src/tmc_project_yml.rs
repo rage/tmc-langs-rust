@@ -109,17 +109,17 @@ impl TmcProjectYml {
     pub fn merge(&mut self, with: Self) {
         let old = std::mem::take(self);
         let new = Self {
-            extra_student_files: if self.extra_student_files.is_empty() {
+            extra_student_files: if old.extra_student_files.is_empty() {
                 with.extra_student_files
             } else {
                 old.extra_student_files
             },
-            extra_exercise_files: if self.extra_exercise_files.is_empty() {
+            extra_exercise_files: if old.extra_exercise_files.is_empty() {
                 with.extra_exercise_files
             } else {
                 old.extra_exercise_files
             },
-            force_update: if self.force_update.is_empty() {
+            force_update: if old.force_update.is_empty() {
                 with.force_update
             } else {
                 old.force_update
@@ -356,6 +356,35 @@ mod test {
         tpy_exercise.merge(tpy_root);
         assert_eq!(tpy_exercise.tests_timeout_ms, Some(234));
         assert_eq!(tpy_exercise.fail_on_valgrind_error, Some(true));
+    }
+
+    #[test]
+    fn merge_keeps_own_lists() {
+        init();
+
+        let tpy_root = TmcProjectYml {
+            extra_student_files: vec![PathBuf::from("root_student")],
+            force_update: vec![PathBuf::from("root_forced")],
+            ..Default::default()
+        };
+        let mut tpy_exercise = TmcProjectYml {
+            extra_student_files: vec![PathBuf::from("exercise_student")],
+            extra_exercise_files: vec![PathBuf::from("exercise_exercise")],
+            ..Default::default()
+        };
+        tpy_exercise.merge(tpy_root);
+        assert_eq!(
+            tpy_exercise.extra_student_files,
+            vec![PathBuf::from("exercise_student")]
+        );
+        assert_eq!(
+            tpy_exercise.extra_exercise_files,
+            vec![PathBuf::from("exercise_exercise")]
+        );
+        assert_eq!(
+            tpy_exercise.force_update,
+            vec![PathBuf::from("root_forced")]
+        );
     }
 
     #[test]
