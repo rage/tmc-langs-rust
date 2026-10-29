@@ -370,12 +370,12 @@ impl LanguagePlugin for Python3Plugin {
                 // archives don't necessarily contain entries for intermediate directories
                 let file_path = file.path()?;
 
-                // skip pycache paths
+                // skip pycache paths and Jupyter's autosaves
                 if file_path
                     .components()
                     .map(Component::as_os_str)
                     .flat_map(OsStr::to_str)
-                    .any(|c| c == "__pycache__")
+                    .any(|c| c == "__pycache__" || c == ".ipynb_checkpoints")
                 {
                     return Ok(Continue(()));
                 }
@@ -415,14 +415,11 @@ impl LanguagePlugin for Python3Plugin {
                             return Ok(Break(Some(parent)));
                         }
                     }
-                    // check for .ipynb file, ignore __MACOSX and Jupyter's autosave copies
+                    // check for .ipynb file, ignore __MACOSX
                     if file_path.extension() == Some(OsStr::new("ipynb"))
-                        && !file_path.components().any(|c| {
-                            c.as_os_str() == "__MACOSX" || c.as_os_str() == ".ipynb_checkpoints"
-                        })
+                        && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
                     {
                         let ipynb_dir = file_path.parent().unwrap_or_else(|| Path::new(""));
-                        // make sure we maintain the shallowest ipynb path in the archive
                         if shallowest_ipynb_path.as_ref().is_none_or(|shallowest| {
                             shallowest.components().count() > ipynb_dir.components().count()
                         }) {
