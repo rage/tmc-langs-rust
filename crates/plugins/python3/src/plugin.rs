@@ -415,27 +415,18 @@ impl LanguagePlugin for Python3Plugin {
                             return Ok(Break(Some(parent)));
                         }
                     }
-                    // check for .ipynb file, ignore __MACOSX
+                    // check for .ipynb file, ignore __MACOSX and Jupyter's autosave copies
                     if file_path.extension() == Some(OsStr::new("ipynb"))
-                        && !file_path.components().any(|c| c.as_os_str() == "__MACOSX")
+                        && !file_path.components().any(|c| {
+                            c.as_os_str() == "__MACOSX" || c.as_os_str() == ".ipynb_checkpoints"
+                        })
                     {
-                        if let Some(ipynb_path) = shallowest_ipynb_path.as_mut() {
-                            // make sure we maintain the shallowest ipynb path in the archive
-                            if ipynb_path.components().count()
-                                > file_path.parent().map_or(0, |p| p.components().count())
-                            {
-                                *ipynb_path = file_path
-                                    .parent()
-                                    .map(PathBuf::from)
-                                    .unwrap_or_else(|| PathBuf::from(""));
-                            }
-                        } else {
-                            shallowest_ipynb_path = Some(
-                                file_path
-                                    .parent()
-                                    .map(PathBuf::from)
-                                    .unwrap_or_else(|| PathBuf::from("")),
-                            );
+                        let ipynb_dir = file_path.parent().unwrap_or_else(|| Path::new(""));
+                        // make sure we maintain the shallowest ipynb path in the archive
+                        if shallowest_ipynb_path.as_ref().is_none_or(|shallowest| {
+                            shallowest.components().count() > ipynb_dir.components().count()
+                        }) {
+                            shallowest_ipynb_path = Some(ipynb_dir.to_path_buf());
                         }
                     }
                 }
@@ -907,19 +898,29 @@ class TestErroring(unittest.TestCase):
         let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("dir"));
 
-        // Jupyter checkpoints sort before the notebook one level up
+        // the deeper notebook sorts first
         let temp_dir = tempfile::tempdir().unwrap();
-        file_to(
-            &temp_dir,
-            "dir/.ipynb_checkpoints/file-checkpoint.ipynb",
-            "",
-        );
-        file_to(&temp_dir, "dir/file.ipynb", "");
+        file_to(&temp_dir, "dir/a/file.ipynb", "");
+        file_to(&temp_dir, "dir/b.ipynb", "");
 
         let bytes = dir_to_zip(&temp_dir);
         let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
         let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
         assert_eq!(dir, Path::new("dir"));
+    }
+
+    #[test]
+    fn ignores_ipynb_checkpoints_when_finding_project_dir() {
+        init();
+
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(&temp_dir, "dir/.ipynb_checkpoints/old-checkpoint.ipynb", "");
+        file_to(&temp_dir, "dir/sub/new.ipynb", "");
+
+        let bytes = dir_to_zip(&temp_dir);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("dir/sub"));
     }
 
     #[test]
