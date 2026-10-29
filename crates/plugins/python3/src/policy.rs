@@ -23,12 +23,15 @@ impl StudentFilePolicy for Python3StudentFilePolicy {
         // include all .py and .ipynb files,
         // since python project structure is more freeform than most languages
         // so there may not be a src dir etc.
-        // but exclude venv, test and tmc dirs
+        // but exclude venv, test and tmc dirs, and Jupyter's autosaves
 
         let in_venv = path.starts_with("venv") || path.starts_with(".venv");
         let in_test = path.starts_with("test");
         let in_tmc = path.starts_with("tmc");
-        let excluded = in_venv || in_test || in_tmc;
+        let in_checkpoints = path
+            .components()
+            .any(|c| c.as_os_str() == ".ipynb_checkpoints");
+        let excluded = in_venv || in_test || in_tmc || in_checkpoints;
 
         let is_py = path.extension() == Some(OsStr::new("py"));
         let is_ipynb = path.extension() == Some(OsStr::new("ipynb"));
@@ -94,5 +97,12 @@ mod test {
         let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
         assert!(!policy.is_student_file(Path::new("venv/asd.py")));
         assert!(!policy.is_student_file(Path::new(".venv/asd.py")));
+    }
+
+    #[test]
+    fn ipynb_checkpoints_are_not_student_files() {
+        let policy = Python3StudentFilePolicy::new(Path::new(".")).unwrap();
+        assert!(!policy.is_student_file(Path::new(".ipynb_checkpoints/nb-checkpoint.ipynb")));
+        assert!(!policy.is_student_file(Path::new("data/.ipynb_checkpoints/script-checkpoint.py")));
     }
 }
