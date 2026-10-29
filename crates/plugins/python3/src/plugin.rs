@@ -421,7 +421,9 @@ impl LanguagePlugin for Python3Plugin {
                     {
                         if let Some(ipynb_path) = shallowest_ipynb_path.as_mut() {
                             // make sure we maintain the shallowest ipynb path in the archive
-                            if ipynb_path.components().count() > file_path.components().count() {
+                            if ipynb_path.components().count()
+                                > file_path.parent().map_or(0, |p| p.components().count())
+                            {
                                 *ipynb_path = file_path
                                     .parent()
                                     .map(PathBuf::from)
@@ -898,6 +900,20 @@ class TestErroring(unittest.TestCase):
 
         let temp_dir = tempfile::tempdir().unwrap();
         file_to(&temp_dir, "dir/inner/file.ipynb", "");
+        file_to(&temp_dir, "dir/file.ipynb", "");
+
+        let bytes = dir_to_zip(&temp_dir);
+        let mut zip = Archive::zip(std::io::Cursor::new(bytes)).unwrap();
+        let dir = Python3Plugin::find_project_dir_in_archive(&mut zip).unwrap();
+        assert_eq!(dir, Path::new("dir"));
+
+        // Jupyter checkpoints sort before the notebook one level up
+        let temp_dir = tempfile::tempdir().unwrap();
+        file_to(
+            &temp_dir,
+            "dir/.ipynb_checkpoints/file-checkpoint.ipynb",
+            "",
+        );
         file_to(&temp_dir, "dir/file.ipynb", "");
 
         let bytes = dir_to_zip(&temp_dir);
