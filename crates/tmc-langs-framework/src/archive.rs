@@ -108,10 +108,12 @@ impl<T: Read + Seek> Archive<T> {
                 Ok(None)
             }
             Self(ArchiveInner::Zip(archive)) => {
-                // the zip crate's own name lookup is an exact string match
-                let index = (0..archive.len()).find_map(|i| {
-                    let file = archive.by_index_raw(i).ok()?;
-                    (file.enclosed_name()? == path).then_some(i)
+                // exact lookup first; the fallback matches names written with `\` separators
+                let name = entry_name(path)?;
+                let index = archive.index_for_name(&name).or_else(|| {
+                    archive
+                        .file_names()
+                        .position(|n| n.replace('\\', "/") == name)
                 });
                 match index {
                     Some(i) => Ok(Some(Entry::Zip(archive.by_index(i)?))),
