@@ -15,7 +15,7 @@ mod tmc_project_yml;
 mod test_helpers;
 
 pub use self::{
-    archive::{Archive, ArchiveBuilder, Compression},
+    archive::{Archive, ArchiveBuilder, Compression, entry_name},
     command::{ExitStatus, Output, TmcCommand},
     domain::{
         ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,

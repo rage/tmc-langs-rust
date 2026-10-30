@@ -16,16 +16,8 @@ pub enum LangsError {
     TempDir(#[source] std::io::Error),
     #[error("Invalid parameter key/value: {0}")]
     InvalidParam(String, #[source] ParamError),
-    #[error("Error compressing data with zstd")]
-    Zstd(#[source] std::io::Error),
     #[error("Error decoding data with zstd")]
     ZstdDecode(#[source] std::io::Error),
-    #[error("Error retrieving file handle from tar builder")]
-    TarIntoInner(#[source] std::io::Error),
-    #[error("Error finishing tar")]
-    TarFinish(#[source] std::io::Error),
-    #[error("Error appending path {0} to tar")]
-    TarAppend(PathBuf, #[source] std::io::Error),
     #[error("Error extracting tar to {0}")]
     TarExtract(PathBuf, #[source] std::io::Error),
     #[error("Failed to aquire mutex")]

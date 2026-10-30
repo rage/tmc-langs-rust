@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use tmc_langs_framework::{TmcCommand, TmcProjectYml};
+use tmc_langs_framework::{TmcCommand, TmcProjectYml, entry_name};
 use tmc_langs_util::{deserialize, file_util};
 use walkdir::WalkDir;
 use zip::write::SimpleFileOptions;
@@ -302,7 +302,7 @@ fn get_exercises(
                 "processing points and checksum for {}",
                 exercise_dir.display()
             );
-            let name = exercise_dir.to_string_lossy().replace('/', "-");
+            let name = entry_name(&exercise_dir)?.replace('/', "-");
             let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = super::get_available_points(&exercise_path)?;
@@ -342,8 +342,7 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
             .path()
             .strip_prefix(exercise_dir)
             .expect("the entry is inside the exercise dir");
-        let string = relative.as_os_str().to_string_lossy();
-        digest.consume(string.as_ref());
+        digest.consume(entry_name(relative)?);
         if entry.path().is_file() {
             let file = file_util::read_file(entry.path())?;
             digest.consume(file);
@@ -355,6 +354,8 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
     Ok(format!("{digest:x}"))
 }
 
+// writes its own directory entries for java-langs, with names from `entry_name`
+#[allow(clippy::disallowed_methods)]
 fn execute_zip(
     course_exercises: &[RefreshExercise],
     root_path: &Path,
@@ -379,17 +380,15 @@ fn execute_zip(
                 .strip_prefix(root_path)
                 .expect("entries are inside root_path");
 
+            let name = entry_name(relative_path)?;
             if entry.path().is_file() {
-                writer.start_file(
-                    relative_path.to_string_lossy(),
-                    SimpleFileOptions::default().unix_permissions(0o755),
-                )?;
+                writer.start_file(name, SimpleFileOptions::default().unix_permissions(0o755))?;
                 let bytes = file_util::read_file(entry.path())?;
                 writer.write_all(&bytes).map_err(LangsError::ZipWrite)?;
             } else {
-                // java-langs expects directories to have their own entries
+                // java-langs expects directories to have their own entries, with a trailing slash
                 writer.start_file(
-                    relative_path.join("").to_string_lossy(), // java-langs expects directory entries to have a trailing slash
+                    format!("{name}/"),
                     SimpleFileOptions::default().unix_permissions(0o755),
                 )?;
             }

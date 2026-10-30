@@ -116,12 +116,9 @@ pub trait LanguagePlugin {
         let project_dir = Self::find_project_dir_in_archive(archive)?;
         log::debug!("Project dir in zip: {}", project_dir.display());
 
-        // extract config file if any
+        // extract config file first, as the policy depends on it
         let tmc_project_yml_path = project_dir.join(".tmcproject.yml");
-        let tmc_project_yml_path_s = tmc_project_yml_path
-            .to_str()
-            .ok_or_else(|| TmcError::ProjectDirInvalidUtf8(project_dir.clone()))?;
-        if let Ok(mut file) = archive.by_path(tmc_project_yml_path_s) {
+        if let Some(mut file) = archive.by_path(&tmc_project_yml_path)? {
             let target_path = target_location.join(".tmcproject.yml");
             file_util::read_to_file(&mut file, target_path)?;
         }
@@ -135,7 +132,7 @@ pub trait LanguagePlugin {
         loop {
             let next = iter.with_next::<(), _>(|mut file| {
                 let file_path = file.path()?;
-                if file_path == Path::new(tmc_project_yml_path_s) {
+                if file_path == tmc_project_yml_path {
                     // already extracted
                     return Ok(Continue(()));
                 }
@@ -182,17 +179,16 @@ pub trait LanguagePlugin {
         if clean {
             // delete non-student files that were not in archive
             log::debug!("deleting non-student files not in archive");
-            for entry in WalkDir::new(target_location)
-                .into_iter()
-                .filter_map(|e| e.ok())
-            {
+            for entry in WalkDir::new(target_location).into_iter().filter_map(|e| {
+                e.inspect_err(|e| log::warn!("not cleaning unreadable entry: {e}"))
+                    .ok()
+            }) {
                 let relative = entry
                     .path()
                     .strip_prefix(target_location)
                     .expect("all entries are inside target");
                 if !files_from_archive.contains(entry.path())
-                    && (policy.is_updating_forced(entry.path())?
-                        || !policy.is_student_file(relative))
+                    && (policy.is_updating_forced(relative)? || !policy.is_student_file(relative))
                 {
                     log::debug!(
                         "rm {} {}",
@@ -519,7 +515,7 @@ enum Parse {
 #[allow(clippy::unwrap_used)]
 mod test {
     use super::*;
-    use crate::test_helpers::{MockPlugin, SimpleMockPlugin};
+    use crate::test_helpers::{MockPlugin, MockPolicy, SimpleMockPlugin};
     use std::io::Write;
     use zip::{ZipWriter, write::SimpleFileOptions};
 
@@ -560,12 +556,7 @@ mod test {
             .sort_by(|a, b| a.path().cmp(b.path()))
         {
             let entry = entry.unwrap();
-            let rela = entry
-                .path()
-                .strip_prefix(&source_dir)
-                .unwrap()
-                .to_str()
-                .unwrap();
+            let rela = &crate::entry_name(entry.path().strip_prefix(&source_dir).unwrap()).unwrap();
             if entry.path().is_dir() {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();
@@ -937,6 +928,64 @@ force_update:
         assert_eq!(s, "old");
     }
 
+    /// A nested exercise like the ones the server serves, with its entry names joined by `separator`.
+    fn nested_exercise_zip(separator: &str) -> Vec<u8> {
+        let mut zw = ZipWriter::new(std::io::Cursor::new(vec![]));
+        for (path, contents) in [
+            ("part1/ex/src/main.py", ""),
+            (
+                "part1/ex/.tmcproject.yml",
+                "extra_student_files:\n  - extra student file\n",
+            ),
+            ("part1/ex/extra student file", ""),
+        ] {
+            zw.start_file(path.replace('/', separator), SimpleFileOptions::default())
+                .unwrap();
+            zw.write_all(contents.as_bytes()).unwrap();
+        }
+        zw.finish().unwrap().into_inner()
+    }
+
+    #[test]
+    fn extract_project_extracts_nested_tmcproject_yml() {
+        init();
+
+        for separator in ["/", "\\"] {
+            let temp = tempfile::tempdir().unwrap();
+            let target = temp.path().join("extracted");
+            let mut arch =
+                Archive::zip(std::io::Cursor::new(nested_exercise_zip(separator))).unwrap();
+            MockPlugin::extract_project(&mut arch, &target, false).unwrap();
+
+            assert!(
+                target.join(".tmcproject.yml").exists(),
+                "not extracted with separator {separator}"
+            );
+            let policy = MockPolicy::new(&target).unwrap();
+            assert!(policy.is_student_file(Path::new("extra student file")));
+        }
+    }
+
+    #[test]
+    fn extract_project_cleans_forced_update_files() {
+        init();
+
+        let temp = tempfile::tempdir().unwrap();
+        file_to(&temp, "dir/src/some file", "");
+        file_to(
+            &temp,
+            "dir/.tmcproject.yml",
+            "force_update:\n  - src/stale\n",
+        );
+        let zip = dir_to_zip(&temp);
+        file_to(&temp, "extracted/src/stale", "");
+
+        let mut arch = Archive::zip(std::io::Cursor::new(zip)).unwrap();
+        MockPlugin::extract_project(&mut arch, &temp.path().join("extracted"), true).unwrap();
+
+        assert!(!temp.path().join("extracted/src/stale").exists());
+    }
+
     #[test]
     fn extract_project_doesnt_clean() {
         init();
@@ -1155,7 +1204,6 @@ force_update:
     }
 
     #[test]
-    #[cfg(not(target_os = "windows"))]
     fn safe_find_project_dir_single_folder_not_used_when_root_has_files() {
         init();
 

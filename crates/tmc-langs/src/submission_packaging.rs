@@ -3,16 +3,15 @@
 use crate::{Compression, data::TmcParams, error::LangsError, extract_project_overwrite};
 use once_cell::sync::Lazy;
 use std::{
-    io::{Cursor, Write},
+    io::Write,
     ops::ControlFlow::{Break, Continue},
     path::{Path, PathBuf},
     sync::Mutex,
 };
-use tmc_langs_framework::{Archive, TmcProjectYml};
+use tmc_langs_framework::{Archive, ArchiveBuilder, TmcProjectYml};
 use tmc_langs_plugins::PluginType;
 use tmc_langs_util::{FileError, file_util};
 use walkdir::WalkDir;
-use zip::{ZipWriter, write::SimpleFileOptions};
 
 static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
@@ -196,113 +195,31 @@ pub fn prepare_submission(
         }
     };
     let archive_file = file_util::create_file(target_path)?;
-    match output_format {
-        Compression::Tar => {
-            let mut archive = tar::Builder::new(archive_file);
-            for entry in WalkDir::new(&extract_dest_path)
-                .into_iter()
-                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
-                .skip(1)
-            {
-                let entry = entry?;
-                let entry_path = entry.path();
-                let stripped = prefix.join(
-                    entry_path
-                        .strip_prefix(&extract_dest_path)
-                        .expect("the entry is inside dest"),
-                );
-                log::debug!(
-                    "adding {} to tar at {}",
-                    entry_path.display(),
-                    stripped.display()
-                );
-                if entry_path.is_dir() {
-                    archive
-                        .append_dir(&stripped, entry_path)
-                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
-                } else {
-                    archive
-                        .append_path_with_name(entry_path, stripped.to_string_lossy().as_ref())
-                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
-                }
-            }
-            archive
-                .finish()
-                .map_err(|e| LangsError::TarAppend(extract_dest_path.clone(), e))?;
-        }
-        Compression::Zip => {
-            let mut archive = ZipWriter::new(archive_file);
-            for entry in WalkDir::new(&extract_dest_path)
-                .into_iter()
-                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
-                .skip(1)
-            {
-                let entry = entry?;
-                let entry_path = entry.path();
-                let stripped = prefix.join(
-                    entry_path
-                        .strip_prefix(&extract_dest_path)
-                        .expect("the entry is inside dest"),
-                );
-                log::debug!(
-                    "adding {} to zip at {}",
-                    entry_path.display(),
-                    stripped.display()
-                );
-                if entry_path.is_dir() {
-                    archive.add_directory(
-                        stripped.to_string_lossy(),
-                        SimpleFileOptions::default().unix_permissions(0o755),
-                    )?;
-                } else {
-                    archive.start_file(
-                        stripped.to_string_lossy(),
-                        SimpleFileOptions::default().unix_permissions(0o755),
-                    )?;
-                    let mut file = file_util::open_file(entry_path)?;
-                    std::io::copy(&mut file, &mut archive)
-                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
-                }
-            }
-            archive.finish()?;
-        }
-        Compression::TarZstd => {
-            let buf = Cursor::new(vec![]);
-            let mut archive = tar::Builder::new(buf);
-            for entry in WalkDir::new(&extract_dest_path)
-                .into_iter()
-                .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
-                .skip(1)
-            {
-                let entry = entry?;
-                let entry_path = entry.path();
-                let stripped = prefix.join(
-                    entry_path
-                        .strip_prefix(&extract_dest_path)
-                        .expect("the entry is inside dest"),
-                );
-                log::debug!(
-                    "adding {} to zip at {}",
-                    entry_path.display(),
-                    stripped.display()
-                );
-                if entry_path.is_dir() {
-                    archive
-                        .append_dir(stripped.to_string_lossy().as_ref(), entry_path)
-                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
-                } else {
-                    archive
-                        .append_path_with_name(entry_path, stripped.to_string_lossy().as_ref())
-                        .map_err(|e| LangsError::TarAppend(entry_path.to_path_buf(), e))?;
-                }
-            }
-
-            archive.finish().map_err(LangsError::TarFinish)?;
-            let mut tar = archive.into_inner().map_err(LangsError::TarIntoInner)?;
-            tar.set_position(0); // reset the cursor
-            zstd::stream::copy_encode(tar, archive_file, 0).map_err(LangsError::Zstd)?;
+    let mut archive = ArchiveBuilder::new(archive_file, output_format, None, false, false);
+    for entry in WalkDir::new(&extract_dest_path)
+        .into_iter()
+        .filter_entry(|e| e.file_name() != file_util::LOCK_FILE_NAME)
+        .skip(1)
+    {
+        let entry = entry?;
+        let entry_path = entry.path();
+        let stripped = prefix.join(
+            entry_path
+                .strip_prefix(&extract_dest_path)
+                .expect("the entry is inside dest"),
+        );
+        log::debug!(
+            "adding {} to archive at {}",
+            entry_path.display(),
+            stripped.display()
+        );
+        if entry_path.is_dir() {
+            archive.add_directory(entry_path, &stripped)?;
+        } else {
+            archive.add_file(entry_path, &stripped)?;
         }
     }
+    archive.finish()?;
 
     // get sandbox image
     let sandbox_image = match TmcProjectYml::load(clone_path)?.and_then(|c| c.sandbox_image) {
@@ -359,6 +276,7 @@ mod test {
     use std::{fs, path::PathBuf};
     use tempfile::TempDir;
     use walkdir::WalkDir;
+    use zip::write::SimpleFileOptions;
 
     const MAVEN_CLONE: &str = "tests/data/some_course/MavenExercise";
     const MAVEN_ZIP: &str = "tests/data/MavenExercise.zip";
