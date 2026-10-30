@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["braced","compact","hyphenated","simple","urn"]};
+window.SIDEBAR_ITEMS = {"mod":["braced","bytes","compact","hyphenated","simple","urn"]};
