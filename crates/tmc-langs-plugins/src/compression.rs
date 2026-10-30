@@ -27,11 +27,6 @@ pub fn compress_student_files(
         deterministic,
         hash,
     );
-    let size_limit_b = usize::try_from(size_limit_mb)
-        .unwrap_or(usize::MAX) // saturating from...
-        .saturating_mul(1000 * 1000);
-    let mut total_size_b = 0;
-
     for entry in WalkDir::new(root_directory)
         .sort_by(|a, b| a.path().cmp(b.path()))
         .into_iter()
@@ -63,13 +58,6 @@ pub fn compress_student_files(
             if entry.path().is_dir() {
                 writer.add_directory(entry.path(), path)?;
             } else {
-                let contents = file_util::read_file(entry.path())?;
-                total_size_b += contents.len();
-                if total_size_b > size_limit_b {
-                    return Err(TmcError::ArchiveSizeLimitExceeded {
-                        limit: size_limit_mb,
-                    });
-                }
                 writer.add_file(entry.path(), path)?;
             }
         }
