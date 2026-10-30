@@ -6,14 +6,12 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::{
-    io::Write,
     path::{Path, PathBuf},
     time::Duration,
 };
-use tmc_langs_framework::{TmcCommand, TmcProjectYml};
+use tmc_langs_framework::{ArchiveBuilder, Compression, TmcCommand, TmcProjectYml, entry_name};
 use tmc_langs_util::{deserialize, file_util};
 use walkdir::WalkDir;
-use zip::write::SimpleFileOptions;
 
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
@@ -306,7 +304,7 @@ fn get_exercises(
                 "processing points and checksum for {}",
                 exercise_dir.display()
             );
-            let name = exercise_dir.to_string_lossy().replace('/', "-");
+            let name = entry_name(&exercise_dir)?.replace('/', "-");
             let checksum = calculate_checksum(&course_stub_path.join(&exercise_dir))?;
             let exercise_path = course_clone_path.join(&exercise_dir);
             let points = super::get_available_points(&exercise_path)?;
@@ -346,8 +344,7 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
             .path()
             .strip_prefix(exercise_dir)
             .expect("the entry is inside the exercise dir");
-        let string = relative.as_os_str().to_string_lossy();
-        digest.consume(string.as_ref());
+        digest.consume(entry_name(relative)?);
         if entry.path().is_file() {
             let file = file_util::read_file(entry.path())?;
             digest.consume(file);
@@ -375,7 +372,13 @@ fn execute_zip(
         let exercise_root = root_path.join(&exercise.path);
         let zip_file_path = zip_dir.join(format!("{}.zip", exercise.name));
 
-        let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
+        let mut writer = ArchiveBuilder::new(
+            file_util::create_file(zip_file_path)?,
+            Compression::Zip,
+            None,
+            false,
+            false,
+        );
         for entry in WalkDir::new(exercise_root) {
             let entry = entry?;
             let relative_path = entry
@@ -384,18 +387,10 @@ fn execute_zip(
                 .expect("entries are inside root_path");
 
             if entry.path().is_file() {
-                writer.start_file(
-                    relative_path.to_string_lossy(),
-                    SimpleFileOptions::default().unix_permissions(0o755),
-                )?;
-                let bytes = file_util::read_file(entry.path())?;
-                writer.write_all(&bytes).map_err(LangsError::ZipWrite)?;
+                writer.add_file(entry.path(), relative_path)?;
             } else {
                 // java-langs expects directories to have their own entries
-                writer.start_file(
-                    relative_path.join("").to_string_lossy(), // java-langs expects directory entries to have a trailing slash
-                    SimpleFileOptions::default().unix_permissions(0o755),
-                )?;
+                writer.add_directory(entry.path(), relative_path)?;
             }
         }
         writer.finish()?;

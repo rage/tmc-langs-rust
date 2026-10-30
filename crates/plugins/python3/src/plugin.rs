@@ -552,12 +552,9 @@ mod test {
             .sort_by(|a, b| a.path().cmp(b.path()))
         {
             let entry = entry.unwrap();
-            let rela = entry
-                .path()
-                .strip_prefix(&source_dir)
-                .unwrap()
-                .to_str()
-                .unwrap();
+            let rela =
+                &tmc_langs_framework::entry_name(entry.path().strip_prefix(&source_dir).unwrap())
+                    .unwrap();
             if entry.path().is_dir() {
                 zip.add_directory(rela, SimpleFileOptions::default())
                     .unwrap();

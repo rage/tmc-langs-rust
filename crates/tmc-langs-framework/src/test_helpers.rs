@@ -51,7 +51,7 @@ impl StudentFilePolicy for SimpleMockPolicy {
     }
     fn is_non_extra_student_file(&self, path: &Path) -> bool {
         // Consider files under "src" as student files, even if they're in subdirectories
-        path.to_string_lossy().contains("/src/") || path.starts_with("src")
+        path.components().any(|c| c.as_os_str() == "src")
     }
 }
 

@@ -7,7 +7,7 @@ use std::{
     fmt::Display,
     io::{BufReader, Cursor, Read, Seek, Write},
     ops::ControlFlow::{self, Break},
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
     str::FromStr,
 };
 use tar::Builder;
@@ -84,33 +84,41 @@ impl<T: Read + Seek> Archive<T> {
         }
     }
 
-    pub fn by_path(&mut self, path: &str) -> Result<Entry<'_, T>, TmcError> {
+    /// Finds the entry at `path` by comparing path components, so a zip entry matches whether its
+    /// name uses `/` or `\` separators. Returns `None` if the archive has no such entry.
+    pub fn by_path(&mut self, path: &Path) -> Result<Option<Entry<'_, T>>, TmcError> {
         self.reset()?;
         match self {
             Self(ArchiveInner::Tar(archive)) => {
                 for entry in archive.entries_with_seek().map_err(TmcError::TarRead)? {
-                    let entry = entry.map_err(TmcError::TarRead)?;
-                    if entry.path().map_err(TmcError::TarRead)? == Path::new(path) {
-                        return Ok(Entry::Tar(entry));
+                    let entry = Entry::Tar(entry.map_err(TmcError::TarRead)?);
+                    if entry.path()? == path {
+                        return Ok(Some(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(format!(
-                    "Could not find {path} in tar"
-                ))))
+                Ok(None)
             }
             Self(ArchiveInner::TarZstd(archive)) => {
                 for entry in archive.entries().map_err(TmcError::TarRead)? {
-                    let entry = entry.map_err(TmcError::TarRead)?;
-                    if entry.path().map_err(TmcError::TarRead)? == Path::new(path) {
-                        return Ok(Entry::TarZstd(entry));
+                    let entry = Entry::TarZstd(entry.map_err(TmcError::TarRead)?);
+                    if entry.path()? == path {
+                        return Ok(Some(entry));
                     }
                 }
-                Err(TmcError::TarRead(std::io::Error::other(format!(
-                    "Could not find {path} in tar"
-                ))))
+                Ok(None)
             }
             Self(ArchiveInner::Zip(archive)) => {
-                archive.by_name(path).map(Entry::Zip).map_err(Into::into)
+                // exact lookup first; the fallback matches names written with `\` separators
+                let name = entry_name(path)?;
+                let index = archive.index_for_name(&name).or_else(|| {
+                    archive
+                        .file_names()
+                        .position(|n| n.replace('\\', "/") == name)
+                });
+                match index {
+                    Some(i) => Ok(Some(Entry::Zip(archive.by_index(i)?))),
+                    None => Ok(None),
+                }
             }
             Self(ArchiveInner::Empty) => unreachable!("This is a bug."),
         }
@@ -311,7 +319,7 @@ impl Compression {
 
 fn walk_dir_for_compression(
     root: &Path,
-    mut f: impl FnMut(&walkdir::DirEntry, &str) -> Result<(), TmcError>,
+    mut f: impl FnMut(&walkdir::DirEntry, &Path) -> Result<(), TmcError>,
 ) -> Result<(), TmcError> {
     let parent = root.parent().map(PathBuf::from).unwrap_or_default();
     for entry in WalkDir::new(root)
@@ -325,10 +333,7 @@ fn walk_dir_for_compression(
             .path()
             .strip_prefix(&parent)
             .expect("entries are within parent");
-        let path_str = stripped
-            .to_str()
-            .ok_or_else(|| TmcError::InvalidUtf8(stripped.to_path_buf()))?;
-        f(&entry, path_str)?;
+        f(&entry, stripped)?;
     }
     Ok(())
 }
@@ -379,6 +384,8 @@ enum Kind<W: Write + Seek> {
     },
 }
 
+// the one place allowed to write entries, as every name passes through `entry_name`
+#[allow(clippy::disallowed_methods)]
 impl<W: Write + Seek> ArchiveBuilder<W> {
     pub fn new(
         writer: W,
@@ -422,8 +429,12 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
         }
     }
 
-    /// Does not include any files within the directory.
-    pub fn add_directory(&mut self, source: &Path, path_in_archive: &str) -> Result<(), TmcError> {
+    /// Does not include any files within the directory. Skips the archive root itself.
+    pub fn add_directory(&mut self, source: &Path, path_in_archive: &Path) -> Result<(), TmcError> {
+        let path_in_archive = &entry_name(path_in_archive)?;
+        if path_in_archive.is_empty() {
+            return Ok(());
+        }
         log::trace!("adding directory {path_in_archive}");
         self.hash(path_in_archive.as_bytes());
         match &mut self.kind {
@@ -445,7 +456,8 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
         Ok(())
     }
 
-    pub fn add_file(&mut self, source: &Path, path_in_archive: &str) -> Result<(), TmcError> {
+    pub fn add_file(&mut self, source: &Path, path_in_archive: &Path) -> Result<(), TmcError> {
+        let path_in_archive = &entry_name(path_in_archive)?;
         log::trace!("writing file {} as {}", source.display(), path_in_archive);
         self.hash(path_in_archive.as_bytes());
         let bytes = file_util::read_file(source)?;
@@ -501,6 +513,27 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
     }
 }
 
+/// Converts a relative path into an archive entry name, which uses `/` separators on every platform.
+/// Non-UTF-8 components are converted lossily. Errors on paths that are absolute or contain `..`.
+pub fn entry_name(path: &Path) -> Result<String, TmcError> {
+    let mut name = String::new();
+    for component in path.components() {
+        match component {
+            Component::Normal(part) => {
+                if !name.is_empty() {
+                    name.push('/');
+                }
+                name.push_str(&part.to_string_lossy());
+            }
+            Component::CurDir => {}
+            Component::Prefix(_) | Component::RootDir | Component::ParentDir => {
+                return Err(TmcError::InvalidArchiveEntryPath(path.to_path_buf()));
+            }
+        }
+    }
+    Ok(name)
+}
+
 fn zip_file_options(deterministic: bool) -> SimpleFileOptions {
     let file_options = SimpleFileOptions::default().unix_permissions(0o755);
     if deterministic {
@@ -518,6 +551,79 @@ mod test {
     use tempfile::NamedTempFile;
 
     #[test]
+    fn entry_name_uses_forward_slashes() {
+        let path = Path::new("course").join("exercise").join("file");
+        assert_eq!(entry_name(&path).unwrap(), "course/exercise/file");
+        assert_eq!(entry_name(Path::new("./file")).unwrap(), "file");
+        assert!(entry_name(Path::new("../file")).is_err());
+    }
+
+    #[test]
+    fn compressed_entry_names_use_forward_slashes() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("exercise");
+        file_util::write_to_file(b"", root.join("src").join("file")).unwrap();
+
+        for compression in [Compression::Tar, Compression::TarZstd, Compression::Zip] {
+            let (bytes, _) = compression.compress(&root, false).unwrap();
+            let mut archive = Archive::new(Cursor::new(bytes), compression).unwrap();
+            let mut names = vec![];
+            let mut iter = archive.iter().unwrap();
+            while let ControlFlow::Continue(()) = iter
+                .with_next::<(), _>(|entry| {
+                    names.push(entry_name_in_archive(&entry));
+                    Ok(ControlFlow::Continue(()))
+                })
+                .unwrap()
+            {}
+            assert!(
+                names.contains(&"exercise/src/file".to_string()),
+                "{compression}: {names:?}"
+            );
+        }
+    }
+
+    /// The name as stored in the archive, without any separator conversion.
+    fn entry_name_in_archive<T: Read>(entry: &Entry<'_, T>) -> String {
+        match entry {
+            Entry::Tar(entry) => String::from_utf8(entry.path_bytes().to_vec()).unwrap(),
+            Entry::TarZstd(entry) => String::from_utf8(entry.path_bytes().to_vec()).unwrap(),
+            Entry::Zip(entry) => entry.name().to_string(),
+        }
+    }
+
+    #[test]
+    fn by_path_ignores_separator_style() {
+        for name in ["exercise/src/file", "exercise\\src\\file"] {
+            let mut zw = ZipWriter::new(Cursor::new(vec![]));
+            zw.start_file(name, SimpleFileOptions::default()).unwrap();
+            let zip = zw.finish().unwrap().into_inner();
+
+            let mut archive = Archive::zip(Cursor::new(zip)).unwrap();
+            let path = Path::new("exercise").join("src").join("file");
+            assert!(archive.by_path(&path).unwrap().is_some(), "{name}");
+            assert!(archive.by_path(Path::new("missing")).unwrap().is_none());
+        }
+    }
+
+    #[test]
+    fn archive_root_gets_no_entry() {
+        for compression in [Compression::Tar, Compression::TarZstd, Compression::Zip] {
+            let temp = tempfile::tempdir().unwrap();
+            let mut builder =
+                ArchiveBuilder::new(Cursor::new(Vec::new()), compression, None, true, false);
+            builder.add_directory(temp.path(), Path::new(".")).unwrap();
+            let (bytes, _) = builder.finish().unwrap();
+            let mut archive = Archive::new(Cursor::new(bytes.into_inner()), compression).unwrap();
+            let mut iter = archive.iter().unwrap();
+            assert!(matches!(
+                iter.with_next::<(), _>(|_| Ok(ControlFlow::Continue(()))),
+                Ok(ControlFlow::Break(None))
+            ));
+        }
+    }
+
+    #[test]
     fn exceeding_file_limit_causes_error() {
         let mut builder = ArchiveBuilder::new(
             Cursor::new(Vec::new()),
@@ -532,14 +638,14 @@ mod test {
         temp.write_all("a".as_bytes().repeat(1000 * 1000).as_slice())
             .unwrap();
         builder
-            .add_file(temp.path(), "file")
+            .add_file(temp.path(), Path::new("file"))
             .expect("should not be over size limit");
 
         // write one byte more, error
         let mut temp = NamedTempFile::new().unwrap();
         temp.write_all("a".as_bytes()).unwrap();
         assert!(
-            builder.add_file(temp.path(), "file").is_err(),
+            builder.add_file(temp.path(), Path::new("file")).is_err(),
             "should be over size limit"
         );
     }
