@@ -84,8 +84,8 @@ impl<T: Read + Seek> Archive<T> {
         }
     }
 
-    /// Finds the entry at `path`, treating `/` and `\` separated entry names alike on every platform.
-    /// Returns `None` if the archive has no such entry.
+    /// Finds the entry at `path` by comparing path components, so a zip entry matches whether its
+    /// name uses `/` or `\` separators. Returns `None` if the archive has no such entry.
     pub fn by_path(&mut self, path: &Path) -> Result<Option<Entry<'_, T>>, TmcError> {
         self.reset()?;
         match self {
@@ -427,9 +427,12 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
         }
     }
 
-    /// Does not include any files within the directory.
+    /// Does not include any files within the directory. Skips the archive root itself.
     pub fn add_directory(&mut self, source: &Path, path_in_archive: &Path) -> Result<(), TmcError> {
         let path_in_archive = &entry_name(path_in_archive)?;
+        if path_in_archive.is_empty() {
+            return Ok(());
+        }
         log::trace!("adding directory {path_in_archive}");
         self.hash(path_in_archive.as_bytes());
         match &mut self.kind {
@@ -509,19 +512,16 @@ impl<W: Write + Seek> ArchiveBuilder<W> {
 }
 
 /// Converts a relative path into an archive entry name, which uses `/` separators on every platform.
-/// Errors on paths that are absolute or contain `..`.
+/// Non-UTF-8 components are converted lossily. Errors on paths that are absolute or contain `..`.
 pub fn entry_name(path: &Path) -> Result<String, TmcError> {
     let mut name = String::new();
     for component in path.components() {
         match component {
             Component::Normal(part) => {
-                let part = part
-                    .to_str()
-                    .ok_or_else(|| TmcError::InvalidUtf8(path.to_path_buf()))?;
                 if !name.is_empty() {
                     name.push('/');
                 }
-                name.push_str(part);
+                name.push_str(&part.to_string_lossy());
             }
             Component::CurDir => {}
             Component::Prefix(_) | Component::RootDir | Component::ParentDir => {
@@ -601,6 +601,23 @@ mod test {
             let path = Path::new("exercise").join("src").join("file");
             assert!(archive.by_path(&path).unwrap().is_some(), "{name}");
             assert!(archive.by_path(Path::new("missing")).unwrap().is_none());
+        }
+    }
+
+    #[test]
+    fn archive_root_gets_no_entry() {
+        for compression in [Compression::Tar, Compression::TarZstd, Compression::Zip] {
+            let temp = tempfile::tempdir().unwrap();
+            let mut builder =
+                ArchiveBuilder::new(Cursor::new(Vec::new()), compression, None, true, false);
+            builder.add_directory(temp.path(), Path::new(".")).unwrap();
+            let (bytes, _) = builder.finish().unwrap();
+            let mut archive = Archive::new(Cursor::new(bytes.into_inner()), compression).unwrap();
+            let mut iter = archive.iter().unwrap();
+            assert!(matches!(
+                iter.with_next::<(), _>(|_| Ok(ControlFlow::Continue(()))),
+                Ok(ControlFlow::Break(None))
+            ));
         }
     }
 

@@ -24,8 +24,6 @@ pub enum LangsError {
     MutexError,
     #[error("No project directory found in archive during unzip")]
     NoProjectDirInZip(PathBuf),
-    #[error("Error while writing file to zip")]
-    ZipWrite(#[source] std::io::Error),
     #[error("Error extracting zip to {0}")]
     ZipExtract(PathBuf, #[source] ZipError),
     #[error("Failed to parse file {0}")]

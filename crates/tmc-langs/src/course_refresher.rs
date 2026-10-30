@@ -5,14 +5,12 @@ use md5::Context;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::{
-    io::Write,
     path::{Path, PathBuf},
     time::Duration,
 };
-use tmc_langs_framework::{TmcCommand, TmcProjectYml, entry_name};
+use tmc_langs_framework::{ArchiveBuilder, Compression, TmcCommand, TmcProjectYml, entry_name};
 use tmc_langs_util::{deserialize, file_util};
 use walkdir::WalkDir;
-use zip::write::SimpleFileOptions;
 
 #[cfg(unix)]
 pub type ModeBits = nix::sys::stat::mode_t;
@@ -354,8 +352,6 @@ fn calculate_checksum(exercise_dir: &Path) -> Result<String, LangsError> {
     Ok(format!("{digest:x}"))
 }
 
-// writes its own directory entries for java-langs, with names from `entry_name`
-#[allow(clippy::disallowed_methods)]
 fn execute_zip(
     course_exercises: &[RefreshExercise],
     root_path: &Path,
@@ -372,7 +368,13 @@ fn execute_zip(
         let exercise_root = root_path.join(&exercise.path);
         let zip_file_path = zip_dir.join(format!("{}.zip", exercise.name));
 
-        let mut writer = zip::ZipWriter::new(file_util::create_file(zip_file_path)?);
+        let mut writer = ArchiveBuilder::new(
+            file_util::create_file(zip_file_path)?,
+            Compression::Zip,
+            None,
+            false,
+            false,
+        );
         for entry in WalkDir::new(exercise_root) {
             let entry = entry?;
             let relative_path = entry
@@ -380,17 +382,11 @@ fn execute_zip(
                 .strip_prefix(root_path)
                 .expect("entries are inside root_path");
 
-            let name = entry_name(relative_path)?;
             if entry.path().is_file() {
-                writer.start_file(name, SimpleFileOptions::default().unix_permissions(0o755))?;
-                let bytes = file_util::read_file(entry.path())?;
-                writer.write_all(&bytes).map_err(LangsError::ZipWrite)?;
+                writer.add_file(entry.path(), relative_path)?;
             } else {
-                // java-langs expects directories to have their own entries, with a trailing slash
-                writer.start_file(
-                    format!("{name}/"),
-                    SimpleFileOptions::default().unix_permissions(0o755),
-                )?;
+                // java-langs expects directories to have their own entries
+                writer.add_directory(entry.path(), relative_path)?;
             }
         }
         writer.finish()?;

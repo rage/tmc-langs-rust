@@ -37,9 +37,6 @@ pub enum TmcError {
     #[error("Archive size limit exceeded when compressing project (limit: {limit} MB)")]
     ArchiveSizeLimitExceeded { limit: u32 },
 
-    #[error("Path {0} is not valid UTF-8")]
-    InvalidUtf8(PathBuf),
-
     #[error("Failed to read line")]
     ReadLine(#[source] std::io::Error),
     #[error("Failed to get file metadata")]
@@ -53,8 +50,6 @@ pub enum TmcError {
 
     #[error("No project directory found in archive")]
     NoProjectDirInArchive,
-    #[error("Found project dir in zip, but its path contained invalid UTF-8: {0}")]
-    ProjectDirInvalidUtf8(PathBuf),
     #[error("Failed to deserialize YAML from file at {0}")]
     YamlDeserialize(PathBuf, #[source] YamlError),
 
