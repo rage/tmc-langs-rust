@@ -36,7 +36,10 @@ pub fn compress_student_files(
         .sort_by(|a, b| a.path().cmp(b.path()))
         .into_iter()
         .filter_entry(|e| !contains_tmcnosubmit(e))
-        .filter_map(|e| e.ok())
+        .filter_map(|e| {
+            e.inspect_err(|e| log::warn!("leaving unreadable entry out of the archive: {e}"))
+                .ok()
+        })
     {
         let relative = entry
             .path()
@@ -58,8 +61,7 @@ pub fn compress_student_files(
                 })
                 .unwrap_or_else(|| entry.path());
             if entry.path().is_dir() {
-                let path_in_archive = path_to_zip_compatible_string(path);
-                writer.add_directory(entry.path(), &path_in_archive)?;
+                writer.add_directory(entry.path(), path)?;
             } else {
                 let contents = file_util::read_file(entry.path())?;
                 total_size_b += contents.len();
@@ -68,8 +70,7 @@ pub fn compress_student_files(
                         limit: size_limit_mb,
                     });
                 }
-                let path_in_archive = path_to_zip_compatible_string(path);
-                writer.add_file(entry.path(), &path_in_archive)?;
+                writer.add_file(entry.path(), path)?;
             }
         }
     }
@@ -84,18 +85,6 @@ pub fn compress_student_files(
     }
     let data = cursor.into_inner();
     Ok((data, hash))
-}
-
-// ensures the / separator is used
-fn path_to_zip_compatible_string(path: &Path) -> String {
-    let mut string = String::new();
-    for component in path.components() {
-        if !string.is_empty() {
-            string.push('/');
-        }
-        string.push_str(component.as_os_str().to_string_lossy().as_ref());
-    }
-    string
 }
 
 /// Finds a project directory in the given zip and unzips it according to the given student policy. Also cleans unnecessary non-student files.

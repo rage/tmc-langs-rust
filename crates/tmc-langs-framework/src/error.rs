@@ -24,6 +24,8 @@ pub enum TmcError {
     ZipWrite(PathBuf, #[source] std::io::Error),
     #[error("Invalid name {0} in zip")]
     ZipName(String),
+    #[error("Path {0} cannot be used as an archive entry name")]
+    InvalidArchiveEntryPath(PathBuf),
     #[error("Failed to read tar archive")]
     TarRead(#[source] std::io::Error),
     #[error("Failed to write tar archive")]
