@@ -31,7 +31,7 @@
         # Pinned here, not in a rust-toolchain.toml, which would also pin rustup for
         # non-nix contributors. Keep equal to the workspace Cargo.toml's rust-version
         # (floored by `exercise-services-api`) and secret-project-331's toolchain pin.
-        rustToolchain = pkgs.rust-bin.stable."1.96.0".default;
+        rustToolchain = pkgs.rust-bin.stable."1.99.0".default;
 
         # Not in nixpkgs; built from the vendored copy. Deps mirror its DESCRIPTION.
         tmcRtestrunner = pkgs.rPackages.buildRPackage {
