@@ -2099,6 +2099,17 @@
             "null"
           ],
           "format": "float"
+        },
+        "test_results": {
+          "description": "The test run the grading was based on. `None` until grading has produced one, or when the\nexercise service reported something else.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GradingTestRun"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -2107,7 +2118,8 @@
         "grading_started_at",
         "grading_completed_at",
         "feedback_text",
-        "exercise_progress"
+        "exercise_progress",
+        "test_results"
       ]
     },
     "GradingProgress": {
@@ -2137,6 +2149,84 @@
           "type": "string",
           "const": "FullyGraded"
         }
+      ]
+    },
+    "GradingTestResult": {
+      "description": "The result of a single test case.",
+      "type": "object",
+      "properties": {
+        "exception": {
+          "description": "Stack trace lines of a failure.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "message": {
+          "type": "string",
+          "default": ""
+        },
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "description": "The points the test earned; empty when it failed.",
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "successful": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "successful",
+        "points",
+        "message",
+        "exception"
+      ]
+    },
+    "GradingTestRun": {
+      "description": "The test run a grading was based on.",
+      "type": "object",
+      "properties": {
+        "logs": {
+          "description": "The run's output keyed by log type (e.g. `stdout`, `stderr`). Empty unless `status` is\n`COMPILE_FAILED` or `GENERIC_ERROR`, where it holds the compiler or error output.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "$ref": "#/$defs/GradingTestRunStatus"
+        },
+        "test_results": {
+          "description": "Empty when the tests did not run, e.g. on a compile failure.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GradingTestResult"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "test_results",
+        "logs"
+      ]
+    },
+    "GradingTestRunStatus": {
+      "description": "The overall status of a test run.",
+      "type": "string",
+      "enum": [
+        "PASSED",
+        "TESTS_FAILED",
+        "COMPILE_FAILED",
+        "TESTRUN_INTERRUPTED",
+        "GENERIC_ERROR"
       ]
     },
     "Kind": {

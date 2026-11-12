@@ -2452,7 +2452,11 @@ fn dispatches_wait_for_grading() {
                     "score_given": 0.0,
                     "grading_started_at": null,
                     "grading_completed_at": null,
-                    "feedback_json": null,
+                    "feedback_json": {
+                        "status": "COMPILE_FAILED",
+                        "testResults": [],
+                        "logs": { "stdout": "Main.java:3: error: ';' expected" }
+                    },
                     "feedback_text": "Compilation error",
                     "exercise_progress": {
                         "exercise_id": SUBMIT_EXERCISE_ID,
@@ -2478,6 +2482,14 @@ fn dispatches_wait_for_grading() {
     assert_eq!(json["grading"]["grading_progress"], "Failed");
     assert_eq!(json["grading"]["feedback_text"], "Compilation error");
     assert_eq!(json["grading"]["exercise_progress"]["completed"], true);
+    assert_eq!(
+        json["grading"]["test_results"],
+        serde_json::json!({
+            "status": "COMPILE_FAILED",
+            "test_results": [],
+            "logs": { "stdout": "Main.java:3: error: ';' expected" }
+        })
+    );
 }
 
 #[test]

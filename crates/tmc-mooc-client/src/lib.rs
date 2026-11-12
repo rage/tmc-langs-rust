@@ -5,6 +5,7 @@
 mod auth;
 mod error;
 mod exercise;
+mod grading;
 
 use self::error::redact_query;
 pub use self::{
@@ -18,6 +19,7 @@ pub use self::{
         BrowserTestRuntime, BrowserTestSpec, ExerciseChapter, ExerciseType, ModelSolutionSpec,
         PublicSpec, TmcExerciseSlide, TmcExerciseTask,
     },
+    grading::{GradingTestResult, GradingTestRun, GradingTestRunStatus},
 };
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
@@ -906,6 +908,9 @@ pub struct Grading {
     /// authoritative "passed" signal. `None` for an exam exercise or from a host that does not
     /// report it.
     pub exercise_progress: Option<ExerciseProgress>,
+    /// The test run the grading was based on. `None` until grading has produced one, or when the
+    /// exercise service reported something else.
+    pub test_results: Option<GradingTestRun>,
 }
 
 impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
@@ -917,9 +922,7 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                 score_given,
                 grading_started_at,
                 grading_completed_at,
-                // The exercise service that produced it is the only thing that
-                // can interpret its shape, so a native client has no use for it.
-                feedback_json: _,
+                feedback_json,
                 feedback_text,
                 exercise_progress,
             } => Self::Grading {
@@ -930,6 +933,7 @@ impl From<api::ExerciseTaskSubmissionStatus> for ExerciseTaskSubmissionStatus {
                     grading_completed_at,
                     feedback_text,
                     exercise_progress: exercise_progress.map(Into::into),
+                    test_results: feedback_json.and_then(GradingTestRun::from_feedback_json),
                 },
             },
         }
@@ -1103,6 +1107,47 @@ mod test {
         assert!(
             !grading.to_string().contains("sentinel"),
             "plugin-private feedback must not be relayed: {grading}"
+        );
+        assert_eq!(grading["grading"]["test_results"], serde_json::Value::Null);
+    }
+
+    #[test]
+    fn grading_relays_the_test_run_in_feedback_json() {
+        let grading =
+            ExerciseTaskSubmissionStatus::from(api::ExerciseTaskSubmissionStatus::Grading {
+                grading_progress: api::GradingProgress::FullyGraded,
+                score_given: Some(0.0),
+                grading_started_at: None,
+                grading_completed_at: None,
+                feedback_json: Some(serde_json::json!({
+                    "status": "TESTS_FAILED",
+                    "testResults": [{
+                        "name": "Test fails",
+                        "successful": false,
+                        "points": ["1.1"],
+                        "message": "expected 1",
+                        "exception": ["at Test"]
+                    }],
+                    "logs": { "stdout": "program output" }
+                })),
+                feedback_text: Some("Tests failed".to_string()),
+                exercise_progress: None,
+            });
+        let grading = serde_json::to_value(&grading).unwrap();
+
+        assert_eq!(
+            grading["grading"]["test_results"],
+            serde_json::json!({
+                "status": "TESTS_FAILED",
+                "test_results": [{
+                    "name": "Test fails",
+                    "successful": false,
+                    "points": ["1.1"],
+                    "message": "expected 1",
+                    "exception": ["at Test"]
+                }],
+                "logs": {}
+            })
         );
     }
 

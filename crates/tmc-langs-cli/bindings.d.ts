@@ -442,9 +442,37 @@ feedback_text: string | null,
  * authoritative "passed" signal. `None` for an exam exercise or from a host that does not
  * report it.
  */
-exercise_progress: ExerciseProgress | null, }
+exercise_progress: ExerciseProgress | null,
+/**
+ * The test run the grading was based on. `None` until grading has produced one, or when the
+ * exercise service reported something else.
+ */
+test_results: GradingTestRun | null, }
 
 export type GradingProgress = "Failed" | "NotReady" | "PendingManual" | "Pending" | "FullyGraded";
+
+export type GradingTestRun = { status: GradingTestRunStatus,
+/**
+ * Empty when the tests did not run, e.g. on a compile failure.
+ */
+test_results: Array<GradingTestResult>,
+/**
+ * The run's output keyed by log type (e.g. `stdout`, `stderr`). Empty unless `status` is
+ * `COMPILE_FAILED` or `GENERIC_ERROR`, where it holds the compiler or error output.
+ */
+logs: Record<string, string>, }
+
+export type GradingTestRunStatus = "PASSED" | "TESTS_FAILED" | "COMPILE_FAILED" | "TESTRUN_INTERRUPTED" | "GENERIC_ERROR";
+
+export type GradingTestResult = { name: string, successful: boolean,
+/**
+ * The points the test earned; empty when it failed.
+ */
+points: Array<string>, message: string,
+/**
+ * Stack trace lines of a failure.
+ */
+exception: Array<string>, }
 
 export type ExerciseSlideSubmissionListItem = { id: string, exercise_id: string, created_at: string,
 /**
