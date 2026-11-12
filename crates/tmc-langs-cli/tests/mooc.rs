@@ -1975,6 +1975,64 @@ fn mock_submit(
     mock_submit_steps(server, task_submission_id, &Uuid::new_v4().to_string())
 }
 
+/// Mounts the `?for=snapshot` upload a snapshot posts its archive to before naming it.
+fn mock_snapshot_upload_for(server: &mut mockito::Server, exercise_id: &str) -> mockito::Mock {
+    server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/files").as_str(),
+        )
+        .match_query(mockito::Matcher::UrlEncoded(
+            "for".into(),
+            "snapshot".into(),
+        ))
+        .with_body(
+            serde_json::json!({
+                "data_files": [{
+                    "id": SUBMIT_FILE_UPLOAD_ID,
+                    "name": "submission.tar.zst",
+                    "mime": "application/x-zstd-compressed-tar",
+                    "url": "http://example.com/archive.tar.zst",
+                }]
+            })
+            .to_string(),
+        )
+        .expect_at_least(1)
+        .create()
+}
+
+/// Mounts the snapshot upload and the snapshot endpoint, the latter expecting exactly one call
+/// for `purpose` and returning `snapshot_id`, plus a submit endpoint expecting none: a snapshot
+/// must never be a graded submission. All three are returned to keep them mounted.
+fn mock_snapshot_steps_for(
+    server: &mut mockito::Server,
+    exercise_id: &str,
+    purpose: &str,
+    snapshot_id: &str,
+) -> (mockito::Mock, mockito::Mock, mockito::Mock) {
+    let upload = mock_snapshot_upload_for(server, exercise_id);
+    let snapshot = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/snapshots").as_str(),
+        )
+        .match_body(mockito::Matcher::PartialJson(serde_json::json!({
+            "purpose": purpose,
+            "data_files": [SUBMIT_FILE_UPLOAD_ID],
+        })))
+        .with_body(serde_json::json!({ "snapshot_id": snapshot_id }).to_string())
+        .expect(1)
+        .create();
+    let submit = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{exercise_id}/submit").as_str(),
+        )
+        .expect(0)
+        .create();
+    (upload, snapshot, submit)
+}
+
 fn grading_path(submission_id: &str) -> String {
     format!("/api/v0/exercise-services/client/submissions/{submission_id}/grading")
 }
@@ -2516,7 +2574,8 @@ fn dispatches_get_exercise_submissions() {
                 {
                     "id": newest, "exercise_id": exercise_id,
                     "created_at": "2026-07-21T12:00:00Z",
-                    "score_given": 1.0, "grading_progress": "FullyGraded"
+                    "score_given": null, "grading_progress": null,
+                    "kind": "backup", "is_shared": false
                 },
                 {
                     "id": oldest, "exercise_id": exercise_id,
@@ -2539,9 +2598,14 @@ fn dispatches_get_exercise_submissions() {
             assert_eq!(subs.len(), 2);
             // preserved server order (newest first)
             assert_eq!(subs[0].id, newest);
-            assert_eq!(subs[0].score_given, Some(1.0));
+            assert_eq!(subs[0].score_given, None);
             assert_eq!(subs[1].id, oldest);
             assert_eq!(subs[1].score_given, Some(0.0));
+            let json = serde_json::to_value(&subs).unwrap();
+            assert_eq!(json[0]["kind"], "backup");
+            // A server that predates `kind` and `is_shared` omits them.
+            assert_eq!(json[1]["kind"], "submission");
+            assert_eq!(json[1]["is_shared"], false);
         }
         other => panic!("expected MoocSubmissions, got {other:?}"),
     }
@@ -2684,9 +2748,9 @@ fn download_old_submission_restores_student_files_over_fresh_stub() {
 }
 
 #[test]
-fn download_old_submission_save_old_state_submits_first() {
-    // `--save-old-state` submits the current state before overwriting, so nothing
-    // the student wrote is lost; then the old submission is restored.
+fn download_old_submission_save_old_state_backs_up_first() {
+    // `--save-old-state` stores the current state as a backup snapshot before
+    // overwriting, so nothing the student wrote is lost; then the old submission is restored.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
@@ -2708,10 +2772,10 @@ fn download_old_submission_save_old_state_submits_first() {
         ))
         .expect_at_least(1)
         .create();
-    let (_upload, submit) = mock_submit_steps_for(
+    let (_upload, snapshot, submit) = mock_snapshot_steps_for(
         &mut server,
         exercise_id,
-        &Uuid::new_v4().to_string(),
+        "backup",
         &Uuid::new_v4().to_string(),
     );
     server
@@ -2748,7 +2812,7 @@ fn download_old_submission_save_old_state_submits_first() {
         .create();
 
     // The output path must be a valid, compressible project (python3 marker) so
-    // the save-old-state submit can package it.
+    // the backup can package it.
     let output_dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(output_dir.path().join("src")).unwrap();
     std::fs::write(output_dir.path().join("requirements.txt"), b"").unwrap();
@@ -2777,7 +2841,7 @@ fn download_old_submission_save_old_state_submits_first() {
         OutputResult::ExecutedCommand
     ));
 
-    // the current state was submitted before overwriting
+    snapshot.assert();
     submit.assert();
     assert_eq!(
         std::fs::read_to_string(output_dir.path().join("src/main.py")).unwrap(),
@@ -3048,11 +3112,10 @@ fn download_old_submission_reports_a_submission_with_no_files() {
 }
 
 #[test]
-fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubmit() {
-    // `--save-old-state` submits the current state, then downloads a fresh
-    // stub to reset with. A 401 on the download step (after the submit
-    // already succeeded) must be refreshed and retried in place: the submit
-    // must never be repeated.
+fn reset_exercise_401_between_backup_and_download_does_not_back_up_twice() {
+    // `--save-old-state` stores a backup snapshot, then downloads a fresh stub to
+    // reset with. A 401 on the download step (after the backup already succeeded)
+    // must be refreshed and retried in place: the backup must never be repeated.
     let mut server = mockito::Server::new();
     let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
     let slide_id = "e7bd5a07-1b83-4c97-91f2-e48cccf66b2a";
@@ -3072,14 +3135,13 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
         ))
         .expect_at_least(1)
         .create();
-    // The save-old-state submit: must happen exactly once.
-    let (_upload, submit) = mock_submit_steps_for(
+    let (_upload, snapshot, submit) = mock_snapshot_steps_for(
         &mut server,
         exercise_id,
-        &Uuid::new_v4().to_string(),
+        "backup",
         &Uuid::new_v4().to_string(),
     );
-    // The first download attempt (after the submit) is rejected...
+    // The first download attempt (after the backup) is rejected...
     let _rejected = server
         .mock("GET", "/files/stub.tar.zst")
         .with_status(401)
@@ -3098,8 +3160,7 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
     let projects_dir = tempfile::tempdir().unwrap();
     let credentials_path = write_valid_refreshable_credentials(config_dir.path());
 
-    // A valid, compressible project (python3 marker) so the save-old-state
-    // submit can package it.
+    // A valid, compressible project (python3 marker) so the backup can package it.
     let exercise_dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(exercise_dir.path().join("src")).unwrap();
     std::fs::write(exercise_dir.path().join("requirements.txt"), b"").unwrap();
@@ -3128,7 +3189,8 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
         output_data(output).result,
         OutputResult::ExecutedCommand
     ));
-    // Exactly one submit call, despite the retried download.
+    // Exactly one backup, despite the retried download.
+    snapshot.assert();
     submit.assert();
     refresh.assert();
     assert_eq!(
@@ -3142,19 +3204,16 @@ fn reset_exercise_401_between_save_old_state_submit_and_download_does_not_resubm
 }
 
 #[test]
-fn paste_submits_then_shares_the_slide_submission() {
-    // `mooc paste` submits (non-blocking) then shares the submission. Share takes a
-    // SLIDE-submission id, which the submit response carries directly, so paste must
-    // not consult the submissions list: that lookup was racy by construction. The
-    // list endpoint is mounted expecting zero calls, and the share endpoint is
-    // mounted ONLY at the slide id, so sharing the task id would fail.
+fn paste_stores_a_paste_snapshot_and_shares_it() {
+    // `mooc paste` stores an ungraded paste snapshot, never a graded submission, then
+    // shares the snapshot id the store returned. The share endpoint is mounted only at
+    // that id, and the submissions list expects no call.
     let mut server = mockito::Server::new();
-    let task_submission_id = "aaaaaaaa-0000-0000-0000-000000000000";
-    let slide_submission_id = "bbbbbbbb-1111-1111-1111-111111111111";
+    let snapshot_id = "bbbbbbbb-1111-1111-1111-111111111111";
 
     let _exercise = mock_exercise_for_submit(&mut server);
-    let (_upload, _submit) =
-        mock_submit_steps(&mut server, task_submission_id, slide_submission_id);
+    let (_upload, snapshot, submit) =
+        mock_snapshot_steps_for(&mut server, SUBMIT_EXERCISE_ID, "paste", snapshot_id);
     let submissions = server
         .mock(
             "GET",
@@ -3166,8 +3225,7 @@ fn paste_submits_then_shares_the_slide_submission() {
     let share = server
         .mock(
             "POST",
-            format!("/api/v0/exercise-services/client/submissions/{slide_submission_id}/share")
-                .as_str(),
+            format!("/api/v0/exercise-services/client/submissions/{snapshot_id}/share").as_str(),
         )
         .with_body(
             serde_json::json!({ "paste_url": "http://example.com/shared-submissions/tok123" })
@@ -3189,6 +3247,8 @@ fn paste_submits_then_shares_the_slide_submission() {
     )
     .unwrap();
 
+    snapshot.assert();
+    submit.assert();
     share.assert();
     submissions.assert();
     match data_of(output) {
@@ -3200,6 +3260,56 @@ fn paste_submits_then_shares_the_slide_submission() {
         }
         other => panic!("expected MoocPaste, got {other:?}"),
     }
+}
+
+#[test]
+fn paste_rate_limit_maps_to_rate_limited_kind() {
+    let mut server = mockito::Server::new();
+    let _exercise = mock_exercise_for_submit(&mut server);
+    let _upload = mock_snapshot_upload_for(&mut server, SUBMIT_EXERCISE_ID);
+    let _limited = server
+        .mock(
+            "POST",
+            format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}/snapshots")
+                .as_str(),
+        )
+        .with_status(429)
+        .with_body(
+            serde_json::json!({
+                "errors": [],
+                "message": "Too many pastes of this exercise; try again later.",
+                "message_key": "rate_limited",
+                "metadata": null,
+                "type": "rate_limit",
+            })
+            .to_string(),
+        )
+        .create();
+    let share = server
+        .mock("POST", mockito::Matcher::Regex(r"/share$".to_string()))
+        .expect(0)
+        .create();
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let projects_dir = tempfile::tempdir().unwrap();
+    write_test_credentials(config_dir.path());
+    let project = submittable_project();
+
+    let error = run_mooc_in_expect_error(
+        &server,
+        &[
+            "paste",
+            "--exercise-id",
+            SUBMIT_EXERCISE_ID,
+            "--submission-path",
+            project.path().to_str().unwrap(),
+        ],
+        config_dir.path(),
+        projects_dir.path(),
+    );
+
+    share.assert();
+    assert_error_kind(error, "rate-limited");
 }
 
 /// Runs a `mooc login`-family command in-process, returning the raw result so

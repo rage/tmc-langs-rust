@@ -77,6 +77,9 @@ pub const UPLOAD_EXPIRED_MESSAGE_KEY: &str = "upload_expired";
 /// this exercise by this user. Never a race, so it is never retried.
 pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
 
+/// Backend `message_key` of a 429: the user stored too many pastes of the exercise recently.
+pub const RATE_LIMITED_MESSAGE_KEY: &str = "rate_limited";
+
 /// File name sent for the submitted project archive. The host stores it as the
 /// upload's `name`; nothing depends on the extension.
 const SUBMISSION_ARCHIVE_FILE_NAME: &str = "submission.tar.zst";
@@ -320,6 +323,15 @@ impl MoocClient {
         exercise_id: Uuid,
         files: &[(&str, &Path)],
     ) -> MoocClientResult<Vec<api::AnswerFile>> {
+        self.upload_files_for(exercise_id, files, UploadFor::Submission)
+    }
+
+    fn upload_files_for(
+        &self,
+        exercise_id: Uuid,
+        files: &[(&str, &Path)],
+        upload_for: UploadFor,
+    ) -> MoocClientResult<Vec<api::AnswerFile>> {
         if files.is_empty() {
             // The host rejects an empty multipart body, and there is nothing to record.
             return Ok(Vec::new());
@@ -336,7 +348,10 @@ impl MoocClient {
             form = form.part(Uuid::new_v4().to_string(), part);
         }
 
-        let url = make_client_api_url(self, format!("exercises/{exercise_id}/files"))?;
+        let mut url = make_client_api_url(self, format!("exercises/{exercise_id}/files"))?;
+        if upload_for == UploadFor::Snapshot {
+            url.set_query(Some("for=snapshot"));
+        }
         let res = self
             .request(Method::POST, url)
             .multipart(form)
@@ -372,6 +387,68 @@ impl MoocClient {
             }
             other => other,
         }
+    }
+
+    /// Stores an ungraded snapshot of an archive as the answer to an exercise's editor task and
+    /// returns its id, which [`Self::download_submission_files`] and [`Self::share_submission`]
+    /// take.
+    ///
+    /// Unlike a submit, it uses no try and is accepted after the deadline and when out of tries.
+    /// A [`api::SnapshotPurpose::Paste`] is rate limited ([`RATE_LIMITED_MESSAGE_KEY`]). Returns
+    /// [`MoocClientError::NoSubmittableExerciseTask`] for a browser-only exercise.
+    pub fn store_snapshot(
+        &self,
+        exercise_id: Uuid,
+        archive: &Path,
+        purpose: api::SnapshotPurpose,
+    ) -> MoocClientResult<Uuid> {
+        let slide = self.exercise(exercise_id)?;
+        let task_id = slide
+            .editor_task_id()
+            .ok_or_else(|| Box::new(MoocClientError::NoSubmittableExerciseTask { exercise_id }))?;
+        let files = [(SUBMISSION_ARCHIVE_FILE_NAME, archive)];
+        let store = |uploaded: &[api::AnswerFile]| {
+            self.store_uploaded_snapshot(exercise_id, slide.slide_id, task_id, uploaded, purpose)
+        };
+        let uploaded = self.upload_files_for(exercise_id, &files, UploadFor::Snapshot)?;
+        match store(&uploaded) {
+            Err(error) if is_upload_expired(&error) => {
+                log::warn!(
+                    "an upload for exercise {exercise_id} expired before its snapshot was \
+                     stored; uploading again"
+                );
+                let uploaded = self.upload_files_for(exercise_id, &files, UploadFor::Snapshot)?;
+                store(&uploaded)
+            }
+            other => other,
+        }
+    }
+
+    fn store_uploaded_snapshot(
+        &self,
+        exercise_id: Uuid,
+        slide_id: Uuid,
+        task_id: Uuid,
+        uploaded: &[api::AnswerFile],
+        purpose: api::SnapshotPurpose,
+    ) -> MoocClientResult<Uuid> {
+        let snapshot = api::NewAnswerSnapshot {
+            purpose,
+            exercise_slide_id: slide_id,
+            exercise_task_id: task_id,
+            data_json: None,
+            data_files: uploaded.iter().map(|file| file.id).collect(),
+        };
+        let snapshot = serialize::to_json_vec(&snapshot)
+            .map_err(Into::into)
+            .map_err(Box::new)?;
+
+        let url = make_client_api_url(self, format!("exercises/{exercise_id}/snapshots"))?;
+        let res = self
+            .request(Method::POST, url)
+            .json_body(snapshot)
+            .send_expect_json::<api::AnswerSnapshotResult>()?;
+        Ok(res.snapshot_id)
     }
 
     /// Submits a body naming already-stored files. Split out of [`Self::submit`]
@@ -426,9 +503,8 @@ impl MoocClient {
         Ok(slides)
     }
 
-    /// Returns the current user's past submissions to an exercise, newest first.
-    /// Each item's `id` is an exercise-slide-submission id, the value passed to
-    /// [`MoocClient::download_submission_files`] and
+    /// Returns the current user's past submissions and snapshots of an exercise, newest first.
+    /// Each item's `id` is the value passed to [`MoocClient::download_submission_files`] and
     /// [`MoocClient::share_submission`].
     pub fn get_exercise_submissions(
         &self,
@@ -441,7 +517,7 @@ impl MoocClient {
         Ok(res.into_iter().map(Into::into).collect())
     }
 
-    /// Returns the files an exercise-slide submission's answer is made of (the id
+    /// Returns the files a submission's or snapshot's answer is made of (the id
     /// comes from [`MoocClient::get_exercise_submissions`]), in the order the host
     /// grades and displays them.
     ///
@@ -460,7 +536,7 @@ impl MoocClient {
         Ok(res.data_files)
     }
 
-    /// Mints a shareable link to an existing submission of the current user and
+    /// Mints a shareable link to an existing submission or snapshot of the current user and
     /// returns the paste URL.
     pub fn share_submission(&self, submission_id: Uuid) -> MoocClientResult<PasteResult> {
         let url = make_client_api_url(self, format!("submissions/{submission_id}/share"))?;
@@ -469,6 +545,13 @@ impl MoocClient {
             .send_expect_json::<api::PasteResult>()?;
         Ok(res.into())
     }
+}
+
+/// Which request will name an upload; a snapshot's upload skips the deadline and try checks.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum UploadFor {
+    Submission,
+    Snapshot,
 }
 
 /// Helper for creating and sending requests.
@@ -880,16 +963,46 @@ impl From<api::GradingProgress> for GradingProgress {
     }
 }
 
-/// A single past submission of the current user to an exercise. `id` is the
-/// exercise-slide-submission id used to download or share the submission.
+/// A past submission or snapshot of the current user to an exercise. `id` is what
+/// [`MoocClient::download_submission_files`] and [`MoocClient::share_submission`] take.
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct ExerciseSlideSubmissionListItem {
     pub id: Uuid,
     pub exercise_id: Uuid,
     pub created_at: DateTime<Utc>,
+    /// Always `None` for a snapshot.
     pub score_given: Option<f32>,
+    /// Always `None` for a snapshot.
     pub grading_progress: Option<GradingProgress>,
+    /// `submission` from a host that predates the field, which lists only submissions.
+    pub kind: SubmissionKind,
+    /// Whether the entry has a live share link, whatever its kind. `false` from a host that
+    /// predates the field.
+    pub is_shared: bool,
+}
+
+/// What an entry in a submissions list is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub enum SubmissionKind {
+    /// A graded submission.
+    Submission,
+    /// An ungraded snapshot stored to be shared, by `mooc paste`.
+    Paste,
+    /// An ungraded snapshot stored before local changes were discarded, by `--save-old-state`.
+    Backup,
+}
+
+impl From<api::SubmissionKind> for SubmissionKind {
+    fn from(value: api::SubmissionKind) -> Self {
+        match value {
+            api::SubmissionKind::Submission => Self::Submission,
+            api::SubmissionKind::Paste => Self::Paste,
+            api::SubmissionKind::Backup => Self::Backup,
+        }
+    }
 }
 
 impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListItem {
@@ -900,11 +1013,13 @@ impl From<api::ExerciseSlideSubmissionListItem> for ExerciseSlideSubmissionListI
             created_at: value.created_at,
             score_given: value.score_given,
             grading_progress: value.grading_progress.map(Into::into),
+            kind: value.kind.into(),
+            is_shared: value.is_shared,
         }
     }
 }
 
-/// A shareable URL for a submission.
+/// A shareable URL for a submission or snapshot.
 #[derive(Debug, Serialize, JsonSchema)]
 #[cfg_attr(feature = "ts-rs", derive(TS))]
 pub struct PasteResult {
@@ -2000,6 +2115,7 @@ mod test {
         let client = make_client(&server);
         let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
         let submission_id = Uuid::new_v4();
+        let snapshot_id = Uuid::new_v4();
         server
             .mock(
                 "GET",
@@ -2007,26 +2123,168 @@ mod test {
                     .as_str(),
             )
             .with_body(
-                serde_json::json!([{
-                    "id": submission_id,
-                    "exercise_id": exercise_id,
-                    "created_at": "2026-07-21T00:00:00Z",
-                    "score_given": 1.0,
-                    "grading_progress": "FullyGraded"
-                }])
+                serde_json::json!([
+                    {
+                        "id": snapshot_id,
+                        "exercise_id": exercise_id,
+                        "created_at": "2026-07-22T00:00:00Z",
+                        "score_given": null,
+                        "grading_progress": null,
+                        "kind": "paste",
+                        "is_shared": true
+                    },
+                    {
+                        "id": submission_id,
+                        "exercise_id": exercise_id,
+                        "created_at": "2026-07-21T00:00:00Z",
+                        "score_given": 1.0,
+                        "grading_progress": "FullyGraded"
+                    }
+                ])
                 .to_string(),
             )
             .create();
         let submissions = client
             .get_exercise_submissions(Uuid::parse_str(exercise_id).unwrap())
             .unwrap();
-        assert_eq!(submissions.len(), 1);
-        assert_eq!(submissions[0].id, submission_id);
-        assert_eq!(submissions[0].score_given, Some(1.0));
+        assert_eq!(submissions.len(), 2);
+        assert_eq!(submissions[0].id, snapshot_id);
+        assert_eq!(submissions[0].kind, SubmissionKind::Paste);
+        assert!(submissions[0].is_shared);
+        assert_eq!(submissions[1].id, submission_id);
+        assert_eq!(submissions[1].score_given, Some(1.0));
         assert!(matches!(
-            submissions[0].grading_progress,
+            submissions[1].grading_progress,
             Some(GradingProgress::FullyGraded)
         ));
+        // A host that predates `kind` and `is_shared` lists only unshared submissions.
+        assert_eq!(submissions[1].kind, SubmissionKind::Submission);
+        assert!(!submissions[1].is_shared);
+        let json = serde_json::to_value(&submissions).unwrap();
+        assert_eq!(json[0]["kind"], "paste");
+        assert_eq!(json[1]["kind"], "submission");
+    }
+
+    /// Mocks `GET exercises/{id}` for [`EXERCISE_ID`] with one editor task [`TASK_ID`].
+    fn mock_editor_exercise(server: &mut Server) -> mockito::Mock {
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "slide_id": SLIDE_ID,
+                    "exercise_id": EXERCISE_ID,
+                    "course_id": Uuid::new_v4(),
+                    "exercise_name": "mockname",
+                    "exercise_order_number": 0,
+                    "tasks": [{
+                        "task_id": TASK_ID,
+                        "order_number": 0,
+                        "assignment": [],
+                        "public_spec": {
+                            "type": "editor",
+                            "archive_name": "stub.tar.zst",
+                            "stub_download_url": "http://example.com/stub.tar.zst",
+                            "student_file_paths": ["src/main.py"],
+                            "checksum": "abcd1234"
+                        },
+                        "model_solution_spec": null,
+                        "exercise_service_slug": "tmc"
+                    }],
+                })
+                .to_string(),
+            )
+            .create()
+    }
+
+    fn snapshots_path() -> String {
+        format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/snapshots")
+    }
+
+    /// Mocks the `?for=snapshot` upload, returning one stored file with [`FILE_UPLOAD_ID`].
+    fn mock_snapshot_upload(server: &mut Server) -> mockito::Mock {
+        server
+            .mock(
+                "POST",
+                format!("/api/v0/exercise-services/client/exercises/{EXERCISE_ID}/files").as_str(),
+            )
+            .match_query(Matcher::UrlEncoded("for".into(), "snapshot".into()))
+            .with_body(
+                serde_json::json!({
+                    "data_files": [{
+                        "id": FILE_UPLOAD_ID,
+                        "name": "submission.tar.zst",
+                        "mime": ANSWER_ARCHIVE_MIME,
+                        "url": "http://example.com/archive.tar.zst",
+                    }]
+                })
+                .to_string(),
+            )
+            .create()
+    }
+
+    #[test]
+    fn stores_a_snapshot_from_a_snapshot_upload() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let snapshot_id = Uuid::new_v4();
+        mock_editor_exercise(&mut server);
+        let upload = mock_snapshot_upload(&mut server);
+        let snapshot = server
+            .mock("POST", snapshots_path().as_str())
+            .match_header("content-type", "application/json")
+            .match_body(Matcher::Json(serde_json::json!({
+                "purpose": "backup",
+                "exercise_slide_id": SLIDE_ID,
+                "exercise_task_id": TASK_ID,
+                "data_files": [FILE_UPLOAD_ID],
+            })))
+            .with_body(serde_json::json!({ "snapshot_id": snapshot_id }).to_string())
+            .create();
+
+        let stored = client
+            .store_snapshot(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                Path::new("./tests/data/file"),
+                api::SnapshotPurpose::Backup,
+            )
+            .unwrap();
+
+        assert_eq!(stored, snapshot_id);
+        upload.assert();
+        snapshot.assert();
+    }
+
+    #[test]
+    fn store_snapshot_retries_the_upload_once_on_upload_expired() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        mock_editor_exercise(&mut server);
+        let upload = mock_snapshot_upload(&mut server).expect(2);
+        server
+            .mock("POST", snapshots_path().as_str())
+            .with_status(422)
+            .with_body(upload_expired_body())
+            .expect(1)
+            .create();
+        server
+            .mock("POST", snapshots_path().as_str())
+            .with_body(serde_json::json!({ "snapshot_id": Uuid::new_v4() }).to_string())
+            .expect(1)
+            .create();
+
+        client
+            .store_snapshot(
+                Uuid::parse_str(EXERCISE_ID).unwrap(),
+                Path::new("./tests/data/file"),
+                api::SnapshotPurpose::Paste,
+            )
+            .unwrap();
+        upload.assert();
     }
 
     /// Mocks `GET submissions/{id}/download` with the given file list.

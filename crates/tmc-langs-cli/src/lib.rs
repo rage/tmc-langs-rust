@@ -246,6 +246,10 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(Kind::UploadExpired)
             } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
                 Some(Kind::UnknownUpload)
+            } else if message_key.as_deref() == Some(mooc::RATE_LIMITED_MESSAGE_KEY)
+                || status.as_u16() == 429
+            {
+                Some(Kind::RateLimited)
             // `duplicate_upload` is left unmapped: only a buggy client triggers it, and a
             // new `Kind` would have to be mirrored in bindings.schema.json and langsSchema.ts.
             } else if status.as_u16() == 403 {
@@ -1444,11 +1448,12 @@ fn run_mooc_inner(
                 false,
             )?;
 
-            // Sharing needs the slide-submission id from the submit response. Each call
-            // retries on 401 independently, so a 401 on the idempotent share never
-            // re-runs the non-idempotent submit.
-            let result = auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
-            let paste = auth.call(client, |c| c.share_submission(result.slide_submission_id))?;
+            // Separate calls so that a 401 on the idempotent share never stores the
+            // snapshot twice.
+            let snapshot_id = auth.call(client, |c| {
+                c.store_snapshot(exercise_id, temp.path(), mooc::api::SnapshotPurpose::Paste)
+            })?;
+            let paste = auth.call(client, |c| c.share_submission(snapshot_id))?;
             CliOutput::finished_with_data("pasted exercise", DataKind::MoocPaste(paste))
         }
         MoocCommand::GetExerciseSubmissions { exercise_id } => {

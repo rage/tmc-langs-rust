@@ -633,9 +633,9 @@ pub enum MoocCommand {
         #[clap(long)]
         submission_id: Uuid,
     },
-    /// Submits an exercise (non-blocking) and shares the resulting submission,
-    /// returning a public paste URL — the "share a submission" equivalent of TMC
-    /// paste.
+    /// Stores the exercise as an ungraded paste snapshot and shares it, returning a
+    /// public paste URL. Uses no try. Fails with the `rate-limited` error kind after
+    /// too many pastes of the exercise.
     #[clap(long_about = schema_leaked::<mooc::PasteResult>())]
     Paste {
         #[clap(long)]
@@ -643,7 +643,7 @@ pub enum MoocCommand {
         #[clap(long)]
         submission_path: PathBuf,
     },
-    /// Fetches the current user's past submissions to an exercise, newest first.
+    /// Fetches the current user's past submissions and snapshots of an exercise, newest first.
     #[clap(long_about = schema_leaked::<Vec<mooc::ExerciseSlideSubmissionListItem>>())]
     GetExerciseSubmissions {
         #[clap(long)]
@@ -652,8 +652,8 @@ pub enum MoocCommand {
     /// Downloads a past submission of an exercise, restoring its student files on
     /// top of a fresh exercise stub at `output_path`.
     DownloadOldSubmission {
-        /// The id of the submission to download (an exercise-slide-submission id
-        /// from `get-exercise-submissions`).
+        /// The id of the submission or snapshot to download, from
+        /// `get-exercise-submissions`.
         #[clap(long)]
         submission_id: Uuid,
         /// The id of the exercise the submission belongs to.
@@ -662,7 +662,8 @@ pub enum MoocCommand {
         /// Path to the directory where the project resides / should be restored.
         #[clap(long)]
         output_path: PathBuf,
-        /// Submit the current state of `output_path` before overwriting it.
+        /// Store the current state of `output_path` as an ungraded backup snapshot
+        /// before overwriting it.
         #[clap(long)]
         save_old_state: bool,
     },
@@ -670,7 +671,7 @@ pub enum MoocCommand {
     /// re-downloads and re-extracts the exercise's stub archive from the server.
     #[clap(long_about = SCHEMA_NULL)]
     ResetExercise {
-        /// If set, the exercise's current state is submitted to the server before resetting it.
+        /// Store the exercise's current state as an ungraded backup snapshot before resetting it.
         #[clap(long)]
         save_old_state: bool,
         /// The id of the exercise.
@@ -1620,6 +1621,7 @@ mod test {
             tmc_langs::mooc::Grading,
             tmc_langs::mooc::GradingProgress,
             tmc_langs::mooc::ExerciseSlideSubmissionListItem,
+            tmc_langs::mooc::SubmissionKind,
             tmc_langs::mooc::PasteResult,
             tmc_langs::mooc::CourseProgress,
             tmc_langs::mooc::ExerciseProgress,

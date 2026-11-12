@@ -226,6 +226,9 @@ pub enum Kind {
     /// The server answered 404 to a request addressing one exercise: the exercise does not
     /// exist, or not for this user.
     ExerciseNotFound,
+    /// courses.mooc.fi answered 429 (backend `message_key: "rate_limited"`): the user made too
+    /// many pastes of the exercise recently and should try again later.
+    RateLimited,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

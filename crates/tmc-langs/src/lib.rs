@@ -1058,8 +1058,8 @@ fn download_and_extract_mooc_archive(
 /// files overlaid on a fresh exercise stub, fully replacing the directory.
 ///
 /// Mirrors [`download_old_submission`] minus the server reset (mooc has none). If
-/// `save_old_state` is set, the current state is submitted first (non-blocking)
-/// so nothing the student wrote is lost.
+/// `save_old_state` is set, the current state is first stored as an ungraded backup
+/// snapshot so nothing the student wrote is lost.
 ///
 /// A submission with no files yields [`MoocOldSubmissionRestore::NothingToDownload`];
 /// one with several yields [`LangsError::NotATmcAnswer`]. Both are decided before
@@ -1097,8 +1097,10 @@ pub fn download_mooc_old_submission(
     if save_old_state {
         let temp = file_util::named_temp_file()?;
         compress_project_to(output_path, temp.path(), Compression::TarZstd, false, false)?;
-        auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
-        log::debug!("submitted current state before downloading old submission");
+        auth.call(client, |c| {
+            c.store_snapshot(exercise_id, temp.path(), mooc::api::SnapshotPurpose::Backup)
+        })?;
+        log::debug!("backed up current state before downloading old submission");
     }
 
     let temp_dir = tempfile::tempdir().map_err(FileError::TempFile)?;
@@ -1506,8 +1508,8 @@ pub fn reset(
     Ok(())
 }
 
-/// Resets a mooc exercise to a fresh stub, optionally submitting the current
-/// state first. Mirrors [`reset`].
+/// Resets a mooc exercise to a fresh stub, optionally storing the current state
+/// as an ungraded backup snapshot first. Mirrors [`reset`].
 ///
 /// Never leaves `exercise_path` half-written: the stub is extracted into a
 /// staging sibling before the original is touched, and the old copy is restored
@@ -1533,8 +1535,10 @@ pub fn reset_mooc_exercise(
             false,
             false,
         )?;
-        auth.call(client, |c| c.submit_exercise(exercise_id, temp.path()))?;
-        log::debug!("submitted current state before resetting exercise");
+        auth.call(client, |c| {
+            c.store_snapshot(exercise_id, temp.path(), mooc::api::SnapshotPurpose::Backup)
+        })?;
+        log::debug!("backed up current state before resetting exercise");
     }
 
     // Fetch before touching the directory: a download failure must not wipe
