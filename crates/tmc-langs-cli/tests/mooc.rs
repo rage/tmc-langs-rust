@@ -446,15 +446,10 @@ fn a_connection_failure_carries_no_http_status() {
     let config_dir = tempfile::tempdir().unwrap();
     let projects_dir = tempfile::tempdir().unwrap();
     write_test_credentials(config_dir.path());
-    // mockito pools its servers, so a dropped one keeps listening; a released port does not.
-    let port = std::net::TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port();
-    let unreachable = format!("http://127.0.0.1:{port}");
+    // Privileged, so no test server can be listening there: a released ephemeral port can be
+    // taken by a concurrent test's mockito server before the request is made.
     let error = run_mooc_at_expect_error(
-        &unreachable,
+        "http://127.0.0.1:1",
         &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
         config_dir.path(),
         projects_dir.path(),
