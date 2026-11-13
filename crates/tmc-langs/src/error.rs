@@ -126,6 +126,17 @@ pub enum LangsError {
         submission_id: Uuid,
         file_count: usize,
     },
+    #[error(
+        "Failed to replace the files of {} ({cause}), and could not put the old files back; \
+         they are in {}",
+        exercise_path.display(),
+        kept_at.display()
+    )]
+    ExerciseRestoreFailed {
+        exercise_path: PathBuf,
+        kept_at: PathBuf,
+        cause: String,
+    },
     #[error(transparent)]
     PersistTempFile(#[from] tempfile::PersistError),
     #[error(transparent)]

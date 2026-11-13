@@ -37,7 +37,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     convert::TryFrom,
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     io::Cursor,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -1055,7 +1055,7 @@ fn download_and_extract_mooc_archive(
 }
 
 /// Restores a past mooc submission at `output_path`: the submission's student
-/// files overlaid on a fresh exercise stub, fully replacing the directory.
+/// files overlaid on a fresh exercise stub, fully replacing the directory's contents.
 ///
 /// Mirrors [`download_old_submission`] minus the server reset (mooc has none). If
 /// `save_old_state` is set, the current state is first stored as an ungraded backup
@@ -1103,8 +1103,8 @@ pub fn download_mooc_old_submission(
         log::debug!("backed up current state before downloading old submission");
     }
 
-    let temp_dir = tempfile::tempdir().map_err(FileError::TempFile)?;
-    let base = temp_dir.path();
+    let staging = staging_dir_beside(output_path)?;
+    let base = staging.path();
     let stub = auth.call(client, |c| c.download_exercise(exercise_id))?;
     extract_project(Cursor::new(stub), base, Compression::TarZstd, false, false)?;
     log::debug!("extracted fresh stub to temp base");
@@ -1115,11 +1115,7 @@ pub fn download_mooc_old_submission(
     extract_student_files(Cursor::new(archive), Compression::TarZstd, base)?;
     log::debug!("overlaid old submission student files");
 
-    if output_path.exists() {
-        file_util::remove_dir_all(output_path)?;
-    }
-    file_util::create_dir_all(output_path)?;
-    move_dir(base, output_path)?;
+    replace_dir_contents(output_path, base)?;
     log::debug!("moved restored exercise into place");
     Ok(MoocOldSubmissionRestore::Restored)
 }
@@ -1486,34 +1482,125 @@ pub fn free_disk_space_megabytes(path: &Path) -> Result<u64, LangsError> {
 }
 */
 
-/// Resets the given exercise
+/// Resets the given exercise to a fresh template, keeping the exercise directory itself (see
+/// [`replace_dir_contents`]). The directory is untouched if the download fails.
 pub fn reset(
     client: &tmc::TestMyCodeClient,
     exercise_id: u32,
     exercise_path: &Path,
 ) -> Result<(), LangsError> {
-    if exercise_path.exists() {
-        // clear out the exercise directory
-        file_util::remove_dir_all(exercise_path)?;
-    }
     let mut buf = vec![];
     client.download_exercise(exercise_id, &mut buf)?;
+    let staging = staging_dir_beside(exercise_path)?;
     extract_project(
         Cursor::new(buf),
-        exercise_path,
+        staging.path(),
         Compression::Zip,
         false,
         false,
     )?;
+    replace_dir_contents(exercise_path, staging.path())
+}
+
+/// A temporary directory beside `path`, on its filesystem, for content to move into `path`
+/// by rename.
+fn staging_dir_beside(path: &Path) -> Result<tempfile::TempDir, LangsError> {
+    let parent = match path.parent() {
+        Some(parent) if !parent.as_os_str().is_empty() => parent,
+        _ => Path::new("."),
+    };
+    file_util::create_dir_all(parent)?;
+    let staging = tempfile::Builder::new()
+        .prefix(".tmc-staging-")
+        .tempdir_in(parent)
+        .map_err(FileError::TempFile)?;
+    Ok(staging)
+}
+
+/// Replaces the entries of `target` with those of `staged` (a [`staging_dir_beside`]
+/// `target`), keeping `target` itself: an editor watching the exercise directory loses
+/// track of it when the directory is replaced.
+///
+/// Leaves `target` as it was on failure. If even that fails, the old entries are kept in a
+/// `.tmc-staging-*` directory beside `target` and the error names it.
+fn replace_dir_contents(target: &Path, staged: &Path) -> Result<(), LangsError> {
+    if !target.exists() {
+        file_util::rename(staged, target)?;
+        return Ok(());
+    }
+    // Not a guard: dropping it would delete the student's old files when the rollback fails.
+    let replaced = staging_dir_beside(target)?.keep();
+
+    if let Err((moved_out, err)) = move_dir_entries(target, &replaced) {
+        restore_dir_entries(&replaced, target, &moved_out, &err)?;
+        return Err(err.into());
+    }
+    if let Err((moved_in, err)) = move_dir_entries(staged, target) {
+        for name in &moved_in {
+            let _ = file_util::remove_all(target.join(name));
+        }
+        let moved_out = dir_entry_names(&replaced)?;
+        restore_dir_entries(&replaced, target, &moved_out, &err)?;
+        return Err(err.into());
+    }
+    file_util::remove_dir_all(&replaced)?;
     Ok(())
+}
+
+/// Moves `names` from `replaced` back into `target` after a failed [`replace_dir_contents`].
+fn restore_dir_entries(
+    replaced: &Path,
+    target: &Path,
+    names: &[OsString],
+    cause: &FileError,
+) -> Result<(), LangsError> {
+    let mut restore_failed = false;
+    for name in names {
+        if let Err(err) = file_util::rename(replaced.join(name), target.join(name)) {
+            log::error!("failed to restore {}: {err}", target.join(name).display());
+            restore_failed = true;
+        }
+    }
+    if restore_failed {
+        return Err(LangsError::ExerciseRestoreFailed {
+            exercise_path: target.to_path_buf(),
+            kept_at: replaced.to_path_buf(),
+            cause: cause.to_string(),
+        });
+    }
+    let _ = file_util::remove_dir_empty(replaced);
+    Ok(())
+}
+
+fn dir_entry_names(dir: &Path) -> Result<Vec<OsString>, FileError> {
+    file_util::read_dir(dir)?
+        .map(|entry| {
+            entry
+                .map(|entry| entry.file_name())
+                .map_err(|err| FileError::DirRead(dir.to_path_buf(), err))
+        })
+        .collect()
+}
+
+/// Moves every entry of `from` into `to` by rename. On failure, returns the names already
+/// moved with the error.
+fn move_dir_entries(from: &Path, to: &Path) -> Result<Vec<OsString>, (Vec<OsString>, FileError)> {
+    let names = dir_entry_names(from).map_err(|err| (vec![], err))?;
+    let mut moved = Vec::with_capacity(names.len());
+    for name in names {
+        if let Err(err) = file_util::rename(from.join(&name), to.join(&name)) {
+            return Err((moved, err));
+        }
+        moved.push(name);
+    }
+    Ok(moved)
 }
 
 /// Resets a mooc exercise to a fresh stub, optionally storing the current state
 /// as an ungraded backup snapshot first. Mirrors [`reset`].
 ///
-/// Never leaves `exercise_path` half-written: the stub is extracted into a
-/// staging sibling before the original is touched, and the old copy is restored
-/// if the final swap fails.
+/// Never leaves `exercise_path` half-written: the stub is extracted into a staging sibling
+/// before the original is touched, then swapped in by [`replace_dir_contents`].
 pub fn reset_mooc_exercise(
     client: &MoocClient,
     auth: &MoocAuth,
@@ -1544,18 +1631,7 @@ pub fn reset_mooc_exercise(
     // Fetch before touching the directory: a download failure must not wipe
     // existing work.
     let stub = auth.call(client, |c| c.download_exercise(exercise_id))?;
-
-    // Sibling of `exercise_path` so the swap-in is a same-filesystem rename; the
-    // `TempDir` guard removes it on early return.
-    let parent = match exercise_path.parent() {
-        Some(parent) if !parent.as_os_str().is_empty() => parent,
-        _ => Path::new("."),
-    };
-    file_util::create_dir_all(parent)?;
-    let staging = tempfile::Builder::new()
-        .prefix(".tmc-reset-")
-        .tempdir_in(parent)
-        .map_err(FileError::TempFile)?;
+    let staging = staging_dir_beside(exercise_path)?;
     extract_project(
         Cursor::new(stub),
         staging.path(),
@@ -1563,37 +1639,7 @@ pub fn reset_mooc_exercise(
         false,
         false,
     )?;
-
-    // Only renames/removes remain. Disarm the `TempDir` guard: the dir is about
-    // to be moved into place, not dropped.
-    let staging_path = staging.keep();
-
-    if exercise_path.exists() {
-        // Move the old dir aside so it can be restored if the rename-in fails. The
-        // tempdir is removed first so the rename target doesn't exist (Windows).
-        let backup_path = tempfile::Builder::new()
-            .prefix(".tmc-reset-old-")
-            .tempdir_in(parent)
-            .map_err(FileError::TempFile)?
-            .keep();
-        file_util::remove_dir_all(&backup_path)?;
-        file_util::rename(exercise_path, &backup_path)?;
-
-        match file_util::rename(&staging_path, exercise_path) {
-            Ok(()) => {
-                file_util::remove_dir_all(&backup_path)?;
-            }
-            Err(err) => {
-                // Roll back so the failure is a no-op.
-                let _ = file_util::rename(&backup_path, exercise_path);
-                let _ = file_util::remove_dir_all(&staging_path);
-                return Err(err.into());
-            }
-        }
-    } else {
-        file_util::rename(&staging_path, exercise_path)?;
-    }
-    Ok(())
+    replace_dir_contents(exercise_path, staging.path())
 }
 
 /// Extracts the compressed project to the target location.
@@ -3056,16 +3102,22 @@ directory = "ex-2"
 
     #[test]
     fn resets_mooc_exercise_over_local_dir() {
-        // Reset replaces the directory rather than overlaying: leftover.txt
+        // Reset replaces the contents rather than overlaying: leftover.txt
         // (absent from the stub) must be gone.
         init();
         let mut server = Server::new();
         let exercise_id = Uuid::new_v4();
         let task_id = Uuid::new_v4();
 
-        let exercise_dir = tempfile::tempdir().unwrap();
+        let parent = tempfile::tempdir().unwrap();
+        let exercise_dir = parent.path().join("exercise");
         file_to(&exercise_dir, "src/main.py", b"stale student code");
         file_to(&exercise_dir, "leftover.txt", b"should be gone");
+        #[cfg(unix)]
+        let inode_before = {
+            use std::os::unix::fs::MetadataExt;
+            std::fs::metadata(&exercise_dir).unwrap().ino()
+        };
 
         let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
         let _slide = server
@@ -3088,11 +3140,116 @@ directory = "ex-2"
 
         let client = mock_mooc_client(&server);
         let auth = mock_mooc_auth(&server);
-        reset_mooc_exercise(&client, &auth, exercise_id, exercise_dir.path(), false).unwrap();
+        reset_mooc_exercise(&client, &auth, exercise_id, &exercise_dir, false).unwrap();
 
-        let main = file_util::read_file_to_string(exercise_dir.path().join("src/main.py")).unwrap();
+        let main = file_util::read_file_to_string(exercise_dir.join("src/main.py")).unwrap();
         assert_eq!(main, "print('fresh stub')");
-        assert!(!exercise_dir.path().join("leftover.txt").exists());
+        assert!(!exercise_dir.join("leftover.txt").exists());
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            assert_eq!(
+                std::fs::metadata(&exercise_dir).unwrap().ino(),
+                inode_before,
+                "the exercise directory itself must survive, so editor watchers keep working"
+            );
+        }
+        assert_eq!(
+            std::fs::read_dir(parent.path()).unwrap().count(),
+            1,
+            "staging directories must be cleaned up"
+        );
+    }
+
+    /// Whether `dir`'s permissions stop this process from creating entries in it; root
+    /// ignores them, which makes a permission-based failure test meaningless.
+    #[cfg(unix)]
+    fn is_write_protected(dir: &Path) -> bool {
+        std::fs::create_dir(dir.join("probe")).is_err()
+    }
+
+    #[cfg(unix)]
+    fn set_mode(path: &Path, mode: u32) {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(mode)).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replace_dir_contents_restores_the_old_entries_when_the_new_ones_cannot_move_in() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let target = parent.path().join("exercise");
+        file_to(&target, "src/main.py", b"student code");
+        file_to(&target, "notes.txt", b"my notes");
+        let staged = staging_dir_beside(&target).unwrap();
+        file_to(staged.path(), "src/main.py", b"stub");
+        // Entries of a read-only directory cannot be renamed away.
+        set_mode(staged.path(), 0o555);
+        if !is_write_protected(staged.path()) {
+            set_mode(staged.path(), 0o755);
+            return;
+        }
+
+        let result = replace_dir_contents(&target, staged.path());
+        set_mode(staged.path(), 0o755);
+
+        assert!(result.is_err());
+        assert_eq!(
+            file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
+            "student code"
+        );
+        assert_eq!(
+            file_util::read_file_to_string(target.join("notes.txt")).unwrap(),
+            "my notes"
+        );
+        drop(staged);
+        assert_eq!(
+            std::fs::read_dir(parent.path()).unwrap().count(),
+            1,
+            "the directory holding the old entries must be cleaned up after a rollback"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replace_dir_contents_leaves_the_target_alone_when_its_entries_cannot_move_out() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let target = parent.path().join("exercise");
+        file_to(&target, "src/main.py", b"student code");
+        let staged = staging_dir_beside(&target).unwrap();
+        file_to(staged.path(), "src/main.py", b"stub");
+        set_mode(&target, 0o555);
+        if !is_write_protected(&target) {
+            set_mode(&target, 0o755);
+            return;
+        }
+
+        let result = replace_dir_contents(&target, staged.path());
+        set_mode(&target, 0o755);
+
+        assert!(result.is_err());
+        assert_eq!(
+            file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
+            "student code"
+        );
+    }
+
+    #[test]
+    fn replace_dir_contents_moves_the_staged_dir_into_a_missing_target() {
+        init();
+        let parent = tempfile::tempdir().unwrap();
+        let target = parent.path().join("exercise");
+        let staged = staging_dir_beside(&target).unwrap();
+        file_to(staged.path(), "src/main.py", b"stub");
+
+        replace_dir_contents(&target, staged.path()).unwrap();
+
+        assert_eq!(
+            file_util::read_file_to_string(target.join("src/main.py")).unwrap(),
+            "stub"
+        );
     }
 
     #[test]
