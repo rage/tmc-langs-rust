@@ -22,7 +22,7 @@ pub use self::{
         StyleValidationError, StyleValidationResult, StyleValidationStrategy, TIMEOUT_TEST_NAME,
         TestDesc, TestResult,
     },
-    error::{CommandError, TmcError},
+    error::{CommandError, TmcError, describe_output},
     meta_syntax::{MetaString, MetaSyntaxParser},
     plugin::{Language, LanguagePlugin},
     policy::{EverythingIsStudentFilePolicy, NothingIsStudentFilePolicy, StudentFilePolicy},

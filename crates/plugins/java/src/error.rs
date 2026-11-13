@@ -2,7 +2,7 @@
 
 use std::{io, path::PathBuf};
 use thiserror::Error;
-use tmc_langs_framework::TmcError;
+use tmc_langs_framework::{TmcError, describe_output};
 use tmc_langs_util::{FileError, JsonError};
 
 #[derive(Error, Debug)]
@@ -23,10 +23,20 @@ pub enum JavaError {
     HomeDir,
     #[error("Failed to find cache directory")]
     CacheDir,
-    #[error("Failed to compile")]
+    #[error("Failed to compile{}", describe_output(stdout, stderr))]
     Compilation { stdout: String, stderr: String },
-    #[error("Error while executing Java code")]
+    #[error("Error while executing Java code{}", describe_output(stdout, stderr))]
     Jvm { stdout: String, stderr: String },
+    #[error(
+        "Java at {} does not start; point JAVA_HOME at a working JDK.{}",
+        java.display(),
+        describe_output(stdout, stderr)
+    )]
+    UnusableJava {
+        java: PathBuf,
+        stdout: String,
+        stderr: String,
+    },
 
     #[error("J4rs error
 stdout: {}

@@ -22,10 +22,14 @@ use std::{
     ffi::OsString,
     fmt::Display,
     path::{Path, PathBuf},
+    time::Duration,
 };
 use tempfile::TempPath;
-use tmc_langs_framework::ExitStatus;
+use tmc_langs_framework::{ExitStatus, TmcCommand};
 use tmc_langs_util::file_util;
+
+/// How long `java -version` may take before the JDK counts as broken.
+const JAVA_START_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[cfg(windows)]
 const SEPARATOR: &str = ";";
@@ -142,6 +146,23 @@ fn initialize_jassets() -> Result<PathBuf, JavaError> {
     Ok(j4rs_path)
 }
 
+/// Checks that the JDK j4rs will load starts at all. A JVM that fails to initialise (say, a
+/// JDK missing `libzip`) prints why and exits the whole process from inside j4rs, so the CLI
+/// could never report it; a separate launcher fails the same way without taking us down.
+fn check_java_starts(java: PathBuf) -> Result<(), JavaError> {
+    let output = TmcCommand::piped(java.clone())
+        .with(|e| e.arg("-version"))
+        .output_with_timeout(JAVA_START_TIMEOUT)?;
+    if output.status.success() {
+        return Ok(());
+    }
+    Err(JavaError::UnusableJava {
+        java,
+        stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+        stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+    })
+}
+
 /// Initializes the J4RS JVM.
 fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
     let junit_runner_path = crate::get_junit_runner_path()?;
@@ -160,6 +181,8 @@ fn instantiate_jvm() -> Result<JvmWrapper, JavaError> {
 
     let j4rs_path = crate::initialize_jassets()?;
     log::debug!("initialized jassets at {}", j4rs_path.display());
+
+    check_java_starts(java_executable())?;
 
     let tmc_dir = tmc_dir()?;
 
@@ -352,6 +375,30 @@ mod test {
         std::fs::write(&launcher, "").unwrap();
 
         assert_eq!(java_executable_in(Some(java_home.path().into())), launcher);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_java_that_does_not_start_reports_its_output() {
+        use std::os::unix::fs::PermissionsExt;
+        let java_home = tempfile::tempdir().unwrap();
+        let java = java_home.path().join("java");
+        std::fs::write(
+            &java,
+            "#!/bin/sh\necho 'Error occurred during initialization of VM'\n\
+             echo 'Unable to load zip library: libzip.so' >&2\nexit 1\n",
+        )
+        .unwrap();
+        std::fs::set_permissions(&java, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let message = check_java_starts(java).unwrap_err().to_string();
+
+        assert!(message.contains("does not start"), "{message}");
+        assert!(
+            message.contains("Error occurred during initialization of VM"),
+            "{message}"
+        );
+        assert!(message.contains("Unable to load zip library"), "{message}");
     }
 
     #[test]
