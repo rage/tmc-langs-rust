@@ -144,7 +144,14 @@ testResults: Array<TestResult>,
  * Logs from the test run.
  * The key may be an arbitrary string identifying the type of log.
  */
-logs: Record<string, string>, }
+logs: Record<string, string>,
+/**
+ * Set when the tests were stopped for running longer than this many milliseconds: the
+ * exercise's `tests_timeout_ms`, else 60000. The status is then `TESTS_FAILED`, with one
+ * failing test named "Timeout test" whose message says so; an infinite loop is the usual
+ * cause.
+ */
+timedOutAfterMs?: number, }
 
 export type RunStatus = "PASSED" | "TESTS_FAILED" | "COMPILE_FAILED" | "TESTRUN_INTERRUPTED" | "GENERIC_ERROR";
 

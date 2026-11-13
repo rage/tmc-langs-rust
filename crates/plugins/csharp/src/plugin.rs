@@ -257,6 +257,7 @@ impl LanguagePlugin for CSharpPlugin {
                         status: RunStatus::CompileFailed,
                         test_results: vec![],
                         logs,
+                        timed_out_after_ms: None,
                     });
                 }
 
@@ -281,26 +282,15 @@ impl LanguagePlugin for CSharpPlugin {
                     status,
                     test_results,
                     logs,
+                    timed_out_after_ms: None,
                 })
             }
-            Err(TmcError::Command(CommandError::TimeOut { stdout, stderr, .. })) => {
-                let mut logs = HashMap::new();
-                logs.insert("stdout".to_string(), stdout);
-                logs.insert("stderr".to_string(), stderr);
-                Ok(RunResult {
-                    status: RunStatus::TestsFailed,
-                    test_results: vec![TestResult {
-                    name: "Timeout test".to_string(),
-                    successful: false,
-                    points: vec![],
-                    message:
-                        "Tests timed out.\nMake sure you don't have an infinite loop in your code."
-                            .to_string(),
-                    exception: vec![],
-                }],
-                    logs,
-                })
-            }
+            Err(TmcError::Command(CommandError::TimeOut {
+                timeout,
+                stdout,
+                stderr,
+                ..
+            })) => Ok(RunResult::timed_out(timeout, stdout, stderr)),
             Err(error) => Err(error),
         }
     }

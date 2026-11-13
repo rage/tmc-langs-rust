@@ -4,11 +4,12 @@ use crate::{
     Archive, Compression,
     archive::ArchiveIterator,
     domain::{
-        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationResult,
-        TestResult,
+        DEFAULT_TESTS_TIMEOUT, ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus,
+        StyleValidationResult, TestResult,
     },
-    error::TmcError,
+    error::{CommandError, TmcError},
     policy::StudentFilePolicy,
+    tmc_project_yml::TmcProjectYml,
 };
 pub use isolang::Language;
 use nom::{IResult, Parser, branch, bytes, character, combinator, multi, sequence};
@@ -23,6 +24,39 @@ use std::{
 };
 use tmc_langs_util::file_util;
 use walkdir::WalkDir;
+
+fn tests_timeout(project_config: &TmcProjectYml) -> Duration {
+    project_config
+        .tests_timeout_ms
+        .map(|ms| Duration::from_millis(ms.into()))
+        .unwrap_or(DEFAULT_TESTS_TIMEOUT)
+}
+
+/// Turns a test command's [`CommandError::TimeOut`], wherever a plugin wrapped it in its own
+/// error type, into a [`RunResult::timed_out`].
+fn timeout_as_result(result: Result<RunResult, TmcError>) -> Result<RunResult, TmcError> {
+    let Err(err) = result else {
+        return result;
+    };
+    let mut cause: Option<&(dyn std::error::Error + 'static)> = Some(&err);
+    while let Some(error) = cause {
+        if let Some(CommandError::TimeOut {
+            timeout,
+            stdout,
+            stderr,
+            ..
+        }) = error.downcast_ref::<CommandError>()
+        {
+            return Ok(RunResult::timed_out(
+                *timeout,
+                stdout.clone(),
+                stderr.clone(),
+            ));
+        }
+        cause = error.source();
+    }
+    Err(err)
+}
 
 /// The trait that each language plug-in must implement.
 ///
@@ -52,14 +86,12 @@ pub trait LanguagePlugin {
     /// this language.
     fn scan_exercise(&self, path: &Path, exercise_name: String) -> Result<ExerciseDesc, TmcError>;
 
-    /// Runs the tests for the exercise.
+    /// Runs the tests for the exercise, stopping them after the exercise's `tests_timeout_ms`
+    /// or [`DEFAULT_TESTS_TIMEOUT`]. Tests stopped that way are a [`RunResult::timed_out`],
+    /// not an error.
     fn run_tests(&self, path: &Path) -> Result<RunResult, TmcError> {
-        let timeout = Self::StudentFilePolicy::new(path)?
-            .get_project_config()
-            .tests_timeout_ms
-            .map(Into::into)
-            .map(Duration::from_millis);
-        let result = self.run_tests_with_timeout(path, timeout)?;
+        let timeout = tests_timeout(Self::StudentFilePolicy::new(path)?.get_project_config());
+        let result = timeout_as_result(self.run_tests_with_timeout(path, Some(timeout)))?;
 
         // override success on no test cases
         if result.status == RunStatus::Passed && result.test_results.is_empty() {
@@ -74,6 +106,7 @@ pub trait LanguagePlugin {
                     exception: vec![],
                 }],
                 logs: result.logs,
+                timed_out_after_ms: None,
             })
         } else {
             Ok(result)
@@ -550,6 +583,59 @@ mod test {
         use log::*;
         use simple_logger::*;
         let _ = SimpleLogger::new().with_level(LevelFilter::Trace).init();
+    }
+
+    #[test]
+    fn tests_timeout_defaults_unless_the_project_sets_one() {
+        assert_eq!(
+            tests_timeout(&TmcProjectYml::default()),
+            DEFAULT_TESTS_TIMEOUT
+        );
+        let config = TmcProjectYml {
+            tests_timeout_ms: Some(300_000),
+            ..Default::default()
+        };
+        assert_eq!(tests_timeout(&config), Duration::from_secs(300));
+    }
+
+    #[derive(Debug, thiserror::Error)]
+    #[error("plugin failed")]
+    struct WrappingPluginError(#[source] TmcError);
+
+    #[test]
+    fn a_timeout_inside_a_plugin_error_becomes_a_timed_out_result() {
+        let timed_out = TmcError::Command(CommandError::TimeOut {
+            command: "java".to_string(),
+            timeout: Duration::from_secs(60),
+            stdout: "partial output".to_string(),
+            stderr: String::new(),
+        });
+        let err = TmcError::Plugin(Box::new(WrappingPluginError(timed_out)));
+
+        let result = timeout_as_result(Err(err)).unwrap();
+
+        assert_eq!(result.status, RunStatus::TestsFailed);
+        assert_eq!(result.timed_out_after_ms, Some(60_000));
+        assert_eq!(result.test_results.len(), 1);
+        assert_eq!(result.test_results[0].name, crate::TIMEOUT_TEST_NAME);
+        assert!(!result.test_results[0].successful);
+        assert!(
+            result.test_results[0]
+                .message
+                .starts_with("The tests did not finish within 60 s"),
+            "{}",
+            result.test_results[0].message
+        );
+        assert_eq!(result.logs["stdout"], "partial output");
+    }
+
+    #[test]
+    fn other_errors_stay_errors() {
+        let err = TmcError::NoProjectDirInArchive;
+        assert!(matches!(
+            timeout_as_result(Err(err)),
+            Err(TmcError::NoProjectDirInArchive)
+        ));
     }
 
     fn file_to(

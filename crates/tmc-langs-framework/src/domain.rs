@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    time::Duration,
 };
 
 /// A description of an exercise's test case.
@@ -58,6 +59,14 @@ impl ExerciseDesc {
     }
 }
 
+/// How long an exercise's tests may run when its `.tmcproject.yml` sets no `tests_timeout_ms`.
+/// Covers the whole test command, so a build the plugin does as part of it (C#, Maven's test
+/// goal) counts too; Java and make projects are built before the clock starts.
+pub const DEFAULT_TESTS_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// Name of the failing test a timed-out run reports; see [`RunResult::timed_out`].
+pub const TIMEOUT_TEST_NAME: &str = "Timeout test";
+
 /// The result of running an exercise's test suite against a submission.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -70,6 +79,13 @@ pub struct RunResult {
     /// Logs from the test run.
     /// The key may be an arbitrary string identifying the type of log.
     pub logs: HashMap<String, String>,
+    /// Set when the tests were stopped for running longer than this many milliseconds: the
+    /// exercise's `tests_timeout_ms`, else 60000. The status is then `TESTS_FAILED`, with one
+    /// failing test named "Timeout test" whose message says so; an infinite loop is the usual
+    /// cause.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts-rs", ts(optional))]
+    pub timed_out_after_ms: Option<u64>,
 }
 
 impl RunResult {
@@ -82,6 +98,34 @@ impl RunResult {
             status,
             test_results,
             logs,
+            timed_out_after_ms: None,
+        }
+    }
+
+    /// The result of a test run stopped after `timeout`, keeping the output it had produced.
+    pub fn timed_out(timeout: Duration, stdout: String, stderr: String) -> Self {
+        let limit = if timeout.subsec_millis() == 0 {
+            format!("{} s", timeout.as_secs())
+        } else {
+            format!("{} ms", timeout.as_millis())
+        };
+        let mut logs = HashMap::new();
+        logs.insert("stdout".to_string(), stdout);
+        logs.insert("stderr".to_string(), stderr);
+        Self {
+            status: RunStatus::TestsFailed,
+            test_results: vec![TestResult {
+                name: TIMEOUT_TEST_NAME.to_string(),
+                successful: false,
+                points: vec![],
+                message: format!(
+                    "The tests did not finish within {limit} and were stopped. \
+                     Make sure your code has no infinite loop."
+                ),
+                exception: vec![],
+            }],
+            logs,
+            timed_out_after_ms: Some(u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)),
         }
     }
 }

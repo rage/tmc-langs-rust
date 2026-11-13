@@ -232,7 +232,9 @@ pub enum Command {
         source_url: String,
     },
 
-    /// Run the tests for the exercise using the appropriate language plugin
+    /// Run the tests for the exercise using the appropriate language plugin. Tests running longer
+    /// than the exercise's `tests_timeout_ms`, else 60 seconds, are stopped and reported as a
+    /// failed run with `timedOutAfterMs` set.
     #[clap(long_about = schema_leaked::<RunResult>())]
     RunTests {
         /// Runs checkstyle if given. Path to the file where the style results will be written.

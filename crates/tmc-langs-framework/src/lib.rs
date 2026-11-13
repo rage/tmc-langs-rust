@@ -18,8 +18,9 @@ pub use self::{
     archive::{Archive, ArchiveBuilder, Compression, entry_name},
     command::{ExitStatus, Output, TmcCommand},
     domain::{
-        ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus, StyleValidationError,
-        StyleValidationResult, StyleValidationStrategy, TestDesc, TestResult,
+        DEFAULT_TESTS_TIMEOUT, ExerciseDesc, ExercisePackagingConfiguration, RunResult, RunStatus,
+        StyleValidationError, StyleValidationResult, StyleValidationStrategy, TIMEOUT_TEST_NAME,
+        TestDesc, TestResult,
     },
     error::{CommandError, TmcError},
     meta_syntax::{MetaString, MetaSyntaxParser},

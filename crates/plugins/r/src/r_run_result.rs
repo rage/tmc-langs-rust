@@ -50,6 +50,7 @@ impl From<RRunResult> for RunResult {
                 .map(|t| t.into())
                 .collect(),
             logs,
+            timed_out_after_ms: None,
         }
     }
 }

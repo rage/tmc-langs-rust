@@ -85,6 +85,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             status,
             test_results,
             logs,
+            timed_out_after_ms: None,
         })
     }
 
@@ -235,6 +236,7 @@ pub(crate) trait JavaPlugin: LanguagePlugin {
             status: RunStatus::CompileFailed,
             test_results: vec![],
             logs,
+            timed_out_after_ms: None,
         }
     }
 
