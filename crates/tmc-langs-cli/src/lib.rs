@@ -1165,7 +1165,7 @@ fn run_mooc(mooc: Mooc) -> Result<CliOutput> {
     // token yet, so the auth-failure handling below must not apply to them.
     match &mooc.command {
         MoocCommand::Login => return run_mooc_login(&client_name, &root_url, &client_id),
-        MoocCommand::LoggedIn => return mooc_logged_in(&client_name),
+        MoocCommand::LoggedIn => return mooc_logged_in(&client_name, &root_url, &client_id),
         MoocCommand::Logout => return mooc_logout(&client_name),
         _ => {}
     }
@@ -1276,24 +1276,45 @@ fn poll_mooc_device_login(
     }
 }
 
-/// Reports whether mooc credentials are stored, like the tmc `logged-in`. The
-/// token itself is kept out of the output so it never reaches client logs.
-fn mooc_logged_in(client_name: &str) -> Result<CliOutput> {
-    if tmc_langs::MoocCredentials::load(client_name)?.is_some() {
-        Ok(CliOutput::OutputData(Box::new(OutputData {
-            status: Status::Finished,
-            message: "currently logged in".to_string(),
-            result: OutputResult::LoggedIn,
-            data: None,
-        })))
-    } else {
-        Ok(CliOutput::OutputData(Box::new(OutputData {
+/// Reports whether mooc credentials are stored and, when the host answers, the account they
+/// belong to. Credentials the host rejects for good are deleted and reported as logged out.
+/// The token itself is kept out of the output so it never reaches client logs.
+fn mooc_logged_in(client_name: &str, root_url: &url::Url, client_id: &str) -> Result<CliOutput> {
+    let not_logged_in = || {
+        CliOutput::OutputData(Box::new(OutputData {
             status: Status::Finished,
             message: "currently not logged in".to_string(),
             result: OutputResult::NotLoggedIn,
             data: None,
-        })))
-    }
+        }))
+    };
+    let Some(credentials) = tmc_langs::MoocCredentials::load(client_name)? else {
+        return Ok(not_logged_in());
+    };
+
+    let mut client = tmc_langs::mooc::MoocClient::new(root_url.clone())?;
+    client.set_token(credentials.token());
+    let auth = tmc_langs::MoocAuth::new(
+        client_name.to_string(),
+        root_url.clone(),
+        client_id.to_string(),
+    );
+    // An unreachable or older host must not read as logged out: the credentials are still
+    // good, only the account id is unknown.
+    let current_user = match auth.call(&client, |c| c.current_user()) {
+        Ok(user) => Some(user),
+        Err(failure) if failure.is_permanent() => return Ok(not_logged_in()),
+        Err(failure) => {
+            log::warn!("could not fetch the logged-in account: {failure}");
+            None
+        }
+    };
+    Ok(CliOutput::OutputData(Box::new(OutputData {
+        status: Status::Finished,
+        message: "currently logged in".to_string(),
+        result: OutputResult::LoggedIn,
+        data: current_user.map(DataKind::MoocCurrentUser),
+    })))
 }
 
 /// Removes the stored mooc credentials — mirrors the tmc `logout` command.

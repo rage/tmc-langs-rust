@@ -3457,6 +3457,33 @@ fn run_mooc_auth(
     tmc_langs_cli::run(cli)
 }
 
+/// Runs `mooc logged-in` with localhost trusted, so the mock sees the bearer `me` is fetched with.
+fn run_mooc_logged_in(
+    server: &mockito::Server,
+    config_dir: &std::path::Path,
+) -> Result<CliOutput, tmc_langs_cli::CliError> {
+    let _guard = env_lock();
+    // SAFETY: all env access in these tests is serialized by ENV_LOCK.
+    unsafe {
+        std::env::set_var("TMC_LANGS_MOOC_ROOT_URL", server.url());
+        std::env::set_var("TMC_LANGS_CONFIG_DIR", config_dir);
+        std::env::set_var("TMC_LANGS_MOOC_TRUST_LOCALHOST", "1");
+    }
+    let cli = Cli::parse_from([
+        "tmc-langs-cli",
+        "mooc",
+        "--client-name",
+        "test",
+        "logged-in",
+    ]);
+    let result = tmc_langs_cli::run(cli);
+    // SAFETY: still holding ENV_LOCK.
+    unsafe {
+        std::env::remove_var("TMC_LANGS_MOOC_TRUST_LOCALHOST");
+    }
+    result
+}
+
 /// Mounts the device-authorization endpoint returning a fixed device/user code.
 fn mock_device_authorization(server: &mut mockito::Server) -> mockito::Mock {
     server
@@ -3574,16 +3601,68 @@ fn mooc_login_expired_has_its_own_kind() {
     assert_error_kind(error, "device-login-expired");
 }
 
-#[test]
-fn mooc_logged_in_reports_stored_credentials() {
-    let server = mockito::Server::new();
-    let config_dir = tempfile::tempdir().unwrap();
-    write_test_credentials(config_dir.path());
+const CURRENT_USER_ID: &str = "4a1f3c1e-8f0e-4c55-9d1b-6f7b1c2d3e4f";
 
-    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+fn mock_current_user(server: &mut mockito::Server, access_token: &str) -> mockito::Mock {
+    server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .match_header("authorization", format!("Bearer {access_token}").as_str())
+        .with_body(serde_json::json!({ "id": CURRENT_USER_ID }).to_string())
+        .create()
+}
+
+#[test]
+fn mooc_logged_in_reports_the_account_id() {
+    let mut server = mockito::Server::new();
+    let me = mock_current_user(&mut server, "sentinel-access");
+    let config_dir = tempfile::tempdir().unwrap();
+    write_credentials_with_refresh_token(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
+    me.assert();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::LoggedIn));
+    match data.data {
+        Some(DataKind::MoocCurrentUser(user)) => {
+            assert_eq!(user.id.to_string(), CURRENT_USER_ID);
+        }
+        other => panic!("expected the current user, got {other:?}"),
+    }
+}
+
+/// Offline, or against a host without `me`, the stored credentials still count.
+#[test]
+fn mooc_logged_in_without_an_answering_host_still_reports_logged_in() {
+    let mut server = mockito::Server::new();
+    let _me = server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .with_status(503)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    write_credentials_with_refresh_token(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
     let data = output_data(output);
     assert!(matches!(data.result, OutputResult::LoggedIn));
     assert!(data.data.is_none());
+}
+
+#[test]
+fn mooc_logged_in_with_rejected_credentials_reports_not_logged_in() {
+    let mut server = mockito::Server::new();
+    let _me = server
+        .mock("GET", "/api/v0/exercise-services/client/me")
+        .with_status(401)
+        .with_body(r#"{"message":"invalid token"}"#)
+        .create();
+    let config_dir = tempfile::tempdir().unwrap();
+    let credentials = write_test_credentials(config_dir.path());
+
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
+    let data = output_data(output);
+    assert!(matches!(data.result, OutputResult::NotLoggedIn));
+    assert!(data.data.is_none());
+    assert!(!credentials.exists(), "rejected credentials were kept");
 }
 
 /// `logged-in` answers a boolean question, so the credential must not ride
@@ -3591,11 +3670,12 @@ fn mooc_logged_in_reports_stored_credentials() {
 /// refresh token there is the long-lived one.
 #[test]
 fn mooc_logged_in_never_emits_the_token() {
-    let server = mockito::Server::new();
+    let mut server = mockito::Server::new();
+    let _me = mock_current_user(&mut server, "sentinel-access");
     let config_dir = tempfile::tempdir().unwrap();
     write_credentials_with_refresh_token(config_dir.path());
 
-    let output = run_mooc_auth(&server, &["logged-in"], config_dir.path()).unwrap();
+    let output = run_mooc_logged_in(&server, config_dir.path()).unwrap();
     let serialized = serde_json::to_string(&output).unwrap();
     assert!(matches!(output_data(output).result, OutputResult::LoggedIn));
     assert!(

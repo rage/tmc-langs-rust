@@ -218,6 +218,15 @@ impl MoocClient {
 
 /// API methods.
 impl MoocClient {
+    /// Fetches the account the stored token acts for.
+    pub fn current_user(&self) -> MoocClientResult<CurrentUser> {
+        let url = make_client_api_url(self, "me")?;
+        let res = self
+            .request(Method::GET, url)
+            .send_expect_json::<api::CurrentUser>()?;
+        Ok(res.into())
+    }
+
     pub fn course(&self, course_id: Uuid) -> MoocClientResult<Course> {
         let url = make_client_api_url(self, format!("courses/{course_id}"))?;
         let res = self
@@ -703,6 +712,22 @@ fn make_client_api_url(client: &MoocClient, tail: impl AsRef<str>) -> MoocClient
         .and_then(|u| u.join(tail.as_ref()))
         .map_err(|e| MoocClientError::UrlParse(tail.as_ref().to_string(), e))
         .map_err(Box::new)
+}
+
+/// The courses.mooc.fi account a token acts for; a changed `id` after login means the
+/// student switched accounts.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[cfg_attr(feature = "ts-rs", ts(rename = "MoocCurrentUser"))]
+#[schemars(rename = "MoocCurrentUser")]
+pub struct CurrentUser {
+    pub id: Uuid,
+}
+
+impl From<api::CurrentUser> for CurrentUser {
+    fn from(value: api::CurrentUser) -> Self {
+        Self { id: value.id }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, JsonSchema)]

@@ -550,8 +550,9 @@ pub enum MoocCommand {
     /// verification URL and user code, then polls until approved or killed.
     #[clap(long_about = SCHEMA_NULL)]
     Login,
-    /// Checks whether the CLI holds mooc credentials.
-    #[clap(long_about = SCHEMA_NULL)]
+    /// Checks whether the CLI holds mooc credentials and, when the backend answers,
+    /// which account they belong to.
+    #[clap(long_about = schema_leaked::<Option<mooc::CurrentUser>>())]
     LoggedIn,
     /// Logs out of the Courses MOOC backend, removing the stored credentials.
     #[clap(long_about = SCHEMA_NULL)]
@@ -1608,6 +1609,7 @@ mod test {
             // settings list
             tmc_langs::TmcConfig,
             // mooc
+            tmc_langs::mooc::CurrentUser,
             tmc_langs::mooc::Course,
             tmc_langs::mooc::CourseAiPolicy,
             tmc_langs::mooc::TmcExerciseSlide,

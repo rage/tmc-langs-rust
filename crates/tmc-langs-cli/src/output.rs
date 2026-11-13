@@ -121,6 +121,7 @@ pub enum DataKind {
     // mooc
     MoocExerciseUpdates(MoocExerciseUpdates),
     LocalMoocExercises(Vec<LocalMoocExercise>),
+    MoocCurrentUser(mooc::CurrentUser),
     MoocCourse(mooc::Course),
     MoocCourses(Vec<mooc::Course>),
     MoocExerciseSlides(Vec<mooc::TmcExerciseSlide>),
