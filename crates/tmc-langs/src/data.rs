@@ -341,6 +341,8 @@ mod test {
                     "standing": "Attempted",
                     "max_tries": 3,
                     "tries_left": 2,
+                    "pending_teacher_review": "awaits_teacher",
+                    "exercise_locked": true,
                 }],
                 "closed_chapters": [{
                     "id": "0e1a9e5c-4c1b-4b8e-9c3a-1b0c6a2f5d05",

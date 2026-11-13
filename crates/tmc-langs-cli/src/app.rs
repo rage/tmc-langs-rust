@@ -1635,6 +1635,7 @@ mod test {
             tmc_langs::mooc::ClosedChapter,
             tmc_langs::mooc::ExerciseProgress,
             tmc_langs::mooc::ExerciseStanding,
+            tmc_langs::mooc::PendingTeacherReview,
             tmc_langs::mooc::MoocClientUpdateData,
             tmc_langs::MoocOldSubmissionRestore,
             tmc_langs::CombinedMoocCourseData,

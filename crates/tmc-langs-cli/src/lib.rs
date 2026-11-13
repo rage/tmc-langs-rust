@@ -251,6 +251,7 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
                 Some(mooc::CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY) => {
                     Some(Kind::ChapterCompletedAndLocked)
                 }
+                Some(mooc::EXERCISE_LOCKED_MESSAGE_KEY) => Some(Kind::ExerciseLocked),
                 Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) => Some(Kind::UploadExpired),
                 Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) => Some(Kind::UnknownUpload),
                 Some(mooc::RATE_LIMITED_MESSAGE_KEY) => Some(Kind::RateLimited),

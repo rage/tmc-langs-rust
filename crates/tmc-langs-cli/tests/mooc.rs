@@ -9,7 +9,7 @@ use clap::Parser;
 use std::sync::{Mutex, MutexGuard};
 use tmc_langs::{
     MoocCredentials,
-    mooc::{CourseAiPolicy, ExerciseStanding},
+    mooc::{CourseAiPolicy, ExerciseStanding, PendingTeacherReview},
     progress_reporter,
 };
 use tmc_langs_cli::{
@@ -628,6 +628,7 @@ fn mooc_refusals_map_to_their_own_kinds() {
             "chapter_completed_and_locked",
             "chapter-completed-and-locked",
         ),
+        (403, "exercise_locked", "exercise-locked"),
         (403, "forbidden", "insufficient-scope"),
     ];
     for (status, message_key, kind) in cases {
@@ -1051,6 +1052,16 @@ fn dispatches_course_progress() {
                         "score_maximum": 3,
                         "completed": false,
                         "attempted": false
+                    },
+                    {
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000005",
+                        "score_given": 0.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "Attempted",
+                        "pending_teacher_review": "awaits_teacher",
+                        "exercise_locked": true
                     }
                 ],
                 "closed_chapters": [{
@@ -1075,7 +1086,7 @@ fn dispatches_course_progress() {
     match data_of(output) {
         DataKind::MoocCourseProgress(progress) => {
             assert_eq!(progress.course_id, Uuid::parse_str(course_id).unwrap());
-            assert_eq!(progress.exercises.len(), 3);
+            assert_eq!(progress.exercises.len(), 4);
             assert_eq!(progress.exercises[0].score_given, 1.0);
             assert!(progress.exercises[0].completed);
             assert_eq!(
@@ -1093,6 +1104,13 @@ fn dispatches_course_progress() {
             assert!(!progress.exercises[2].attempted);
             // This entry is from a host that predates `standing`.
             assert_eq!(progress.exercises[2].standing, None);
+            assert_eq!(progress.exercises[2].pending_teacher_review, None);
+            assert!(!progress.exercises[2].exercise_locked);
+            assert_eq!(
+                progress.exercises[3].pending_teacher_review,
+                Some(PendingTeacherReview::AwaitsTeacher)
+            );
+            assert!(progress.exercises[3].exercise_locked);
             assert_eq!(progress.closed_chapters.len(), 1);
             let closed = &progress.closed_chapters[0];
             assert_eq!(closed.name, "Later");

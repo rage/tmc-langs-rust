@@ -247,6 +247,9 @@ pub enum Kind {
     /// The user completed and locked the exercise's chapter, which takes no more submissions
     /// (backend `message_key: "chapter_completed_and_locked"`, HTTP 403).
     ChapterCompletedAndLocked,
+    /// The exercise takes no more submissions from the user, whatever its chapter's locking
+    /// status says (backend `message_key: "exercise_locked"`, HTTP 403).
+    ExerciseLocked,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

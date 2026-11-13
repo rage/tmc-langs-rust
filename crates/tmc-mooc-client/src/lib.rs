@@ -90,6 +90,8 @@ pub const NOT_ENROLLED_MESSAGE_KEY: &str = "not_enrolled";
 pub const CHAPTER_NOT_OPEN_YET_MESSAGE_KEY: &str = "chapter_not_open_yet";
 pub const CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY: &str = "chapter_not_unlocked_yet";
 pub const CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY: &str = "chapter_completed_and_locked";
+/// 403 refusing a submit while `ExerciseProgress::exercise_locked` is set.
+pub const EXERCISE_LOCKED_MESSAGE_KEY: &str = "exercise_locked";
 
 /// File name sent for the submitted project archive. The host stores it as the
 /// upload's `name`; nothing depends on the extension.
@@ -885,6 +887,50 @@ pub struct ExerciseProgress {
     /// How many of `max_tries` are left on the slide the user answers; `None` when unlimited.
     #[serde(default)]
     pub tries_left: Option<i32>,
+    /// What the user's points wait for when a teacher must review their answer first. While set,
+    /// `score_given` is `0.0` and `standing` is `Attempted`, even after a fully passing grading.
+    #[serde(default)]
+    pub pending_teacher_review: Option<PendingTeacherReview>,
+    /// `true` once the exercise takes no more submissions from the user, whatever its chapter's
+    /// locking status says; a submit fails with the `exercise-locked` error kind.
+    #[serde(default)]
+    pub exercise_locked: bool,
+}
+
+/// What a user's points on an exercise wait for when a teacher reviews answers before awarding
+/// points.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+#[serde(rename_all = "snake_case")]
+pub enum PendingTeacherReview {
+    /// The answer is graded, but its points come only after the user completes and locks the
+    /// exercise's chapter and a teacher reviews the answer. Submitting stays possible until then.
+    AwaitsChapterLock,
+    /// The answer waits for a teacher's review, and the exercise is locked.
+    AwaitsTeacher,
+    /// A value newer than this client.
+    Unrecognized,
+}
+
+// Hand-written rather than `#[serde(other)]`, which ts-rs cannot parse.
+impl<'de> Deserialize<'de> for PendingTeacherReview {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        Ok(match String::deserialize(deserializer)?.as_str() {
+            "awaits_chapter_lock" => Self::AwaitsChapterLock,
+            "awaits_teacher" => Self::AwaitsTeacher,
+            _ => Self::Unrecognized,
+        })
+    }
+}
+
+impl From<api::PendingTeacherReview> for PendingTeacherReview {
+    fn from(value: api::PendingTeacherReview) -> Self {
+        match value {
+            api::PendingTeacherReview::AwaitsChapterLock => Self::AwaitsChapterLock,
+            api::PendingTeacherReview::AwaitsTeacher => Self::AwaitsTeacher,
+            api::PendingTeacherReview::Unrecognized => Self::Unrecognized,
+        }
+    }
 }
 
 /// Where the user stands on an exercise, as the host decides it.
@@ -893,11 +939,13 @@ pub struct ExerciseProgress {
 pub enum ExerciseStanding {
     /// No graded submission and no try used.
     NotAttempted,
-    /// Below full points with tries left, or still being graded.
+    /// Below full points with tries left, still being graded, or waiting for a teacher's review
+    /// (`pending_teacher_review`).
     Attempted,
     /// A grading awarded full points.
     Passed,
-    /// Below full points (0 included) with the try limit used up, so the score is final.
+    /// Below full points (0 included), the try limit used up and no teacher review pending, so
+    /// the score is final.
     OutOfTries,
 }
 
@@ -923,6 +971,8 @@ impl From<api::ExerciseProgress> for ExerciseProgress {
             standing: value.standing.map(Into::into),
             max_tries: value.max_tries,
             tries_left: value.tries_left,
+            pending_teacher_review: value.pending_teacher_review.map(Into::into),
+            exercise_locked: value.exercise_locked,
         }
     }
 }
@@ -1172,6 +1222,8 @@ mod test {
                     standing: Some(api::ExerciseStanding::Passed),
                     max_tries: Some(3),
                     tries_left: Some(2),
+                    pending_teacher_review: Some(api::PendingTeacherReview::AwaitsChapterLock),
+                    exercise_locked: false,
                 }),
             });
         let grading = serde_json::to_value(&grading).unwrap();
@@ -1187,6 +1239,14 @@ mod test {
         );
         assert_eq!(grading["grading"]["exercise_progress"]["max_tries"], 3);
         assert_eq!(grading["grading"]["exercise_progress"]["tries_left"], 2);
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["pending_teacher_review"],
+            "awaits_chapter_lock"
+        );
+        assert_eq!(
+            grading["grading"]["exercise_progress"]["exercise_locked"],
+            false
+        );
         assert!(
             !grading.to_string().contains("sentinel"),
             "plugin-private feedback must not be relayed: {grading}"
@@ -1717,6 +1777,42 @@ mod test {
                 policy
             );
         }
+    }
+
+    #[test]
+    fn pending_teacher_review_wire_strings() {
+        for (review, wire) in [
+            (
+                PendingTeacherReview::AwaitsChapterLock,
+                "awaits_chapter_lock",
+            ),
+            (PendingTeacherReview::AwaitsTeacher, "awaits_teacher"),
+            (PendingTeacherReview::Unrecognized, "unrecognized"),
+        ] {
+            assert_eq!(serde_json::to_value(review).unwrap(), wire);
+            assert_eq!(
+                serde_json::from_value::<PendingTeacherReview>(serde_json::json!(wire)).unwrap(),
+                review
+            );
+        }
+    }
+
+    /// The host's own type cannot serialize a value newer than its crate; ours must, since the
+    /// CLI writes it out again.
+    #[test]
+    fn unknown_pending_teacher_review_from_the_host_serializes_as_unrecognized() {
+        let progress: api::ExerciseProgress = serde_json::from_value(serde_json::json!({
+            "exercise_id": "a1b2c3d4-0000-4000-8000-000000000001",
+            "score_given": 0.0,
+            "score_maximum": 1,
+            "completed": true,
+            "attempted": true,
+            "pending_teacher_review": "some_future_review",
+        }))
+        .unwrap();
+        let progress = serde_json::to_value(ExerciseProgress::from(progress)).unwrap();
+        assert_eq!(progress["pending_teacher_review"], "unrecognized");
+        assert_eq!(progress["exercise_locked"], false);
     }
 
     #[test]
