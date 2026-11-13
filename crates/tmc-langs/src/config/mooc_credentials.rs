@@ -187,6 +187,9 @@ fn adopt_shared_credentials(shared: &Path, per_host: &Path) -> bool {
 /// The credentials file can't be the lock: it is replaced by rename, so a lock on
 /// it would cover an unlinked inode, and on Windows the locking handle would
 /// block both the rename and reads.
+///
+/// Never deleted, logout included: a locker that opened it just before the unlink
+/// would hold the orphaned inode while the next opener locks a fresh one.
 fn lock_file_path(path: &Path) -> PathBuf {
     let mut name = path.file_name().unwrap_or_default().to_os_string();
     name.push(".lock");
