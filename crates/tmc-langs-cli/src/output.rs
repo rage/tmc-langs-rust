@@ -231,6 +231,21 @@ pub enum Kind {
     /// courses.mooc.fi answered 429 (backend `message_key: "rate_limited"`): the user made too
     /// many pastes of the exercise recently and should try again later.
     RateLimited,
+    /// A submission came after the exercise's deadline (its own, else its chapter's)
+    /// (backend `message_key: "deadline_passed"`, HTTP 422).
+    DeadlinePassed,
+    /// A submission came when the exercise had no tries left
+    /// (backend `message_key: "out_of_tries"`, HTTP 422).
+    OutOfTries,
+    /// The exercise's chapter has not opened yet
+    /// (backend `message_key: "chapter_not_open_yet"`, HTTP 403).
+    ChapterNotOpenYet,
+    /// Chapter locking keeps the exercise's chapter closed until the previous chapters are
+    /// completed (backend `message_key: "chapter_not_unlocked_yet"`, HTTP 403).
+    ChapterNotUnlockedYet,
+    /// The user completed and locked the exercise's chapter, which takes no more submissions
+    /// (backend `message_key: "chapter_completed_and_locked"`, HTTP 403).
+    ChapterCompletedAndLocked,
 }
 
 pub use tmc_langs::ProjectsDirTmcExercise;

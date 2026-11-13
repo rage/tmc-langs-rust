@@ -616,6 +616,54 @@ fn mooc_422_not_enrolled_maps_to_not_enrolled_kind() {
 }
 
 #[test]
+fn mooc_refusals_map_to_their_own_kinds() {
+    let cases = [
+        (422_u16, "deadline_passed", "deadline-passed"),
+        (422, "out_of_tries", "out-of-tries"),
+        (422, "not_enrolled", "not-enrolled"),
+        (403, "chapter_not_open_yet", "chapter-not-open-yet"),
+        (403, "chapter_not_unlocked_yet", "chapter-not-unlocked-yet"),
+        (
+            403,
+            "chapter_completed_and_locked",
+            "chapter-completed-and-locked",
+        ),
+        (403, "forbidden", "insufficient-scope"),
+    ];
+    for (status, message_key, kind) in cases {
+        let mut server = mockito::Server::new();
+        let _refused = server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{SUBMIT_EXERCISE_ID}").as_str(),
+            )
+            .with_status(status.into())
+            .with_body(
+                serde_json::json!({
+                    "type": "validation_error",
+                    "message_key": message_key,
+                    "message": "refused",
+                })
+                .to_string(),
+            )
+            .expect_at_least(1)
+            .create();
+
+        let config_dir = tempfile::tempdir().unwrap();
+        let projects_dir = tempfile::tempdir().unwrap();
+        write_test_credentials(config_dir.path());
+        let error = run_mooc_in_expect_error(
+            &server,
+            &["exercise", "--exercise-id", SUBMIT_EXERCISE_ID],
+            config_dir.path(),
+            projects_dir.path(),
+        );
+        assert_http_status(&error, Some(status));
+        assert_error_kind(error, kind);
+    }
+}
+
+#[test]
 fn mooc_422_unknown_upload_maps_to_unknown_upload_kind() {
     // A submit naming a file that was never uploaded for this exercise by this
     // user is a client bug or tampering: it surfaces directly, with no retry.
@@ -993,7 +1041,9 @@ fn dispatches_course_progress() {
                         "score_maximum": 2,
                         "completed": true,
                         "attempted": true,
-                        "standing": "OutOfTries"
+                        "standing": "OutOfTries",
+                        "max_tries": 3,
+                        "tries_left": 0
                     },
                     {
                         "exercise_id": "a1b2c3d4-0000-4000-8000-000000000003",
@@ -1002,7 +1052,21 @@ fn dispatches_course_progress() {
                         "completed": false,
                         "attempted": false
                     }
-                ]
+                ],
+                "closed_chapters": [{
+                    "id": "c1b2c3d4-0000-4000-8000-000000000009",
+                    "name": "Later",
+                    "chapter_number": 2,
+                    "opens_at": "2030-01-01T00:00:00Z",
+                    "exercises": [{
+                        "exercise_id": "a1b2c3d4-0000-4000-8000-000000000004",
+                        "score_given": 1.0,
+                        "score_maximum": 1,
+                        "completed": true,
+                        "attempted": true,
+                        "standing": "Passed"
+                    }]
+                }]
             })
             .to_string(),
         )
@@ -1023,9 +1087,16 @@ fn dispatches_course_progress() {
                 progress.exercises[1].standing,
                 Some(ExerciseStanding::OutOfTries)
             );
+            assert_eq!(progress.exercises[1].max_tries, Some(3));
+            assert_eq!(progress.exercises[1].tries_left, Some(0));
+            assert_eq!(progress.exercises[0].max_tries, None);
             assert!(!progress.exercises[2].attempted);
             // This entry is from a host that predates `standing`.
             assert_eq!(progress.exercises[2].standing, None);
+            assert_eq!(progress.closed_chapters.len(), 1);
+            let closed = &progress.closed_chapters[0];
+            assert_eq!(closed.name, "Later");
+            assert_eq!(closed.exercises[0].score_given, 1.0);
         }
         other => panic!("expected MoocCourseProgress, got {other:?}"),
     }
@@ -1042,6 +1113,10 @@ fn exercise_carries_its_page_and_chapter() {
             let chapter = slide.chapter.expect("the mock exercise is in a chapter");
             assert_eq!(chapter.name, "Getting started");
             assert_eq!(chapter.chapter_number, 1);
+            assert_eq!(
+                chapter.locking_status,
+                Some(tmc_langs::mooc::ChapterLockingStatus::NotUnlockedYet)
+            );
         }
         other => panic!("expected MoocExerciseSlide, got {other:?}"),
     }
@@ -1915,6 +1990,7 @@ fn mock_exercise_for_submit(server: &mut mockito::Server) -> mockito::Mock {
                     "id": "4c0b3a2e-0000-4000-8000-000000000001",
                     "name": "Getting started",
                     "chapter_number": 1,
+                    "locking_status": "not_unlocked_yet",
                 },
             })
             .to_string(),

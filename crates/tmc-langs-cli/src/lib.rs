@@ -239,20 +239,30 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             ..
         } => {
             // `message_key` is the backend's stable error identifier; prefer it over the status.
-            if *obsolete_client || message_key.as_deref() == Some("obsolete_client") {
+            let key_kind = match message_key.as_deref() {
+                Some("obsolete_client") => Some(Kind::ObsoleteClient),
+                Some(mooc::NOT_ENROLLED_MESSAGE_KEY) => Some(Kind::NotEnrolled),
+                Some(mooc::DEADLINE_PASSED_MESSAGE_KEY) => Some(Kind::DeadlinePassed),
+                Some(mooc::OUT_OF_TRIES_MESSAGE_KEY) => Some(Kind::OutOfTries),
+                Some(mooc::CHAPTER_NOT_OPEN_YET_MESSAGE_KEY) => Some(Kind::ChapterNotOpenYet),
+                Some(mooc::CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY) => {
+                    Some(Kind::ChapterNotUnlockedYet)
+                }
+                Some(mooc::CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY) => {
+                    Some(Kind::ChapterCompletedAndLocked)
+                }
+                Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) => Some(Kind::UploadExpired),
+                Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) => Some(Kind::UnknownUpload),
+                Some(mooc::RATE_LIMITED_MESSAGE_KEY) => Some(Kind::RateLimited),
+                // `duplicate_upload` is left unmapped: only a buggy client triggers it.
+                _ => None,
+            };
+            if *obsolete_client {
                 Some(Kind::ObsoleteClient)
-            } else if message_key.as_deref() == Some("not_enrolled") {
-                Some(Kind::NotEnrolled)
-            } else if message_key.as_deref() == Some(mooc::UPLOAD_EXPIRED_MESSAGE_KEY) {
-                Some(Kind::UploadExpired)
-            } else if message_key.as_deref() == Some(mooc::UNKNOWN_UPLOAD_MESSAGE_KEY) {
-                Some(Kind::UnknownUpload)
-            } else if message_key.as_deref() == Some(mooc::RATE_LIMITED_MESSAGE_KEY)
-                || status.as_u16() == 429
-            {
+            } else if key_kind.is_some() {
+                key_kind
+            } else if status.as_u16() == 429 {
                 Some(Kind::RateLimited)
-            // `duplicate_upload` is left unmapped: only a buggy client triggers it, and a
-            // new `Kind` would have to be mirrored in bindings.schema.json and langsSchema.ts.
             } else if status.as_u16() == 403 {
                 Some(Kind::InsufficientScope)
             } else if status.as_u16() == 401 {

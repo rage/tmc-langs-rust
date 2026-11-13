@@ -16,8 +16,8 @@ pub use self::{
     },
     error::{MoocClientError, MoocClientResult},
     exercise::{
-        BrowserTestRuntime, BrowserTestSpec, ExerciseChapter, ExerciseType, ModelSolutionSpec,
-        PublicSpec, TmcExerciseSlide, TmcExerciseTask,
+        BrowserTestRuntime, BrowserTestSpec, ChapterLockingStatus, ExerciseChapter, ExerciseType,
+        ModelSolutionSpec, PublicSpec, TmcExerciseSlide, TmcExerciseTask,
     },
     grading::{GradingTestResult, GradingTestRun, GradingTestRunStatus},
 };
@@ -81,6 +81,15 @@ pub const UNKNOWN_UPLOAD_MESSAGE_KEY: &str = "unknown_upload";
 
 /// Backend `message_key` of a 429: the user stored too many pastes of the exercise recently.
 pub const RATE_LIMITED_MESSAGE_KEY: &str = "rate_limited";
+
+/// Backend `message_key`s of a refused submission (422 except where noted).
+pub const DEADLINE_PASSED_MESSAGE_KEY: &str = "deadline_passed";
+pub const OUT_OF_TRIES_MESSAGE_KEY: &str = "out_of_tries";
+pub const NOT_ENROLLED_MESSAGE_KEY: &str = "not_enrolled";
+/// 403s from a closed chapter, unlike a plain 403 for a missing scope.
+pub const CHAPTER_NOT_OPEN_YET_MESSAGE_KEY: &str = "chapter_not_open_yet";
+pub const CHAPTER_NOT_UNLOCKED_YET_MESSAGE_KEY: &str = "chapter_not_unlocked_yet";
+pub const CHAPTER_COMPLETED_AND_LOCKED_MESSAGE_KEY: &str = "chapter_completed_and_locked";
 
 /// File name sent for the submitted project archive. The host stores it as the
 /// upload's `name`; nothing depends on the extension.
@@ -788,12 +797,41 @@ impl From<api::CourseAiPolicy> for CourseAiPolicy {
 pub struct CourseProgress {
     pub course_id: Uuid,
     pub exercises: Vec<ExerciseProgress>,
+    /// Chapters that have not opened yet. Their exercises are missing from `exercises` and
+    /// from the course's exercise list until then; they are closed, not removed.
+    #[serde(default)]
+    pub closed_chapters: Vec<ClosedChapter>,
 }
 
 impl From<api::CourseProgress> for CourseProgress {
     fn from(value: api::CourseProgress) -> Self {
         Self {
             course_id: value.course_id,
+            exercises: value.exercises.into_iter().map(Into::into).collect(),
+            closed_chapters: value.closed_chapters.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+/// A chapter of the course that opens later, with the user's progress on its exercises.
+#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[cfg_attr(feature = "ts-rs", derive(TS))]
+pub struct ClosedChapter {
+    pub id: Uuid,
+    pub name: String,
+    /// The chapter's position in the course, from 1.
+    pub chapter_number: i32,
+    pub opens_at: DateTime<Utc>,
+    pub exercises: Vec<ExerciseProgress>,
+}
+
+impl From<api::ClosedChapter> for ClosedChapter {
+    fn from(value: api::ClosedChapter) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            chapter_number: value.chapter_number,
+            opens_at: value.opens_at,
             exercises: value.exercises.into_iter().map(Into::into).collect(),
         }
     }
@@ -816,6 +854,12 @@ pub struct ExerciseProgress {
     pub attempted: bool,
     /// `None` from a host that predates the field.
     pub standing: Option<ExerciseStanding>,
+    /// How many graded submissions the exercise accepts per slide; `None` when unlimited.
+    #[serde(default)]
+    pub max_tries: Option<i32>,
+    /// How many of `max_tries` are left on the slide the user answers; `None` when unlimited.
+    #[serde(default)]
+    pub tries_left: Option<i32>,
 }
 
 /// Where the user stands on an exercise, as the host decides it.
@@ -852,6 +896,8 @@ impl From<api::ExerciseProgress> for ExerciseProgress {
             completed: value.completed,
             attempted: value.attempted,
             standing: value.standing.map(Into::into),
+            max_tries: value.max_tries,
+            tries_left: value.tries_left,
         }
     }
 }
@@ -1099,6 +1145,8 @@ mod test {
                     completed: true,
                     attempted: true,
                     standing: Some(api::ExerciseStanding::Passed),
+                    max_tries: Some(3),
+                    tries_left: Some(2),
                 }),
             });
         let grading = serde_json::to_value(&grading).unwrap();
@@ -1112,6 +1160,8 @@ mod test {
             grading["grading"]["exercise_progress"]["standing"],
             "Passed"
         );
+        assert_eq!(grading["grading"]["exercise_progress"]["max_tries"], 3);
+        assert_eq!(grading["grading"]["exercise_progress"]["tries_left"], 2);
         assert!(
             !grading.to_string().contains("sentinel"),
             "plugin-private feedback must not be relayed: {grading}"
