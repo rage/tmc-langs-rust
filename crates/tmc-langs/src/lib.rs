@@ -87,6 +87,7 @@ pub struct MoocExerciseUpdates {
     /// Exercises whose server version differs from the local copy.
     pub updated: Vec<Uuid>,
     /// Exercises their course no longer has. Their local copies are left in place and are never updated.
+    /// Exercises of a chapter that has not opened yet are absent from the course but not removed.
     pub removed: Vec<Uuid>,
 }
 
@@ -173,23 +174,20 @@ pub fn check_mooc_exercise_updates(
 
     let config = ProjectsConfig::load(projects_dir)?;
 
-    // One `course_exercises` request per course. Key by exercise id: the stored
-    // `task_id` is the editor task's id, not an exercise key.
-    let mut server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = HashMap::new();
     for course_config in config.mooc_courses.values() {
         if course_config.exercises.is_empty() {
             continue;
         }
-        let slides = auth.call(client, |c| c.course_exercises(course_config.course_id))?;
-        for slide in slides {
-            server_exercises.insert(slide.exercise_id, slide);
-        }
-    }
-
-    for course_config in config.mooc_courses.values() {
+        // Keyed by exercise id: the stored `task_id` is the editor task's id, not an exercise key.
+        let server_exercises: HashMap<Uuid, mooc::TmcExerciseSlide> = auth
+            .call(client, |c| c.course_exercises(course_config.course_id))?
+            .into_iter()
+            .map(|slide| (slide.exercise_id, slide))
+            .collect();
+        let mut missing = Vec::new();
         for (exercise_id, local_exercise) in &course_config.exercises {
             let Some(server_exercise) = server_exercises.get(exercise_id) else {
-                updates.removed.push(*exercise_id);
+                missing.push(*exercise_id);
                 continue;
             };
             if server_exercise
@@ -200,8 +198,29 @@ pub fn check_mooc_exercise_updates(
                 updates.updated.push(*exercise_id);
             }
         }
+        if !missing.is_empty() {
+            let closed = closed_chapter_exercise_ids(client, auth, course_config.course_id)?;
+            updates
+                .removed
+                .extend(missing.into_iter().filter(|id| !closed.contains(id)));
+        }
     }
     Ok(updates)
+}
+
+/// The course's exercises that sit in chapters that have not opened yet. The course's exercise
+/// list omits them, so they must not be mistaken for removed exercises.
+fn closed_chapter_exercise_ids(
+    client: &MoocClient,
+    auth: &MoocAuth,
+    course_id: Uuid,
+) -> Result<HashSet<Uuid>, LangsError> {
+    let progress = auth.call(client, |c| c.course_progress(course_id))?;
+    Ok(progress
+        .closed_chapters
+        .iter()
+        .flat_map(|chapter| chapter.exercises.iter().map(|e| e.exercise_id))
+        .collect())
 }
 
 /// Downloads the user's old submission from the server.
@@ -1128,7 +1147,8 @@ pub fn download_mooc_old_submission(
 /// name determines the on-disk directory, and the course id doubles as the
 /// projects config instance key (the API does not expose course instance ids).
 ///
-/// Per exercise: not found or no editor task (e.g. browser-only) -> failed;
+/// Per exercise: not found, in a chapter that has not opened yet, or no editor task (e.g.
+/// browser-only) -> failed;
 /// stored checksum matches -> skipped; otherwise the stub archive is downloaded,
 /// extracted and the course config updated. Results are keyed by the requested
 /// `exercise_id`.
@@ -1150,6 +1170,8 @@ pub fn download_or_update_mooc_course_exercises(
     // exercise_id -> (course_id, course_name, slide)
     let requested: HashSet<Uuid> = exercise_ids.iter().copied().collect();
     let mut resolved: HashMap<Uuid, (Uuid, String, mooc::TmcExerciseSlide)> = HashMap::new();
+    // Requested exercises of a chapter that has not opened yet, with why they cannot be downloaded.
+    let mut closed: HashMap<Uuid, String> = HashMap::new();
     if !requested.is_empty() {
         match course_id {
             Some(course_id) => {
@@ -1157,6 +1179,25 @@ pub fn download_or_update_mooc_course_exercises(
                 for slide in auth.call(client, |c| c.course_exercises(course_id))? {
                     if requested.contains(&slide.exercise_id) {
                         resolved.insert(slide.exercise_id, (course.id, course.name.clone(), slide));
+                    }
+                }
+                if resolved.len() < requested.len() {
+                    let progress = auth.call(client, |c| c.course_progress(course_id))?;
+                    for chapter in progress.closed_chapters {
+                        for exercise in &chapter.exercises {
+                            if requested.contains(&exercise.exercise_id) {
+                                closed.insert(
+                                    exercise.exercise_id,
+                                    format!(
+                                        "Exercise {} is in chapter {} \"{}\", which opens at {}",
+                                        exercise.exercise_id,
+                                        chapter.chapter_number,
+                                        chapter.name,
+                                        chapter.opens_at
+                                    ),
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -1193,14 +1234,17 @@ pub fn download_or_update_mooc_course_exercises(
 
     for &exercise_id in exercise_ids {
         let Some((course_id, course_name, slide)) = resolved.get(&exercise_id) else {
+            let reason = closed.remove(&exercise_id).unwrap_or_else(|| {
+                format!(
+                    "Exercise {exercise_id} was not found in any of the user's enrolled courses"
+                )
+            });
             failed.push((
                 MoocExerciseDownload {
                     exercise_id,
                     path: projects_dir.join("mooc"),
                 },
-                vec![format!(
-                    "Exercise {exercise_id} was not found in any of the user's enrolled courses"
-                )],
+                vec![reason],
             ));
             continue;
         };
@@ -2048,6 +2092,59 @@ directory = "ex-1"
         .to_string()
     }
 
+    /// JSON for a course's progress whose one closed chapter holds `closed_exercise_ids`.
+    fn progress_with_closed_chapter_json(closed_exercise_ids: &[Uuid]) -> String {
+        let exercises: Vec<_> = closed_exercise_ids
+            .iter()
+            .map(|id| {
+                serde_json::json!({
+                    "exercise_id": id,
+                    "score_given": 0.0,
+                    "score_maximum": 1,
+                    "completed": false,
+                    "attempted": false,
+                })
+            })
+            .collect();
+        serde_json::json!({
+            "course_id": Uuid::new_v4(),
+            "exercises": [],
+            "closed_chapters": [{
+                "id": Uuid::new_v4(),
+                "name": "Later",
+                "chapter_number": 2,
+                "opens_at": "2030-01-01T00:00:00Z",
+                "exercises": exercises,
+            }],
+        })
+        .to_string()
+    }
+
+    /// Adds a second exercise in directory `ex-2` to the course written by
+    /// [`write_mooc_course_config`], with a file in it; returns its id.
+    fn add_second_mooc_exercise(projects_dir: &std::path::Path) -> Uuid {
+        let exercise_id = Uuid::new_v4();
+        let config_path = projects_dir.join("mooc/my-course/course_config.toml");
+        let mut config = std::fs::read_to_string(&config_path).unwrap();
+        config.push_str(&format!(
+            r#"
+[exercises."{exercise_id}"]
+name = "Exercise 2"
+task_id = "{}"
+checksum = "old checksum"
+directory = "ex-2"
+"#,
+            Uuid::new_v4()
+        ));
+        std::fs::write(&config_path, config).unwrap();
+        file_to(
+            projects_dir,
+            "mooc/my-course/ex-2/src/main.py",
+            "student code",
+        );
+        exercise_id
+    }
+
     #[test]
     fn signs_with_jwt() {
         init();
@@ -2816,23 +2913,7 @@ checksum = 'new checksum'
         let projects_dir = tempfile::tempdir().unwrap();
         let (_instance_id, exercise_id, task_id) =
             write_mooc_course_config(projects_dir.path(), "old checksum");
-        let removed_id = Uuid::new_v4();
-        let config_path = projects_dir
-            .path()
-            .join("mooc/my-course/course_config.toml");
-        let mut config = std::fs::read_to_string(&config_path).unwrap();
-        config.push_str(&format!(
-            r#"
-[exercises."{removed_id}"]
-name = "Exercise 2"
-task_id = "{}"
-checksum = "old checksum"
-directory = "ex-2"
-"#,
-            Uuid::new_v4()
-        ));
-        std::fs::write(&config_path, config).unwrap();
-        std::fs::create_dir_all(projects_dir.path().join("mooc/my-course/ex-2")).unwrap();
+        let removed_id = add_second_mooc_exercise(projects_dir.path());
 
         let _m = server
             .mock(
@@ -2851,6 +2932,15 @@ directory = "ex-2"
                 )
             ))
             .create();
+        let _progress = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/progress".to_string(),
+                ),
+            )
+            .with_body(progress_with_closed_chapter_json(&[]))
+            .create();
 
         let client = mock_mooc_client(&server);
         let auth = mock_mooc_auth(&server);
@@ -2863,6 +2953,99 @@ directory = "ex-2"
                 removed: vec![removed_id]
             }
         );
+    }
+
+    #[test]
+    fn check_mooc_exercise_updates_does_not_report_closed_chapter_exercises_as_removed() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_instance_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "same checksum");
+        let closed_id = add_second_mooc_exercise(projects_dir.path());
+
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "same checksum",
+                    "http://example.com/stub.tar.zst",
+                )
+            ))
+            .create();
+        let _progress = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/progress".to_string(),
+                ),
+            )
+            .with_body(progress_with_closed_chapter_json(&[closed_id]))
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let updates = check_mooc_exercise_updates(&client, &auth, projects_dir.path()).unwrap();
+
+        assert_eq!(updates, MoocExerciseUpdates::default());
+        assert!(
+            projects_dir
+                .path()
+                .join("mooc/my-course/ex-2/src/main.py")
+                .is_file()
+        );
+    }
+
+    #[test]
+    fn update_mooc_exercises_leaves_closed_chapter_exercises_in_place() {
+        init();
+        let mut server = Server::new();
+
+        let projects_dir = tempfile::tempdir().unwrap();
+        let (_instance_id, exercise_id, task_id) =
+            write_mooc_course_config(projects_dir.path(), "same checksum");
+        let closed_id = add_second_mooc_exercise(projects_dir.path());
+
+        let _m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/api/v0/exercise-services/client/courses/[^/]+/exercises".to_string(),
+                ),
+            )
+            .with_body(format!(
+                "[{}]",
+                editor_slide_json(
+                    exercise_id,
+                    task_id,
+                    "same checksum",
+                    "http://example.com/stub.tar.zst",
+                )
+            ))
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = update_mooc_exercises(&client, &auth, projects_dir.path()).unwrap();
+
+        assert!(result.downloaded.is_empty());
+        let contents = file_util::read_file_to_string(
+            projects_dir.path().join("mooc/my-course/ex-2/src/main.py"),
+        )
+        .unwrap();
+        assert_eq!(contents, "student code");
+        let config = ProjectsConfig::load(projects_dir.path()).unwrap();
+        let course = config.mooc_courses.values().next().unwrap();
+        assert_eq!(course.exercises[&closed_id].checksum, "old checksum");
     }
 
     #[test]
@@ -3562,6 +3745,66 @@ directory = "skip-me"
         let reloaded = ProjectsConfig::load(projects_dir.path()).unwrap();
         assert!(reloaded.get_mooc_exercise(course_id, ex_new).is_some());
     }
+
+    #[test]
+    fn download_or_update_reports_closed_chapter_exercises_as_not_open_yet() {
+        init();
+        let mut server = Server::new();
+
+        let course_id = Uuid::new_v4();
+        let closed_id = Uuid::new_v4();
+        let projects_dir = tempfile::tempdir().unwrap();
+
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}").as_str(),
+            )
+            .with_body(
+                serde_json::json!({
+                    "id": course_id, "slug": "course", "name": "Course",
+                    "description": null, "organization_name": "org",
+                })
+                .to_string(),
+            )
+            .create();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+            )
+            .with_body("[]")
+            .create();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/courses/{course_id}/progress").as_str(),
+            )
+            .with_body(progress_with_closed_chapter_json(&[closed_id]))
+            .create();
+
+        let client = mock_mooc_client(&server);
+        let auth = mock_mooc_auth(&server);
+        let result = download_or_update_mooc_course_exercises(
+            &client,
+            &auth,
+            projects_dir.path(),
+            &[closed_id],
+            Some(course_id),
+        )
+        .unwrap();
+
+        let failed = result.failed.unwrap();
+        assert_eq!(failed.len(), 1);
+        assert_eq!(failed[0].0.exercise_id, closed_id);
+        assert_eq!(
+            failed[0].1,
+            vec![format!(
+                "Exercise {closed_id} is in chapter 2 \"Later\", which opens at 2030-01-01 00:00:00 UTC"
+            )]
+        );
+    }
+
     /// Serializes the env-dependent auth tests with the crate's other
     /// `TMC_LANGS_CONFIG_DIR` users.
     fn auth_env(config_dir: &Path, trust_localhost: bool) -> std::sync::MutexGuard<'static, ()> {

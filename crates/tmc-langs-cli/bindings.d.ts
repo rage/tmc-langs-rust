@@ -204,6 +204,7 @@ export type MoocExerciseUpdates = {
 updated: Array<string>,
 /**
  * Exercises their course no longer has. Their local copies are left in place and are never updated.
+ * Exercises of a chapter that has not opened yet are absent from the course but not removed.
  */
 removed: Array<string>, }
 
