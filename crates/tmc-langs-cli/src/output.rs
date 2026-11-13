@@ -215,7 +215,9 @@ pub enum Kind {
     DeviceLoginDenied,
     /// A device login was not approved before its code expired.
     DeviceLoginExpired,
-    /// The server answered 404: what was asked for does not exist, or not for this user.
+    /// The server answered 404: what was asked for does not exist, or not for this user. Also
+    /// a file courses.mooc.fi handed out a download URL for (an exercise's or submission's
+    /// files) that is missing from its file store.
     /// A 404 for a request addressing one exercise is `ExerciseNotFound` instead.
     NotFound,
     /// The server answered with a 5xx status. Transient, so stored credentials are kept.

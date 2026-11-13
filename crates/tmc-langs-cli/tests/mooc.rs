@@ -1080,10 +1080,8 @@ fn dispatches_exercise() {
     }
 }
 
-#[test]
-fn dispatches_download_exercise() {
-    let mut server = mockito::Server::new();
-    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+/// Serves exercise `exercise_id` as an editor exercise whose stub is at `/files/stub.tar.zst`.
+fn mock_editor_exercise(server: &mut mockito::Server, exercise_id: &str) -> mockito::Mock {
     let stub_download_url = format!("{}/files/stub.tar.zst", server.url());
     server
         .mock(
@@ -1114,7 +1112,14 @@ fn dispatches_download_exercise() {
             })
             .to_string(),
         )
-        .create();
+        .create()
+}
+
+#[test]
+fn dispatches_download_exercise() {
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let _exercise = mock_editor_exercise(&mut server, exercise_id);
     server
         .mock("GET", "/files/stub.tar.zst")
         .with_body(make_tar_zst(&[("src/main.py", b"print('downloaded')")]))
@@ -1137,6 +1142,41 @@ fn dispatches_download_exercise() {
     assert!(matches!(data.result, OutputResult::ExecutedCommand));
     let extracted = std::fs::read_to_string(target.path().join("src/main.py")).unwrap();
     assert_eq!(extracted, "print('downloaded')");
+}
+
+#[test]
+fn a_missing_exercise_archive_reports_not_found() {
+    let mut server = mockito::Server::new();
+    let exercise_id = "df5ee6c1-57d1-43b6-b39e-5d72119edb5f";
+    let _exercise = mock_editor_exercise(&mut server, exercise_id);
+    server
+        .mock("GET", "/files/stub.tar.zst")
+        .with_status(404)
+        .create();
+
+    let target = tempfile::tempdir().unwrap();
+    let error = run_mooc(
+        &server,
+        &[
+            "download-exercise",
+            "--exercise-id",
+            exercise_id,
+            "--target",
+            target.path().to_str().unwrap(),
+        ],
+    )
+    .unwrap_err();
+    match &*error.output {
+        CliOutput::OutputData(data) => assert!(
+            data.message
+                .starts_with("The exercise's files are missing on courses.mooc.fi"),
+            "{}",
+            data.message
+        ),
+        other => panic!("expected OutputData, got {other:?}"),
+    }
+    assert_http_status(&error, Some(404));
+    assert_error_kind(error, "not-found");
 }
 
 #[test]

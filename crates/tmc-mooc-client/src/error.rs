@@ -3,6 +3,7 @@
 use reqwest::{Method, StatusCode, Url};
 use std::error::Error;
 use thiserror::Error;
+use tmc_langs_util::http_error::{describe_http_error, quotable_body};
 use uuid::Uuid;
 
 pub type MoocClientResult<T> = Result<T, Box<MoocClientError>>;
@@ -38,21 +39,42 @@ pub(crate) fn redact_query(url: &str) -> String {
     redacted
 }
 
+/// What a backend's error body says to a person: an `ApiErrorResponse` `message` or an OAuth
+/// `error_description`/`error`, else the body itself when it is fit to quote.
+fn response_detail(body: &str) -> Option<String> {
+    if let Ok(serde_json::Value::Object(fields)) = serde_json::from_str(body) {
+        let detail = ["message", "error_description", "error"]
+            .into_iter()
+            .filter_map(|key| fields.get(key)?.as_str())
+            .map(str::trim)
+            .find(|text| !text.is_empty());
+        if let Some(detail) = detail {
+            return Some(detail.to_string());
+        }
+    }
+    quotable_body(body)
+}
+
 #[derive(Debug, Error)]
 pub enum MoocClientError {
     #[error(
-        "HTTP error {status} for {}: {error}. Obsolete client: {obsolete_client}.",
-        redact_query(url.as_str())
+        "{}",
+        describe_http_error(status, &redact_query(url.as_str()), response_detail(error).as_deref(), *obsolete_client)
     )]
     HttpError {
         url: Url,
         status: StatusCode,
+        /// The raw response body.
         error: String,
         obsolete_client: bool,
         /// `message_key` of the backend's `ApiErrorResponse` body, if it had that shape;
         /// lets the CLI map controlled errors (e.g. `not_enrolled`) to a typed `Kind`.
         message_key: Option<String>,
     },
+    /// A file download answered 404: the exercise's or submission's files are gone from the
+    /// backend's file store.
+    #[error("The exercise's files are missing on courses.mooc.fi ({})", redact_query(url.as_str()))]
+    FileNotFound { url: Url },
     #[error("Connection error trying to {} {}", .0, redact_query(.1.as_str()))]
     ConnectionError(Method, Url, #[source] reqwest::Error),
     #[error("Failed to parse as URL: {}", redact_query(.0))]

@@ -82,7 +82,7 @@ fn assert_success(response: Response, url: &Url) -> Result<Response, TestMyCodeC
         Err(TestMyCodeClientError::HttpError {
             url: url.clone(),
             status,
-            error: status.to_string(),
+            error: String::new(),
             obsolete_client: false,
         })
     }
@@ -1038,6 +1038,40 @@ mod test {
             .match_query(client_matcher())
             .with_body(body)
             .create()
+    }
+
+    #[test]
+    fn http_error_without_a_message_ends_at_the_url() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/submissions/0")
+            .match_query(client_matcher())
+            .with_status(404)
+            .with_body("<html>Not Found</html>")
+            .create();
+        let message = get_submission(&client, 0).unwrap_err().to_string();
+        assert!(message.starts_with("404 Not Found from http"), "{message}");
+        assert!(message.ends_with("/api/v8/core/submissions/0"), "{message}");
+    }
+
+    #[test]
+    fn http_error_carries_the_server_message_and_obsolete_client() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let _m = server
+            .mock("GET", "/api/v8/core/submissions/0")
+            .match_query(client_matcher())
+            .with_status(422)
+            .with_body(r#"{"error": "Too old", "obsolete_client": true}"#)
+            .create();
+        let message = get_submission(&client, 0).unwrap_err().to_string();
+        assert!(
+            message.ends_with(": Too old. This client version is no longer supported; update it."),
+            "{message}"
+        );
     }
 
     #[test]

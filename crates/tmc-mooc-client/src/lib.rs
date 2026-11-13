@@ -264,12 +264,20 @@ impl MoocClient {
         Ok(res)
     }
 
+    /// Downloads a file the backend handed out a URL for (an exercise stub or a submission's
+    /// file). A 404 is [`MoocClientError::FileNotFound`].
     pub fn download(&self, url: Url) -> MoocClientResult<Bytes> {
-        let res = self
-            .request(Method::GET, url)
+        self.request(Method::GET, url)
             .transfer_timeout()
-            .send_expect_bytes()?;
-        Ok(res)
+            .send_expect_bytes()
+            .map_err(|err| match *err {
+                MoocClientError::HttpError { url, status, .. }
+                    if status == StatusCode::NOT_FOUND =>
+                {
+                    Box::new(MoocClientError::FileNotFound { url })
+                }
+                _ => err,
+            })
     }
 
     /// Downloads the stub archive for an exercise.
@@ -1501,6 +1509,74 @@ mod test {
             .unwrap();
         let bytes = client.download(url).unwrap();
         assert_eq!(String::from_utf8(bytes.into()).unwrap(), "hello!");
+    }
+
+    #[test]
+    fn download_reports_a_missing_file() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        server
+            .mock("GET", "/files/archive.tar.zst")
+            .match_query(Matcher::Any)
+            .with_status(404)
+            .create();
+        let url = format!("{}/files/archive.tar.zst?claim=secret", server.url())
+            .parse()
+            .unwrap();
+        let err = client.download(url).unwrap_err();
+        assert!(matches!(*err, MoocClientError::FileNotFound { .. }));
+        let message = err.to_string();
+        assert!(message.starts_with("The exercise's files are missing on courses.mooc.fi"));
+        assert!(!message.contains("secret"), "{message}");
+    }
+
+    #[test]
+    fn http_error_carries_the_backend_message() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = Uuid::new_v4();
+        server
+            .mock(
+                "GET",
+                format!("/api/v0/exercise-services/client/exercises/{exercise_id}").as_str(),
+            )
+            .with_status(422)
+            .with_body(
+                serde_json::json!({
+                    "type": "validation_error",
+                    "message_key": "deadline_passed",
+                    "message": "Exercise deadline passed."
+                })
+                .to_string(),
+            )
+            .create();
+        let message = client.exercise(exercise_id).unwrap_err().to_string();
+        assert!(
+            message.starts_with("422 Unprocessable Entity from http"),
+            "{message}"
+        );
+        assert!(
+            message.ends_with(": Exercise deadline passed."),
+            "{message}"
+        );
+        assert!(!message.contains("Obsolete"), "{message}");
+    }
+
+    #[test]
+    fn http_error_with_an_empty_body_ends_at_the_url() {
+        init();
+        let mut server = Server::new();
+        let client = make_client(&server);
+        let exercise_id = Uuid::new_v4();
+        let path = format!("/api/v0/exercise-services/client/exercises/{exercise_id}");
+        server.mock("GET", path.as_str()).with_status(404).create();
+        let message = client.exercise(exercise_id).unwrap_err().to_string();
+        assert_eq!(
+            message,
+            format!("404 Not Found from {}{path}", server.url())
+        );
     }
 
     /// Fetches a course whose body is the base course plus `extra_fields`.

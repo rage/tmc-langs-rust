@@ -195,6 +195,7 @@ fn find_http_status(e: &anyhow::Error) -> Option<u16> {
         }
         match as_mooc_client_error(cause) {
             Some(MoocClientError::HttpError { status, .. }) => Some(status.as_u16()),
+            Some(MoocClientError::FileNotFound { .. }) => Some(404),
             _ => None,
         }
     })
@@ -261,6 +262,7 @@ fn mooc_error_kind(err: &MoocClientError) -> Option<Kind> {
             }
         }
         MoocClientError::NotAuthenticated => Some(Kind::NotLoggedIn),
+        MoocClientError::FileNotFound { .. } => Some(Kind::NotFound),
         MoocClientError::DeviceAccessDenied => Some(Kind::DeviceLoginDenied),
         MoocClientError::DeviceCodeExpired => Some(Kind::DeviceLoginExpired),
         // Stored credentials are gone; the user must log in again.
