@@ -10,27 +10,23 @@ runs:
         set -euo pipefail
         cd "$GITHUB_WORKSPACE"
 
-        # Each `run:` step is a fresh shell, so the devShell env only reaches later steps
-        # through $GITHUB_ENV. Writing to a file first (rather than `source <(nix print-dev-env)`)
-        # lets `set -e` catch a `nix` failure. The script ends with `eval "$shellHook"`.
-        nix print-dev-env > "$RUNNER_TEMP/nix-dev-env.sh"
-
-        declare -A before
-        while IFS= read -r -d '' entry; do
-          before[${entry%%=*}]=${entry#*=}
-        done < <(env -0)
-
-        source "$RUNNER_TEMP/nix-dev-env.sh"
+        # Each `run:` step is a fresh shell, so the devShell env only reaches later steps through
+        # $GITHUB_ENV. It is read from `nix develop` rather than by sourcing `nix print-dev-env`,
+        # because macOS's /bin/bash 3.2 cannot run stdenv's setup script.
+        nix develop --command env -0 > "$RUNNER_TEMP/nix-dev-env"
 
         # Exports everything the devShell changed, not a fixed list: stdenv's setup hooks set
         # dozens of per-platform variables (NIX_CFLAGS_COMPILE, NIX_CC_WRAPPER_TARGET_HOST_<triple>,
-        # the Darwin SDK) that the cc wrapper needs. Lowercase-initial names are derivation attributes;
-        # the skipped ones point at the throwaway build directory or belong to this shell.
+        # the Darwin SDK) that the cc wrapper needs. Lowercase-initial names are derivation
+        # attributes; the skipped ones point at nix develop's temporary directory or belong to
+        # the shell.
         skipped=" HOME PWD OLDPWD SHLVL SHELL _ NIX_BUILD_TOP NIX_BUILD_CORES TMP TMPDIR TEMP TEMPDIR "
         delimiter="EOF_$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
-        for name in $(compgen -e); do
-          [[ $name =~ ^_?[A-Z] ]] || continue
+        while IFS= read -r -d '' entry; do
+          name=${entry%%=*}
+          value=${entry#*=}
+          [[ $name =~ ^_?[A-Z][A-Za-z0-9_]*$ ]] || continue
           [[ $skipped == *" $name "* ]] && continue
-          [[ ${before[$name]+set} && ${before[$name]} == "${!name}" ]] && continue
-          printf '%s<<%s\n%s\n%s\n' "$name" "$delimiter" "${!name}" "$delimiter"
-        done >> "$GITHUB_ENV"
+          [[ ${!name+set} && ${!name} == "$value" ]] && continue
+          printf '%s<<%s\n%s\n%s\n' "$name" "$delimiter" "$value" "$delimiter"
+        done < "$RUNNER_TEMP/nix-dev-env" >> "$GITHUB_ENV"
