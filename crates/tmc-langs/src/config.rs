@@ -277,8 +277,9 @@ mod test {
         );
     }
 
-    /// Writes a mooc course with a single exercise. Mooc courses are keyed by
-    /// instance id and live under `mooc/<directory>`.
+    /// Writes a mooc course with a single exercise under `mooc/<directory>`.
+    /// `course_id` doubles as the instance id, which `ProjectsConfig` keys
+    /// courses by, so courses sharing one would overwrite each other.
     fn mooc_course_to(
         projects_dir: &Path,
         directory: &str,
@@ -291,7 +292,7 @@ mod test {
             "course_config.toml",
             format!(
                 "course_id = '{course_id}'\n\
-                 instance_id = '{}'\n\
+                 instance_id = '{course_id}'\n\
                  course = '{directory}'\n\
                  directory = '{directory}'\n\
                  [exercises.'{exercise_id}']\n\
@@ -299,7 +300,6 @@ mod test {
                  task_id = '{}'\n\
                  checksum = 'abc'\n\
                  directory = '{exercise_slug}'\n",
-                Uuid::nil(),
                 Uuid::nil(),
             ),
         );
