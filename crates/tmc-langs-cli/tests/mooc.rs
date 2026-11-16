@@ -1286,6 +1286,159 @@ fn dispatches_check_exercise_updates_empty() {
     }
 }
 
+/// Tracks a course with one exercise of the given checksum under `projects_dir`, laid out as
+/// the CLI's projects dir for `--client-name test`. Returns the exercise's id.
+fn track_mooc_course(
+    projects_dir: &std::path::Path,
+    course_id: Uuid,
+    directory: &str,
+    checksum: &str,
+) -> Uuid {
+    let exercise_id = Uuid::new_v4();
+    let course_dir = projects_dir.join("test/mooc").join(directory);
+    std::fs::create_dir_all(course_dir.join("exercise")).unwrap();
+    std::fs::write(
+        course_dir.join("course_config.toml"),
+        format!(
+            r#"
+course_id = "{course_id}"
+instance_id = "{course_id}"
+course = "{directory}"
+directory = "{directory}"
+
+[exercises."{exercise_id}"]
+name = "Exercise"
+task_id = "{}"
+checksum = "{checksum}"
+directory = "exercise"
+"#,
+            Uuid::new_v4()
+        ),
+    )
+    .unwrap();
+    exercise_id
+}
+
+fn mock_course_exercises(
+    server: &mut mockito::Server,
+    course_id: Uuid,
+    status: usize,
+    body: String,
+) -> mockito::Mock {
+    server
+        .mock(
+            "GET",
+            format!("/api/v0/exercise-services/client/courses/{course_id}/exercises").as_str(),
+        )
+        .with_status(status)
+        .with_body(body)
+        .create()
+}
+
+#[test]
+fn check_exercise_updates_reports_refused_courses_and_checks_the_rest() {
+    let mut server = mockito::Server::new();
+    let projects_root = tempfile::tempdir().unwrap();
+    let hidden_course = Uuid::new_v4();
+    let deleted_course = Uuid::new_v4();
+    let open_course = Uuid::new_v4();
+    track_mooc_course(projects_root.path(), hidden_course, "hidden", "old");
+    track_mooc_course(projects_root.path(), deleted_course, "deleted", "old");
+    let stale = track_mooc_course(projects_root.path(), open_course, "open", "old");
+
+    let _hidden = mock_course_exercises(
+        &mut server,
+        hidden_course,
+        403,
+        r#"{"message":"forbidden","message_key":"forbidden"}"#.to_string(),
+    );
+    let _deleted = mock_course_exercises(
+        &mut server,
+        deleted_course,
+        404,
+        r#"{"message":"not found","message_key":"not_found"}"#.to_string(),
+    );
+    let stub_url = format!("{}/files/e.tar.zst", server.url());
+    let _open = mock_course_exercises(
+        &mut server,
+        open_course,
+        200,
+        serde_json::json!([{
+            "slide_id": Uuid::new_v4(), "exercise_id": stale, "course_id": open_course,
+            "exercise_name": "Exercise", "exercise_order_number": 0,
+            "tasks": [{
+                "task_id": Uuid::new_v4(), "order_number": 0, "assignment": [],
+                "public_spec": {
+                    "type": "editor", "archive_name": "e.tar.zst",
+                    "stub_download_url": stub_url,
+                    "student_file_paths": ["src/main.py"], "checksum": "new"
+                },
+                "model_solution_spec": null, "exercise_service_slug": "tmc"
+            }],
+        }])
+        .to_string(),
+    );
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let output = run_mooc_in(
+        &server,
+        &["check-exercise-updates"],
+        config_dir.path(),
+        projects_root.path(),
+    )
+    .unwrap();
+
+    let output = serde_json::to_value(output_data(output)).unwrap();
+    assert_eq!(output["result"], "executed-command");
+    let data = &output["data"]["output-data"];
+    assert_eq!(data["updated"], serde_json::json!([stale]));
+    assert_eq!(data["removed"], serde_json::json!([]));
+    let mut unchecked = data["unchecked_courses"].as_array().unwrap().clone();
+    unchecked.sort_by_key(|course| course["kind"].as_str().unwrap().to_string());
+    assert_eq!(
+        unchecked,
+        vec![
+            serde_json::json!({ "course_id": hidden_course, "kind": "insufficient-scope" }),
+            serde_json::json!({ "course_id": deleted_course, "kind": "not-found" }),
+        ]
+    );
+
+    // Clients handle a refused course like a failed single-course command with the same kind.
+    for (course_id, kind) in [
+        (hidden_course, "insufficient-scope"),
+        (deleted_course, "not-found"),
+    ] {
+        let error = run_mooc_in_expect_error(
+            &server,
+            &["course-exercises", "--course-id", &course_id.to_string()],
+            config_dir.path(),
+            projects_root.path(),
+        );
+        assert_error_kind(error, kind);
+    }
+}
+
+#[test]
+fn check_exercise_updates_fails_on_a_server_error_for_any_course() {
+    let mut server = mockito::Server::new();
+    let projects_root = tempfile::tempdir().unwrap();
+    let refused_course = Uuid::new_v4();
+    let failing_course = Uuid::new_v4();
+    track_mooc_course(projects_root.path(), refused_course, "refused", "old");
+    track_mooc_course(projects_root.path(), failing_course, "failing", "old");
+    let _refused = mock_course_exercises(&mut server, refused_course, 404, String::new());
+    let _failing = mock_course_exercises(&mut server, failing_course, 500, String::new());
+
+    let config_dir = tempfile::tempdir().unwrap();
+    let error = run_mooc_in_expect_error(
+        &server,
+        &["check-exercise-updates"],
+        config_dir.path(),
+        projects_root.path(),
+    );
+    assert_error_kind(error, "server-error");
+}
+
 #[test]
 fn dispatches_download_or_update_course_exercises() {
     // The extension's bulk mooc download: downloaded + skipped + failed
