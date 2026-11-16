@@ -5,7 +5,7 @@
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">mod </span>projects_config;
 <a href=#6 id=6 data-nosnippet>6</a><span class="kw">mod </span>tmc_config;
 <a href=#7 id=7 data-nosnippet>7</a>
-<a href=#8 id=8 data-nosnippet>8</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::projects_config::simple_kebab_case;
+<a href=#8 id=8 data-nosnippet>8</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::projects_config::{MoocCourseConfig, simple_kebab_case};
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">pub use </span><span class="self">self</span>::{
 <a href=#10 id=10 data-nosnippet>10</a>    credentials::Credentials,
 <a href=#11 id=11 data-nosnippet>11</a>    mooc_credentials::{MoocAuth, MoocAuthFailure, MoocCredentials},
@@ -277,29 +277,29 @@
 <a href=#277 id=277 data-nosnippet>277</a>        );
 <a href=#278 id=278 data-nosnippet>278</a>    }
 <a href=#279 id=279 data-nosnippet>279</a>
-<a href=#280 id=280 data-nosnippet>280</a>    <span class="doccomment">/// Writes a mooc course with a single exercise. Mooc courses are keyed by
-<a href=#281 id=281 data-nosnippet>281</a>    /// instance id and live under `mooc/&lt;directory&gt;`.
-<a href=#282 id=282 data-nosnippet>282</a>    </span><span class="kw">fn </span>mooc_course_to(
-<a href=#283 id=283 data-nosnippet>283</a>        projects_dir: <span class="kw-2">&amp;</span>Path,
-<a href=#284 id=284 data-nosnippet>284</a>        directory: <span class="kw-2">&amp;</span>str,
-<a href=#285 id=285 data-nosnippet>285</a>        course_id: Uuid,
-<a href=#286 id=286 data-nosnippet>286</a>        exercise_slug: <span class="kw-2">&amp;</span>str,
-<a href=#287 id=287 data-nosnippet>287</a>        exercise_id: Uuid,
-<a href=#288 id=288 data-nosnippet>288</a>    ) {
-<a href=#289 id=289 data-nosnippet>289</a>        file_to(
-<a href=#290 id=290 data-nosnippet>290</a>            projects_dir.join(<span class="string">"mooc"</span>).join(directory),
-<a href=#291 id=291 data-nosnippet>291</a>            <span class="string">"course_config.toml"</span>,
-<a href=#292 id=292 data-nosnippet>292</a>            <span class="macro">format!</span>(
-<a href=#293 id=293 data-nosnippet>293</a>                <span class="string">"course_id = '{course_id}'\n\
-<a href=#294 id=294 data-nosnippet>294</a>                 instance_id = '{}'\n\
-<a href=#295 id=295 data-nosnippet>295</a>                 course = '{directory}'\n\
-<a href=#296 id=296 data-nosnippet>296</a>                 directory = '{directory}'\n\
-<a href=#297 id=297 data-nosnippet>297</a>                 [exercises.'{exercise_id}']\n\
-<a href=#298 id=298 data-nosnippet>298</a>                 name = '{exercise_slug}'\n\
-<a href=#299 id=299 data-nosnippet>299</a>                 task_id = '{}'\n\
-<a href=#300 id=300 data-nosnippet>300</a>                 checksum = 'abc'\n\
-<a href=#301 id=301 data-nosnippet>301</a>                 directory = '{exercise_slug}'\n"</span>,
-<a href=#302 id=302 data-nosnippet>302</a>                Uuid::nil(),
+<a href=#280 id=280 data-nosnippet>280</a>    <span class="doccomment">/// Writes a mooc course with a single exercise under `mooc/&lt;directory&gt;`.
+<a href=#281 id=281 data-nosnippet>281</a>    /// `course_id` doubles as the instance id, which `ProjectsConfig` keys
+<a href=#282 id=282 data-nosnippet>282</a>    /// courses by, so courses sharing one would overwrite each other.
+<a href=#283 id=283 data-nosnippet>283</a>    </span><span class="kw">fn </span>mooc_course_to(
+<a href=#284 id=284 data-nosnippet>284</a>        projects_dir: <span class="kw-2">&amp;</span>Path,
+<a href=#285 id=285 data-nosnippet>285</a>        directory: <span class="kw-2">&amp;</span>str,
+<a href=#286 id=286 data-nosnippet>286</a>        course_id: Uuid,
+<a href=#287 id=287 data-nosnippet>287</a>        exercise_slug: <span class="kw-2">&amp;</span>str,
+<a href=#288 id=288 data-nosnippet>288</a>        exercise_id: Uuid,
+<a href=#289 id=289 data-nosnippet>289</a>    ) {
+<a href=#290 id=290 data-nosnippet>290</a>        file_to(
+<a href=#291 id=291 data-nosnippet>291</a>            projects_dir.join(<span class="string">"mooc"</span>).join(directory),
+<a href=#292 id=292 data-nosnippet>292</a>            <span class="string">"course_config.toml"</span>,
+<a href=#293 id=293 data-nosnippet>293</a>            <span class="macro">format!</span>(
+<a href=#294 id=294 data-nosnippet>294</a>                <span class="string">"course_id = '{course_id}'\n\
+<a href=#295 id=295 data-nosnippet>295</a>                 instance_id = '{course_id}'\n\
+<a href=#296 id=296 data-nosnippet>296</a>                 course = '{directory}'\n\
+<a href=#297 id=297 data-nosnippet>297</a>                 directory = '{directory}'\n\
+<a href=#298 id=298 data-nosnippet>298</a>                 [exercises.'{exercise_id}']\n\
+<a href=#299 id=299 data-nosnippet>299</a>                 name = '{exercise_slug}'\n\
+<a href=#300 id=300 data-nosnippet>300</a>                 task_id = '{}'\n\
+<a href=#301 id=301 data-nosnippet>301</a>                 checksum = 'abc'\n\
+<a href=#302 id=302 data-nosnippet>302</a>                 directory = '{exercise_slug}'\n"</span>,
 <a href=#303 id=303 data-nosnippet>303</a>                Uuid::nil(),
 <a href=#304 id=304 data-nosnippet>304</a>            ),
 <a href=#305 id=305 data-nosnippet>305</a>        );
