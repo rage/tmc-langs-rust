@@ -68,7 +68,6 @@
 
             # Native build tooling (bindgen needs libclang)
             pkgs.pkg-config
-            pkgs.gcc
             pkgs.gnumake
             pkgs.cmake
             pkgs.openssl
@@ -86,7 +85,6 @@
 
             # Make plugin (gnumake above)
             pkgs.check
-            pkgs.valgrind
 
             # Python plugin
             pkgs.python3
@@ -96,6 +94,11 @@
 
             # R plugin
             rEnv
+          ]
+          # Darwin's stdenv compiler is clang, and valgrind does not support aarch64-darwin.
+          ++ lib.optionals pkgs.stdenv.isLinux [
+            pkgs.gcc
+            pkgs.valgrind
           ];
 
           # bindgen needs libclang at build time.
@@ -103,6 +106,10 @@
 
           # Makes j4rs's embedded JVM resolve libzip/libz against the nix loader.
           JAVA_HOME = pkgs.jdk21.home;
+
+          # Apphosts consult DOTNET_ROOT before the machine-wide install, whose newer SDKs
+          # (.NET 11's MSBuild cannot resolve Microsoft.NET.Sdk for the C# runner) must stay out.
+          DOTNET_ROOT = "${pkgs.dotnet-sdk_8.unwrapped}/share/dotnet";
 
           shellHook = ''
             export PATH="${pkgs.jdk21.home}/bin:$PATH"
