@@ -374,13 +374,18 @@ impl LanguagePlugin for CSharpPlugin {
 mod test {
     use super::*;
     use once_cell::sync::Lazy;
-    use std::sync::{Mutex, Once};
+    use std::sync::{Mutex, MutexGuard, Once, PoisonError};
     use tempfile::TempDir;
     use zip::write::SimpleFileOptions;
 
     static INIT_RUNNER: Once = Once::new();
     // running the runner in parallel seems to sometimes make tests run for an excessively long time
     static MUTEX: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+
+    // The guard protects no data, so one failed test must not fail every later one.
+    fn lock_runner() -> MutexGuard<'static, ()> {
+        MUTEX.lock().unwrap_or_else(PoisonError::into_inner)
+    }
 
     fn init() {
         use log::*;
@@ -559,7 +564,7 @@ mod test {
     #[test]
     fn scans_exercise() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
@@ -573,7 +578,7 @@ mod test {
     #[test]
     fn runs_tests_passing() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
@@ -590,7 +595,7 @@ mod test {
     #[test]
     fn runs_tests_failing() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/failing-exercise");
         let plugin = CSharpPlugin::new();
@@ -609,7 +614,7 @@ mod test {
     #[test]
     fn runs_tests_compile_err() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/non-compiling-exercise");
         let plugin = CSharpPlugin::new();
@@ -628,7 +633,7 @@ mod test {
     #[test]
     fn runs_tests_timeout() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
@@ -641,7 +646,7 @@ mod test {
     #[test]
     fn cleans() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/passing-exercise");
         let plugin = CSharpPlugin::new();
@@ -679,7 +684,7 @@ mod test {
     #[test]
     fn doesnt_give_points_unless_all_relevant_exercises_pass() {
         init();
-        let _lock = MUTEX.lock().unwrap();
+        let _lock = lock_runner();
 
         let temp = dir_to_temp("tests/data/partially-passing");
         let plugin = CSharpPlugin::new();
