@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["TomlError"],"mod":["deserialize","error","file_util","notification_reporter","parse_util","path_util","progress_reporter","serialize"],"type":["JsonError","YamlError"]};
+window.SIDEBAR_ITEMS = {"enum":["TomlError"],"mod":["deserialize","error","file_util","http_error","notification_reporter","parse_util","path_util","progress_reporter","serialize"],"type":["JsonError","YamlError"]};
