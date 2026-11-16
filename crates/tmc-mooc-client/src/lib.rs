@@ -892,7 +892,8 @@ pub struct ExerciseProgress {
     #[serde(default)]
     pub pending_teacher_review: Option<PendingTeacherReview>,
     /// `true` once the exercise takes no more submissions from the user, whatever its chapter's
-    /// locking status says; a submit fails with the `exercise-locked` error kind.
+    /// locking status says. A submit fails with the `chapter-completed-and-locked` error kind
+    /// while the chapter is locked for the user, and with `exercise-locked` otherwise.
     #[serde(default)]
     pub exercise_locked: bool,
 }
@@ -939,13 +940,13 @@ impl From<api::PendingTeacherReview> for PendingTeacherReview {
 pub enum ExerciseStanding {
     /// No graded submission and no try used.
     NotAttempted,
-    /// Below full points with tries left, still being graded, or waiting for a teacher's review
-    /// (`pending_teacher_review`).
+    /// Below full points with tries left, still being graded, in peer or self review, or waiting
+    /// for a teacher's review (`pending_teacher_review`).
     Attempted,
     /// A grading awarded full points.
     Passed,
-    /// Below full points (0 included), the try limit used up and no teacher review pending, so
-    /// the score is final.
+    /// Below full points (0 included), the try limit used up and no review pending, so the score
+    /// is final.
     OutOfTries,
 }
 

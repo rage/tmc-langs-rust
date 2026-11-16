@@ -569,7 +569,8 @@ tries_left: number | null,
 pending_teacher_review: PendingTeacherReview | null,
 /**
  * `true` once the exercise takes no more submissions from the user, whatever its chapter's
- * locking status says; a submit fails with the `exercise-locked` error kind.
+ * locking status says. A submit fails with the `chapter-completed-and-locked` error kind
+ * while the chapter is locked for the user, and with `exercise-locked` otherwise.
  */
 exercise_locked: boolean, }
 
